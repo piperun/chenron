@@ -1,7 +1,4 @@
-import 'dart:convert';
 import 'package:drift/drift.dart';
-
-part 'database.g.dart';
 
 class Folders extends Table {
   IntColumn get id => integer().autoIncrement()();
