@@ -88,7 +88,7 @@ class _FolderFormState extends State<FolderForm> {
               filteredFolders = allFolders;
             });
           },
-          child: Text('Add Selected Folders'),
+          child: const Text('Add Selected Folders'),
         ),
         const Divider(),
         Flexible(

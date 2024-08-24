@@ -5,6 +5,7 @@ import 'package:chenron/folder/data_structs/link_data.dart';
 import 'package:chenron/folder/data_structs/data_state.dart';
 import 'package:chenron/folder/components/table/link_toolbar.dart';
 import 'package:chenron/responsible_design/breakpoints.dart';
+import 'package:chenron/folder/components/forms/form/link_form_field.dart';
 
 class LinkForm extends StatefulWidget {
   final GlobalKey<FormState> dataKey;
@@ -65,45 +66,53 @@ class _LinkFormState extends State<LinkForm> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Form(
-              key: widget.dataKey,
-              child: Wrap(
-                alignment: WrapAlignment.center,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  SizedBox(
-                    width: Breakpoints.responsiveWidth(context),
-                    child: TextFormField(
-                      controller: _linkController,
-                      decoration:
-                          const InputDecoration(labelText: 'Enter Link'),
-                      minLines: 1,
-                      maxLines: Breakpoints.isMedium(context) ? 23 : 25,
-                    ),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (_linkController.text.isEmpty) return;
-                      linkProvider.addItem(
-                        LinkData(
-                          url: _linkController.text,
-                          comment: "",
-                          tags: [],
+                key: widget.dataKey,
+                child: LinkFormField(
+                  linkProvider: linkProvider,
+                  validator: (_) {
+                    if (linkProvider.create.isEmpty) {
+                      return 'Please add at least one link';
+                    }
+                    return null;
+                  },
+                  child: Wrap(
+                    alignment: WrapAlignment.center,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: Breakpoints.responsiveWidth(context),
+                        child: TextFormField(
+                          controller: _linkController,
+                          decoration:
+                              const InputDecoration(labelText: 'Enter Link'),
+                          minLines: 1,
+                          maxLines: Breakpoints.isMedium(context) ? 23 : 25,
                         ),
-                      );
-                      stateManager.appendRows([
-                        PlutoRow(cells: {
-                          "url": PlutoCell(value: _linkController.text),
-                          "comment": PlutoCell(value: ""),
-                          "tags": PlutoCell(value: [])
-                        })
-                      ]);
-                      _linkController.clear();
-                    },
-                    child: const Text('Add Link'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          if (_linkController.text.isEmpty) return;
+                          linkProvider.addItem(
+                            LinkData(
+                              url: _linkController.text,
+                              comment: "",
+                              tags: [],
+                            ),
+                          );
+                          stateManager.appendRows([
+                            PlutoRow(cells: {
+                              "url": PlutoCell(value: _linkController.text),
+                              "comment": PlutoCell(value: ""),
+                              "tags": PlutoCell(value: [])
+                            })
+                          ]);
+                          _linkController.clear();
+                        },
+                        child: const Text('Add Link'),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
+                )),
             LinkToolbar(
               onDelete: () {
                 final selectedRows = stateManager.currentSelectingRows;

@@ -1,3 +1,4 @@
+import 'package:chenron/folder/create/create_state.dart';
 import 'package:chenron/folder/data_structs/data_state.dart';
 import 'package:chenron/folder/data_structs/folder_data.dart';
 import 'package:chenron/folder/data_structs/folder_state.dart';
@@ -10,6 +11,7 @@ void main() {
   runApp(MultiProvider(providers: [
     ChangeNotifierProvider(create: (context) => FolderProvider()),
     ChangeNotifierProvider(create: (context) => CUDProvider<LinkData>()),
+    ChangeNotifierProvider(create: (context) => CreateFolderState()),
   ], child: const MyApp()));
 }
 
