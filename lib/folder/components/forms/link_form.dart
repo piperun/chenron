@@ -24,6 +24,7 @@ class _LinkFormState extends State<LinkForm> {
       title: 'URL',
       field: 'url',
       type: PlutoColumnType.text(),
+      enableRowChecked: true,
     ),
     PlutoColumn(
       title: 'Comment',
@@ -115,7 +116,7 @@ class _LinkFormState extends State<LinkForm> {
                 )),
             LinkToolbar(
               onDelete: () {
-                final selectedRows = stateManager.currentSelectingRows;
+                final selectedRows = stateManager.checkedRows;
                 for (var row in selectedRows) {
                   int index = stateManager.refRows.indexOf(row);
                   if (index != -1) {
@@ -126,7 +127,7 @@ class _LinkFormState extends State<LinkForm> {
               },
             ),
             SizedBox(
-              height: 500, // Adjust as needed
+              height: 500,
               child: PlutoGrid(
                 columns: columns,
                 rows: rows,
@@ -149,7 +150,7 @@ class _LinkFormState extends State<LinkForm> {
 
                 /*
             SizedBox(
-              height: 500, // Adjust as needed
+              height: 500,
               child: PlutoGrid(
                 columns: columns,
                 rows: rows,
