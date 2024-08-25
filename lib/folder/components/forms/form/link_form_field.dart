@@ -1,4 +1,4 @@
-import 'package:chenron/folder/data_structs/data_state.dart';
+import 'package:chenron/providers/CUD_state.dart';
 import 'package:chenron/folder/data_structs/link_data.dart';
 import 'package:flutter/material.dart';
 

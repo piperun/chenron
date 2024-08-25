@@ -1,14 +1,24 @@
-import 'package:chenron/folder/create/create_state.dart';
-import 'package:chenron/folder/data_structs/data_state.dart';
-import 'package:chenron/folder/data_structs/folder_data.dart';
-import 'package:chenron/folder/data_structs/folder_state.dart';
-import 'package:chenron/folder/data_structs/link_data.dart';
+import 'package:chenron/database/database.dart';
+import 'package:chenron/providers/create_state.dart';
+import 'package:chenron/providers/CUD_state.dart';
+import 'package:chenron/providers/folder_state.dart';
+import 'package:chenron/folder/data_structs/link_struct.dart';
 import 'package:chenron/root.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+/*
+      create: (context) => MyDatabase(),
+      child: MyFlutterApp(),
+      dispose: (context, db) => db.close(),
+*/
+
 void main() {
   runApp(MultiProvider(providers: [
+    Provider<AppDatabase>(
+      create: (context) => AppDatabase(),
+      dispose: (context, db) => db.close(),
+    ),
     ChangeNotifierProvider(create: (context) => FolderProvider()),
     ChangeNotifierProvider(create: (context) => CUDProvider<LinkData>()),
     ChangeNotifierProvider(create: (context) => CreateFolderState()),

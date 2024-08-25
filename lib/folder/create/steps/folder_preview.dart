@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:chenron/folder/data_structs/data_state.dart';
-import 'package:chenron/folder/data_structs/folder_state.dart';
-import 'package:chenron/folder/data_structs/link_data.dart';
+import 'package:chenron/providers/CUD_state.dart';
+import 'package:chenron/providers/folder_state.dart';
+import 'package:chenron/folder/data_structs/link_struct.dart';
 
 class FolderPreview extends StatefulWidget {
   final GlobalKey<FormState> previewKey;

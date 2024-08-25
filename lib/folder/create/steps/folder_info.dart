@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:chenron/folder/data_structs/folder_state.dart';
+import 'package:chenron/providers/folder_state.dart';
 
 enum FolderType { link, document, folder }
 
