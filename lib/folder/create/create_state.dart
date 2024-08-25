@@ -34,6 +34,7 @@ class CreateFolderState extends ChangeNotifier {
 
   void nextStep() {
     if (_currentStep != FolderStep.preview) {
+      formKeys[_currentStep]!.currentState?.save();
       _currentStep = FolderStep.values[
           (_currentStep.index + 1).clamp(0, FolderStep.values.length - 1)];
       notifyListeners();
