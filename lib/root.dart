@@ -57,20 +57,20 @@ class _RootPageState extends State<RootPage> {
               tooltipContent: "This is a tooltip for Dashboard item",
             ),
             SideMenuExpansionItem(
-              title: "Expansion Item",
-              icon: const Icon(Icons.kitchen),
+              title: "Folder",
+              icon: const Icon(Icons.folder),
               children: [
                 SideMenuItem(
                   title: 'Expansion Item 1',
                   onTap: (index, _) {
                     sideMenu.changePage(index);
                   },
-                  icon: const Icon(Icons.home),
+                  icon: const Icon(Icons.create_new_folder),
                   badgeContent: const Text(
                     '3',
                     style: TextStyle(color: Colors.white),
                   ),
-                  tooltipContent: "Expansion Item 1",
+                  tooltipContent: "Create folder",
                 ),
                 SideMenuItem(
                   title: 'Expansion Item 2',
