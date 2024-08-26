@@ -1,7 +1,8 @@
+import 'package:chenron/database/types/data_types.dart';
+import 'package:chenron/providers/folder_content_state.dart';
 import 'package:flutter/material.dart';
 import 'package:pluto_grid/pluto_grid.dart';
 import 'package:provider/provider.dart';
-import 'package:chenron/folder/data_structs/link_struct.dart';
 import 'package:chenron/providers/CUD_state.dart';
 import 'package:chenron/folder/components/table/link_toolbar.dart';
 import 'package:chenron/responsible_design/breakpoints.dart';
@@ -50,14 +51,12 @@ class _LinkFormState extends State<LinkForm> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<CUDProvider<LinkData>>(
-      builder: (context, linkProvider, child) {
-        List<PlutoRow> rows = linkProvider.create
+    return Consumer<FolderContentProvider>(
+      builder: (context, folderContent, child) {
+        List<PlutoRow> rows = folderContent.linkProvider.create
             .map((link) => PlutoRow(
                   cells: {
                     'url': PlutoCell(value: link.url),
-                    'comment': PlutoCell(value: link.comment),
-                    'tags': PlutoCell(value: link.tags.join(', ')),
                   },
                 ))
             .toList();
@@ -69,9 +68,9 @@ class _LinkFormState extends State<LinkForm> {
             Form(
                 key: widget.dataKey,
                 child: LinkFormField(
-                  linkProvider: linkProvider,
+                  linkProvider: folderContent.linkProvider,
                   validator: (_) {
-                    if (linkProvider.create.isEmpty) {
+                    if (folderContent.linkProvider.create.isEmpty) {
                       return 'Please add at least one link';
                     }
                     return null;
@@ -93,11 +92,9 @@ class _LinkFormState extends State<LinkForm> {
                       ElevatedButton(
                         onPressed: () {
                           if (_linkController.text.isEmpty) return;
-                          linkProvider.addItem(
-                            LinkData(
+                          folderContent.linkProvider.addItem(
+                            LinkDataType(
                               url: _linkController.text,
-                              comment: "",
-                              tags: [],
                             ),
                           );
                           stateManager.appendRows([
@@ -120,7 +117,7 @@ class _LinkFormState extends State<LinkForm> {
                 for (var row in selectedRows) {
                   int index = stateManager.refRows.indexOf(row);
                   if (index != -1) {
-                    linkProvider.removeItem(index);
+                    folderContent.linkProvider.removeItem(index);
                   }
                 }
                 stateManager.removeRows(selectedRows);

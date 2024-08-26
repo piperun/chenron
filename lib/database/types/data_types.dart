@@ -14,7 +14,7 @@ enum RelationType {
   // Add more types as needed
 }
 
-abstract class DataBaseObject {
+abstract class BaseDataType {
   String get id;
   String get type;
   UpdateCompanion toInsertable() {
@@ -23,13 +23,13 @@ abstract class DataBaseObject {
 }
 
 class CUD<D> {
-  final List<DataBaseObject> create;
+  final List<BaseDataType> create;
   final List<Insertable<D>> remove;
   final List<Insertable<D>> update;
   final _logger = Logger('CUD');
 
   CUD({
-    List<DataBaseObject>? create,
+    List<BaseDataType>? create,
     List<Insertable<D>>? remove,
     List<Insertable<D>>? update,
   })  : create = create ?? [],
@@ -42,7 +42,7 @@ class CUD<D> {
           'At least one operation (create, remove, or update) must be provided',
         );
 
-  void addCreate(DataBaseObject object) {
+  void addCreate(BaseDataType object) {
     create.add(object);
   }
 
@@ -62,7 +62,7 @@ class CUD<D> {
 }
 
 @immutable
-class FolderDataType extends DataBaseObject {
+class FolderDataType extends BaseDataType {
   @override
   final String id;
   @override
@@ -107,7 +107,7 @@ class FolderDataType extends DataBaseObject {
 }
 
 @immutable
-class TagDataType extends DataBaseObject {
+class TagDataType extends BaseDataType {
   final String id;
   final String name;
   @override
@@ -137,7 +137,7 @@ class TagDataType extends DataBaseObject {
 }
 
 @immutable
-class LinkDataType extends DataBaseObject {
+class LinkDataType extends BaseDataType {
   final String id;
   final String url;
   @override
@@ -166,7 +166,7 @@ class LinkDataType extends DataBaseObject {
 }
 
 @immutable
-class DocumentDataType extends DataBaseObject {
+class DocumentDataType extends BaseDataType {
   final String id;
   final String title;
   final String content;

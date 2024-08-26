@@ -11,7 +11,7 @@ extension FolderExtensions on AppDatabase {
   Future<void> addFolder({
     required FolderDataType folderData,
     List<String>? tags,
-    List<DataBaseObject>? items,
+    List<BaseDataType>? items,
   }) async {
     String tagId;
 

@@ -1,11 +1,11 @@
+import 'package:chenron/database/types/data_types.dart';
 import 'package:chenron/providers/CUD_state.dart';
-import 'package:chenron/folder/data_structs/link_struct.dart';
 import 'package:flutter/material.dart';
 
 class LinkFormField<T> extends FormField<T> {
   LinkFormField({
     super.key,
-    required CUDProvider<LinkData> linkProvider,
+    required CUDProvider<LinkDataType> linkProvider,
     required Widget child,
     AutovalidateMode? autovalidateMode,
     super.validator,

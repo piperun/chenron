@@ -1,8 +1,14 @@
+import 'package:chenron/database/database.dart';
+import 'package:chenron/database/extensions/folder_ext.dart';
+import 'package:chenron/database/types/data_types.dart';
 import 'package:chenron/folder/create/steps/folder_data.dart';
 import 'package:chenron/folder/create/steps/folder_info.dart';
 import 'package:chenron/folder/create/steps/folder_preview.dart';
+import 'package:chenron/providers/folder_content_state.dart';
 import 'package:chenron/responsible_design/breakpoints.dart';
 import 'package:chenron/providers/create_state.dart';
+import 'package:chenron/providers/CUD_state.dart';
+import 'package:chenron/providers/folder_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -25,7 +31,9 @@ class CreateFolderStepper extends StatelessWidget {
               controlsBuilder: (context, details) =>
                   _buildStepperControls(context, details, folderState),
               onStepCancel: folderState.previousStep,
-              onStepContinue: () => _nextStep(folderState),
+              onStepContinue: () {
+                _nextStep(context, folderState);
+              },
               onStepTapped: (index) =>
                   folderState.setCurrentStep(FolderStep.values[index]),
               steps: _buildSteps(folderState),
@@ -36,10 +44,39 @@ class CreateFolderStepper extends StatelessWidget {
     );
   }
 
-  void _nextStep(CreateFolderState folderState) {
-    if (folderState.validateCurrentStep()) {
+  void _nextStep(BuildContext context, CreateFolderState folderState) {
+    if (folderState.currentStep == FolderStep.preview) {
+      final folderInfo = Provider.of<FolderProvider>(context, listen: false);
+
+      final folderContent =
+          Provider.of<FolderContentProvider>(context, listen: false);
+      final links = folderContent.linkProvider.create;
+      final documents = folderContent.documentProvider.create;
+      final folders = folderContent.folderProvider.create;
+      _saveToDatabase(
+          context,
+          FolderDataType(
+              title: folderInfo.title, description: folderInfo.description),
+          links);
+    } else if (folderState.validateCurrentStep()) {
       folderState.nextStep();
     }
+  }
+
+  void _saveToDatabase(BuildContext context, FolderDataType folderInfo,
+      List<BaseDataType> folderData) {
+    final database = Provider.of<AppDatabase>(context, listen: false);
+    print(" $folderInfo, $folderData");
+    //final database = Provider.of<AppDatabase>(context, listen: false);
+    // Perform your database operations here
+    // For example:
+    // database.insertFolder(folderState.folderData);
+    database.addFolder(folderData: folderInfo, items: folderData);
+
+    // After saving, you might want to navigate away or show a success message
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Folder saved successfully')),
+    );
   }
 
   Widget _buildStepperControls(BuildContext context, ControlsDetails details,

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:chenron/providers/CUD_state.dart';
 import 'package:chenron/providers/folder_state.dart';
-import 'package:chenron/folder/data_structs/link_struct.dart';
+import 'package:chenron/database/types/data_types.dart';
 
 class FolderPreview extends StatefulWidget {
   final GlobalKey<FormState> previewKey;
@@ -94,7 +94,7 @@ class FolderPreviewState extends State<FolderPreview> {
   Widget _buildExpandedContent(BuildContext context) {
     final folderProvider = Provider.of<FolderProvider>(context, listen: false);
     final dataProvider =
-        Provider.of<CUDProvider<LinkData>>(context, listen: false);
+        Provider.of<CUDProvider<LinkDataType>>(context, listen: false);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
