@@ -58,22 +58,13 @@ extension FolderExtensions on AppDatabase {
 
     await batch((batch) async {
       for (final itemInsert in itemInserts) {
-        await _insertFolderItem(batch, folderId, itemInsert);
+        await _insertFolderItem(batch, itemInsert, folderId);
       }
     });
   }
 
   Future<void> _insertFolderItem(
-      Batch batch, String folderId, FolderItem itemInsert) async {
-    final table = _getTableForItemType(itemInsert.type);
-    if (table == null) {
-      _logger.severe('Unknown item type');
-      throw ArgumentError('Invalid item type: $itemInsert');
-    }
-    await _yes(batch, itemInsert, folderId);
-  }
-
-  Future<void> _yes(Batch batch, FolderItem itemInsert, String folderId) async {
+      Batch batch, FolderItem itemInsert, String folderId) async {
     TableInfo? table;
     List<dynamic> exists = [];
     switch (itemInsert.type) {
@@ -105,16 +96,5 @@ extension FolderExtensions on AppDatabase {
       mode: InsertMode.insertOrIgnore,
       itemInsert.toCompanion(folderId),
     );
-  }
-
-  TableInfo? _getTableForItemType(FolderItemType type) {
-    switch (type) {
-      case FolderItemType.link:
-        return links;
-      case FolderItemType.document:
-        return documents;
-      default:
-        return null;
-    }
   }
 }
