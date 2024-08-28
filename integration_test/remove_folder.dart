@@ -1,8 +1,11 @@
+import 'package:chenron/data_struct/folder.dart';
+import 'package:chenron/data_struct/item.dart';
+import 'package:chenron/data_struct/metadata.dart';
+import 'package:chenron/database/extensions/folder/create.dart';
+import 'package:chenron/database/extensions/folder/remove.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:chenron/database/database.dart';
-import 'package:chenron/database/extensions/folder_ext.dart';
-import 'package:chenron/database/types/data_types.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -11,14 +14,11 @@ void main() {
     late AppDatabase database;
 
     setUp(() async {
-      database = AppDatabase();
-      /*
+      database = AppDatabase(databaseName: "test_db");
+
       await database.delete(database.folders).go();
-      await database.delete(database.folderTags).go();
-      await database.delete(database.folderLinks).go();
-      await database.delete(database.folderDocuments).go();
-      await database.delete(database.folderTrees).go();
-      */
+      await database.delete(database.items).go();
+      await database.delete(database.metadataRecords).go();
     });
 
     tearDown(() async {
@@ -27,73 +27,78 @@ void main() {
 
     test('Remove folder without tags', () async {
       // Create a test folder
-      final folder = FolderDataType(
+      final folderInfo = FolderInfo(
         title: 'Test Folder',
         description: 'Test Description',
       );
-      await database.addFolder(folderData: folder);
+      await database.addFolder(folderInfo: folderInfo);
 
       // Remove the folder
-      await database.removeFolder(folder.id);
+      await database.removeFolder(folderInfo.id);
 
       // Check if the folder is removed
       final result =
-          await database.folders.findById(folder.id).getSingleOrNull();
+          await database.folders.findById(folderInfo.id).getSingleOrNull();
       expect(result, isNull);
     });
 
     test('Remove folder with tags', () async {
       // Create a test folder with tags
-      final folder = FolderDataType(
+      final folderInfo = FolderInfo(
         title: 'Test Folder with Tags',
         description: 'Test Description',
       );
-      final tags = ['tag1', 'tag2'];
-      await database.addFolder(folderData: folder, tags: tags);
+      final tags = [
+        Metadata(value: 'tag1', type: MetadataTypeEnum.tag),
+        Metadata(value: 'tag2', type: MetadataTypeEnum.tag),
+      ];
+      await database.addFolder(folderInfo: folderInfo, tags: tags);
 
       // Remove the folder
-      await database.removeFolder(folder.id);
+      await database.removeFolder(folderInfo.id);
 
       // Check if the folder is removed
       final folderResult =
-          await database.folders.findById(folder.id).getSingleOrNull();
+          await database.folders.findById(folderInfo.id).getSingleOrNull();
       expect(folderResult, isNull);
 
       // Check if folder tags are removed
       final tagResult = await (database.select(database.folderTags)
-            ..where((tbl) => tbl.folderId.equals(folder.id)))
+            ..where((tbl) => tbl.folderId.equals(folderInfo.id)))
           .get();
       expect(tagResult, isEmpty);
     });
 
     test('Remove folder with items', () async {
       // Create a test folder with items
-      final folder = FolderDataType(
+      final folderInfo = FolderInfo(
         title: 'Test Folder with Items',
         description: 'Test Description',
       );
-      final link = LinkDataType(url: 'https://example.com');
-      final document =
-          DocumentDataType(title: 'Test Document', content: 'Test Content');
-      await database.addFolder(folderData: folder, items: [link, document]);
+      final link =
+          FolderItem(type: FolderItemType.link, content: 'https://example.com');
+      final document = FolderItem(
+          type: FolderItemType.document,
+          content: {'title': 'Test Document', "body": 'Test Content'});
+      await database.addFolder(folderInfo: folderInfo, items: [link, document]);
 
       // Remove the folder
-      await database.removeFolder(folder.id);
+      await database.removeFolder(folderInfo.id);
 
       // Check if the folder is removed
       final folderResult =
-          await database.folders.findById(folder.id).getSingleOrNull();
+          await database.folders.findById(folderInfo.id).getSingleOrNull();
       expect(folderResult, isNull);
 
       // Check if folder links are removed
       final linkResult = await (database.select(database.folderLinks)
-            ..where((tbl) => tbl.folderId.equals(folder.id)))
+            ..where((tbl) => tbl.folderId.equals(folderInfo.id)))
           .get();
       expect(linkResult, isEmpty);
 
       // Check if folder documents are removed
       final documentResult = await (database.select(database.folderDocuments)
-            ..where((tbl) => tbl.folderId.equals(folder.id)))
+            ..where((tbl) => tbl.folderId.equals(folderInfo.id)))
           .get();
       expect(documentResult, isEmpty);
     });
