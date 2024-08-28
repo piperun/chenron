@@ -1,3 +1,6 @@
+import 'package:chenron/data_struct/item.dart';
+import 'package:chenron/data_struct/metadata.dart';
+import 'package:chenron/database/extensions/insert_ext.dart';
 import 'package:drift/drift.dart';
 import 'package:chenron/database/types/data_types.dart';
 import 'package:chenron/database/database.dart';
@@ -7,17 +10,17 @@ extension FolderExtensions on AppDatabase {
   Future<void> updateFolder(String folderId,
       {String? title,
       String? description,
-      CUD? tagUpdates,
-      CUD? dataBaseObjects}) {
+      CUD<Metadata>? tagUpdates,
+      CUD<FolderItem>? itemUpdates}) {
     return batchOps((batch) async {
       if (title != null || description != null) {
         await _updateFolderInfo(folderId, title, description);
       }
       if (tagUpdates != null) {
-        await _updateFolderTags(batch, folderId, tagUpdates);
+        await _updateFolderTags(folderId, tagUpdates);
       }
-      if (dataBaseObjects != null) {
-        await _updateFolderContent(batch, folderId, dataBaseObjects);
+      if (itemUpdates != null) {
+        await _updateFolderContent(folderId, itemUpdates);
       }
     });
   }
@@ -34,23 +37,72 @@ extension FolderExtensions on AppDatabase {
   }
 
   Future<void> _updateFolderTags(
-      BatchOperations batch, String folderId, CUD tagUpdates) async {
+      String folderId, CUD<Metadata> tagUpdates) async {
     if (tagUpdates.create.isNotEmpty) {
-      await batch.insertAllBatch(
-          tags, tagUpdates.create.map((tag) => tag.toInsertable()));
-      await batch.insertAllBatch(
-          folderTags,
-          tagUpdates.create.map((tag) =>
-              FolderTagsCompanion.insert(folderId: folderId, tagId: tag.id)));
+      await batch((batch) async {
+        await insertTags(batch, tagUpdates.create, folderId);
+      });
     }
     if (tagUpdates.update.isNotEmpty) {
-      await batch.insertAllBatch(folderTags, tagUpdates.update);
+      await batch((batch) async {
+        for (final tagUpdate in tagUpdates.update) {
+          batch.insert(
+              mode: InsertMode.insertOrIgnore,
+              onConflict: DoNothing(),
+              metadataRecords,
+              tagUpdate.toCompanion(folderId));
+        }
+      });
     }
     if (tagUpdates.remove.isNotEmpty) {
-      await batch.deleteBatch(folderTags, tagUpdates.remove);
+      await batch((batch) async {
+        for (final tagRemove in tagUpdates.remove) {
+          batch.deleteWhere(metadataRecords,
+              (tbl) => tbl.metadataId.equals(tagRemove.metadataId));
+        }
+      });
     }
   }
 
+  Future<void> _updateFolderContent(
+      String folderId, CUD<FolderItem> itemUpdates) async {
+    if (itemUpdates.create.isNotEmpty) {
+      await batch((batch) async {
+        await insertFolderItems(batch, folderId, itemUpdates.create);
+      });
+    }
+    if (itemUpdates.update.isNotEmpty) {
+      await batch((batch) async {
+        for (final itemUpdate in itemUpdates.update) {
+          batch.insert(
+              mode: InsertMode.insertOrIgnore,
+              onConflict: DoNothing(),
+              items,
+              itemUpdate.toCompanion(folderId));
+        }
+      });
+    }
+    if (itemUpdates.remove.isNotEmpty) {
+      await batch((batch) async {
+        for (final tagRemove in itemUpdates.remove) {
+          batch.deleteWhere(
+              items,
+              (tbl) =>
+                  (tbl.itemId.equals(tagRemove.itemId)) &
+                  tbl.folderId.equals(folderId));
+          /*{ 
+            final findItemId = tbl.itemId.equals(tagRemove.itemId);
+            final findFolderId = tbl.folderId.equals(folderId);
+            return findFolderId & findItemId;});
+            */
+          //(tbl) => tbl.folderId.equals(folderId));
+        }
+      });
+    }
+  }
+}
+
+/*
   Future<void> _updateFolderContent(
       BatchOperations batch, String folderId, CUD folderContent) async {
     final createOperations = <(TableInfo, Insertable)>[];
@@ -89,12 +141,7 @@ extension FolderExtensions on AppDatabase {
         return (links, folderLinks);
       case DocumentsCompanion():
         return (documents, folderDocuments);
-      case FolderLinksCompanion():
-        return (folderLinks, folderLinks);
-      case FolderDocumentsCompanion():
-        return (folderDocuments, folderDocuments);
-      case FolderTagsCompanion():
-        return (folderTags, folderTags);
+
       default:
         throw ArgumentError('Invalid row type: ${row.runtimeType}');
     }
@@ -114,3 +161,5 @@ extension FolderExtensions on AppDatabase {
     }
   }
 }
+
+*/
