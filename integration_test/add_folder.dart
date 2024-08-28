@@ -35,21 +35,21 @@ void main() {
       expect(folderResult.length, 1);
       expect(folderResult.first.title, 'Empty Folder');
 
-      final tagResult = await (database.select(database.folderTags)
+      final tagResult = await (database.select(database.metadataRecords)
             ..where(
-              (tbl) => tbl.folderId.equals(folderResult.first.id),
+              (tbl) => tbl.itemId.equals(folderResult.first.id),
             ))
           .get();
       expect(tagResult.length, 0);
 
-      final linkResult = await (database.select(database.folderLinks)
+      final linkResult = await (database.select(database.items)
             ..where(
               (tbl) => tbl.folderId.equals(folderResult.first.id),
             ))
           .get();
       expect(linkResult.length, 0);
 
-      final docResult = await (database.select(database.folderDocuments)
+      final docResult = await (database.select(database.items)
             ..where(
               (tbl) => tbl.folderId.equals(folderResult.first.id),
             ))

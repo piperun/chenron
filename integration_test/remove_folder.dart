@@ -63,8 +63,8 @@ void main() {
       expect(folderResult, isNull);
 
       // Check if folder tags are removed
-      final tagResult = await (database.select(database.folderTags)
-            ..where((tbl) => tbl.folderId.equals(folderInfo.id)))
+      final tagResult = await (database.select(database.metadataRecords)
+            ..where((tbl) => tbl.itemId.equals(folderInfo.id)))
           .get();
       expect(tagResult, isEmpty);
     });
@@ -91,13 +91,13 @@ void main() {
       expect(folderResult, isNull);
 
       // Check if folder links are removed
-      final linkResult = await (database.select(database.folderLinks)
+      final linkResult = await (database.select(database.items)
             ..where((tbl) => tbl.folderId.equals(folderInfo.id)))
           .get();
       expect(linkResult, isEmpty);
 
       // Check if folder documents are removed
-      final documentResult = await (database.select(database.folderDocuments)
+      final documentResult = await (database.select(database.items)
             ..where((tbl) => tbl.folderId.equals(folderInfo.id)))
           .get();
       expect(documentResult, isEmpty);
