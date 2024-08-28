@@ -2,6 +2,7 @@ import 'package:chenron/data_struct/item.dart';
 import 'package:chenron/data_struct/metadata.dart';
 import 'package:chenron/database/database.dart';
 import 'package:chenron/data_struct/folder.dart';
+import 'package:chenron/database/extensions/insert_ext.dart';
 import 'package:drift/drift.dart';
 import 'package:logging/logging.dart';
 
@@ -45,7 +46,7 @@ extension FolderExtensions on AppDatabase {
       return;
     }
     await batch((batch) async {
-      await _insertTags(batch, tagInserts, folderId);
+      await insertTags(batch, tagInserts, folderId);
     });
   }
 
@@ -54,72 +55,7 @@ extension FolderExtensions on AppDatabase {
     if (itemInserts.isEmpty) return;
 
     await batch((batch) async {
-      await _insertFolderItems(batch, folderId, itemInserts);
+      await insertFolderItems(batch, folderId, itemInserts);
     });
-  }
-
-  Future<void> _insertFolderItems(
-      Batch batch, String folderId, List<FolderItem> itemInserts) async {
-    for (final itemInsert in itemInserts) {
-      TableInfo? table;
-      List<dynamic> exists = [];
-      switch (itemInsert.type) {
-        case FolderItemType.link:
-          table = links;
-          exists = await (select(links)
-                ..where((tbl) => tbl.url.equals(itemInsert.content)))
-              .get();
-        case FolderItemType.document:
-          table = documents;
-          exists = await (select(documents)
-                ..where((tbl) => tbl.id.equals(itemInsert.itemId)))
-              .get();
-      }
-      if (exists.isEmpty) {
-        batch.insert(
-          table,
-          onConflict: DoNothing(),
-          mode: InsertMode.insertOrIgnore,
-          itemInsert.toFolderItem(),
-        );
-      } else {
-        itemInsert.itemId = exists.first.id;
-      }
-
-      batch.insert(
-        items,
-        onConflict: DoNothing(),
-        mode: InsertMode.insertOrIgnore,
-        itemInsert.toCompanion(folderId),
-      );
-    }
-  }
-
-  Future<void> _insertTags(
-      Batch batch, List<Metadata> tagInserts, String folderId) async {
-    List<Tag> exists = [];
-    for (final tag in tagInserts) {
-      exists = await (select(tags)
-            ..where(
-              (tbl) => tbl.id.equals(tag.id),
-            ))
-          .get();
-      if (exists.isEmpty) {
-        batch.insert(
-          tags,
-          onConflict: DoNothing(),
-          mode: InsertMode.insertOrIgnore,
-          tag.toMetadataItem(),
-        );
-      } else {
-        tag.metadataId = exists.first.id;
-      }
-      batch.insert(
-        metadataRecords,
-        onConflict: DoNothing(),
-        mode: InsertMode.insertOrIgnore,
-        tag.toCompanion(folderId),
-      );
-    }
   }
 }

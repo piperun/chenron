@@ -1,8 +1,9 @@
+import 'package:chenron/data_struct/metadata.dart';
 import 'package:cuid2/cuid2.dart';
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:chenron/database/models/models.dart';
-import 'package:chenron/database/models/relation/folder.dart';
+import 'package:chenron/data_struct/item.dart';
 import 'package:logging/logging.dart';
 
 part 'database.g.dart';
@@ -31,21 +32,24 @@ extension IdTypeExtension on IdType {
   Links,
   Documents,
   Tags,
-  FolderTags,
-  FolderDocuments,
-  FolderLinks,
-  FolderTrees
+  Items,
+  ItemTypes,
+  MetadataRecords,
+  MetadataTypes
 ])
 class AppDatabase extends _$AppDatabase {
-  //final Logger _logger = Logger('AppDatabase');
   final String _databaseName;
 
-  // After generating code, this class needs to define a `schemaVersion` getter
-  // and a constructor telling drift where the database should be stored.
-  // These are described in the getting started guide: https://drift.simonbinder.eu/getting-started/#open
-  AppDatabase([QueryExecutor? e, String? databaseName])
+  AppDatabase(
+      {QueryExecutor? queryExecutor,
+      String? databaseName,
+      bool setupOnInit = false})
       : _databaseName = databaseName ?? "my_database",
-        super(_openConnection(databaseName: databaseName ?? "my_database"));
+        super(_openConnection(databaseName: databaseName ?? "my_database")) {
+    if (setupOnInit) {
+      setupEnumTypes();
+    }
+  }
 
   @override
   int get schemaVersion => 1;
@@ -54,6 +58,38 @@ class AppDatabase extends _$AppDatabase {
     // `driftDatabase` from `package:drift_flutter` stores the database in
     // `getApplicationDocumentsDirectory()`.
     return driftDatabase(name: databaseName);
+  }
+}
+
+extension DatabaseInit on AppDatabase {
+  Future<void> setupEnumTypes() async {
+    await _setupTypes<FolderItemType>(itemTypes, FolderItemType.values);
+    await _setupTypes<MetadataTypeEnum>(metadataTypes, MetadataTypeEnum.values);
+  }
+
+  Future<void> _setupTypes<T extends Enum>(
+      TableInfo table, List<T> enumValues) async {
+    for (var type in enumValues) {
+      final companion = _factoryCompanion(table, type);
+      await into(table).insertOnConflictUpdate(companion);
+    }
+  }
+
+  Insertable _factoryCompanion(TableInfo table, Enum type) {
+    switch (table.actualTableName) {
+      case 'item_types':
+        return ItemTypesCompanion.insert(
+          id: Value(type.index + 1),
+          name: type.name,
+        );
+      case 'metadata_types':
+        return MetadataTypesCompanion.insert(
+          id: Value(type.index + 1),
+          name: type.name,
+        );
+      default:
+        throw ArgumentError('Unsupported table: ${table.actualTableName}');
+    }
   }
 }
 
@@ -130,42 +166,6 @@ extension InsertExtensions<T extends Table, Row> on TableInfo<T, Row> {
     } catch (e) {
       _logger.warning('Insert failed, likely due to existing entry: $e');
       return;
-    }
-  }
-}
-
-extension Relation<T extends Table, Row> on TableInfo<T, Row> {
-  static final _logger = Logger("Relation");
-
-  Future<void> insertRelation(Insertable<Row> relationModel) async {
-    try {
-      await this.attachedDatabase.into(this).insert(relationModel);
-    } catch (e) {
-      _logger.severe('Error inserting relation in ${this.actualTableName}: $e');
-      return;
-    }
-  }
-
-  Future<int> deleteRelation(List<DeleteRelationRecord> relations) async {
-    try {
-      return (this.attachedDatabase.delete(this)
-            ..where((row) {
-              return relations.fold<Expression<bool>>(
-                const Constant(true),
-                (condition, relation) {
-                  final idColumn = columnsByName[relation.idType.dbValue]!;
-                  if (idColumn.type != DriftSqlType.string) {
-                    throw ArgumentError(
-                        'Column `${relation.idType.dbValue}` is not a string');
-                  }
-                  return condition & idColumn.equals(relation.id);
-                },
-              );
-            }))
-          .go();
-    } catch (e) {
-      _logger.severe('Error deleting relation in ${this.actualTableName}: $e');
-      return -1;
     }
   }
 }

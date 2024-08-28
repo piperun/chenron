@@ -1,3 +1,4 @@
+import 'package:chenron/data_struct/item.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:chenron/providers/CUD_state.dart';
@@ -94,7 +95,7 @@ class FolderPreviewState extends State<FolderPreview> {
   Widget _buildExpandedContent(BuildContext context) {
     final folderProvider = Provider.of<FolderProvider>(context, listen: false);
     final dataProvider =
-        Provider.of<CUDProvider<LinkDataType>>(context, listen: false);
+        Provider.of<CUDProvider<FolderItem>>(context, listen: false);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),

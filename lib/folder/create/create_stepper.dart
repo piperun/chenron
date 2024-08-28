@@ -1,6 +1,7 @@
+import 'package:chenron/data_struct/folder.dart';
+import 'package:chenron/data_struct/item.dart';
 import 'package:chenron/database/database.dart';
-import 'package:chenron/database/extensions/folder_ext.dart';
-import 'package:chenron/database/types/data_types.dart';
+import 'package:chenron/database/extensions/folder/create.dart';
 import 'package:chenron/folder/create/steps/folder_data.dart';
 import 'package:chenron/folder/create/steps/folder_info.dart';
 import 'package:chenron/folder/create/steps/folder_preview.dart';
@@ -49,31 +50,23 @@ class CreateFolderStepper extends StatelessWidget {
       final folderInfo = Provider.of<FolderProvider>(context, listen: false);
 
       final folderContent =
-          Provider.of<FolderContentProvider>(context, listen: false);
-      final links = folderContent.linkProvider.create;
-      final documents = folderContent.documentProvider.create;
-      final folders = folderContent.folderProvider.create;
+          Provider.of<CUDProvider<FolderItem>>(context, listen: false);
       _saveToDatabase(
           context,
-          FolderDataType(
+          FolderInfo(
               title: folderInfo.title, description: folderInfo.description),
-          links);
+          folderContent.create);
     } else if (folderState.validateCurrentStep()) {
       folderState.nextStep();
     }
   }
 
-  void _saveToDatabase(BuildContext context, FolderDataType folderInfo,
-      List<BaseDataType> folderData) {
+  void _saveToDatabase(BuildContext context, FolderInfo folderInfo,
+      List<FolderItem> folderData) {
     final database = Provider.of<AppDatabase>(context, listen: false);
-    print(" $folderInfo, $folderData");
-    //final database = Provider.of<AppDatabase>(context, listen: false);
-    // Perform your database operations here
-    // For example:
-    // database.insertFolder(folderState.folderData);
-    database.addFolder(folderData: folderInfo, items: folderData);
 
-    // After saving, you might want to navigate away or show a success message
+    database.addFolder(folderInfo: folderInfo, items: folderData);
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Folder saved successfully')),
     );
@@ -119,7 +112,8 @@ class CreateFolderStepper extends StatelessWidget {
     return [
       Step(
         title: const Text("Folder"),
-        content: FolderInfo(formKey: folderState.formKeys[FolderStep.info]!),
+        content:
+            FolderInfoStep(formKey: folderState.formKeys[FolderStep.info]!),
       ),
       Step(
         title: const Text("Data"),

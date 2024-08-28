@@ -1,3 +1,4 @@
+import 'package:chenron/data_struct/item.dart';
 import 'package:chenron/database/database.dart';
 import 'package:chenron/database/types/data_types.dart';
 import 'package:chenron/providers/create_state.dart';
@@ -11,7 +12,8 @@ import 'package:provider/provider.dart';
 void main() {
   runApp(MultiProvider(providers: [
     Provider<AppDatabase>(
-      create: (context) => AppDatabase(null, "chenron_db"),
+      create: (context) => AppDatabase(
+          queryExecutor: null, databaseName: "chenron_db", setupOnInit: true),
       dispose: (context, db) => db.close(),
     ),
     ChangeNotifierProvider(create: (context) => FolderProvider()),
@@ -19,6 +21,7 @@ void main() {
     ChangeNotifierProvider(
         create: (context) => CUDProvider<DocumentDataType>()),
     ChangeNotifierProvider(create: (context) => CUDProvider<FolderDataType>()),
+    ChangeNotifierProvider(create: (context) => CUDProvider<FolderItem>()),
     ChangeNotifierProvider(create: (context) => FolderContentProvider()),
     ChangeNotifierProvider(create: (context) => CreateFolderState()),
   ], child: const MyApp()));

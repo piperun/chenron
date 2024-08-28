@@ -2,18 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:chenron/providers/folder_state.dart';
 
+// move this to somewhere else to be used by other widgets
 enum FolderType { link, document, folder }
 
-class FolderInfo extends StatefulWidget {
+class FolderInfoStep extends StatefulWidget {
   final GlobalKey<FormState> formKey;
 
-  const FolderInfo({super.key, required this.formKey});
+  const FolderInfoStep({super.key, required this.formKey});
 
   @override
-  _FolderInfoState createState() => _FolderInfoState();
+  _FolderInfoStepState createState() => _FolderInfoStepState();
 }
 
-class _FolderInfoState extends State<FolderInfo> {
+class _FolderInfoStepState extends State<FolderInfoStep> {
   late TextEditingController _titleController;
   late TextEditingController _descriptionController;
   final TextEditingController _tagsController = TextEditingController();

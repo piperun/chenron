@@ -22,16 +22,16 @@ abstract class BaseDataType {
   }
 }
 
-class CUD<D> {
-  final List<BaseDataType> create;
-  final List<Insertable<D>> remove;
-  final List<Insertable<D>> update;
+class CUD<T> {
+  final List<T> create;
+  final List<T> remove;
+  final List<T> update;
   final _logger = Logger('CUD');
 
   CUD({
-    List<BaseDataType>? create,
-    List<Insertable<D>>? remove,
-    List<Insertable<D>>? update,
+    List<T>? create,
+    List<T>? remove,
+    List<T>? update,
   })  : create = create ?? [],
         remove = remove ?? [],
         update = update ?? [],
@@ -41,17 +41,16 @@ class CUD<D> {
               update?.isNotEmpty == true,
           'At least one operation (create, remove, or update) must be provided',
         );
-
-  void addCreate(BaseDataType object) {
+  void addCreate(T object) {
     create.add(object);
   }
 
-  void addRemove(Insertable<D> insertRemove) {
+  void addRemove(T insertRemove) {
     remove.add(insertRemove);
     _logger.info('Added ID to remove list: $insertRemove');
   }
 
-  void addUpdate(Insertable<D> insertUpdate) {
+  void addUpdate(T insertUpdate) {
     update.add(insertUpdate);
   }
 
