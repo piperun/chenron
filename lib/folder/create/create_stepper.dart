@@ -5,7 +5,6 @@ import 'package:chenron/database/extensions/folder/create.dart';
 import 'package:chenron/folder/create/steps/folder_data.dart';
 import 'package:chenron/folder/create/steps/folder_info.dart';
 import 'package:chenron/folder/create/steps/folder_preview.dart';
-import 'package:chenron/providers/folder_content_state.dart';
 import 'package:chenron/responsible_design/breakpoints.dart';
 import 'package:chenron/providers/create_state.dart';
 import 'package:chenron/providers/CUD_state.dart';

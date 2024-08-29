@@ -1,9 +1,7 @@
 import 'package:chenron/data_struct/item.dart';
 import 'package:chenron/database/database.dart';
-import 'package:chenron/database/types/data_types.dart';
 import 'package:chenron/providers/create_state.dart';
 import 'package:chenron/providers/CUD_state.dart';
-import 'package:chenron/providers/folder_content_state.dart';
 import 'package:chenron/providers/folder_state.dart';
 import 'package:chenron/root.dart';
 import 'package:flutter/material.dart';
@@ -17,12 +15,7 @@ void main() {
       dispose: (context, db) => db.close(),
     ),
     ChangeNotifierProvider(create: (context) => FolderProvider()),
-    ChangeNotifierProvider(create: (context) => CUDProvider<LinkDataType>()),
-    ChangeNotifierProvider(
-        create: (context) => CUDProvider<DocumentDataType>()),
-    ChangeNotifierProvider(create: (context) => CUDProvider<FolderDataType>()),
     ChangeNotifierProvider(create: (context) => CUDProvider<FolderItem>()),
-    ChangeNotifierProvider(create: (context) => FolderContentProvider()),
     ChangeNotifierProvider(create: (context) => CreateFolderState()),
   ], child: const MyApp()));
 }

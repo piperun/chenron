@@ -1,4 +1,5 @@
 import 'package:chenron/folder/create/create_stepper.dart';
+import 'package:chenron/folder/viewer/folder_viewer.dart';
 import 'package:chenron/home/homepage.dart';
 import 'package:easy_sidemenu/easy_sidemenu.dart';
 import 'package:flutter/material.dart';
@@ -61,7 +62,7 @@ class _RootPageState extends State<RootPage> {
               icon: const Icon(Icons.folder),
               children: [
                 SideMenuItem(
-                  title: 'Expansion Item 1',
+                  title: 'Create',
                   onTap: (index, _) {
                     sideMenu.changePage(index);
                   },
@@ -73,7 +74,7 @@ class _RootPageState extends State<RootPage> {
                   tooltipContent: "Create folder",
                 ),
                 SideMenuItem(
-                  title: 'Expansion Item 2',
+                  title: 'Viewer',
                   onTap: (index, _) {
                     sideMenu.changePage(index);
                   },
@@ -104,10 +105,7 @@ class _RootPageState extends State<RootPage> {
             Container(
               color: Colors.white,
               child: const Center(
-                child: Text(
-                  'Expansion Item 1',
-                  style: TextStyle(fontSize: 35),
-                ),
+                child: FolderViewSlug(),
               ),
             ),
             Container(
