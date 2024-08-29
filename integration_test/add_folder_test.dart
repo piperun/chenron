@@ -2,12 +2,10 @@ import 'package:chenron/data_struct/folder.dart';
 import 'package:chenron/data_struct/item.dart';
 import 'package:chenron/data_struct/metadata.dart';
 
-import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:chenron/database/database.dart';
 import 'package:chenron/database/extensions/folder/create.dart';
-import 'package:chenron/database/types/data_types.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
