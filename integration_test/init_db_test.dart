@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:chenron/data_struct/item.dart';
 import 'package:chenron/data_struct/metadata.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:chenron/database/database.dart';
 import 'package:integration_test/integration_test.dart';
@@ -14,14 +13,19 @@ void main() {
   late AppDatabase database;
 
   setUp(() {
-    database = AppDatabase(queryExecutor: NativeDatabase.memory());
+    database = AppDatabase(databaseName: "test_db");
   });
   tearDown(() async {
     await database.close();
   });
 
-  test('AppDatabase constructor initializes with no setup', () {
+  test('AppDatabase constructor initializes with no setup memory database', () {
     final db = AppDatabase(queryExecutor: NativeDatabase.memory());
+    expect(db.schemaVersion, equals(1));
+  });
+
+  test('AppDatabase constructor initializes with no setup file database', () {
+    final db = AppDatabase(databaseName: "test_db");
     expect(db.schemaVersion, equals(1));
   });
 
@@ -37,7 +41,7 @@ void main() {
   test('AppDatabase constructor with setupOnInit initializes item types',
       () async {
     final setupDatabase =
-        AppDatabase(databaseName: "test_database_setup", setupOnInit: true);
+        AppDatabase(databaseName: "test_db", setupOnInit: true);
 
     final itemTypes = await setupDatabase.select(setupDatabase.itemTypes).get();
     final metadataTypes =
