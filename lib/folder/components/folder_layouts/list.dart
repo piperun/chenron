@@ -1,33 +1,35 @@
 import 'package:flutter/material.dart';
 
-class FolderList extends StatelessWidget {
-  final List<String> folders;
-  final List<String> selectedFolders;
-  final Function(String) onFolderToggle;
+class ListLayout<T> extends StatelessWidget {
+  final List<T> items;
+  final bool Function(T) isItemSelected;
+  final Function(T) onItemToggle;
+  final Function(T) onTap;
+  final Widget Function(T) itemBuilder;
 
-  const FolderList({
-    super.key,
-    required this.folders,
-    required this.selectedFolders,
-    required this.onFolderToggle,
-  });
+  const ListLayout({
+    Key? key,
+    required this.items,
+    required this.isItemSelected,
+    required this.onItemToggle,
+    required this.onTap,
+    required this.itemBuilder,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
-      itemCount: folders.length,
+      itemCount: items.length,
       itemBuilder: (context, index) {
-        final folder = folders[index];
-        final isSelected = selectedFolders.contains(folder);
+        final item = items[index];
+        final isSelected = isItemSelected(item);
         return ListTile(
-          title: Text(folder),
+          title: itemBuilder(item),
           trailing: Checkbox(
             value: isSelected,
-            onChanged: (bool? value) {
-              onFolderToggle(folder);
-            },
+            onChanged: (bool? value) => onItemToggle(item),
           ),
-          onTap: () => onFolderToggle(folder),
+          onTap: () => onTap(item),
         );
       },
     );

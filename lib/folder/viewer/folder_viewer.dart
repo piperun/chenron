@@ -1,4 +1,6 @@
 import 'package:chenron/database/database.dart';
+import 'package:chenron/database/extensions/folder/read.dart';
+import 'package:chenron/folder/components/tag_chips.dart';
 import 'package:chenron/folder/viewer/folder_detail_view.dart';
 import 'package:chenron/folder/components/folder_layouts/grid.dart';
 import 'package:chenron/folder/components/folder_layouts/list.dart';
@@ -16,6 +18,26 @@ class FolderViewSlug extends StatefulWidget {
 class _FolderViewSlugState extends State<FolderViewSlug> {
   bool _isGridView = true;
   String _searchQuery = '';
+  final Set<String> _selectedFolders = {};
+
+  void _onFolderToggle(String folderId) {
+    setState(() {
+      if (_selectedFolders.contains(folderId)) {
+        _selectedFolders.remove(folderId);
+      } else {
+        _selectedFolders.add(folderId);
+      }
+    });
+  }
+
+  void _onFolderTap(BuildContext context, FolderWithTags folder) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FolderDetailView(folderId: folder.folder.id),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +60,7 @@ class _FolderViewSlugState extends State<FolderViewSlug> {
               width: Breakpoints.responsiveWidth(context),
               child: TextField(
                 decoration: InputDecoration(
-                  hintText: 'Search folders...',
+                  hintText: 'Search folders or tags...',
                   prefixIcon: const Icon(Icons.search),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(30),
@@ -49,8 +71,8 @@ class _FolderViewSlugState extends State<FolderViewSlug> {
             ),
           ),
           Expanded(
-            child: StreamBuilder<List<Folder>>(
-              stream: database.select(database.folders).watch(),
+            child: StreamBuilder<List<FolderWithTags>>(
+              stream: database.watchAllFoldersWithTags(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -59,43 +81,70 @@ class _FolderViewSlugState extends State<FolderViewSlug> {
                   return Center(child: Text('Error: ${snapshot.error}'));
                 }
                 final folders = snapshot.data ?? [];
-                final filteredFolders = folders
-                    .where((folder) => folder.title
-                        .toLowerCase()
-                        .contains(_searchQuery.toLowerCase()))
-                    .toList();
+                final filteredFolders = folders.where((folderWithTags) {
+                  final lowerQuery = _searchQuery.toLowerCase();
+                  return folderWithTags.folder.title
+                          .toLowerCase()
+                          .contains(lowerQuery) ||
+                      (folderWithTags.tag?.name
+                              .toLowerCase()
+                              .contains(lowerQuery) ??
+                          false);
+                }).toList();
 
+                Widget folderWidget;
                 if (_isGridView) {
-                  return FolderGrid(
-                    folders: filteredFolders.map((f) => f.title).toList(),
-                    selectedFolders: const [],
-                    onFolderToggle: (folder) {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => FolderDetailView(
-                              folderId: folders
-                                  .firstWhere((f) => f.title == folder)
-                                  .id),
-                        ),
-                      );
-                    },
+                  folderWidget = GridLayout<FolderWithTags>(
+                    items: filteredFolders,
+                    isItemSelected: (folder) =>
+                        _selectedFolders.contains(folder.folder.id),
+                    onItemToggle: (folder) => _onFolderToggle(folder.folder.id),
+                    onTap: (folder) => _onFolderTap(context, folder),
+                    itemBuilder: (folder) => Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(folder.folder.title),
+                        if (folder.tag != null)
+                          // TODO: this will be changed later on to probably use flutter's own InputChip.
+                          Chips(
+                            tags: [folder.tag!.name],
+                            onTagTap: (tag) {/* Handle tag tap */},
+                          ),
+                      ],
+                    ),
                   );
                 } else {
-                  return FolderList(
-                    folders: filteredFolders.map((f) => f.title).toList(),
-                    selectedFolders: const [],
-                    onFolderToggle: (folder) {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => FolderDetailView(
-                              folderId: folders
-                                  .firstWhere((f) => f.title == folder)
-                                  .id),
-                        ),
-                      );
-                    },
+                  folderWidget = ListLayout<FolderWithTags>(
+                    items: filteredFolders,
+                    isItemSelected: (folder) =>
+                        _selectedFolders.contains(folder.folder.id),
+                    onItemToggle: (folder) => _onFolderToggle(folder.folder.id),
+                    onTap: (folder) => _onFolderTap(context, folder),
+                    itemBuilder: (folder) => Row(
+                      children: [
+                        Expanded(child: Text(folder.folder.title)),
+                        if (folder.tag != null)
+                          Chips(
+                            tags: [folder.tag!.name],
+                            onTagTap: (tag) {/* Handle tag tap */},
+                          ),
+                      ],
+                    ),
                   );
                 }
+                return Column(
+                  children: [
+                    Wrap(
+                      spacing: 8,
+                      children: filteredFolders
+                          .where((f) => f.tag != null)
+                          .map((f) => Chip(label: Text(f.tag!.name)))
+                          .toSet()
+                          .toList(),
+                    ),
+                    Expanded(child: folderWidget),
+                  ],
+                );
               },
             ),
           ),

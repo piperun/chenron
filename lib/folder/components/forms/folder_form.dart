@@ -18,7 +18,7 @@ class _FolderFormState extends State<FolderForm> {
   List<String> allFolders =
       List.generate(20, (index) => 'Folder $index'); // Example data
   List<String> filteredFolders = [];
-  List<String> selectedFolders = [];
+  Set<String> selectedFolders = <String>{};
 
   @override
   void initState() {
@@ -95,18 +95,44 @@ class _FolderFormState extends State<FolderForm> {
             child: folderLayout
                 ? SizedBox(
                     height: MediaQuery.of(context).size.height * 0.3,
-                    child: FolderGrid(
-                      folders: filteredFolders,
-                      selectedFolders: selectedFolders,
-                      onFolderToggle: _toggleFolderSelection,
+                    child: GridView.builder(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 3,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
+                      ),
+                      itemCount: filteredFolders.length,
+                      itemBuilder: (context, index) {
+                        final folder = filteredFolders[index];
+                        return GestureDetector(
+                          onTap: () => _toggleFolderSelection(folder),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: selectedFolders.contains(folder)
+                                    ? Colors.blue
+                                    : Colors.grey,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Center(child: Text(folder)),
+                          ),
+                        );
+                      },
                     ),
                   )
                 : SizedBox(
                     height: MediaQuery.of(context).size.height * 0.8,
-                    child: FolderList(
-                      folders: filteredFolders,
-                      selectedFolders: selectedFolders,
-                      onFolderToggle: _toggleFolderSelection,
+                    child: ListView.builder(
+                      itemCount: filteredFolders.length,
+                      itemBuilder: (context, index) {
+                        final folder = filteredFolders[index];
+                        return ListTile(
+                          title: Text(folder),
+                          onTap: () => _toggleFolderSelection(folder),
+                          selected: selectedFolders.contains(folder),
+                        );
+                      },
                     ),
                   )),
       ],
