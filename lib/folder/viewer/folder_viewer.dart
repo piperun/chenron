@@ -1,5 +1,6 @@
 import 'package:chenron/database/database.dart';
 import 'package:chenron/database/extensions/folder/read.dart';
+import 'package:chenron/folder/components/folder_form_view.dart';
 import 'package:chenron/folder/components/tag_chips.dart';
 import 'package:chenron/folder/viewer/folder_detail_view.dart';
 import 'package:chenron/folder/components/folder_layouts/grid.dart';
@@ -19,6 +20,14 @@ class _FolderViewSlugState extends State<FolderViewSlug> {
   bool _isGridView = true;
   String _searchQuery = '';
   final Set<String> _selectedFolders = {};
+  late final _streamFolders;
+
+  @override
+  void initState() {
+    super.initState();
+    _streamFolders = Provider.of<AppDatabase>(context, listen: false)
+        .watchAllFolders(mode: IncludeFolderData.tags);
+  }
 
   void _onFolderToggle(String folderId) {
     setState(() {
@@ -30,7 +39,7 @@ class _FolderViewSlugState extends State<FolderViewSlug> {
     });
   }
 
-  void _onFolderTap(BuildContext context, FolderWithTags folder) {
+  void _onFolderTap(BuildContext context, FolderObject folder) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -39,9 +48,20 @@ class _FolderViewSlugState extends State<FolderViewSlug> {
     );
   }
 
+  void _onEditTap(BuildContext context, FolderObject folder) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FolderFormView(
+          folderId: folder.folder.id,
+          mode: FolderFormMode.edit,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final database = Provider.of<AppDatabase>(context, listen: false);
     return Scaffold(
       appBar: AppBar(
         title: const Text('All Folders'),
@@ -71,8 +91,8 @@ class _FolderViewSlugState extends State<FolderViewSlug> {
             ),
           ),
           Expanded(
-            child: StreamBuilder<List<FolderWithTags>>(
-              stream: database.watchAllFoldersWithTags(),
+            child: StreamBuilder<List<FolderObject>>(
+              stream: _streamFolders,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -81,20 +101,18 @@ class _FolderViewSlugState extends State<FolderViewSlug> {
                   return Center(child: Text('Error: ${snapshot.error}'));
                 }
                 final folders = snapshot.data ?? [];
-                final filteredFolders = folders.where((folderWithTags) {
+                final filteredFolders = folders.where((folder) {
                   final lowerQuery = _searchQuery.toLowerCase();
-                  return folderWithTags.folder.title
+                  return folder.folder.title
                           .toLowerCase()
                           .contains(lowerQuery) ||
-                      (folderWithTags.tag?.name
-                              .toLowerCase()
-                              .contains(lowerQuery) ??
+                      (folder.tags?.name.toLowerCase().contains(lowerQuery) ??
                           false);
                 }).toList();
 
                 Widget folderWidget;
                 if (_isGridView) {
-                  folderWidget = GridLayout<FolderWithTags>(
+                  folderWidget = GridLayout<FolderObject>(
                     items: filteredFolders,
                     isItemSelected: (folder) =>
                         _selectedFolders.contains(folder.folder.id),
@@ -104,17 +122,21 @@ class _FolderViewSlugState extends State<FolderViewSlug> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(folder.folder.title),
-                        if (folder.tag != null)
+                        if (folder.tags != null)
                           // TODO: this will be changed later on to probably use flutter's own InputChip.
                           Chips(
-                            tags: [folder.tag!.name],
+                            tags: [folder.tags!.name],
                             onTagTap: (tag) {/* Handle tag tap */},
                           ),
+                        TextButton.icon(
+                            onPressed: () => _onEditTap(context, folder),
+                            icon: const Icon(Icons.edit),
+                            label: const Text("Edit"))
                       ],
                     ),
                   );
                 } else {
-                  folderWidget = ListLayout<FolderWithTags>(
+                  folderWidget = ListLayout<FolderObject>(
                     items: filteredFolders,
                     isItemSelected: (folder) =>
                         _selectedFolders.contains(folder.folder.id),
@@ -123,11 +145,15 @@ class _FolderViewSlugState extends State<FolderViewSlug> {
                     itemBuilder: (folder) => Row(
                       children: [
                         Expanded(child: Text(folder.folder.title)),
-                        if (folder.tag != null)
+                        if (folder.tags != null)
                           Chips(
-                            tags: [folder.tag!.name],
+                            tags: [folder.tags!.name],
                             onTagTap: (tag) {/* Handle tag tap */},
                           ),
+                        TextButton.icon(
+                            onPressed: () => _onEditTap(context, folder),
+                            icon: const Icon(Icons.edit),
+                            label: const Text("Edit"))
                       ],
                     ),
                   );
@@ -137,8 +163,8 @@ class _FolderViewSlugState extends State<FolderViewSlug> {
                     Wrap(
                       spacing: 8,
                       children: filteredFolders
-                          .where((f) => f.tag != null)
-                          .map((f) => Chip(label: Text(f.tag!.name)))
+                          .where((f) => f.tags != null)
+                          .map((f) => Chip(label: Text(f.tags!.name)))
                           .toSet()
                           .toList(),
                     ),
