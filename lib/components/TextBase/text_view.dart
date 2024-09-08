@@ -34,7 +34,7 @@ class HeaderTextView extends TextView {
 class NormalTextView extends TextView {
   final String text;
 
-  const NormalTextView({Key? key, required this.text}) : super(key: key);
+  const NormalTextView({super.key, required this.text});
 
   @override
   Widget build(BuildContext context) {
@@ -52,12 +52,12 @@ class ListTileTextView extends TextView {
   final bool bold;
 
   const ListTileTextView({
-    Key? key,
+    super.key,
     required this.title,
     required this.subtitle,
     this.icon,
     this.bold = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

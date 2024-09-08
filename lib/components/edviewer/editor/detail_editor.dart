@@ -1,21 +1,18 @@
-import 'package:chenron/components/edviewer/editor/item_editor.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:pluto_grid/pluto_grid.dart';
+import 'package:provider/provider.dart';
 import 'package:chenron/data_struct/cud.dart';
-
-import 'package:chenron/data_struct/folder.dart';
 import 'package:chenron/data_struct/item.dart';
 import 'package:chenron/database/database.dart';
 import 'package:chenron/database/extensions/folder/read.dart';
 import 'package:chenron/database/extensions/folder/update.dart';
-import 'package:chenron/providers/CUD_state.dart';
-import 'package:chenron/providers/folder_info_state.dart';
-import 'package:flutter/material.dart';
-import 'package:pluto_grid/pluto_grid.dart';
-import 'package:provider/provider.dart';
+import 'package:chenron/components/edviewer/editor/item_editor.dart';
 
 class DetailEditor extends StatefulWidget {
   final FolderLink? currentData;
 
-  DetailEditor({
+  const DetailEditor({
     super.key,
     required this.currentData,
   });
@@ -36,13 +33,8 @@ class _DetailEditorState extends State<DetailEditor> {
       enableRowChecked: true,
     ),
     PlutoColumn(
-      title: 'Comment',
-      field: 'comment',
-      type: PlutoColumnType.text(),
-    ),
-    PlutoColumn(
-      title: 'Tags',
-      field: 'tags',
+      title: 'Added',
+      field: 'createdAt',
       type: PlutoColumnType.text(),
     ),
   ];
@@ -67,8 +59,9 @@ class _DetailEditorState extends State<DetailEditor> {
           cells: {
             'id': PlutoCell(value: link.id),
             'url': PlutoCell(value: link.url),
-            'comment': PlutoCell(value: ''),
-            'tags': PlutoCell(value: ''),
+            'createdAt': PlutoCell(
+              value: DateFormat('yyyy-MM-dd HH:mm:ss').format(link.createdAt),
+            )
           },
         );
       });

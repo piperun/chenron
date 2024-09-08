@@ -23,7 +23,7 @@ class DetailViewer extends StatefulWidget {
 
 class _DetailViewerState<T> extends State<DetailViewer> {
   bool _isGridView = true;
-  Set<String> _selectedItems = {};
+  final Set<String> _selectedItems = {};
 
   @override
   Widget build(BuildContext context) {
