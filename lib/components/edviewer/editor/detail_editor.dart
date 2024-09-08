@@ -80,7 +80,8 @@ class _DetailEditorState extends State<DetailEditor> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Folder Details'), actions: [
-        IconButton(
+        TextButton.icon(
+          label: const Text('Save'),
           icon: const Icon(Icons.save),
           onPressed: _hasChanges
               ? () {

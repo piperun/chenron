@@ -20,10 +20,6 @@ class FolderEditor extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final database = Provider.of<AppDatabase>(context, listen: false);
-    final folderInfoProvider =
-        Provider.of<FolderInfoProvider>(context, listen: false);
-    final folderDataProvider =
-        Provider.of<CUDProvider<FolderItem>>(context, listen: false);
     return StreamBuilder<FolderLink>(
       stream: database.watchTest(folderId),
       builder: (context, snapshot) {
@@ -38,9 +34,6 @@ class FolderEditor extends StatelessWidget {
         }
 
         final folderData = snapshot.data!;
-        folderInfoProvider.title = folderData.folderInfo.title;
-        folderInfoProvider.description = folderData.folderInfo.description;
-        //folderInfoProvider.tags = folderData.folderInfo.tags;
 
         return Column(
           children: [
@@ -48,11 +41,6 @@ class FolderEditor extends StatelessWidget {
                 child: DetailEditor(
               currentData: folderData,
             )),
-
-            // ElevatedButton(
-            //onPressed: () => database.updateFolder(folderData),
-            //child: Text('Save'),
-            //),
           ],
         );
       },
