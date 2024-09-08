@@ -51,6 +51,9 @@ class _DetailEditorState extends State<DetailEditor> {
     super.initState();
     _titleController.addListener(_updateChangesState);
     _descriptionController.addListener(_updateChangesState);
+    _titleController.text = widget.currentData?.folderInfo.title ?? "";
+    _descriptionController.text =
+        widget.currentData?.folderInfo.description ?? "";
   }
 
   CUD<FolderItem> cudItems = CUD<FolderItem>();
@@ -75,10 +78,6 @@ class _DetailEditorState extends State<DetailEditor> {
 
   @override
   Widget build(BuildContext context) {
-    _titleController.text = widget.currentData?.folderInfo.title ?? "";
-    _descriptionController.text =
-        widget.currentData?.folderInfo.description ?? "";
-
     return Scaffold(
       appBar: AppBar(title: const Text('Folder Details'), actions: [
         IconButton(
@@ -105,7 +104,7 @@ class _DetailEditorState extends State<DetailEditor> {
                 TextField(
                   controller: _descriptionController,
                   decoration: const InputDecoration(
-                    labelText: 'URL',
+                    labelText: 'Description',
                   ),
                 ),
                 ItemEditor(
@@ -134,12 +133,16 @@ class _DetailEditorState extends State<DetailEditor> {
   }
 
   void _updateChangesState() {
-    setState(() {
-      _hasChanges = cudItems.isNotEmpty ||
-          _titleController.text != widget.currentData?.folderInfo.title ||
-          _descriptionController.text !=
-              widget.currentData?.folderInfo.description;
-    });
+    final hasChanges = cudItems.isNotEmpty ||
+        _titleController.text != widget.currentData?.folderInfo.title ||
+        _descriptionController.text !=
+            widget.currentData?.folderInfo.description;
+
+    if (hasChanges != _hasChanges) {
+      setState(() {
+        _hasChanges = hasChanges;
+      });
+    }
   }
 
   void _saveChanges() {
