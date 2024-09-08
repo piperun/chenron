@@ -2,8 +2,8 @@ import 'package:chenron/data_struct/item.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:chenron/providers/CUD_state.dart';
-import 'package:chenron/providers/folder_state.dart';
-import 'package:chenron/database/types/data_types.dart';
+import 'package:chenron/providers/folder_info_state.dart';
+import 'package:chenron/data_struct/cud.dart';
 
 class FolderPreview extends StatefulWidget {
   final GlobalKey<FormState> previewKey;
@@ -93,7 +93,8 @@ class FolderPreviewState extends State<FolderPreview> {
   }
 
   Widget _buildExpandedContent(BuildContext context) {
-    final folderProvider = Provider.of<FolderProvider>(context, listen: false);
+    final folderProvider =
+        Provider.of<FolderInfoProvider>(context, listen: false);
     final dataProvider =
         Provider.of<CUDProvider<FolderItem>>(context, listen: false);
 

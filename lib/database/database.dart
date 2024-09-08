@@ -4,7 +4,7 @@ import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:chenron/database/models/models.dart';
 import 'package:chenron/data_struct/item.dart';
-import 'package:logging/logging.dart';
+//import 'package:logging/logging.dart';
 
 part 'database.g.dart';
 
@@ -138,14 +138,14 @@ extension FindExtensions<Table extends HasResultSet, Row>
 
 extension TagExtensions on AppDatabase {
   Future<String> addTag(String tagName) async {
-    final existingTag = await (this.tags.select()
+    final existingTag = await (tags.select()
           ..where((t) => t.name.equals(tagName)))
         .getSingleOrNull();
 
     final String tagId = existingTag?.id ?? cuidSecure(30);
 
     if (existingTag == null) {
-      await this.tags.insertOne(
+      await tags.insertOne(
           mode: InsertMode.insertOrIgnore,
           onConflict: DoNothing(),
           TagsCompanion.insert(
@@ -154,18 +154,5 @@ extension TagExtensions on AppDatabase {
           ));
     }
     return tagId;
-  }
-}
-
-extension InsertExtensions<T extends Table, Row> on TableInfo<T, Row> {
-  static final _logger = Logger("Insert");
-  Future<void> insertOnUnique(Insertable<Row> row) async {
-    try {
-      await this.attachedDatabase.into(this).insert(row,
-          mode: InsertMode.insertOrIgnore, onConflict: DoNothing());
-    } catch (e) {
-      _logger.warning('Insert failed, likely due to existing entry: $e');
-      return;
-    }
   }
 }

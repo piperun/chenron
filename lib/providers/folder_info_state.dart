@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-class FolderProvider extends ChangeNotifier {
+class FolderInfoProvider extends ChangeNotifier {
   String title = "";
   String description = "";
   List<String> tags = [];

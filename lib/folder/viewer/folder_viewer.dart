@@ -1,10 +1,11 @@
 import 'package:chenron/database/database.dart';
 import 'package:chenron/database/extensions/folder/read.dart';
-import 'package:chenron/folder/components/folder_form_view.dart';
-import 'package:chenron/folder/components/tag_chips.dart';
+import 'package:chenron/components/folder_form_view.dart';
+import 'package:chenron/components/tag_chips.dart';
+import 'package:chenron/folder/editor.dart';
 import 'package:chenron/folder/viewer/folder_detail_view.dart';
-import 'package:chenron/folder/components/folder_layouts/grid.dart';
-import 'package:chenron/folder/components/folder_layouts/list.dart';
+import 'package:chenron/components/folder_layouts/grid.dart';
+import 'package:chenron/components/folder_layouts/list.dart';
 import 'package:chenron/responsible_design/breakpoints.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -52,9 +53,8 @@ class _FolderViewSlugState extends State<FolderViewSlug> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => FolderFormView(
+        builder: (context) => FolderEditor(
           folderId: folder.folder.id,
-          mode: FolderFormMode.edit,
         ),
       ),
     );

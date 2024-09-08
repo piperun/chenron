@@ -5,11 +5,14 @@ import 'package:cuid2/cuid2.dart';
 import 'package:drift/drift.dart';
 
 /// WARNING: The document handling is deprecated, it's only here for testing.
+// FIXME: REIMPLEMENT DOCUMENT
+// FIXME: ALSO REMOVE CLIENT SIDE ID GENERATION IN V0.8+
 class FolderItem {
   String id;
   String itemId;
   dynamic content;
   FolderItemType type;
+  bool isNewItem = false;
 
   FolderItem({
     String? id,

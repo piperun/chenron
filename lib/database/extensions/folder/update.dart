@@ -2,7 +2,7 @@ import 'package:chenron/data_struct/item.dart';
 import 'package:chenron/data_struct/metadata.dart';
 import 'package:chenron/database/extensions/insert_ext.dart';
 import 'package:drift/drift.dart';
-import 'package:chenron/database/types/data_types.dart';
+import 'package:chenron/data_struct/cud.dart';
 import 'package:chenron/database/database.dart';
 import 'package:chenron/database/actions/batch.dart';
 
@@ -57,8 +57,8 @@ extension FolderExtensions on AppDatabase {
     if (tagUpdates.remove.isNotEmpty) {
       await batch((batch) async {
         for (final tagRemove in tagUpdates.remove) {
-          batch.deleteWhere(metadataRecords,
-              (tbl) => tbl.metadataId.equals(tagRemove.metadataId));
+          batch.deleteWhere(
+              metadataRecords, (tbl) => tbl.metadataId.equals(tagRemove));
         }
       });
     }
@@ -88,7 +88,7 @@ extension FolderExtensions on AppDatabase {
           batch.deleteWhere(
               items,
               (tbl) =>
-                  (tbl.itemId.equals(tagRemove.itemId)) &
+                  (tbl.itemId.equals(tagRemove)) &
                   tbl.folderId.equals(folderId));
           /*{ 
             final findItemId = tbl.itemId.equals(tagRemove.itemId);

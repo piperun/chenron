@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:chenron/providers/folder_state.dart';
+import 'package:chenron/providers/folder_info_state.dart';
 
 // move this to somewhere else to be used by other widgets
 enum FolderType { link, document, folder }
@@ -24,7 +24,8 @@ class _FolderInfoStepState extends State<FolderInfoStep> {
   @override
   void initState() {
     super.initState();
-    final folderProvider = Provider.of<FolderProvider>(context, listen: false);
+    final folderProvider =
+        Provider.of<FolderInfoProvider>(context, listen: false);
     _titleController = TextEditingController(text: folderProvider.title);
     _descriptionController =
         TextEditingController(text: folderProvider.description);
@@ -48,7 +49,7 @@ class _FolderInfoStepState extends State<FolderInfoStep> {
   Widget build(BuildContext context) {
     return Form(
       key: widget.formKey,
-      child: Consumer<FolderProvider>(
+      child: Consumer<FolderInfoProvider>(
         builder: (context, folderProvider, child) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,

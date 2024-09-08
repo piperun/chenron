@@ -4,7 +4,7 @@ import 'package:drift/drift.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:chenron/data_struct/metadata.dart';
 import 'package:chenron/database/database.dart';
-import 'package:chenron/database/types/data_types.dart';
+import 'package:chenron/data_struct/cud.dart';
 import 'package:chenron/database/extensions/folder/update.dart';
 
 void main() {
@@ -165,7 +165,7 @@ void main() {
       await database.updateFolder(testFolder.id, tagUpdates: cudTags);
 
       for (final tag in cudTags.create) {
-        cudTags.remove.add(tag);
+        cudTags.remove.add(tag.metadataId);
       }
 
       await database.updateFolder(testFolder.id, tagUpdates: cudTags);
@@ -186,7 +186,7 @@ void main() {
       ]);
       await database.updateFolder(testFolder.id, itemUpdates: itemUpdates);
 
-      itemUpdates.remove.add(itemUpdates.create[0]);
+      itemUpdates.remove.add(itemUpdates.create[0].itemId);
       await database.updateFolder(testFolder.id, itemUpdates: itemUpdates);
 
       final folderLinks = await (database.items.select()

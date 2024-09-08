@@ -1,22 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:chenron/data_struct/cud.dart';
 
 class CUDProvider<T> extends ChangeNotifier {
-  List<T> create = [];
-  Map<int, T> update = {};
-  List<int> remove = [];
+  final CUD<T> _cud = CUD<T>();
+
+  List<T> get create => _cud.create;
+  List<T> get update => _cud.update;
+  List<String> get remove => _cud.remove;
 
   void addItem(T item) {
-    create.add(item);
+    _cud.addItem(item);
     notifyListeners();
   }
 
-  void updateItem(int id, T item) {
-    update[id] = item;
-    notifyListeners();
-  }
-
-  void removeItem(int id) {
-    remove.add(id);
+  void removeItem(String id) {
+    _cud.removeItem(id);
     notifyListeners();
   }
 

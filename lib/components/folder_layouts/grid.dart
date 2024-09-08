@@ -4,16 +4,16 @@ import 'package:chenron/responsible_design/responsive_builder.dart';
 class GridLayout<T> extends StatelessWidget {
   final List<T> items;
   final bool Function(T) isItemSelected;
-  final Function(T) onItemToggle;
-  final Function(T) onTap;
+  final Function(T)? onItemToggle;
+  final Function(T)? onTap;
   final Widget Function(T) itemBuilder;
 
   const GridLayout({
     Key? key,
     required this.items,
     required this.isItemSelected,
-    required this.onItemToggle,
-    required this.onTap,
+    this.onItemToggle,
+    this.onTap,
     required this.itemBuilder,
   }) : super(key: key);
 
@@ -30,7 +30,7 @@ class GridLayout<T> extends StatelessWidget {
           return Card(
             color: isSelected ? Colors.blue.withOpacity(0.1) : null,
             child: InkWell(
-              onTap: () => onTap(item),
+              onTap: () => onTap!(item),
               child: Stack(
                 children: [
                   Center(child: itemBuilder(item)),
@@ -39,7 +39,7 @@ class GridLayout<T> extends StatelessWidget {
                     right: 4,
                     child: Checkbox(
                       value: isSelected,
-                      onChanged: (bool? value) => onItemToggle(item),
+                      onChanged: (bool? value) => onItemToggle!(item),
                     ),
                   ),
                 ],

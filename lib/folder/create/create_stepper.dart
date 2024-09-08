@@ -8,7 +8,7 @@ import 'package:chenron/folder/create/steps/folder_preview.dart';
 import 'package:chenron/responsible_design/breakpoints.dart';
 import 'package:chenron/providers/create_state.dart';
 import 'package:chenron/providers/CUD_state.dart';
-import 'package:chenron/providers/folder_state.dart';
+import 'package:chenron/providers/folder_info_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -46,7 +46,7 @@ class CreateFolderStepper extends StatelessWidget {
 
   void _nextStep(BuildContext context, CreateFolderState folderState) {
     if (folderState.currentStep == FolderStep.preview) {
-      final folderInfo = Provider.of<FolderProvider>(context, listen: false);
+      final folderInfo = Provider.of<FolderInfo>(context, listen: false);
 
       final folderContent =
           Provider.of<CUDProvider<FolderItem>>(context, listen: false);

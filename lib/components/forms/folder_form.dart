@@ -1,5 +1,5 @@
-import 'package:chenron/folder/components/folder_layouts/grid.dart';
-import 'package:chenron/folder/components/folder_layouts/list.dart';
+import 'package:chenron/components/folder_layouts/grid.dart';
+import 'package:chenron/components/folder_layouts/list.dart';
 import 'package:chenron/responsible_design/breakpoints.dart';
 import 'package:flutter/material.dart';
 
@@ -96,7 +96,8 @@ class _FolderFormState extends State<FolderForm> {
                 ? SizedBox(
                     height: MediaQuery.of(context).size.height * 0.3,
                     child: GridView.builder(
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 3,
                         crossAxisSpacing: 10,
                         mainAxisSpacing: 10,
