@@ -24,11 +24,6 @@ extension FolderReadExtensions on AppDatabase {
   /// A `Future<List<FolderResult>>` containing the requested folder data.
   ///
 
-  Future<List<FolderResult>> getAllFolders(
-      {IncludeFolderData mode = IncludeFolderData.all}) {
-    return FolderQueryBuilder(db: this, mode: mode).fetchAll();
-  }
-
   Future<FolderResult?> getFolder(String folderId,
       {IncludeFolderData mode = IncludeFolderData.all}) async {
     FolderResult folderResult;
@@ -99,6 +94,17 @@ extension FolderReadExtensions on AppDatabase {
         (Folder folderInfo, List<Link> folderItems) {
       return (folderInfo: folderInfo, folderItems: folderItems);
     });
+  }
+
+  Future<List<FolderResult>> getAllFolders(
+      {IncludeFolderData mode = IncludeFolderData.all}) {
+    return FolderQueryBuilder(db: this, mode: mode).fetchAll();
+  }
+
+  Stream<FolderResult> watchFolder(
+      {folderId, IncludeFolderData mode = IncludeFolderData.all}) {
+    return FolderQueryBuilder(folderId: folderId, db: this, mode: mode)
+        .watchSingle();
   }
 
 /*
@@ -364,6 +370,39 @@ class FolderQueryBuilder {
     return result;
   }
 
+  Stream<FolderResult> watchSingle() {
+    if (folderId == null) {
+      throw ArgumentError(
+          'folderId must be provided for watching a single folder');
+    }
+
+    final folderStream = (db.select(db.folders)
+          ..where((f) => f.id.equals(folderId!)))
+        .watchSingle();
+
+    final tagsStream =
+        mode == IncludeFolderData.all || mode == IncludeFolderData.tags
+            ? _watchTags(folderId!)
+            : Stream.value(<Tag>[]);
+
+    final itemsStream =
+        mode == IncludeFolderData.all || mode == IncludeFolderData.items
+            ? _watchItems(folderId!)
+            : Stream.value(<FolderItem>[]);
+
+    return Rx.combineLatest3(
+      folderStream,
+      tagsStream,
+      itemsStream,
+      (Folder folder, List<Tag> tags, List<FolderItem> items) {
+        final result = FolderResult(folder: folder);
+        result.tags = tags;
+        result.items = items;
+        return result;
+      },
+    );
+  }
+
   Future<Folder> _getFolder(String folderId) {
     return (db.select(db.folders)..where((f) => f.id.equals(folderId)))
         .getSingle();
@@ -404,5 +443,32 @@ class FolderQueryBuilder {
       }
     }).get();
     return rows.then((items) => items.whereType<FolderItem>().toList());
+  }
+
+  Stream<List<Tag>> _watchTags(String folderId) {
+    return (db.select(db.metadataRecords).join([
+      leftOuterJoin(
+          db.tags, db.tags.id.equalsExp(db.metadataRecords.metadataId)),
+    ])
+          ..where(db.metadataRecords.itemId.equals(folderId)))
+        .watch()
+        .map((rows) => rows.map((row) => row.readTable(db.tags)).toList());
+  }
+
+  Stream<List<FolderItem>> _watchItems(String folderId) {
+    return (db.select(db.items).join([
+      leftOuterJoin(db.links, db.links.id.equalsExp(db.items.itemId)),
+      leftOuterJoin(db.documents, db.documents.id.equalsExp(db.items.itemId)),
+    ])
+          ..where(db.items.folderId.equals(folderId)))
+        .watch()
+        .map((rows) => rows
+            .map((row) {
+              final link = row.readTableOrNull(db.links);
+              final document = row.readTableOrNull(db.documents);
+              return link?.toFolderItem() ?? document?.toFolderItem();
+            })
+            .whereType<FolderItem>()
+            .toList());
   }
 }

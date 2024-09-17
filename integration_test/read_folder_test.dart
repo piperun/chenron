@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:chenron/data_struct/item.dart';
+import 'package:chenron/database/extensions/folder/update.dart';
 import 'package:chenron/test_lib/folder_factory.dart';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -218,4 +221,67 @@ void main() {
       }
     });
   });
+  group("watchFolder() Operations", () {
+    test("emits null when folder is not found", () async {
+      final stream = database.watchFolder(folderId: 'non_existent_id');
+      expect(stream, emits(null));
+    });
+    test("should watch a single folder with no tags or items", () async {
+      final stream = database.watchFolder(
+          folderId: activeFolder.folder.id, mode: IncludeFolderData.none);
+
+      expect(
+          stream,
+          emitsThrough(predicate<FolderResult>((result) =>
+              result.folder.id == activeFolder.folder.id &&
+              result.folder.title == activeFolder.folder.title &&
+              result.folder.description == activeFolder.folder.description &&
+              result.tags.isEmpty &&
+              result.items.isEmpty)));
+    });
+
+    test("should watch folder with only tags", () async {
+      final stream = database.watchFolder(
+          folderId: activeFolder.folder.id, mode: IncludeFolderData.tags);
+
+      expect(
+          stream,
+          emitsThrough(predicate<FolderResult>((result) =>
+              result.tags.length == activeFolder.tags.length &&
+              result.tags.every(
+                  (tag) => activeFolder.tags.any((t) => t.value == tag.name)) &&
+              result.items.isEmpty)));
+    });
+
+    test("should watch folder with only items", () async {
+      final stream = database.watchFolder(
+          folderId: activeFolder.folder.id, mode: IncludeFolderData.items);
+
+      expect(
+          stream,
+          emitsThrough(predicate<FolderResult>((result) =>
+              result.items.length == activeFolder.items.length &&
+              result.items.any((item) => item.type == FolderItemType.link) &&
+              result.items
+                  .any((item) => item.type == FolderItemType.document) &&
+              result.tags.isEmpty)));
+    });
+
+    test("should watch folder with both items and tags", () async {
+      final stream = database.watchFolder(
+          folderId: activeFolder.folder.id, mode: IncludeFolderData.all);
+
+      expect(
+          stream,
+          emitsThrough(predicate<FolderResult>((result) =>
+              result.tags.length == activeFolder.tags.length &&
+              result.tags.every(
+                  (tag) => activeFolder.tags.any((t) => t.value == tag.name)) &&
+              result.items.length == activeFolder.items.length &&
+              result.items.any((item) => item.type == FolderItemType.link) &&
+              result.items
+                  .any((item) => item.type == FolderItemType.document))));
+    });
+  });
+  group("watchAllFolders() Operations", () {});
 }
