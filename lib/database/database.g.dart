@@ -304,15 +304,16 @@ class $LinksTable extends Links with TableInfo<$LinksTable, Link> {
       type: DriftSqlType.dateTime,
       requiredDuringInsert: false,
       defaultValue: currentDateAndTime);
-  static const VerificationMeta _urlMeta = const VerificationMeta('url');
+  static const VerificationMeta _contentMeta =
+      const VerificationMeta('content');
   @override
-  late final GeneratedColumn<String> url = GeneratedColumn<String>(
-      'url', aliasedName, false,
+  late final GeneratedColumn<String> content = GeneratedColumn<String>(
+      'content', aliasedName, false,
       type: DriftSqlType.string,
       requiredDuringInsert: true,
       defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'));
   @override
-  List<GeneratedColumn> get $columns => [id, createdAt, url];
+  List<GeneratedColumn> get $columns => [id, createdAt, content];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -332,11 +333,11 @@ class $LinksTable extends Links with TableInfo<$LinksTable, Link> {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
     }
-    if (data.containsKey('url')) {
-      context.handle(
-          _urlMeta, url.isAcceptableOrUnknown(data['url']!, _urlMeta));
+    if (data.containsKey('content')) {
+      context.handle(_contentMeta,
+          content.isAcceptableOrUnknown(data['content']!, _contentMeta));
     } else if (isInserting) {
-      context.missing(_urlMeta);
+      context.missing(_contentMeta);
     }
     return context;
   }
@@ -351,8 +352,8 @@ class $LinksTable extends Links with TableInfo<$LinksTable, Link> {
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
       createdAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
-      url: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}url'])!,
+      content: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}content'])!,
     );
   }
 
@@ -365,14 +366,15 @@ class $LinksTable extends Links with TableInfo<$LinksTable, Link> {
 class Link extends DataClass implements Insertable<Link> {
   final String id;
   final DateTime createdAt;
-  final String url;
-  const Link({required this.id, required this.createdAt, required this.url});
+  final String content;
+  const Link(
+      {required this.id, required this.createdAt, required this.content});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     map['created_at'] = Variable<DateTime>(createdAt);
-    map['url'] = Variable<String>(url);
+    map['content'] = Variable<String>(content);
     return map;
   }
 
@@ -380,7 +382,7 @@ class Link extends DataClass implements Insertable<Link> {
     return LinksCompanion(
       id: Value(id),
       createdAt: Value(createdAt),
-      url: Value(url),
+      content: Value(content),
     );
   }
 
@@ -390,7 +392,7 @@ class Link extends DataClass implements Insertable<Link> {
     return Link(
       id: serializer.fromJson<String>(json['id']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
-      url: serializer.fromJson<String>(json['url']),
+      content: serializer.fromJson<String>(json['content']),
     );
   }
   @override
@@ -399,20 +401,20 @@ class Link extends DataClass implements Insertable<Link> {
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
       'createdAt': serializer.toJson<DateTime>(createdAt),
-      'url': serializer.toJson<String>(url),
+      'content': serializer.toJson<String>(content),
     };
   }
 
-  Link copyWith({String? id, DateTime? createdAt, String? url}) => Link(
+  Link copyWith({String? id, DateTime? createdAt, String? content}) => Link(
         id: id ?? this.id,
         createdAt: createdAt ?? this.createdAt,
-        url: url ?? this.url,
+        content: content ?? this.content,
       );
   Link copyWithCompanion(LinksCompanion data) {
     return Link(
       id: data.id.present ? data.id.value : this.id,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
-      url: data.url.present ? data.url.value : this.url,
+      content: data.content.present ? data.content.value : this.content,
     );
   }
 
@@ -421,50 +423,50 @@ class Link extends DataClass implements Insertable<Link> {
     return (StringBuffer('Link(')
           ..write('id: $id, ')
           ..write('createdAt: $createdAt, ')
-          ..write('url: $url')
+          ..write('content: $content')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, createdAt, url);
+  int get hashCode => Object.hash(id, createdAt, content);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Link &&
           other.id == this.id &&
           other.createdAt == this.createdAt &&
-          other.url == this.url);
+          other.content == this.content);
 }
 
 class LinksCompanion extends UpdateCompanion<Link> {
   final Value<String> id;
   final Value<DateTime> createdAt;
-  final Value<String> url;
+  final Value<String> content;
   final Value<int> rowid;
   const LinksCompanion({
     this.id = const Value.absent(),
     this.createdAt = const Value.absent(),
-    this.url = const Value.absent(),
+    this.content = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   LinksCompanion.insert({
     required String id,
     this.createdAt = const Value.absent(),
-    required String url,
+    required String content,
     this.rowid = const Value.absent(),
   })  : id = Value(id),
-        url = Value(url);
+        content = Value(content);
   static Insertable<Link> custom({
     Expression<String>? id,
     Expression<DateTime>? createdAt,
-    Expression<String>? url,
+    Expression<String>? content,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (createdAt != null) 'created_at': createdAt,
-      if (url != null) 'url': url,
+      if (content != null) 'content': content,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -472,12 +474,12 @@ class LinksCompanion extends UpdateCompanion<Link> {
   LinksCompanion copyWith(
       {Value<String>? id,
       Value<DateTime>? createdAt,
-      Value<String>? url,
+      Value<String>? content,
       Value<int>? rowid}) {
     return LinksCompanion(
       id: id ?? this.id,
       createdAt: createdAt ?? this.createdAt,
-      url: url ?? this.url,
+      content: content ?? this.content,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -491,8 +493,8 @@ class LinksCompanion extends UpdateCompanion<Link> {
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
-    if (url.present) {
-      map['url'] = Variable<String>(url.value);
+    if (content.present) {
+      map['content'] = Variable<String>(content.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -505,7 +507,7 @@ class LinksCompanion extends UpdateCompanion<Link> {
     return (StringBuffer('LinksCompanion(')
           ..write('id: $id, ')
           ..write('createdAt: $createdAt, ')
-          ..write('url: $url, ')
+          ..write('content: $content, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -2259,13 +2261,13 @@ typedef $$FoldersTableProcessedTableManager = ProcessedTableManager<
 typedef $$LinksTableCreateCompanionBuilder = LinksCompanion Function({
   required String id,
   Value<DateTime> createdAt,
-  required String url,
+  required String content,
   Value<int> rowid,
 });
 typedef $$LinksTableUpdateCompanionBuilder = LinksCompanion Function({
   Value<String> id,
   Value<DateTime> createdAt,
-  Value<String> url,
+  Value<String> content,
   Value<int> rowid,
 });
 
@@ -2282,8 +2284,8 @@ class $$LinksTableFilterComposer
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
-  ColumnFilters<String> get url => $state.composableBuilder(
-      column: $state.table.url,
+  ColumnFilters<String> get content => $state.composableBuilder(
+      column: $state.table.content,
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 }
@@ -2301,8 +2303,8 @@ class $$LinksTableOrderingComposer
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 
-  ColumnOrderings<String> get url => $state.composableBuilder(
-      column: $state.table.url,
+  ColumnOrderings<String> get content => $state.composableBuilder(
+      column: $state.table.content,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 }
@@ -2329,25 +2331,25 @@ class $$LinksTableTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
-            Value<String> url = const Value.absent(),
+            Value<String> content = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               LinksCompanion(
             id: id,
             createdAt: createdAt,
-            url: url,
+            content: content,
             rowid: rowid,
           ),
           createCompanionCallback: ({
             required String id,
             Value<DateTime> createdAt = const Value.absent(),
-            required String url,
+            required String content,
             Value<int> rowid = const Value.absent(),
           }) =>
               LinksCompanion.insert(
             id: id,
             createdAt: createdAt,
-            url: url,
+            content: content,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0

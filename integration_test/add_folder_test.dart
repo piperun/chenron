@@ -95,10 +95,13 @@ void main() {
       ];
 
       final items = [
-        FolderItem(type: FolderItemType.link, content: "https://example.com"),
+        FolderItem(
+            type: FolderItemType.link,
+            content: StringContent("https://example.com")),
         FolderItem(
             type: FolderItemType.document,
-            content: {"title": "Test document", "body": "Blablabla"}),
+            content:
+                MapContent({"title": "Test document", "body": "Blablabla"})),
       ];
 
       await database.addFolder(

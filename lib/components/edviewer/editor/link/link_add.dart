@@ -53,7 +53,7 @@ class _LinkAdderState extends State<LinkAdder> {
     widget.onAdd(
       FolderItem(
         type: FolderItemType.link,
-        content: _linkController.text,
+        content: StringContent(_linkController.text),
       ),
     );
     widget.stateManager.appendRows([

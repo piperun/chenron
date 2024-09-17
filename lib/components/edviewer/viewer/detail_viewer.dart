@@ -1,14 +1,12 @@
 import 'package:chenron/components/TextBase/text_view.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:chenron/database/database.dart';
 import 'package:chenron/database/extensions/folder/read.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class DetailViewer extends StatefulWidget {
   final String folderId;
-  final Future<FolderObject> fetchData;
+  final Future<FolderResult> fetchData;
   final Widget Function(BuildContext, dynamic) listBuilder;
 
   const DetailViewer(
@@ -18,12 +16,11 @@ class DetailViewer extends StatefulWidget {
       required this.listBuilder});
 
   @override
-  _DetailViewerState createState() => _DetailViewerState();
+  State<DetailViewer> createState() => _DetailViewerState();
 }
 
 class _DetailViewerState<T> extends State<DetailViewer> {
   bool _isGridView = true;
-  final Set<String> _selectedItems = {};
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +39,7 @@ class _DetailViewerState<T> extends State<DetailViewer> {
             ),
           ],
         ),
-        body: FutureBuilder<FolderObject>(
+        body: FutureBuilder<FolderResult>(
           future: widget.fetchData,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
@@ -69,21 +66,6 @@ class _DetailViewerState<T> extends State<DetailViewer> {
             );
           },
         ));
-  }
-
-  void _toggleItem(String item) {
-    setState(() {
-      if (_selectedItems.contains(item)) {
-        _selectedItems.remove(item);
-      } else {
-        _selectedItems.add(item);
-      }
-    });
-  }
-
-  void _handleItemTap(String item) {
-    // Implement item tap behavior
-    print('Tapped on item: $item');
   }
 }
 

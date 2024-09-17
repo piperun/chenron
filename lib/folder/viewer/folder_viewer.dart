@@ -1,6 +1,5 @@
 import 'package:chenron/database/database.dart';
 import 'package:chenron/database/extensions/folder/read.dart';
-import 'package:chenron/components/folder_form_view.dart';
 import 'package:chenron/components/tag_chips.dart';
 import 'package:chenron/folder/editor.dart';
 import 'package:chenron/folder/viewer/folder_detail_view.dart';
@@ -14,7 +13,7 @@ class FolderViewSlug extends StatefulWidget {
   const FolderViewSlug({super.key});
 
   @override
-  _FolderViewSlugState createState() => _FolderViewSlugState();
+  State<FolderViewSlug> createState() => _FolderViewSlugState();
 }
 
 class _FolderViewSlugState extends State<FolderViewSlug> {
@@ -40,7 +39,7 @@ class _FolderViewSlugState extends State<FolderViewSlug> {
     });
   }
 
-  void _onFolderTap(BuildContext context, FolderObject folder) {
+  void _onFolderTap(BuildContext context, FolderResult folder) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -49,7 +48,7 @@ class _FolderViewSlugState extends State<FolderViewSlug> {
     );
   }
 
-  void _onEditTap(BuildContext context, FolderObject folder) {
+  void _onEditTap(BuildContext context, FolderResult folder) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -91,7 +90,7 @@ class _FolderViewSlugState extends State<FolderViewSlug> {
             ),
           ),
           Expanded(
-            child: StreamBuilder<List<FolderObject>>(
+            child: StreamBuilder<List<FolderResult>>(
               stream: _streamFolders,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -106,13 +105,14 @@ class _FolderViewSlugState extends State<FolderViewSlug> {
                   return folder.folder.title
                           .toLowerCase()
                           .contains(lowerQuery) ||
-                      (folder.tags?.name.toLowerCase().contains(lowerQuery) ??
+                      (folder.tags?.any((tag) =>
+                              tag.name.toLowerCase().contains(lowerQuery)) ??
                           false);
                 }).toList();
 
                 Widget folderWidget;
                 if (_isGridView) {
-                  folderWidget = GridLayout<FolderObject>(
+                  folderWidget = GridLayout<FolderResult>(
                     items: filteredFolders,
                     isItemSelected: (folder) =>
                         _selectedFolders.contains(folder.folder.id),
@@ -125,7 +125,7 @@ class _FolderViewSlugState extends State<FolderViewSlug> {
                         if (folder.tags != null)
                           // TODO: this will be changed later on to probably use flutter's own InputChip.
                           Chips(
-                            tags: [folder.tags!.name],
+                            tags: folder.tags!.map((tag) => tag.name).toList(),
                             onTagTap: (tag) {/* Handle tag tap */},
                           ),
                         TextButton.icon(
@@ -136,7 +136,7 @@ class _FolderViewSlugState extends State<FolderViewSlug> {
                     ),
                   );
                 } else {
-                  folderWidget = ListLayout<FolderObject>(
+                  folderWidget = ListLayout<FolderResult>(
                     items: filteredFolders,
                     isItemSelected: (folder) =>
                         _selectedFolders.contains(folder.folder.id),
@@ -147,7 +147,7 @@ class _FolderViewSlugState extends State<FolderViewSlug> {
                         Expanded(child: Text(folder.folder.title)),
                         if (folder.tags != null)
                           Chips(
-                            tags: [folder.tags!.name],
+                            tags: folder.tags!.map((tag) => tag.name).toList(),
                             onTagTap: (tag) {/* Handle tag tap */},
                           ),
                         TextButton.icon(
@@ -163,8 +163,9 @@ class _FolderViewSlugState extends State<FolderViewSlug> {
                     Wrap(
                       spacing: 8,
                       children: filteredFolders
-                          .where((f) => f.tags != null)
-                          .map((f) => Chip(label: Text(f.tags!.name)))
+                          .where((f) => f.tags != null && f.tags!.isNotEmpty)
+                          .expand((f) =>
+                              f.tags!.map((tag) => Chip(label: Text(tag.name))))
                           .toSet()
                           .toList(),
                     ),

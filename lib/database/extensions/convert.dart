@@ -1,0 +1,41 @@
+import 'dart:convert';
+
+import 'package:chenron/data_struct/folder.dart';
+import 'package:chenron/data_struct/item.dart';
+import 'package:chenron/database/database.dart';
+
+extension ConvertFolderToInfo on Folder {
+  FolderInfo toFolderInfo() {
+    return FolderInfo(
+      id: id,
+      title: title,
+      description: description,
+      createdAt: createdAt,
+    );
+  }
+}
+
+extension ConvertLinkToItem on Link {
+  FolderItem toFolderItem() {
+    return FolderItem(
+      id: id,
+      itemId: id,
+      content: StringContent(content),
+      type: FolderItemType.link,
+    );
+  }
+}
+
+extension ConvertDocumentToItem on Document {
+  FolderItem toFolderItem() {
+    return FolderItem(
+      id: id,
+      itemId: id,
+      content: MapContent({
+        "title": title,
+        "body": utf8.decode(content),
+      }),
+      type: FolderItemType.document,
+    );
+  }
+}

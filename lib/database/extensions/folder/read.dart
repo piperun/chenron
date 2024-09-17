@@ -1,12 +1,11 @@
+import 'package:chenron/data_struct/folder.dart';
+import 'package:chenron/data_struct/item.dart';
 import 'package:chenron/database/database.dart';
+import 'package:chenron/database/extensions/convert.dart';
 import 'package:drift/drift.dart';
 import 'package:rxdart/rxdart.dart';
 
-enum IncludeFolderData {
-  all,
-  items,
-  tags,
-}
+enum IncludeFolderData { all, items, tags, none }
 
 typedef FolderLink = ({
   Folder folderInfo,
@@ -19,81 +18,65 @@ extension FolderReadExtensions on AppDatabase {
   /// This method uses the `_getJoins()` function to construct the necessary database joins based on the specified `IncludeFolderData` mode.
   ///
   /// Parameters:
-  /// - `mode`: An optional `IncludeFolderData` enum value that determines which additional data (items, tags) to include in the returned `FolderObject` instances. Defaults to `IncludeFolderData.all`.
+  /// - `mode`: An optional `IncludeFolderData` enum value that determines which additional data (items, tags) to include in the returned `FolderResult` instances. Defaults to `IncludeFolderData.all`.
   ///
   /// Returns:
-  /// A `Future<List<FolderObject>>` containing the requested folder data.
-  Future<List<FolderObject>> getAllFolders(
+  /// A `Future<List<FolderResult>>` containing the requested folder data.
+  ///
+
+  Future<List<FolderResult>> getAllFolders(
       {IncludeFolderData mode = IncludeFolderData.all}) {
-    Map<IncludeFolderData, List<Join<HasResultSet, dynamic>>> joins =
-        _getJoins();
-    var query = select(folders).join(joins[mode]!);
-
-    return query.map((row) {
-      final folder = row.readTable(folders);
-      final folderTags = row.readTableOrNull(tags);
-      final folderDocuments = row.readTableOrNull(documents);
-      final folderLinks = row.readTableOrNull(links);
-
-      return FolderObject(
-          folder: folder,
-          tags: folderTags,
-          items: (links: folderLinks, documents: folderDocuments));
-    }).get();
+    return FolderQueryBuilder(db: this, mode: mode).fetchAll();
   }
 
-  Future<FolderObject?> getFolder(String folderId,
+  Future<FolderResult?> getFolder(String folderId,
       {IncludeFolderData mode = IncludeFolderData.all}) async {
-    Map<IncludeFolderData, List<Join<HasResultSet, dynamic>>> joins =
-        _getJoins();
-    var query = (select(folders)..where((tbl) => tbl.id.equals(folderId)))
-        .join(joins[mode]!);
+    FolderResult folderResult;
 
-    final result = query.map((row) {
-      final folder = row.readTable(folders);
-      final folderTags = row.readTableOrNull(tags);
-      final folderLinks = row.readTableOrNull(links);
-      final folderitems = row.readTableOrNull(items);
-
-      return FolderObject(folder: folder, tags: folderTags, items: folderLinks);
-    }).getSingleOrNull();
-
-    final joinResults = query.map((row) {
-      final folderTags = row.readTableOrNull(tags);
-      final folderLinks = row.readTableOrNull(links);
-      final folderitems = row.readTableOrNull(items);
-
-      return (tags: folderTags, links: folderLinks);
-    }).get();
-    final test = await joinResults;
-    return result;
-  }
-
-  Future<FolderObject?> getTest(String folderId,
-      {IncludeFolderData mode = IncludeFolderData.all}) async {
-    ContentQueries joins = _getJoins2(mode);
-    FolderObject? folderObject;
     final folderQuery = await (select(folders)
           ..where((folder) => folder.id.equals(folderId)))
         .getSingleOrNull();
-    if (folderQuery != null) {
-      folderObject = FolderObject(folder: folderQuery);
-      final contentQuery = (select(items).join(
-        joins.items!,
-      )..where(items.folderId.equals(folderId)));
-      folderObject.items = await contentQuery.map((rows) {
-        //TODO: Probably rewrite this so we add this to the FolderObject instead of returning it.
-        final linkResult = rows.readTableOrNull(links);
-        //final documentResult = rows.readTableOrNull(documents);
-        return linkResult;
-      }).get();
+
+    if (folderQuery == null) {
+      return null;
     }
-    return folderObject;
+    folderResult = FolderResult(
+      folder: folderQuery,
+    );
+    if (mode == IncludeFolderData.tags || mode == IncludeFolderData.all) {
+      final query = await (select(metadataRecords).join([
+        leftOuterJoin(
+          tags,
+          tags.id.equalsExp(metadataRecords.metadataId),
+        ),
+      ])
+            ..where(metadataRecords.itemId.equals(folderId)))
+          .get();
+      folderResult.tags.addAll(_getTags(query));
+    }
+    if (mode == IncludeFolderData.items || mode == IncludeFolderData.all) {
+      final query = await (select(items).join([
+        leftOuterJoin(
+          documents,
+          documents.id.equalsExp(items.itemId),
+        ),
+        leftOuterJoin(
+          links,
+          links.id.equalsExp(items.itemId),
+        )
+      ])
+            ..where(items.folderId.equals(folderId)))
+          .get();
+      folderResult.items.addAll(_getItems(query));
+    }
+    if (mode == IncludeFolderData.none) return folderResult;
+
+    return folderResult;
   }
 
   Stream<FolderLink> watchTest(String folderId,
       {IncludeFolderData mode = IncludeFolderData.all}) {
-    ContentQueries joins = _getJoins2(mode);
+    ContentJoins joins = ContentJoins(mode: mode);
 
     final folderQuery = (select(folders)
           ..where((folder) => folder.id.equals(folderId)))
@@ -102,10 +85,10 @@ extension FolderReadExtensions on AppDatabase {
     final folderStream = folderQuery;
 
     final contentQuery = (select(items).join(
-      joins.items!,
+      joins.joins,
     )..where(items.folderId.equals(folderId)));
     final contentStream = contentQuery.watch().map((rows) {
-      //TODO: Probably rewrite this so we add this to the FolderObject instead of returning it.
+      //TODO: Probably rewrite this so we add this to the FolderResult instead of returning it.
       return rows.map((row) {
         return row.readTable(links);
       }).toList();
@@ -118,7 +101,8 @@ extension FolderReadExtensions on AppDatabase {
     });
   }
 
-  Stream<List<FolderObject>> watchFolder(String folderId,
+/*
+  Stream<List<FolderResult>> watchFolder(String folderId,
       {IncludeFolderData mode = IncludeFolderData.all}) {
     Map<IncludeFolderData, List<Join<HasResultSet, dynamic>>> joins =
         _getJoins();
@@ -131,67 +115,52 @@ extension FolderReadExtensions on AppDatabase {
         final folderTags = row.readTableOrNull(tags);
         final folderitems = row.readTableOrNull(items);
 
-        return FolderObject(
+        return FolderResult(
             folder: folder, tags: folderTags, items: folderitems);
       }).toList();
     });
   }
+*/
 
-  Stream<List<FolderObject>> watchAllFolders(
+  Stream<List<FolderResult>> watchAllFolders(
       {IncludeFolderData mode = IncludeFolderData.all}) {
-    Map<IncludeFolderData, List<Join<HasResultSet, dynamic>>> joins =
-        _getJoins();
-    var query = select(folders).join(joins[mode]!);
+    ContentJoins joins = ContentJoins(mode: mode);
+    var query = select(folders).join(joins.joins);
 
     return query.watch().map((rows) {
       return rows.map((row) {
         final folder = row.readTable(folders);
         final folderTags = row.readTableOrNull(tags);
-        final folderitems = row.readTableOrNull(items);
 
-        return FolderObject(
-            folder: folder, tags: folderTags, items: folderitems);
+        return FolderResult(folder: folder);
       }).toList();
     });
   }
 
-  ContentQueries _getJoins2(IncludeFolderData mode) {
-    switch (mode) {
-      case IncludeFolderData.all:
-        return ContentQueries(tags: [
-          leftOuterJoin(
-            tags,
-            tags.id.equalsExp(metadataRecords.metadataId),
-          )
-        ], items: [
-          leftOuterJoin(
-            links,
-            links.id.equalsExp(items.itemId),
-          ),
-          leftOuterJoin(
-            documents,
-            documents.id.equalsExp(items.itemId),
-          ),
-        ]);
-      case IncludeFolderData.tags:
-        return ContentQueries(tags: [
-          leftOuterJoin(
-            tags,
-            tags.id.equalsExp(metadataRecords.metadataId),
-          )
-        ]);
-      case IncludeFolderData.items:
-        return ContentQueries(items: [
-          leftOuterJoin(
-            links,
-            links.id.equalsExp(items.itemId),
-          ),
-          leftOuterJoin(
-            documents,
-            documents.id.equalsExp(items.itemId),
-          ),
-        ]);
+  List<Tag> _getTags(List<TypedResult> queryResults) {
+    List<Tag> tagResults = [];
+    for (final result in queryResults) {
+      final tag = result.readTableOrNull(tags);
+      if (tag != null) {
+        tagResults.add(tag);
+      }
     }
+    return tagResults;
+  }
+
+  List<FolderItem> _getItems(List<TypedResult> queryResults) {
+    List<FolderItem> folderItems = [];
+    for (final result in queryResults) {
+      final link = result.readTableOrNull(links);
+      final document = result.readTableOrNull(documents);
+      if (link != null) {
+        folderItems.add(link.toFolderItem());
+      }
+      if (document != null) {
+        folderItems.add(document.toFolderItem());
+      }
+    }
+    return folderItems;
   }
 
 /*
@@ -201,6 +170,8 @@ extension FolderReadExtensions on AppDatabase {
   Map<IncludeFolderData, List<Join<HasResultSet, dynamic>>> _getJoins() {
     return {
       IncludeFolderData.all: [
+        leftOuterJoin(
+            metadataRecords, metadataRecords.itemId.equalsExp(folders.id)),
         leftOuterJoin(
           tags,
           tags.id.equalsExp(metadataRecords.metadataId),
@@ -224,7 +195,6 @@ extension FolderReadExtensions on AppDatabase {
         )
       ],
       IncludeFolderData.items: [
-        leftOuterJoin(items, items.folderId.equalsExp(folders.id)),
         leftOuterJoin(
           documents,
           documents.id.equalsExp(items.id),
@@ -238,20 +208,201 @@ extension FolderReadExtensions on AppDatabase {
   }
 }
 
-class ContentQueries {
-  List<Join<HasResultSet, dynamic>>? tags;
-  List<Join<HasResultSet, dynamic>>? items;
+class ContentJoins extends AppDatabase {
+  IncludeFolderData mode;
+  List<Join<HasResultSet, dynamic>>? joinTags;
+  List<Join<HasResultSet, dynamic>>? joinItems;
+  final List<Join<HasResultSet, dynamic>> joins = [];
 
-  ContentQueries({
-    this.tags = const [],
-    this.items = const [],
-  });
+  ContentJoins({
+    required this.mode,
+  }) {
+    switch (mode) {
+      case IncludeFolderData.all:
+        joins.addAll([
+          leftOuterJoin(
+              metadataRecords, metadataRecords.itemId.equalsExp(folders.id)),
+          leftOuterJoin(
+            items,
+            items.folderId.equalsExp(items.folderId),
+          ),
+          innerJoin(
+            tags,
+            tags.id.equalsExp(metadataRecords.metadataId),
+          ),
+          leftOuterJoin(
+            links,
+            links.id.equalsExp(items.itemId),
+          ),
+          leftOuterJoin(
+            documents,
+            documents.id.equalsExp(items.itemId),
+          ),
+        ]);
+      case IncludeFolderData.tags:
+        joins.addAll([
+          leftOuterJoin(
+              metadataRecords, metadataRecords.itemId.equalsExp(folders.id)),
+          leftOuterJoin(tags, tags.id.equalsExp(metadataRecords.metadataId)),
+        ]);
+      case IncludeFolderData.items:
+        joins.addAll([
+          leftOuterJoin(
+            items,
+            items.id.equalsExp(items.folderId),
+          ),
+          leftOuterJoin(
+            links,
+            links.id.equalsExp(items.itemId),
+          ),
+          leftOuterJoin(
+            documents,
+            documents.id.equalsExp(items.itemId),
+          ),
+        ]);
+      case IncludeFolderData.none:
+        return;
+    }
+  }
+
+  void getJoins() {}
 }
 
-class FolderObject {
+class FolderResult {
   final Folder folder;
-  Tag? tags;
-  dynamic items;
+  List<Tag> tags = [];
+  List<FolderItem> items = [];
 
-  FolderObject({required this.folder, this.tags, this.items = const []});
+  FolderResult({required this.folder});
+}
+
+class FolderJoins {
+  final IncludeFolderData mode;
+  late Map<String, dynamic> _dataMap;
+
+  FolderJoins(this.mode) {
+    _initializeDataMap();
+  }
+
+  void _initializeDataMap() {
+    _dataMap = {};
+    switch (mode) {
+      case IncludeFolderData.all:
+        _dataMap['tags'] = [];
+        _dataMap['items'] = [];
+        break;
+      case IncludeFolderData.tags:
+        _dataMap['tags'] = [];
+        break;
+      case IncludeFolderData.items:
+        _dataMap['items'] = [];
+        break;
+      case IncludeFolderData.none:
+        // Keep the map empty
+        break;
+    }
+  }
+
+  void addTags(List<Tag> tags) {
+    if (_dataMap.containsKey('tags')) {
+      _dataMap['tags'].addAll(tags);
+    }
+  }
+
+  void addItems(List<FolderItem> items) {
+    if (_dataMap.containsKey('items')) {
+      _dataMap['items'].addAll(items);
+    }
+  }
+
+  Map<String, dynamic> get data => Map.unmodifiable(_dataMap);
+
+  bool get includeTags => _dataMap.containsKey('tags');
+  bool get includeItems => _dataMap.containsKey('items');
+}
+
+class FolderQueryBuilder {
+  final AppDatabase db;
+  final IncludeFolderData mode;
+  final String? folderId;
+
+  FolderQueryBuilder({required this.db, this.folderId, required this.mode});
+  Future<List<FolderResult>> fetchAll() async {
+    final folders = await _getAllFolders();
+    final results = <FolderResult>[];
+
+    for (final folder in folders) {
+      final result = FolderResult(folder: folder);
+      if (mode == IncludeFolderData.all || mode == IncludeFolderData.tags) {
+        result.tags = await _getTags(folder.id);
+      }
+      if (mode == IncludeFolderData.all || mode == IncludeFolderData.items) {
+        result.items = await _getItems(folder.id);
+      }
+      results.add(result);
+    }
+
+    return results;
+  }
+
+  Future<FolderResult> fetchSingle() async {
+    if (folderId == null) {
+      throw Exception('Folder id is null');
+    }
+    final folder = await _getFolder(folderId!);
+    final result = FolderResult(folder: folder);
+
+    if (mode == IncludeFolderData.all || mode == IncludeFolderData.tags) {
+      result.tags = await _getTags(folder.id);
+    }
+
+    if (mode == IncludeFolderData.all || mode == IncludeFolderData.items) {
+      final items = await _getItems(folder.id);
+      result.items = items;
+    }
+
+    return result;
+  }
+
+  Future<Folder> _getFolder(String folderId) {
+    return (db.select(db.folders)..where((f) => f.id.equals(folderId)))
+        .getSingle();
+  }
+
+  Future<List<Folder>> _getAllFolders() {
+    return db.select(db.folders).get();
+  }
+
+  Future<List<Tag>> _getTags(String folderId) {
+    final rows = (db.select(db.metadataRecords).join([
+      leftOuterJoin(
+          db.tags, db.tags.id.equalsExp(db.metadataRecords.metadataId)),
+    ])
+          ..where(db.metadataRecords.itemId.equals(folderId)))
+        .map((row) {
+      final tag = row.readTable(db.tags);
+      return tag;
+    }).get();
+
+    return rows.then((tags) => tags.whereType<Tag>().toList());
+  }
+
+  Future<List<FolderItem>> _getItems(String folderId) {
+    final rows = (db.select(db.items).join([
+      leftOuterJoin(db.links, db.links.id.equalsExp(db.items.itemId)),
+      leftOuterJoin(db.documents, db.documents.id.equalsExp(db.items.itemId)),
+    ])
+          ..where(db.items.folderId.equals(folderId)))
+        .map((row) {
+      final link = row.readTableOrNull(db.links);
+      final document = row.readTableOrNull(db.documents);
+      if (link != null) {
+        return link.toFolderItem();
+      }
+      if (document != null) {
+        return document.toFolderItem();
+      }
+    }).get();
+    return rows.then((items) => items.whereType<FolderItem>().toList());
+  }
 }

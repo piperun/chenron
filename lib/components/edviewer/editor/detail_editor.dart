@@ -58,7 +58,7 @@ class _DetailEditorState extends State<DetailEditor> {
         return PlutoRow(
           cells: {
             'id': PlutoCell(value: link.id),
-            'url': PlutoCell(value: link.url),
+            'url': PlutoCell(value: link.content),
             'createdAt': PlutoCell(
               value: DateFormat('yyyy-MM-dd HH:mm:ss').format(link.createdAt),
             )

@@ -1,11 +1,6 @@
 import 'package:chenron/components/edviewer/editor/detail_editor.dart';
-import 'package:chenron/data_struct/folder.dart';
-import 'package:chenron/data_struct/item.dart';
 import 'package:chenron/database/database.dart';
 import 'package:chenron/database/extensions/folder/read.dart';
-import 'package:chenron/database/extensions/folder/update.dart';
-import 'package:chenron/providers/CUD_state.dart';
-import 'package:chenron/providers/folder_info_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

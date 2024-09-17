@@ -4,13 +4,25 @@ import 'package:chenron/database/database.dart';
 import 'package:cuid2/cuid2.dart';
 import 'package:drift/drift.dart';
 
+sealed class ItemContent {}
+
+class StringContent extends ItemContent {
+  final String value;
+  StringContent(this.value);
+}
+
+class MapContent extends ItemContent {
+  final Map<String, String> value;
+  MapContent(this.value);
+}
+
 /// WARNING: The document handling is deprecated, it's only here for testing.
 // FIXME: REIMPLEMENT DOCUMENT
 // FIXME: ALSO REMOVE CLIENT SIDE ID GENERATION IN V0.8+
 class FolderItem {
   String id;
   String itemId;
-  dynamic content;
+  ItemContent content;
   FolderItemType type;
   bool isNewItem = false;
 
@@ -20,10 +32,7 @@ class FolderItem {
     required this.content,
     required this.type,
   })  : id = id ?? cuidSecure(30),
-        itemId = itemId ?? cuidSecure(30) {
-    assert(content is String || content is Map<String, String>,
-        'Content must be String or Map<String, String>');
-  }
+        itemId = itemId ?? cuidSecure(30);
 
   Insertable toCompanion(String folderId) {
     return ItemsCompanion.insert(
@@ -31,18 +40,20 @@ class FolderItem {
   }
 
   Insertable toFolderItem() {
-    switch (type) {
-      case FolderItemType.link:
+    switch (content) {
+      case StringContent(value: String url):
         return LinksCompanion.insert(
           id: itemId,
-          url: content,
+          content: url,
         );
-      case FolderItemType.document:
+      case MapContent(value: var doc):
         return DocumentsCompanion.insert(
           id: itemId,
-          title: content["title"],
-          content: utf8.encode(content["body"]),
+          title: doc["title"] ?? '',
+          content: utf8.encode(doc["body"] ?? ''),
         );
+      default:
+        throw Exception('Invalid content type');
     }
   }
 }

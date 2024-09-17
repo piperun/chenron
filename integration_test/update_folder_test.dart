@@ -76,10 +76,12 @@ void main() {
         create: [
           FolderItem(
               type: FolderItemType.link,
-              content: 'https://${DateTime.now().millisecondsSinceEpoch}.com'),
+              content: StringContent(
+                  'https://${DateTime.now().millisecondsSinceEpoch}.com')),
           FolderItem(
               type: FolderItemType.document,
-              content: {"title": 'New Document', "body": 'Content'}),
+              content:
+                  MapContent({"title": 'New Document', "body": 'Content'})),
         ],
       );
 
@@ -123,7 +125,7 @@ void main() {
       final itemUpdates = CUD<FolderItem>(update: [
         FolderItem(
             type: FolderItemType.link,
-            content: 'https://example.com',
+            content: StringContent('https://example.com'),
             itemId: "nayscsy4hk75zwg83qxhddtct04ut8")
       ]);
 
@@ -182,7 +184,9 @@ void main() {
     test('should create, add and remove items from folder', () async {
       // First, add some items
       final itemUpdates = CUD<FolderItem>(create: [
-        FolderItem(type: FolderItemType.link, content: 'https://example.com')
+        FolderItem(
+            type: FolderItemType.link,
+            content: StringContent('https://example.com'))
       ]);
       await database.updateFolder(testFolder.id, itemUpdates: itemUpdates);
 

@@ -37,4 +37,6 @@ class Metadata {
   }
 }
 
-enum MetadataTypeEnum { tag }
+enum MetadataTypeEnum {
+  tag,
+}

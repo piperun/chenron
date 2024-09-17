@@ -75,11 +75,13 @@ void main() {
         title: 'Test Folder with Items',
         description: 'Test Description',
       );
-      final link =
-          FolderItem(type: FolderItemType.link, content: 'https://example.com');
+      final link = FolderItem(
+          type: FolderItemType.link,
+          content: StringContent('https://example.com'));
       final document = FolderItem(
           type: FolderItemType.document,
-          content: {'title': 'Test Document', "body": 'Test Content'});
+          content:
+              MapContent({'title': 'Test Document', "body": 'Test Content'}));
       await database.addFolder(folderInfo: folderInfo, items: [link, document]);
 
       // Remove the folder

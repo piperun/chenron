@@ -37,13 +37,13 @@ extension InsertionExtensions on AppDatabase {
     for (final itemInsert in itemInserts) {
       TableInfo? table;
       List<dynamic> exists = [];
-      switch (itemInsert.type) {
-        case FolderItemType.link:
+      switch (itemInsert.content) {
+        case StringContent(value: String url):
           table = links;
           exists = await (select(links)
-                ..where((tbl) => tbl.url.equals(itemInsert.content)))
+                ..where((tbl) => tbl.content.equals(url)))
               .get();
-        case FolderItemType.document:
+        case MapContent(value: Map<String, String> doc):
           table = documents;
           exists = await (select(documents)
                 ..where((tbl) => tbl.id.equals(itemInsert.itemId)))

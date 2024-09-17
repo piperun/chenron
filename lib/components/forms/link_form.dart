@@ -94,7 +94,7 @@ class _LinkFormState extends State<LinkForm> {
                           folderItems.addItem(
                             FolderItem(
                               type: FolderItemType.link,
-                              content: _linkController.text,
+                              content: StringContent(_linkController.text),
                             ),
                           );
                           stateManager.appendRows([
