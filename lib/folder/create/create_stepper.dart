@@ -29,7 +29,7 @@ class CreateFolderStepper extends StatelessWidget {
                   : StepperType.vertical,
               currentStep: folderState.currentStep.index,
               controlsBuilder: (context, details) =>
-                  _buildStepperControls(context, details, folderState),
+                  StepperControls(details: details, folderState: folderState),
               onStepCancel: folderState.previousStep,
               onStepContinue: () {
                 _nextStep(context, folderState);
@@ -46,7 +46,8 @@ class CreateFolderStepper extends StatelessWidget {
 
   void _nextStep(BuildContext context, CreateFolderState folderState) {
     if (folderState.currentStep == FolderStep.preview) {
-      final folderInfo = Provider.of<FolderInfo>(context, listen: false);
+      final folderInfo =
+          Provider.of<FolderInfoProvider>(context, listen: false);
 
       final folderContent =
           Provider.of<CUDProvider<FolderItem>>(context, listen: false);
@@ -71,8 +72,41 @@ class CreateFolderStepper extends StatelessWidget {
     );
   }
 
-  Widget _buildStepperControls(BuildContext context, ControlsDetails details,
-      CreateFolderState folderState) {
+  List<Step> _buildSteps(CreateFolderState folderState) {
+    return [
+      Step(
+        title: const Text("Folder"),
+        content:
+            FolderInfoStep(formKey: folderState.formKeys[FolderStep.info]!),
+      ),
+      Step(
+        title: const Text("Data"),
+        content: FolderData(
+          dataKey: folderState.formKeys[FolderStep.data]!,
+          folderType: folderState.selectedFolderType,
+        ),
+      ),
+      Step(
+        title: const Text("Preview"),
+        content: FolderPreview(
+            previewKey: folderState.formKeys[FolderStep.preview]!),
+      ),
+    ];
+  }
+}
+
+class StepperControls extends StatelessWidget {
+  final ControlsDetails details;
+  final CreateFolderState folderState;
+
+  const StepperControls({
+    super.key,
+    required this.details,
+    required this.folderState,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isLastStep = folderState.currentStep == FolderStep.preview;
 
@@ -105,27 +139,5 @@ class CreateFolderStepper extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  List<Step> _buildSteps(CreateFolderState folderState) {
-    return [
-      Step(
-        title: const Text("Folder"),
-        content:
-            FolderInfoStep(formKey: folderState.formKeys[FolderStep.info]!),
-      ),
-      Step(
-        title: const Text("Data"),
-        content: FolderData(
-          dataKey: folderState.formKeys[FolderStep.data]!,
-          folderType: folderState.selectedFolderType,
-        ),
-      ),
-      Step(
-        title: const Text("Preview"),
-        content: FolderPreview(
-            previewKey: folderState.formKeys[FolderStep.preview]!),
-      ),
-    ];
   }
 }

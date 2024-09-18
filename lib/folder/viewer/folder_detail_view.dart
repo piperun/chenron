@@ -1,3 +1,4 @@
+import 'package:chenron/data_struct/item.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
@@ -19,15 +20,50 @@ class FolderDetailView extends StatelessWidget {
         folderId: folderId,
         fetchData: database.getFolder(folderId).then((folder) => folder!),
         listBuilder: (context, item) {
-          return ListTile(
-            subtitle: Text(
-              item.content,
-              style: const TextStyle(color: Colors.blue, fontSize: 12),
-            ),
-            trailing: const Icon(Icons.launch, color: Colors.grey),
-            onTap: () => _launchURL(Uri.parse(item.content)),
-          );
+          return ContentTile(itemContent: item.content);
         });
+  }
+}
+
+class ContentTile extends StatelessWidget {
+  final ItemContent itemContent;
+  final String tileContent;
+  final Function() launchFunc;
+
+  ContentTile({super.key, required this.itemContent})
+      : tileContent = _getTileContent(itemContent),
+        launchFunc = _getLaunchFunc(itemContent);
+
+  static String _getTileContent(ItemContent content) {
+    switch (content) {
+      case StringContent stringContent:
+        return stringContent.value;
+      case MapContent mapContent:
+        return mapContent.value['title'] ?? '';
+      default:
+        return '';
+    }
+  }
+
+  static Function() _getLaunchFunc(ItemContent content) {
+    switch (content) {
+      case StringContent stringContent:
+        return () => _launchURL(Uri.parse(stringContent.value));
+      default:
+        return () {};
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      subtitle: Text(
+        tileContent,
+        style: const TextStyle(color: Colors.blue, fontSize: 12),
+      ),
+      trailing: const Icon(Icons.launch, color: Colors.grey),
+      onTap: launchFunc,
+    );
   }
 }
 
