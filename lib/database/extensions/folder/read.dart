@@ -107,27 +107,6 @@ extension FolderReadExtensions on AppDatabase {
         .watchSingle();
   }
 
-/*
-  Stream<List<FolderResult>> watchFolder(String folderId,
-      {IncludeFolderData mode = IncludeFolderData.all}) {
-    Map<IncludeFolderData, List<Join<HasResultSet, dynamic>>> joins =
-        _getJoins();
-    var query = (select(folders)..where((tbl) => tbl.id.equals(folderId)))
-        .join(joins[mode]!);
-
-    return query.watch().map((rows) {
-      return rows.map((row) {
-        final folder = row.readTable(folders);
-        final folderTags = row.readTableOrNull(tags);
-        final folderitems = row.readTableOrNull(items);
-
-        return FolderResult(
-            folder: folder, tags: folderTags, items: folderitems);
-      }).toList();
-    });
-  }
-*/
-
   Stream<List<FolderResult>> watchAllFolders(
       {IncludeFolderData mode = IncludeFolderData.all}) {
     ContentJoins joins = ContentJoins(mode: mode);
@@ -167,50 +146,6 @@ extension FolderReadExtensions on AppDatabase {
       }
     }
     return folderItems;
-  }
-
-/*
- FIXME: This solution is most likely sufficient for now, however should the time come we might need to refractor this into a more scalable solution.
- This could be done by creating a class that serves as a factory for generating the joins we need, however as of right now it's not an needed.
-*/
-  Map<IncludeFolderData, List<Join<HasResultSet, dynamic>>> _getJoins() {
-    return {
-      IncludeFolderData.all: [
-        leftOuterJoin(
-            metadataRecords, metadataRecords.itemId.equalsExp(folders.id)),
-        leftOuterJoin(
-          tags,
-          tags.id.equalsExp(metadataRecords.metadataId),
-        ),
-        leftOuterJoin(items, items.folderId.equalsExp(folders.id)),
-        leftOuterJoin(
-          documents,
-          documents.id.equalsExp(items.itemId),
-        ),
-        leftOuterJoin(
-          links,
-          links.id.equalsExp(items.itemId),
-        )
-      ],
-      IncludeFolderData.tags: [
-        leftOuterJoin(
-            metadataRecords, metadataRecords.itemId.equalsExp(folders.id)),
-        leftOuterJoin(
-          tags,
-          tags.id.equalsExp(metadataRecords.metadataId),
-        )
-      ],
-      IncludeFolderData.items: [
-        leftOuterJoin(
-          documents,
-          documents.id.equalsExp(items.id),
-        ),
-        leftOuterJoin(
-          links,
-          links.id.equalsExp(items.id),
-        )
-      ]
-    };
   }
 }
 

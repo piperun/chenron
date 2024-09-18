@@ -15,8 +15,8 @@ class FolderEditor extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final database = Provider.of<AppDatabase>(context, listen: false);
-    return StreamBuilder<FolderLink>(
-      stream: database.watchTest(folderId),
+    return StreamBuilder<FolderResult>(
+      stream: database.watchFolder(folderId: folderId),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const CircularProgressIndicator();
