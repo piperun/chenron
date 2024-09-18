@@ -23,6 +23,7 @@ class FolderItem {
   String id;
   String itemId;
   ItemContent content;
+  final DateTime? createdAt;
   FolderItemType type;
   bool isNewItem = false;
 
@@ -30,6 +31,7 @@ class FolderItem {
     String? id,
     String? itemId,
     required this.content,
+    this.createdAt,
     required this.type,
   })  : id = id ?? cuidSecure(30),
         itemId = itemId ?? cuidSecure(30);

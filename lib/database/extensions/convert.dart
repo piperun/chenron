@@ -20,6 +20,7 @@ extension ConvertLinkToItem on Link {
     return FolderItem(
       id: id,
       itemId: id,
+      createdAt: createdAt,
       content: StringContent(content),
       type: FolderItemType.link,
     );
@@ -31,6 +32,7 @@ extension ConvertDocumentToItem on Document {
     return FolderItem(
       id: id,
       itemId: id,
+      createdAt: createdAt,
       content: MapContent({
         "title": title,
         "body": utf8.decode(content),
