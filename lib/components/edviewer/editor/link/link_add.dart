@@ -43,7 +43,7 @@ class _LinkAdderState extends State<LinkAdder> {
           ),
           icon: const Icon(Icons.add),
         ),
-        Spacer()
+        const Spacer()
       ],
     );
   }
@@ -60,7 +60,7 @@ class _LinkAdderState extends State<LinkAdder> {
       PlutoRow(cells: {
         "url": PlutoCell(value: _linkController.text),
         "comment": PlutoCell(value: ""),
-        "tags": PlutoCell(value: [])
+        "createdAt": PlutoCell(value: ""),
       })
     ]);
     widget.stateManager.notifyListeners();

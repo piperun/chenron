@@ -1,3 +1,4 @@
+import 'package:chenron/convert/folder_item_convert.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pluto_grid/pluto_grid.dart';
@@ -10,7 +11,7 @@ import 'package:chenron/database/extensions/folder/update.dart';
 import 'package:chenron/components/edviewer/editor/item_editor.dart';
 
 class DetailEditor extends StatefulWidget {
-  final FolderLink? currentData;
+  final FolderResult? currentData;
 
   const DetailEditor({
     super.key,
@@ -33,34 +34,40 @@ class _DetailEditorState extends State<DetailEditor> {
       enableRowChecked: true,
     ),
     PlutoColumn(
-      title: 'Added',
-      field: 'createdAt',
-      type: PlutoColumnType.text(),
-    ),
+        title: 'Added',
+        field: 'createdAt',
+        type: PlutoColumnType.text(),
+        enableEditingMode: false),
   ];
   @override
   void initState() {
     super.initState();
     _titleController.addListener(_updateChangesState);
     _descriptionController.addListener(_updateChangesState);
-    _titleController.text = widget.currentData?.folderInfo.title ?? "";
-    _descriptionController.text =
-        widget.currentData?.folderInfo.description ?? "";
+    _titleController.text = widget.currentData?.folder.title ?? "";
+    _descriptionController.text = widget.currentData?.folder.description ?? "";
   }
 
   CUD<FolderItem> cudItems = CUD<FolderItem>();
 
   List<PlutoRow> _loadRows() {
-    if (widget.currentData?.folderItems != null) {
-      final folderItems = widget.currentData!.folderItems;
+    if (widget.currentData?.items != null) {
+      final folderItems = widget.currentData!.items;
       return List.generate(folderItems.length, (index) {
         final link = folderItems[index];
+        final String linkDate;
+        if (link.createdAt != null) {
+          linkDate = DateFormat('yyyy-MM-dd HH:mm:ss').format(link.createdAt!);
+        } else {
+          linkDate = "";
+        }
+
         return PlutoRow(
           cells: {
             'id': PlutoCell(value: link.id),
-            'url': PlutoCell(value: link.content),
+            'url': PlutoCell(value: convertItemToString(link.content)),
             'createdAt': PlutoCell(
-              value: DateFormat('yyyy-MM-dd HH:mm:ss').format(link.createdAt),
+              value: linkDate,
             )
           },
         );
@@ -128,9 +135,8 @@ class _DetailEditorState extends State<DetailEditor> {
 
   void _updateChangesState() {
     final hasChanges = cudItems.isNotEmpty ||
-        _titleController.text != widget.currentData?.folderInfo.title ||
-        _descriptionController.text !=
-            widget.currentData?.folderInfo.description;
+        _titleController.text != widget.currentData?.folder.title ||
+        _descriptionController.text != widget.currentData?.folder.description;
 
     if (hasChanges != _hasChanges) {
       setState(() {
@@ -142,7 +148,7 @@ class _DetailEditorState extends State<DetailEditor> {
   void _saveChanges() {
     final database = Provider.of<AppDatabase>(context, listen: false);
     try {
-      database.updateFolder(widget.currentData!.folderInfo.id,
+      database.updateFolder(widget.currentData!.folder.id,
           title: _titleController.text,
           description: _descriptionController.text,
           itemUpdates: cudItems);
