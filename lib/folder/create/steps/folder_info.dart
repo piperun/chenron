@@ -11,7 +11,7 @@ class FolderInfoStep extends StatefulWidget {
   const FolderInfoStep({super.key, required this.formKey});
 
   @override
-  _FolderInfoStepState createState() => _FolderInfoStepState();
+  State<FolderInfoStep> createState() => _FolderInfoStepState();
 }
 
 class _FolderInfoStepState extends State<FolderInfoStep> {
@@ -76,7 +76,7 @@ class _FolderInfoStepState extends State<FolderInfoStep> {
               const SizedBox(height: 20),
               _buildAccessSelection(),
               const SizedBox(height: 20),
-              _buildFolderTypeDropdown(),
+              const FolderTypeDropDown(),
             ],
           );
         },
@@ -136,7 +136,28 @@ class _FolderInfoStepState extends State<FolderInfoStep> {
     );
   }
 
-  Widget _buildFolderTypeDropdown() {
+  String? _validateNotEmpty(String? value) {
+    return value == null || value.isEmpty ? 'This field cannot be empty' : null;
+  }
+}
+
+class FolderTypeDropDown extends StatefulWidget {
+  const FolderTypeDropDown({super.key});
+
+  @override
+  State<FolderTypeDropDown> createState() => _FolderTypeDropDownState();
+}
+
+class _FolderTypeDropDownState extends State<FolderTypeDropDown> {
+  FolderType? _selectedFolderType;
+  static const Map<FolderType, String> _folderTypeText = {
+    FolderType.link: 'Link',
+    FolderType.document: 'Document',
+    FolderType.folder: 'Folder',
+  };
+
+  @override
+  Widget build(BuildContext context) {
     return DropdownButtonFormField<FolderType>(
       decoration: const InputDecoration(labelText: 'Folder type'),
       value: _selectedFolderType,
@@ -152,9 +173,5 @@ class _FolderInfoStepState extends State<FolderInfoStep> {
       validator: (value) =>
           value == null ? 'Please select a folder type' : null,
     );
-  }
-
-  String? _validateNotEmpty(String? value) {
-    return value == null || value.isEmpty ? 'This field cannot be empty' : null;
   }
 }

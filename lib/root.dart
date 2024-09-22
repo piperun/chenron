@@ -78,7 +78,7 @@ class _RootPageState extends State<RootPage> {
                   onTap: (index, _) {
                     sideMenu.changePage(index);
                   },
-                  icon: const Icon(Icons.supervisor_account),
+                  icon: const Icon(Icons.view_list_outlined),
                 )
               ],
             ),
