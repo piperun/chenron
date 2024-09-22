@@ -114,12 +114,12 @@ class _LinkFormState extends State<LinkForm> {
             LinkToolbar(
               onDelete: () {
                 final selectedRows = stateManager.checkedRows;
-                for (var row in selectedRows) {
-                  int index = stateManager.refRows.indexOf(row);
-                  if (index != -1) {
-                    folderItems.create.removeAt(index);
-                  }
-                }
+                //FIXME: More performant solution we will use at some point
+                //Set.from(rows.map((e) => e));
+                folderItems.create.removeWhere((item) => selectedRows.any(
+                    (row) =>
+                        stateManager.refRows.indexOf(row) ==
+                        folderItems.create.indexOf(item)));
                 stateManager.removeRows(selectedRows);
               },
             ),
