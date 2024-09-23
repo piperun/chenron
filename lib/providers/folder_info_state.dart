@@ -3,7 +3,9 @@ import 'package:flutter/foundation.dart';
 class FolderInfoProvider extends ChangeNotifier {
   String title = "";
   String description = "";
-  List<String> tags = [];
+  Set<String> _tags = {};
+
+  Set<String> get tags => _tags;
 
   void updateTitle(String newTitle) {
     title = newTitle;
@@ -15,8 +17,13 @@ class FolderInfoProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateTags(List<String> newTags) {
-    tags = tags + newTags;
+  void addTag(String tag) {
+    _tags.add(tag);
+    notifyListeners();
+  }
+
+  void removeTag(String tag) {
+    _tags.remove(tag);
     notifyListeners();
   }
 }
