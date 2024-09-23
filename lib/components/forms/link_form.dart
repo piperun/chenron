@@ -70,7 +70,8 @@ class _LinkFormState extends State<LinkForm> {
                 child: LinkFormField(
                   linkProvider: folderItems,
                   validator: (_) {
-                    if (folderItems.create.isEmpty) {
+                    if (folderItems.create.isEmpty &&
+                        _linkController.text.isEmpty) {
                       return 'Please add at least one link';
                     }
                     return null;
@@ -92,8 +93,7 @@ class _LinkFormState extends State<LinkForm> {
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          if (_linkController.text.isEmpty ||
-                              widget.dataKey.currentState!.validate() != true) {
+                          if (widget.dataKey.currentState!.validate() != true) {
                             return;
                           }
                           folderItems.addItem(
