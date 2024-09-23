@@ -9,7 +9,7 @@ class FolderForm extends StatefulWidget {
   FolderForm({required this.addItem});
 
   @override
-  _FolderFormState createState() => _FolderFormState();
+  State<FolderForm> createState() => _FolderFormState();
 }
 
 class _FolderFormState extends State<FolderForm> {

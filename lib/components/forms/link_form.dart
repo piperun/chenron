@@ -1,4 +1,5 @@
 import 'package:chenron/data_struct/item.dart';
+import 'package:chenron/validation/link_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:pluto_grid/pluto_grid.dart';
 import 'package:provider/provider.dart';
@@ -84,13 +85,17 @@ class _LinkFormState extends State<LinkForm> {
                           controller: _linkController,
                           decoration:
                               const InputDecoration(labelText: 'Enter Link'),
+                          validator: LinkValidator.validateContent,
                           minLines: 1,
                           maxLines: Breakpoints.isMedium(context) ? 23 : 25,
                         ),
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          if (_linkController.text.isEmpty) return;
+                          if (_linkController.text.isEmpty ||
+                              widget.dataKey.currentState!.validate() != true) {
+                            return;
+                          }
                           folderItems.addItem(
                             FolderItem(
                               type: FolderItemType.link,
