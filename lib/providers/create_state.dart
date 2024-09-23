@@ -16,8 +16,6 @@ class CreateFolderState extends ChangeNotifier {
   FolderType? get selectedFolderType => _selectedFolderType;
 
   bool validateCurrentStep() {
-    print(
-        "${formKeys[currentStep]?.currentState}, ${formKeys[currentStep]?.currentState?.validate()}");
     return currentStep == FolderStep.preview ||
         formKeys[currentStep]?.currentState?.validate() == true;
   }

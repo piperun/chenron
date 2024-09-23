@@ -164,6 +164,7 @@ class InfoField extends StatelessWidget {
     return TextFormField(
       controller: controller,
       decoration: InputDecoration(labelText: labelText),
+      validator: validator,
       onSaved: onSaved != null ? (value) => onSaved!(value!) : null,
       onFieldSubmitted: onFieldSubmit,
     );
