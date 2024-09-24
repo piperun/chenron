@@ -19,6 +19,7 @@ class LinkForm extends StatefulWidget {
 class _LinkFormState extends State<LinkForm> {
   final TextEditingController _linkController = TextEditingController();
   late PlutoGridStateManager stateManager;
+  final GlobalKey<FormState> _linkFormKey = GlobalKey<FormState>();
 
   List<PlutoColumn> columns = [
     PlutoColumn(
@@ -66,22 +67,23 @@ class _LinkFormState extends State<LinkForm> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Form(
-                key: widget.dataKey,
-                child: LinkFormField(
-                  linkProvider: folderItems,
-                  validator: (_) {
-                    if (folderItems.create.isEmpty &&
-                        _linkController.text.isEmpty) {
-                      return 'Please add at least one link';
-                    }
-                    return null;
-                  },
-                  child: Wrap(
-                    alignment: WrapAlignment.center,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      SizedBox(
-                        width: Breakpoints.responsiveWidth(context),
+              key: widget.dataKey,
+              child: LinkFormField(
+                linkProvider: folderItems,
+                validator: (_) {
+                  if (folderItems.create.isEmpty) {
+                    return 'Please add at least one link';
+                  }
+                  return null;
+                },
+                child: Wrap(
+                  alignment: WrapAlignment.center,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: Breakpoints.responsiveWidth(context),
+                      child: Form(
+                        key: _linkFormKey,
                         child: TextFormField(
                           controller: _linkController,
                           decoration:
@@ -91,11 +93,10 @@ class _LinkFormState extends State<LinkForm> {
                           maxLines: Breakpoints.isMedium(context) ? 23 : 25,
                         ),
                       ),
-                      ElevatedButton(
-                        onPressed: () {
-                          if (widget.dataKey.currentState!.validate() != true) {
-                            return;
-                          }
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        if (_linkFormKey.currentState!.validate()) {
                           folderItems.addItem(
                             FolderItem(
                               type: FolderItemType.link,
@@ -110,12 +111,14 @@ class _LinkFormState extends State<LinkForm> {
                             })
                           ]);
                           _linkController.clear();
-                        },
-                        child: const Text('Add Link'),
-                      ),
-                    ],
-                  ),
-                )),
+                        }
+                      },
+                      child: const Text('Add Link'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
             LinkToolbar(
               onDelete: () {
                 final selectedRows = stateManager.checkedRows;
@@ -149,7 +152,6 @@ class _LinkFormState extends State<LinkForm> {
     );
   }
 }
-
                 /*
             SizedBox(
               height: 500,
