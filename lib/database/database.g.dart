@@ -309,6 +309,8 @@ class $LinksTable extends Links with TableInfo<$LinksTable, Link> {
   @override
   late final GeneratedColumn<String> content = GeneratedColumn<String>(
       'content', aliasedName, false,
+      additionalChecks: GeneratedColumn.checkTextLength(
+          minTextLength: 10, maxTextLength: 2048),
       type: DriftSqlType.string,
       requiredDuringInsert: true,
       defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'));

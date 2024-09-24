@@ -1,6 +1,5 @@
 import 'package:chenron/database/database.dart';
 import 'package:chenron/database/extensions/folder/read.dart';
-import 'package:chenron/components/tag_field.dart';
 import 'package:chenron/folder/editor.dart';
 import 'package:chenron/folder/viewer/folder_detail_view.dart';
 import 'package:chenron/components/folder_layouts/grid.dart';

@@ -13,7 +13,7 @@ class Folders extends Table {
 class Links extends Table {
   TextColumn get id => text().withLength(min: 30, max: 60)();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
-  TextColumn get content => text().unique()();
+  TextColumn get content => text().withLength(min: 10, max: 2048).unique()();
 
   @override
   Set<Column> get primaryKey => {id};
