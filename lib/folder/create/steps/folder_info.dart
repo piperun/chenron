@@ -1,3 +1,5 @@
+import 'package:chenron/components/TextBase/info_field.dart';
+import 'package:chenron/components/tag_field.dart';
 import 'package:chenron/validation/folder_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -96,77 +98,6 @@ class _FolderInfoStepState extends State<FolderInfoStep> {
           }).toList(),
         ),
       ],
-    );
-  }
-}
-
-class TagField extends StatefulWidget {
-  const TagField({super.key});
-
-  @override
-  State<TagField> createState() => _TagFieldState();
-}
-
-class _TagFieldState extends State<TagField> {
-  final TextEditingController _tagsController = TextEditingController();
-
-  @override
-  Widget build(BuildContext context) {
-    final folderInfo = Provider.of<FolderInfoProvider>(context);
-    return Column(
-      children: [
-        InfoField(
-          controller: _tagsController,
-          labelText: 'Tags',
-          onFieldSubmit: (value) {
-            if (FolderValidator.validateTags(value) == null) {
-              folderInfo.addTag(value);
-              setState(() {
-                _tagsController.clear();
-              });
-            }
-          },
-        ),
-        Wrap(
-          spacing: 8.0,
-          children: folderInfo.tags.map((tag) {
-            return InputChip(
-              label: Text(tag),
-              onDeleted: () {
-                folderInfo.removeTag(tag);
-              },
-            );
-          }).toList(),
-        )
-      ],
-    );
-  }
-}
-
-class InfoField extends StatelessWidget {
-  final String labelText;
-  final TextEditingController controller;
-  final String? Function(String?)? validator;
-  final Function(String)? onSaved;
-  final Function(String)? onFieldSubmit;
-
-  const InfoField({
-    super.key,
-    required this.labelText,
-    required this.controller,
-    this.validator,
-    this.onSaved,
-    this.onFieldSubmit,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return TextFormField(
-      controller: controller,
-      decoration: InputDecoration(labelText: labelText),
-      validator: validator,
-      onSaved: onSaved != null ? (value) => onSaved!(value!) : null,
-      onFieldSubmitted: onFieldSubmit,
     );
   }
 }

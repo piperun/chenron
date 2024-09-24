@@ -1,6 +1,6 @@
 import 'package:chenron/database/database.dart';
 import 'package:chenron/database/extensions/folder/read.dart';
-import 'package:chenron/components/tag_chips.dart';
+import 'package:chenron/components/tag_field.dart';
 import 'package:chenron/folder/editor.dart';
 import 'package:chenron/folder/viewer/folder_detail_view.dart';
 import 'package:chenron/components/folder_layouts/grid.dart';
@@ -122,11 +122,14 @@ class _FolderViewSlugState extends State<FolderViewSlug> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(folder.folder.title),
-                        if (folder.tags != null)
-                          // TODO: this will be changed later on to probably use flutter's own InputChip.
-                          Chips(
-                            tags: folder.tags!.map((tag) => tag.name).toList(),
-                            onTagTap: (tag) {/* Handle tag tap */},
+                        if (folder.tags.isNotEmpty)
+                          Wrap(
+                            children: List<Widget>.generate(
+                              folder.tags.length,
+                              (index) => Chip(
+                                label: Text(folder.tags[index].name),
+                              ),
+                            ),
                           ),
                         TextButton.icon(
                             onPressed: () => _onEditTap(context, folder),
@@ -145,10 +148,14 @@ class _FolderViewSlugState extends State<FolderViewSlug> {
                     itemBuilder: (folder) => Row(
                       children: [
                         Expanded(child: Text(folder.folder.title)),
-                        if (folder.tags != null)
-                          Chips(
-                            tags: folder.tags!.map((tag) => tag.name).toList(),
-                            onTagTap: (tag) {/* Handle tag tap */},
+                        if (folder.tags.isNotEmpty)
+                          Wrap(
+                            children: List<Widget>.generate(
+                              folder.tags.length,
+                              (index) => Chip(
+                                label: Text(folder.tags[index].name),
+                              ),
+                            ),
                           ),
                         TextButton.icon(
                             onPressed: () => _onEditTap(context, folder),
