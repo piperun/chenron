@@ -18,13 +18,13 @@ void main() {
     await database.close();
   });
 
-  group('addFolder', () {
+  group('createFolder', () {
     test('adds folder without tags and items', () async {
       final folderData = FolderInfo(
         title: 'Empty Folder',
         description: 'No tags or items',
       );
-      await database.addFolder(folderInfo: folderData);
+      await database.createFolder(folderInfo: folderData);
       final folderResult = await (database.select(database.folders)
             ..where(
               (tbl) => tbl.id.equals(folderData.id),
@@ -65,7 +65,7 @@ void main() {
         Metadata(value: 'tag3', type: MetadataTypeEnum.tag),
       ];
 
-      await database.addFolder(folderInfo: folderInfo, tags: tags);
+      await database.createFolder(folderInfo: folderInfo, tags: tags);
 
       final folderResult = await (database.select(database.folders)
             ..where((tbl) => tbl.id.equals(folderInfo.id)))
@@ -104,7 +104,7 @@ void main() {
                 MapContent({"title": "Test document", "body": "Blablabla"})),
       ];
 
-      await database.addFolder(
+      await database.createFolder(
           folderInfo: folderInfo, tags: tags, items: items);
 
       final folderResult = await (database.select(database.folders)

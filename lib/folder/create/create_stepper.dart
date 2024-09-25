@@ -1,5 +1,6 @@
 import 'package:chenron/data_struct/folder.dart';
 import 'package:chenron/data_struct/item.dart';
+import 'package:chenron/data_struct/metadata.dart';
 import 'package:chenron/database/database.dart';
 import 'package:chenron/database/extensions/folder/create.dart';
 import 'package:chenron/folder/create/steps/folder_data.dart';
@@ -55,6 +56,9 @@ class CreateFolderStepper extends StatelessWidget {
           context,
           FolderInfo(
               title: folderInfo.title, description: folderInfo.description),
+          folderInfo.tags
+              .map((tag) => Metadata(type: MetadataTypeEnum.tag, value: tag))
+              .toList(),
           folderContent.create);
     } else if (folderState.validateCurrentStep()) {
       folderState.nextStep();
@@ -62,10 +66,11 @@ class CreateFolderStepper extends StatelessWidget {
   }
 
   void _saveToDatabase(BuildContext context, FolderInfo folderInfo,
-      List<FolderItem> folderData) {
+      List<Metadata> tags, List<FolderItem> folderData) {
     final database = Provider.of<AppDatabase>(context, listen: false);
 
-    database.addFolder(folderInfo: folderInfo, items: folderData);
+    database.createFolder(
+        folderInfo: folderInfo, tags: tags, items: folderData);
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Folder saved successfully')),

@@ -1,5 +1,6 @@
 import 'package:chenron/components/TextBase/expandable_field.dart';
 import 'package:chenron/components/TextBase/text_view.dart';
+import 'package:chenron/components/tags/tag_body.dart';
 import 'package:flutter/material.dart';
 import 'package:chenron/database/database.dart';
 import 'package:chenron/database/extensions/folder/read.dart';
@@ -56,6 +57,8 @@ class _DetailViewerState<T> extends State<DetailViewer> {
             return Column(
               children: [
                 DetailsBody(folder: result.folder),
+                if (result.tags.isNotEmpty)
+                  TagBody(tags: result.tags.map((tag) => tag.name).toSet()),
                 const SizedBox(height: 16),
                 Expanded(
                   child: ItemsList(
@@ -87,20 +90,52 @@ class DetailsBody extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TextView.header(title: folder.title),
+            FolderTitle(title: folder.title),
             const SizedBox(height: 8),
-            ExpandableField(description: folder.description),
-            FractionallySizedBox(
-              widthFactor: 0.5,
-              child: TextView.listTile(
-                title: 'Created at',
-                subtitle:
-                    DateFormat('MMMM d, y HH:mm:ss').format(folder.createdAt),
-                icon: Icons.calendar_today,
-              ),
-            ),
+            FolderDescription(description: folder.description),
+            FolderCreationDate(createdAt: folder.createdAt),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class FolderTitle extends StatelessWidget {
+  final String title;
+
+  const FolderTitle({super.key, required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return TextView.header(title: title);
+  }
+}
+
+class FolderDescription extends StatelessWidget {
+  final String description;
+
+  const FolderDescription({super.key, required this.description});
+
+  @override
+  Widget build(BuildContext context) {
+    return ExpandableField(description: description);
+  }
+}
+
+class FolderCreationDate extends StatelessWidget {
+  final DateTime createdAt;
+
+  const FolderCreationDate({super.key, required this.createdAt});
+
+  @override
+  Widget build(BuildContext context) {
+    return FractionallySizedBox(
+      widthFactor: 0.5,
+      child: TextView.listTile(
+        title: 'Created at',
+        subtitle: DateFormat('MMMM d, y HH:mm:ss').format(createdAt),
+        icon: Icons.calendar_today,
       ),
     );
   }

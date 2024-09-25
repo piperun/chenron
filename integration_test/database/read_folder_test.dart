@@ -19,13 +19,13 @@ void main() {
     activeFolder = FolderTestDataFactory.createActiveFolder();
     inactiveFolder = FolderTestDataFactory.createInactiveFolder();
 
-    await database.addFolder(
+    await database.createFolder(
       folderInfo: activeFolder.folder,
       tags: activeFolder.tags,
       items: activeFolder.items,
     );
 
-    await database.addFolder(
+    await database.createFolder(
       folderInfo: inactiveFolder.folder,
       tags: inactiveFolder.tags,
       items: inactiveFolder.items,

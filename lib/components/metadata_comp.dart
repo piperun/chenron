@@ -1,3 +1,4 @@
+import 'package:chenron/utils/str_sanitizer.dart';
 import 'package:flutter/material.dart';
 import 'package:metadata_fetch/metadata_fetch.dart';
 
@@ -60,7 +61,7 @@ class MetadataTitle extends StatelessWidget {
           return Text(widget.url);
         } else {
           return Text(
-            snapshot.data?.title ?? widget.url,
+            removeDupSpaces(snapshot.data?.title ?? widget.url),
             style: const TextStyle(fontWeight: FontWeight.bold),
           );
         }

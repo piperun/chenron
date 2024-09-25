@@ -104,9 +104,8 @@ class _FolderViewSlugState extends State<FolderViewSlug> {
                   return folder.folder.title
                           .toLowerCase()
                           .contains(lowerQuery) ||
-                      (folder.tags?.any((tag) =>
-                              tag.name.toLowerCase().contains(lowerQuery)) ??
-                          false);
+                      (folder.tags.any((tag) =>
+                          tag.name.toLowerCase().contains(lowerQuery)));
                 }).toList();
 
                 Widget folderWidget;
@@ -169,9 +168,9 @@ class _FolderViewSlugState extends State<FolderViewSlug> {
                     Wrap(
                       spacing: 8,
                       children: filteredFolders
-                          .where((f) => f.tags != null && f.tags!.isNotEmpty)
+                          .where((f) => f.tags.isNotEmpty)
                           .expand((f) =>
-                              f.tags!.map((tag) => Chip(label: Text(tag.name))))
+                              f.tags.map((tag) => Chip(label: Text(tag.name))))
                           .toSet()
                           .toList(),
                     ),

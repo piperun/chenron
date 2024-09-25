@@ -31,7 +31,7 @@ void main() {
         title: 'Test Folder',
         description: 'Test Description',
       );
-      await database.addFolder(folderInfo: folderInfo);
+      await database.createFolder(folderInfo: folderInfo);
 
       // Remove the folder
       await database.removeFolder(folderInfo.id);
@@ -52,7 +52,7 @@ void main() {
         Metadata(value: 'tag1', type: MetadataTypeEnum.tag),
         Metadata(value: 'tag2', type: MetadataTypeEnum.tag),
       ];
-      await database.addFolder(folderInfo: folderInfo, tags: tags);
+      await database.createFolder(folderInfo: folderInfo, tags: tags);
 
       // Remove the folder
       await database.removeFolder(folderInfo.id);
@@ -82,7 +82,8 @@ void main() {
           type: FolderItemType.document,
           content:
               MapContent({'title': 'Test Document', "body": 'Test Content'}));
-      await database.addFolder(folderInfo: folderInfo, items: [link, document]);
+      await database
+          .createFolder(folderInfo: folderInfo, items: [link, document]);
 
       // Remove the folder
       await database.removeFolder(folderInfo.id);

@@ -1,6 +1,7 @@
 import 'package:chenron/components/metadata_comp.dart';
 import 'package:chenron/data_struct/item.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
 import 'package:chenron/database/database.dart';
@@ -92,7 +93,11 @@ class Favicon extends StatelessWidget {
       future: _getFavIconUrl(url),
       builder: (context, snapshot) {
         if (snapshot.hasData && snapshot.data != null) {
-          return Image.network(snapshot.data!);
+          if (snapshot.data!.endsWith('svg')) {
+            return SvgPicture.network(snapshot.data!);
+          } else {
+            return Image.network(snapshot.data!);
+          }
         }
         if (snapshot.connectionState != ConnectionState.done) {
           return const RepaintBoundary(

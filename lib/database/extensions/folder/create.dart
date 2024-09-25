@@ -8,7 +8,7 @@ import 'package:logging/logging.dart';
 
 extension FolderExtensions on AppDatabase {
   static final Logger _logger = Logger('Folder Actions Database');
-  Future<void> addFolder({
+  Future<void> createFolder({
     required FolderInfo folderInfo,
     List<Metadata>? tags,
     List<FolderItem>? items,
