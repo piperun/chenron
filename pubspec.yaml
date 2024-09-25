@@ -53,6 +53,8 @@ dependencies:
   favicon: ^1.1.2
   metadata_fetch: ^0.4.2
   flutter_svg: ^2.0.10+1
+  http: ^1.2.2
+  toml: ^0.16.0
   
 
 dev_dependencies:

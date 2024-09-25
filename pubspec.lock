@@ -408,7 +408,7 @@ packages:
     source: hosted
     version: "0.15.4"
   http:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: http
       sha256: b9c29a161230ee03d3ccf545097fccd9b87a5264228c5d348202e0f0c28f9010
@@ -905,6 +905,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.1"
+  toml:
+    dependency: "direct main"
+    description:
+      name: toml
+      sha256: d968d149c8bd06dc14e09ea3a140f90a3f2ba71949e7a91df4a46f3107400e71
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.16.0"
   typed_data:
     dependency: transitive
     description:
