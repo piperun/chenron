@@ -1,8 +1,9 @@
+import 'package:chenron/components/TextBase/expandable_field.dart';
 import 'package:chenron/components/TextBase/text_view.dart';
 import 'package:flutter/material.dart';
 import 'package:chenron/database/database.dart';
 import 'package:chenron/database/extensions/folder/read.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' show DateFormat;
 
 class DetailViewer extends StatefulWidget {
   final String folderId;
@@ -88,7 +89,7 @@ class DetailsBody extends StatelessWidget {
           children: [
             TextView.header(title: folder.title),
             const SizedBox(height: 8),
-            TextView.normal(text: folder.description),
+            ExpandableField(description: folder.description),
             FractionallySizedBox(
               widthFactor: 0.5,
               child: TextView.listTile(
