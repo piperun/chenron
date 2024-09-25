@@ -1,4 +1,4 @@
-import 'package:chenron/validation/schema_rules.dart';
+import 'package:chenron/utils/validation/schema_rules.dart';
 import 'package:validator_dart/validator_dart.dart';
 import 'package:validator_dart/src/validators/is_length.dart';
 

@@ -1,6 +1,6 @@
 import 'package:chenron/components/TextBase/info_field.dart';
 import 'package:chenron/components/tag_field.dart';
-import 'package:chenron/validation/folder_validator.dart';
+import 'package:chenron/utils/validation/folder_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:chenron/providers/folder_info_state.dart';
