@@ -66,7 +66,7 @@ class HomePage extends StatelessWidget {
                             width: Breakpoints.responsiveWidth(context),
                             height: MediaQuery.sizeOf(context).height * 0.3,
                             decoration: const BoxDecoration(color: Colors.blue),
-                            child: Container(
+                            child: SizedBox(
                                 width: 370,
                                 height: 230,
                                 child: LineChart(
