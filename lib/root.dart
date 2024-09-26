@@ -12,15 +12,15 @@ class RootPage extends StatefulWidget {
 }
 
 class _RootPageState extends State<RootPage> {
-  PageController pageController = PageController();
-  SideMenuController sideMenu = SideMenuController();
+  final PageController pageController = PageController();
+  final SideMenuController sideMenu = SideMenuController();
 
   @override
   void initState() {
+    super.initState();
     sideMenu.addListener((index) {
       pageController.jumpToPage(index);
     });
-    super.initState();
   }
 
   @override
@@ -28,116 +28,102 @@ class _RootPageState extends State<RootPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        SideMenu(
-          controller: sideMenu,
-          style: SideMenuStyle(
-            // showTooltip: false,
-            displayMode: SideMenuDisplayMode.auto,
-            showHamburger: true,
-            hoverColor: Colors.blue[100],
-            selectedHoverColor: Colors.blue[100],
-            selectedColor: Colors.lightBlue,
-            selectedTitleTextStyle: const TextStyle(color: Colors.white),
-            selectedIconColor: Colors.white,
-            // decoration: BoxDecoration(
-            //   borderRadius: BorderRadius.all(Radius.circular(10)),
-            // ),
-            // backgroundColor: Colors.grey[200]
-          ),
-          items: [
-            SideMenuItem(
-              title: 'Dashboard',
-              onTap: (index, _) {
-                sideMenu.changePage(index);
-              },
-              icon: const Icon(Icons.home),
-              badgeContent: const Text(
-                '3',
-                style: TextStyle(color: Colors.white),
-              ),
-              tooltipContent: "This is a tooltip for Dashboard item",
-            ),
-            SideMenuExpansionItem(
-              title: "Folder",
-              icon: const Icon(Icons.folder),
-              children: [
-                SideMenuItem(
-                  title: 'Create',
-                  onTap: (index, _) {
-                    sideMenu.changePage(index);
-                  },
-                  icon: const Icon(Icons.create_new_folder),
-                  badgeContent: const Text(
-                    '3',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  tooltipContent: "Create folder",
-                ),
-                SideMenuItem(
-                  title: 'Viewer',
-                  onTap: (index, _) {
-                    sideMenu.changePage(index);
-                  },
-                  icon: const Icon(Icons.view_list_outlined),
-                )
-              ],
-            ),
-          ],
-        ),
-        const VerticalDivider(
-          width: 0,
-        ),
-        Flexible(
-            child: PageView(
-          controller: pageController,
-          children: [
-            Container(
-              color: Colors.white,
-              child: const Center(
-                  child: HomePage(
-                padding: 16,
-              )),
-            ),
-            Container(
-              color: Colors.black,
-              child: const Center(child: CreateFolderStepper()),
-            ),
-            Container(
-              color: Colors.white,
-              child: const Center(
-                child: FolderViewSlug(),
-              ),
-            ),
-            Container(
-              color: Colors.white,
-              child: const Center(
-                child: Text(
-                  'Expansion Item 2',
-                  style: TextStyle(fontSize: 35),
-                ),
-              ),
-            ),
-            Container(
-              color: Colors.white,
-              child: const Center(
-                child: Text(
-                  'Files',
-                  style: TextStyle(fontSize: 35),
-                ),
-              ),
-            ),
-            Container(
-              color: Colors.white,
-              child: const Center(
-                child: Text(
-                  'Download',
-                  style: TextStyle(fontSize: 35),
-                ),
-              ),
-            ),
-          ],
-        ))
+        CustomSideMenu(sideMenu: sideMenu),
+        const VerticalDivider(width: 0),
+        Flexible(child: CustomPageView(pageController: pageController)),
       ],
+    );
+  }
+}
+
+class CustomSideMenu extends StatelessWidget {
+  final SideMenuController sideMenu;
+
+  const CustomSideMenu({super.key, required this.sideMenu});
+
+  @override
+  Widget build(BuildContext context) {
+    return SideMenu(
+      controller: sideMenu,
+      style: SideMenuStyle(
+        displayMode: SideMenuDisplayMode.auto,
+        showHamburger: true,
+        hoverColor: Colors.blue[100],
+        selectedHoverColor: Colors.blue[100],
+        selectedColor: Colors.lightBlue,
+        selectedTitleTextStyle: const TextStyle(color: Colors.white),
+        selectedIconColor: Colors.white,
+      ),
+      items: [
+        SideMenuItem(
+          title: 'Dashboard',
+          onTap: (index, _) => sideMenu.changePage(index),
+          icon: const Icon(Icons.home),
+          badgeContent: const Text('3', style: TextStyle(color: Colors.white)),
+          tooltipContent: "This is a tooltip for Dashboard item",
+        ),
+        SideMenuExpansionItem(
+          title: "Folder",
+          icon: const Icon(Icons.folder),
+          children: [
+            SideMenuItem(
+              title: 'Create',
+              onTap: (index, _) => sideMenu.changePage(index),
+              icon: const Icon(Icons.create_new_folder),
+              badgeContent:
+                  const Text('3', style: TextStyle(color: Colors.white)),
+              tooltipContent: "Create folder",
+            ),
+            SideMenuItem(
+              title: 'Viewer',
+              onTap: (index, _) => sideMenu.changePage(index),
+              icon: const Icon(Icons.view_list_outlined),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class CustomPageView extends StatelessWidget {
+  final PageController pageController;
+
+  const CustomPageView({super.key, required this.pageController});
+
+  @override
+  Widget build(BuildContext context) {
+    return PageView(
+      controller: pageController,
+      children: const [
+        PageViewItem(color: Colors.white, child: HomePage(padding: 16)),
+        PageViewItem(color: Colors.black, child: CreateFolderStepper()),
+        PageViewItem(color: Colors.white, child: FolderViewSlug()),
+        PageViewItem(
+            color: Colors.white,
+            child: Text('Expansion Item 2', style: TextStyle(fontSize: 35))),
+        PageViewItem(
+            color: Colors.white,
+            child: Text('Files', style: TextStyle(fontSize: 35))),
+        PageViewItem(
+            color: Colors.white,
+            child: Text('Download', style: TextStyle(fontSize: 35))),
+      ],
+    );
+  }
+}
+
+class PageViewItem extends StatelessWidget {
+  final Color color;
+  final Widget child;
+
+  const PageViewItem({super.key, required this.color, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: color,
+      child: Center(child: child),
     );
   }
 }
