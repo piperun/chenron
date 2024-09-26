@@ -1,9 +1,9 @@
-import 'package:chenron/data_struct/metadata.dart';
-import 'package:cuid2/cuid2.dart';
+import 'package:chenron/database/models/user_config_models.dart';
+import 'package:chenron/models/metadata.dart';
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:chenron/database/models/models.dart';
-import 'package:chenron/data_struct/item.dart';
+import 'package:chenron/models/item.dart';
 //import 'package:logging/logging.dart';
 
 part 'database.g.dart';
@@ -58,6 +58,22 @@ class AppDatabase extends _$AppDatabase {
     // `driftDatabase` from `package:drift_flutter` stores the database in
     // `getApplicationDocumentsDirectory()`.
     return driftDatabase(name: databaseName);
+  }
+}
+
+@DriftDatabase(tables: [
+  UserConfig,
+])
+class ConfigDatabase extends _$ConfigDatabase {
+  ConfigDatabase() : super(_openConnection());
+
+  @override
+  int get schemaVersion => 1;
+
+  static QueryExecutor _openConnection() {
+    // `driftDatabase` from `package:drift_flutter` stores the database in
+    // `getApplicationDocumentsDirectory()`.
+    return driftDatabase(name: 'config');
   }
 }
 
@@ -133,26 +149,5 @@ extension FindExtensions<Table extends HasResultSet, Row>
 
         return column.equalsNullable(value);
       });
-  }
-}
-
-extension TagExtensions on AppDatabase {
-  Future<String> addTag(String tagName) async {
-    final existingTag = await (tags.select()
-          ..where((t) => t.name.equals(tagName)))
-        .getSingleOrNull();
-
-    final String tagId = existingTag?.id ?? cuidSecure(30);
-
-    if (existingTag == null) {
-      await tags.insertOne(
-          mode: InsertMode.insertOrIgnore,
-          onConflict: DoNothing(),
-          TagsCompanion.insert(
-            id: tagId,
-            name: tagName,
-          ));
-    }
-    return tagId;
   }
 }

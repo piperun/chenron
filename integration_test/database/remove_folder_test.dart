@@ -1,6 +1,6 @@
-import 'package:chenron/data_struct/folder.dart';
-import 'package:chenron/data_struct/item.dart';
-import 'package:chenron/data_struct/metadata.dart';
+import 'package:chenron/models/folder.dart';
+import 'package:chenron/models/item.dart';
+import 'package:chenron/models/metadata.dart';
 import 'package:chenron/database/extensions/folder/create.dart';
 import 'package:chenron/database/extensions/folder/remove.dart';
 import 'package:flutter_test/flutter_test.dart';

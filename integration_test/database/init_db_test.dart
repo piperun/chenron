@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:chenron/data_struct/item.dart';
-import 'package:chenron/data_struct/metadata.dart';
+import 'package:chenron/models/item.dart';
+import 'package:chenron/models/metadata.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:drift/native.dart';
 import 'package:chenron/database/database.dart';

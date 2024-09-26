@@ -1,4 +1,4 @@
-import 'package:chenron/data_struct/item.dart';
+import 'package:chenron/models/item.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 String convertItemToString(ItemContent content) {

@@ -1,11 +1,11 @@
-import 'package:chenron/data_struct/item.dart';
+import 'package:chenron/models/item.dart';
 import 'package:chenron/folder/create/steps/folder_info.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:chenron/folder/create/create_stepper.dart';
 import 'package:chenron/providers/create_state.dart';
-import 'package:chenron/providers/CUD_state.dart';
+import 'package:chenron/providers/cud_state.dart';
 import 'package:chenron/providers/folder_info_state.dart';
 import 'package:chenron/database/database.dart';
 

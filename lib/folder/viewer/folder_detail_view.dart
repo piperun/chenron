@@ -1,5 +1,5 @@
 import 'package:chenron/components/metadata_comp.dart';
-import 'package:chenron/data_struct/item.dart';
+import 'package:chenron/models/item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:logging/logging.dart';

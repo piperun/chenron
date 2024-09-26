@@ -1,5 +1,5 @@
-import 'package:chenron/data_struct/item.dart';
-import 'package:chenron/providers/CUD_state.dart';
+import 'package:chenron/models/item.dart';
+import 'package:chenron/providers/cud_state.dart';
 import 'package:flutter/material.dart';
 
 class LinkFormField<T> extends FormField<T> {

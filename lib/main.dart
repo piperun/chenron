@@ -1,13 +1,16 @@
-import 'package:chenron/data_struct/item.dart';
+import 'package:chenron/models/item.dart';
 import 'package:chenron/database/database.dart';
 import 'package:chenron/providers/create_state.dart';
-import 'package:chenron/providers/CUD_state.dart';
+import 'package:chenron/providers/cud_state.dart';
 import 'package:chenron/providers/folder_info_state.dart';
 import 'package:chenron/root.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:rinf/rinf.dart';
+import './messages/all.dart';
 
-void main() {
+void main() async {
+  await initializeRust(assignRustSignal);
   runApp(MultiProvider(providers: [
     Provider<AppDatabase>(
       create: (context) => AppDatabase(

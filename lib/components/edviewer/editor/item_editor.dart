@@ -1,7 +1,7 @@
 import 'package:chenron/components/edviewer/editor/link/link_add.dart';
 import 'package:chenron/components/table/link_toolbar.dart';
-import 'package:chenron/data_struct/cud.dart';
-import 'package:chenron/data_struct/item.dart';
+import 'package:chenron/models/cud.dart';
+import 'package:chenron/models/item.dart';
 import 'package:flutter/material.dart';
 import 'package:pluto_grid/pluto_grid.dart';
 import 'package:collection/collection.dart';

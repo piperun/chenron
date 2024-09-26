@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:chenron/data_struct/folder.dart';
-import 'package:chenron/data_struct/item.dart';
+import 'package:chenron/models/folder.dart';
+import 'package:chenron/models/item.dart';
 import 'package:chenron/database/database.dart';
 
 extension ConvertFolderToInfo on Folder {

@@ -1,5 +1,5 @@
-import 'package:chenron/data_struct/item.dart';
-import 'package:chenron/data_struct/metadata.dart';
+import 'package:chenron/models/item.dart';
+import 'package:chenron/models/metadata.dart';
 import 'package:chenron/database/database.dart';
 import 'package:drift/drift.dart';
 

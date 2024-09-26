@@ -3413,3 +3413,21 @@ class $AppDatabaseManager {
   $$MetadataRecordsTableTableManager get metadataRecords =>
       $$MetadataRecordsTableTableManager(_db, _db.metadataRecords);
 }
+
+abstract class _$ConfigDatabase extends GeneratedDatabase {
+  _$ConfigDatabase(QueryExecutor e) : super(e);
+  $ConfigDatabaseManager get managers => $ConfigDatabaseManager(this);
+  @override
+  Iterable<TableInfo<Table, Object?>> get allTables =>
+      allSchemaEntities.whereType<TableInfo<Table, Object?>>();
+  @override
+  List<DatabaseSchemaEntity> get allSchemaEntities => [];
+  @override
+  DriftDatabaseOptions get options =>
+      const DriftDatabaseOptions(storeDateTimeAsText: true);
+}
+
+class $ConfigDatabaseManager {
+  final _$ConfigDatabase _db;
+  $ConfigDatabaseManager(this._db);
+}

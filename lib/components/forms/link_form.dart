@@ -1,9 +1,9 @@
-import 'package:chenron/data_struct/item.dart';
+import 'package:chenron/models/item.dart';
 import 'package:chenron/utils/validation/link_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:pluto_grid/pluto_grid.dart';
 import 'package:provider/provider.dart';
-import 'package:chenron/providers/CUD_state.dart';
+import 'package:chenron/providers/cud_state.dart';
 import 'package:chenron/components/table/link_toolbar.dart';
 import 'package:chenron/responsible_design/breakpoints.dart';
 import 'package:chenron/components/forms/form/link_form_field.dart';

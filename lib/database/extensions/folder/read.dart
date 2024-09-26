@@ -1,4 +1,4 @@
-import 'package:chenron/data_struct/item.dart';
+import 'package:chenron/models/item.dart';
 import 'package:chenron/database/database.dart';
 import 'package:chenron/database/extensions/convert.dart';
 import 'package:drift/drift.dart';

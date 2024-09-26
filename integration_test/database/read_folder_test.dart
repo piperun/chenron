@@ -1,4 +1,4 @@
-import 'package:chenron/data_struct/item.dart';
+import 'package:chenron/models/item.dart';
 import 'package:chenron/test_lib/folder_factory.dart';
 
 import 'package:flutter_test/flutter_test.dart';

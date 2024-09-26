@@ -1,8 +1,8 @@
-import 'package:chenron/data_struct/item.dart';
-import 'package:chenron/data_struct/metadata.dart';
+import 'package:chenron/models/item.dart';
+import 'package:chenron/models/metadata.dart';
 import 'package:chenron/database/extensions/insert_ext.dart';
 import 'package:drift/drift.dart';
-import 'package:chenron/data_struct/cud.dart';
+import 'package:chenron/models/cud.dart';
 import 'package:chenron/database/database.dart';
 import 'package:chenron/database/actions/batch.dart';
 
