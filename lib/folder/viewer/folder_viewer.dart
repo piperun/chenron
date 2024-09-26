@@ -1,108 +1,155 @@
 import 'package:chenron/database/database.dart';
 import 'package:chenron/database/extensions/folder/read.dart';
 import 'package:chenron/folder/editor.dart';
+import 'package:chenron/folder/viewer/folder_data_manager.dart';
 import 'package:chenron/folder/viewer/folder_detail_view.dart';
 import 'package:chenron/components/folder_layouts/grid.dart';
 import 'package:chenron/components/folder_layouts/list.dart';
+import 'package:chenron/folder/viewer/tag_search_bar.dart';
 import 'package:chenron/responsible_design/breakpoints.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class FolderViewSlug extends StatelessWidget {
+class FolderViewSlug extends StatefulWidget {
   const FolderViewSlug({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => FolderViewModel(),
-      child: const _FolderViewSlugContent(),
-    );
-  }
+  State<FolderViewSlug> createState() => _FolderViewSlugState();
 }
 
-class _FolderViewSlugContent extends StatefulWidget {
-  const _FolderViewSlugContent({super.key});
-
-  @override
-  State<_FolderViewSlugContent> createState() => _FolderViewSlugContentState();
-}
-
-class _FolderViewSlugContentState extends State<_FolderViewSlugContent> {
+class _FolderViewSlugState extends State<FolderViewSlug> {
+  late final FolderViewModel _viewModel;
+  late final FolderDataManager _dataManager;
   late final FolderController _controller;
 
   @override
   void initState() {
     super.initState();
-    _controller =
-        FolderController(Provider.of<FolderViewModel>(context, listen: false));
-    _controller.initStream(context);
+    _viewModel = FolderViewModel();
+    _dataManager =
+        FolderDataManager(Provider.of<AppDatabase>(context, listen: false));
+    _controller = FolderController(_viewModel, _dataManager);
+  }
+
+  void _handleDeleteSelected() async {
+    final success = await _controller.deleteSelectedFolders();
+    if (mounted) {
+      _showSnackBar(success);
+    }
+  }
+
+  void _showSnackBar(bool success) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(success
+            ? 'Folders deleted successfully'
+            : 'Failed to delete folders'),
+        backgroundColor: success ? Colors.green : Colors.red,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<FolderViewModel>(
-      builder: (context, viewModel, child) {
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('All Folders'),
-            actions: [
-              IconButton(
-                icon: Icon(viewModel.isGridView ? Icons.list : Icons.grid_view),
-                onPressed: _controller.toggleViewMode,
-              ),
-            ],
-          ),
-          body: Column(
-            children: [
-              SearchBar(
-                onChanged: _controller.updateSearchQuery,
-              ),
-              Expanded(
-                child: FolderListView(
-                  viewModel: viewModel,
-                  controller: _controller,
+    return ChangeNotifierProvider.value(
+      value: _viewModel,
+      child: Consumer<FolderViewModel>(
+        builder: (context, viewModel, child) {
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('All Folders'),
+              actions: [
+                IconButton(
+                  icon:
+                      Icon(viewModel.isGridView ? Icons.list : Icons.grid_view),
+                  onPressed: _controller.toggleViewMode,
                 ),
-              ),
-            ],
-          ),
-        );
-      },
+              ],
+            ),
+            body: Column(
+              children: [
+                SearchBar(
+                  onChanged: _controller.updateSearchQuery,
+                  onDeleteSelected: _handleDeleteSelected,
+                  hasSelectedFolders: viewModel.hasSelectedFolders,
+                ),
+                TagSearchBar(
+                  tagsStream: _dataManager.tagsStream,
+                  onTagSelected: _controller.toggleTag,
+                  onTagUnselected: _controller.toggleTag,
+                  selectedTags: viewModel.selectedTags,
+                ),
+                Expanded(
+                  child: FolderListView(
+                    foldersStream: _dataManager.foldersStream,
+                    viewModel: viewModel,
+                    controller: _controller,
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
     );
+  }
+
+  @override
+  void dispose() {
+    _dataManager.dispose();
+    super.dispose();
   }
 }
 
 class SearchBar extends StatelessWidget {
   final Function(String) onChanged;
+  final VoidCallback onDeleteSelected;
+  final bool hasSelectedFolders;
 
-  const SearchBar({super.key, required this.onChanged});
+  const SearchBar({
+    super.key,
+    required this.onChanged,
+    required this.onDeleteSelected,
+    required this.hasSelectedFolders,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
-      child: SizedBox(
-        width: Breakpoints.responsiveWidth(context),
-        child: TextField(
-          decoration: InputDecoration(
-            hintText: 'Search folders or tags...',
-            prefixIcon: const Icon(Icons.search),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(30),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              decoration: InputDecoration(
+                hintText: 'Search folders or tags...',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+              onChanged: onChanged,
             ),
           ),
-          onChanged: onChanged,
-        ),
+          const SizedBox(width: 16),
+          ElevatedButton(
+            onPressed: hasSelectedFolders ? onDeleteSelected : null,
+            child: const Text('Delete Selected'),
+          ),
+        ],
       ),
     );
   }
 }
 
 class FolderListView extends StatelessWidget {
+  final Stream<List<FolderResult>> foldersStream;
   final FolderViewModel viewModel;
   final FolderController controller;
 
   const FolderListView({
     super.key,
+    required this.foldersStream,
     required this.viewModel,
     required this.controller,
   });
@@ -110,7 +157,7 @@ class FolderListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<FolderResult>>(
-      stream: viewModel.streamFolders,
+      stream: foldersStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -119,26 +166,19 @@ class FolderListView extends StatelessWidget {
           return Center(child: Text('Error: ${snapshot.error}'));
         }
         final folders = snapshot.data ?? [];
-        final filteredFolders = controller.filterFolders(folders);
+        final filteredFolders = viewModel.filterFolders(folders);
 
-        return Column(
-          children: [
-            TagList(tags: controller.getUniqueTags(filteredFolders)),
-            Expanded(
-              child: viewModel.isGridView
-                  ? GridFolderView(
-                      folders: filteredFolders,
-                      viewModel: viewModel,
-                      controller: controller,
-                    )
-                  : ListFolderView(
-                      folders: filteredFolders,
-                      viewModel: viewModel,
-                      controller: controller,
-                    ),
-            ),
-          ],
-        );
+        return viewModel.isGridView
+            ? GridFolderView(
+                folders: filteredFolders,
+                viewModel: viewModel,
+                controller: controller,
+              )
+            : ListFolderView(
+                folders: filteredFolders,
+                viewModel: viewModel,
+                controller: controller,
+              );
       },
     );
   }
@@ -278,8 +318,8 @@ class FolderListItem extends StatelessWidget {
 class FolderViewModel extends ChangeNotifier {
   bool _isGridView = true;
   String _searchQuery = '';
+  final Set<String> selectedTags = {};
   final Set<String> selectedFolders = {};
-  late Stream<List<FolderResult>> streamFolders;
 
   bool get isGridView => _isGridView;
   String get searchQuery => _searchQuery;
@@ -293,17 +333,47 @@ class FolderViewModel extends ChangeNotifier {
     _searchQuery = value;
     notifyListeners();
   }
+
+  void toggleTag(String tagName) {
+    if (selectedTags.contains(tagName)) {
+      selectedTags.remove(tagName);
+    } else {
+      selectedTags.add(tagName);
+    }
+    notifyListeners();
+  }
+
+  void toggleFolderSelection(String folderId) {
+    if (selectedFolders.contains(folderId)) {
+      selectedFolders.remove(folderId);
+    } else {
+      selectedFolders.add(folderId);
+    }
+    notifyListeners();
+  }
+
+  void clearSelectedFolders() {
+    selectedFolders.clear();
+    notifyListeners();
+  }
+
+  bool get hasSelectedFolders => selectedFolders.isNotEmpty;
+
+  List<FolderResult> filterFolders(List<FolderResult> folders) {
+    final lowerQuery = searchQuery.toLowerCase();
+    return folders.where((folder) {
+      return folder.folder.title.toLowerCase().contains(lowerQuery) ||
+          (folder.tags
+              .any((tag) => tag.name.toLowerCase().contains(lowerQuery)));
+    }).toList();
+  }
 }
 
 class FolderController {
   final FolderViewModel _viewModel;
+  final FolderDataManager _dataManager;
 
-  FolderController(this._viewModel);
-
-  void initStream(BuildContext context) {
-    _viewModel.streamFolders = Provider.of<AppDatabase>(context, listen: false)
-        .watchAllFolders(mode: IncludeFolderData.tags);
-  }
+  FolderController(this._viewModel, this._dataManager);
 
   void toggleViewMode() {
     _viewModel.setGridView(!_viewModel.isGridView);
@@ -313,11 +383,12 @@ class FolderController {
     _viewModel.setSearchQuery(query);
   }
 
-  void onFolderToggle(String folderId) {
-    if (_viewModel.selectedFolders.contains(folderId)) {
-      _viewModel.selectedFolders.remove(folderId);
+  void toggleTag(String tagName) {
+    _viewModel.toggleTag(tagName);
+    if (_viewModel.selectedTags.contains(tagName)) {
+      _dataManager.selectTag(tagName);
     } else {
-      _viewModel.selectedFolders.add(folderId);
+      _dataManager.unselectTag(tagName);
     }
   }
 
@@ -341,20 +412,16 @@ class FolderController {
     );
   }
 
-  List<FolderResult> filterFolders(List<FolderResult> folders) {
-    final lowerQuery = _viewModel.searchQuery.toLowerCase();
-    return folders.where((folder) {
-      return folder.folder.title.toLowerCase().contains(lowerQuery) ||
-          (folder.tags
-              .any((tag) => tag.name.toLowerCase().contains(lowerQuery)));
-    }).toList();
+  void onFolderToggle(String folderId) {
+    _viewModel.toggleFolderSelection(folderId);
   }
 
-  List<Tag> getUniqueTags(List<FolderResult> folders) {
-    return folders
-        .where((f) => f.tags.isNotEmpty)
-        .expand((f) => f.tags)
-        .toSet()
-        .toList();
+  Future<bool> deleteSelectedFolders() async {
+    bool success = true;
+    for (final folder in _viewModel.selectedFolders) {
+      if (success) success = await _dataManager.removeFolder(folder);
+    }
+    _viewModel.clearSelectedFolders();
+    return success;
   }
 }
