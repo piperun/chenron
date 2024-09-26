@@ -6,7 +6,6 @@ import 'package:chenron/folder/viewer/folder_detail_view.dart';
 import 'package:chenron/components/folder_layouts/grid.dart';
 import 'package:chenron/components/folder_layouts/list.dart';
 import 'package:chenron/folder/viewer/tag_search_bar.dart';
-import 'package:chenron/responsible_design/breakpoints.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
