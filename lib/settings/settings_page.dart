@@ -132,7 +132,7 @@ class _SettingsContentState extends State<SettingsContent> {
       database.updateUserConfig(
         id: widget.userConfig.id!,
         darkMode: _isDarkMode,
-        colorScheme: _primaryColor.toString(),
+        colorScheme: json.encode({"primary": _primaryColor.value}),
         archiveOrgS3AccessKey: _accessKeyController.text,
         archiveOrgS3SecretKey: _secretKeyController.text,
       );
@@ -148,8 +148,7 @@ class DarkModeSwitch extends StatelessWidget {
   final ValueChanged<bool> onChanged;
 
   const DarkModeSwitch(
-      {Key? key, required this.isDarkMode, required this.onChanged})
-      : super(key: key);
+      {super.key, required this.isDarkMode, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -167,8 +166,7 @@ class ColorPickerTile extends StatelessWidget {
   final ValueChanged<Color> onColorChanged;
 
   const ColorPickerTile(
-      {Key? key, required this.primaryColor, required this.onColorChanged})
-      : super(key: key);
+      {super.key, required this.primaryColor, required this.onColorChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -213,11 +211,11 @@ class CredentialTextField extends StatelessWidget {
   final bool isPassword;
 
   const CredentialTextField({
-    Key? key,
+    super.key,
     required this.controller,
     required this.label,
     this.isPassword = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -241,8 +239,7 @@ class SaveSettingsButton extends StatelessWidget {
   final VoidCallback onPressed;
 
   const SaveSettingsButton(
-      {Key? key, required this.primaryColor, required this.onPressed})
-      : super(key: key);
+      {super.key, required this.primaryColor, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
