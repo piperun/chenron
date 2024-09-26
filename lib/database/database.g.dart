@@ -3414,20 +3414,522 @@ class $AppDatabaseManager {
       $$MetadataRecordsTableTableManager(_db, _db.metadataRecords);
 }
 
+class $UserConfigsTable extends UserConfigs
+    with TableInfo<$UserConfigsTable, UserConfig> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $UserConfigsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 30, maxTextLength: 60),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _darkModeMeta =
+      const VerificationMeta('darkMode');
+  @override
+  late final GeneratedColumn<bool> darkMode = GeneratedColumn<bool>(
+      'dark_mode', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("dark_mode" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _colorSchemeMeta =
+      const VerificationMeta('colorScheme');
+  @override
+  late final GeneratedColumn<String> colorScheme = GeneratedColumn<String>(
+      'color_scheme', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _archiveOrgS3AccessKeyMeta =
+      const VerificationMeta('archiveOrgS3AccessKey');
+  @override
+  late final GeneratedColumn<String> archiveOrgS3AccessKey =
+      GeneratedColumn<String>('archive_org_s3_access_key', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _archiveOrgS3SecretKeyMeta =
+      const VerificationMeta('archiveOrgS3SecretKey');
+  @override
+  late final GeneratedColumn<String> archiveOrgS3SecretKey =
+      GeneratedColumn<String>('archive_org_s3_secret_key', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, darkMode, colorScheme, archiveOrgS3AccessKey, archiveOrgS3SecretKey];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'user_configs';
+  @override
+  VerificationContext validateIntegrity(Insertable<UserConfig> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('dark_mode')) {
+      context.handle(_darkModeMeta,
+          darkMode.isAcceptableOrUnknown(data['dark_mode']!, _darkModeMeta));
+    }
+    if (data.containsKey('color_scheme')) {
+      context.handle(
+          _colorSchemeMeta,
+          colorScheme.isAcceptableOrUnknown(
+              data['color_scheme']!, _colorSchemeMeta));
+    }
+    if (data.containsKey('archive_org_s3_access_key')) {
+      context.handle(
+          _archiveOrgS3AccessKeyMeta,
+          archiveOrgS3AccessKey.isAcceptableOrUnknown(
+              data['archive_org_s3_access_key']!, _archiveOrgS3AccessKeyMeta));
+    }
+    if (data.containsKey('archive_org_s3_secret_key')) {
+      context.handle(
+          _archiveOrgS3SecretKeyMeta,
+          archiveOrgS3SecretKey.isAcceptableOrUnknown(
+              data['archive_org_s3_secret_key']!, _archiveOrgS3SecretKeyMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => const {};
+  @override
+  UserConfig map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return UserConfig(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      darkMode: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}dark_mode'])!,
+      colorScheme: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}color_scheme']),
+      archiveOrgS3AccessKey: attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}archive_org_s3_access_key']),
+      archiveOrgS3SecretKey: attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}archive_org_s3_secret_key']),
+    );
+  }
+
+  @override
+  $UserConfigsTable createAlias(String alias) {
+    return $UserConfigsTable(attachedDatabase, alias);
+  }
+}
+
+class UserConfig extends DataClass implements Insertable<UserConfig> {
+  final String id;
+  final bool darkMode;
+  final String? colorScheme;
+  final String? archiveOrgS3AccessKey;
+  final String? archiveOrgS3SecretKey;
+  const UserConfig(
+      {required this.id,
+      required this.darkMode,
+      this.colorScheme,
+      this.archiveOrgS3AccessKey,
+      this.archiveOrgS3SecretKey});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['dark_mode'] = Variable<bool>(darkMode);
+    if (!nullToAbsent || colorScheme != null) {
+      map['color_scheme'] = Variable<String>(colorScheme);
+    }
+    if (!nullToAbsent || archiveOrgS3AccessKey != null) {
+      map['archive_org_s3_access_key'] =
+          Variable<String>(archiveOrgS3AccessKey);
+    }
+    if (!nullToAbsent || archiveOrgS3SecretKey != null) {
+      map['archive_org_s3_secret_key'] =
+          Variable<String>(archiveOrgS3SecretKey);
+    }
+    return map;
+  }
+
+  UserConfigsCompanion toCompanion(bool nullToAbsent) {
+    return UserConfigsCompanion(
+      id: Value(id),
+      darkMode: Value(darkMode),
+      colorScheme: colorScheme == null && nullToAbsent
+          ? const Value.absent()
+          : Value(colorScheme),
+      archiveOrgS3AccessKey: archiveOrgS3AccessKey == null && nullToAbsent
+          ? const Value.absent()
+          : Value(archiveOrgS3AccessKey),
+      archiveOrgS3SecretKey: archiveOrgS3SecretKey == null && nullToAbsent
+          ? const Value.absent()
+          : Value(archiveOrgS3SecretKey),
+    );
+  }
+
+  factory UserConfig.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return UserConfig(
+      id: serializer.fromJson<String>(json['id']),
+      darkMode: serializer.fromJson<bool>(json['darkMode']),
+      colorScheme: serializer.fromJson<String?>(json['colorScheme']),
+      archiveOrgS3AccessKey:
+          serializer.fromJson<String?>(json['archiveOrgS3AccessKey']),
+      archiveOrgS3SecretKey:
+          serializer.fromJson<String?>(json['archiveOrgS3SecretKey']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'darkMode': serializer.toJson<bool>(darkMode),
+      'colorScheme': serializer.toJson<String?>(colorScheme),
+      'archiveOrgS3AccessKey':
+          serializer.toJson<String?>(archiveOrgS3AccessKey),
+      'archiveOrgS3SecretKey':
+          serializer.toJson<String?>(archiveOrgS3SecretKey),
+    };
+  }
+
+  UserConfig copyWith(
+          {String? id,
+          bool? darkMode,
+          Value<String?> colorScheme = const Value.absent(),
+          Value<String?> archiveOrgS3AccessKey = const Value.absent(),
+          Value<String?> archiveOrgS3SecretKey = const Value.absent()}) =>
+      UserConfig(
+        id: id ?? this.id,
+        darkMode: darkMode ?? this.darkMode,
+        colorScheme: colorScheme.present ? colorScheme.value : this.colorScheme,
+        archiveOrgS3AccessKey: archiveOrgS3AccessKey.present
+            ? archiveOrgS3AccessKey.value
+            : this.archiveOrgS3AccessKey,
+        archiveOrgS3SecretKey: archiveOrgS3SecretKey.present
+            ? archiveOrgS3SecretKey.value
+            : this.archiveOrgS3SecretKey,
+      );
+  UserConfig copyWithCompanion(UserConfigsCompanion data) {
+    return UserConfig(
+      id: data.id.present ? data.id.value : this.id,
+      darkMode: data.darkMode.present ? data.darkMode.value : this.darkMode,
+      colorScheme:
+          data.colorScheme.present ? data.colorScheme.value : this.colorScheme,
+      archiveOrgS3AccessKey: data.archiveOrgS3AccessKey.present
+          ? data.archiveOrgS3AccessKey.value
+          : this.archiveOrgS3AccessKey,
+      archiveOrgS3SecretKey: data.archiveOrgS3SecretKey.present
+          ? data.archiveOrgS3SecretKey.value
+          : this.archiveOrgS3SecretKey,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserConfig(')
+          ..write('id: $id, ')
+          ..write('darkMode: $darkMode, ')
+          ..write('colorScheme: $colorScheme, ')
+          ..write('archiveOrgS3AccessKey: $archiveOrgS3AccessKey, ')
+          ..write('archiveOrgS3SecretKey: $archiveOrgS3SecretKey')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      id, darkMode, colorScheme, archiveOrgS3AccessKey, archiveOrgS3SecretKey);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is UserConfig &&
+          other.id == this.id &&
+          other.darkMode == this.darkMode &&
+          other.colorScheme == this.colorScheme &&
+          other.archiveOrgS3AccessKey == this.archiveOrgS3AccessKey &&
+          other.archiveOrgS3SecretKey == this.archiveOrgS3SecretKey);
+}
+
+class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
+  final Value<String> id;
+  final Value<bool> darkMode;
+  final Value<String?> colorScheme;
+  final Value<String?> archiveOrgS3AccessKey;
+  final Value<String?> archiveOrgS3SecretKey;
+  final Value<int> rowid;
+  const UserConfigsCompanion({
+    this.id = const Value.absent(),
+    this.darkMode = const Value.absent(),
+    this.colorScheme = const Value.absent(),
+    this.archiveOrgS3AccessKey = const Value.absent(),
+    this.archiveOrgS3SecretKey = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  UserConfigsCompanion.insert({
+    required String id,
+    this.darkMode = const Value.absent(),
+    this.colorScheme = const Value.absent(),
+    this.archiveOrgS3AccessKey = const Value.absent(),
+    this.archiveOrgS3SecretKey = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id);
+  static Insertable<UserConfig> custom({
+    Expression<String>? id,
+    Expression<bool>? darkMode,
+    Expression<String>? colorScheme,
+    Expression<String>? archiveOrgS3AccessKey,
+    Expression<String>? archiveOrgS3SecretKey,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (darkMode != null) 'dark_mode': darkMode,
+      if (colorScheme != null) 'color_scheme': colorScheme,
+      if (archiveOrgS3AccessKey != null)
+        'archive_org_s3_access_key': archiveOrgS3AccessKey,
+      if (archiveOrgS3SecretKey != null)
+        'archive_org_s3_secret_key': archiveOrgS3SecretKey,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  UserConfigsCompanion copyWith(
+      {Value<String>? id,
+      Value<bool>? darkMode,
+      Value<String?>? colorScheme,
+      Value<String?>? archiveOrgS3AccessKey,
+      Value<String?>? archiveOrgS3SecretKey,
+      Value<int>? rowid}) {
+    return UserConfigsCompanion(
+      id: id ?? this.id,
+      darkMode: darkMode ?? this.darkMode,
+      colorScheme: colorScheme ?? this.colorScheme,
+      archiveOrgS3AccessKey:
+          archiveOrgS3AccessKey ?? this.archiveOrgS3AccessKey,
+      archiveOrgS3SecretKey:
+          archiveOrgS3SecretKey ?? this.archiveOrgS3SecretKey,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (darkMode.present) {
+      map['dark_mode'] = Variable<bool>(darkMode.value);
+    }
+    if (colorScheme.present) {
+      map['color_scheme'] = Variable<String>(colorScheme.value);
+    }
+    if (archiveOrgS3AccessKey.present) {
+      map['archive_org_s3_access_key'] =
+          Variable<String>(archiveOrgS3AccessKey.value);
+    }
+    if (archiveOrgS3SecretKey.present) {
+      map['archive_org_s3_secret_key'] =
+          Variable<String>(archiveOrgS3SecretKey.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserConfigsCompanion(')
+          ..write('id: $id, ')
+          ..write('darkMode: $darkMode, ')
+          ..write('colorScheme: $colorScheme, ')
+          ..write('archiveOrgS3AccessKey: $archiveOrgS3AccessKey, ')
+          ..write('archiveOrgS3SecretKey: $archiveOrgS3SecretKey, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$ConfigDatabase extends GeneratedDatabase {
   _$ConfigDatabase(QueryExecutor e) : super(e);
   $ConfigDatabaseManager get managers => $ConfigDatabaseManager(this);
+  late final $UserConfigsTable userConfigs = $UserConfigsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [userConfigs];
   @override
   DriftDatabaseOptions get options =>
       const DriftDatabaseOptions(storeDateTimeAsText: true);
 }
 
+typedef $$UserConfigsTableCreateCompanionBuilder = UserConfigsCompanion
+    Function({
+  required String id,
+  Value<bool> darkMode,
+  Value<String?> colorScheme,
+  Value<String?> archiveOrgS3AccessKey,
+  Value<String?> archiveOrgS3SecretKey,
+  Value<int> rowid,
+});
+typedef $$UserConfigsTableUpdateCompanionBuilder = UserConfigsCompanion
+    Function({
+  Value<String> id,
+  Value<bool> darkMode,
+  Value<String?> colorScheme,
+  Value<String?> archiveOrgS3AccessKey,
+  Value<String?> archiveOrgS3SecretKey,
+  Value<int> rowid,
+});
+
+class $$UserConfigsTableFilterComposer
+    extends FilterComposer<_$ConfigDatabase, $UserConfigsTable> {
+  $$UserConfigsTableFilterComposer(super.$state);
+  ColumnFilters<String> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<bool> get darkMode => $state.composableBuilder(
+      column: $state.table.darkMode,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get colorScheme => $state.composableBuilder(
+      column: $state.table.colorScheme,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get archiveOrgS3AccessKey => $state.composableBuilder(
+      column: $state.table.archiveOrgS3AccessKey,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get archiveOrgS3SecretKey => $state.composableBuilder(
+      column: $state.table.archiveOrgS3SecretKey,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+}
+
+class $$UserConfigsTableOrderingComposer
+    extends OrderingComposer<_$ConfigDatabase, $UserConfigsTable> {
+  $$UserConfigsTableOrderingComposer(super.$state);
+  ColumnOrderings<String> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<bool> get darkMode => $state.composableBuilder(
+      column: $state.table.darkMode,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get colorScheme => $state.composableBuilder(
+      column: $state.table.colorScheme,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get archiveOrgS3AccessKey => $state.composableBuilder(
+      column: $state.table.archiveOrgS3AccessKey,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get archiveOrgS3SecretKey => $state.composableBuilder(
+      column: $state.table.archiveOrgS3SecretKey,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+}
+
+class $$UserConfigsTableTableManager extends RootTableManager<
+    _$ConfigDatabase,
+    $UserConfigsTable,
+    UserConfig,
+    $$UserConfigsTableFilterComposer,
+    $$UserConfigsTableOrderingComposer,
+    $$UserConfigsTableCreateCompanionBuilder,
+    $$UserConfigsTableUpdateCompanionBuilder,
+    (
+      UserConfig,
+      BaseReferences<_$ConfigDatabase, $UserConfigsTable, UserConfig>
+    ),
+    UserConfig,
+    PrefetchHooks Function()> {
+  $$UserConfigsTableTableManager(_$ConfigDatabase db, $UserConfigsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          filteringComposer:
+              $$UserConfigsTableFilterComposer(ComposerState(db, table)),
+          orderingComposer:
+              $$UserConfigsTableOrderingComposer(ComposerState(db, table)),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<bool> darkMode = const Value.absent(),
+            Value<String?> colorScheme = const Value.absent(),
+            Value<String?> archiveOrgS3AccessKey = const Value.absent(),
+            Value<String?> archiveOrgS3SecretKey = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              UserConfigsCompanion(
+            id: id,
+            darkMode: darkMode,
+            colorScheme: colorScheme,
+            archiveOrgS3AccessKey: archiveOrgS3AccessKey,
+            archiveOrgS3SecretKey: archiveOrgS3SecretKey,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            Value<bool> darkMode = const Value.absent(),
+            Value<String?> colorScheme = const Value.absent(),
+            Value<String?> archiveOrgS3AccessKey = const Value.absent(),
+            Value<String?> archiveOrgS3SecretKey = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              UserConfigsCompanion.insert(
+            id: id,
+            darkMode: darkMode,
+            colorScheme: colorScheme,
+            archiveOrgS3AccessKey: archiveOrgS3AccessKey,
+            archiveOrgS3SecretKey: archiveOrgS3SecretKey,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$UserConfigsTableProcessedTableManager = ProcessedTableManager<
+    _$ConfigDatabase,
+    $UserConfigsTable,
+    UserConfig,
+    $$UserConfigsTableFilterComposer,
+    $$UserConfigsTableOrderingComposer,
+    $$UserConfigsTableCreateCompanionBuilder,
+    $$UserConfigsTableUpdateCompanionBuilder,
+    (
+      UserConfig,
+      BaseReferences<_$ConfigDatabase, $UserConfigsTable, UserConfig>
+    ),
+    UserConfig,
+    PrefetchHooks Function()>;
+
 class $ConfigDatabaseManager {
   final _$ConfigDatabase _db;
   $ConfigDatabaseManager(this._db);
+  $$UserConfigsTableTableManager get userConfigs =>
+      $$UserConfigsTableTableManager(_db, _db.userConfigs);
 }

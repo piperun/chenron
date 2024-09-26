@@ -17,6 +17,10 @@ void main() async {
           queryExecutor: null, databaseName: "chenron_db", setupOnInit: true),
       dispose: (context, db) => db.close(),
     ),
+    Provider<ConfigDatabase>(
+      create: (context) => ConfigDatabase(),
+      dispose: (context, db) => db.close(),
+    ),
     ChangeNotifierProvider(create: (context) => FolderInfoProvider()),
     ChangeNotifierProvider(create: (context) => CUDProvider<FolderItem>()),
     ChangeNotifierProvider(create: (context) => CreateFolderState()),

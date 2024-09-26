@@ -1,3 +1,4 @@
+import 'package:chenron/settings/settings_page.dart';
 import 'package:chenron/folder/create/create_stepper.dart';
 import 'package:chenron/folder/viewer/folder_viewer.dart';
 import 'package:chenron/home/homepage.dart';
@@ -59,11 +60,16 @@ class CustomSideMenu extends StatelessWidget {
           title: 'Dashboard',
           onTap: (index, _) => sideMenu.changePage(index),
           icon: const Icon(Icons.home),
-          badgeContent: const Text('3', style: TextStyle(color: Colors.white)),
-          tooltipContent: "This is a tooltip for Dashboard item",
+          //badgeContent: const Text('3', style: TextStyle(color: Colors.white)),
+          tooltipContent: 'Dashboard',
+        ),
+        SideMenuItem(
+          title: 'Settings',
+          onTap: (index, _) => sideMenu.changePage(index),
+          icon: const Icon(Icons.settings),
         ),
         SideMenuExpansionItem(
-          title: "Folder",
+          title: 'Folder',
           icon: const Icon(Icons.folder),
           children: [
             SideMenuItem(
@@ -72,7 +78,7 @@ class CustomSideMenu extends StatelessWidget {
               icon: const Icon(Icons.create_new_folder),
               badgeContent:
                   const Text('3', style: TextStyle(color: Colors.white)),
-              tooltipContent: "Create folder",
+              tooltipContent: "Create a new folder",
             ),
             SideMenuItem(
               title: 'Viewer',
@@ -97,6 +103,7 @@ class CustomPageView extends StatelessWidget {
       controller: pageController,
       children: const [
         PageViewItem(color: Colors.white, child: HomePage(padding: 16)),
+        PageViewItem(color: Colors.white, child: SettingsPage()),
         PageViewItem(color: Colors.black, child: CreateFolderStepper()),
         PageViewItem(color: Colors.white, child: FolderViewSlug()),
         PageViewItem(

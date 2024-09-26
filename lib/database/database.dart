@@ -1,9 +1,9 @@
 import 'package:chenron/database/models/user_config_models.dart';
-import 'package:chenron/models/metadata.dart';
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:chenron/database/models/models.dart';
-import 'package:chenron/models/item.dart';
+import 'package:chenron/database/extensions/intial_data/app_database.dart';
+import 'package:chenron/database/extensions/intial_data/config_database.dart';
 //import 'package:logging/logging.dart';
 
 part 'database.g.dart';
@@ -62,10 +62,12 @@ class AppDatabase extends _$AppDatabase {
 }
 
 @DriftDatabase(tables: [
-  UserConfig,
+  UserConfigs,
 ])
 class ConfigDatabase extends _$ConfigDatabase {
-  ConfigDatabase() : super(_openConnection());
+  ConfigDatabase() : super(_openConnection()) {
+    setupUserConfig();
+  }
 
   @override
   int get schemaVersion => 1;
@@ -74,38 +76,6 @@ class ConfigDatabase extends _$ConfigDatabase {
     // `driftDatabase` from `package:drift_flutter` stores the database in
     // `getApplicationDocumentsDirectory()`.
     return driftDatabase(name: 'config');
-  }
-}
-
-extension DatabaseInit on AppDatabase {
-  Future<void> setupEnumTypes() async {
-    await _setupTypes<FolderItemType>(itemTypes, FolderItemType.values);
-    await _setupTypes<MetadataTypeEnum>(metadataTypes, MetadataTypeEnum.values);
-  }
-
-  Future<void> _setupTypes<T extends Enum>(
-      TableInfo table, List<T> enumValues) async {
-    for (var type in enumValues) {
-      final companion = _factoryCompanion(table, type);
-      await into(table).insertOnConflictUpdate(companion);
-    }
-  }
-
-  Insertable _factoryCompanion(TableInfo table, Enum type) {
-    switch (table.actualTableName) {
-      case 'item_types':
-        return ItemTypesCompanion.insert(
-          id: Value(type.index + 1),
-          name: type.name,
-        );
-      case 'metadata_types':
-        return MetadataTypesCompanion.insert(
-          id: Value(type.index + 1),
-          name: type.name,
-        );
-      default:
-        throw ArgumentError('Unsupported table: ${table.actualTableName}');
-    }
   }
 }
 
