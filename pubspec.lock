@@ -142,14 +142,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "8.9.2"
-  chalkdart:
-    dependency: transitive
-    description:
-      name: chalkdart
-      sha256: "0b7ec5c6a6bafd1445500632c00c573722bd7736e491675d4ac3fe560bbd9cfe"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.2.1"
   characters:
     dependency: transitive
     description:
@@ -772,14 +764,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.1.0"
-  rinf:
-    dependency: "direct main"
-    description:
-      name: rinf
-      sha256: "5039394b836a05eac6386e9b147688840879ed7680ec7b2c3535308dc5600aee"
-      url: "https://pub.dev"
-    source: hosted
-    version: "7.0.0"
   rxdart:
     dependency: "direct main"
     description:
