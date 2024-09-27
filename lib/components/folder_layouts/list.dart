@@ -8,13 +8,13 @@ class ListLayout<T> extends StatelessWidget {
   final Widget Function(T) itemBuilder;
 
   const ListLayout({
-    Key? key,
+    super.key,
     required this.items,
     required this.isItemSelected,
     required this.onItemToggle,
     required this.onTap,
     required this.itemBuilder,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

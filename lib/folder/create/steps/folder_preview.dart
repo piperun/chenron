@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:chenron/providers/cud_state.dart';
 import 'package:chenron/providers/folder_info_state.dart';
-import 'package:chenron/models/cud.dart';
 
 class FolderPreview extends StatefulWidget {
   final GlobalKey<FormState> previewKey;

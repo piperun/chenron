@@ -1,101 +1,185 @@
-import 'package:chenron/models/item.dart';
-import 'package:chenron/database/database.dart';
-import 'package:chenron/providers/create_state.dart';
-import 'package:chenron/providers/cud_state.dart';
-import 'package:chenron/providers/folder_info_state.dart';
-import 'package:chenron/root.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:rinf/rinf.dart';
-import './messages/all.dart';
+// The original content is temporarily commented out to allow generating a self-contained demo - feel free to uncomment later.
 
-void main() async {
-  await initializeRust(assignRustSignal);
-  runApp(MultiProvider(providers: [
-    Provider<AppDatabase>(
-      create: (context) => AppDatabase(
-          queryExecutor: null, databaseName: "chenron_db", setupOnInit: true),
-      dispose: (context, db) => db.close(),
-    ),
-    Provider<ConfigDatabase>(
-      create: (context) => ConfigDatabase(),
-      dispose: (context, db) => db.close(),
-    ),
-    ChangeNotifierProvider(create: (context) => FolderInfoProvider()),
-    ChangeNotifierProvider(create: (context) => CUDProvider<FolderItem>()),
-    ChangeNotifierProvider(create: (context) => CreateFolderState()),
-  ], child: const MyApp()));
+// // The original content is temporarily commented out to allow generating a self-contained demo - feel free to uncomment later.
+//
+// // // The original content is temporarily commented out to allow generating a self-contained demo - feel free to uncomment later.
+// //
+// // // import 'package:chenron/models/item.dart';
+// // // import 'package:chenron/database/database.dart';
+// // // import 'package:chenron/providers/create_state.dart';
+// // // import 'package:chenron/providers/cud_state.dart';
+// // // import 'package:chenron/providers/folder_info_state.dart';
+// // // import 'package:chenron/root.dart';
+// // // import 'package:flutter/material.dart';
+// // // import 'package:provider/provider.dart';
+// // //
+// // // void main() async {
+// // //   runApp(MultiProvider(providers: [
+// // //     Provider<AppDatabase>(
+// // //       create: (context) => AppDatabase(
+// // //           queryExecutor: null, databaseName: "chenron_db", setupOnInit: true),
+// // //       dispose: (context, db) => db.close(),
+// // //     ),
+// // //     Provider<ConfigDatabase>(
+// // //       create: (context) => ConfigDatabase(),
+// // //       dispose: (context, db) => db.close(),
+// // //     ),
+// // //     ChangeNotifierProvider(create: (context) => FolderInfoProvider()),
+// // //     ChangeNotifierProvider(create: (context) => CUDProvider<FolderItem>()),
+// // //     ChangeNotifierProvider(create: (context) => CreateFolderState()),
+// // //   ], child: const MyApp()));
+// // // }
+// // //
+// // // class MyApp extends StatelessWidget {
+// // //   const MyApp({super.key});
+// // //
+// // //   // This widget is the root of your application.
+// // //   @override
+// // //   Widget build(BuildContext context) {
+// // //     return MaterialApp(
+// // //       title: 'Flutter Demo',
+// // //       theme: ThemeData(
+// // //         // This is the theme of your application.
+// // //         //
+// // //         // TRY THIS: Try running your application with "flutter run". You'll see
+// // //         // the application has a purple toolbar. Then, without quitting the app,
+// // //         // try changing the seedColor in the colorScheme below to Colors.green
+// // //         // and then invoke "hot reload" (save your changes or press the "hot
+// // //         // reload" button in a Flutter-supported IDE, or press "r" if you used
+// // //         // the command line to start the app).
+// // //         //
+// // //         // Notice that the counter didn't reset back to zero; the application
+// // //         // state is not lost during the reload. To reset the state, use hot
+// // //         // restart instead.
+// // //         //
+// // //         // This works for code too, not just values: Most code changes can be
+// // //         // tested with just a hot reload.
+// // //         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+// // //         useMaterial3: true,
+// // //       ),
+// // //       home: const MyHomePage(title: 'Flutter Demo Home Page'),
+// // //     );
+// // //   }
+// // // }
+// // //
+// // // class MyHomePage extends StatefulWidget {
+// // //   const MyHomePage({super.key, required this.title});
+// // //
+// // //   // This widget is the home page of your application. It is stateful, meaning
+// // //   // that it has a State object (defined below) that contains fields that affect
+// // //   // how it looks.
+// // //
+// // //   // This class is the configuration for the state. It holds the values (in this
+// // //   // case the title) provided by the parent (in this case the App widget) and
+// // //   // used by the build method of the State. Fields in a Widget subclass are
+// // //   // always marked "final".
+// // //
+// // //   final String title;
+// // //
+// // //   @override
+// // //   State<MyHomePage> createState() => _MyHomePageState();
+// // // }
+// // //
+// // // class _MyHomePageState extends State<MyHomePage> {
+// // //   @override
+// // //   Widget build(BuildContext context) {
+// // //     // This method is rerun every time setState is called, for instance as done
+// // //     // by the _incrementCounter method above.
+// // //     //
+// // //     // The Flutter framework has been optimized to make rerunning build methods
+// // //     // fast, so that you can just rebuild anything that needs updating rather
+// // //     // than having to individually change instances of widgets.
+// // //     return Scaffold(
+// // //         appBar: AppBar(
+// // //           // TRY THIS: Try changing the color here to a specific color (to
+// // //           // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
+// // //           // change color while the other colors stay the same.
+// // //           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+// // //           // Here we take the value from the MyHomePage object that was created by
+// // //           // the App.build method, and use it to set our appbar title.
+// // //           title: Text(widget.title),
+// // //         ),
+// // //         body: const RootPage());
+// // //   }
+// // // }
+// // //
+// //
+// // import 'package:flutter/material.dart';
+// // import 'package:chenron/src/rust/api/simple.dart';
+// // import 'package:chenron/src/rust/frb_generated.dart';
+// //
+// // Future<void> main() async {
+// //   await RustLib.init();
+// //   runApp(const MyApp());
+// // }
+// //
+// // class MyApp extends StatelessWidget {
+// //   const MyApp({super.key});
+// //
+// //   @override
+// //   Widget build(BuildContext context) {
+// //     return MaterialApp(
+// //       home: Scaffold(
+// //         appBar: AppBar(title: const Text('flutter_rust_bridge quickstart')),
+// //         body: Center(
+// //           child: Text(
+// //               'Action: Call Rust `greet("Tom")`\nResult: `${greet(name: "Tom")}`'),
+// //         ),
+// //       ),
+// //     );
+// //   }
+// // }
+// //
+//
+// import 'package:flutter/material.dart';
+// import 'package:chenron/src/rust/api/simple.dart';
+// import 'package:chenron/src/rust/frb_generated.dart';
+//
+// Future<void> main() async {
+//   await RustLib.init();
+//   runApp(const MyApp());
+// }
+//
+// class MyApp extends StatelessWidget {
+//   const MyApp({super.key});
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return MaterialApp(
+//       home: Scaffold(
+//         appBar: AppBar(title: const Text('flutter_rust_bridge quickstart')),
+//         body: Center(
+//           child: Text(
+//               'Action: Call Rust `greet("Tom")`\nResult: `${greet(name: "Tom")}`'),
+//         ),
+//       ),
+//     );
+//   }
+// }
+//
+
+import 'package:flutter/material.dart';
+import 'package:chenron/src/rust/api/simple.dart';
+import 'package:chenron/src/rust/frb_generated.dart';
+
+Future<void> main() async {
+  await RustLib.init();
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  @override
-  Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-        appBar: AppBar(
-          // TRY THIS: Try changing the color here to a specific color (to
-          // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-          // change color while the other colors stay the same.
-          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          // Here we take the value from the MyHomePage object that was created by
-          // the App.build method, and use it to set our appbar title.
-          title: Text(widget.title),
+      home: Scaffold(
+        appBar: AppBar(title: const Text('flutter_rust_bridge quickstart')),
+        body: Center(
+          child: Text(
+              'Action: Call Rust `greet("Tom")`\nResult: `${greet(name: "Tom")}`'),
         ),
-        body: const RootPage());
+      ),
+    );
   }
 }

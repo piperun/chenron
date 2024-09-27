@@ -1,12 +1,9 @@
-import 'package:chenron/components/folder_layouts/grid.dart';
-import 'package:chenron/components/folder_layouts/list.dart';
-import 'package:chenron/responsible_design/breakpoints.dart';
 import 'package:flutter/material.dart';
 
 class FolderForm extends StatefulWidget {
   final Function addItem;
 
-  FolderForm({required this.addItem});
+  const FolderForm({super.key, required this.addItem});
 
   @override
   State<FolderForm> createState() => _FolderFormState();

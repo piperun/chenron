@@ -8,13 +8,13 @@ class FolderFormFields extends StatelessWidget {
   final ValueChanged<String> onAccessChanged;
 
   const FolderFormFields({
-    Key? key,
+    super.key,
     required this.titleController,
     required this.descriptionController,
     required this.tagsController,
     required this.access,
     required this.onAccessChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

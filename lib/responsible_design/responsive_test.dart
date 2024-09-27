@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'responsive_builder.dart';
 
 class ResponsiveExample extends StatelessWidget {
+  const ResponsiveExample({super.key});
+
   @override
   Widget build(BuildContext context) {
     return ResponsiveBuilder(

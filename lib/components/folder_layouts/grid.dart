@@ -9,13 +9,13 @@ class GridLayout<T> extends StatelessWidget {
   final Widget Function(T) itemBuilder;
 
   const GridLayout({
-    Key? key,
+    super.key,
     required this.items,
     required this.isItemSelected,
     this.onItemToggle,
     this.onTap,
     required this.itemBuilder,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

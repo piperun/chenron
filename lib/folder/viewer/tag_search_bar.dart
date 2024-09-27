@@ -8,12 +8,12 @@ class TagSearchBar extends StatelessWidget {
   final Set<String> selectedTags;
 
   const TagSearchBar({
-    Key? key,
+    super.key,
     required this.tagsStream,
     required this.onTagSelected,
     required this.onTagUnselected,
     required this.selectedTags,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

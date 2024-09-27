@@ -1,13 +1,10 @@
-import 'package:chenron/folder/create/steps/folder_data.dart';
 import 'package:chenron/folder/create/steps/folder_info.dart';
-import 'package:chenron/folder/create/steps/folder_preview.dart';
 import 'package:chenron/test_lib/test_text.dart';
 import 'package:easy_sidemenu/easy_sidemenu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:chenron/main.dart' as app;
-import 'package:chenron/folder/create/create_stepper.dart';
 import 'package:chenron/components/forms/folder_form.dart';
 import 'package:pluto_grid/pluto_grid.dart';
 
