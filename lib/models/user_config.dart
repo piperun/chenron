@@ -18,7 +18,7 @@ class UserConfigModel {
     this.archiveOrgS3SecretKey,
   });
   @Deprecated(
-      'DO NOT USE, api breakage will convert to internal conversion instead')
+      'DO NOT USE, internal solution within CRUD functions will be used instead')
   Insertable toCompanion(String id) {
     return UserConfigsCompanion.insert(
       id: id,
