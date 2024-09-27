@@ -1,9 +1,11 @@
+import 'package:chenron/database/database.dart';
 import 'package:chenron/settings/settings_page.dart';
 import 'package:chenron/folder/create/create_stepper.dart';
 import 'package:chenron/folder/viewer/folder_viewer.dart';
 import 'package:chenron/home/homepage.dart';
 import 'package:easy_sidemenu/easy_sidemenu.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class RootPage extends StatefulWidget {
   const RootPage({super.key});
@@ -99,6 +101,7 @@ class CustomPageView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Provider.of<ConfigDatabase>(context, listen: false);
     return PageView(
       controller: pageController,
       children: const [
