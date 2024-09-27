@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
+import 'archive_org_options.dart';
 
 class ArchiveOrgClient {
   final String apiKey;
@@ -16,8 +17,19 @@ class ArchiveOrgClient {
     });
   }
 
-  Future<String> archiveUrl(String targetUrl) async {
+  Future<bool> checkAuthentication() async {
+    final response = await http.get(Uri.parse('$baseUrl/save/status/'));
+    return response.statusCode == 200;
+  }
+
+  Future<String> archiveUrl(String targetUrl,
+      {ArchiveOrgOptions? options}) async {
     try {
+      final Map<String, dynamic> body = {'url': targetUrl};
+      if (options != null) {
+        body.addAll(options.toJson());
+      }
+
       final response = await http.post(
         Uri.parse('$baseUrl/save'),
         headers: {
@@ -25,12 +37,34 @@ class ArchiveOrgClient {
           'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
           'Authorization': 'LOW $apiKey:$apiSecret',
         },
-        body: {'url': targetUrl},
+        body: body,
       );
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        return data['job_id'];
+        switch (data['status']) {
+          case 'success':
+            _logger.info(
+                'Archiving succeeded for $targetUrl. Archived URL: ${data['archived_snapshots']['closest']['url']}');
+            return data['archived_snapshots']['closest']['url'];
+          case 'error':
+            _logger.severe(
+                'Archiving failed for $targetUrl: \n message: ${data['message']} \n ${data['status_ext']}');
+            throw Exception('Archiving failed: ${data['message']}');
+          case 'pending':
+            _logger.info(
+                'Archiving in progress for $targetUrl. Job ID: ${data['job_id']}');
+            return data['job_id'];
+          default:
+            if (data['job_id'].isNotEmpty) {
+              _logger.info(
+                  'Archiving in progress for $targetUrl. Job ID: ${data['job_id']}');
+              return data['job_id'];
+            }
+            _logger
+                .severe('Unexpected status for $targetUrl: ${data['status']}');
+            throw Exception('Unexpected status: ${data['status']}');
+        }
       } else {
         throw Exception('Failed to start archiving: ${response.body}');
       }
