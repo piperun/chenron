@@ -14,7 +14,12 @@ class Links extends Table {
   TextColumn get id => text().withLength(min: 30, max: 60)();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   TextColumn get content => text().withLength(min: 10, max: 2048).unique()();
-
+  TextColumn get archiveOrgUrl =>
+      text().withLength(min: 10, max: 2048).nullable()();
+  TextColumn get archiveIsUrl =>
+      text().withLength(min: 10, max: 2048).nullable()();
+  TextColumn get localArchivePath =>
+      text().withLength(min: 10, max: 2048).nullable()();
   @override
   Set<Column> get primaryKey => {id};
 }

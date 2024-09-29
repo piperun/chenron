@@ -54,11 +54,7 @@ dependencies:
   metadata_fetch: ^0.4.2
   flutter_svg: ^2.0.10+1
   http: ^1.2.2
-  protobuf: ^3.1.0
   flutter_colorpicker: ^1.1.0
-  rust_lib_chenron:
-    path: rust_builder
-  flutter_rust_bridge: 2.4.0
   
 
   collection: any

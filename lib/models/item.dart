@@ -6,6 +6,9 @@ import 'package:drift/drift.dart';
 
 sealed class ItemContent {}
 
+// TODO: Rewrite this to LinkContent where we have 2 strings:
+// - The active URL
+// - The archived URL (via archive.org)
 class StringContent extends ItemContent {
   final String value;
   StringContent(this.value);
