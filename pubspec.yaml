@@ -58,6 +58,7 @@ dependencies:
   
 
   collection: any
+  path_provider: ^2.1.4
 dev_dependencies:
   drift_dev: ^2.20.0
   build_runner: ^2.4.11
@@ -78,7 +79,6 @@ dev_dependencies:
 # following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter packages.
-  path_provider: any
 flutter:
 
   # The following line ensures that the Material Icons font is
