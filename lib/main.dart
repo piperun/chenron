@@ -6,8 +6,6 @@ import 'package:chenron/providers/folder_info_state.dart';
 import 'package:chenron/root.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:chenron/utils/web_archive/monolith/monolith_downloader.dart';
-import 'package:chenron/utils/web_archive/monolith/monolith_runner.dart';
 
 void main() async {
   runApp(MultiProvider(providers: [
@@ -91,18 +89,5 @@ class _MyHomePageState extends State<MyHomePage> {
           title: Text(widget.title),
         ),
         body: const RootPage());
-  }
-}
-
-void someFunction() async {
-  final executablePath = await MonolithDownloader.downloadLatestRelease();
-  final runner = MonolithRunner(executablePath);
-
-  try {
-    final output = await runner.run('https://example.com',
-        noJs: true, output: 'example.html');
-    print('Monolith output: $output');
-  } catch (e) {
-    print('Error running Monolith: $e');
   }
 }

@@ -15,11 +15,11 @@ class MonolithDownloader {
 
       String assetName;
       if (Platform.isWindows) {
-        assetName = 'monolith-windows.exe';
+        assetName = 'monolith.exe';
       } else if (Platform.isMacOS) {
         assetName = 'monolith-mac';
       } else if (Platform.isLinux) {
-        assetName = 'monolith-linux';
+        assetName = 'monolith-gnu-linux';
       } else {
         throw UnsupportedError('Unsupported platform');
       }
