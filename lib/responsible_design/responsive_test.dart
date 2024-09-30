@@ -1,6 +1,6 @@
 import 'package:chenron/responsible_design/breakpoints.dart';
 import 'package:flutter/material.dart';
-import 'responsive_builder.dart';
+import 'package:chenron/responsible_design/responsive_builder.dart';
 
 class ResponsiveExample extends StatelessWidget {
   const ResponsiveExample({super.key});

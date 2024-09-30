@@ -132,7 +132,7 @@ class _SettingsContentState extends State<SettingsContent> {
       database.updateUserConfig(
         id: widget.userConfig.id!,
         darkMode: _isDarkMode,
-        colorScheme: json.encode({"primary": _primaryColor.value}),
+        colorScheme: json.encode({'primary': _primaryColor.value}),
         archiveOrgS3AccessKey: _accessKeyController.text,
         archiveOrgS3SecretKey: _secretKeyController.text,
       );

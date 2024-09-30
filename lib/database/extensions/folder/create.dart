@@ -15,7 +15,7 @@ extension FolderExtensions on AppDatabase {
   }) async {
     return transaction(() async {
       try {
-        if (folderInfo.title != "") {
+        if (folderInfo.title != '') {
           await _createFolderInfo(folderInfo);
         }
         if (tags != null) {

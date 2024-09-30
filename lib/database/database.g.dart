@@ -314,8 +314,36 @@ class $LinksTable extends Links with TableInfo<$LinksTable, Link> {
       type: DriftSqlType.string,
       requiredDuringInsert: true,
       defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'));
+  static const VerificationMeta _archiveOrgUrlMeta =
+      const VerificationMeta('archiveOrgUrl');
   @override
-  List<GeneratedColumn> get $columns => [id, createdAt, content];
+  late final GeneratedColumn<String> archiveOrgUrl = GeneratedColumn<String>(
+      'archive_org_url', aliasedName, true,
+      additionalChecks: GeneratedColumn.checkTextLength(
+          minTextLength: 10, maxTextLength: 2048),
+      type: DriftSqlType.string,
+      requiredDuringInsert: false);
+  static const VerificationMeta _archiveIsUrlMeta =
+      const VerificationMeta('archiveIsUrl');
+  @override
+  late final GeneratedColumn<String> archiveIsUrl = GeneratedColumn<String>(
+      'archive_is_url', aliasedName, true,
+      additionalChecks: GeneratedColumn.checkTextLength(
+          minTextLength: 10, maxTextLength: 2048),
+      type: DriftSqlType.string,
+      requiredDuringInsert: false);
+  static const VerificationMeta _localArchivePathMeta =
+      const VerificationMeta('localArchivePath');
+  @override
+  late final GeneratedColumn<String> localArchivePath = GeneratedColumn<String>(
+      'local_archive_path', aliasedName, true,
+      additionalChecks: GeneratedColumn.checkTextLength(
+          minTextLength: 10, maxTextLength: 2048),
+      type: DriftSqlType.string,
+      requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, createdAt, content, archiveOrgUrl, archiveIsUrl, localArchivePath];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -341,6 +369,24 @@ class $LinksTable extends Links with TableInfo<$LinksTable, Link> {
     } else if (isInserting) {
       context.missing(_contentMeta);
     }
+    if (data.containsKey('archive_org_url')) {
+      context.handle(
+          _archiveOrgUrlMeta,
+          archiveOrgUrl.isAcceptableOrUnknown(
+              data['archive_org_url']!, _archiveOrgUrlMeta));
+    }
+    if (data.containsKey('archive_is_url')) {
+      context.handle(
+          _archiveIsUrlMeta,
+          archiveIsUrl.isAcceptableOrUnknown(
+              data['archive_is_url']!, _archiveIsUrlMeta));
+    }
+    if (data.containsKey('local_archive_path')) {
+      context.handle(
+          _localArchivePathMeta,
+          localArchivePath.isAcceptableOrUnknown(
+              data['local_archive_path']!, _localArchivePathMeta));
+    }
     return context;
   }
 
@@ -356,6 +402,12 @@ class $LinksTable extends Links with TableInfo<$LinksTable, Link> {
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
       content: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}content'])!,
+      archiveOrgUrl: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}archive_org_url']),
+      archiveIsUrl: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}archive_is_url']),
+      localArchivePath: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}local_archive_path']),
     );
   }
 
@@ -369,14 +421,31 @@ class Link extends DataClass implements Insertable<Link> {
   final String id;
   final DateTime createdAt;
   final String content;
+  final String? archiveOrgUrl;
+  final String? archiveIsUrl;
+  final String? localArchivePath;
   const Link(
-      {required this.id, required this.createdAt, required this.content});
+      {required this.id,
+      required this.createdAt,
+      required this.content,
+      this.archiveOrgUrl,
+      this.archiveIsUrl,
+      this.localArchivePath});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['content'] = Variable<String>(content);
+    if (!nullToAbsent || archiveOrgUrl != null) {
+      map['archive_org_url'] = Variable<String>(archiveOrgUrl);
+    }
+    if (!nullToAbsent || archiveIsUrl != null) {
+      map['archive_is_url'] = Variable<String>(archiveIsUrl);
+    }
+    if (!nullToAbsent || localArchivePath != null) {
+      map['local_archive_path'] = Variable<String>(localArchivePath);
+    }
     return map;
   }
 
@@ -385,6 +454,15 @@ class Link extends DataClass implements Insertable<Link> {
       id: Value(id),
       createdAt: Value(createdAt),
       content: Value(content),
+      archiveOrgUrl: archiveOrgUrl == null && nullToAbsent
+          ? const Value.absent()
+          : Value(archiveOrgUrl),
+      archiveIsUrl: archiveIsUrl == null && nullToAbsent
+          ? const Value.absent()
+          : Value(archiveIsUrl),
+      localArchivePath: localArchivePath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(localArchivePath),
     );
   }
 
@@ -395,6 +473,9 @@ class Link extends DataClass implements Insertable<Link> {
       id: serializer.fromJson<String>(json['id']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       content: serializer.fromJson<String>(json['content']),
+      archiveOrgUrl: serializer.fromJson<String?>(json['archiveOrgUrl']),
+      archiveIsUrl: serializer.fromJson<String?>(json['archiveIsUrl']),
+      localArchivePath: serializer.fromJson<String?>(json['localArchivePath']),
     );
   }
   @override
@@ -404,19 +485,45 @@ class Link extends DataClass implements Insertable<Link> {
       'id': serializer.toJson<String>(id),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'content': serializer.toJson<String>(content),
+      'archiveOrgUrl': serializer.toJson<String?>(archiveOrgUrl),
+      'archiveIsUrl': serializer.toJson<String?>(archiveIsUrl),
+      'localArchivePath': serializer.toJson<String?>(localArchivePath),
     };
   }
 
-  Link copyWith({String? id, DateTime? createdAt, String? content}) => Link(
+  Link copyWith(
+          {String? id,
+          DateTime? createdAt,
+          String? content,
+          Value<String?> archiveOrgUrl = const Value.absent(),
+          Value<String?> archiveIsUrl = const Value.absent(),
+          Value<String?> localArchivePath = const Value.absent()}) =>
+      Link(
         id: id ?? this.id,
         createdAt: createdAt ?? this.createdAt,
         content: content ?? this.content,
+        archiveOrgUrl:
+            archiveOrgUrl.present ? archiveOrgUrl.value : this.archiveOrgUrl,
+        archiveIsUrl:
+            archiveIsUrl.present ? archiveIsUrl.value : this.archiveIsUrl,
+        localArchivePath: localArchivePath.present
+            ? localArchivePath.value
+            : this.localArchivePath,
       );
   Link copyWithCompanion(LinksCompanion data) {
     return Link(
       id: data.id.present ? data.id.value : this.id,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       content: data.content.present ? data.content.value : this.content,
+      archiveOrgUrl: data.archiveOrgUrl.present
+          ? data.archiveOrgUrl.value
+          : this.archiveOrgUrl,
+      archiveIsUrl: data.archiveIsUrl.present
+          ? data.archiveIsUrl.value
+          : this.archiveIsUrl,
+      localArchivePath: data.localArchivePath.present
+          ? data.localArchivePath.value
+          : this.localArchivePath,
     );
   }
 
@@ -425,37 +532,53 @@ class Link extends DataClass implements Insertable<Link> {
     return (StringBuffer('Link(')
           ..write('id: $id, ')
           ..write('createdAt: $createdAt, ')
-          ..write('content: $content')
+          ..write('content: $content, ')
+          ..write('archiveOrgUrl: $archiveOrgUrl, ')
+          ..write('archiveIsUrl: $archiveIsUrl, ')
+          ..write('localArchivePath: $localArchivePath')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, createdAt, content);
+  int get hashCode => Object.hash(
+      id, createdAt, content, archiveOrgUrl, archiveIsUrl, localArchivePath);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Link &&
           other.id == this.id &&
           other.createdAt == this.createdAt &&
-          other.content == this.content);
+          other.content == this.content &&
+          other.archiveOrgUrl == this.archiveOrgUrl &&
+          other.archiveIsUrl == this.archiveIsUrl &&
+          other.localArchivePath == this.localArchivePath);
 }
 
 class LinksCompanion extends UpdateCompanion<Link> {
   final Value<String> id;
   final Value<DateTime> createdAt;
   final Value<String> content;
+  final Value<String?> archiveOrgUrl;
+  final Value<String?> archiveIsUrl;
+  final Value<String?> localArchivePath;
   final Value<int> rowid;
   const LinksCompanion({
     this.id = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.content = const Value.absent(),
+    this.archiveOrgUrl = const Value.absent(),
+    this.archiveIsUrl = const Value.absent(),
+    this.localArchivePath = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   LinksCompanion.insert({
     required String id,
     this.createdAt = const Value.absent(),
     required String content,
+    this.archiveOrgUrl = const Value.absent(),
+    this.archiveIsUrl = const Value.absent(),
+    this.localArchivePath = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         content = Value(content);
@@ -463,12 +586,18 @@ class LinksCompanion extends UpdateCompanion<Link> {
     Expression<String>? id,
     Expression<DateTime>? createdAt,
     Expression<String>? content,
+    Expression<String>? archiveOrgUrl,
+    Expression<String>? archiveIsUrl,
+    Expression<String>? localArchivePath,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (createdAt != null) 'created_at': createdAt,
       if (content != null) 'content': content,
+      if (archiveOrgUrl != null) 'archive_org_url': archiveOrgUrl,
+      if (archiveIsUrl != null) 'archive_is_url': archiveIsUrl,
+      if (localArchivePath != null) 'local_archive_path': localArchivePath,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -477,11 +606,17 @@ class LinksCompanion extends UpdateCompanion<Link> {
       {Value<String>? id,
       Value<DateTime>? createdAt,
       Value<String>? content,
+      Value<String?>? archiveOrgUrl,
+      Value<String?>? archiveIsUrl,
+      Value<String?>? localArchivePath,
       Value<int>? rowid}) {
     return LinksCompanion(
       id: id ?? this.id,
       createdAt: createdAt ?? this.createdAt,
       content: content ?? this.content,
+      archiveOrgUrl: archiveOrgUrl ?? this.archiveOrgUrl,
+      archiveIsUrl: archiveIsUrl ?? this.archiveIsUrl,
+      localArchivePath: localArchivePath ?? this.localArchivePath,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -498,6 +633,15 @@ class LinksCompanion extends UpdateCompanion<Link> {
     if (content.present) {
       map['content'] = Variable<String>(content.value);
     }
+    if (archiveOrgUrl.present) {
+      map['archive_org_url'] = Variable<String>(archiveOrgUrl.value);
+    }
+    if (archiveIsUrl.present) {
+      map['archive_is_url'] = Variable<String>(archiveIsUrl.value);
+    }
+    if (localArchivePath.present) {
+      map['local_archive_path'] = Variable<String>(localArchivePath.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -510,6 +654,9 @@ class LinksCompanion extends UpdateCompanion<Link> {
           ..write('id: $id, ')
           ..write('createdAt: $createdAt, ')
           ..write('content: $content, ')
+          ..write('archiveOrgUrl: $archiveOrgUrl, ')
+          ..write('archiveIsUrl: $archiveIsUrl, ')
+          ..write('localArchivePath: $localArchivePath, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -2264,12 +2411,18 @@ typedef $$LinksTableCreateCompanionBuilder = LinksCompanion Function({
   required String id,
   Value<DateTime> createdAt,
   required String content,
+  Value<String?> archiveOrgUrl,
+  Value<String?> archiveIsUrl,
+  Value<String?> localArchivePath,
   Value<int> rowid,
 });
 typedef $$LinksTableUpdateCompanionBuilder = LinksCompanion Function({
   Value<String> id,
   Value<DateTime> createdAt,
   Value<String> content,
+  Value<String?> archiveOrgUrl,
+  Value<String?> archiveIsUrl,
+  Value<String?> localArchivePath,
   Value<int> rowid,
 });
 
@@ -2290,6 +2443,21 @@ class $$LinksTableFilterComposer
       column: $state.table.content,
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get archiveOrgUrl => $state.composableBuilder(
+      column: $state.table.archiveOrgUrl,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get archiveIsUrl => $state.composableBuilder(
+      column: $state.table.archiveIsUrl,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get localArchivePath => $state.composableBuilder(
+      column: $state.table.localArchivePath,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
 }
 
 class $$LinksTableOrderingComposer
@@ -2307,6 +2475,21 @@ class $$LinksTableOrderingComposer
 
   ColumnOrderings<String> get content => $state.composableBuilder(
       column: $state.table.content,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get archiveOrgUrl => $state.composableBuilder(
+      column: $state.table.archiveOrgUrl,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get archiveIsUrl => $state.composableBuilder(
+      column: $state.table.archiveIsUrl,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get localArchivePath => $state.composableBuilder(
+      column: $state.table.localArchivePath,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 }
@@ -2334,24 +2517,36 @@ class $$LinksTableTableManager extends RootTableManager<
             Value<String> id = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
             Value<String> content = const Value.absent(),
+            Value<String?> archiveOrgUrl = const Value.absent(),
+            Value<String?> archiveIsUrl = const Value.absent(),
+            Value<String?> localArchivePath = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               LinksCompanion(
             id: id,
             createdAt: createdAt,
             content: content,
+            archiveOrgUrl: archiveOrgUrl,
+            archiveIsUrl: archiveIsUrl,
+            localArchivePath: localArchivePath,
             rowid: rowid,
           ),
           createCompanionCallback: ({
             required String id,
             Value<DateTime> createdAt = const Value.absent(),
             required String content,
+            Value<String?> archiveOrgUrl = const Value.absent(),
+            Value<String?> archiveIsUrl = const Value.absent(),
+            Value<String?> localArchivePath = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               LinksCompanion.insert(
             id: id,
             createdAt: createdAt,
             content: content,
+            archiveOrgUrl: archiveOrgUrl,
+            archiveIsUrl: archiveIsUrl,
+            localArchivePath: localArchivePath,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0

@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
-import 'archive_org_options.dart';
+import 'package:chenron/utils/web_archive/archive_org/archive_org_options.dart';
 
 class ArchiveOrgClient {
   final String apiKey;
