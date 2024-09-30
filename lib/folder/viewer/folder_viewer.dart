@@ -277,7 +277,7 @@ class FolderGridItem extends StatelessWidget {
         TextButton.icon(
           onPressed: onEditTap,
           icon: const Icon(Icons.edit),
-          label: const Text("Edit"),
+          label: const Text('Edit'),
         )
       ],
     );
@@ -307,7 +307,7 @@ class FolderListItem extends StatelessWidget {
         TextButton.icon(
           onPressed: onEditTap,
           icon: const Icon(Icons.edit),
-          label: const Text("Edit"),
+          label: const Text('Edit'),
         )
       ],
     );

@@ -80,7 +80,7 @@ class CustomSideMenu extends StatelessWidget {
               icon: const Icon(Icons.create_new_folder),
               badgeContent:
                   const Text('3', style: TextStyle(color: Colors.white)),
-              tooltipContent: "Create a new folder",
+              tooltipContent: 'Create a new folder',
             ),
             SideMenuItem(
               title: 'Viewer',
