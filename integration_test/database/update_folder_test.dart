@@ -152,7 +152,7 @@ void main() {
 
       final folderTagQueryResult = [];
 
-      folderTagsQuery(searchId) {
+      Future<List<MetadataRecord>> folderTagsQuery(searchId) {
         return (database.metadataRecords.select()
               ..where((tbl) => tbl.metadataId.equals(searchId))
               ..where((t) => t.itemId.equals(testFolder.id)))
