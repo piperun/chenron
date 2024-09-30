@@ -14,7 +14,7 @@ void main() {
     late AppDatabase database;
 
     setUp(() async {
-      database = AppDatabase(databaseName: "test_db");
+      database = AppDatabase(databaseName: 'test_db');
 
       await database.delete(database.folders).go();
       await database.delete(database.items).go();
@@ -81,7 +81,7 @@ void main() {
       final document = FolderItem(
           type: FolderItemType.document,
           content:
-              MapContent({'title': 'Test Document', "body": 'Test Content'}));
+              MapContent({'title': 'Test Document', 'body': 'Test Content'}));
       await database
           .createFolder(folderInfo: folderInfo, items: [link, document]);
 

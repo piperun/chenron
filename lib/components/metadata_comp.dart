@@ -61,7 +61,7 @@ class MetadataTitle extends StatelessWidget {
           return Text(widget.url);
         } else {
           return Text(
-            removeDupSpaces(snapshot.data?.title ?? ""),
+            removeDupSpaces(snapshot.data?.title ?? ''),
             style: const TextStyle(fontWeight: FontWeight.bold),
           );
         }

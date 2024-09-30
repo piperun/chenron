@@ -54,8 +54,8 @@ class FolderItem {
       case MapContent(value: var doc):
         return DocumentsCompanion.insert(
           id: itemId,
-          title: doc["title"] ?? '',
-          content: utf8.encode(doc["body"] ?? ''),
+          title: doc['title'] ?? '',
+          content: utf8.encode(doc['body'] ?? ''),
         );
       default:
         throw Exception('Invalid content type');

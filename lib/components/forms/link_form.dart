@@ -105,9 +105,9 @@ class _LinkFormState extends State<LinkForm> {
                           );
                           stateManager.appendRows([
                             PlutoRow(cells: {
-                              "url": PlutoCell(value: _linkController.text),
-                              "comment": PlutoCell(value: ""),
-                              "tags": PlutoCell(value: [])
+                              'url': PlutoCell(value: _linkController.text),
+                              'comment': PlutoCell(value: ''),
+                              'tags': PlutoCell(value: [])
                             })
                           ]);
                           _linkController.clear();

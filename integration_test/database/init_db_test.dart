@@ -13,7 +13,7 @@ void main() {
   late AppDatabase database;
 
   setUp(() {
-    database = AppDatabase(databaseName: "test_db");
+    database = AppDatabase(databaseName: 'test_db');
   });
   tearDown(() async {
     await database.close();
@@ -25,7 +25,7 @@ void main() {
   });
 
   test('AppDatabase constructor initializes with no setup file database', () {
-    final db = AppDatabase(databaseName: "test_db");
+    final db = AppDatabase(databaseName: 'test_db');
     expect(db.schemaVersion, equals(1));
   });
 
@@ -41,12 +41,12 @@ void main() {
   test('AppDatabase constructor with setupOnInit initializes item types',
       () async {
     final setupDatabase =
-        AppDatabase(databaseName: "test_db", setupOnInit: true);
+        AppDatabase(databaseName: 'test_db', setupOnInit: true);
 
     final itemTypes = await setupDatabase.select(setupDatabase.itemTypes).get();
     final metadataTypes =
         await setupDatabase.select(setupDatabase.metadataTypes).get();
-    print("item: $itemTypes\n metadata: $metadataTypes");
+    print('item: $itemTypes\n metadata: $metadataTypes');
     expect(itemTypes.length, equals(FolderItemType.values.length),
         reason: 'Number of item types should match the enum values');
     expect(metadataTypes.length, equals(MetadataTypeEnum.values.length),

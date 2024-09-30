@@ -12,7 +12,7 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   group('CreateFolderStepper Integration Tests', () {
-    testWidgets("Ensure we can navigate the Side Menu",
+    testWidgets('Ensure we can navigate the Side Menu',
         (WidgetTester tester) async {
       app.main();
       await tester.pumpAndSettle();
@@ -59,15 +59,15 @@ void main() {
       tester.testTextInput.register();
       Future<void> addLink(String url) async {
         await tester.enterText(
-            find.widgetWithText(TextFormField, "Enter Link"), url);
+            find.widgetWithText(TextFormField, 'Enter Link'), url);
         await tester.pumpAndSettle();
-        await tester.tap(find.text("Add Link"));
+        await tester.tap(find.text('Add Link'));
         await tester.pumpAndSettle();
       }
 
       // Verify initial step
       expect(find.text('Folder'), findsOneWidget);
-      final nextButton = find.text("Next");
+      final nextButton = find.text('Next');
 
       await tester.tap(find.text('Folder'));
       await tester.pumpAndSettle();
@@ -82,14 +82,14 @@ void main() {
         await tester.pump();
       }
 
-      await enterAndVerifyText("Title", 'testTitle');
-      await enterAndVerifyText("Description", TestData.smallText);
-      await enterAndVerifyText("Tags", 'testTag');
+      await enterAndVerifyText('Title', 'testTitle');
+      await enterAndVerifyText('Description', TestData.smallText);
+      await enterAndVerifyText('Tags', 'testTag');
 
       // Verify and interact with FolderTypeDropDown
-      expect(find.widgetWithText(FolderTypeDropDown, "Folder type"),
+      expect(find.widgetWithText(FolderTypeDropDown, 'Folder type'),
           findsOneWidget);
-      await tester.tap(find.widgetWithText(FolderTypeDropDown, "Folder type"));
+      await tester.tap(find.widgetWithText(FolderTypeDropDown, 'Folder type'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Link').last);
       await tester.pumpAndSettle();
@@ -97,9 +97,9 @@ void main() {
       await tester.tap(nextButton);
       await tester.pumpAndSettle();
       // Step 2
-      expect(find.text("Data"), findsOneWidget);
-      expect(find.widgetWithText(TextFormField, "Enter Link"), findsOneWidget);
-      expect(find.text("Add Link"), findsOneWidget);
+      expect(find.text('Data'), findsOneWidget);
+      expect(find.widgetWithText(TextFormField, 'Enter Link'), findsOneWidget);
+      expect(find.text('Add Link'), findsOneWidget);
       for (final url in TestData.urls) {
         await addLink(url);
       }
@@ -111,8 +111,8 @@ void main() {
         await tester.tap(find.byWidget(checkboxes.elementAt(i)));
         await tester.pumpAndSettle();
       }
-      expect(find.text("Remove selected"), findsOneWidget);
-      await tester.tap(find.text("Remove selected"));
+      expect(find.text('Remove selected'), findsOneWidget);
+      await tester.tap(find.text('Remove selected'));
       await tester.pumpAndSettle();
       await tester.dragUntilVisible(
           nextButton, find.byType(PageView), const Offset(0, -100));

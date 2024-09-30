@@ -1,7 +1,7 @@
 import 'dart:io';
 
 class MonolithRunner {
-  String? executablePath = "monolith";
+  String? executablePath = 'monolith';
 
   MonolithRunner({this.executablePath});
 
@@ -15,7 +15,7 @@ class MonolithRunner {
     bool ignoreErrors = true,
     String output = '',
   }) async {
-    executablePath ??= "monolith";
+    executablePath ??= 'monolith';
     final args = [url];
     if (noAudio) args.add('--no-audio');
     if (noFrames) args.add('--no-frames');

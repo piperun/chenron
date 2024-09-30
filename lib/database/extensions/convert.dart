@@ -34,8 +34,8 @@ extension ConvertDocumentToItem on Document {
       itemId: id,
       createdAt: createdAt,
       content: MapContent({
-        "title": title,
-        "body": utf8.decode(content),
+        'title': title,
+        'body': utf8.decode(content),
       }),
       type: FolderItemType.document,
     );

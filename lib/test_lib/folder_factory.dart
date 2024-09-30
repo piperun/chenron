@@ -15,8 +15,8 @@ class FolderTestDataFactory {
   static FolderTestData createActiveFolder() {
     return FolderTestData(
       folder: FolderInfo(
-        title: "Test Read Folder 1",
-        description: "This folder is for testing read operations",
+        title: 'Test Read Folder 1',
+        description: 'This folder is for testing read operations',
       ),
       tags: [
         Metadata(value: 'ActiveTag1', type: MetadataTypeEnum.tag),
@@ -37,8 +37,8 @@ class FolderTestDataFactory {
   static FolderTestData createInactiveFolder() {
     return FolderTestData(
       folder: FolderInfo(
-        title: "Inactive Test Folder",
-        description: "This folder is inactive for testing purposes",
+        title: 'Inactive Test Folder',
+        description: 'This folder is inactive for testing purposes',
       ),
       tags: [
         Metadata(value: 'InactiveTag1', type: MetadataTypeEnum.tag),

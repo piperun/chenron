@@ -13,14 +13,14 @@ void main() {
   late FolderInfo testFolder;
 
   setUp(() async {
-    database = AppDatabase(databaseName: "test_db");
+    database = AppDatabase(databaseName: 'test_db');
     await database.delete(database.folders).go();
     //await database.delete(database.items).go();
     //await database.delete(database.metadataRecords).go();
     //await database.delete(database.tags).go();
     testFolder = FolderInfo(
-        title: "update folder",
-        description: "this folder is only for testing updateFolder");
+        title: 'update folder',
+        description: 'this folder is only for testing updateFolder');
     await database.folders.insertOne(FoldersCompanion.insert(
         id: testFolder.id,
         title: testFolder.title,
@@ -33,8 +33,8 @@ void main() {
 
   group('Update Folder: Create', () {
     test('should create and add new tags to folder', () async {
-      database.addTag("NewTag1");
-      database.addTag("NewTag2");
+      database.addTag('NewTag1');
+      database.addTag('NewTag2');
 
       final newTag1 = await (database.select(database.tags)
             ..where((tbl) => tbl.name.equalsNullable('NewTag1')))
@@ -82,7 +82,7 @@ void main() {
           FolderItem(
               type: FolderItemType.document,
               content:
-                  MapContent({"title": 'New Document', "body": 'Content'})),
+                  MapContent({'title': 'New Document', 'body': 'Content'})),
         ],
       );
 
@@ -127,7 +127,7 @@ void main() {
         FolderItem(
             type: FolderItemType.link,
             content: StringContent('https://example.com'),
-            itemId: "nayscsy4hk75zwg83qxhddtct04ut8")
+            itemId: 'nayscsy4hk75zwg83qxhddtct04ut8')
       ]);
 
       await database.updateFolder(testFolder.id, itemUpdates: itemUpdates);
@@ -146,8 +146,8 @@ void main() {
   group('Update Folder: Remove', () {
     test('should remove tags from folder', () async {
       final CUD<Metadata> cudTags = CUD<Metadata>(create: [
-        Metadata(type: MetadataTypeEnum.tag, value: "deleteMeTag1"),
-        Metadata(type: MetadataTypeEnum.tag, value: "deleteMeTag2"),
+        Metadata(type: MetadataTypeEnum.tag, value: 'deleteMeTag1'),
+        Metadata(type: MetadataTypeEnum.tag, value: 'deleteMeTag2'),
       ]);
 
       final folderTagQueryResult = [];
@@ -163,7 +163,7 @@ void main() {
         folderTagQueryResult.add(await folderTagsQuery(tag.id));
       }
       expect(folderTagQueryResult.length, equals(2),
-          reason: "Two tags should have been added\n ");
+          reason: 'Two tags should have been added\n ');
       folderTagQueryResult.clear();
       await database.updateFolder(testFolder.id, tagUpdates: cudTags);
 
@@ -179,7 +179,7 @@ void main() {
         }
       }
       expect(folderTagQueryResult.length, equals(0),
-          reason: "Two tags should have been removed");
+          reason: 'Two tags should have been removed');
     });
 
     test('should create, add and remove items from folder', () async {

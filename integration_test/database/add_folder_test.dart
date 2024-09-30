@@ -12,7 +12,7 @@ void main() {
   late AppDatabase database;
 
   setUp(() {
-    database = AppDatabase(setupOnInit: true, databaseName: "test_db");
+    database = AppDatabase(setupOnInit: true, databaseName: 'test_db');
   });
   tearDown(() async {
     await database.close();
@@ -97,11 +97,11 @@ void main() {
       final items = [
         FolderItem(
             type: FolderItemType.link,
-            content: StringContent("https://example.com")),
+            content: StringContent('https://example.com')),
         FolderItem(
             type: FolderItemType.document,
             content:
-                MapContent({"title": "Test document", "body": "Blablabla"})),
+                MapContent({'title': 'Test document', 'body': 'Blablabla'})),
       ];
 
       await database.createFolder(

@@ -11,7 +11,7 @@ void main() async {
   runApp(MultiProvider(providers: [
     Provider<AppDatabase>(
       create: (context) => AppDatabase(
-          queryExecutor: null, databaseName: "chenron_db", setupOnInit: true),
+          queryExecutor: null, databaseName: 'chenron_db', setupOnInit: true),
       dispose: (context, db) => db.close(),
     ),
     Provider<ConfigDatabase>(

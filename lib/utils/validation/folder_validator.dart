@@ -7,11 +7,11 @@ class FolderValidator {
     if (value == null || value.isEmpty) {
       return 'Title cannot be empty';
     }
-    final valueLocaleCheck = Validator.isAlphanumeric(value, locale: "en-US") ||
-        Validator.isAlphanumeric(value, locale: "sv-SE") ||
-        Validator.isAlphanumeric(value, locale: "ja-JP") ||
-        Validator.isAlphanumeric(value, locale: "ru-RU") ||
-        Validator.isAlphanumeric(value, locale: "uk-UA");
+    final valueLocaleCheck = Validator.isAlphanumeric(value, locale: 'en-US') ||
+        Validator.isAlphanumeric(value, locale: 'sv-SE') ||
+        Validator.isAlphanumeric(value, locale: 'ja-JP') ||
+        Validator.isAlphanumeric(value, locale: 'ru-RU') ||
+        Validator.isAlphanumeric(value, locale: 'uk-UA');
 
     if (!Validator.isLength(value,
         options: LengthOptions(

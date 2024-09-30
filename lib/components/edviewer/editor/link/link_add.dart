@@ -25,7 +25,7 @@ class _LinkAdderState extends State<LinkAdder> {
               child: TextField(
                   controller: _linkController,
                   decoration: const InputDecoration(
-                    labelText: "Link",
+                    labelText: 'Link',
                     hintText: 'Insert URL',
                   ),
                   onChanged: (value) {
@@ -34,7 +34,7 @@ class _LinkAdderState extends State<LinkAdder> {
         ),
         TextButton.icon(
           onPressed: _linkController.text.isEmpty ? null : _handleAdd,
-          label: const Text("Add"),
+          label: const Text('Add'),
           style: TextButton.styleFrom(
             backgroundColor: _linkController.text.isEmpty
                 ? Colors.grey[300]
@@ -58,9 +58,9 @@ class _LinkAdderState extends State<LinkAdder> {
     );
     widget.stateManager.appendRows([
       PlutoRow(cells: {
-        "url": PlutoCell(value: _linkController.text),
-        "comment": PlutoCell(value: ""),
-        "createdAt": PlutoCell(value: ""),
+        'url': PlutoCell(value: _linkController.text),
+        'comment': PlutoCell(value: ''),
+        'createdAt': PlutoCell(value: ''),
       })
     ]);
     widget.stateManager.notifyListeners();

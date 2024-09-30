@@ -12,7 +12,7 @@ void main() {
   late FolderTestData inactiveFolder;
 
   setUp(() async {
-    database = AppDatabase(databaseName: "test_db");
+    database = AppDatabase(databaseName: 'test_db');
     activeFolder = FolderTestDataFactory.createActiveFolder();
     inactiveFolder = FolderTestDataFactory.createInactiveFolder();
 
@@ -108,7 +108,7 @@ void main() {
     });
   });
 
-  group("getAllFolders() Operations", () {
+  group('getAllFolders() Operations', () {
     test('should get all folders with no items or tags', () async {
       final allFolders =
           await database.getAllFolders(mode: IncludeFolderData.none);
@@ -218,12 +218,12 @@ void main() {
       }
     });
   });
-  group("watchFolder() Operations", () {
-    test("emits null when folder is not found", () async {
+  group('watchFolder() Operations', () {
+    test('emits null when folder is not found', () async {
       final stream = database.watchFolder(folderId: 'non_existent_id');
       expect(stream, emits(null));
     });
-    test("should watch a single folder with no tags or items", () async {
+    test('should watch a single folder with no tags or items', () async {
       final stream = database.watchFolder(
           folderId: activeFolder.folder.id, mode: IncludeFolderData.none);
 
@@ -237,7 +237,7 @@ void main() {
               result.items.isEmpty)));
     });
 
-    test("should watch folder with only tags", () async {
+    test('should watch folder with only tags', () async {
       final stream = database.watchFolder(
           folderId: activeFolder.folder.id, mode: IncludeFolderData.tags);
 
@@ -250,7 +250,7 @@ void main() {
               result.items.isEmpty)));
     });
 
-    test("should watch folder with only items", () async {
+    test('should watch folder with only items', () async {
       final stream = database.watchFolder(
           folderId: activeFolder.folder.id, mode: IncludeFolderData.items);
 
@@ -264,7 +264,7 @@ void main() {
               result.tags.isEmpty)));
     });
 
-    test("should watch folder with both items and tags", () async {
+    test('should watch folder with both items and tags', () async {
       final stream = database.watchFolder(
           folderId: activeFolder.folder.id, mode: IncludeFolderData.all);
 
@@ -280,5 +280,5 @@ void main() {
                   .any((item) => item.type == FolderItemType.document))));
     });
   });
-  group("watchAllFolders() Operations", () {});
+  group('watchAllFolders() Operations', () {});
 }

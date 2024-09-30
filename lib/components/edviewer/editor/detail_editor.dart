@@ -44,8 +44,8 @@ class _DetailEditorState extends State<DetailEditor> {
     super.initState();
     _titleController.addListener(_updateChangesState);
     _descriptionController.addListener(_updateChangesState);
-    _titleController.text = widget.currentData?.folder.title ?? "";
-    _descriptionController.text = widget.currentData?.folder.description ?? "";
+    _titleController.text = widget.currentData?.folder.title ?? '';
+    _descriptionController.text = widget.currentData?.folder.description ?? '';
   }
 
   CUD<FolderItem> cudItems = CUD<FolderItem>();
@@ -59,7 +59,7 @@ class _DetailEditorState extends State<DetailEditor> {
         if (link.createdAt != null) {
           linkDate = DateFormat('yyyy-MM-dd HH:mm:ss').format(link.createdAt!);
         } else {
-          linkDate = "";
+          linkDate = '';
         }
 
         return PlutoRow(
