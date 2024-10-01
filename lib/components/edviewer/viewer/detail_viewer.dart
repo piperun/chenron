@@ -7,15 +7,11 @@ import 'package:chenron/database/extensions/folder/read.dart';
 import 'package:intl/intl.dart' show DateFormat;
 
 class DetailViewer extends StatefulWidget {
-  final String folderId;
   final Future<FolderResult> fetchData;
   final Widget Function(BuildContext, dynamic) listBuilder;
 
   const DetailViewer(
-      {super.key,
-      required this.folderId,
-      required this.fetchData,
-      required this.listBuilder});
+      {super.key, required this.fetchData, required this.listBuilder});
 
   @override
   State<DetailViewer> createState() => _DetailViewerState();
@@ -48,6 +44,7 @@ class _DetailViewerState<T> extends State<DetailViewer> {
               return const Center(child: CircularProgressIndicator());
             }
             if (snapshot.hasError) {
+              //TODO: Logger
               return Center(child: Text('Error: ${snapshot.error}'));
             }
             final result = snapshot.data;

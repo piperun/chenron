@@ -58,7 +58,7 @@ class _LinkForm2State extends State<ItemEditor> {
                         FolderItem? item = folderItems.create.firstWhereOrNull(
                           (item) => item.content == url,
                         );
-                        if (item != null && item.isNewItem) {
+                        if (item != null && item?.id != null) {
                           folderItems.create.remove(item);
                         } else if (item == null) {
                           folderItems.remove.add(row.cells['id']!.value);
@@ -95,7 +95,6 @@ class _LinkForm2State extends State<ItemEditor> {
 
   void _handleAdd(FolderItem item) {
     setState(() {
-      item.isNewItem = true;
       folderItems.create.add(item);
       widget.onUpdate(folderItems);
     });

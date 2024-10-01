@@ -20,7 +20,6 @@ class FolderDetailView extends StatelessWidget {
   Widget build(BuildContext context) {
     final database = Provider.of<AppDatabase>(context, listen: false);
     return DetailViewer(
-        folderId: folderId,
         fetchData: database.getFolder(folderId).then((folder) => folder!),
         listBuilder: (context, item) {
           return ContentTile(itemContent: item.content);

@@ -1,3 +1,4 @@
+import 'package:chenron/database/extensions/user_config/read.dart';
 import 'package:chenron/models/folder.dart';
 import 'package:chenron/models/item.dart';
 import 'package:chenron/models/metadata.dart';
@@ -52,6 +53,7 @@ class CreateFolderStepper extends StatelessWidget {
 
       final folderContent =
           Provider.of<CUDProvider<FolderItem>>(context, listen: false);
+
       _saveToDatabase(
           context,
           FolderInfo(
@@ -66,33 +68,41 @@ class CreateFolderStepper extends StatelessWidget {
   }
 
   void _saveToDatabase(BuildContext context, FolderInfo folderInfo,
-      List<Metadata> tags, List<FolderItem> folderData) {
+      List<Metadata> tags, List<FolderItem> folderData) async {
     final database = Provider.of<AppDatabase>(context, listen: false);
-
+    final userConfig = Provider.of<ConfigDatabase>(context, listen: false);
+    final config = await userConfig.getUserConfig();
     database.createFolder(
         folderInfo: folderInfo, tags: tags, items: folderData);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Folder saved successfully')),
-    );
+    if (config?.archiveOrgS3AccessKey?.isNotEmpty == true &&
+        config?.archiveOrgS3AccessKey?.isNotEmpty == true) {
+      //database.archiveLinks();
+    }
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Folder saved successfully')),
+      );
+    }
   }
 
   List<Step> _buildSteps(CreateFolderState folderState) {
     return [
       Step(
-        title: const Text("Folder"),
+        title: const Text('Folder'),
         content:
             FolderInfoStep(formKey: folderState.formKeys[FolderStep.info]!),
       ),
       Step(
-        title: const Text("Data"),
+        title: const Text('Data'),
         content: FolderData(
           dataKey: folderState.formKeys[FolderStep.data]!,
           folderType: folderState.selectedFolderType,
         ),
       ),
       Step(
-        title: const Text("Preview"),
+        title: const Text('Preview'),
         content: FolderPreview(
             previewKey: folderState.formKeys[FolderStep.preview]!),
       ),
