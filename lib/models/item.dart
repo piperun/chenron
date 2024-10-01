@@ -6,12 +6,11 @@ import 'package:drift/drift.dart';
 
 sealed class ItemContent {}
 
-// TODO: Rewrite this to LinkContent where we have 2 strings:
-// - The active URL
-// - The archived URL (via archive.org)
 class StringContent extends ItemContent {
   final String value;
-  StringContent(this.value);
+  final String? archiveOrg;
+  final String? archiveIs;
+  StringContent({required this.value, this.archiveOrg, this.archiveIs});
 }
 
 class MapContent extends ItemContent {
@@ -19,47 +18,58 @@ class MapContent extends ItemContent {
   MapContent(this.value);
 }
 
-/// WARNING: The document handling is deprecated, it's only here for testing.
-// FIXME: REIMPLEMENT DOCUMENT
-// FIXME: ALSO REMOVE CLIENT SIDE ID GENERATION IN V0.8+
 class FolderItem {
-  String id;
-  String itemId;
+  final String? _id;
+  final String? _itemId;
+  String? get id => _id;
+  String? get itemId => _itemId;
+
   ItemContent content;
   final DateTime? createdAt;
   FolderItemType type;
-  bool isNewItem = false;
 
-  FolderItem({
+  FolderItem._internal(
+      this._id, this._itemId, this.content, this.createdAt, this.type);
+
+  factory FolderItem({
     String? id,
     String? itemId,
-    required this.content,
-    this.createdAt,
-    required this.type,
-  })  : id = id ?? cuidSecure(30),
-        itemId = itemId ?? cuidSecure(30);
+    required ItemContent content,
+    DateTime? createdAt,
+    required FolderItemType type,
+  }) {
+    return FolderItem._internal(id, itemId, content, createdAt, type);
+  }
 
   Insertable toCompanion(String folderId) {
     return ItemsCompanion.insert(
-        id: id, folderId: folderId, itemId: itemId, typeId: type.index);
+      id: _id ?? '',
+      folderId: folderId,
+      itemId: _itemId ?? '',
+      typeId: type.index,
+    );
   }
 
-  Insertable toFolderItem() {
-    switch (content) {
-      case StringContent(value: String url):
-        return LinksCompanion.insert(
-          id: itemId,
-          content: url,
-        );
-      case MapContent(value: var doc):
-        return DocumentsCompanion.insert(
-          id: itemId,
-          title: doc['title'] ?? '',
-          content: utf8.encode(doc['body'] ?? ''),
-        );
-      default:
-        throw Exception('Invalid content type');
+  Insertable toFolderItem(String id) {
+    if (isCuid(id)) {
+      switch (content) {
+        case StringContent():
+          return LinksCompanion.insert(
+            id: id,
+            content: (content as StringContent).value,
+          );
+        case MapContent():
+          final doc = (content as MapContent).value;
+          return DocumentsCompanion.insert(
+            id: id,
+            title: doc['title'] ?? '',
+            content: utf8.encode(doc['body'] ?? ''),
+          );
+        default:
+          throw Exception('Invalid content type');
+      }
     }
+    throw Exception('Invalid id: not a CUID');
   }
 }
 

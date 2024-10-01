@@ -77,7 +77,7 @@ void main() {
       );
       final link = FolderItem(
           type: FolderItemType.link,
-          content: StringContent('https://example.com'));
+          content: StringContent(value: 'https://example.com'));
       final document = FolderItem(
           type: FolderItemType.document,
           content:

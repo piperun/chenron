@@ -1,3 +1,6 @@
+import 'package:chenron/database/extensions/folder/create.dart';
+import 'package:chenron/database/extensions/id.dart';
+import 'package:chenron/models/folder_results.dart';
 import 'package:chenron/models/item.dart';
 import 'package:chenron/models/metadata.dart';
 import 'package:chenron/database/extensions/insert_ext.dart';
@@ -47,10 +50,16 @@ extension FolderExtensions on AppDatabase {
       await batch((batch) async {
         for (final tagUpdate in tagUpdates.update) {
           batch.insert(
-              mode: InsertMode.insertOrIgnore,
-              onConflict: DoNothing(),
-              metadataRecords,
-              tagUpdate.toCompanion(folderId));
+            mode: InsertMode.insertOrIgnore,
+            onConflict: DoNothing(),
+            metadataRecords,
+            MetadataRecordsCompanion.insert(
+              id: generateId(),
+              typeId: tagUpdate.type.index,
+              itemId: folderId,
+              metadataId: tagUpdate.metadataId!,
+            ),
+          );
         }
       });
     }
@@ -64,102 +73,57 @@ extension FolderExtensions on AppDatabase {
     }
   }
 
-  Future<void> _updateFolderContent(
+  Future<Map<String, List<ItemResults>>> _updateFolderContent(
       String folderId, CUD<FolderItem> itemUpdates) async {
+    Map<String, List<ItemResults>> itemUpdateResults = {
+      'create': [],
+      'update': [],
+      'remove': []
+    };
     if (itemUpdates.create.isNotEmpty) {
       await batch((batch) async {
-        await insertFolderItems(batch, folderId, itemUpdates.create);
+        itemUpdateResults['create'] = await insertFolderItems(
+            batch: batch, folderId: folderId, itemInserts: itemUpdates.create);
       });
     }
     if (itemUpdates.update.isNotEmpty) {
+      String id;
       await batch((batch) async {
         for (final itemUpdate in itemUpdates.update) {
+          id = generateId();
           batch.insert(
-              mode: InsertMode.insertOrIgnore,
-              onConflict: DoNothing(),
-              items,
-              itemUpdate.toCompanion(folderId));
+            mode: InsertMode.insertOrIgnore,
+            onConflict: DoNothing(),
+            items,
+            ItemsCompanion.insert(
+              id: id,
+              folderId: folderId,
+              itemId: itemUpdate.itemId!,
+              typeId: itemUpdate.type.index,
+            ),
+          );
+          itemUpdateResults['update']?.add(ItemResults(itemId: id));
         }
       });
     }
     if (itemUpdates.remove.isNotEmpty) {
       await batch((batch) async {
-        for (final tagRemove in itemUpdates.remove) {
+        for (final itemId in itemUpdates.remove) {
           batch.deleteWhere(
-              items,
-              (tbl) =>
-                  (tbl.itemId.equals(tagRemove)) &
-                  tbl.folderId.equals(folderId));
+            items,
+            (tbl) =>
+                (tbl.itemId.equals(itemId)) & tbl.folderId.equals(folderId),
+          );
           /*{ 
             final findItemId = tbl.itemId.equals(tagRemove.itemId);
             final findFolderId = tbl.folderId.equals(folderId);
             return findFolderId & findItemId;});
             */
           //(tbl) => tbl.folderId.equals(folderId));
+          itemUpdateResults['update']?.add(ItemResults(itemId: itemId));
         }
       });
     }
+    return itemUpdateResults;
   }
 }
-
-/*
-  Future<void> _updateFolderContent(
-      BatchOperations batch, String folderId, CUD folderContent) async {
-    final createOperations = <(TableInfo, Insertable)>[];
-    final relationOperations = <(TableInfo, Insertable)>[];
-    final updateOperations = <(TableInfo, Insertable)>[];
-    final removeOperations = <(TableInfo, Insertable)>[];
-
-    for (final item in folderContent.create) {
-      final insert = item.toInsertable();
-      final relation = _getRelationInsert(folderId, insert);
-      final (dataTable, relationTable) = _getTablesForRow(insert);
-      createOperations.add((dataTable, insert));
-      relationOperations.add((relationTable, relation));
-    }
-
-    for (final item in folderContent.update) {
-      final (_, relationTable) = _getTablesForRow(item);
-      updateOperations.add((relationTable, item));
-    }
-    for (final item in folderContent.remove) {
-      final (insertTable, _) = _getTablesForRow(item);
-      removeOperations.add((insertTable, item));
-    }
-
-    await batch.insertIterBatch(createOperations);
-    await batch.insertIterBatch(relationOperations);
-    await batch.insertIterBatch(updateOperations);
-    await batch.deleteIterBatch(removeOperations);
-  }
-
-  (TableInfo, TableInfo) _getTablesForRow(Insertable row) {
-    switch (row) {
-      case FolderTreesCompanion():
-        return (folderTrees, folderTrees);
-      case LinksCompanion():
-        return (links, folderLinks);
-      case DocumentsCompanion():
-        return (documents, folderDocuments);
-
-      default:
-        throw ArgumentError('Invalid row type: ${row.runtimeType}');
-    }
-  }
-
-  Insertable _getRelationInsert(String id, Insertable row) {
-    switch (row) {
-      case LinksCompanion():
-        return FolderLinksCompanion.insert(folderId: id, linkId: row.id.value);
-      case DocumentsCompanion():
-        return FolderDocumentsCompanion.insert(
-            folderId: id, documentId: row.id.value);
-      case FoldersCompanion():
-        return FolderTreesCompanion.insert(parentId: id, childId: row.id.value);
-      default:
-        throw ArgumentError('Invalid row type: ${row.runtimeType}');
-    }
-  }
-}
-
-*/

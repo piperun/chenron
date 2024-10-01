@@ -25,74 +25,8 @@ extension FolderReadExtensions on AppDatabase {
 
   Future<FolderResult?> getFolder(String folderId,
       {IncludeFolderData mode = IncludeFolderData.all}) async {
-    FolderResult folderResult;
-
-    final folderQuery = await (select(folders)
-          ..where((folder) => folder.id.equals(folderId)))
-        .getSingleOrNull();
-
-    if (folderQuery == null) {
-      return null;
-    }
-    folderResult = FolderResult(
-      folder: folderQuery,
-    );
-    if (mode == IncludeFolderData.tags || mode == IncludeFolderData.all) {
-      final query = await (select(metadataRecords).join([
-        leftOuterJoin(
-          tags,
-          tags.id.equalsExp(metadataRecords.metadataId),
-        ),
-      ])
-            ..where(metadataRecords.itemId.equals(folderId)))
-          .get();
-      folderResult.tags.addAll(_getTags(query));
-    }
-    if (mode == IncludeFolderData.items || mode == IncludeFolderData.all) {
-      final query = await (select(items).join([
-        leftOuterJoin(
-          documents,
-          documents.id.equalsExp(items.itemId),
-        ),
-        leftOuterJoin(
-          links,
-          links.id.equalsExp(items.itemId),
-        )
-      ])
-            ..where(items.folderId.equals(folderId)))
-          .get();
-      folderResult.items.addAll(_getItems(query));
-    }
-    if (mode == IncludeFolderData.none) return folderResult;
-
-    return folderResult;
-  }
-
-  Stream<FolderLink> watchTest(String folderId,
-      {IncludeFolderData mode = IncludeFolderData.all}) {
-    ContentJoins joins = ContentJoins(mode: mode);
-
-    final folderQuery = (select(folders)
-          ..where((folder) => folder.id.equals(folderId)))
-        .watchSingle();
-
-    final folderStream = folderQuery;
-
-    final contentQuery = (select(items).join(
-      joins.joins,
-    )..where(items.folderId.equals(folderId)));
-    final contentStream = contentQuery.watch().map((rows) {
-      //TODO: Probably rewrite this so we add this to the FolderResult instead of returning it.
-      return rows.map((row) {
-        return row.readTable(links);
-      }).toList();
-      //final documentResult = rows.readTableOrNull(documents);
-    });
-
-    return Rx.combineLatest2(folderStream, contentStream,
-        (Folder folderInfo, List<Link> folderItems) {
-      return (folderInfo: folderInfo, folderItems: folderItems);
-    });
+    return FolderQueryBuilder(db: this, folderId: folderId, mode: mode)
+        .fetchSingle();
   }
 
   Future<List<FolderResult>> getAllFolders(
@@ -108,43 +42,7 @@ extension FolderReadExtensions on AppDatabase {
 
   Stream<List<FolderResult>> watchAllFolders(
       {IncludeFolderData mode = IncludeFolderData.all}) {
-    ContentJoins joins = ContentJoins(mode: mode);
-    var query = select(folders).join(joins.joins);
-
-    return query.watch().map((rows) {
-      return rows.map((row) {
-        final folder = row.readTable(folders);
-        final folderTags = row.readTableOrNull(tags);
-
-        return FolderResult(folder: folder);
-      }).toList();
-    });
-  }
-
-  List<Tag> _getTags(List<TypedResult> queryResults) {
-    List<Tag> tagResults = [];
-    for (final result in queryResults) {
-      final tag = result.readTableOrNull(tags);
-      if (tag != null) {
-        tagResults.add(tag);
-      }
-    }
-    return tagResults;
-  }
-
-  List<FolderItem> _getItems(List<TypedResult> queryResults) {
-    List<FolderItem> folderItems = [];
-    for (final result in queryResults) {
-      final link = result.readTableOrNull(links);
-      final document = result.readTableOrNull(documents);
-      if (link != null) {
-        folderItems.add(link.toFolderItem());
-      }
-      if (document != null) {
-        folderItems.add(document.toFolderItem());
-      }
-    }
-    return folderItems;
+    return FolderQueryBuilder(db: this, mode: mode).watchAll();
   }
 }
 
@@ -238,7 +136,6 @@ class FolderJoins {
         _dataMap['items'] = [];
         break;
       case IncludeFolderData.none:
-        // Keep the map empty
         break;
     }
   }
@@ -337,6 +234,38 @@ class FolderQueryBuilder {
     );
   }
 
+  Stream<List<FolderResult>> watchAll() {
+    final foldersStream = db.select(db.folders).watch();
+
+    return foldersStream.switchMap((folders) {
+      final folderStreams = folders.map((folder) {
+        final tagsStream =
+            mode == IncludeFolderData.all || mode == IncludeFolderData.tags
+                ? _watchTags(folder.id)
+                : Stream.value(<Tag>[]);
+
+        final itemsStream =
+            mode == IncludeFolderData.all || mode == IncludeFolderData.items
+                ? _watchItems(folder.id)
+                : Stream.value(<FolderItem>[]);
+
+        return Rx.combineLatest3(
+          Stream.value(folder),
+          tagsStream,
+          itemsStream,
+          (Folder f, List<Tag> tags, List<FolderItem> items) {
+            final result = FolderResult(folder: f);
+            result.tags = tags;
+            result.items = items;
+            return result;
+          },
+        );
+      });
+
+      return Rx.combineLatestList(folderStreams);
+    });
+  }
+
   Future<Folder> _getFolder(String folderId) {
     return (db.select(db.folders)..where((f) => f.id.equals(folderId)))
         .getSingle();
@@ -367,13 +296,14 @@ class FolderQueryBuilder {
     ])
           ..where(db.items.folderId.equals(folderId)))
         .map((row) {
+      final item = row.readTableOrNull(db.items);
       final link = row.readTableOrNull(db.links);
       final document = row.readTableOrNull(db.documents);
       if (link != null) {
-        return link.toFolderItem();
+        return link.toFolderItem(item?.id);
       }
       if (document != null) {
-        return document.toFolderItem();
+        return document.toFolderItem(item?.id);
       }
     }).get();
     return rows.then((items) => items.whereType<FolderItem>().toList());
@@ -398,9 +328,11 @@ class FolderQueryBuilder {
         .watch()
         .map((rows) => rows
             .map((row) {
+              final item = row.readTableOrNull(db.items);
               final link = row.readTableOrNull(db.links);
               final document = row.readTableOrNull(db.documents);
-              return link?.toFolderItem() ?? document?.toFolderItem();
+              return link?.toFolderItem(item?.id) ??
+                  document?.toFolderItem(item?.id);
             })
             .whereType<FolderItem>()
             .toList());

@@ -38,14 +38,13 @@ extension IdTypeExtension on IdType {
   MetadataTypes
 ])
 class AppDatabase extends _$AppDatabase {
-  final String _databaseName;
+  static const int idLength = 30;
 
   AppDatabase(
       {QueryExecutor? queryExecutor,
       String? databaseName,
       bool setupOnInit = false})
-      : _databaseName = databaseName ?? 'my_database',
-        super(_openConnection(databaseName: databaseName ?? 'my_database')) {
+      : super(_openConnection(databaseName: databaseName ?? 'my_database')) {
     if (setupOnInit) {
       setupEnumTypes();
     }

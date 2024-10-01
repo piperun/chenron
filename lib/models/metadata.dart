@@ -1,36 +1,39 @@
 import 'package:chenron/database/database.dart';
-import 'package:cuid2/cuid2.dart';
 import 'package:drift/drift.dart';
 
 class Metadata {
-  String id;
-  String metadataId;
+  final String? _id;
+  final String? _metadataId;
+  String? get id => _id;
+  String? get metadataId => _metadataId;
 
-  dynamic value;
+  String value;
   MetadataTypeEnum type;
 
-  Metadata({
-    String? id,
-    String? metadataId,
-    this.value,
-    required this.type,
-  })  : id = id ?? cuidSecure(30),
-        metadataId = metadataId ?? cuidSecure(30);
+  Metadata._internal(this._id, this._metadataId, this.value, this.type);
 
-  Insertable toCompanion(String itemId) {
+  factory Metadata(
+      {String? id,
+      String? metadataId,
+      required String value,
+      required MetadataTypeEnum type}) {
+    return Metadata._internal(id, metadataId, value, type);
+  }
+
+  Insertable toCompanion(String folderId) {
     return MetadataRecordsCompanion.insert(
-      id: id,
-      itemId: itemId,
-      metadataId: metadataId,
+      id: _id!,
+      itemId: folderId,
+      metadataId: _metadataId!,
       typeId: type.index,
     );
   }
 
-  Insertable toMetadataItem() {
+  Insertable toMetadataItem(String id) {
     switch (type) {
       case MetadataTypeEnum.tag:
         return TagsCompanion.insert(
-          id: metadataId,
+          id: id,
           name: value,
         );
     }
