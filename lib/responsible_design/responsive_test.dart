@@ -1,6 +1,6 @@
-import 'package:chenron/responsible_design/breakpoints.dart';
-import 'package:flutter/material.dart';
-import 'package:chenron/responsible_design/responsive_builder.dart';
+import "package:chenron/responsible_design/breakpoints.dart";
+import "package:flutter/material.dart";
+import "package:chenron/responsible_design/responsive_builder.dart";
 
 class ResponsiveExample extends StatelessWidget {
   const ResponsiveExample({super.key});
@@ -39,7 +39,7 @@ class ResponsiveExample extends StatelessWidget {
             ),
             itemBuilder: (context, index) {
               return Card(
-                child: Center(child: Text('Item $index')),
+                child: Center(child: Text("Item $index")),
               );
             },
             itemCount: 20,

@@ -1,6 +1,6 @@
-import 'package:chenron/utils/str_sanitizer.dart';
-import 'package:flutter/material.dart';
-import 'package:metadata_fetch/metadata_fetch.dart';
+import "package:chenron/utils/str_sanitizer.dart";
+import "package:flutter/material.dart";
+import "package:metadata_fetch/metadata_fetch.dart";
 
 enum MetadataType { title, description, image, url }
 
@@ -24,9 +24,9 @@ class MetadataFactory {
 
   static String _getCacheKey(Metadata? metadata) {
     if (metadata?.title != null) {
-      return 'title:${metadata!.title}';
+      return "title:${metadata!.title}";
     } else if (metadata?.image != null) {
-      return 'image:${metadata!.image}';
+      return "image:${metadata!.image}";
     } else {
       return 'url:${metadata?.url ?? ''}';
     }
@@ -56,12 +56,12 @@ class MetadataTitle extends StatelessWidget {
       future: MetadataFetch.extract(widget.url),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Text('Loading...');
+          return const Text("Loading...");
         } else if (snapshot.hasError) {
           return Text(widget.url);
         } else {
           return Text(
-            removeDupSpaces(snapshot.data?.title ?? ''),
+            removeDupSpaces(snapshot.data?.title ?? ""),
             style: const TextStyle(fontWeight: FontWeight.bold),
           );
         }
@@ -81,9 +81,9 @@ class MetadataDescription extends StatelessWidget {
       future: MetadataFetch.extract(widget.url),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Text('Loading...');
+          return const Text("Loading...");
         } else if (snapshot.hasError) {
-          return const Text('No description available');
+          return const Text("No description available");
         } else {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -145,7 +145,7 @@ class MetadataUrl extends StatelessWidget {
       future: MetadataFetch.extract(widget.url),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Text('Loading...');
+          return const Text("Loading...");
         } else if (snapshot.hasError) {
           return Text(widget.url);
         } else {

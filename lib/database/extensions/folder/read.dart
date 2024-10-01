@@ -1,8 +1,8 @@
-import 'package:chenron/models/item.dart';
-import 'package:chenron/database/database.dart';
-import 'package:chenron/database/extensions/convert.dart';
-import 'package:drift/drift.dart';
-import 'package:rxdart/rxdart.dart';
+import "package:chenron/models/item.dart";
+import "package:chenron/database/database.dart";
+import "package:chenron/database/extensions/convert.dart";
+import "package:drift/drift.dart";
+import "package:rxdart/rxdart.dart";
 
 enum IncludeFolderData { all, items, tags, none }
 
@@ -126,14 +126,14 @@ class FolderJoins {
     _dataMap = {};
     switch (mode) {
       case IncludeFolderData.all:
-        _dataMap['tags'] = [];
-        _dataMap['items'] = [];
+        _dataMap["tags"] = [];
+        _dataMap["items"] = [];
         break;
       case IncludeFolderData.tags:
-        _dataMap['tags'] = [];
+        _dataMap["tags"] = [];
         break;
       case IncludeFolderData.items:
-        _dataMap['items'] = [];
+        _dataMap["items"] = [];
         break;
       case IncludeFolderData.none:
         break;
@@ -141,21 +141,21 @@ class FolderJoins {
   }
 
   void addTags(List<Tag> tags) {
-    if (_dataMap.containsKey('tags')) {
-      _dataMap['tags'].addAll(tags);
+    if (_dataMap.containsKey("tags")) {
+      _dataMap["tags"].addAll(tags);
     }
   }
 
   void addItems(List<FolderItem> items) {
-    if (_dataMap.containsKey('items')) {
-      _dataMap['items'].addAll(items);
+    if (_dataMap.containsKey("items")) {
+      _dataMap["items"].addAll(items);
     }
   }
 
   Map<String, dynamic> get data => Map.unmodifiable(_dataMap);
 
-  bool get includeTags => _dataMap.containsKey('tags');
-  bool get includeItems => _dataMap.containsKey('items');
+  bool get includeTags => _dataMap.containsKey("tags");
+  bool get includeItems => _dataMap.containsKey("items");
 }
 
 class FolderQueryBuilder {
@@ -184,7 +184,7 @@ class FolderQueryBuilder {
 
   Future<FolderResult> fetchSingle() async {
     if (folderId == null) {
-      throw Exception('Folder id is null');
+      throw Exception("Folder id is null");
     }
     final folder = await _getFolder(folderId!);
     final result = FolderResult(folder: folder);
@@ -204,7 +204,7 @@ class FolderQueryBuilder {
   Stream<FolderResult> watchSingle() {
     if (folderId == null) {
       throw ArgumentError(
-          'folderId must be provided for watching a single folder');
+          "folderId must be provided for watching a single folder");
     }
 
     final folderStream = (db.select(db.folders)

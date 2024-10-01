@@ -1,12 +1,12 @@
-import 'package:chenron/database/schema/user_config_schema.dart';
-import 'package:drift/drift.dart';
-import 'package:drift_flutter/drift_flutter.dart';
-import 'package:chenron/database/schema/items_schema.dart';
-import 'package:chenron/database/extensions/intial_data/app_database.dart';
-import 'package:chenron/database/extensions/intial_data/config_database.dart';
+import "package:chenron/database/schema/user_config_schema.dart";
+import "package:drift/drift.dart";
+import "package:drift_flutter/drift_flutter.dart";
+import "package:chenron/database/schema/items_schema.dart";
+import "package:chenron/database/extensions/intial_data/app_database.dart";
+import "package:chenron/database/extensions/intial_data/config_database.dart";
 //import 'package:logging/logging.dart';
 
-part 'database.g.dart';
+part "database.g.dart";
 
 enum IdType { linkId, documentId, tagId, folderId }
 
@@ -16,13 +16,13 @@ extension IdTypeExtension on IdType {
   String get dbValue {
     switch (this) {
       case IdType.linkId:
-        return 'link_id';
+        return "link_id";
       case IdType.documentId:
-        return 'document_id';
+        return "document_id";
       case IdType.tagId:
-        return 'tag_id';
+        return "tag_id";
       case IdType.folderId:
-        return 'folder_id';
+        return "folder_id";
     }
   }
 }
@@ -44,7 +44,7 @@ class AppDatabase extends _$AppDatabase {
       {QueryExecutor? queryExecutor,
       String? databaseName,
       bool setupOnInit = false})
-      : super(_openConnection(databaseName: databaseName ?? 'my_database')) {
+      : super(_openConnection(databaseName: databaseName ?? "my_database")) {
     if (setupOnInit) {
       setupEnumTypes();
     }
@@ -53,7 +53,7 @@ class AppDatabase extends _$AppDatabase {
   @override
   int get schemaVersion => 1;
 
-  static QueryExecutor _openConnection({String databaseName = 'my_database'}) {
+  static QueryExecutor _openConnection({String databaseName = "my_database"}) {
     // `driftDatabase` from `package:drift_flutter` stores the database in
     // `getApplicationDocumentsDirectory()`.
     return driftDatabase(name: databaseName);
@@ -74,7 +74,7 @@ class ConfigDatabase extends _$ConfigDatabase {
   static QueryExecutor _openConnection() {
     // `driftDatabase` from `package:drift_flutter` stores the database in
     // `getApplicationDocumentsDirectory()`.
-    return driftDatabase(name: 'config');
+    return driftDatabase(name: "config");
   }
 }
 
@@ -83,15 +83,15 @@ extension FindExtensions<Table extends HasResultSet, Row>
   Selectable<Row> findById(String id) {
     return select()
       ..where((row) {
-        final idColumn = columnsByName['id'];
+        final idColumn = columnsByName["id"];
 
         if (idColumn == null) {
           throw ArgumentError.value(
-              this, 'this', 'Must be a table with an id column');
+              this, "this", "Must be a table with an id column");
         }
 
         if (idColumn.type != DriftSqlType.string) {
-          throw ArgumentError('Column `id` is not an string');
+          throw ArgumentError("Column `id` is not an string");
         }
 
         return idColumn.equals(id);
@@ -102,18 +102,18 @@ extension FindExtensions<Table extends HasResultSet, Row>
     return select()
       ..where((row) {
         final formattedColumnName = columnName.replaceAllMapped(
-          RegExp(r'[A-Z]'),
-          (match) => '_${match.group(0)!.toLowerCase()}',
+          RegExp(r"[A-Z]"),
+          (match) => "_${match.group(0)!.toLowerCase()}",
         );
         final column = columnsByName[formattedColumnName];
 
         if (column == null) {
           throw ArgumentError.value(
-              this, 'this', 'Must be a table with a $columnName column');
+              this, "this", "Must be a table with a $columnName column");
         }
 
         if (column.type != DriftSqlType.string) {
-          throw ArgumentError('Column $columnName is not a string');
+          throw ArgumentError("Column $columnName is not a string");
         }
 
         return column.equalsNullable(value);

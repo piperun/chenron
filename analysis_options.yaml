@@ -30,7 +30,7 @@ linter:
     - cast_nullable_to_non_nullable
     - collection_methods_unrelated_type
     - dangling_library_doc_comments
-    - prefer_single_quotes
+    - prefer_double_quotes
     - prefer_void_to_null
     - valid_regexps
     - void_checks

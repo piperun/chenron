@@ -1,7 +1,7 @@
-import 'dart:async';
-import 'package:chenron/database/database.dart';
-import 'package:chenron/database/extensions/folder/read.dart';
-import 'package:chenron/database/extensions/folder/remove.dart';
+import "dart:async";
+import "package:chenron/database/database.dart";
+import "package:chenron/database/extensions/folder/read.dart";
+import "package:chenron/database/extensions/folder/remove.dart";
 
 class FolderDataManager {
   final AppDatabase _database;

@@ -1,4 +1,4 @@
-import 'package:cuid2/cuid2.dart';
+import "package:cuid2/cuid2.dart";
 
 class FolderInfo {
   String id;

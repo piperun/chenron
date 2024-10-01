@@ -1,11 +1,11 @@
-import 'package:chenron/database/database.dart';
-import 'package:chenron/settings/settings_page.dart';
-import 'package:chenron/folder/create/create_stepper.dart';
-import 'package:chenron/folder/viewer/folder_viewer.dart';
-import 'package:chenron/home/homepage.dart';
-import 'package:easy_sidemenu/easy_sidemenu.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import "package:chenron/database/database.dart";
+import "package:chenron/settings/settings_page.dart";
+import "package:chenron/folder/create/create_stepper.dart";
+import "package:chenron/folder/viewer/folder_viewer.dart";
+import "package:chenron/home/homepage.dart";
+import "package:easy_sidemenu/easy_sidemenu.dart";
+import "package:flutter/material.dart";
+import "package:provider/provider.dart";
 
 class RootPage extends StatefulWidget {
   const RootPage({super.key});
@@ -59,31 +59,31 @@ class CustomSideMenu extends StatelessWidget {
       ),
       items: [
         SideMenuItem(
-          title: 'Dashboard',
+          title: "Dashboard",
           onTap: (index, _) => sideMenu.changePage(index),
           icon: const Icon(Icons.home),
           //badgeContent: const Text('3', style: TextStyle(color: Colors.white)),
-          tooltipContent: 'Dashboard',
+          tooltipContent: "Dashboard",
         ),
         SideMenuItem(
-          title: 'Settings',
+          title: "Settings",
           onTap: (index, _) => sideMenu.changePage(index),
           icon: const Icon(Icons.settings),
         ),
         SideMenuExpansionItem(
-          title: 'Folder',
+          title: "Folder",
           icon: const Icon(Icons.folder),
           children: [
             SideMenuItem(
-              title: 'Create',
+              title: "Create",
               onTap: (index, _) => sideMenu.changePage(index),
               icon: const Icon(Icons.create_new_folder),
               badgeContent:
-                  const Text('3', style: TextStyle(color: Colors.white)),
-              tooltipContent: 'Create a new folder',
+                  const Text("3", style: TextStyle(color: Colors.white)),
+              tooltipContent: "Create a new folder",
             ),
             SideMenuItem(
-              title: 'Viewer',
+              title: "Viewer",
               onTap: (index, _) => sideMenu.changePage(index),
               icon: const Icon(Icons.view_list_outlined),
             ),
@@ -111,13 +111,13 @@ class CustomPageView extends StatelessWidget {
         PageViewItem(color: Colors.white, child: FolderViewSlug()),
         PageViewItem(
             color: Colors.white,
-            child: Text('Expansion Item 2', style: TextStyle(fontSize: 35))),
+            child: Text("Expansion Item 2", style: TextStyle(fontSize: 35))),
         PageViewItem(
             color: Colors.white,
-            child: Text('Files', style: TextStyle(fontSize: 35))),
+            child: Text("Files", style: TextStyle(fontSize: 35))),
         PageViewItem(
             color: Colors.white,
-            child: Text('Download', style: TextStyle(fontSize: 35))),
+            child: Text("Download", style: TextStyle(fontSize: 35))),
       ],
     );
   }

@@ -1,11 +1,11 @@
-import 'dart:convert';
+import "dart:convert";
 
-import 'package:chenron/database/extensions/id.dart';
-import 'package:chenron/models/item.dart';
-import 'package:chenron/models/metadata.dart';
-import 'package:chenron/database/database.dart';
-import 'package:chenron/models/folder_results.dart';
-import 'package:drift/drift.dart';
+import "package:chenron/database/extensions/id.dart";
+import "package:chenron/models/item.dart";
+import "package:chenron/models/metadata.dart";
+import "package:chenron/database/database.dart";
+import "package:chenron/models/folder_results.dart";
+import "package:drift/drift.dart";
 
 extension InsertionExtensions on AppDatabase {
   Future<List<TagResults>> insertTags(
@@ -104,8 +104,8 @@ extension InsertionExtensions on AppDatabase {
       documents,
       DocumentsCompanion.insert(
         id: documentId,
-        title: doc['title'] ?? '',
-        content: utf8.encode(doc['body'] ?? ''),
+        title: doc["title"] ?? "",
+        content: utf8.encode(doc["body"] ?? ""),
       ),
       mode: InsertMode.insertOrIgnore,
     );

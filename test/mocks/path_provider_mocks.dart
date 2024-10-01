@@ -1,109 +1,109 @@
-import 'dart:io' show Directory;
+import "dart:io" show Directory;
 
-import 'package:flutter_test/flutter_test.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
-import 'package:plugin_platform_interface/plugin_platform_interface.dart';
+import "package:flutter_test/flutter_test.dart";
+import "package:path_provider/path_provider.dart";
+import "package:path_provider_platform_interface/path_provider_platform_interface.dart";
+import "package:plugin_platform_interface/plugin_platform_interface.dart";
 
-const String kTemporaryPath = 'temporaryPath';
-const String kApplicationSupportPath = 'applicationSupportPath';
-const String kDownloadsPath = 'downloadsPath';
-const String kLibraryPath = 'libraryPath';
-const String kApplicationDocumentsPath = 'applicationDocumentsPath';
-const String kExternalCachePath = 'externalCachePath';
-const String kExternalStoragePath = 'externalStoragePath';
+const String kTemporaryPath = "temporaryPath";
+const String kApplicationSupportPath = "applicationSupportPath";
+const String kDownloadsPath = "downloadsPath";
+const String kLibraryPath = "libraryPath";
+const String kApplicationDocumentsPath = "applicationDocumentsPath";
+const String kExternalCachePath = "externalCachePath";
+const String kExternalStoragePath = "externalStoragePath";
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  group('PathProvider full implementation', () {
+  group("PathProvider full implementation", () {
     setUp(() async {
       PathProviderPlatform.instance = FakePathProviderPlatform();
     });
 
-    test('getTemporaryDirectory', () async {
+    test("getTemporaryDirectory", () async {
       final Directory result = await getTemporaryDirectory();
       expect(result.path, kTemporaryPath);
     });
 
-    test('getApplicationSupportDirectory', () async {
+    test("getApplicationSupportDirectory", () async {
       final Directory result = await getApplicationSupportDirectory();
       expect(result.path, kApplicationSupportPath);
     });
 
-    test('getLibraryDirectory', () async {
+    test("getLibraryDirectory", () async {
       final Directory result = await getLibraryDirectory();
       expect(result.path, kLibraryPath);
     });
 
-    test('getApplicationDocumentsDirectory', () async {
+    test("getApplicationDocumentsDirectory", () async {
       final Directory result = await getApplicationDocumentsDirectory();
       expect(result.path, kApplicationDocumentsPath);
     });
 
-    test('getExternalStorageDirectory', () async {
+    test("getExternalStorageDirectory", () async {
       final Directory? result = await getExternalStorageDirectory();
       expect(result?.path, kExternalStoragePath);
     });
 
-    test('getExternalCacheDirectories', () async {
+    test("getExternalCacheDirectories", () async {
       final List<Directory>? result = await getExternalCacheDirectories();
       expect(result?.length, 1);
       expect(result?.first.path, kExternalCachePath);
     });
 
-    test('getExternalStorageDirectories', () async {
+    test("getExternalStorageDirectories", () async {
       final List<Directory>? result = await getExternalStorageDirectories();
       expect(result?.length, 1);
       expect(result?.first.path, kExternalStoragePath);
     });
 
-    test('getDownloadsDirectory', () async {
+    test("getDownloadsDirectory", () async {
       final Directory? result = await getDownloadsDirectory();
       expect(result?.path, kDownloadsPath);
     });
   });
 
-  group('PathProvider null implementation', () {
+  group("PathProvider null implementation", () {
     setUp(() async {
       PathProviderPlatform.instance = AllNullFakePathProviderPlatform();
     });
 
-    test('getTemporaryDirectory throws on null', () async {
+    test("getTemporaryDirectory throws on null", () async {
       expect(getTemporaryDirectory(),
           throwsA(isA<MissingPlatformDirectoryException>()));
     });
 
-    test('getApplicationSupportDirectory throws on null', () async {
+    test("getApplicationSupportDirectory throws on null", () async {
       expect(getApplicationSupportDirectory(),
           throwsA(isA<MissingPlatformDirectoryException>()));
     });
 
-    test('getLibraryDirectory throws on null', () async {
+    test("getLibraryDirectory throws on null", () async {
       expect(getLibraryDirectory(),
           throwsA(isA<MissingPlatformDirectoryException>()));
     });
 
-    test('getApplicationDocumentsDirectory throws on null', () async {
+    test("getApplicationDocumentsDirectory throws on null", () async {
       expect(getApplicationDocumentsDirectory(),
           throwsA(isA<MissingPlatformDirectoryException>()));
     });
 
-    test('getExternalStorageDirectory passes null through', () async {
+    test("getExternalStorageDirectory passes null through", () async {
       final Directory? result = await getExternalStorageDirectory();
       expect(result, isNull);
     });
 
-    test('getExternalCacheDirectories passes null through', () async {
+    test("getExternalCacheDirectories passes null through", () async {
       final List<Directory>? result = await getExternalCacheDirectories();
       expect(result, isNull);
     });
 
-    test('getExternalStorageDirectories passes null through', () async {
+    test("getExternalStorageDirectories passes null through", () async {
       final List<Directory>? result = await getExternalStorageDirectories();
       expect(result, isNull);
     });
 
-    test('getDownloadsDirectory passses null through', () async {
+    test("getDownloadsDirectory passses null through", () async {
       final Directory? result = await getDownloadsDirectory();
       expect(result, isNull);
     });

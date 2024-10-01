@@ -1,9 +1,9 @@
-import 'package:drift/drift.dart';
-import 'package:chenron/database/database.dart';
-import 'package:logging/logging.dart';
+import "package:drift/drift.dart";
+import "package:chenron/database/database.dart";
+import "package:logging/logging.dart";
 
 extension BatchExtensions on AppDatabase {
-  static final Logger _logger = Logger('Folder Actions Database');
+  static final Logger _logger = Logger("Folder Actions Database");
   Future<void> batchOps(
       Future<void> Function(BatchOperations batch) operations) {
     return transaction(() async {
@@ -28,9 +28,9 @@ class BatchOperations {
               mode: InsertMode.insertOrIgnore, onConflict: DoNothing());
         }
       });
-      _logger.info('Batch insert completed successfully');
+      _logger.info("Batch insert completed successfully");
     } catch (e) {
-      _logger.severe('Error during batch insert: $e');
+      _logger.severe("Error during batch insert: $e");
       rethrow;
     }
   }
@@ -47,9 +47,9 @@ class BatchOperations {
           mode: InsertMode.insertOrIgnore,
         );
       });
-      _logger.info('Batch insert completed successfully');
+      _logger.info("Batch insert completed successfully");
     } catch (e) {
-      _logger.severe('Error during batch insert: $e');
+      _logger.severe("Error during batch insert: $e");
       rethrow;
     }
   }
@@ -63,9 +63,9 @@ class BatchOperations {
           batch.update(table, row, where: where);
         }
       });
-      _logger.info('Batch update completed successfully');
+      _logger.info("Batch update completed successfully");
     } catch (e) {
-      _logger.severe('Error during batch update: $e');
+      _logger.severe("Error during batch update: $e");
       rethrow;
     }
   }
@@ -78,9 +78,9 @@ class BatchOperations {
           batch.delete(table, row);
         }
       });
-      _logger.info('Batch delete completed successfully');
+      _logger.info("Batch delete completed successfully");
     } catch (e) {
-      _logger.severe('Error during batch delete: $e');
+      _logger.severe("Error during batch delete: $e");
       rethrow;
     }
   }
@@ -94,9 +94,9 @@ class BatchOperations {
           batch.delete(table, row);
         }
       });
-      _logger.info('Batch delete completed successfully');
+      _logger.info("Batch delete completed successfully");
     } catch (e) {
-      _logger.severe('Error during batch delete: $e');
+      _logger.severe("Error during batch delete: $e");
       rethrow;
     }
   }

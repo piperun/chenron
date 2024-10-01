@@ -1,10 +1,10 @@
-import 'package:chenron/components/edviewer/editor/link/link_add.dart';
-import 'package:chenron/components/table/link_toolbar.dart';
-import 'package:chenron/models/cud.dart';
-import 'package:chenron/models/item.dart';
-import 'package:flutter/material.dart';
-import 'package:pluto_grid/pluto_grid.dart';
-import 'package:collection/collection.dart';
+import "package:chenron/components/edviewer/editor/link/link_add.dart";
+import "package:chenron/components/table/link_toolbar.dart";
+import "package:chenron/models/cud.dart";
+import "package:chenron/models/item.dart";
+import "package:flutter/material.dart";
+import "package:pluto_grid/pluto_grid.dart";
+import "package:collection/collection.dart";
 
 //TODO: This will much later in v0.10+ be turned into a base for all editors and not just link.
 // Effectively when we need document to actually exist it'll be added, for now as we only need links
@@ -54,14 +54,14 @@ class _LinkForm2State extends State<ItemEditor> {
                     for (var row in selectedRows) {
                       int index = stateManager.refRows.indexOf(row);
                       if (index != -1) {
-                        String url = row.cells['url']!.value;
+                        String url = row.cells["url"]!.value;
                         FolderItem? item = folderItems.create.firstWhereOrNull(
                           (item) => item.content == url,
                         );
                         if (item != null && item?.id != null) {
                           folderItems.create.remove(item);
                         } else if (item == null) {
-                          folderItems.remove.add(row.cells['id']!.value);
+                          folderItems.remove.add(row.cells["id"]!.value);
                         }
                       }
                     }

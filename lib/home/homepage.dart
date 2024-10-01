@@ -1,8 +1,8 @@
-import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/material.dart';
+import "package:fl_chart/fl_chart.dart";
+import "package:flutter/material.dart";
 
-import 'package:chenron/responsible_design/breakpoints.dart';
-import 'package:percent_indicator/circular_percent_indicator.dart';
+import "package:chenron/responsible_design/breakpoints.dart";
+import "package:percent_indicator/circular_percent_indicator.dart";
 
 class HomePage extends StatelessWidget {
   final double padding;
@@ -56,7 +56,7 @@ class HomePage extends StatelessWidget {
                                 progressColor: Colors.green,
                                 backgroundColor: Colors.grey,
                                 center: const Text(
-                                  '50%',
+                                  "50%",
                                 ),
                               ),
                             ),

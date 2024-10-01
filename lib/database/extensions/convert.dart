@@ -1,8 +1,8 @@
-import 'dart:convert';
+import "dart:convert";
 
-import 'package:chenron/models/folder.dart';
-import 'package:chenron/models/item.dart';
-import 'package:chenron/database/database.dart';
+import "package:chenron/models/folder.dart";
+import "package:chenron/models/item.dart";
+import "package:chenron/database/database.dart";
 
 extension ConvertFolderToInfo on Folder {
   FolderInfo toFolderInfo() {
@@ -35,8 +35,8 @@ extension ConvertDocumentToItem on Document {
       itemId: itemId,
       createdAt: createdAt,
       content: MapContent({
-        'title': title,
-        'body': utf8.decode(content),
+        "title": title,
+        "body": utf8.decode(content),
       }),
       type: FolderItemType.document,
     );

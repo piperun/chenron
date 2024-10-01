@@ -1,20 +1,20 @@
-import 'package:chenron/models/folder.dart';
-import 'package:chenron/models/item.dart';
-import 'package:chenron/models/metadata.dart';
-import 'package:chenron/database/extensions/folder/create.dart';
-import 'package:chenron/database/extensions/folder/remove.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:integration_test/integration_test.dart';
-import 'package:chenron/database/database.dart';
+import "package:chenron/models/folder.dart";
+import "package:chenron/models/item.dart";
+import "package:chenron/models/metadata.dart";
+import "package:chenron/database/extensions/folder/create.dart";
+import "package:chenron/database/extensions/folder/remove.dart";
+import "package:flutter_test/flutter_test.dart";
+import "package:integration_test/integration_test.dart";
+import "package:chenron/database/database.dart";
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  group('removeFolder tests', () {
+  group("removeFolder tests", () {
     late AppDatabase database;
 
     setUp(() async {
-      database = AppDatabase(databaseName: 'test_db');
+      database = AppDatabase(databaseName: "test_db");
 
       await database.delete(database.folders).go();
       await database.delete(database.items).go();
@@ -25,11 +25,11 @@ void main() {
       await database.close();
     });
 
-    test('Remove folder without tags', () async {
+    test("Remove folder without tags", () async {
       // Create a test folder
       final folderInfo = FolderInfo(
-        title: 'Test Folder',
-        description: 'Test Description',
+        title: "Test Folder",
+        description: "Test Description",
       );
       await database.createFolder(folderInfo: folderInfo);
 
@@ -42,15 +42,15 @@ void main() {
       expect(result, isNull);
     });
 
-    test('Remove folder with tags', () async {
+    test("Remove folder with tags", () async {
       // Create a test folder with tags
       final folderInfo = FolderInfo(
-        title: 'Test Folder with Tags',
-        description: 'Test Description',
+        title: "Test Folder with Tags",
+        description: "Test Description",
       );
       final tags = [
-        Metadata(value: 'tag1', type: MetadataTypeEnum.tag),
-        Metadata(value: 'tag2', type: MetadataTypeEnum.tag),
+        Metadata(value: "tag1", type: MetadataTypeEnum.tag),
+        Metadata(value: "tag2", type: MetadataTypeEnum.tag),
       ];
       await database.createFolder(folderInfo: folderInfo, tags: tags);
 
@@ -69,19 +69,19 @@ void main() {
       expect(tagResult, isEmpty);
     });
 
-    test('Remove folder with items', () async {
+    test("Remove folder with items", () async {
       // Create a test folder with items
       final folderInfo = FolderInfo(
-        title: 'Test Folder with Items',
-        description: 'Test Description',
+        title: "Test Folder with Items",
+        description: "Test Description",
       );
       final link = FolderItem(
           type: FolderItemType.link,
-          content: StringContent(value: 'https://example.com'));
+          content: StringContent(value: "https://example.com"));
       final document = FolderItem(
           type: FolderItemType.document,
           content:
-              MapContent({'title': 'Test Document', 'body': 'Test Content'}));
+              MapContent({"title": "Test Document", "body": "Test Content"}));
       await database
           .createFolder(folderInfo: folderInfo, items: [link, document]);
 
@@ -106,9 +106,9 @@ void main() {
       expect(documentResult, isEmpty);
     });
 
-    test('Remove non-existent folder', () async {
+    test("Remove non-existent folder", () async {
       // Try to remove a folder that doesn't exist
-      final result = await database.removeFolder('non_existent_id');
+      final result = await database.removeFolder("non_existent_id");
 
       // The function should return false since no folder was removed
       expect(result, isFalse);

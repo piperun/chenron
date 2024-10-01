@@ -1,7 +1,7 @@
-import 'package:chenron/database/database.dart';
-import 'package:chenron/models/item.dart';
-import 'package:chenron/models/metadata.dart';
-import 'package:drift/drift.dart';
+import "package:chenron/database/database.dart";
+import "package:chenron/models/item.dart";
+import "package:chenron/models/metadata.dart";
+import "package:drift/drift.dart";
 
 extension DatabaseInit on AppDatabase {
   Future<void> setupEnumTypes() async {
@@ -19,18 +19,18 @@ extension DatabaseInit on AppDatabase {
 
   Insertable _factoryCompanion(TableInfo table, Enum type) {
     switch (table.actualTableName) {
-      case 'item_types':
+      case "item_types":
         return ItemTypesCompanion.insert(
           id: Value(type.index + 1),
           name: type.name,
         );
-      case 'metadata_types':
+      case "metadata_types":
         return MetadataTypesCompanion.insert(
           id: Value(type.index + 1),
           name: type.name,
         );
       default:
-        throw ArgumentError('Unsupported table: ${table.actualTableName}');
+        throw ArgumentError("Unsupported table: ${table.actualTableName}");
     }
   }
 }

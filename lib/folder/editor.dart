@@ -1,8 +1,8 @@
-import 'package:chenron/components/edviewer/editor/detail_editor.dart';
-import 'package:chenron/database/database.dart';
-import 'package:chenron/database/extensions/folder/read.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import "package:chenron/components/edviewer/editor/detail_editor.dart";
+import "package:chenron/database/database.dart";
+import "package:chenron/database/extensions/folder/read.dart";
+import "package:flutter/material.dart";
+import "package:provider/provider.dart";
 
 class FolderEditor extends StatelessWidget {
   final String folderId;
@@ -22,10 +22,10 @@ class FolderEditor extends StatelessWidget {
           return const CircularProgressIndicator();
         }
         if (snapshot.hasError) {
-          return Text('Error: ${snapshot.error}');
+          return Text("Error: ${snapshot.error}");
         }
         if (!snapshot.hasData) {
-          return const Text('No data available');
+          return const Text("No data available");
         }
 
         final folderData = snapshot.data!;

@@ -1,15 +1,15 @@
-import 'package:chenron/database/extensions/id.dart';
-import 'package:chenron/models/folder_results.dart';
-import 'package:chenron/models/item.dart';
-import 'package:chenron/models/metadata.dart';
-import 'package:chenron/database/database.dart';
-import 'package:chenron/models/folder.dart';
-import 'package:chenron/database/extensions/insert_ext.dart';
-import 'package:drift/drift.dart';
-import 'package:logging/logging.dart';
+import "package:chenron/database/extensions/id.dart";
+import "package:chenron/models/folder_results.dart";
+import "package:chenron/models/item.dart";
+import "package:chenron/models/metadata.dart";
+import "package:chenron/database/database.dart";
+import "package:chenron/models/folder.dart";
+import "package:chenron/database/extensions/insert_ext.dart";
+import "package:drift/drift.dart";
+import "package:logging/logging.dart";
 
 extension FolderExtensions on AppDatabase {
-  static final Logger _logger = Logger('Folder Actions Database');
+  static final Logger _logger = Logger("Folder Actions Database");
 
   Future<FolderResults> createFolder({
     required FolderInfo folderInfo,
@@ -19,7 +19,7 @@ extension FolderExtensions on AppDatabase {
     return transaction(() async {
       FolderResults results = FolderResults();
       try {
-        if (folderInfo.title != '') {
+        if (folderInfo.title != "") {
           results.folderId = await _createFolderInfo(folderInfo);
         }
         if (tags != null) {
@@ -31,7 +31,7 @@ extension FolderExtensions on AppDatabase {
         }
         return results;
       } catch (e) {
-        _logger.severe('Error adding folder: $e');
+        _logger.severe("Error adding folder: $e");
         rethrow;
       }
     });

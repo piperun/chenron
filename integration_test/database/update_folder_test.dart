@@ -1,31 +1,31 @@
-import 'package:chenron/database/database.dart';
-import 'package:chenron/database/extensions/folder/create.dart';
-import 'package:chenron/database/extensions/folder/read.dart';
-import 'package:chenron/database/extensions/folder/update.dart';
-import 'package:chenron/database/extensions/tags/create.dart';
-import 'package:chenron/models/cud.dart';
-import 'package:chenron/models/folder.dart';
-import 'package:chenron/models/folder_results.dart';
-import 'package:chenron/models/item.dart';
-import 'package:chenron/models/metadata.dart';
-import 'package:drift/drift.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:chenron/test_lib/folder_factory.dart';
+import "package:chenron/database/database.dart";
+import "package:chenron/database/extensions/folder/create.dart";
+import "package:chenron/database/extensions/folder/read.dart";
+import "package:chenron/database/extensions/folder/update.dart";
+import "package:chenron/database/extensions/tags/create.dart";
+import "package:chenron/models/cud.dart";
+import "package:chenron/models/folder.dart";
+import "package:chenron/models/folder_results.dart";
+import "package:chenron/models/item.dart";
+import "package:chenron/models/metadata.dart";
+import "package:drift/drift.dart";
+import "package:flutter_test/flutter_test.dart";
+import "package:chenron/test_lib/folder_factory.dart";
 
 void main() {
   late AppDatabase database;
   late FolderTestData testFolderData;
-  final List<String> newTagNames = ['NewTags1', 'NewTags2'];
+  final List<String> newTagNames = ["NewTags1", "NewTags2"];
   late List<Metadata> testNewTags;
   final List<String> testNewTagIds = [];
   late FolderResults results;
 
   setUp(() async {
-    database = AppDatabase(databaseName: 'test_db');
+    database = AppDatabase(databaseName: "test_db");
 
     testFolderData = FolderTestDataFactory.create(
-      title: 'update folder',
-      description: 'this folder is only for testing updateFolder',
+      title: "update folder",
+      description: "this folder is only for testing updateFolder",
       tagValues: [],
       itemsData: [],
     );
@@ -51,17 +51,17 @@ void main() {
     await database.close();
   });
 
-  group('Update Folder: Create', () {
-    test('should create and add new items to folder', () async {
+  group("Update Folder: Create", () {
+    test("should create and add new items to folder", () async {
       final folderItems = CUD<FolderItem>(
         create: FolderItemFactory.createItems([
           {
-            'type': 'link',
-            'content': 'https://${DateTime.now().millisecondsSinceEpoch}.com'
+            "type": "link",
+            "content": "https://${DateTime.now().millisecondsSinceEpoch}.com"
           },
           {
-            'type': 'document',
-            'content': {'title': 'New Document', 'body': 'Content'}
+            "type": "document",
+            "content": {"title": "New Document", "body": "Content"}
           },
         ]),
       );
@@ -86,24 +86,24 @@ void main() {
       expect(folderDocuments.length, equals(1));
     });
   });
-  group('Update folder: Update', () {
-    test('should update folder title and description', () async {
+  group("Update folder: Update", () {
+    test("should update folder title and description", () async {
       await database.updateFolder(
         results.folderId!,
-        title: 'new folder title',
+        title: "new folder title",
         description:
-            'Updated Description, this folder is only for testing updateFolder',
+            "Updated Description, this folder is only for testing updateFolder",
       );
 
       final updatedFolder =
           await database.folders.findById(results.folderId!).getSingle();
-      expect(updatedFolder.title, equals('new folder title'));
+      expect(updatedFolder.title, equals("new folder title"));
       expect(
           updatedFolder.description,
           equals(
-              'Updated Description, this folder is only for testing updateFolder'));
+              "Updated Description, this folder is only for testing updateFolder"));
     });
-    test('should update folder with two additional existing Tags', () async {
+    test("should update folder with two additional existing Tags", () async {
       Map<String, String> ids = {};
       List<Metadata> connectTags = [];
       for (int i = 0; i < testNewTags.length; i++) {
@@ -123,23 +123,23 @@ void main() {
           .get();
 
       expect(folderTags.length, equals(2),
-          reason: 'Both tags should be added to the folder');
+          reason: "Both tags should be added to the folder");
 
       for (var tag in connectTags) {
         expect(
           folderTags.any((ft) => ft.metadataId == tag.metadataId),
           isTrue,
-          reason: '${tag.value} should be associated with the folder',
+          reason: "${tag.value} should be associated with the folder",
         );
       }
     });
 
-    test('should update folder with an existing item', () async {
+    test("should update folder with an existing item", () async {
       final itemUpdates = CUD<FolderItem>(update: [
         FolderItem(
             type: FolderItemType.link,
-            content: StringContent(value: 'https://example.com'),
-            itemId: 'nayscsy4hk75zwg83qxhddtct04ut8')
+            content: StringContent(value: "https://example.com"),
+            itemId: "nayscsy4hk75zwg83qxhddtct04ut8")
       ]);
 
       await database.updateFolder(results.folderId!, itemUpdates: itemUpdates);
@@ -155,12 +155,12 @@ void main() {
           updatedFolderItem!.itemId, equals(itemUpdates.update.first.itemId));
     });
   });
-  group('Update Folder: Remove', () {
-    test('should remove tags from folder', () async {
+  group("Update Folder: Remove", () {
+    test("should remove tags from folder", () async {
       // Create two tags
       final newTags = [
-        Metadata(type: MetadataTypeEnum.tag, value: 'deleteMeTag1'),
-        Metadata(type: MetadataTypeEnum.tag, value: 'deleteMeTag2'),
+        Metadata(type: MetadataTypeEnum.tag, value: "deleteMeTag1"),
+        Metadata(type: MetadataTypeEnum.tag, value: "deleteMeTag2"),
       ];
 
       // Add tags to the folder
@@ -172,7 +172,7 @@ void main() {
           mode: IncludeFolderData.tags);
       expect(addedTags!.tags.length, equals(2));
       expect(addedTags.tags.map((t) => t.name).toSet(),
-          equals({'deleteMeTag1', 'deleteMeTag2'}));
+          equals({"deleteMeTag1", "deleteMeTag2"}));
 
       // Prepare tags for removal
       final tagsToRemove = addedTags.tags
@@ -194,11 +194,11 @@ void main() {
       expect(updatedFolder!.tags.length, equals(0));
     });
 
-    test('should create, add and remove items from folder', () async {
+    test("should create, add and remove items from folder", () async {
       final itemUpdates = CUD<FolderItem>(create: [
         FolderItem(
             type: FolderItemType.link,
-            content: StringContent(value: 'https://example.com'))
+            content: StringContent(value: "https://example.com"))
       ]);
       await database.updateFolder(results.folderId!, itemUpdates: itemUpdates);
 

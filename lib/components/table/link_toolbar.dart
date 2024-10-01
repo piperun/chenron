@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import "package:flutter/material.dart";
 
 class LinkToolbar extends StatelessWidget {
   final void Function()? onDelete;
@@ -16,7 +16,7 @@ class LinkToolbar extends StatelessWidget {
                 child: TextField(
                     decoration: InputDecoration(
               border: OutlineInputBorder(),
-              hintText: 'Enter a search term',
+              hintText: "Enter a search term",
               isDense: true,
             ))),
             const Spacer(),
@@ -26,7 +26,7 @@ class LinkToolbar extends StatelessWidget {
                   color: Colors.red,
                   size: 30.0,
                 ),
-                label: const Text('Remove selected'),
+                label: const Text("Remove selected"),
                 onPressed: onDelete),
           ],
         ));

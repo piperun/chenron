@@ -1,9 +1,9 @@
-import 'package:chenron/components/TextBase/info_field.dart';
-import 'package:chenron/components/tags/tag_field.dart';
-import 'package:chenron/utils/validation/folder_validator.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:chenron/providers/folder_info_state.dart';
+import "package:chenron/components/TextBase/info_field.dart";
+import "package:chenron/components/tags/tag_field.dart";
+import "package:chenron/utils/validation/folder_validator.dart";
+import "package:flutter/material.dart";
+import "package:provider/provider.dart";
+import "package:chenron/providers/folder_info_state.dart";
 
 // move this to somewhere else to be used by other widgets
 enum FolderType { link, document, folder }
@@ -21,7 +21,7 @@ class _FolderInfoStepState extends State<FolderInfoStep> {
   late TextEditingController _titleController;
   late TextEditingController _descriptionController;
   final TextEditingController _tagsController = TextEditingController();
-  String _access = 'Private';
+  String _access = "Private";
 
   @override
   void initState() {
@@ -52,13 +52,13 @@ class _FolderInfoStepState extends State<FolderInfoStep> {
             children: [
               InfoField(
                 controller: _titleController,
-                labelText: 'Title',
+                labelText: "Title",
                 onSaved: folderProvider.updateTitle,
                 validator: FolderValidator.validateTitle,
               ),
               InfoField(
                 controller: _descriptionController,
-                labelText: 'Description',
+                labelText: "Description",
                 onSaved: folderProvider.updateDescription,
                 validator: FolderValidator.validateDescription,
               ),
@@ -81,10 +81,10 @@ class _FolderInfoStepState extends State<FolderInfoStep> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Access'),
+        const Text("Access"),
         Row(
           mainAxisAlignment: MainAxisAlignment.start,
-          children: ['Private', 'Unlisted', 'Public'].map((accessType) {
+          children: ["Private", "Unlisted", "Public"].map((accessType) {
             return Padding(
               padding: const EdgeInsets.only(right: 8.0),
               child: ChoiceChip(
@@ -112,15 +112,15 @@ class FolderTypeDropDown extends StatefulWidget {
 class _FolderTypeDropDownState extends State<FolderTypeDropDown> {
   FolderType? _selectedFolderType;
   static const Map<FolderType, String> _folderTypeText = {
-    FolderType.link: 'Link',
-    FolderType.document: 'Document',
-    FolderType.folder: 'Folder',
+    FolderType.link: "Link",
+    FolderType.document: "Document",
+    FolderType.folder: "Folder",
   };
 
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField<FolderType>(
-      decoration: const InputDecoration(labelText: 'Folder type'),
+      decoration: const InputDecoration(labelText: "Folder type"),
       value: _selectedFolderType,
       items: _folderTypeText.entries.map((entry) {
         return DropdownMenuItem<FolderType>(
@@ -132,7 +132,7 @@ class _FolderTypeDropDownState extends State<FolderTypeDropDown> {
         setState(() => _selectedFolderType = newValue);
       },
       validator: (value) =>
-          value == null ? 'Please select a folder type' : null,
+          value == null ? "Please select a folder type" : null,
     );
   }
 }

@@ -1,4 +1,4 @@
-import 'package:metadata_fetch/metadata_fetch.dart';
+import "package:metadata_fetch/metadata_fetch.dart";
 
 class MetadataFetcher {
   final String? title;

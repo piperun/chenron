@@ -1,6 +1,6 @@
-import 'package:chenron/database/database.dart';
-import 'package:chenron/database/extensions/user_config/create.dart';
-import 'package:cuid2/cuid2.dart';
+import "package:chenron/database/database.dart";
+import "package:chenron/database/extensions/user_config/create.dart";
+import "package:cuid2/cuid2.dart";
 
 extension ConfigDatabaseInit on ConfigDatabase {
   Future<void> setupUserConfig() async {

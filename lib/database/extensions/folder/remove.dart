@@ -1,4 +1,4 @@
-import 'package:chenron/database/database.dart';
+import "package:chenron/database/database.dart";
 
 extension FolderExtensions on AppDatabase {
   Future<bool> removeFolder(String folderId) async {

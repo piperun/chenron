@@ -1,8 +1,8 @@
-import 'dart:convert';
+import "dart:convert";
 
-import 'package:chenron/database/database.dart';
-import 'package:cuid2/cuid2.dart';
-import 'package:drift/drift.dart';
+import "package:chenron/database/database.dart";
+import "package:cuid2/cuid2.dart";
+import "package:drift/drift.dart";
 
 sealed class ItemContent {}
 
@@ -43,9 +43,9 @@ class FolderItem {
 
   Insertable toCompanion(String folderId) {
     return ItemsCompanion.insert(
-      id: _id ?? '',
+      id: _id ?? "",
       folderId: folderId,
-      itemId: _itemId ?? '',
+      itemId: _itemId ?? "",
       typeId: type.index,
     );
   }
@@ -62,14 +62,14 @@ class FolderItem {
           final doc = (content as MapContent).value;
           return DocumentsCompanion.insert(
             id: id,
-            title: doc['title'] ?? '',
-            content: utf8.encode(doc['body'] ?? ''),
+            title: doc["title"] ?? "",
+            content: utf8.encode(doc["body"] ?? ""),
           );
         default:
-          throw Exception('Invalid content type');
+          throw Exception("Invalid content type");
       }
     }
-    throw Exception('Invalid id: not a CUID');
+    throw Exception("Invalid id: not a CUID");
   }
 }
 

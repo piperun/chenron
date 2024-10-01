@@ -1,7 +1,7 @@
-import 'dart:convert';
+import "dart:convert";
 
-import 'package:chenron/database/database.dart';
-import 'package:drift/drift.dart';
+import "package:chenron/database/database.dart";
+import "package:drift/drift.dart";
 
 class UserConfigModel {
   final String? id;
@@ -18,7 +18,7 @@ class UserConfigModel {
     this.archiveOrgS3SecretKey,
   });
   @Deprecated(
-      'DO NOT USE, internal solution within CRUD functions will be used instead')
+      "DO NOT USE, internal solution within CRUD functions will be used instead")
   Insertable toCompanion(String id) {
     return UserConfigsCompanion.insert(
       id: id,
@@ -31,23 +31,23 @@ class UserConfigModel {
 
   factory UserConfigModel.fromMap(Map<String, dynamic> map) {
     return UserConfigModel(
-      id: map['id'] as String,
-      darkMode: map['darkMode'] as bool,
-      colorScheme: map['colorScheme'] != null
-          ? jsonDecode(map['colorScheme'] as String)
+      id: map["id"] as String,
+      darkMode: map["darkMode"] as bool,
+      colorScheme: map["colorScheme"] != null
+          ? jsonDecode(map["colorScheme"] as String)
           : null,
-      archiveOrgS3AccessKey: map['archiveOrgS3AccessKey'] as String?,
-      archiveOrgS3SecretKey: map['archiveOrgS3SecretKey'] as String?,
+      archiveOrgS3AccessKey: map["archiveOrgS3AccessKey"] as String?,
+      archiveOrgS3SecretKey: map["archiveOrgS3SecretKey"] as String?,
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
-      'darkMode': darkMode,
-      'colorScheme': colorScheme != null ? jsonEncode(colorScheme) : null,
-      'archiveOrgS3AccessKey': archiveOrgS3AccessKey,
-      'archiveOrgS3SecretKey': archiveOrgS3SecretKey,
+      "id": id,
+      "darkMode": darkMode,
+      "colorScheme": colorScheme != null ? jsonEncode(colorScheme) : null,
+      "archiveOrgS3AccessKey": archiveOrgS3AccessKey,
+      "archiveOrgS3SecretKey": archiveOrgS3SecretKey,
     };
   }
 }

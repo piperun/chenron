@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:chenron/database/database.dart';
+import "package:flutter/material.dart";
+import "package:chenron/database/database.dart";
 
 class TagSearchBar extends StatelessWidget {
   final Stream<List<Tag>> tagsStream;
@@ -24,7 +24,7 @@ class TagSearchBar extends StatelessWidget {
           return const CircularProgressIndicator();
         }
         if (snapshot.hasError) {
-          return Text('Error: ${snapshot.error}');
+          return Text("Error: ${snapshot.error}");
         }
         final tags = snapshot.data ?? [];
         return Wrap(

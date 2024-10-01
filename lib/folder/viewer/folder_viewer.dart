@@ -1,13 +1,13 @@
-import 'package:chenron/database/database.dart';
-import 'package:chenron/database/extensions/folder/read.dart';
-import 'package:chenron/folder/editor.dart';
-import 'package:chenron/folder/viewer/folder_data_manager.dart';
-import 'package:chenron/folder/viewer/folder_detail_view.dart';
-import 'package:chenron/components/folder_layouts/grid.dart';
-import 'package:chenron/components/folder_layouts/list.dart';
-import 'package:chenron/folder/viewer/tag_search_bar.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import "package:chenron/database/database.dart";
+import "package:chenron/database/extensions/folder/read.dart";
+import "package:chenron/folder/editor.dart";
+import "package:chenron/folder/viewer/folder_data_manager.dart";
+import "package:chenron/folder/viewer/folder_detail_view.dart";
+import "package:chenron/components/item_layout/grid.dart";
+import "package:chenron/components/item_layout/list.dart";
+import "package:chenron/folder/viewer/tag_search_bar.dart";
+import "package:flutter/material.dart";
+import "package:provider/provider.dart";
 
 class FolderViewSlug extends StatefulWidget {
   const FolderViewSlug({super.key});
@@ -41,8 +41,8 @@ class _FolderViewSlugState extends State<FolderViewSlug> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(success
-            ? 'Folders deleted successfully'
-            : 'Failed to delete folders'),
+            ? "Folders deleted successfully"
+            : "Failed to delete folders"),
         backgroundColor: success ? Colors.green : Colors.red,
       ),
     );
@@ -56,7 +56,7 @@ class _FolderViewSlugState extends State<FolderViewSlug> {
         builder: (context, viewModel, child) {
           return Scaffold(
             appBar: AppBar(
-              title: const Text('All Folders'),
+              title: const Text("All Folders"),
               actions: [
                 IconButton(
                   icon:
@@ -121,7 +121,7 @@ class SearchBar extends StatelessWidget {
           Expanded(
             child: TextField(
               decoration: InputDecoration(
-                hintText: 'Search folders or tags...',
+                hintText: "Search folders or tags...",
                 prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(30),
@@ -133,7 +133,7 @@ class SearchBar extends StatelessWidget {
           const SizedBox(width: 16),
           ElevatedButton(
             onPressed: hasSelectedFolders ? onDeleteSelected : null,
-            child: const Text('Delete Selected'),
+            child: const Text("Delete Selected"),
           ),
         ],
       ),
@@ -162,7 +162,7 @@ class FolderListView extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
+          return Center(child: Text("Error: ${snapshot.error}"));
         }
         final folders = snapshot.data ?? [];
         final filteredFolders = viewModel.filterFolders(folders);
@@ -213,14 +213,12 @@ class GridFolderView extends StatelessWidget {
   Widget build(BuildContext context) {
     return GridLayout<FolderResult>(
       items: folders,
-      isItemSelected: (folder) =>
-          viewModel.selectedFolders.contains(folder.folder.id),
-      onItemToggle: (folder) => controller.onFolderToggle(folder.folder.id),
-      onTap: (folder) => controller.onFolderTap(context, folder),
-      itemBuilder: (folder) => FolderGridItem(
-        folder: folder,
-        onEditTap: () => controller.onEditTap(context, folder),
-      ),
+      itemBuilder: (context, folder) {
+        return FolderGridItem(
+          folder: folder,
+          onEditTap: () => controller.onEditTap(context, folder),
+        );
+      },
     );
   }
 }
@@ -277,7 +275,7 @@ class FolderGridItem extends StatelessWidget {
         TextButton.icon(
           onPressed: onEditTap,
           icon: const Icon(Icons.edit),
-          label: const Text('Edit'),
+          label: const Text("Edit"),
         )
       ],
     );
@@ -307,7 +305,7 @@ class FolderListItem extends StatelessWidget {
         TextButton.icon(
           onPressed: onEditTap,
           icon: const Icon(Icons.edit),
-          label: const Text('Edit'),
+          label: const Text("Edit"),
         )
       ],
     );
@@ -316,7 +314,7 @@ class FolderListItem extends StatelessWidget {
 
 class FolderViewModel extends ChangeNotifier {
   bool _isGridView = true;
-  String _searchQuery = '';
+  String _searchQuery = "";
   final Set<String> selectedTags = {};
   final Set<String> selectedFolders = {};
 

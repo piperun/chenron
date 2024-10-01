@@ -1,10 +1,10 @@
-import 'package:chenron/components/TextBase/expandable_field.dart';
-import 'package:chenron/components/TextBase/text_view.dart';
-import 'package:chenron/components/tags/tag_body.dart';
-import 'package:flutter/material.dart';
-import 'package:chenron/database/database.dart';
-import 'package:chenron/database/extensions/folder/read.dart';
-import 'package:intl/intl.dart' show DateFormat;
+import "package:chenron/components/TextBase/expandable_field.dart";
+import "package:chenron/components/TextBase/text_view.dart";
+import "package:chenron/components/tags/tag_body.dart";
+import "package:flutter/material.dart";
+import "package:chenron/database/database.dart";
+import "package:chenron/database/extensions/folder/read.dart";
+import "package:intl/intl.dart" show DateFormat;
 
 class DetailViewer extends StatefulWidget {
   final Future<FolderResult> fetchData;
@@ -24,7 +24,7 @@ class _DetailViewerState<T> extends State<DetailViewer> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: const Text('Folder Details'),
+          title: const Text("Folder Details"),
           elevation: 0,
           actions: [
             IconButton(
@@ -45,11 +45,11 @@ class _DetailViewerState<T> extends State<DetailViewer> {
             }
             if (snapshot.hasError) {
               //TODO: Logger
-              return Center(child: Text('Error: ${snapshot.error}'));
+              return Center(child: Text("Error: ${snapshot.error}"));
             }
             final result = snapshot.data;
             if (result == null) {
-              return const Center(child: Text('Folder not found'));
+              return const Center(child: Text("Folder not found"));
             }
             return Column(
               children: [
@@ -130,8 +130,8 @@ class FolderCreationDate extends StatelessWidget {
     return FractionallySizedBox(
       widthFactor: 0.5,
       child: TextView.listTile(
-        title: 'Created at',
-        subtitle: DateFormat('MMMM d, y HH:mm:ss').format(createdAt),
+        title: "Created at",
+        subtitle: DateFormat("MMMM d, y HH:mm:ss").format(createdAt),
         icon: Icons.calendar_today,
       ),
     );

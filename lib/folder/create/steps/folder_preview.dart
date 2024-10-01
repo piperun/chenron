@@ -1,8 +1,8 @@
-import 'package:chenron/models/item.dart';
-import 'package:chenron/providers/cud_state.dart';
-import 'package:chenron/providers/folder_info_state.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import "package:chenron/models/item.dart";
+import "package:chenron/providers/cud_state.dart";
+import "package:chenron/providers/folder_info_state.dart";
+import "package:flutter/material.dart";
+import "package:provider/provider.dart";
 
 class FolderPreview extends StatelessWidget {
   final GlobalKey<FormState> previewKey;
@@ -36,7 +36,7 @@ class ReviewCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Review Before Saving',
+              "Review Before Saving",
               style: Theme.of(context)
                   .textTheme
                   .titleLarge
@@ -44,7 +44,7 @@ class ReviewCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Before proceeding with the save operation, please review the details below.',
+              "Before proceeding with the save operation, please review the details below.",
               textAlign: TextAlign.left,
               style: Theme.of(context).textTheme.bodyLarge,
             ),
@@ -69,22 +69,22 @@ class Expandable extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       child: ExpansionTile(
-        title: const Text('Expand Details'),
+        title: const Text("Expand Details"),
         children: [
           ListTile(
-            title: const Text('Title'),
+            title: const Text("Title"),
             subtitle: Text(folderProvider.title),
           ),
           ListTile(
-            title: const Text('Description'),
+            title: const Text("Description"),
             subtitle: Text(folderProvider.description),
           ),
           ListTile(
-            title: const Text('Tags'),
-            subtitle: Text(folderProvider.tags.join(', ')),
+            title: const Text("Tags"),
+            subtitle: Text(folderProvider.tags.join(", ")),
           ),
           ListTile(
-            title: const Text('Links'),
+            title: const Text("Links"),
             subtitle: Text(dataProvider.create.toString()),
           ),
         ],

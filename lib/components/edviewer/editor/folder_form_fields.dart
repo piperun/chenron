@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import "package:flutter/material.dart";
 
 class FolderFormFields extends StatelessWidget {
   final TextEditingController titleController;
@@ -21,9 +21,9 @@ class FolderFormFields extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildTextField(titleController, 'Title'),
-        _buildTextField(descriptionController, 'Description'),
-        _buildTextField(tagsController, 'Tags'),
+        _buildTextField(titleController, "Title"),
+        _buildTextField(descriptionController, "Description"),
+        _buildTextField(tagsController, "Tags"),
         _buildAccessSelection(),
       ],
     );
@@ -40,10 +40,10 @@ class FolderFormFields extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Access'),
+        const Text("Access"),
         Wrap(
           spacing: 8.0,
-          children: ['Private', 'Unlisted', 'Public'].map((accessType) {
+          children: ["Private", "Unlisted", "Public"].map((accessType) {
             return ChoiceChip(
               label: Text(accessType),
               selected: access == accessType,

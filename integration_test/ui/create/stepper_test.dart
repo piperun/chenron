@@ -1,18 +1,18 @@
-import 'package:chenron/folder/create/steps/folder_info.dart';
-import 'package:chenron/test_lib/test_text.dart';
-import 'package:easy_sidemenu/easy_sidemenu.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:integration_test/integration_test.dart';
-import 'package:chenron/main.dart' as app;
-import 'package:chenron/components/forms/folder_form.dart';
-import 'package:pluto_grid/pluto_grid.dart';
+import "package:chenron/folder/create/steps/folder_info.dart";
+import "package:chenron/test_lib/test_text.dart";
+import "package:easy_sidemenu/easy_sidemenu.dart";
+import "package:flutter/material.dart";
+import "package:flutter_test/flutter_test.dart";
+import "package:integration_test/integration_test.dart";
+import "package:chenron/main.dart" as app;
+import "package:chenron/components/forms/folder_form.dart";
+import "package:pluto_grid/pluto_grid.dart";
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  group('CreateFolderStepper Integration Tests', () {
-    testWidgets('Ensure we can navigate the Side Menu',
+  group("CreateFolderStepper Integration Tests", () {
+    testWidgets("Ensure we can navigate the Side Menu",
         (WidgetTester tester) async {
       app.main();
       await tester.pumpAndSettle();
@@ -22,56 +22,56 @@ void main() {
       // Folder
       expect(
           find.descendant(
-              of: find.byType(SideMenu), matching: find.text('Folder')),
+              of: find.byType(SideMenu), matching: find.text("Folder")),
           findsOneWidget);
       await tester.tap(find.descendant(
-          of: find.byType(SideMenu), matching: find.text('Folder')));
+          of: find.byType(SideMenu), matching: find.text("Folder")));
       await tester.pumpAndSettle();
       // Child item 1: Create
       expect(
           find.descendant(
-              of: find.byType(SideMenu), matching: find.text('Create')),
+              of: find.byType(SideMenu), matching: find.text("Create")),
           findsOneWidget);
       await tester.tap(find.descendant(
-          of: find.byType(SideMenu), matching: find.text('Create')));
+          of: find.byType(SideMenu), matching: find.text("Create")));
       await tester.pumpAndSettle();
       // Child item 2: Viewer
       expect(
           find.descendant(
-              of: find.byType(SideMenu), matching: find.text('Viewer')),
+              of: find.byType(SideMenu), matching: find.text("Viewer")),
           findsOneWidget);
       await tester.tap(find.descendant(
-          of: find.byType(SideMenu), matching: find.text('Viewer')));
+          of: find.byType(SideMenu), matching: find.text("Viewer")));
       await tester.pumpAndSettle();
       // Dashboard
       expect(
           find.descendant(
-              of: find.byType(SideMenu), matching: find.text('Dashboard')),
+              of: find.byType(SideMenu), matching: find.text("Dashboard")),
           findsOneWidget);
       await tester.tap(find.descendant(
-          of: find.byType(SideMenu), matching: find.text('Dashboard')));
+          of: find.byType(SideMenu), matching: find.text("Dashboard")));
       await tester.pumpAndSettle();
     });
-    testWidgets('Stepper selects Link type and navigates through all steps',
+    testWidgets("Stepper selects Link type and navigates through all steps",
         (WidgetTester tester) async {
       app.main();
       await tester.pumpAndSettle();
       tester.testTextInput.register();
       Future<void> addLink(String url) async {
         await tester.enterText(
-            find.widgetWithText(TextFormField, 'Enter Link'), url);
+            find.widgetWithText(TextFormField, "Enter Link"), url);
         await tester.pumpAndSettle();
-        await tester.tap(find.text('Add Link'));
+        await tester.tap(find.text("Add Link"));
         await tester.pumpAndSettle();
       }
 
       // Verify initial step
-      expect(find.text('Folder'), findsOneWidget);
-      final nextButton = find.text('Next');
+      expect(find.text("Folder"), findsOneWidget);
+      final nextButton = find.text("Next");
 
-      await tester.tap(find.text('Folder'));
+      await tester.tap(find.text("Folder"));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Create'));
+      await tester.tap(find.text("Create"));
       await tester.pumpAndSettle();
 
       expect(find.byType(FolderInfoStep), findsOneWidget);
@@ -82,24 +82,24 @@ void main() {
         await tester.pump();
       }
 
-      await enterAndVerifyText('Title', 'testTitle');
-      await enterAndVerifyText('Description', TestData.smallText);
-      await enterAndVerifyText('Tags', 'testTag');
+      await enterAndVerifyText("Title", "testTitle");
+      await enterAndVerifyText("Description", TestData.smallText);
+      await enterAndVerifyText("Tags", "testTag");
 
       // Verify and interact with FolderTypeDropDown
-      expect(find.widgetWithText(FolderTypeDropDown, 'Folder type'),
+      expect(find.widgetWithText(FolderTypeDropDown, "Folder type"),
           findsOneWidget);
-      await tester.tap(find.widgetWithText(FolderTypeDropDown, 'Folder type'));
+      await tester.tap(find.widgetWithText(FolderTypeDropDown, "Folder type"));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Link').last);
+      await tester.tap(find.text("Link").last);
       await tester.pumpAndSettle();
       expect(nextButton, findsOneWidget);
       await tester.tap(nextButton);
       await tester.pumpAndSettle();
       // Step 2
-      expect(find.text('Data'), findsOneWidget);
-      expect(find.widgetWithText(TextFormField, 'Enter Link'), findsOneWidget);
-      expect(find.text('Add Link'), findsOneWidget);
+      expect(find.text("Data"), findsOneWidget);
+      expect(find.widgetWithText(TextFormField, "Enter Link"), findsOneWidget);
+      expect(find.text("Add Link"), findsOneWidget);
       for (final url in TestData.urls) {
         await addLink(url);
       }
@@ -111,31 +111,31 @@ void main() {
         await tester.tap(find.byWidget(checkboxes.elementAt(i)));
         await tester.pumpAndSettle();
       }
-      expect(find.text('Remove selected'), findsOneWidget);
-      await tester.tap(find.text('Remove selected'));
+      expect(find.text("Remove selected"), findsOneWidget);
+      await tester.tap(find.text("Remove selected"));
       await tester.pumpAndSettle();
       await tester.dragUntilVisible(
           nextButton, find.byType(PageView), const Offset(0, -100));
       await tester.tap(nextButton);
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Save'));
+      await tester.tap(find.text("Save"));
       await tester.pumpAndSettle();
       //expect(find.text('Folder created successfully'), findsOneWidget);
     });
 
-    testWidgets('FolderForm allows folder selection',
+    testWidgets("FolderForm allows folder selection",
         (WidgetTester tester) async {
       await tester
           .pumpWidget(MaterialApp(home: FolderForm(addItem: (item) {})));
 
       // Test search functionality
-      await tester.enterText(find.byType(TextField), 'Folder 1');
+      await tester.enterText(find.byType(TextField), "Folder 1");
       await tester.pump();
-      expect(find.text('Folder 1'), findsOneWidget);
-      expect(find.text('Folder 2'), findsNothing);
+      expect(find.text("Folder 1"), findsOneWidget);
+      expect(find.text("Folder 2"), findsNothing);
 
       // Test folder selection
-      await tester.tap(find.text('Folder 1'));
+      await tester.tap(find.text("Folder 1"));
       await tester.pump();
       expect(find.byIcon(Icons.check), findsOneWidget);
 

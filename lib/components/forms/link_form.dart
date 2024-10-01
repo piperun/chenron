@@ -1,12 +1,12 @@
-import 'package:chenron/models/item.dart';
-import 'package:chenron/utils/validation/link_validator.dart';
-import 'package:flutter/material.dart';
-import 'package:pluto_grid/pluto_grid.dart';
-import 'package:provider/provider.dart';
-import 'package:chenron/providers/cud_state.dart';
-import 'package:chenron/components/table/link_toolbar.dart';
-import 'package:chenron/responsible_design/breakpoints.dart';
-import 'package:chenron/components/forms/form/link_form_field.dart';
+import "package:chenron/models/item.dart";
+import "package:chenron/utils/validation/link_validator.dart";
+import "package:flutter/material.dart";
+import "package:pluto_grid/pluto_grid.dart";
+import "package:provider/provider.dart";
+import "package:chenron/providers/cud_state.dart";
+import "package:chenron/components/table/link_toolbar.dart";
+import "package:chenron/responsible_design/breakpoints.dart";
+import "package:chenron/components/forms/form/link_form_field.dart";
 
 class LinkForm extends StatefulWidget {
   final GlobalKey<FormState> dataKey;
@@ -23,19 +23,19 @@ class _LinkFormState extends State<LinkForm> {
 
   List<PlutoColumn> columns = [
     PlutoColumn(
-      title: 'URL',
-      field: 'url',
+      title: "URL",
+      field: "url",
       type: PlutoColumnType.text(),
       enableRowChecked: true,
     ),
     PlutoColumn(
-      title: 'Comment',
-      field: 'comment',
+      title: "Comment",
+      field: "comment",
       type: PlutoColumnType.text(),
     ),
     PlutoColumn(
-      title: 'Tags',
-      field: 'tags',
+      title: "Tags",
+      field: "tags",
       type: PlutoColumnType.text(),
     ),
   ];
@@ -57,7 +57,7 @@ class _LinkFormState extends State<LinkForm> {
         List<PlutoRow> rows = folderItems.create
             .map((link) => PlutoRow(
                   cells: {
-                    'url': PlutoCell(value: link.content),
+                    "url": PlutoCell(value: link.content),
                   },
                 ))
             .toList();
@@ -72,7 +72,7 @@ class _LinkFormState extends State<LinkForm> {
                 linkProvider: folderItems,
                 validator: (_) {
                   if (folderItems.create.isEmpty) {
-                    return 'Please add at least one link';
+                    return "Please add at least one link";
                   }
                   return null;
                 },
@@ -87,7 +87,7 @@ class _LinkFormState extends State<LinkForm> {
                         child: TextFormField(
                           controller: _linkController,
                           decoration:
-                              const InputDecoration(labelText: 'Enter Link'),
+                              const InputDecoration(labelText: "Enter Link"),
                           validator: LinkValidator.validateContent,
                           minLines: 1,
                           maxLines: Breakpoints.isMedium(context) ? 23 : 25,
@@ -106,15 +106,15 @@ class _LinkFormState extends State<LinkForm> {
                           );
                           stateManager.appendRows([
                             PlutoRow(cells: {
-                              'url': PlutoCell(value: _linkController.text),
-                              'comment': PlutoCell(value: ''),
-                              'tags': PlutoCell(value: [])
+                              "url": PlutoCell(value: _linkController.text),
+                              "comment": PlutoCell(value: ""),
+                              "tags": PlutoCell(value: [])
                             })
                           ]);
                           _linkController.clear();
                         }
                       },
-                      child: const Text('Add Link'),
+                      child: const Text("Add Link"),
                     ),
                   ],
                 ),

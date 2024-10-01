@@ -1,8 +1,8 @@
-import 'package:flutter/foundation.dart';
+import "package:flutter/foundation.dart";
 
 class FolderInfoProvider extends ChangeNotifier {
-  String title = '';
-  String description = '';
+  String title = "";
+  String description = "";
   final Set<String> _tags = {};
 
   Set<String> get tags => _tags;

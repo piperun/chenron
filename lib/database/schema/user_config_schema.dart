@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart';
+import "package:drift/drift.dart";
 
 class UserConfigs extends Table {
   TextColumn get id => text().withLength(min: 30, max: 60)();

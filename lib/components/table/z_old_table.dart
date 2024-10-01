@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import "package:flutter/material.dart";
 
 class FolderTable<T> extends StatefulWidget {
   final List<DataColumn> columns;
@@ -18,7 +18,7 @@ class _FolderTableState<T> extends State<FolderTable<T>> {
   @override
   Widget build(BuildContext context) {
     return PaginatedDataTable(
-      header: const Text('Dynamic Data Table'),
+      header: const Text("Dynamic Data Table"),
       columns: widget.columns,
       source: _DataTableSource(
         widget.rowData,

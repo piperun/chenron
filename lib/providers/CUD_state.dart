@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:chenron/models/cud.dart';
+import "package:flutter/material.dart";
+import "package:chenron/models/cud.dart";
 
 class CUDProvider<T> extends ChangeNotifier {
   final CUD<T> _cud = CUD<T>();

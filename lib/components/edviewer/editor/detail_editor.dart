@@ -1,14 +1,14 @@
-import 'package:chenron/convert/folder_item_convert.dart';
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:pluto_grid/pluto_grid.dart';
-import 'package:provider/provider.dart';
-import 'package:chenron/models/cud.dart';
-import 'package:chenron/models/item.dart';
-import 'package:chenron/database/database.dart';
-import 'package:chenron/database/extensions/folder/read.dart';
-import 'package:chenron/database/extensions/folder/update.dart';
-import 'package:chenron/components/edviewer/editor/item_editor.dart';
+import "package:chenron/convert/folder_item_convert.dart";
+import "package:flutter/material.dart";
+import "package:intl/intl.dart";
+import "package:pluto_grid/pluto_grid.dart";
+import "package:provider/provider.dart";
+import "package:chenron/models/cud.dart";
+import "package:chenron/models/item.dart";
+import "package:chenron/database/database.dart";
+import "package:chenron/database/extensions/folder/read.dart";
+import "package:chenron/database/extensions/folder/update.dart";
+import "package:chenron/components/edviewer/editor/item_editor.dart";
 
 class DetailEditor extends StatefulWidget {
   final FolderResult? currentData;
@@ -28,14 +28,14 @@ class _DetailEditorState extends State<DetailEditor> {
   final TextEditingController _descriptionController = TextEditingController();
   final List<PlutoColumn> columns = [
     PlutoColumn(
-      title: 'URL',
-      field: 'url',
+      title: "URL",
+      field: "url",
       type: PlutoColumnType.text(),
       enableRowChecked: true,
     ),
     PlutoColumn(
-        title: 'Added',
-        field: 'createdAt',
+        title: "Added",
+        field: "createdAt",
         type: PlutoColumnType.text(),
         enableEditingMode: false),
   ];
@@ -44,8 +44,8 @@ class _DetailEditorState extends State<DetailEditor> {
     super.initState();
     _titleController.addListener(_updateChangesState);
     _descriptionController.addListener(_updateChangesState);
-    _titleController.text = widget.currentData?.folder.title ?? '';
-    _descriptionController.text = widget.currentData?.folder.description ?? '';
+    _titleController.text = widget.currentData?.folder.title ?? "";
+    _descriptionController.text = widget.currentData?.folder.description ?? "";
   }
 
   CUD<FolderItem> cudItems = CUD<FolderItem>();
@@ -57,16 +57,16 @@ class _DetailEditorState extends State<DetailEditor> {
         final link = folderItems[index];
         final String linkDate;
         if (link.createdAt != null) {
-          linkDate = DateFormat('yyyy-MM-dd HH:mm:ss').format(link.createdAt!);
+          linkDate = DateFormat("yyyy-MM-dd HH:mm:ss").format(link.createdAt!);
         } else {
-          linkDate = '';
+          linkDate = "";
         }
 
         return PlutoRow(
           cells: {
-            'id': PlutoCell(value: link.id),
-            'url': PlutoCell(value: convertItemToString(link.content)),
-            'createdAt': PlutoCell(
+            "id": PlutoCell(value: link.id),
+            "url": PlutoCell(value: convertItemToString(link.content)),
+            "createdAt": PlutoCell(
               value: linkDate,
             )
           },
@@ -79,9 +79,9 @@ class _DetailEditorState extends State<DetailEditor> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Folder Details'), actions: [
+      appBar: AppBar(title: const Text("Folder Details"), actions: [
         TextButton.icon(
-          label: const Text('Save'),
+          label: const Text("Save"),
           icon: const Icon(Icons.save),
           onPressed: _hasChanges
               ? () {
@@ -99,13 +99,13 @@ class _DetailEditorState extends State<DetailEditor> {
                 TextField(
                   controller: _titleController,
                   decoration: const InputDecoration(
-                    labelText: 'Title',
+                    labelText: "Title",
                   ),
                 ),
                 TextField(
                   controller: _descriptionController,
                   decoration: const InputDecoration(
-                    labelText: 'Description',
+                    labelText: "Description",
                   ),
                 ),
                 ItemEditor(
@@ -157,14 +157,14 @@ class _DetailEditorState extends State<DetailEditor> {
       });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Changes saved successfully'),
+          content: Text("Changes saved successfully"),
           backgroundColor: Colors.green,
         ),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to save changes: ${e.toString()}'),
+          content: Text("Failed to save changes: ${e.toString()}"),
           backgroundColor: Colors.red,
         ),
       );

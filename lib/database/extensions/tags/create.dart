@@ -1,6 +1,6 @@
-import 'package:chenron/database/database.dart';
-import 'package:cuid2/cuid2.dart';
-import 'package:drift/drift.dart';
+import "package:chenron/database/database.dart";
+import "package:cuid2/cuid2.dart";
+import "package:drift/drift.dart";
 
 extension TagExtensions on AppDatabase {
   Future<String> addTag(String tagName) async {

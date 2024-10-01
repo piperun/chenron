@@ -1,9 +1,9 @@
-import 'package:chenron/database/database.dart';
-import 'package:logging/logging.dart';
-import 'package:drift/drift.dart';
+import "package:chenron/database/database.dart";
+import "package:logging/logging.dart";
+import "package:drift/drift.dart";
 
 extension UserConfigUpdateExtensions on ConfigDatabase {
-  static final Logger _logger = Logger('UserConfig Update Database');
+  static final Logger _logger = Logger("UserConfig Update Database");
   Future<void> updateUserConfig({
     required String id,
     bool? darkMode,
@@ -26,9 +26,9 @@ extension UserConfigUpdateExtensions on ConfigDatabase {
         );
 
         await _updateUserConfigEntry(id, updatedUserConfig);
-        _logger.info('User config updated successfully');
+        _logger.info("User config updated successfully");
       } catch (e) {
-        _logger.severe('Error updating user config: $e');
+        _logger.severe("Error updating user config: $e");
         rethrow;
       }
     });

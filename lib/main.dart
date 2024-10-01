@@ -1,17 +1,17 @@
-import 'package:chenron/models/item.dart';
-import 'package:chenron/database/database.dart';
-import 'package:chenron/providers/create_state.dart';
-import 'package:chenron/providers/cud_state.dart';
-import 'package:chenron/providers/folder_info_state.dart';
-import 'package:chenron/root.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import "package:chenron/models/item.dart";
+import "package:chenron/database/database.dart";
+import "package:chenron/providers/create_state.dart";
+import "package:chenron/providers/cud_state.dart";
+import "package:chenron/providers/folder_info_state.dart";
+import "package:chenron/root.dart";
+import "package:flutter/material.dart";
+import "package:provider/provider.dart";
 
 void main() async {
   runApp(MultiProvider(providers: [
     Provider<AppDatabase>(
       create: (context) => AppDatabase(
-          queryExecutor: null, databaseName: 'chenron_db', setupOnInit: true),
+          queryExecutor: null, databaseName: "chenron_db", setupOnInit: true),
       dispose: (context, db) => db.close(),
     ),
     Provider<ConfigDatabase>(
@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: "Flutter Demo",
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -50,7 +50,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: "Flutter Demo Home Page"),
     );
   }
 }

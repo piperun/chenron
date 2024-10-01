@@ -1,15 +1,15 @@
 class TestData {
   static final List<String> urls = [
-    'https://www.google.com',
-    'https://www.youtube.com',
-    'https://www.github.com',
-    'https://www.stackoverflow.com',
-    'https://www.amazon.com',
-    'https://www.twitter.com',
-    'https://www.netflix.com',
-    'https://www.apple.com',
-    'https://www.microsoft.com',
-    'https://www.wikipedia.org',
+    "https://www.google.com",
+    "https://www.youtube.com",
+    "https://www.github.com",
+    "https://www.stackoverflow.com",
+    "https://www.amazon.com",
+    "https://www.twitter.com",
+    "https://www.netflix.com",
+    "https://www.apple.com",
+    "https://www.microsoft.com",
+    "https://www.wikipedia.org",
   ];
 
   static const String smallText =

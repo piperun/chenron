@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import "package:flutter/material.dart";
 
 class TagBody extends StatelessWidget {
   final Set<String> tags;
@@ -11,7 +11,7 @@ class TagBody extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Tags',
+              const Text("Tags",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               TagsList(tags: tags),

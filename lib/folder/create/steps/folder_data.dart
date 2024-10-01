@@ -1,6 +1,6 @@
-import 'package:chenron/components/forms/link_form.dart';
-import 'package:chenron/folder/create/steps/folder_info.dart';
-import 'package:flutter/material.dart';
+import "package:chenron/components/forms/link_form.dart";
+import "package:chenron/folder/create/steps/folder_info.dart";
+import "package:flutter/material.dart";
 
 class FolderData extends StatefulWidget {
   final GlobalKey<FormState> dataKey;

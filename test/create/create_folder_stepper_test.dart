@@ -1,17 +1,17 @@
-import 'package:chenron/models/item.dart';
-import 'package:chenron/folder/create/steps/folder_info.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:provider/provider.dart';
-import 'package:chenron/folder/create/create_stepper.dart';
-import 'package:chenron/providers/create_state.dart';
-import 'package:chenron/providers/cud_state.dart';
-import 'package:chenron/providers/folder_info_state.dart';
-import 'package:chenron/database/database.dart';
+import "package:chenron/models/item.dart";
+import "package:chenron/folder/create/steps/folder_info.dart";
+import "package:flutter/material.dart";
+import "package:flutter_test/flutter_test.dart";
+import "package:provider/provider.dart";
+import "package:chenron/folder/create/create_stepper.dart";
+import "package:chenron/providers/create_state.dart";
+import "package:chenron/providers/cud_state.dart";
+import "package:chenron/providers/folder_info_state.dart";
+import "package:chenron/database/database.dart";
 
 void main() {
-  group('CreateFolderStepper Widget Tests', () {
-    testWidgets('CreateFolderStepper initializes correctly',
+  group("CreateFolderStepper Widget Tests", () {
+    testWidgets("CreateFolderStepper initializes correctly",
         (WidgetTester tester) async {
       await tester.pumpWidget(
         MultiProvider(
@@ -26,12 +26,12 @@ void main() {
       );
 
       expect(find.byType(Stepper), findsOneWidget);
-      expect(find.text('Folder'), findsOneWidget);
-      expect(find.text('Data'), findsOneWidget);
-      expect(find.text('Preview'), findsOneWidget);
+      expect(find.text("Folder"), findsOneWidget);
+      expect(find.text("Data"), findsOneWidget);
+      expect(find.text("Preview"), findsOneWidget);
     });
 
-    testWidgets('Next button advances to next step',
+    testWidgets("Next button advances to next step",
         (WidgetTester tester) async {
       await tester.pumpWidget(
         MultiProvider(
@@ -45,14 +45,14 @@ void main() {
         ),
       );
 
-      expect(find.text('Next'), findsOneWidget);
-      await tester.tap(find.text('Next'));
+      expect(find.text("Next"), findsOneWidget);
+      await tester.tap(find.text("Next"));
       await tester.pumpAndSettle();
 
-      expect(find.text('Data'), findsOneWidget);
+      expect(find.text("Data"), findsOneWidget);
     });
 
-    testWidgets('Previous button not visible on first step',
+    testWidgets("Previous button not visible on first step",
         (WidgetTester tester) async {
       await tester.pumpWidget(
         MultiProvider(
@@ -65,10 +65,10 @@ void main() {
           child: const MaterialApp(home: CreateFolderStepper()),
         ),
       );
-      expect(find.text('Previous'), findsNothing);
+      expect(find.text("Previous"), findsNothing);
     });
 
-    testWidgets('Next button does nothing when current step is invalid',
+    testWidgets("Next button does nothing when current step is invalid",
         (WidgetTester tester) async {
       await tester.pumpWidget(
         MultiProvider(
@@ -88,15 +88,15 @@ void main() {
           listen: false);
       final int initialStepIndex = folderState.currentStep.index;
 
-      await tester.tap(find.text('Next'));
+      await tester.tap(find.text("Next"));
       await tester.pumpAndSettle();
 
       expect(folderState.currentStep.index, equals(initialStepIndex));
     });
   });
 
-  group('FolderInfo Step Tests', () {
-    testWidgets('FolderInfo step is initially visible',
+  group("FolderInfo Step Tests", () {
+    testWidgets("FolderInfo step is initially visible",
         (WidgetTester tester) async {
       await tester.pumpWidget(
         MultiProvider(
@@ -111,10 +111,10 @@ void main() {
       );
 
       expect(find.byType(FolderInfoStep), findsOneWidget);
-      expect(find.text('Folder'), findsOneWidget);
+      expect(find.text("Folder"), findsOneWidget);
     });
 
-    testWidgets('FolderInfo step validates input', (WidgetTester tester) async {
+    testWidgets("FolderInfo step validates input", (WidgetTester tester) async {
       await tester.pumpWidget(
         MultiProvider(
           providers: [
@@ -126,10 +126,10 @@ void main() {
           child: const MaterialApp(home: CreateFolderStepper()),
         ),
       );
-      expect(find.text('Title'), findsOneWidget);
+      expect(find.text("Title"), findsOneWidget);
     });
 
-    testWidgets('FolderInfo step updates FolderInfoProvider',
+    testWidgets("FolderInfo step updates FolderInfoProvider",
         (WidgetTester tester) async {
       await tester.pumpWidget(
         MultiProvider(
@@ -143,15 +143,15 @@ void main() {
         ),
       );
 
-      await tester.enterText(find.byType(TextFormField).first, 'Test Folder');
+      await tester.enterText(find.byType(TextFormField).first, "Test Folder");
       await tester.enterText(
-          find.byType(TextFormField).last, 'Test Description');
+          find.byType(TextFormField).last, "Test Description");
 
       final folderInfoProvider = Provider.of<FolderInfoProvider>(
           tester.element(find.byType(CreateFolderStepper)),
           listen: false);
-      expect(folderInfoProvider.title, equals('Test Folder'));
-      expect(folderInfoProvider.description, equals('Test Description'));
+      expect(folderInfoProvider.title, equals("Test Folder"));
+      expect(folderInfoProvider.description, equals("Test Description"));
     });
   });
 }

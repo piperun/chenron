@@ -1,14 +1,14 @@
-import 'package:chenron/components/metadata_comp.dart';
-import 'package:chenron/models/item.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:logging/logging.dart';
-import 'package:provider/provider.dart';
-import 'package:chenron/database/database.dart';
-import 'package:chenron/database/extensions/folder/read.dart';
-import 'package:chenron/components/edviewer/viewer/detail_viewer.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:favicon/favicon.dart';
+import "package:chenron/components/metadata_comp.dart";
+import "package:chenron/models/item.dart";
+import "package:flutter/material.dart";
+import "package:flutter_svg/flutter_svg.dart";
+import "package:logging/logging.dart";
+import "package:provider/provider.dart";
+import "package:chenron/database/database.dart";
+import "package:chenron/database/extensions/folder/read.dart";
+import "package:chenron/components/edviewer/viewer/detail_viewer.dart";
+import "package:url_launcher/url_launcher.dart";
+import "package:favicon/favicon.dart";
 
 class FolderDetailView extends StatelessWidget {
   final String folderId;
@@ -41,9 +41,9 @@ class ContentTile extends StatelessWidget {
       case StringContent stringContent:
         return stringContent.value;
       case MapContent mapContent:
-        return mapContent.value['title'] ?? '';
+        return mapContent.value["title"] ?? "";
       default:
-        return '';
+        return "";
     }
   }
 
@@ -92,7 +92,7 @@ class Favicon extends StatelessWidget {
       future: _getFavIconUrl(url),
       builder: (context, snapshot) {
         if (snapshot.hasData && snapshot.data != null) {
-          if (snapshot.data!.endsWith('svg')) {
+          if (snapshot.data!.endsWith("svg")) {
             return SvgPicture.network(snapshot.data!);
           } else {
             return Image.network(snapshot.data!);
@@ -117,6 +117,6 @@ void _launchURL(Uri url) async {
   if (await canLaunchUrl(url)) {
     await launchUrl(url);
   } else {
-    throw ('Could not launch $url');
+    throw ("Could not launch $url");
   }
 }

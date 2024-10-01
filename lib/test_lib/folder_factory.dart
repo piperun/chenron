@@ -1,6 +1,6 @@
-import 'package:chenron/models/folder.dart';
-import 'package:chenron/models/item.dart';
-import 'package:chenron/models/metadata.dart';
+import "package:chenron/models/folder.dart";
+import "package:chenron/models/item.dart";
+import "package:chenron/models/metadata.dart";
 
 class FolderTestData {
   final FolderInfo folder;
@@ -49,18 +49,18 @@ class FolderItemFactory {
   static FolderItem createDocument(String title, String body) {
     return FolderItem(
         type: FolderItemType.document,
-        content: MapContent({'title': title, 'body': body}));
+        content: MapContent({"title": title, "body": body}));
   }
 
   static List<FolderItem> createItems(List<Map<String, dynamic>> itemsData) {
     return itemsData.map((item) {
-      if (item['type'] == 'link') {
-        return createLink(item['content']);
-      } else if (item['type'] == 'document') {
+      if (item["type"] == "link") {
+        return createLink(item["content"]);
+      } else if (item["type"] == "document") {
         return createDocument(
-            item['content']['title'], item['content']['body']);
+            item["content"]["title"], item["content"]["body"]);
       }
-      throw ArgumentError('Invalid item type');
+      throw ArgumentError("Invalid item type");
     }).toList();
   }
 }

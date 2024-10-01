@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:chenron/responsible_design/breakpoints.dart';
+import "package:flutter/material.dart";
+import "package:chenron/responsible_design/breakpoints.dart";
 
 class ResponsiveValue<T> {
   final T xs;

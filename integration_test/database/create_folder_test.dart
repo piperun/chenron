@@ -1,28 +1,28 @@
-import 'dart:convert';
+import "dart:convert";
 
-import 'package:chenron/models/folder_results.dart';
-import 'package:chenron/models/item.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:integration_test/integration_test.dart';
-import 'package:chenron/database/database.dart';
-import 'package:chenron/database/extensions/folder/create.dart';
-import 'package:chenron/test_lib/folder_factory.dart';
+import "package:chenron/models/folder_results.dart";
+import "package:chenron/models/item.dart";
+import "package:flutter_test/flutter_test.dart";
+import "package:integration_test/integration_test.dart";
+import "package:chenron/database/database.dart";
+import "package:chenron/database/extensions/folder/create.dart";
+import "package:chenron/test_lib/folder_factory.dart";
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   late AppDatabase database;
   setUp(() {
-    database = AppDatabase(setupOnInit: true, databaseName: 'test_db');
+    database = AppDatabase(setupOnInit: true, databaseName: "test_db");
   });
   tearDown(() async {
     await database.close();
   });
 
-  group('createFolder', () {
-    test('create folder without tags and items', () async {
+  group("createFolder", () {
+    test("create folder without tags and items", () async {
       final folderData = FolderTestDataFactory.create(
-        title: 'Empty Folder',
-        description: 'No tags or items',
+        title: "Empty Folder",
+        description: "No tags or items",
         tagValues: [],
         itemsData: [],
       );
@@ -32,7 +32,7 @@ void main() {
             ..where((tbl) => tbl.id.equals(result.folderId!)))
           .get();
       expect(folderResult.length, 1);
-      expect(folderResult.first.title, 'Empty Folder');
+      expect(folderResult.first.title, "Empty Folder");
 
       final tagResult = await (database.select(database.metadataRecords)
             ..where(
@@ -55,11 +55,11 @@ void main() {
           .get();
       expect(docResult.length, 0);
     });
-    test('create folder with tags only', () async {
+    test("create folder with tags only", () async {
       final folderData = FolderTestDataFactory.create(
-        title: 'Tagged Folder',
-        description: 'Folder with tags only',
-        tagValues: ['tag1', 'tag2', 'tag3'],
+        title: "Tagged Folder",
+        description: "Folder with tags only",
+        tagValues: ["tag1", "tag2", "tag3"],
         itemsData: [],
       );
 
@@ -70,7 +70,7 @@ void main() {
             ..where((tbl) => tbl.id.equals(result.folderId!)))
           .get();
       expect(folderResult.length, 1);
-      expect(folderResult.first.title, 'Tagged Folder');
+      expect(folderResult.first.title, "Tagged Folder");
 
       final metadataResults = await (database.select(database.metadataRecords)
             ..where((tbl) => tbl.itemId.equals(result.folderId!)))
@@ -95,16 +95,16 @@ void main() {
       expect(itemResult.length, 0);
     });
 
-    test('create folder with tags and items', () async {
+    test("create folder with tags and items", () async {
       final folderData = FolderTestDataFactory.create(
-        title: 'Item folder',
-        description: 'Testing if we can create folder with tags and items',
-        tagValues: ['tag1', 'tag2'],
+        title: "Item folder",
+        description: "Testing if we can create folder with tags and items",
+        tagValues: ["tag1", "tag2"],
         itemsData: [
-          {'type': 'link', 'content': 'https://example.com'},
+          {"type": "link", "content": "https://example.com"},
           {
-            'type': 'document',
-            'content': {'title': 'Test document', 'body': 'Blablabla'}
+            "type": "document",
+            "content": {"title": "Test document", "body": "Blablabla"}
           },
         ],
       );
@@ -141,7 +141,7 @@ void main() {
             final documentResult = await (database.select(database.documents)
                   ..where(
                     (tbl) =>
-                        tbl.content.equals(utf8.encode(content.value['body']!)),
+                        tbl.content.equals(utf8.encode(content.value["body"]!)),
                   ))
                 .get();
             expect(documentResult.first.id, item.itemId);
@@ -169,35 +169,35 @@ void _verifyListContains(List<String> fetchedIds, List<String> expectedIds) {
 
 void _verifyItemIds(List<Item> fetchResults, List<ItemResults> returnResults) {
   final fetchedIds = {
-    'linkIds': fetchResults
+    "linkIds": fetchResults
         .where((item) => item.typeId == FolderItemType.link.index)
         .map((item) => item.itemId)
         .toSet(),
-    'documentIds': fetchResults
+    "documentIds": fetchResults
         .where((item) => item.typeId == FolderItemType.document.index)
         .map((item) => item.itemId)
         .toSet(),
-    'itemIds': fetchResults.map((item) => item.id).toSet(),
+    "itemIds": fetchResults.map((item) => item.id).toSet(),
   };
 
   final expectedIds = {
-    'linkIds': returnResults
+    "linkIds": returnResults
         .map((result) => result.linkId)
         .whereType<String>()
         .toSet(),
-    'documentIds': returnResults
+    "documentIds": returnResults
         .map((result) => result.documentId)
         .whereType<String>()
         .toSet(),
-    'itemIds': returnResults
+    "itemIds": returnResults
         .map((result) => result.itemId)
         .whereType<String>()
         .toSet(),
   };
 
-  for (final idType in ['linkIds', 'documentIds', 'itemIds']) {
+  for (final idType in ["linkIds", "documentIds", "itemIds"]) {
     expect(fetchedIds[idType], equals(expectedIds[idType]),
-        reason: 'Mismatch in $idType.\n'
+        reason: "Mismatch in $idType.\n"
             'Expected: ${expectedIds[idType]!.join(", ")}\n'
             'Actual: ${fetchedIds[idType]!.join(", ")}');
   }

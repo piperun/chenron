@@ -1,13 +1,13 @@
-import 'package:chenron/database/extensions/folder/create.dart';
-import 'package:chenron/database/extensions/id.dart';
-import 'package:chenron/models/folder_results.dart';
-import 'package:chenron/models/item.dart';
-import 'package:chenron/models/metadata.dart';
-import 'package:chenron/database/extensions/insert_ext.dart';
-import 'package:drift/drift.dart';
-import 'package:chenron/models/cud.dart';
-import 'package:chenron/database/database.dart';
-import 'package:chenron/database/actions/batch.dart';
+import "package:chenron/database/extensions/folder/create.dart";
+import "package:chenron/database/extensions/id.dart";
+import "package:chenron/models/folder_results.dart";
+import "package:chenron/models/item.dart";
+import "package:chenron/models/metadata.dart";
+import "package:chenron/database/extensions/insert_ext.dart";
+import "package:drift/drift.dart";
+import "package:chenron/models/cud.dart";
+import "package:chenron/database/database.dart";
+import "package:chenron/database/actions/batch.dart";
 
 extension FolderExtensions on AppDatabase {
   Future<void> updateFolder(String folderId,
@@ -76,13 +76,13 @@ extension FolderExtensions on AppDatabase {
   Future<Map<String, List<ItemResults>>> _updateFolderContent(
       String folderId, CUD<FolderItem> itemUpdates) async {
     Map<String, List<ItemResults>> itemUpdateResults = {
-      'create': [],
-      'update': [],
-      'remove': []
+      "create": [],
+      "update": [],
+      "remove": []
     };
     if (itemUpdates.create.isNotEmpty) {
       await batch((batch) async {
-        itemUpdateResults['create'] = await insertFolderItems(
+        itemUpdateResults["create"] = await insertFolderItems(
             batch: batch, folderId: folderId, itemInserts: itemUpdates.create);
       });
     }
@@ -102,7 +102,7 @@ extension FolderExtensions on AppDatabase {
               typeId: itemUpdate.type.index,
             ),
           );
-          itemUpdateResults['update']?.add(ItemResults(itemId: id));
+          itemUpdateResults["update"]?.add(ItemResults(itemId: id));
         }
       });
     }
@@ -120,7 +120,7 @@ extension FolderExtensions on AppDatabase {
             return findFolderId & findItemId;});
             */
           //(tbl) => tbl.folderId.equals(folderId));
-          itemUpdateResults['update']?.add(ItemResults(itemId: itemId));
+          itemUpdateResults["update"]?.add(ItemResults(itemId: itemId));
         }
       });
     }

@@ -1,12 +1,12 @@
-import 'dart:convert';
+import "dart:convert";
 
-import 'package:chenron/database/extensions/user_config/read.dart';
-import 'package:chenron/database/extensions/user_config/update.dart';
-import 'package:flutter/material.dart';
-import 'package:chenron/database/database.dart';
-import 'package:chenron/models/user_config.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-import 'package:provider/provider.dart';
+import "package:chenron/database/extensions/user_config/read.dart";
+import "package:chenron/database/extensions/user_config/update.dart";
+import "package:flutter/material.dart";
+import "package:chenron/database/database.dart";
+import "package:chenron/models/user_config.dart";
+import "package:flutter_colorpicker/flutter_colorpicker.dart";
+import "package:provider/provider.dart";
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -19,11 +19,11 @@ class SettingsPage extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
+          return Center(child: Text("Error: ${snapshot.error}"));
         } else if (snapshot.hasData) {
           return SettingsContent(userConfig: snapshot.data!);
         } else {
-          return const Center(child: Text('No user config found'));
+          return const Center(child: Text("No user config found"));
         }
       },
     );
@@ -35,7 +35,7 @@ class SettingsPage extends StatelessWidget {
     return UserConfigModel(
         id: config?.id,
         darkMode: config?.darkMode,
-        colorScheme: Map.castFrom(json.decode(config?.colorScheme ?? '{}')),
+        colorScheme: Map.castFrom(json.decode(config?.colorScheme ?? "{}")),
         archiveOrgS3AccessKey: config?.archiveOrgS3AccessKey,
         archiveOrgS3SecretKey: config?.archiveOrgS3SecretKey);
   }
@@ -64,20 +64,20 @@ class _SettingsContentState extends State<SettingsContent> {
     } else {
       _isDarkMode = false;
     }
-    _primaryColor = widget.userConfig.colorScheme?['primary'] != null
-        ? Color(widget.userConfig.colorScheme!['primary'])
+    _primaryColor = widget.userConfig.colorScheme?["primary"] != null
+        ? Color(widget.userConfig.colorScheme!["primary"])
         : Colors.blue;
     _accessKeyController = TextEditingController(
-        text: widget.userConfig.archiveOrgS3AccessKey ?? '');
+        text: widget.userConfig.archiveOrgS3AccessKey ?? "");
     _secretKeyController = TextEditingController(
-        text: widget.userConfig.archiveOrgS3SecretKey ?? '');
+        text: widget.userConfig.archiveOrgS3SecretKey ?? "");
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: const Text("Settings"),
         backgroundColor: _primaryColor,
       ),
       body: SingleChildScrollView(
@@ -86,7 +86,7 @@ class _SettingsContentState extends State<SettingsContent> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSectionTitle('Appearance'),
+              _buildSectionTitle("Appearance"),
               DarkModeSwitch(
                 isDarkMode: _isDarkMode,
                 onChanged: (value) => setState(() => _isDarkMode = value),
@@ -97,12 +97,12 @@ class _SettingsContentState extends State<SettingsContent> {
                     setState(() => _primaryColor = color),
               ),
               const SizedBox(height: 24),
-              _buildSectionTitle('Archive.org Credentials'),
+              _buildSectionTitle("Archive.org Credentials"),
               CredentialTextField(
-                  controller: _accessKeyController, label: 'Access Key'),
+                  controller: _accessKeyController, label: "Access Key"),
               CredentialTextField(
                   controller: _secretKeyController,
-                  label: 'Secret Key',
+                  label: "Secret Key",
                   isPassword: true),
               const SizedBox(height: 24),
               SaveSettingsButton(
@@ -132,12 +132,12 @@ class _SettingsContentState extends State<SettingsContent> {
       database.updateUserConfig(
         id: widget.userConfig.id!,
         darkMode: _isDarkMode,
-        colorScheme: json.encode({'primary': _primaryColor.value}),
+        colorScheme: json.encode({"primary": _primaryColor.value}),
         archiveOrgS3AccessKey: _accessKeyController.text,
         archiveOrgS3SecretKey: _secretKeyController.text,
       );
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Settings saved successfully!')),
+        const SnackBar(content: Text("Settings saved successfully!")),
       );
     }
   }
@@ -153,7 +153,7 @@ class DarkModeSwitch extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SwitchListTile(
-      title: const Text('Dark Mode'),
+      title: const Text("Dark Mode"),
       value: isDarkMode,
       onChanged: onChanged,
       secondary: const Icon(Icons.brightness_4),
@@ -171,7 +171,7 @@ class ColorPickerTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      title: const Text('Primary Color'),
+      title: const Text("Primary Color"),
       trailing: CircleAvatar(
         backgroundColor: primaryColor,
         radius: 15,
@@ -185,7 +185,7 @@ class ColorPickerTile extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Pick a color'),
+          title: const Text("Pick a color"),
           content: SingleChildScrollView(
             child: ColorPicker(
               pickerColor: primaryColor,
@@ -195,7 +195,7 @@ class ColorPickerTile extends StatelessWidget {
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Done'),
+              child: const Text("Done"),
               onPressed: () => Navigator.of(context).pop(),
             ),
           ],
@@ -250,7 +250,7 @@ class SaveSettingsButton extends StatelessWidget {
           backgroundColor: primaryColor,
           padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
         ),
-        child: const Text('Save Settings'),
+        child: const Text("Save Settings"),
       ),
     );
   }

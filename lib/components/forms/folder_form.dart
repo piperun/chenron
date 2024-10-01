@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import "package:flutter/material.dart";
 
 class FolderForm extends StatefulWidget {
   final Function addItem;
@@ -13,7 +13,7 @@ class _FolderFormState extends State<FolderForm> {
   bool folderLayout = true;
   final TextEditingController _searchController = TextEditingController();
   List<String> allFolders =
-      List.generate(20, (index) => 'Folder $index'); // Example data
+      List.generate(20, (index) => "Folder $index"); // Example data
   List<String> filteredFolders = [];
   Set<String> selectedFolders = <String>{};
 
@@ -61,7 +61,7 @@ class _FolderFormState extends State<FolderForm> {
                 child: TextField(
                   controller: _searchController,
                   decoration: const InputDecoration(
-                    labelText: 'Search Folders',
+                    labelText: "Search Folders",
                     prefixIcon: Icon(Icons.search),
                   ),
                   onChanged: _filterFolders,
@@ -78,14 +78,14 @@ class _FolderFormState extends State<FolderForm> {
         ElevatedButton(
           onPressed: () {
             widget.addItem(
-                {'type': 'Folder', 'data': selectedFolders.join(', ')});
+                {"type": "Folder", "data": selectedFolders.join(", ")});
             setState(() {
               selectedFolders.clear();
               _searchController.clear();
               filteredFolders = allFolders;
             });
           },
-          child: const Text('Add Selected Folders'),
+          child: const Text("Add Selected Folders"),
         ),
         const Divider(),
         Flexible(
