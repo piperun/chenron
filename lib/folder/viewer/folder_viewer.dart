@@ -1,3 +1,4 @@
+import "package:chenron/components/buttons/small_button.dart";
 import "package:chenron/database/database.dart";
 import "package:chenron/database/extensions/folder/read.dart";
 import "package:chenron/folder/editor.dart";
@@ -56,7 +57,7 @@ class _FolderViewSlugState extends State<FolderViewSlug> {
         builder: (context, viewModel, child) {
           return Scaffold(
             appBar: AppBar(
-              title: const Text("All Folders"),
+              title: const Text("Folders"),
               actions: [
                 IconButton(
                   icon:
@@ -191,8 +192,37 @@ class TagList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Wrap(
-      spacing: 8,
-      children: tags.map((tag) => Chip(label: Text(tag.name))).toList(),
+      spacing: 4,
+      runSpacing: 4,
+      children: tags.map((tag) {
+        final color =
+            Colors.primaries[tag.name.hashCode % Colors.primaries.length];
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            return Container(
+              constraints: BoxConstraints(
+                maxWidth: constraints.maxWidth / 3,
+                minHeight: 20,
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: color, width: 1),
+              ),
+              child: Text(
+                tag.name,
+                style: TextStyle(
+                  color: color.shade700,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            );
+          },
+        );
+      }).toList(),
     );
   }
 }
@@ -209,14 +239,41 @@ class GridFolderView extends StatelessWidget {
     required this.controller,
   });
 
+//FIXME: refactor this for the love of god.
   @override
   Widget build(BuildContext context) {
     return GridLayout<FolderResult>(
       items: folders,
       itemBuilder: (context, folder) {
-        return FolderGridItem(
-          folder: folder,
-          onEditTap: () => controller.onEditTap(context, folder),
+        return GridItem(
+          onTap: () => controller.onFolderTap(context, folder),
+          header: GridHeader(
+            leading: Text(folder.folder.title),
+            trailing: Wrap(
+              children: [
+                SmallButton(
+                  onPressed: () => controller.onEditTap(context, folder),
+                  icon: Icons.edit,
+                  label: "Edit",
+                  iconSize: 16,
+                  fontSize: 12,
+                  foregroundColor: Theme.of(context).colorScheme.primary,
+                ),
+                ClipRect(
+                    child: Checkbox(
+                  value: viewModel.selectedFolders.contains(folder.folder.id),
+                  onChanged: (bool? value) =>
+                      controller.onFolderToggle(folder.folder.id),
+                )),
+              ],
+            ),
+          ),
+          body: Text(folder.folder.description),
+          footer: GridFooter(
+            main: TagList(
+              tags: folder.tags,
+            ),
+          ),
         );
       },
     );
@@ -251,34 +308,12 @@ class ListFolderView extends StatelessWidget {
   }
 }
 
-class FolderGridItem extends StatelessWidget {
-  final FolderResult folder;
-  final VoidCallback onEditTap;
-
-  const FolderGridItem({
-    super.key,
-    required this.folder,
-    required this.onEditTap,
-  });
+class ViewerItem extends StatelessWidget {
+  const ViewerItem({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(folder.folder.title),
-        if (folder.tags.isNotEmpty)
-          Wrap(
-            children:
-                folder.tags.map((tag) => Chip(label: Text(tag.name))).toList(),
-          ),
-        TextButton.icon(
-          onPressed: onEditTap,
-          icon: const Icon(Icons.edit),
-          label: const Text("Edit"),
-        )
-      ],
-    );
+    return const Placeholder();
   }
 }
 
