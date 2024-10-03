@@ -13,6 +13,7 @@ extension ConfigDatabaseInit on ConfigDatabase {
       final defaultConfig = UserConfig(
         id: cuidSecure(30),
         darkMode: false,
+        archiveEnabled: false,
         colorScheme: null,
         archiveOrgS3AccessKey: null,
         archiveOrgS3SecretKey: null,

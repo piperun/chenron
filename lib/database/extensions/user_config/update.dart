@@ -7,6 +7,7 @@ extension UserConfigUpdateExtensions on ConfigDatabase {
   Future<void> updateUserConfig({
     required String id,
     bool? darkMode,
+    bool? archiveEnabled,
     String? colorScheme,
     String? archiveOrgS3AccessKey,
     String? archiveOrgS3SecretKey,
@@ -15,6 +16,9 @@ extension UserConfigUpdateExtensions on ConfigDatabase {
       try {
         final updatedUserConfig = UserConfigsCompanion(
           darkMode: darkMode != null ? Value(darkMode) : const Value.absent(),
+          archiveEnabled: archiveEnabled != null
+              ? Value(archiveEnabled)
+              : const Value.absent(),
           colorScheme:
               colorScheme != null ? Value(colorScheme) : const Value.absent(),
           archiveOrgS3AccessKey: archiveOrgS3AccessKey != null

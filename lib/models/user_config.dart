@@ -6,6 +6,7 @@ import "package:drift/drift.dart";
 class UserConfigModel {
   final String? id;
   final bool? darkMode;
+  final bool? archiveEnabled;
   final Map<String, dynamic>? colorScheme;
   final String? archiveOrgS3AccessKey;
   final String? archiveOrgS3SecretKey;
@@ -13,6 +14,7 @@ class UserConfigModel {
   UserConfigModel({
     this.id,
     this.darkMode,
+    this.archiveEnabled,
     this.colorScheme,
     this.archiveOrgS3AccessKey,
     this.archiveOrgS3SecretKey,

@@ -3633,6 +3633,16 @@ class $UserConfigsTable extends UserConfigs
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('CHECK ("dark_mode" IN (0, 1))'),
       defaultValue: const Constant(false));
+  static const VerificationMeta _archiveEnabledMeta =
+      const VerificationMeta('archiveEnabled');
+  @override
+  late final GeneratedColumn<bool> archiveEnabled = GeneratedColumn<bool>(
+      'archive_enabled', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("archive_enabled" IN (0, 1))'),
+      defaultValue: const Constant(true));
   static const VerificationMeta _colorSchemeMeta =
       const VerificationMeta('colorScheme');
   @override
@@ -3652,8 +3662,14 @@ class $UserConfigsTable extends UserConfigs
       GeneratedColumn<String>('archive_org_s3_secret_key', aliasedName, true,
           type: DriftSqlType.string, requiredDuringInsert: false);
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, darkMode, colorScheme, archiveOrgS3AccessKey, archiveOrgS3SecretKey];
+  List<GeneratedColumn> get $columns => [
+        id,
+        darkMode,
+        archiveEnabled,
+        colorScheme,
+        archiveOrgS3AccessKey,
+        archiveOrgS3SecretKey
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -3672,6 +3688,12 @@ class $UserConfigsTable extends UserConfigs
     if (data.containsKey('dark_mode')) {
       context.handle(_darkModeMeta,
           darkMode.isAcceptableOrUnknown(data['dark_mode']!, _darkModeMeta));
+    }
+    if (data.containsKey('archive_enabled')) {
+      context.handle(
+          _archiveEnabledMeta,
+          archiveEnabled.isAcceptableOrUnknown(
+              data['archive_enabled']!, _archiveEnabledMeta));
     }
     if (data.containsKey('color_scheme')) {
       context.handle(
@@ -3704,6 +3726,8 @@ class $UserConfigsTable extends UserConfigs
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
       darkMode: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}dark_mode'])!,
+      archiveEnabled: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}archive_enabled'])!,
       colorScheme: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}color_scheme']),
       archiveOrgS3AccessKey: attachedDatabase.typeMapping.read(
@@ -3724,12 +3748,14 @@ class $UserConfigsTable extends UserConfigs
 class UserConfig extends DataClass implements Insertable<UserConfig> {
   final String id;
   final bool darkMode;
+  final bool archiveEnabled;
   final String? colorScheme;
   final String? archiveOrgS3AccessKey;
   final String? archiveOrgS3SecretKey;
   const UserConfig(
       {required this.id,
       required this.darkMode,
+      required this.archiveEnabled,
       this.colorScheme,
       this.archiveOrgS3AccessKey,
       this.archiveOrgS3SecretKey});
@@ -3738,6 +3764,7 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     map['dark_mode'] = Variable<bool>(darkMode);
+    map['archive_enabled'] = Variable<bool>(archiveEnabled);
     if (!nullToAbsent || colorScheme != null) {
       map['color_scheme'] = Variable<String>(colorScheme);
     }
@@ -3756,6 +3783,7 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
     return UserConfigsCompanion(
       id: Value(id),
       darkMode: Value(darkMode),
+      archiveEnabled: Value(archiveEnabled),
       colorScheme: colorScheme == null && nullToAbsent
           ? const Value.absent()
           : Value(colorScheme),
@@ -3774,6 +3802,7 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
     return UserConfig(
       id: serializer.fromJson<String>(json['id']),
       darkMode: serializer.fromJson<bool>(json['darkMode']),
+      archiveEnabled: serializer.fromJson<bool>(json['archiveEnabled']),
       colorScheme: serializer.fromJson<String?>(json['colorScheme']),
       archiveOrgS3AccessKey:
           serializer.fromJson<String?>(json['archiveOrgS3AccessKey']),
@@ -3787,6 +3816,7 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
       'darkMode': serializer.toJson<bool>(darkMode),
+      'archiveEnabled': serializer.toJson<bool>(archiveEnabled),
       'colorScheme': serializer.toJson<String?>(colorScheme),
       'archiveOrgS3AccessKey':
           serializer.toJson<String?>(archiveOrgS3AccessKey),
@@ -3798,12 +3828,14 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
   UserConfig copyWith(
           {String? id,
           bool? darkMode,
+          bool? archiveEnabled,
           Value<String?> colorScheme = const Value.absent(),
           Value<String?> archiveOrgS3AccessKey = const Value.absent(),
           Value<String?> archiveOrgS3SecretKey = const Value.absent()}) =>
       UserConfig(
         id: id ?? this.id,
         darkMode: darkMode ?? this.darkMode,
+        archiveEnabled: archiveEnabled ?? this.archiveEnabled,
         colorScheme: colorScheme.present ? colorScheme.value : this.colorScheme,
         archiveOrgS3AccessKey: archiveOrgS3AccessKey.present
             ? archiveOrgS3AccessKey.value
@@ -3816,6 +3848,9 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
     return UserConfig(
       id: data.id.present ? data.id.value : this.id,
       darkMode: data.darkMode.present ? data.darkMode.value : this.darkMode,
+      archiveEnabled: data.archiveEnabled.present
+          ? data.archiveEnabled.value
+          : this.archiveEnabled,
       colorScheme:
           data.colorScheme.present ? data.colorScheme.value : this.colorScheme,
       archiveOrgS3AccessKey: data.archiveOrgS3AccessKey.present
@@ -3832,6 +3867,7 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
     return (StringBuffer('UserConfig(')
           ..write('id: $id, ')
           ..write('darkMode: $darkMode, ')
+          ..write('archiveEnabled: $archiveEnabled, ')
           ..write('colorScheme: $colorScheme, ')
           ..write('archiveOrgS3AccessKey: $archiveOrgS3AccessKey, ')
           ..write('archiveOrgS3SecretKey: $archiveOrgS3SecretKey')
@@ -3840,14 +3876,15 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
   }
 
   @override
-  int get hashCode => Object.hash(
-      id, darkMode, colorScheme, archiveOrgS3AccessKey, archiveOrgS3SecretKey);
+  int get hashCode => Object.hash(id, darkMode, archiveEnabled, colorScheme,
+      archiveOrgS3AccessKey, archiveOrgS3SecretKey);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is UserConfig &&
           other.id == this.id &&
           other.darkMode == this.darkMode &&
+          other.archiveEnabled == this.archiveEnabled &&
           other.colorScheme == this.colorScheme &&
           other.archiveOrgS3AccessKey == this.archiveOrgS3AccessKey &&
           other.archiveOrgS3SecretKey == this.archiveOrgS3SecretKey);
@@ -3856,6 +3893,7 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
 class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
   final Value<String> id;
   final Value<bool> darkMode;
+  final Value<bool> archiveEnabled;
   final Value<String?> colorScheme;
   final Value<String?> archiveOrgS3AccessKey;
   final Value<String?> archiveOrgS3SecretKey;
@@ -3863,6 +3901,7 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
   const UserConfigsCompanion({
     this.id = const Value.absent(),
     this.darkMode = const Value.absent(),
+    this.archiveEnabled = const Value.absent(),
     this.colorScheme = const Value.absent(),
     this.archiveOrgS3AccessKey = const Value.absent(),
     this.archiveOrgS3SecretKey = const Value.absent(),
@@ -3871,6 +3910,7 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
   UserConfigsCompanion.insert({
     required String id,
     this.darkMode = const Value.absent(),
+    this.archiveEnabled = const Value.absent(),
     this.colorScheme = const Value.absent(),
     this.archiveOrgS3AccessKey = const Value.absent(),
     this.archiveOrgS3SecretKey = const Value.absent(),
@@ -3879,6 +3919,7 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
   static Insertable<UserConfig> custom({
     Expression<String>? id,
     Expression<bool>? darkMode,
+    Expression<bool>? archiveEnabled,
     Expression<String>? colorScheme,
     Expression<String>? archiveOrgS3AccessKey,
     Expression<String>? archiveOrgS3SecretKey,
@@ -3887,6 +3928,7 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (darkMode != null) 'dark_mode': darkMode,
+      if (archiveEnabled != null) 'archive_enabled': archiveEnabled,
       if (colorScheme != null) 'color_scheme': colorScheme,
       if (archiveOrgS3AccessKey != null)
         'archive_org_s3_access_key': archiveOrgS3AccessKey,
@@ -3899,6 +3941,7 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
   UserConfigsCompanion copyWith(
       {Value<String>? id,
       Value<bool>? darkMode,
+      Value<bool>? archiveEnabled,
       Value<String?>? colorScheme,
       Value<String?>? archiveOrgS3AccessKey,
       Value<String?>? archiveOrgS3SecretKey,
@@ -3906,6 +3949,7 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
     return UserConfigsCompanion(
       id: id ?? this.id,
       darkMode: darkMode ?? this.darkMode,
+      archiveEnabled: archiveEnabled ?? this.archiveEnabled,
       colorScheme: colorScheme ?? this.colorScheme,
       archiveOrgS3AccessKey:
           archiveOrgS3AccessKey ?? this.archiveOrgS3AccessKey,
@@ -3923,6 +3967,9 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
     }
     if (darkMode.present) {
       map['dark_mode'] = Variable<bool>(darkMode.value);
+    }
+    if (archiveEnabled.present) {
+      map['archive_enabled'] = Variable<bool>(archiveEnabled.value);
     }
     if (colorScheme.present) {
       map['color_scheme'] = Variable<String>(colorScheme.value);
@@ -3946,6 +3993,7 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
     return (StringBuffer('UserConfigsCompanion(')
           ..write('id: $id, ')
           ..write('darkMode: $darkMode, ')
+          ..write('archiveEnabled: $archiveEnabled, ')
           ..write('colorScheme: $colorScheme, ')
           ..write('archiveOrgS3AccessKey: $archiveOrgS3AccessKey, ')
           ..write('archiveOrgS3SecretKey: $archiveOrgS3SecretKey, ')
@@ -3973,6 +4021,7 @@ typedef $$UserConfigsTableCreateCompanionBuilder = UserConfigsCompanion
     Function({
   required String id,
   Value<bool> darkMode,
+  Value<bool> archiveEnabled,
   Value<String?> colorScheme,
   Value<String?> archiveOrgS3AccessKey,
   Value<String?> archiveOrgS3SecretKey,
@@ -3982,6 +4031,7 @@ typedef $$UserConfigsTableUpdateCompanionBuilder = UserConfigsCompanion
     Function({
   Value<String> id,
   Value<bool> darkMode,
+  Value<bool> archiveEnabled,
   Value<String?> colorScheme,
   Value<String?> archiveOrgS3AccessKey,
   Value<String?> archiveOrgS3SecretKey,
@@ -3998,6 +4048,11 @@ class $$UserConfigsTableFilterComposer
 
   ColumnFilters<bool> get darkMode => $state.composableBuilder(
       column: $state.table.darkMode,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<bool> get archiveEnabled => $state.composableBuilder(
+      column: $state.table.archiveEnabled,
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
@@ -4027,6 +4082,11 @@ class $$UserConfigsTableOrderingComposer
 
   ColumnOrderings<bool> get darkMode => $state.composableBuilder(
       column: $state.table.darkMode,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<bool> get archiveEnabled => $state.composableBuilder(
+      column: $state.table.archiveEnabled,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 
@@ -4071,6 +4131,7 @@ class $$UserConfigsTableTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
             Value<bool> darkMode = const Value.absent(),
+            Value<bool> archiveEnabled = const Value.absent(),
             Value<String?> colorScheme = const Value.absent(),
             Value<String?> archiveOrgS3AccessKey = const Value.absent(),
             Value<String?> archiveOrgS3SecretKey = const Value.absent(),
@@ -4079,6 +4140,7 @@ class $$UserConfigsTableTableManager extends RootTableManager<
               UserConfigsCompanion(
             id: id,
             darkMode: darkMode,
+            archiveEnabled: archiveEnabled,
             colorScheme: colorScheme,
             archiveOrgS3AccessKey: archiveOrgS3AccessKey,
             archiveOrgS3SecretKey: archiveOrgS3SecretKey,
@@ -4087,6 +4149,7 @@ class $$UserConfigsTableTableManager extends RootTableManager<
           createCompanionCallback: ({
             required String id,
             Value<bool> darkMode = const Value.absent(),
+            Value<bool> archiveEnabled = const Value.absent(),
             Value<String?> colorScheme = const Value.absent(),
             Value<String?> archiveOrgS3AccessKey = const Value.absent(),
             Value<String?> archiveOrgS3SecretKey = const Value.absent(),
@@ -4095,6 +4158,7 @@ class $$UserConfigsTableTableManager extends RootTableManager<
               UserConfigsCompanion.insert(
             id: id,
             darkMode: darkMode,
+            archiveEnabled: archiveEnabled,
             colorScheme: colorScheme,
             archiveOrgS3AccessKey: archiveOrgS3AccessKey,
             archiveOrgS3SecretKey: archiveOrgS3SecretKey,
