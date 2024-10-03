@@ -1,3 +1,4 @@
+import "package:chenron/database/extensions/payload.dart";
 import "package:chenron/database/extensions/user_config/read.dart";
 import "package:chenron/models/folder.dart";
 import "package:chenron/models/item.dart";
@@ -70,15 +71,8 @@ class CreateFolderStepper extends StatelessWidget {
   void _saveToDatabase(BuildContext context, FolderInfo folderInfo,
       List<Metadata> tags, List<FolderItem> folderData) async {
     final database = Provider.of<AppDatabase>(context, listen: false);
-    final userConfig = Provider.of<ConfigDatabase>(context, listen: false);
-    final config = await userConfig.getUserConfig();
-    database.createFolder(
+    database.createFolderAndArchive(
         folderInfo: folderInfo, tags: tags, items: folderData);
-
-    if (config?.archiveOrgS3AccessKey?.isNotEmpty == true &&
-        config?.archiveOrgS3AccessKey?.isNotEmpty == true) {
-      //database.archiveLinks();
-    }
 
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(

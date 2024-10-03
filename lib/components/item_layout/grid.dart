@@ -24,11 +24,11 @@ class GridLayout<T> extends StatelessWidget {
       builder: (context, constraints) {
         int gridColumns = responsiveValue(
           context: context,
-          xs: 2,
+          xs: 1,
           sm: 2,
-          md: 4,
-          lg: 5,
-          xl: 6,
+          md: 3,
+          lg: 4,
+          xl: 5,
         );
         return GridView.builder(
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -84,7 +84,7 @@ class GridHeader extends StatelessWidget {
       constraints: const BoxConstraints(maxHeight: 35),
       child: GridTileBar(
         leading: leading,
-        title: Expanded(child: main ?? Container()),
+        title: main ?? Container(),
         trailing: trailing,
       ),
     );

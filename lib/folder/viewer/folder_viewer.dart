@@ -117,9 +117,12 @@ class SearchBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
-      child: Row(
+      child: OverflowBar(
+        alignment: MainAxisAlignment.spaceBetween,
+        overflowAlignment: OverflowBarAlignment.center,
         children: [
-          Expanded(
+          FractionallySizedBox(
+            widthFactor: 0.8,
             child: TextField(
               decoration: InputDecoration(
                 hintText: "Search folders or tags...",
@@ -131,7 +134,6 @@ class SearchBar extends StatelessWidget {
               onChanged: onChanged,
             ),
           ),
-          const SizedBox(width: 16),
           ElevatedButton(
             onPressed: hasSelectedFolders ? onDeleteSelected : null,
             child: const Text("Delete Selected"),
@@ -249,29 +251,24 @@ class GridFolderView extends StatelessWidget {
           onTap: () => controller.onFolderTap(context, folder),
           header: GridHeader(
             leading: Text(folder.folder.title),
-            trailing: Wrap(
-              children: [
-                SmallButton(
-                  onPressed: () => controller.onEditTap(context, folder),
-                  icon: Icons.edit,
-                  label: "Edit",
-                  iconSize: 16,
-                  fontSize: 12,
-                  foregroundColor: Theme.of(context).colorScheme.primary,
-                ),
-                ClipRect(
-                    child: Checkbox(
-                  value: viewModel.selectedFolders.contains(folder.folder.id),
-                  onChanged: (bool? value) =>
-                      controller.onFolderToggle(folder.folder.id),
-                )),
-              ],
+            trailing: Checkbox(
+              value: viewModel.selectedFolders.contains(folder.folder.id),
+              onChanged: (bool? value) =>
+                  controller.onFolderToggle(folder.folder.id),
             ),
           ),
           body: Text(folder.folder.description),
           footer: GridFooter(
             main: TagList(
               tags: folder.tags,
+            ),
+            trailing: SmallButton(
+              onPressed: () => controller.onEditTap(context, folder),
+              icon: Icons.edit,
+              label: "Edit",
+              iconSize: 16,
+              fontSize: 12,
+              foregroundColor: Theme.of(context).colorScheme.primary,
             ),
           ),
         );

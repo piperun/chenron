@@ -52,6 +52,7 @@ class SettingsContent extends StatefulWidget {
 
 class _SettingsContentState extends State<SettingsContent> {
   late bool _isDarkMode;
+  late bool _archiveEnabled;
   late Color _primaryColor;
   late TextEditingController _accessKeyController;
   late TextEditingController _secretKeyController;
@@ -63,6 +64,11 @@ class _SettingsContentState extends State<SettingsContent> {
       _isDarkMode = widget.userConfig.darkMode!;
     } else {
       _isDarkMode = false;
+    }
+    if (widget.userConfig.archiveEnabled != null) {
+      _archiveEnabled = widget.userConfig.archiveEnabled!;
+    } else {
+      _archiveEnabled = false;
     }
     _primaryColor = widget.userConfig.colorScheme?["primary"] != null
         ? Color(widget.userConfig.colorScheme!["primary"])
@@ -98,6 +104,12 @@ class _SettingsContentState extends State<SettingsContent> {
               ),
               const SizedBox(height: 24),
               _buildSectionTitle("Archive.org Credentials"),
+              SwitchListTile(
+                title: const Text("Enable archiving"),
+                value: _archiveEnabled,
+                onChanged: (bool value) =>
+                    setState(() => _archiveEnabled = value),
+              ),
               CredentialTextField(
                   controller: _accessKeyController, label: "Access Key"),
               CredentialTextField(
@@ -132,6 +144,7 @@ class _SettingsContentState extends State<SettingsContent> {
       database.updateUserConfig(
         id: widget.userConfig.id!,
         darkMode: _isDarkMode,
+        archiveEnabled: _archiveEnabled,
         colorScheme: json.encode({"primary": _primaryColor.value}),
         archiveOrgS3AccessKey: _accessKeyController.text,
         archiveOrgS3SecretKey: _secretKeyController.text,
