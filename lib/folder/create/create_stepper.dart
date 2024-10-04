@@ -1,10 +1,8 @@
 import "package:chenron/database/extensions/payload.dart";
-import "package:chenron/database/extensions/user_config/read.dart";
 import "package:chenron/models/folder.dart";
 import "package:chenron/models/item.dart";
 import "package:chenron/models/metadata.dart";
 import "package:chenron/database/database.dart";
-import "package:chenron/database/extensions/folder/create.dart";
 import "package:chenron/folder/create/steps/folder_data.dart";
 import "package:chenron/folder/create/steps/folder_info.dart";
 import "package:chenron/folder/create/steps/folder_preview.dart";
@@ -71,7 +69,7 @@ class CreateFolderStepper extends StatelessWidget {
   void _saveToDatabase(BuildContext context, FolderInfo folderInfo,
       List<Metadata> tags, List<FolderItem> folderData) async {
     final database = Provider.of<AppDatabase>(context, listen: false);
-    database.createFolderAndArchive(
+    database.createFolderExtended(
         folderInfo: folderInfo, tags: tags, items: folderData);
 
     if (context.mounted) {
