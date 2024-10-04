@@ -39,21 +39,22 @@ extension IdTypeExtension on IdType {
 ])
 class AppDatabase extends _$AppDatabase {
   static const int idLength = 30;
-
+  final bool setupOnInit;
   AppDatabase(
       {QueryExecutor? queryExecutor,
       String? databaseName,
-      bool setupOnInit = false})
-      : super(_openConnection(databaseName: databaseName ?? "my_database")) {
+      this.setupOnInit = false})
+      : super(_openConnection(databaseName: databaseName ?? "chenron"));
+  void setup() async {
     if (setupOnInit) {
-      setupEnumTypes();
+      await setupEnumTypes();
     }
   }
 
   @override
   int get schemaVersion => 1;
 
-  static QueryExecutor _openConnection({String databaseName = "my_database"}) {
+  static QueryExecutor _openConnection({String databaseName = "chenron"}) {
     // `driftDatabase` from `package:drift_flutter` stores the database in
     // `getApplicationDocumentsDirectory()`.
     return driftDatabase(name: databaseName);

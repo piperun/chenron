@@ -8,20 +8,31 @@ import "package:flutter/material.dart";
 import "package:provider/provider.dart";
 
 void main() async {
-  runApp(MultiProvider(providers: [
-    Provider<AppDatabase>(
-      create: (context) => AppDatabase(
-          queryExecutor: null, databaseName: "chenron_db", setupOnInit: true),
-      dispose: (context, db) => db.close(),
+  runApp(
+    MultiProvider(
+      providers: [
+        Provider<AppDatabase>(
+          create: (context) {
+            final AppDatabase db = AppDatabase(
+                queryExecutor: null,
+                databaseName: "chenron_db",
+                setupOnInit: true);
+            db.setup();
+            return db;
+          },
+          dispose: (context, db) => db.close(),
+        ),
+        Provider<ConfigDatabase>(
+          create: (context) => ConfigDatabase(),
+          dispose: (context, db) => db.close(),
+        ),
+        ChangeNotifierProvider(create: (context) => FolderInfoProvider()),
+        ChangeNotifierProvider(create: (context) => CUDProvider<FolderItem>()),
+        ChangeNotifierProvider(create: (context) => CreateFolderState()),
+      ],
+      child: const MyApp(),
     ),
-    Provider<ConfigDatabase>(
-      create: (context) => ConfigDatabase(),
-      dispose: (context, db) => db.close(),
-    ),
-    ChangeNotifierProvider(create: (context) => FolderInfoProvider()),
-    ChangeNotifierProvider(create: (context) => CUDProvider<FolderItem>()),
-    ChangeNotifierProvider(create: (context) => CreateFolderState()),
-  ], child: const MyApp()));
+  );
 }
 
 class MyApp extends StatelessWidget {

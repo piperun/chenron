@@ -5,6 +5,7 @@ import "package:chenron/models/item.dart";
 import "package:chenron/models/metadata.dart";
 import "package:chenron/database/database.dart";
 import "package:chenron/models/folder_results.dart";
+import "package:chenron/utils/str_sanitizer.dart";
 import "package:drift/drift.dart";
 
 extension InsertionExtensions on AppDatabase {
@@ -70,6 +71,7 @@ extension InsertionExtensions on AppDatabase {
     required String folderId,
     required String url,
   }) async {
+    url = removeTrailingSlash(url);
     Link? linkExists = await (select(links)
           ..where((tbl) => tbl.content.equals(url)))
         .getSingleOrNull();
