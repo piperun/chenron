@@ -7,14 +7,15 @@ import "package:logging/logging.dart";
 extension ArchiveLinkExtensions on AppDatabase {
   static final Logger _logger = Logger("Archive Link Actions");
 
-  Future<void> archiveLink(String linkId, String apiKey, String apiSecret,
-      {ArchiveOrgOptions? options}) async {
+  Future<void> archiveLink(String linkId,
+      {required String accessKey,
+      required String secretKey,
+      ArchiveOrgOptions? options}) async {
     return transaction(() async {
       try {
         final link = await (select(links)..where((l) => l.id.equals(linkId)))
             .getSingle();
-        final archiveClient = ArchiveOrgClient(apiKey, apiSecret);
-
+        final archiveClient = ArchiveOrgClient(accessKey, secretKey);
         final archivedUrl = await archiveClient.archiveAndWait(link.content);
 
         await (update(links)..where((l) => l.id.equals(linkId))).write(
@@ -31,11 +32,13 @@ extension ArchiveLinkExtensions on AppDatabase {
     });
   }
 
-  Future<void> batchArchiveLinks(
-      List<String> linkIds, String apiKey, String apiSecret,
-      {ArchiveOrgOptions? options}) async {
+  Future<void> batchArchiveLinks(List<String> linkIds,
+      {required String accessKey,
+      required String secretKey,
+      ArchiveOrgOptions? options}) async {
     for (final linkId in linkIds) {
-      await archiveLink(linkId, apiKey, apiSecret, options: options);
+      await archiveLink(linkId,
+          accessKey: accessKey, secretKey: secretKey, options: options);
     }
   }
 }
