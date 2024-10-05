@@ -5,12 +5,10 @@ import "package:chenron/models/metadata.dart";
 import "package:chenron/database/database.dart";
 import "package:chenron/models/folder.dart";
 import "package:chenron/database/extensions/insert_ext.dart";
+import "package:chenron/utils/logger.dart";
 import "package:drift/drift.dart";
-import "package:logging/logging.dart";
 
 extension FolderExtensions on AppDatabase {
-  static final Logger _logger = Logger("Folder Actions Database");
-
   Future<FolderResults> createFolder({
     required FolderInfo folderInfo,
     List<Metadata>? tags,
@@ -31,7 +29,7 @@ extension FolderExtensions on AppDatabase {
         }
         return results;
       } catch (e) {
-        _logger.severe("Error adding folder: $e");
+        loggerGlobal.severe("FolderActionsCreate", "Error adding folder: $e");
         rethrow;
       }
     });

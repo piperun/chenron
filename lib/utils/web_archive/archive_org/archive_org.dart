@@ -1,21 +1,15 @@
 import "dart:async";
 import "dart:convert";
+import "package:chenron/utils/logger.dart";
 import "package:http/http.dart" as http;
-import "package:logging/logging.dart";
 import "package:chenron/utils/web_archive/archive_org/archive_org_options.dart";
 
 class ArchiveOrgClient {
   final String apiKey;
   final String apiSecret;
   final String baseUrl = "https://web.archive.org";
-  final Logger _logger = Logger("ArchiveOrgClient");
 
-  ArchiveOrgClient(this.apiKey, this.apiSecret) {
-    Logger.root.level = Level.ALL;
-    Logger.root.onRecord.listen((record) {
-      print("${record.level.name}: ${record.time}: ${record.message}");
-    });
-  }
+  ArchiveOrgClient(this.apiKey, this.apiSecret);
 
   Future<bool> checkAuthentication() async {
     final response = await http.get(Uri.parse("$baseUrl/save/status/"));
@@ -44,32 +38,32 @@ class ArchiveOrgClient {
         final data = json.decode(response.body);
         switch (data["status"]) {
           case "success":
-            _logger.info(
+            loggerGlobal.info("ArchiveOrgClient",
                 'Archiving succeeded for $targetUrl. Archived URL: ${data['archived_snapshots']['closest']['url']}');
             return data["archived_snapshots"]["closest"]["url"];
           case "error":
-            _logger.severe(
+            loggerGlobal.warning("ArchiveOrgClient",
                 'Archiving failed for $targetUrl: \n message: ${data['message']} \n ${data['status_ext']}');
             throw Exception('Archiving failed: ${data['message']}');
           case "pending":
-            _logger.info(
+            loggerGlobal.info("ArchiveOrgClient",
                 'Archiving in progress for $targetUrl. Job ID: ${data['job_id']}');
             return data["job_id"];
           default:
             if (data["job_id"].isNotEmpty) {
-              _logger.info(
+              loggerGlobal.info("ArchiveOrgClient",
                   'Archiving in progress for $targetUrl. Job ID: ${data['job_id']}');
               return data["job_id"];
             }
-            _logger
-                .severe('Unexpected status for $targetUrl: ${data['status']}');
+            loggerGlobal.severe("ArchiveOrgClient",
+                'Unexpected status for $targetUrl: ${data['status']}');
             throw Exception('Unexpected status: ${data['status']}');
         }
       } else {
         throw Exception("Failed to start archiving: ${response.body}");
       }
     } catch (e) {
-      _logger.severe("Error in archiveUrl: $e");
+      loggerGlobal.severe("ArchiveOrgClient", "Error in archiveUrl: $e");
       rethrow;
     }
   }
@@ -84,7 +78,7 @@ class ArchiveOrgClient {
         throw Exception("Failed to check status: ${response.body}");
       }
     } catch (e) {
-      _logger.severe("Error in checkStatus: $e");
+      loggerGlobal.severe("ArchiveOrgClient", "Error in checkStatus: $e");
       rethrow;
     }
   }
@@ -101,9 +95,10 @@ class ArchiveOrgClient {
           throw Exception('Archiving failed: ${status['message']}');
         }
 
-        _logger.info("Wait, still capturing...");
+        loggerGlobal.info("ArchiveOrgClient", "Wait, still capturing...");
       } catch (e) {
-        _logger.severe("Error in waitForCompletion: $e");
+        loggerGlobal.severe(
+            "ArchiveOrgClient", "Error in waitForCompletion: $e");
         rethrow;
       }
     }
@@ -112,10 +107,10 @@ class ArchiveOrgClient {
   Future<String> archiveAndWait(String targetUrl) async {
     try {
       final jobId = await archiveUrl(targetUrl);
-      _logger.info("Capture started, job id: $jobId");
+      loggerGlobal.info("ArchiveOrgClient", "Capture started, job id: $jobId");
       return await waitForCompletion(jobId);
     } catch (e) {
-      _logger.severe("Error in archiveAndWait: $e");
+      loggerGlobal.severe("ArchiveOrgClient", "Error in archiveAndWait: $e");
       rethrow;
     }
   }

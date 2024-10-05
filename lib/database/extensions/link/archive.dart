@@ -1,12 +1,10 @@
 import "package:chenron/database/database.dart";
+import "package:chenron/utils/logger.dart";
 import "package:chenron/utils/web_archive/archive_org/archive_org.dart";
 import "package:chenron/utils/web_archive/archive_org/archive_org_options.dart";
 import "package:drift/drift.dart";
-import "package:logging/logging.dart";
 
 extension ArchiveLinkExtensions on AppDatabase {
-  static final Logger _logger = Logger("Archive Link Actions");
-
   Future<void> archiveLink(String linkId,
       {required String accessKey,
       required String secretKey,
@@ -24,9 +22,10 @@ extension ArchiveLinkExtensions on AppDatabase {
           ),
         );
 
-        _logger.info("Successfully archived link: $linkId");
+        loggerGlobal.info(
+            "ArchiveLinkActions", "Successfully archived link: $linkId");
       } catch (e) {
-        _logger.severe("Error archiving link: $e");
+        loggerGlobal.severe("ArchiveLinkActions", "Error archiving link: $e");
         rethrow;
       }
     });

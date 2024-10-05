@@ -2,6 +2,7 @@ import "dart:convert";
 
 import "package:chenron/database/extensions/user_config/read.dart";
 import "package:chenron/database/extensions/user_config/update.dart";
+import "package:chenron/utils/logger.dart";
 import "package:flutter/material.dart";
 import "package:chenron/database/database.dart";
 import "package:chenron/models/user_config.dart";
@@ -19,6 +20,8 @@ class SettingsPage extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
+          loggerGlobal.severe(
+              "SettingsPage", "Error loading user config: ${snapshot.error}");
           return Center(child: Text("Error: ${snapshot.error}"));
         } else if (snapshot.hasData) {
           return SettingsContent(userConfig: snapshot.data!);

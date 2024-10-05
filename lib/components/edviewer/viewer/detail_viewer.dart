@@ -1,6 +1,7 @@
 import "package:chenron/components/TextBase/expandable_field.dart";
 import "package:chenron/components/TextBase/text_view.dart";
 import "package:chenron/components/tags/tag_body.dart";
+import "package:chenron/utils/logger.dart";
 import "package:flutter/material.dart";
 import "package:chenron/database/database.dart";
 import "package:chenron/database/extensions/folder/read.dart";
@@ -44,7 +45,8 @@ class _DetailViewerState<T> extends State<DetailViewer> {
               return const Center(child: CircularProgressIndicator());
             }
             if (snapshot.hasError) {
-              //TODO: Logger
+              loggerGlobal.severe(
+                  "DetailViewer", "Error loading folder: ${snapshot.error}");
               return Center(child: Text("Error: ${snapshot.error}"));
             }
             final result = snapshot.data;

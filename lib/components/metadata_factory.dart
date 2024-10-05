@@ -1,3 +1,4 @@
+import "package:chenron/utils/logger.dart";
 import "package:chenron/utils/str_sanitizer.dart";
 import "package:flutter/material.dart";
 import "package:metadata_fetch/metadata_fetch.dart";
@@ -83,7 +84,9 @@ class MetadataDescription extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Text("Loading...");
         } else if (snapshot.hasError) {
-          return const Text("No description available");
+          loggerGlobal.warning(
+              "MetadataDescription", "Error: ${snapshot.error}");
+          return const Text("No description available.");
         } else {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.center,

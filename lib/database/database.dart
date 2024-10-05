@@ -4,7 +4,6 @@ import "package:drift_flutter/drift_flutter.dart";
 import "package:chenron/database/schema/items_schema.dart";
 import "package:chenron/database/extensions/intial_data/app_database.dart";
 import "package:chenron/database/extensions/intial_data/config_database.dart";
-//import 'package:logging/logging.dart';
 
 part "database.g.dart";
 
@@ -40,11 +39,13 @@ extension IdTypeExtension on IdType {
 class AppDatabase extends _$AppDatabase {
   static const int idLength = 30;
   final bool setupOnInit;
-  AppDatabase(
-      {QueryExecutor? queryExecutor,
-      String? databaseName,
-      this.setupOnInit = false})
-      : super(_openConnection(databaseName: databaseName ?? "chenron"));
+  AppDatabase({
+    QueryExecutor? queryExecutor,
+    String? databaseName,
+    this.setupOnInit = false,
+    String? customPath,
+  }) : super(_openConnection(databaseName: databaseName ?? "chenron"));
+
   void setup() async {
     if (setupOnInit) {
       await setupEnumTypes();

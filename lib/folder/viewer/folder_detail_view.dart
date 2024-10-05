@@ -1,5 +1,6 @@
-import "package:chenron/components/metadata_comp.dart";
+import "package:chenron/components/metadata_factory.dart";
 import "package:chenron/models/item.dart";
+import "package:chenron/utils/logger.dart";
 import "package:flutter/material.dart";
 import "package:flutter_svg/flutter_svg.dart";
 import "package:logging/logging.dart";
@@ -77,7 +78,7 @@ class Favicon extends StatelessWidget {
     return Favicon._internal(key: key, url: url);
   }
 
-  const Favicon._internal({super.key, required this.url});
+  Favicon._internal({super.key, required this.url});
 
   static Future<String?> _getFavIconUrl(String url) async {
     if (!_cache.containsKey(url)) {
@@ -97,6 +98,11 @@ class Favicon extends StatelessWidget {
           } else {
             return Image.network(snapshot.data!);
           }
+        }
+        if (snapshot.hasError) {
+          loggerGlobal.warning(
+              "FavIcon", "Error while fetching favicon: ${snapshot.error}");
+          return const Icon(Icons.link);
         }
         if (snapshot.connectionState != ConnectionState.done) {
           return const RepaintBoundary(

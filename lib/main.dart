@@ -4,10 +4,14 @@ import "package:chenron/providers/create_state.dart";
 import "package:chenron/providers/cud_state.dart";
 import "package:chenron/providers/folder_info_state.dart";
 import "package:chenron/root.dart";
+import "package:chenron/utils/logger.dart";
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
+import "package:path_provider/path_provider.dart";
 
 void main() async {
+  loggerGlobal.setupLogPath(
+      await getApplicationDocumentsDirectory().then((dir) => dir.path));
   runApp(
     MultiProvider(
       providers: [

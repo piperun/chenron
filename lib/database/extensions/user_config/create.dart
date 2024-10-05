@@ -1,11 +1,9 @@
 import "package:chenron/database/database.dart";
+import "package:chenron/utils/logger.dart";
 import "package:drift/drift.dart";
-import "package:logging/logging.dart";
 import "package:cuid2/cuid2.dart";
 
 extension UserConfigExtensions on ConfigDatabase {
-  static final Logger _logger = Logger("UserConfig Actions Database");
-
   Future<void> createUserConfig(UserConfig userConfig) async {
     return transaction(() async {
       try {
@@ -18,9 +16,11 @@ extension UserConfigExtensions on ConfigDatabase {
         );
 
         await _createUserConfigEntry(insertConfig);
-        _logger.info("User config created successfully");
+        loggerGlobal.info(
+            "UserCOnfigActionsCreate", "User config created successfully");
       } catch (e) {
-        _logger.severe("Error creating user config: $e");
+        loggerGlobal.severe(
+            "UserCOnfigActionsCreate", "Error creating user config: $e");
         rethrow;
       }
     });
