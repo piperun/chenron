@@ -1,4 +1,4 @@
-package com.example.chenron
+package com.chenron.chenron
 
 import io.flutter.embedding.android.FlutterActivity
 
