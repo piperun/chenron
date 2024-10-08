@@ -1,4 +1,4 @@
-import "package:chenron/folder/create/steps/folder_info.dart";
+import "package:chenron/ui/folder/create/steps/info_step.dart";
 import "package:chenron/test_lib/test_text.dart";
 import "package:easy_sidemenu/easy_sidemenu.dart";
 import "package:flutter/material.dart";

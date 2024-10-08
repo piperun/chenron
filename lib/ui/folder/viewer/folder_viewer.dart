@@ -1,12 +1,12 @@
 import "package:chenron/components/buttons/small_button.dart";
 import "package:chenron/database/database.dart";
 import "package:chenron/database/extensions/folder/read.dart";
-import "package:chenron/folder/editor.dart";
-import "package:chenron/folder/viewer/folder_data_manager.dart";
-import "package:chenron/folder/viewer/folder_detail_view.dart";
+import "package:chenron/ui/folder/editor.dart";
+import "package:chenron/ui/folder/viewer/folder_data_manager.dart";
+import "package:chenron/ui/folder/viewer/folder_detail_view.dart";
 import "package:chenron/components/item_layout/grid.dart";
 import "package:chenron/components/item_layout/list.dart";
-import "package:chenron/folder/viewer/tag_search_bar.dart";
+import "package:chenron/ui/folder/viewer/tag_search_bar.dart";
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
 
