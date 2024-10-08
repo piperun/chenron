@@ -19,26 +19,29 @@ class MapContent extends ItemContent {
 }
 
 class FolderItem {
+  final int? _listId;
   final String? _id;
   final String? _itemId;
   String? get id => _id;
   String? get itemId => _itemId;
+  int? get listId => _listId;
 
   ItemContent content;
   final DateTime? createdAt;
   FolderItemType type;
 
-  FolderItem._internal(
-      this._id, this._itemId, this.content, this.createdAt, this.type);
+  FolderItem._internal(this._listId, this._id, this._itemId, this.content,
+      this.createdAt, this.type);
 
   factory FolderItem({
+    int? listId,
     String? id,
     String? itemId,
     required ItemContent content,
     DateTime? createdAt,
     required FolderItemType type,
   }) {
-    return FolderItem._internal(id, itemId, content, createdAt, type);
+    return FolderItem._internal(listId, id, itemId, content, createdAt, type);
   }
 
   Insertable toCompanion(String folderId) {

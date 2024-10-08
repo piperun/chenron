@@ -1,17 +1,17 @@
 import "package:chenron/components/forms/link_form.dart";
-import "package:chenron/folder/create/steps/folder_info.dart";
+import "package:chenron/providers/stepper_provider.dart";
 import "package:flutter/material.dart";
 
-class FolderData extends StatefulWidget {
+class FolderDataStep extends StatefulWidget {
   final GlobalKey<FormState> dataKey;
-  const FolderData(
+  const FolderDataStep(
       {super.key, required this.dataKey, required FolderType? folderType});
 
   @override
-  State<FolderData> createState() => _FolderDataState();
+  State<FolderDataStep> createState() => _FolderDataStepState();
 }
 
-class _FolderDataState extends State<FolderData> {
+class _FolderDataStepState extends State<FolderDataStep> {
   @override
   Widget build(BuildContext context) {
     return Column(

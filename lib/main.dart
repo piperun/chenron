@@ -1,6 +1,6 @@
 import "package:chenron/models/item.dart";
 import "package:chenron/database/database.dart";
-import "package:chenron/providers/create_state.dart";
+import "package:chenron/providers/stepper_provider.dart";
 import "package:chenron/providers/cud_state.dart";
 import "package:chenron/providers/folder_info_state.dart";
 import "package:chenron/root.dart";
@@ -32,7 +32,7 @@ void main() async {
         ),
         ChangeNotifierProvider(create: (context) => FolderInfoProvider()),
         ChangeNotifierProvider(create: (context) => CUDProvider<FolderItem>()),
-        ChangeNotifierProvider(create: (context) => CreateFolderState()),
+        ChangeNotifierProvider(create: (context) => StepperProvider()),
       ],
       child: const MyApp(),
     ),

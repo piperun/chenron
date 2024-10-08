@@ -4,7 +4,7 @@ import "package:flutter/material.dart";
 import "package:flutter_test/flutter_test.dart";
 import "package:provider/provider.dart";
 import "package:chenron/folder/create/create_stepper.dart";
-import "package:chenron/providers/create_state.dart";
+import "package:chenron/providers/stepper_provider.dart";
 import "package:chenron/providers/cud_state.dart";
 import "package:chenron/providers/folder_info_state.dart";
 import "package:chenron/database/database.dart";
@@ -16,7 +16,7 @@ void main() {
       await tester.pumpWidget(
         MultiProvider(
           providers: [
-            ChangeNotifierProvider(create: (_) => CreateFolderState()),
+            ChangeNotifierProvider(create: (_) => StepperProvider()),
             ChangeNotifierProvider(create: (_) => FolderInfoProvider()),
             ChangeNotifierProvider(create: (_) => CUDProvider<FolderItem>()),
             Provider<AppDatabase>(create: (_) => AppDatabase()),
@@ -36,7 +36,7 @@ void main() {
       await tester.pumpWidget(
         MultiProvider(
           providers: [
-            ChangeNotifierProvider(create: (_) => CreateFolderState()),
+            ChangeNotifierProvider(create: (_) => StepperProvider()),
             ChangeNotifierProvider(create: (_) => FolderInfoProvider()),
             ChangeNotifierProvider(create: (_) => CUDProvider<FolderItem>()),
             Provider<AppDatabase>(create: (_) => AppDatabase()),
@@ -57,7 +57,7 @@ void main() {
       await tester.pumpWidget(
         MultiProvider(
           providers: [
-            ChangeNotifierProvider(create: (_) => CreateFolderState()),
+            ChangeNotifierProvider(create: (_) => StepperProvider()),
             ChangeNotifierProvider(create: (_) => FolderInfoProvider()),
             ChangeNotifierProvider(create: (_) => CUDProvider<FolderItem>()),
             Provider<AppDatabase>(create: (_) => AppDatabase()),
@@ -73,7 +73,7 @@ void main() {
       await tester.pumpWidget(
         MultiProvider(
           providers: [
-            ChangeNotifierProvider(create: (_) => CreateFolderState()),
+            ChangeNotifierProvider(create: (_) => StepperProvider()),
             ChangeNotifierProvider(create: (_) => FolderInfoProvider()),
             ChangeNotifierProvider(create: (_) => CUDProvider<FolderItem>()),
             Provider<AppDatabase>(create: (_) => AppDatabase()),
@@ -83,8 +83,8 @@ void main() {
       );
 
       // Get the initial step index
-      final CreateFolderState folderState = Provider.of<CreateFolderState>(
-          tester.element(find.byType(Consumer<CreateFolderState>)),
+      final StepperProvider folderState = Provider.of<StepperProvider>(
+          tester.element(find.byType(Consumer<StepperProvider>)),
           listen: false);
       final int initialStepIndex = folderState.currentStep.index;
 
@@ -101,7 +101,7 @@ void main() {
       await tester.pumpWidget(
         MultiProvider(
           providers: [
-            ChangeNotifierProvider(create: (_) => CreateFolderState()),
+            ChangeNotifierProvider(create: (_) => StepperProvider()),
             ChangeNotifierProvider(create: (_) => FolderInfoProvider()),
             ChangeNotifierProvider(create: (_) => CUDProvider<FolderItem>()),
             Provider<AppDatabase>(create: (_) => AppDatabase()),
@@ -118,7 +118,7 @@ void main() {
       await tester.pumpWidget(
         MultiProvider(
           providers: [
-            ChangeNotifierProvider(create: (_) => CreateFolderState()),
+            ChangeNotifierProvider(create: (_) => StepperProvider()),
             ChangeNotifierProvider(create: (_) => FolderInfoProvider()),
             ChangeNotifierProvider(create: (_) => CUDProvider<FolderItem>()),
             Provider<AppDatabase>(create: (_) => AppDatabase()),
@@ -134,7 +134,7 @@ void main() {
       await tester.pumpWidget(
         MultiProvider(
           providers: [
-            ChangeNotifierProvider(create: (_) => CreateFolderState()),
+            ChangeNotifierProvider(create: (_) => StepperProvider()),
             ChangeNotifierProvider(create: (_) => FolderInfoProvider()),
             ChangeNotifierProvider(create: (_) => CUDProvider<FolderItem>()),
             Provider<AppDatabase>(create: (_) => AppDatabase()),

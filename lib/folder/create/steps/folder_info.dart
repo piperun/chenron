@@ -1,12 +1,10 @@
 import "package:chenron/components/TextBase/info_field.dart";
 import "package:chenron/components/tags/tag_field.dart";
+import "package:chenron/providers/stepper_provider.dart";
 import "package:chenron/utils/validation/folder_validator.dart";
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
 import "package:chenron/providers/folder_info_state.dart";
-
-// move this to somewhere else to be used by other widgets
-enum FolderType { link, document, folder }
 
 class FolderInfoStep extends StatefulWidget {
   final GlobalKey<FormState> formKey;

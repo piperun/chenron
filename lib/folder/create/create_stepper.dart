@@ -7,13 +7,11 @@ import "package:chenron/folder/create/steps/folder_data.dart";
 import "package:chenron/folder/create/steps/folder_info.dart";
 import "package:chenron/folder/create/steps/folder_preview.dart";
 import "package:chenron/responsible_design/breakpoints.dart";
-import "package:chenron/providers/create_state.dart";
+import "package:chenron/providers/stepper_provider.dart";
 import "package:chenron/providers/cud_state.dart";
 import "package:chenron/providers/folder_info_state.dart";
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
-
-enum FolderStep { info, data, preview }
 
 class CreateFolderStepper extends StatelessWidget {
   const CreateFolderStepper({super.key});
@@ -22,7 +20,7 @@ class CreateFolderStepper extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Consumer<CreateFolderState>(
+        child: Consumer<StepperProvider>(
           builder: (context, folderState, child) {
             return Stepper(
               type: Breakpoints.isMedium(context)
@@ -45,7 +43,7 @@ class CreateFolderStepper extends StatelessWidget {
     );
   }
 
-  void _nextStep(BuildContext context, CreateFolderState folderState) {
+  void _nextStep(BuildContext context, StepperProvider folderState) {
     if (folderState.currentStep == FolderStep.preview) {
       final folderInfo =
           Provider.of<FolderInfoProvider>(context, listen: false);
@@ -79,7 +77,7 @@ class CreateFolderStepper extends StatelessWidget {
     }
   }
 
-  List<Step> _buildSteps(CreateFolderState folderState) {
+  List<Step> _buildSteps(StepperProvider folderState) {
     return [
       Step(
         title: const Text("Folder"),
@@ -88,7 +86,7 @@ class CreateFolderStepper extends StatelessWidget {
       ),
       Step(
         title: const Text("Data"),
-        content: FolderData(
+        content: FolderDataStep(
           dataKey: folderState.formKeys[FolderStep.data]!,
           folderType: folderState.selectedFolderType,
         ),
@@ -104,7 +102,7 @@ class CreateFolderStepper extends StatelessWidget {
 
 class StepperControls extends StatelessWidget {
   final ControlsDetails details;
-  final CreateFolderState folderState;
+  final StepperProvider folderState;
 
   const StepperControls({
     super.key,
