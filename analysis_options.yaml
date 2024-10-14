@@ -9,6 +9,13 @@
 # packages, and plugins designed to encourage good coding practices.
 include: package:flutter_lints/flutter.yaml
 
+analyzer:
+  plugins:
+    - custom_lint
+
+custom_lint:
+  rules:
+  - avoid_ref_inside_state_dispose
 linter:
   # The lint rules applied to this project can be customized in the
   # section below to disable rules from the `package:flutter_lints/flutter.yaml`
@@ -22,16 +29,20 @@ linter:
   # producing the lint.
   rules:
     - always_declare_return_types
+    
     - always_use_package_imports
     - avoid_relative_lib_imports
     - avoid_types_as_parameter_names
+    - avoid_positional_boolean_parameters
     - camel_case_extensions
     - camel_case_types
     - cast_nullable_to_non_nullable
     - collection_methods_unrelated_type
     - dangling_library_doc_comments
+    - prefer_const_constructors
     - prefer_double_quotes
     - prefer_void_to_null
+    - throw_in_finally
     - valid_regexps
     - void_checks
     # avoid_print: false  # Uncomment to disable the `avoid_print` rule

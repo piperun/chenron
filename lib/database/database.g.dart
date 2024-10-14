@@ -3633,6 +3633,16 @@ class $UserConfigsTable extends UserConfigs
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('CHECK ("dark_mode" IN (0, 1))'),
       defaultValue: const Constant(false));
+  static const VerificationMeta _copyOnImportMeta =
+      const VerificationMeta('copyOnImport');
+  @override
+  late final GeneratedColumn<bool> copyOnImport = GeneratedColumn<bool>(
+      'copy_on_import', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("copy_on_import" IN (0, 1))'),
+      defaultValue: const Constant(true));
   static const VerificationMeta _archiveEnabledMeta =
       const VerificationMeta('archiveEnabled');
   @override
@@ -3665,6 +3675,7 @@ class $UserConfigsTable extends UserConfigs
   List<GeneratedColumn> get $columns => [
         id,
         darkMode,
+        copyOnImport,
         archiveEnabled,
         colorScheme,
         archiveOrgS3AccessKey,
@@ -3688,6 +3699,12 @@ class $UserConfigsTable extends UserConfigs
     if (data.containsKey('dark_mode')) {
       context.handle(_darkModeMeta,
           darkMode.isAcceptableOrUnknown(data['dark_mode']!, _darkModeMeta));
+    }
+    if (data.containsKey('copy_on_import')) {
+      context.handle(
+          _copyOnImportMeta,
+          copyOnImport.isAcceptableOrUnknown(
+              data['copy_on_import']!, _copyOnImportMeta));
     }
     if (data.containsKey('archive_enabled')) {
       context.handle(
@@ -3726,6 +3743,8 @@ class $UserConfigsTable extends UserConfigs
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
       darkMode: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}dark_mode'])!,
+      copyOnImport: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}copy_on_import'])!,
       archiveEnabled: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}archive_enabled'])!,
       colorScheme: attachedDatabase.typeMapping
@@ -3748,6 +3767,7 @@ class $UserConfigsTable extends UserConfigs
 class UserConfig extends DataClass implements Insertable<UserConfig> {
   final String id;
   final bool darkMode;
+  final bool copyOnImport;
   final bool archiveEnabled;
   final String? colorScheme;
   final String? archiveOrgS3AccessKey;
@@ -3755,6 +3775,7 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
   const UserConfig(
       {required this.id,
       required this.darkMode,
+      required this.copyOnImport,
       required this.archiveEnabled,
       this.colorScheme,
       this.archiveOrgS3AccessKey,
@@ -3764,6 +3785,7 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     map['dark_mode'] = Variable<bool>(darkMode);
+    map['copy_on_import'] = Variable<bool>(copyOnImport);
     map['archive_enabled'] = Variable<bool>(archiveEnabled);
     if (!nullToAbsent || colorScheme != null) {
       map['color_scheme'] = Variable<String>(colorScheme);
@@ -3783,6 +3805,7 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
     return UserConfigsCompanion(
       id: Value(id),
       darkMode: Value(darkMode),
+      copyOnImport: Value(copyOnImport),
       archiveEnabled: Value(archiveEnabled),
       colorScheme: colorScheme == null && nullToAbsent
           ? const Value.absent()
@@ -3802,6 +3825,7 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
     return UserConfig(
       id: serializer.fromJson<String>(json['id']),
       darkMode: serializer.fromJson<bool>(json['darkMode']),
+      copyOnImport: serializer.fromJson<bool>(json['copyOnImport']),
       archiveEnabled: serializer.fromJson<bool>(json['archiveEnabled']),
       colorScheme: serializer.fromJson<String?>(json['colorScheme']),
       archiveOrgS3AccessKey:
@@ -3816,6 +3840,7 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
       'darkMode': serializer.toJson<bool>(darkMode),
+      'copyOnImport': serializer.toJson<bool>(copyOnImport),
       'archiveEnabled': serializer.toJson<bool>(archiveEnabled),
       'colorScheme': serializer.toJson<String?>(colorScheme),
       'archiveOrgS3AccessKey':
@@ -3828,6 +3853,7 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
   UserConfig copyWith(
           {String? id,
           bool? darkMode,
+          bool? copyOnImport,
           bool? archiveEnabled,
           Value<String?> colorScheme = const Value.absent(),
           Value<String?> archiveOrgS3AccessKey = const Value.absent(),
@@ -3835,6 +3861,7 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
       UserConfig(
         id: id ?? this.id,
         darkMode: darkMode ?? this.darkMode,
+        copyOnImport: copyOnImport ?? this.copyOnImport,
         archiveEnabled: archiveEnabled ?? this.archiveEnabled,
         colorScheme: colorScheme.present ? colorScheme.value : this.colorScheme,
         archiveOrgS3AccessKey: archiveOrgS3AccessKey.present
@@ -3848,6 +3875,9 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
     return UserConfig(
       id: data.id.present ? data.id.value : this.id,
       darkMode: data.darkMode.present ? data.darkMode.value : this.darkMode,
+      copyOnImport: data.copyOnImport.present
+          ? data.copyOnImport.value
+          : this.copyOnImport,
       archiveEnabled: data.archiveEnabled.present
           ? data.archiveEnabled.value
           : this.archiveEnabled,
@@ -3867,6 +3897,7 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
     return (StringBuffer('UserConfig(')
           ..write('id: $id, ')
           ..write('darkMode: $darkMode, ')
+          ..write('copyOnImport: $copyOnImport, ')
           ..write('archiveEnabled: $archiveEnabled, ')
           ..write('colorScheme: $colorScheme, ')
           ..write('archiveOrgS3AccessKey: $archiveOrgS3AccessKey, ')
@@ -3876,14 +3907,15 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
   }
 
   @override
-  int get hashCode => Object.hash(id, darkMode, archiveEnabled, colorScheme,
-      archiveOrgS3AccessKey, archiveOrgS3SecretKey);
+  int get hashCode => Object.hash(id, darkMode, copyOnImport, archiveEnabled,
+      colorScheme, archiveOrgS3AccessKey, archiveOrgS3SecretKey);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is UserConfig &&
           other.id == this.id &&
           other.darkMode == this.darkMode &&
+          other.copyOnImport == this.copyOnImport &&
           other.archiveEnabled == this.archiveEnabled &&
           other.colorScheme == this.colorScheme &&
           other.archiveOrgS3AccessKey == this.archiveOrgS3AccessKey &&
@@ -3893,6 +3925,7 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
 class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
   final Value<String> id;
   final Value<bool> darkMode;
+  final Value<bool> copyOnImport;
   final Value<bool> archiveEnabled;
   final Value<String?> colorScheme;
   final Value<String?> archiveOrgS3AccessKey;
@@ -3901,6 +3934,7 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
   const UserConfigsCompanion({
     this.id = const Value.absent(),
     this.darkMode = const Value.absent(),
+    this.copyOnImport = const Value.absent(),
     this.archiveEnabled = const Value.absent(),
     this.colorScheme = const Value.absent(),
     this.archiveOrgS3AccessKey = const Value.absent(),
@@ -3910,6 +3944,7 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
   UserConfigsCompanion.insert({
     required String id,
     this.darkMode = const Value.absent(),
+    this.copyOnImport = const Value.absent(),
     this.archiveEnabled = const Value.absent(),
     this.colorScheme = const Value.absent(),
     this.archiveOrgS3AccessKey = const Value.absent(),
@@ -3919,6 +3954,7 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
   static Insertable<UserConfig> custom({
     Expression<String>? id,
     Expression<bool>? darkMode,
+    Expression<bool>? copyOnImport,
     Expression<bool>? archiveEnabled,
     Expression<String>? colorScheme,
     Expression<String>? archiveOrgS3AccessKey,
@@ -3928,6 +3964,7 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (darkMode != null) 'dark_mode': darkMode,
+      if (copyOnImport != null) 'copy_on_import': copyOnImport,
       if (archiveEnabled != null) 'archive_enabled': archiveEnabled,
       if (colorScheme != null) 'color_scheme': colorScheme,
       if (archiveOrgS3AccessKey != null)
@@ -3941,6 +3978,7 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
   UserConfigsCompanion copyWith(
       {Value<String>? id,
       Value<bool>? darkMode,
+      Value<bool>? copyOnImport,
       Value<bool>? archiveEnabled,
       Value<String?>? colorScheme,
       Value<String?>? archiveOrgS3AccessKey,
@@ -3949,6 +3987,7 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
     return UserConfigsCompanion(
       id: id ?? this.id,
       darkMode: darkMode ?? this.darkMode,
+      copyOnImport: copyOnImport ?? this.copyOnImport,
       archiveEnabled: archiveEnabled ?? this.archiveEnabled,
       colorScheme: colorScheme ?? this.colorScheme,
       archiveOrgS3AccessKey:
@@ -3967,6 +4006,9 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
     }
     if (darkMode.present) {
       map['dark_mode'] = Variable<bool>(darkMode.value);
+    }
+    if (copyOnImport.present) {
+      map['copy_on_import'] = Variable<bool>(copyOnImport.value);
     }
     if (archiveEnabled.present) {
       map['archive_enabled'] = Variable<bool>(archiveEnabled.value);
@@ -3993,6 +4035,7 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
     return (StringBuffer('UserConfigsCompanion(')
           ..write('id: $id, ')
           ..write('darkMode: $darkMode, ')
+          ..write('copyOnImport: $copyOnImport, ')
           ..write('archiveEnabled: $archiveEnabled, ')
           ..write('colorScheme: $colorScheme, ')
           ..write('archiveOrgS3AccessKey: $archiveOrgS3AccessKey, ')
@@ -4003,15 +4046,309 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
   }
 }
 
+class $BackupSettingsTable extends BackupSettings
+    with TableInfo<$BackupSettingsTable, BackupSetting> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $BackupSettingsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 30, maxTextLength: 60),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _backupIntervalMeta =
+      const VerificationMeta('backupInterval');
+  @override
+  late final GeneratedColumn<String> backupInterval = GeneratedColumn<String>(
+      'backup_interval', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _backupFilenameMeta =
+      const VerificationMeta('backupFilename');
+  @override
+  late final GeneratedColumn<String> backupFilename = GeneratedColumn<String>(
+      'backup_filename', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _backupPathMeta =
+      const VerificationMeta('backupPath');
+  @override
+  late final GeneratedColumn<String> backupPath = GeneratedColumn<String>(
+      'backup_path', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, backupInterval, backupFilename, backupPath];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'backup_settings';
+  @override
+  VerificationContext validateIntegrity(Insertable<BackupSetting> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('backup_interval')) {
+      context.handle(
+          _backupIntervalMeta,
+          backupInterval.isAcceptableOrUnknown(
+              data['backup_interval']!, _backupIntervalMeta));
+    }
+    if (data.containsKey('backup_filename')) {
+      context.handle(
+          _backupFilenameMeta,
+          backupFilename.isAcceptableOrUnknown(
+              data['backup_filename']!, _backupFilenameMeta));
+    }
+    if (data.containsKey('backup_path')) {
+      context.handle(
+          _backupPathMeta,
+          backupPath.isAcceptableOrUnknown(
+              data['backup_path']!, _backupPathMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => const {};
+  @override
+  BackupSetting map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return BackupSetting(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      backupInterval: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}backup_interval']),
+      backupFilename: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}backup_filename']),
+      backupPath: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}backup_path']),
+    );
+  }
+
+  @override
+  $BackupSettingsTable createAlias(String alias) {
+    return $BackupSettingsTable(attachedDatabase, alias);
+  }
+}
+
+class BackupSetting extends DataClass implements Insertable<BackupSetting> {
+  final String id;
+  final String? backupInterval;
+  final String? backupFilename;
+  final String? backupPath;
+  const BackupSetting(
+      {required this.id,
+      this.backupInterval,
+      this.backupFilename,
+      this.backupPath});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    if (!nullToAbsent || backupInterval != null) {
+      map['backup_interval'] = Variable<String>(backupInterval);
+    }
+    if (!nullToAbsent || backupFilename != null) {
+      map['backup_filename'] = Variable<String>(backupFilename);
+    }
+    if (!nullToAbsent || backupPath != null) {
+      map['backup_path'] = Variable<String>(backupPath);
+    }
+    return map;
+  }
+
+  BackupSettingsCompanion toCompanion(bool nullToAbsent) {
+    return BackupSettingsCompanion(
+      id: Value(id),
+      backupInterval: backupInterval == null && nullToAbsent
+          ? const Value.absent()
+          : Value(backupInterval),
+      backupFilename: backupFilename == null && nullToAbsent
+          ? const Value.absent()
+          : Value(backupFilename),
+      backupPath: backupPath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(backupPath),
+    );
+  }
+
+  factory BackupSetting.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return BackupSetting(
+      id: serializer.fromJson<String>(json['id']),
+      backupInterval: serializer.fromJson<String?>(json['backupInterval']),
+      backupFilename: serializer.fromJson<String?>(json['backupFilename']),
+      backupPath: serializer.fromJson<String?>(json['backupPath']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'backupInterval': serializer.toJson<String?>(backupInterval),
+      'backupFilename': serializer.toJson<String?>(backupFilename),
+      'backupPath': serializer.toJson<String?>(backupPath),
+    };
+  }
+
+  BackupSetting copyWith(
+          {String? id,
+          Value<String?> backupInterval = const Value.absent(),
+          Value<String?> backupFilename = const Value.absent(),
+          Value<String?> backupPath = const Value.absent()}) =>
+      BackupSetting(
+        id: id ?? this.id,
+        backupInterval:
+            backupInterval.present ? backupInterval.value : this.backupInterval,
+        backupFilename:
+            backupFilename.present ? backupFilename.value : this.backupFilename,
+        backupPath: backupPath.present ? backupPath.value : this.backupPath,
+      );
+  BackupSetting copyWithCompanion(BackupSettingsCompanion data) {
+    return BackupSetting(
+      id: data.id.present ? data.id.value : this.id,
+      backupInterval: data.backupInterval.present
+          ? data.backupInterval.value
+          : this.backupInterval,
+      backupFilename: data.backupFilename.present
+          ? data.backupFilename.value
+          : this.backupFilename,
+      backupPath:
+          data.backupPath.present ? data.backupPath.value : this.backupPath,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BackupSetting(')
+          ..write('id: $id, ')
+          ..write('backupInterval: $backupInterval, ')
+          ..write('backupFilename: $backupFilename, ')
+          ..write('backupPath: $backupPath')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, backupInterval, backupFilename, backupPath);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is BackupSetting &&
+          other.id == this.id &&
+          other.backupInterval == this.backupInterval &&
+          other.backupFilename == this.backupFilename &&
+          other.backupPath == this.backupPath);
+}
+
+class BackupSettingsCompanion extends UpdateCompanion<BackupSetting> {
+  final Value<String> id;
+  final Value<String?> backupInterval;
+  final Value<String?> backupFilename;
+  final Value<String?> backupPath;
+  final Value<int> rowid;
+  const BackupSettingsCompanion({
+    this.id = const Value.absent(),
+    this.backupInterval = const Value.absent(),
+    this.backupFilename = const Value.absent(),
+    this.backupPath = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  BackupSettingsCompanion.insert({
+    required String id,
+    this.backupInterval = const Value.absent(),
+    this.backupFilename = const Value.absent(),
+    this.backupPath = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id);
+  static Insertable<BackupSetting> custom({
+    Expression<String>? id,
+    Expression<String>? backupInterval,
+    Expression<String>? backupFilename,
+    Expression<String>? backupPath,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (backupInterval != null) 'backup_interval': backupInterval,
+      if (backupFilename != null) 'backup_filename': backupFilename,
+      if (backupPath != null) 'backup_path': backupPath,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  BackupSettingsCompanion copyWith(
+      {Value<String>? id,
+      Value<String?>? backupInterval,
+      Value<String?>? backupFilename,
+      Value<String?>? backupPath,
+      Value<int>? rowid}) {
+    return BackupSettingsCompanion(
+      id: id ?? this.id,
+      backupInterval: backupInterval ?? this.backupInterval,
+      backupFilename: backupFilename ?? this.backupFilename,
+      backupPath: backupPath ?? this.backupPath,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (backupInterval.present) {
+      map['backup_interval'] = Variable<String>(backupInterval.value);
+    }
+    if (backupFilename.present) {
+      map['backup_filename'] = Variable<String>(backupFilename.value);
+    }
+    if (backupPath.present) {
+      map['backup_path'] = Variable<String>(backupPath.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BackupSettingsCompanion(')
+          ..write('id: $id, ')
+          ..write('backupInterval: $backupInterval, ')
+          ..write('backupFilename: $backupFilename, ')
+          ..write('backupPath: $backupPath, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$ConfigDatabase extends GeneratedDatabase {
   _$ConfigDatabase(QueryExecutor e) : super(e);
   $ConfigDatabaseManager get managers => $ConfigDatabaseManager(this);
   late final $UserConfigsTable userConfigs = $UserConfigsTable(this);
+  late final $BackupSettingsTable backupSettings = $BackupSettingsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [userConfigs];
+  List<DatabaseSchemaEntity> get allSchemaEntities =>
+      [userConfigs, backupSettings];
   @override
   DriftDatabaseOptions get options =>
       const DriftDatabaseOptions(storeDateTimeAsText: true);
@@ -4021,6 +4358,7 @@ typedef $$UserConfigsTableCreateCompanionBuilder = UserConfigsCompanion
     Function({
   required String id,
   Value<bool> darkMode,
+  Value<bool> copyOnImport,
   Value<bool> archiveEnabled,
   Value<String?> colorScheme,
   Value<String?> archiveOrgS3AccessKey,
@@ -4031,6 +4369,7 @@ typedef $$UserConfigsTableUpdateCompanionBuilder = UserConfigsCompanion
     Function({
   Value<String> id,
   Value<bool> darkMode,
+  Value<bool> copyOnImport,
   Value<bool> archiveEnabled,
   Value<String?> colorScheme,
   Value<String?> archiveOrgS3AccessKey,
@@ -4048,6 +4387,11 @@ class $$UserConfigsTableFilterComposer
 
   ColumnFilters<bool> get darkMode => $state.composableBuilder(
       column: $state.table.darkMode,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<bool> get copyOnImport => $state.composableBuilder(
+      column: $state.table.copyOnImport,
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
@@ -4082,6 +4426,11 @@ class $$UserConfigsTableOrderingComposer
 
   ColumnOrderings<bool> get darkMode => $state.composableBuilder(
       column: $state.table.darkMode,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<bool> get copyOnImport => $state.composableBuilder(
+      column: $state.table.copyOnImport,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 
@@ -4131,6 +4480,7 @@ class $$UserConfigsTableTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
             Value<bool> darkMode = const Value.absent(),
+            Value<bool> copyOnImport = const Value.absent(),
             Value<bool> archiveEnabled = const Value.absent(),
             Value<String?> colorScheme = const Value.absent(),
             Value<String?> archiveOrgS3AccessKey = const Value.absent(),
@@ -4140,6 +4490,7 @@ class $$UserConfigsTableTableManager extends RootTableManager<
               UserConfigsCompanion(
             id: id,
             darkMode: darkMode,
+            copyOnImport: copyOnImport,
             archiveEnabled: archiveEnabled,
             colorScheme: colorScheme,
             archiveOrgS3AccessKey: archiveOrgS3AccessKey,
@@ -4149,6 +4500,7 @@ class $$UserConfigsTableTableManager extends RootTableManager<
           createCompanionCallback: ({
             required String id,
             Value<bool> darkMode = const Value.absent(),
+            Value<bool> copyOnImport = const Value.absent(),
             Value<bool> archiveEnabled = const Value.absent(),
             Value<String?> colorScheme = const Value.absent(),
             Value<String?> archiveOrgS3AccessKey = const Value.absent(),
@@ -4158,6 +4510,7 @@ class $$UserConfigsTableTableManager extends RootTableManager<
               UserConfigsCompanion.insert(
             id: id,
             darkMode: darkMode,
+            copyOnImport: copyOnImport,
             archiveEnabled: archiveEnabled,
             colorScheme: colorScheme,
             archiveOrgS3AccessKey: archiveOrgS3AccessKey,
@@ -4185,10 +4538,149 @@ typedef $$UserConfigsTableProcessedTableManager = ProcessedTableManager<
     ),
     UserConfig,
     PrefetchHooks Function()>;
+typedef $$BackupSettingsTableCreateCompanionBuilder = BackupSettingsCompanion
+    Function({
+  required String id,
+  Value<String?> backupInterval,
+  Value<String?> backupFilename,
+  Value<String?> backupPath,
+  Value<int> rowid,
+});
+typedef $$BackupSettingsTableUpdateCompanionBuilder = BackupSettingsCompanion
+    Function({
+  Value<String> id,
+  Value<String?> backupInterval,
+  Value<String?> backupFilename,
+  Value<String?> backupPath,
+  Value<int> rowid,
+});
+
+class $$BackupSettingsTableFilterComposer
+    extends FilterComposer<_$ConfigDatabase, $BackupSettingsTable> {
+  $$BackupSettingsTableFilterComposer(super.$state);
+  ColumnFilters<String> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get backupInterval => $state.composableBuilder(
+      column: $state.table.backupInterval,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get backupFilename => $state.composableBuilder(
+      column: $state.table.backupFilename,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get backupPath => $state.composableBuilder(
+      column: $state.table.backupPath,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+}
+
+class $$BackupSettingsTableOrderingComposer
+    extends OrderingComposer<_$ConfigDatabase, $BackupSettingsTable> {
+  $$BackupSettingsTableOrderingComposer(super.$state);
+  ColumnOrderings<String> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get backupInterval => $state.composableBuilder(
+      column: $state.table.backupInterval,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get backupFilename => $state.composableBuilder(
+      column: $state.table.backupFilename,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get backupPath => $state.composableBuilder(
+      column: $state.table.backupPath,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+}
+
+class $$BackupSettingsTableTableManager extends RootTableManager<
+    _$ConfigDatabase,
+    $BackupSettingsTable,
+    BackupSetting,
+    $$BackupSettingsTableFilterComposer,
+    $$BackupSettingsTableOrderingComposer,
+    $$BackupSettingsTableCreateCompanionBuilder,
+    $$BackupSettingsTableUpdateCompanionBuilder,
+    (
+      BackupSetting,
+      BaseReferences<_$ConfigDatabase, $BackupSettingsTable, BackupSetting>
+    ),
+    BackupSetting,
+    PrefetchHooks Function()> {
+  $$BackupSettingsTableTableManager(
+      _$ConfigDatabase db, $BackupSettingsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          filteringComposer:
+              $$BackupSettingsTableFilterComposer(ComposerState(db, table)),
+          orderingComposer:
+              $$BackupSettingsTableOrderingComposer(ComposerState(db, table)),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String?> backupInterval = const Value.absent(),
+            Value<String?> backupFilename = const Value.absent(),
+            Value<String?> backupPath = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              BackupSettingsCompanion(
+            id: id,
+            backupInterval: backupInterval,
+            backupFilename: backupFilename,
+            backupPath: backupPath,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            Value<String?> backupInterval = const Value.absent(),
+            Value<String?> backupFilename = const Value.absent(),
+            Value<String?> backupPath = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              BackupSettingsCompanion.insert(
+            id: id,
+            backupInterval: backupInterval,
+            backupFilename: backupFilename,
+            backupPath: backupPath,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$BackupSettingsTableProcessedTableManager = ProcessedTableManager<
+    _$ConfigDatabase,
+    $BackupSettingsTable,
+    BackupSetting,
+    $$BackupSettingsTableFilterComposer,
+    $$BackupSettingsTableOrderingComposer,
+    $$BackupSettingsTableCreateCompanionBuilder,
+    $$BackupSettingsTableUpdateCompanionBuilder,
+    (
+      BackupSetting,
+      BaseReferences<_$ConfigDatabase, $BackupSettingsTable, BackupSetting>
+    ),
+    BackupSetting,
+    PrefetchHooks Function()>;
 
 class $ConfigDatabaseManager {
   final _$ConfigDatabase _db;
   $ConfigDatabaseManager(this._db);
   $$UserConfigsTableTableManager get userConfigs =>
       $$UserConfigsTableTableManager(_db, _db.userConfigs);
+  $$BackupSettingsTableTableManager get backupSettings =>
+      $$BackupSettingsTableTableManager(_db, _db.backupSettings);
 }

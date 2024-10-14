@@ -4,6 +4,7 @@ import "package:drift_flutter/drift_flutter.dart";
 import "package:chenron/database/schema/items_schema.dart";
 import "package:chenron/database/extensions/intial_data/app_database.dart";
 import "package:chenron/database/extensions/intial_data/config_database.dart";
+import "package:chenron/utils/directory/directory.dart";
 
 part "database.g.dart";
 
@@ -44,7 +45,8 @@ class AppDatabase extends _$AppDatabase {
     String? databaseName,
     this.setupOnInit = false,
     String? customPath,
-  }) : super(_openConnection(databaseName: databaseName ?? "chenron"));
+  }) : super(_openConnection(
+            databaseName: databaseName ?? "chenron", customPath: customPath));
 
   void setup() async {
     if (setupOnInit) {
@@ -55,15 +57,27 @@ class AppDatabase extends _$AppDatabase {
   @override
   int get schemaVersion => 1;
 
-  static QueryExecutor _openConnection({String databaseName = "chenron"}) {
+  static QueryExecutor _openConnection(
+      {String databaseName = "chenron", String? customPath}) {
     // `driftDatabase` from `package:drift_flutter` stores the database in
     // `getApplicationDocumentsDirectory()`.
-    return driftDatabase(name: databaseName);
+    Future<String> Function()? path;
+    if (customPath != null) {
+      path = () async => customPath;
+    } else {
+      path = () async => (await getDefaultApplicationDirectory()).path;
+    }
+    return driftDatabase(
+        name: databaseName,
+        native: DriftNativeOptions(
+          databasePath: path,
+        ));
   }
 }
 
 @DriftDatabase(tables: [
   UserConfigs,
+  BackupSettings,
 ])
 class ConfigDatabase extends _$ConfigDatabase {
   ConfigDatabase() : super(_openConnection()) {
