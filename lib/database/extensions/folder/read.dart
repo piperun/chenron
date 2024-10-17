@@ -35,7 +35,8 @@ extension FolderReadExtensions on AppDatabase {
   }
 
   Stream<FolderResult> watchFolder(
-      {folderId, IncludeFolderData mode = IncludeFolderData.all}) {
+      {required String folderId,
+      IncludeFolderData mode = IncludeFolderData.all}) {
     return FolderQueryBuilder(folderId: folderId, db: this, mode: mode)
         .watchSingle();
   }

@@ -1,20 +1,40 @@
+/*
 import "dart:async";
+
 import "package:chenron/database/database.dart";
 import "package:chenron/database/extensions/folder/read.dart";
 import "package:chenron/database/extensions/folder/remove.dart";
+import "package:chenron/providers/appdatabase_provider.dart";
+import "package:chenron/providers/debug.dart";
+import "package:flutter_riverpod/flutter_riverpod.dart";
 
 class FolderDataManager {
+  final ProviderContainer container;
   final AppDatabase _database;
-  late Stream<List<FolderResult>> _allFoldersStream;
+  late final Stream<List<FolderResult>> _allFoldersStream;
   final _tagsController = StreamController<List<Tag>>.broadcast();
   final _foldersController = StreamController<List<FolderResult>>.broadcast();
   final Set<String> _selectedTags = {};
 
-  FolderDataManager(this._database) {
+  // Private constructor
+  FolderDataManager._(this.container, this._database) {
     _initStreams();
   }
 
+  // Asynchronous factory method
+  static Future<FolderDataManager> create() async {
+    final container = ProviderContainer(
+      observers: [
+        MyObserver(),
+      ],
+    );
+    final database =
+        await appDatabaseAccessorSignal.value.then((db) => db.appDatabase);
+    return FolderDataManager._(container, database);
+  }
+
   void _initStreams() {
+    // Now _database is guaranteed to be initialized
     _allFoldersStream = _database.watchAllFolders(mode: IncludeFolderData.tags);
     _allFoldersStream.listen(_processFolders);
   }
@@ -52,7 +72,7 @@ class FolderDataManager {
 
   Future<bool> removeFolder(String id) async {
     try {
-      _database.removeFolder(id);
+      await _database.removeFolder(id);
       return true;
     } catch (e) {
       rethrow;
@@ -67,3 +87,5 @@ class FolderDataManager {
     _foldersController.close();
   }
 }
+
+*/

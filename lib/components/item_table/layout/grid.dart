@@ -8,12 +8,12 @@ class GridLayout<T> extends StatelessWidget {
   final List<T> items;
   final GridHeader? header;
   final GridFooter? footer;
-  final Widget Function(BuildContext, T) itemBuilder;
+  final Widget Function(BuildContext, T) itemWidgetBuilder;
 
   const GridLayout({
     super.key,
     required this.items,
-    required this.itemBuilder,
+    required this.itemWidgetBuilder,
     this.header,
     this.footer,
   });
@@ -31,12 +31,15 @@ class GridLayout<T> extends StatelessWidget {
           xl: 5,
         );
         return GridView.builder(
+          scrollDirection: Axis.vertical,
+          shrinkWrap: true,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: gridColumns,
             childAspectRatio: 1,
           ),
           itemCount: items.length,
-          itemBuilder: (context, index) => itemBuilder(context, items[index]),
+          itemBuilder: (context, index) =>
+              itemWidgetBuilder(context, items[index]),
         );
       },
     );

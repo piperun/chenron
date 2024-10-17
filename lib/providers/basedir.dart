@@ -1,19 +1,17 @@
 import "dart:io";
 
 import "package:flutter/foundation.dart";
-import "package:riverpod_annotation/riverpod_annotation.dart";
 import "package:chenron/utils/directory/directory.dart";
+import "package:signals/signals.dart";
 
-// Necessary for code-generation to work
-part "basedir.g.dart";
+final FutureSignal<ChenronDirectories> chenronDirsSignal =
+    futureSignal(initializeChenronDirs);
 
-/// This will create a provider named `activityProvider`
-/// which will cache the result of this function.
-@riverpod
-Future<ChenronDirectories> chenronBaseDirs(ChenronBaseDirsRef ref) async {
+Future<ChenronDirectories> initializeChenronDirs() async {
   File databaseName = File("chenron");
   const bool debugMode = kDebugMode;
-  // TODO: Implement database config fetching the database path
+
+  // Fetch the default application directory
   final Directory baseDir =
       await getDefaultApplicationDirectory(debugMode: debugMode);
 

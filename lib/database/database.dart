@@ -80,17 +80,39 @@ class AppDatabase extends _$AppDatabase {
   BackupSettings,
 ])
 class ConfigDatabase extends _$ConfigDatabase {
-  ConfigDatabase() : super(_openConnection()) {
-    setupUserConfig();
-  }
+  bool setupOnInit;
+
+  ConfigDatabase({
+    QueryExecutor? queryExecutor,
+    String? databaseName,
+    this.setupOnInit = false,
+    String? customPath,
+  }) : super(_openConnection(customPath: customPath));
 
   @override
   int get schemaVersion => 1;
 
-  static QueryExecutor _openConnection() {
+  static QueryExecutor _openConnection(
+      {String databaseName = "config", String? customPath}) {
     // `driftDatabase` from `package:drift_flutter` stores the database in
     // `getApplicationDocumentsDirectory()`.
-    return driftDatabase(name: "config");
+    Future<String> Function()? path;
+    if (customPath != null) {
+      path = () async => customPath;
+    } else {
+      path = () async => (await getDefaultApplicationDirectory()).path;
+    }
+    return driftDatabase(
+        name: databaseName,
+        native: DriftNativeOptions(
+          databasePath: path,
+        ));
+  }
+
+  void setup() async {
+    if (setupOnInit) {
+      await setupUserConfig();
+    }
   }
 }
 

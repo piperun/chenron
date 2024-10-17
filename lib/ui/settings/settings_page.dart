@@ -1,13 +1,17 @@
 import "dart:convert";
 
+import "package:chenron/database/extensions/operations/config_file_handler.dart";
 import "package:chenron/database/extensions/user_config/read.dart";
 import "package:chenron/database/extensions/user_config/update.dart";
+import "package:chenron/locator.dart";
+import "package:chenron/providers/configdatabase.dart";
 import "package:chenron/utils/logger.dart";
 import "package:flutter/material.dart";
 import "package:chenron/database/database.dart";
 import "package:chenron/models/user_config.dart";
 import "package:flutter_colorpicker/flutter_colorpicker.dart";
 import "package:provider/provider.dart";
+import "package:signals/signals_flutter.dart";
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -33,8 +37,10 @@ class SettingsPage extends StatelessWidget {
   }
 
   Future<UserConfigModel> _loadUserConfig(BuildContext context) async {
-    final database = Provider.of<ConfigDatabase>(context, listen: false);
-    final config = await database.getUserConfig();
+    final db = await configDatabaseFileHandlerSignal.value;
+    final configDatabase = db.configDatabase;
+
+    final config = await configDatabase.getUserConfig();
     return UserConfigModel(
         id: config?.id,
         darkMode: config?.darkMode,

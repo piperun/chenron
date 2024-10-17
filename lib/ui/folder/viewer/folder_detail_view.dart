@@ -1,13 +1,15 @@
 import "package:chenron/components/metadata_factory.dart";
+import "package:chenron/database/extensions/folder/read.dart";
+import "package:chenron/database/extensions/operations/database_file_handler.dart";
+import "package:chenron/locator.dart";
 import "package:chenron/models/item.dart";
 import "package:chenron/utils/logger.dart";
 import "package:flutter/material.dart";
+import "package:flutter_riverpod/flutter_riverpod.dart";
 import "package:flutter_svg/flutter_svg.dart";
 import "package:logging/logging.dart";
-import "package:provider/provider.dart";
-import "package:chenron/database/database.dart";
-import "package:chenron/database/extensions/folder/read.dart";
 import "package:chenron/components/edviewer/viewer/detail_viewer.dart";
+import "package:signals/signals_flutter.dart";
 import "package:url_launcher/url_launcher.dart";
 import "package:favicon/favicon.dart";
 
@@ -19,9 +21,14 @@ class FolderDetailView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final database = Provider.of<AppDatabase>(context, listen: false);
+    final database = locator
+        .get<FutureSignal<AppDatabaseHandler>>()
+        .future
+        .then((db) =>
+            db.appDatabase.getFolder(folderId).then((folder) => folder!));
+
     return DetailViewer(
-        fetchData: database.getFolder(folderId).then((folder) => folder!),
+        fetchData: database,
         listBuilder: (context, item) {
           return ContentTile(itemContent: item.content);
         });
@@ -78,7 +85,7 @@ class Favicon extends StatelessWidget {
     return Favicon._internal(key: key, url: url);
   }
 
-  Favicon._internal({super.key, required this.url});
+  const Favicon._internal({super.key, required this.url});
 
   static Future<String?> _getFavIconUrl(String url) async {
     if (!_cache.containsKey(url)) {

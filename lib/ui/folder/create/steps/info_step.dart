@@ -1,15 +1,22 @@
 import "package:chenron/components/TextBase/info_field.dart";
 import "package:chenron/components/tags/tag_field.dart";
-import "package:chenron/providers/stepper_provider.dart";
+import "package:chenron/locator.dart";
+import "package:chenron/providers/folder_provider.dart";
+import "package:chenron/ui/folder/create/create_stepper.dart";
 import "package:chenron/utils/validation/folder_validator.dart";
 import "package:flutter/material.dart";
-import "package:provider/provider.dart";
-import "package:chenron/providers/folder_info_state.dart";
+import "package:flutter_riverpod/flutter_riverpod.dart";
+import "package:signals/signals_flutter.dart";
 
 class FolderInfoStep extends StatefulWidget {
   final GlobalKey<FormState> formKey;
+  final ValueChanged<FolderType> onFolderTypeChanged;
 
-  const FolderInfoStep({super.key, required this.formKey});
+  const FolderInfoStep({
+    super.key,
+    required this.formKey,
+    required this.onFolderTypeChanged,
+  });
 
   @override
   State<FolderInfoStep> createState() => _FolderInfoStepState();
@@ -19,16 +26,16 @@ class _FolderInfoStepState extends State<FolderInfoStep> {
   late TextEditingController _titleController;
   late TextEditingController _descriptionController;
   final TextEditingController _tagsController = TextEditingController();
-  String _access = "Private";
 
   @override
   void initState() {
     super.initState();
-    final folderProvider =
-        Provider.of<FolderInfoProvider>(context, listen: false);
-    _titleController = TextEditingController(text: folderProvider.title);
+    final folderDraft = locator.get<Signal<FolderDraft>>().value.folder;
+
+    _titleController =
+        TextEditingController(text: folderDraft.folderInfo.title);
     _descriptionController =
-        TextEditingController(text: folderProvider.description);
+        TextEditingController(text: folderDraft.folderInfo.description);
   }
 
   @override
@@ -43,30 +50,32 @@ class _FolderInfoStepState extends State<FolderInfoStep> {
   Widget build(BuildContext context) {
     return Form(
       key: widget.formKey,
-      child: Consumer<FolderInfoProvider>(
-        builder: (context, folderProvider, child) {
+      child: Consumer(
+        builder: (context, ref, child) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               InfoField(
                 controller: _titleController,
                 labelText: "Title",
-                onSaved: folderProvider.updateTitle,
+                onSaved: ref.watch(createFolderProvider.notifier).updateTitle,
                 validator: FolderValidator.validateTitle,
               ),
               InfoField(
                 controller: _descriptionController,
                 labelText: "Description",
-                onSaved: folderProvider.updateDescription,
+                onSaved:
+                    ref.watch(createFolderProvider.notifier).updateDescription,
                 validator: FolderValidator.validateDescription,
               ),
               const TagField(),
               const SizedBox(height: 20),
+              const AccessSelection(),
               const SizedBox(height: 20),
-              _buildAccessSelection(),
-              const SizedBox(height: 20),
-              const RepaintBoundary(
-                child: FolderTypeDropDown(),
+              RepaintBoundary(
+                child: FolderTypeDropDown(
+                  onFolderTypeChanged: widget.onFolderTypeChanged,
+                ),
               ),
             ],
           );
@@ -74,8 +83,18 @@ class _FolderInfoStepState extends State<FolderInfoStep> {
       ),
     );
   }
+}
 
-  Widget _buildAccessSelection() {
+class AccessSelection extends StatefulWidget {
+  const AccessSelection({super.key});
+  @override
+  State<AccessSelection> createState() => _AccessSelectionState();
+}
+
+class _AccessSelectionState extends State<AccessSelection> {
+  String _access = "Private";
+  @override
+  Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -101,7 +120,8 @@ class _FolderInfoStepState extends State<FolderInfoStep> {
 }
 
 class FolderTypeDropDown extends StatefulWidget {
-  const FolderTypeDropDown({super.key});
+  final ValueChanged<FolderType> onFolderTypeChanged;
+  const FolderTypeDropDown({required this.onFolderTypeChanged, super.key});
 
   @override
   State<FolderTypeDropDown> createState() => _FolderTypeDropDownState();
@@ -128,6 +148,7 @@ class _FolderTypeDropDownState extends State<FolderTypeDropDown> {
       }).toList(),
       onChanged: (FolderType? newValue) {
         setState(() => _selectedFolderType = newValue);
+        widget.onFolderTypeChanged(newValue!); // Call the callback
       },
       validator: (value) =>
           value == null ? "Please select a folder type" : null,

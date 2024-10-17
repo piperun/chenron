@@ -1,42 +1,70 @@
 import "package:chenron/models/folder.dart";
 import "package:chenron/models/item.dart";
 import "package:chenron/models/metadata.dart";
-import "package:flutter/foundation.dart";
+import "package:riverpod_annotation/riverpod_annotation.dart";
 
-class FolderProvider extends ChangeNotifier {
-  final _Folder _folder = _Folder();
+part "folder_provider.g.dart";
+
+class FolderDraft {
+  Folder folder = Folder();
   void updateTitle(String newTitle) {
-    _folder.folderInfo.title = newTitle;
-    notifyListeners();
+    folder.folderInfo.title = newTitle;
   }
 
   void updateDescription(String newDescription) {
-    _folder.folderInfo.description = newDescription;
-    notifyListeners();
+    folder.folderInfo.description = newDescription;
   }
 
   void addTag(String tag, MetadataTypeEnum type) {
-    _folder.tags.add(Metadata(value: tag, type: type));
-    notifyListeners();
+    folder.tags.add(Metadata(value: tag, type: type));
   }
 
   void removeTag(String tag) {
-    _folder.tags.removeWhere((element) => element.value == tag);
-    notifyListeners();
+    folder.tags.removeWhere((element) => element.value == tag);
   }
 
   void addItem(FolderItem item) {
-    _folder.items.add(item);
-    notifyListeners();
+    folder.items.add(item);
   }
 
   void removeItem(int id) {
-    _folder.items.removeWhere((element) => element.listId == id);
-    notifyListeners();
+    folder.items.removeWhere((element) => element.listId == id);
   }
 }
 
-class _Folder {
+@riverpod
+class CreateFolder extends _$CreateFolder {
+  @override
+  Folder build() {
+    return Folder();
+  }
+
+  void updateTitle(String newTitle) {
+    state.folderInfo.title = newTitle;
+  }
+
+  void updateDescription(String newDescription) {
+    state.folderInfo.description = newDescription;
+  }
+
+  void addTag(String tag, MetadataTypeEnum type) {
+    state.tags.add(Metadata(value: tag, type: type));
+  }
+
+  void removeTag(String tag) {
+    state.tags.removeWhere((element) => element.value == tag);
+  }
+
+  void addItem(FolderItem item) {
+    state.items.add(item);
+  }
+
+  void removeItem(int id) {
+    state.items.removeWhere((element) => element.listId == id);
+  }
+}
+
+class Folder {
   final FolderInfo folderInfo = FolderInfo(title: "", description: "");
   final Set<Metadata> tags = {};
   final Set<FolderItem> items = {};

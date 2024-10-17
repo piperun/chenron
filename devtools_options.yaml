@@ -1,1 +1,3 @@
 extensions:
+  - signals: true
+  - drift: true

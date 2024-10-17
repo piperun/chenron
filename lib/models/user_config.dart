@@ -3,6 +3,7 @@ import "dart:convert";
 import "package:chenron/database/database.dart";
 import "package:drift/drift.dart";
 
+@Deprecated("Drift can generates this class, as such no point in using this")
 class UserConfigModel {
   final String? id;
   final bool? darkMode;

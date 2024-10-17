@@ -1,10 +1,11 @@
 import "dart:io";
 import "package:chenron/database/database.dart";
 import "package:chenron/database/file_operations.dart";
-import "package:chenron/providers/basedir.dart";
+import "package:chenron/locator.dart";
+import "package:chenron/utils/directory/directory.dart";
 import "package:chenron/utils/logger.dart";
 import "package:path/path.dart" as p;
-import "package:flutter_riverpod/flutter_riverpod.dart";
+import "package:signals/signals.dart";
 
 class DatabaseLocation {
   /// This only returns the directory
@@ -58,6 +59,18 @@ class AppDatabaseHandler {
     return _appDatabase!;
   }
 
+  void initDatabase() {
+    if (_appDatabase != null) {
+      return;
+    }
+    _appDatabase = AppDatabase(
+      databaseName: databaseLocation.databaseFilename,
+      customPath: databaseLocation.databaseFilePath.path,
+      setupOnInit: true,
+    );
+    _appDatabase?.setup();
+  }
+
   void createDatabase({
     String? databaseName,
     File? databasePath,
@@ -67,6 +80,7 @@ class AppDatabaseHandler {
     final String path =
         databasePath?.path ?? databaseLocation.databaseFilePath.path;
 
+    _appDatabase?.close();
     _appDatabase = AppDatabase(
       databaseName: dbName,
       customPath: path,
@@ -87,8 +101,8 @@ class AppDatabaseHandler {
     if (_checkDatabaseFile(dbFile)) {
       await _appDatabase?.close();
 
-      ProviderContainer container = ProviderContainer();
-      final baseDir = await container.read(chenronBaseDirsProvider.future);
+      final baseDir =
+          await locator.get<FutureSignal<ChenronDirectories>>().future;
       if (copyImport) {
         result = await _fileOperations.importByCopy(
             dbFile: dbFile, importDirectory: baseDir.importDir);
@@ -108,8 +122,8 @@ class AppDatabaseHandler {
 
   Future<File?> backupDatabase() async {
     File? result;
-    ProviderContainer container = ProviderContainer();
-    final baseDir = await container.read(chenronBaseDirsProvider.future);
+    final baseDir =
+        await locator.get<FutureSignal<ChenronDirectories>>().future;
     try {
       result = await _fileOperations.backupDatabase(
         dbFile: databaseLocation.databaseFilePath,

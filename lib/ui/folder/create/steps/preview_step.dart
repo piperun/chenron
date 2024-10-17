@@ -1,7 +1,9 @@
 import "package:chenron/models/item.dart";
 import "package:chenron/providers/cud_state.dart";
 import "package:chenron/providers/folder_info_state.dart";
+import "package:chenron/providers/folder_provider.dart";
 import "package:flutter/material.dart";
+import "package:flutter_riverpod/flutter_riverpod.dart";
 import "package:provider/provider.dart";
 
 class FolderPreview extends StatelessWidget {
@@ -55,13 +57,12 @@ class ReviewCard extends StatelessWidget {
   }
 }
 
-class Expandable extends StatelessWidget {
+class Expandable extends ConsumerWidget {
   const Expandable({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final folderProvider = Provider.of<FolderInfoProvider>(context);
-    final dataProvider = Provider.of<CUDProvider<FolderItem>>(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final folderProvider = ref.watch(createFolderProvider);
 
     return Card(
       elevation: 2,
@@ -73,11 +74,11 @@ class Expandable extends StatelessWidget {
         children: [
           ListTile(
             title: const Text("Title"),
-            subtitle: Text(folderProvider.title),
+            subtitle: Text(folderProvider.folderInfo.title),
           ),
           ListTile(
             title: const Text("Description"),
-            subtitle: Text(folderProvider.description),
+            subtitle: Text(folderProvider.folderInfo.description),
           ),
           ListTile(
             title: const Text("Tags"),
@@ -85,7 +86,7 @@ class Expandable extends StatelessWidget {
           ),
           ListTile(
             title: const Text("Links"),
-            subtitle: Text(dataProvider.create.toString()),
+            subtitle: Text(folderProvider.items.toString()),
           ),
         ],
       ),

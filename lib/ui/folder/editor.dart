@@ -1,8 +1,10 @@
 import "package:chenron/components/edviewer/editor/detail_editor.dart";
-import "package:chenron/database/database.dart";
 import "package:chenron/database/extensions/folder/read.dart";
+import "package:chenron/database/extensions/operations/database_file_handler.dart";
+import "package:chenron/locator.dart";
+import "package:chenron/utils/logger.dart";
 import "package:flutter/material.dart";
-import "package:provider/provider.dart";
+import "package:signals/signals_flutter.dart";
 
 class FolderEditor extends StatelessWidget {
   final String folderId;
@@ -14,9 +16,33 @@ class FolderEditor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final database = Provider.of<AppDatabase>(context, listen: false);
-    return StreamBuilder<FolderResult>(
-      stream: database.watchFolder(folderId: folderId),
+    return Scaffold(
+        body: EditorBody(
+      folderId: folderId,
+    ));
+  }
+}
+
+class EditorBody extends StatelessWidget {
+  final String folderId;
+  const EditorBody({required this.folderId, super.key});
+  Stream<FolderResult?> watchFolder() async* {
+    try {
+      final database = await locator
+          .get<FutureSignal<AppDatabaseHandler>>()
+          .future
+          .then((db) => db.appDatabase);
+      yield* database.watchFolder(folderId: folderId);
+    } catch (e) {
+      loggerGlobal.severe("FolderViewerModel" "Error watching folders: $e", e);
+      yield null;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<FolderResult?>(
+      stream: watchFolder(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const CircularProgressIndicator();
@@ -25,7 +51,7 @@ class FolderEditor extends StatelessWidget {
           return Text("Error: ${snapshot.error}");
         }
         if (!snapshot.hasData) {
-          return const Text("No data available");
+          return const Center(child: Text("No data available"));
         }
 
         final folderData = snapshot.data!;

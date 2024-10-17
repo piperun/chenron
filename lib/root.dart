@@ -5,7 +5,6 @@ import "package:chenron/ui/folder/viewer/folder_viewer.dart";
 import "package:chenron/ui/home/homepage.dart";
 import "package:easy_sidemenu/easy_sidemenu.dart";
 import "package:flutter/material.dart";
-import "package:provider/provider.dart";
 
 class RootPage extends StatefulWidget {
   const RootPage({super.key});
@@ -101,21 +100,20 @@ class CustomPageView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Provider.of<ConfigDatabase>(context, listen: false);
     return PageView(
       controller: pageController,
-      children: const [
-        PageViewItem(color: Colors.white, child: HomePage(padding: 16)),
-        PageViewItem(color: Colors.white, child: SettingsPage()),
+      children: [
+        const PageViewItem(color: Colors.white, child: HomePage(padding: 16)),
+        const PageViewItem(color: Colors.white, child: SettingsPage()),
         PageViewItem(color: Colors.black, child: CreateFolderStepper()),
-        PageViewItem(color: Colors.white, child: FolderViewSlug()),
-        PageViewItem(
+        const PageViewItem(color: Colors.white, child: FolderViewer()),
+        const PageViewItem(
             color: Colors.white,
             child: Text("Expansion Item 2", style: TextStyle(fontSize: 35))),
-        PageViewItem(
+        const PageViewItem(
             color: Colors.white,
             child: Text("Files", style: TextStyle(fontSize: 35))),
-        PageViewItem(
+        const PageViewItem(
             color: Colors.white,
             child: Text("Download", style: TextStyle(fontSize: 35))),
       ],

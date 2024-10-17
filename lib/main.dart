@@ -1,42 +1,21 @@
-import "package:chenron/models/item.dart";
-import "package:chenron/database/database.dart";
-import "package:chenron/providers/stepper_provider.dart";
-import "package:chenron/providers/cud_state.dart";
-import "package:chenron/providers/folder_info_state.dart";
+import "package:chenron/locator.dart";
+import "package:chenron/providers/debug.dart";
 import "package:chenron/root.dart";
 import "package:chenron/utils/logger.dart";
 import "package:flutter/material.dart";
-import "package:provider/provider.dart";
+import "package:flutter_riverpod/flutter_riverpod.dart";
 import "package:path_provider/path_provider.dart";
 
 void main() async {
   loggerGlobal.setupLogPath(
       await getApplicationDocumentsDirectory().then((dir) => dir.path));
-  runApp(
-    MultiProvider(
-      providers: [
-        Provider<AppDatabase>(
-          create: (context) {
-            final AppDatabase db = AppDatabase(
-                queryExecutor: null,
-                databaseName: "chenron_db",
-                setupOnInit: true);
-            db.setup();
-            return db;
-          },
-          dispose: (context, db) => db.close(),
-        ),
-        Provider<ConfigDatabase>(
-          create: (context) => ConfigDatabase(),
-          dispose: (context, db) => db.close(),
-        ),
-        ChangeNotifierProvider(create: (context) => FolderInfoProvider()),
-        ChangeNotifierProvider(create: (context) => CUDProvider<FolderItem>()),
-        ChangeNotifierProvider(create: (context) => StepperProvider()),
-      ],
-      child: const MyApp(),
-    ),
-  );
+  locatorSetup();
+  runApp(ProviderScope(
+    observers: [
+      MyObserver(),
+    ],
+    child: MyApp(),
+  ));
 }
 
 class MyApp extends StatelessWidget {

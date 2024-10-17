@@ -1,14 +1,15 @@
-import "package:chenron/convert/folder_item_convert.dart";
+import "package:chenron/database/extensions/operations/database_file_handler.dart";
+import "package:chenron/locator.dart";
+import "package:chenron/utils/convert/folder_item_convert.dart";
 import "package:flutter/material.dart";
 import "package:intl/intl.dart";
 import "package:pluto_grid/pluto_grid.dart";
-import "package:provider/provider.dart";
 import "package:chenron/models/cud.dart";
 import "package:chenron/models/item.dart";
-import "package:chenron/database/database.dart";
 import "package:chenron/database/extensions/folder/read.dart";
 import "package:chenron/database/extensions/folder/update.dart";
 import "package:chenron/components/edviewer/editor/item_editor.dart";
+import "package:signals/signals_flutter.dart";
 
 class DetailEditor extends StatefulWidget {
   final FolderResult? currentData;
@@ -145,8 +146,11 @@ class _DetailEditorState extends State<DetailEditor> {
     }
   }
 
-  void _saveChanges() {
-    final database = Provider.of<AppDatabase>(context, listen: false);
+  Future<void> _saveChanges() async {
+    final database = await locator
+        .get<FutureSignal<AppDatabaseHandler>>()
+        .future
+        .then((db) => db.appDatabase);
     try {
       database.updateFolder(widget.currentData!.folder.id,
           title: _titleController.text,

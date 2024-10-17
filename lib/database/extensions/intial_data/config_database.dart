@@ -5,6 +5,7 @@ import "package:cuid2/cuid2.dart";
 extension ConfigDatabaseInit on ConfigDatabase {
   Future<void> setupUserConfig() async {
     await _setupUserConfigEntry();
+    await _setupBackupConfig();
   }
 
   Future<void> _setupUserConfigEntry() async {
@@ -13,12 +14,25 @@ extension ConfigDatabaseInit on ConfigDatabase {
       final defaultConfig = UserConfig(
         id: cuidSecure(30),
         darkMode: false,
+        copyOnImport: true,
         archiveEnabled: false,
         colorScheme: null,
         archiveOrgS3AccessKey: null,
         archiveOrgS3SecretKey: null,
       );
       await createUserConfig(defaultConfig);
+    }
+  }
+
+  Future<void> _setupBackupConfig() async {
+    final existingConfig = await select(backupSettings).getSingleOrNull();
+    if (existingConfig == null) {
+      final defaultConfig = BackupSetting(
+        id: cuidSecure(30),
+        backupFilename: null,
+        backupPath: null,
+      );
+      await createBackupSettings(defaultConfig);
     }
   }
 }

@@ -1,25 +1,25 @@
 import "package:chenron/models/item.dart";
+import "package:chenron/providers/folder_provider.dart";
 import "package:chenron/utils/validation/link_validator.dart";
 import "package:flutter/material.dart";
+import "package:flutter_riverpod/flutter_riverpod.dart";
 import "package:pluto_grid/pluto_grid.dart";
-import "package:provider/provider.dart";
-import "package:chenron/providers/cud_state.dart";
 import "package:chenron/components/table/link_toolbar.dart";
 import "package:chenron/responsible_design/breakpoints.dart";
 import "package:chenron/components/forms/form/link_form_field.dart";
 
-class LinkForm extends StatefulWidget {
+class LinkForm extends ConsumerStatefulWidget {
   final GlobalKey<FormState> dataKey;
   const LinkForm({super.key, required this.dataKey});
 
   @override
-  State<LinkForm> createState() => _LinkFormState();
+  LinkFormState createState() => LinkFormState();
 }
 
-class _LinkFormState extends State<LinkForm> {
+class LinkFormState extends ConsumerState<LinkForm> {
+  final GlobalKey<FormState> _linkFormKey = GlobalKey<FormState>();
   final TextEditingController _linkController = TextEditingController();
   late PlutoGridStateManager stateManager;
-  final GlobalKey<FormState> _linkFormKey = GlobalKey<FormState>();
 
   List<PlutoColumn> columns = [
     PlutoColumn(
@@ -52,9 +52,11 @@ class _LinkFormState extends State<LinkForm> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<CUDProvider<FolderItem>>(
-      builder: (context, folderItems, child) {
-        List<PlutoRow> rows = folderItems.create
+    final folderLinkProvider = ref.watch(createFolderProvider);
+    final folderLinkSetter = ref.read(createFolderProvider.notifier);
+    return Consumer(
+      builder: (context, ref, child) {
+        List<PlutoRow> rows = folderLinkProvider.items
             .map((link) => PlutoRow(
                   cells: {
                     "url": PlutoCell(value: link.content),
@@ -69,9 +71,9 @@ class _LinkFormState extends State<LinkForm> {
             Form(
               key: widget.dataKey,
               child: LinkFormField(
-                linkProvider: folderItems,
+                linkProvider: folderLinkProvider.items,
                 validator: (_) {
-                  if (folderItems.create.isEmpty) {
+                  if (folderLinkProvider.items.isEmpty) {
                     return "Please add at least one link";
                   }
                   return null;
@@ -97,19 +99,24 @@ class _LinkFormState extends State<LinkForm> {
                     ElevatedButton(
                       onPressed: () {
                         if (_linkFormKey.currentState!.validate()) {
-                          folderItems.addItem(
+                          final Key idKey = UniqueKey();
+                          folderLinkSetter.addItem(
                             FolderItem(
+                              key: idKey,
                               type: FolderItemType.link,
                               content:
                                   StringContent(value: _linkController.text),
                             ),
                           );
                           stateManager.appendRows([
-                            PlutoRow(cells: {
-                              "url": PlutoCell(value: _linkController.text),
-                              "comment": PlutoCell(value: ""),
-                              "tags": PlutoCell(value: [])
-                            })
+                            PlutoRow(
+                              key: idKey,
+                              cells: {
+                                "url": PlutoCell(value: _linkController.text),
+                                "comment": PlutoCell(value: ""),
+                                "tags": PlutoCell(value: [])
+                              },
+                            )
                           ]);
                           _linkController.clear();
                         }
@@ -123,12 +130,10 @@ class _LinkFormState extends State<LinkForm> {
             LinkToolbar(
               onDelete: () {
                 final selectedRows = stateManager.checkedRows;
-                //FIXME: More performant solution we will use at some point
-                //Set.from(rows.map((e) => e));
-                folderItems.create.removeWhere((item) => selectedRows.any(
-                    (row) =>
-                        stateManager.refRows.indexOf(row) ==
-                        folderItems.create.indexOf(item)));
+                folderLinkProvider.items
+                    .removeWhere((item) => selectedRows.any((row) {
+                          return item.key == row.key;
+                        }));
                 stateManager.removeRows(selectedRows);
               },
             ),

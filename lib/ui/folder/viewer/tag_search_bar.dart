@@ -1,3 +1,4 @@
+import "package:chenron/utils/logger.dart";
 import "package:flutter/material.dart";
 import "package:chenron/database/database.dart";
 
@@ -15,15 +16,26 @@ class TagSearchBar extends StatelessWidget {
     required this.selectedTags,
   });
 
+  void test() {
+    tagsStream.listen((tags) {
+      for (var tag in tags) {
+        loggerGlobal.info("TagSearchBar", "Tag: $tag");
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<Tag>>(
       stream: tagsStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
+          test();
           return const CircularProgressIndicator();
         }
         if (snapshot.hasError) {
+          loggerGlobal.severe(
+              "TagSearchBar", "Error: ${snapshot.error}", snapshot.error);
           return Text("Error: ${snapshot.error}");
         }
         final tags = snapshot.data ?? [];

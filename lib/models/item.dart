@@ -3,6 +3,7 @@ import "dart:convert";
 import "package:chenron/database/database.dart";
 import "package:cuid2/cuid2.dart";
 import "package:drift/drift.dart";
+import "package:flutter/material.dart";
 
 sealed class ItemContent {}
 
@@ -19,6 +20,7 @@ class MapContent extends ItemContent {
 }
 
 class FolderItem {
+  final Key? key;
   final int? _listId;
   final String? _id;
   final String? _itemId;
@@ -30,10 +32,11 @@ class FolderItem {
   final DateTime? createdAt;
   FolderItemType type;
 
-  FolderItem._internal(this._listId, this._id, this._itemId, this.content,
-      this.createdAt, this.type);
+  FolderItem._internal(this.key, this._listId, this._id, this._itemId,
+      this.content, this.createdAt, this.type);
 
   factory FolderItem({
+    Key? key,
     int? listId,
     String? id,
     String? itemId,
@@ -41,7 +44,8 @@ class FolderItem {
     DateTime? createdAt,
     required FolderItemType type,
   }) {
-    return FolderItem._internal(listId, id, itemId, content, createdAt, type);
+    return FolderItem._internal(
+        key, listId, id, itemId, content, createdAt, type);
   }
 
   Insertable toCompanion(String folderId) {
