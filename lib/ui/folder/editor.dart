@@ -29,8 +29,8 @@ class EditorBody extends StatelessWidget {
   Stream<FolderResult?> watchFolder() async* {
     try {
       final database = await locator
-          .get<FutureSignal<AppDatabaseHandler>>()
-          .future
+          .get<Signal<Future<AppDatabaseHandler>>>()
+          .value
           .then((db) => db.appDatabase);
       yield* database.watchFolder(folderId: folderId);
     } catch (e) {

@@ -22,8 +22,8 @@ class FolderDetailView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final database = locator
-        .get<FutureSignal<AppDatabaseHandler>>()
-        .future
+        .get<Signal<Future<AppDatabaseHandler>>>()
+        .value
         .then((db) =>
             db.appDatabase.getFolder(folderId).then((folder) => folder!));
 
