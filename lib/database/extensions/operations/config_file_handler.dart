@@ -2,7 +2,6 @@ import "dart:io";
 
 import "package:chenron/database/database.dart";
 import "package:chenron/database/extensions/operations/database_file_handler.dart";
-import "package:chenron/database/file_operations.dart";
 
 class ConfigDatabaseFileHandler {
   final DatabaseLocation databaseLocation;

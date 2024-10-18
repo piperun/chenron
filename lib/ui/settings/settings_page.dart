@@ -147,10 +147,13 @@ class _SettingsContentState extends State<SettingsContent> {
     );
   }
 
-  void _updateUserConfig() {
-    final database = Provider.of<ConfigDatabase>(context, listen: false);
+  Future<void> _updateUserConfig() async {
+    final database =
+        await locator.get<Signal<Future<ConfigDatabaseFileHandler>>>().value;
+    final configDatabase = database.configDatabase;
+
     if (widget.userConfig.id != null) {
-      database.updateUserConfig(
+      configDatabase.updateUserConfig(
         id: widget.userConfig.id!,
         darkMode: _isDarkMode,
         archiveEnabled: _archiveEnabled,

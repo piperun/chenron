@@ -1,23 +1,24 @@
 import "package:chenron/components/TextBase/info_field.dart";
+import "package:chenron/locator.dart";
 import "package:chenron/models/metadata.dart";
 import "package:chenron/providers/folder_provider.dart";
 import "package:chenron/utils/validation/folder_validator.dart";
 import "package:flutter/material.dart";
-import "package:flutter_riverpod/flutter_riverpod.dart";
+import "package:signals/signals_flutter.dart";
 
-class TagField extends ConsumerStatefulWidget {
+class TagField extends StatefulWidget {
   const TagField({super.key});
 
   @override
-  TagFieldState createState() => TagFieldState();
+  State<TagField> createState() => _TagFieldState();
 }
 
-class TagFieldState extends ConsumerState<TagField> {
+class _TagFieldState extends State<TagField> {
   final TextEditingController _tagsController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    final folderInfoSetter = ref.watch(createFolderProvider.notifier);
+    final folderDraft = locator.get<Signal<FolderDraft>>().value;
     return Column(
       children: [
         InfoField(
@@ -25,7 +26,7 @@ class TagFieldState extends ConsumerState<TagField> {
           labelText: "Tags",
           onFieldSubmit: (value) {
             if (FolderValidator.validateTags(value) == null) {
-              folderInfoSetter.addTag(value, MetadataTypeEnum.tag);
+              folderDraft.addTag(value, MetadataTypeEnum.tag);
               setState(() {
                 _tagsController.clear();
               });
@@ -36,11 +37,11 @@ class TagFieldState extends ConsumerState<TagField> {
           padding: const EdgeInsets.only(top: 8.0),
           child: Wrap(
             spacing: 8.0,
-            children: ref.read(createFolderProvider).tags.map((tag) {
+            children: folderDraft.folder.tags.map((tag) {
               return InputChip(
                 label: Text(tag.value),
                 onDeleted: () {
-                  folderInfoSetter.removeTag(tag.value);
+                  folderDraft.removeTag(tag.value);
                 },
                 deleteIconColor: Colors.red.withOpacity(0.66),
                 backgroundColor:

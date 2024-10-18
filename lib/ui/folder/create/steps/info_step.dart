@@ -2,6 +2,7 @@ import "package:chenron/components/TextBase/info_field.dart";
 import "package:chenron/components/tags/tag_field.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/providers/folder_provider.dart";
+import "package:chenron/providers/folder_provider.dart";
 import "package:chenron/ui/folder/create/create_stepper.dart";
 import "package:chenron/utils/validation/folder_validator.dart";
 import "package:flutter/material.dart";
@@ -48,38 +49,34 @@ class _FolderInfoStepState extends State<FolderInfoStep> {
 
   @override
   Widget build(BuildContext context) {
+    final folderDraft = locator.get<Signal<FolderDraft>>().value;
     return Form(
       key: widget.formKey,
-      child: Consumer(
-        builder: (context, ref, child) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              InfoField(
-                controller: _titleController,
-                labelText: "Title",
-                onSaved: ref.watch(createFolderProvider.notifier).updateTitle,
-                validator: FolderValidator.validateTitle,
-              ),
-              InfoField(
-                controller: _descriptionController,
-                labelText: "Description",
-                onSaved:
-                    ref.watch(createFolderProvider.notifier).updateDescription,
-                validator: FolderValidator.validateDescription,
-              ),
-              const TagField(),
-              const SizedBox(height: 20),
-              const AccessSelection(),
-              const SizedBox(height: 20),
-              RepaintBoundary(
-                child: FolderTypeDropDown(
-                  onFolderTypeChanged: widget.onFolderTypeChanged,
-                ),
-              ),
-            ],
-          );
-        },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          InfoField(
+            controller: _titleController,
+            labelText: "Title",
+            onSaved: folderDraft.updateTitle,
+            validator: FolderValidator.validateTitle,
+          ),
+          InfoField(
+            controller: _descriptionController,
+            labelText: "Description",
+            onSaved: folderDraft.updateDescription,
+            validator: FolderValidator.validateDescription,
+          ),
+          const TagField(),
+          const SizedBox(height: 20),
+          const AccessSelection(),
+          const SizedBox(height: 20),
+          RepaintBoundary(
+            child: FolderTypeDropDown(
+              onFolderTypeChanged: widget.onFolderTypeChanged,
+            ),
+          ),
+        ],
       ),
     );
   }
