@@ -2,6 +2,7 @@ import "package:chenron/locator.dart";
 import "package:chenron/providers/debug.dart";
 import "package:chenron/root.dart";
 import "package:chenron/utils/logger.dart";
+import "package:chenron/utils/scheduler.dart";
 import "package:flutter/material.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
 import "package:path_provider/path_provider.dart";
@@ -10,6 +11,7 @@ void main() async {
   loggerGlobal.setupLogPath(
       await getApplicationDocumentsDirectory().then((dir) => dir.path));
   locatorSetup();
+  scheduleBackup();
   runApp(ProviderScope(
     observers: [
       MyObserver(),
