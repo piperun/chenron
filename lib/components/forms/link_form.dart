@@ -7,6 +7,7 @@ import "package:pluto_grid/pluto_grid.dart";
 import "package:chenron/components/table/link_toolbar.dart";
 import "package:chenron/responsible_design/breakpoints.dart";
 import "package:chenron/components/forms/form/link_form_field.dart";
+import "package:signals/signals_flutter.dart";
 
 class LinkForm extends StatefulWidget {
   final GlobalKey<FormState> dataKey;
@@ -20,6 +21,8 @@ class _LinkFormState extends State<LinkForm> {
   final GlobalKey<FormState> _linkFormKey = GlobalKey<FormState>();
   final TextEditingController _linkController = TextEditingController();
   late PlutoGridStateManager stateManager;
+
+  final folderDraft = locator.get<Signal<FolderDraft>>().value;
 
   List<PlutoColumn> columns = [
     PlutoColumn(
@@ -52,8 +55,7 @@ class _LinkFormState extends State<LinkForm> {
 
   @override
   Widget build(BuildContext context) {
-    final folderLinkProvider = locator.get<FolderDraft>();
-    List<PlutoRow> rows = folderLinkProvider.folder.items
+    List<PlutoRow> rows = folderDraft.folder.items
         .map((link) => PlutoRow(
               cells: {
                 "url": PlutoCell(value: link.content),
@@ -68,9 +70,9 @@ class _LinkFormState extends State<LinkForm> {
         Form(
           key: widget.dataKey,
           child: LinkFormField(
-            linkProvider: folderLinkProvider.folder.items,
+            linkProvider: folderDraft.folder.items,
             validator: (_) {
-              if (folderLinkProvider.folder.items.isEmpty) {
+              if (folderDraft.folder.items.isEmpty) {
                 return "Please add at least one link";
               }
               return null;
@@ -97,7 +99,7 @@ class _LinkFormState extends State<LinkForm> {
                   onPressed: () {
                     if (_linkFormKey.currentState!.validate()) {
                       final Key idKey = UniqueKey();
-                      folderLinkProvider.addItem(
+                      folderDraft.addItem(
                         FolderItem(
                           key: idKey,
                           type: FolderItemType.link,
@@ -126,7 +128,7 @@ class _LinkFormState extends State<LinkForm> {
         LinkToolbar(
           onDelete: () {
             final selectedRows = stateManager.checkedRows;
-            folderLinkProvider.folder.items
+            folderDraft.folder.items
                 .removeWhere((item) => selectedRows.any((row) {
                       return item.key == row.key;
                     }));
