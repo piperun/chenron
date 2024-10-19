@@ -1,17 +1,11 @@
 import "package:chenron/locator.dart";
 import "package:chenron/models/item.dart";
-import "package:chenron/providers/cud_state.dart";
-import "package:chenron/providers/folder_info_state.dart";
 import "package:chenron/providers/folder_provider.dart";
 import "package:flutter/material.dart";
-import "package:flutter_riverpod/flutter_riverpod.dart";
-import "package:provider/provider.dart";
 import "package:signals/signals_flutter.dart";
 
-class FolderPreview extends StatelessWidget {
-  final GlobalKey<FormState> previewKey;
-
-  const FolderPreview({super.key, required this.previewKey});
+class PreviewStep extends StatelessWidget {
+  const PreviewStep({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -86,10 +80,35 @@ class Expandable extends StatelessWidget {
             title: const Text("Tags"),
             subtitle: Text(folderDraft.folder.tags.join(", ")),
           ),
-          ListTile(
-            title: const Text("Links"),
-            subtitle: Text(folderDraft.folder.items.toString()),
-          ),
+          OverflowBar(
+            children: [
+              const ListTile(
+                title: Text("Links"),
+              ),
+              SingleChildScrollView(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: folderDraft.folder.items.length,
+                  itemBuilder: (context, index) {
+                    return () {
+                      switch (
+                          folderDraft.folder.items.elementAt(index).content) {
+                        case StringContent link:
+                          return ListTile(
+                            title: Text(link.value),
+                          );
+                        case MapContent _:
+                          return const ListTile(
+                            title: Text("Map Content"),
+                          );
+                      }
+                    }();
+                  },
+                ),
+              ),
+            ],
+          )
         ],
       ),
     );

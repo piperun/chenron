@@ -5,7 +5,6 @@ import "package:chenron/locator.dart";
 import "package:chenron/models/item.dart";
 import "package:chenron/utils/logger.dart";
 import "package:flutter/material.dart";
-import "package:flutter_riverpod/flutter_riverpod.dart";
 import "package:flutter_svg/flutter_svg.dart";
 import "package:logging/logging.dart";
 import "package:chenron/components/edviewer/viewer/detail_viewer.dart";

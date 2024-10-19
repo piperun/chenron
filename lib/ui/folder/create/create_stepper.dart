@@ -5,69 +5,124 @@ import "package:chenron/models/folder.dart";
 import "package:chenron/models/item.dart";
 import "package:chenron/models/metadata.dart";
 import "package:chenron/providers/folder_provider.dart";
+import "package:chenron/responsible_design/breakpoints.dart";
 import "package:chenron/ui/folder/create/steps/data_step.dart";
 import "package:chenron/ui/folder/create/steps/info_step.dart";
 import "package:chenron/ui/folder/create/steps/preview_step.dart";
-import "package:chenron/responsible_design/breakpoints.dart";
-import "package:chenron/providers/stepper_provider.dart";
 import "package:flutter/material.dart";
 import "package:signals/signals_flutter.dart";
 
-enum FolderType { link, document, folder }
+enum StepperStep { info, data, preview }
 
-class CreateFolderStepper extends StatefulWidget {
-  const CreateFolderStepper({super.key});
+class CreateStepper extends StatefulWidget {
+  const CreateStepper({super.key});
 
   @override
-  State<CreateFolderStepper> createState() => _CreateFolderStepperState();
+  State<CreateStepper> createState() => _CreateStepperState();
 }
 
-class _CreateFolderStepperState extends State<CreateFolderStepper> {
-  final folderStep = locator.get<Signal<FolderStepper>>();
-  FolderType folderType = FolderType.folder; // Local state for folderType
+class _CreateStepperState extends State<CreateStepper> {
+  final currentStepSignal = Signal<StepperStep>(StepperStep.info);
+
+  final Map<StepperStep, GlobalKey<FormState>> formKeys = {
+    StepperStep.info: GlobalKey<FormState>(),
+    StepperStep.data: GlobalKey<FormState>(),
+    StepperStep.preview: GlobalKey<FormState>(),
+  };
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Stepper(
-          type: Breakpoints.isMedium(context)
-              ? StepperType.horizontal
-              : StepperType.vertical,
-          currentStep: folderStep.value.state.index,
-          controlsBuilder: (context, details) => StepperControls(
-            details: details,
-            currentStep: folderStep.value.state,
-          ),
-          onStepCancel: folderStep.value.previousStep,
-          onStepContinue: () {
-            _nextStep(context);
-          },
-          onStepTapped: (index) =>
-              folderStep.value.setCurrentStep(FolderStep.values[index]),
-          steps: _buildSteps(folderStep.value),
-        ),
+      appBar: AppBar(
+        title: const Text("Signal Stepper"),
+      ),
+      body: Watch.builder(
+        builder: (context) {
+          return Stepper(
+            type: Breakpoints.isMedium(context)
+                ? StepperType.horizontal
+                : StepperType.vertical,
+            currentStep: currentStepSignal.value.index,
+            onStepCancel: _onStepCancel,
+            onStepContinue: _onStepContinue,
+            onStepTapped: (index) {
+              setState(() {
+                currentStepSignal.value = StepperStep.values[index];
+              });
+            },
+            steps: _buildSteps(),
+          );
+        },
       ),
     );
   }
 
-  void _nextStep(BuildContext context) {
-    if (folderStep.value.state == FolderStep.preview) {
-      final folderDraft = locator.get<Signal<FolderDraft>>().value.folder;
+  void _onStepContinue() {
+    final currentStep = currentStepSignal.value;
+    final formKey = formKeys[currentStep];
+    if (formKey != null && formKey.currentState != null) {
+      if (formKey.currentState!.validate()) {
+        formKey.currentState!.save();
+        if (currentStep == StepperStep.values.last) {
+          final folderDraft = locator.get<Signal<FolderDraft>>().value.folder;
 
-      _saveToDatabase(
-        context,
-        folderDraft.folderInfo,
-        folderDraft.tags.toList(),
-        folderDraft.items.toList(),
-      );
-    } else if (folderStep.value.validateCurrentStep()) {
-      folderStep.value.nextStep();
+          _saveToDatabase(
+            context,
+            folderDraft.folderInfo,
+            folderDraft.tags.toList(),
+            folderDraft.items.toList(),
+          );
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Data saved successfully!")),
+          );
+        } else {
+          setState(() {
+            currentStepSignal.value = StepperStep.values[currentStep.index + 1];
+          });
+        }
+      }
     }
   }
 
-  void _saveToDatabase(BuildContext context, FolderInfo folderInfo,
-      List<Metadata> tags, List<FolderItem> folderData) async {
+  void _onStepCancel() {
+    final currentStep = currentStepSignal.value;
+    if (currentStep.index > 0) {
+      setState(() {
+        currentStepSignal.value = StepperStep.values[currentStep.index - 1];
+      });
+    }
+  }
+
+  List<Step> _buildSteps() {
+    return [
+      Step(
+        title: const Text("Step 1"),
+        isActive: currentStepSignal.value == StepperStep.info,
+        content: InfoStep(
+          formKey: formKeys[StepperStep.info]!,
+        ),
+      ),
+      Step(
+        title: const Text("Step 2"),
+        isActive: currentStepSignal.value == StepperStep.data,
+        content: DataStep(
+          formKey: formKeys[StepperStep.data]!,
+        ),
+      ),
+      Step(
+        title: const Text("Step 3"),
+        isActive: currentStepSignal.value == StepperStep.preview,
+        content: const PreviewStep(),
+      ),
+    ];
+  }
+
+  void _saveToDatabase(
+    BuildContext context,
+    FolderInfo folderInfo,
+    List<Metadata> tags,
+    List<FolderItem> folderData,
+  ) async {
     final database = await locator
         .get<FutureSignal<AppDatabaseHandler>>()
         .future
@@ -82,39 +137,12 @@ class _CreateFolderStepperState extends State<CreateFolderStepper> {
       );
     }
   }
-
-  List<Step> _buildSteps(FolderStepper folderState) {
-    return [
-      Step(
-        title: const Text("Folder"),
-        content: FolderInfoStep(
-          formKey: folderState.formKeys[FolderStep.info]!,
-          onFolderTypeChanged: (type) {
-            setState(() {
-              folderType = type;
-            });
-          },
-        ),
-      ),
-      Step(
-        title: const Text("Data"),
-        content: FolderDataStep(
-          dataKey: folderState.formKeys[FolderStep.data]!,
-          folderType: folderType,
-        ),
-      ),
-      Step(
-        title: const Text("Preview"),
-        content: FolderPreview(
-            previewKey: folderState.formKeys[FolderStep.preview]!),
-      ),
-    ];
-  }
 }
 
+// For now it's dormant, but at some point it'll be used
 class StepperControls extends StatelessWidget {
   final ControlsDetails details;
-  final FolderStep currentStep;
+  final StepperStep currentStep;
 
   const StepperControls({
     super.key,
@@ -125,7 +153,7 @@ class StepperControls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isLastStep = currentStep == FolderStep.preview;
+    final isLastStep = currentStep == StepperStep.preview;
 
     return Padding(
       padding: const EdgeInsets.only(top: 16.0),

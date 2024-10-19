@@ -63,94 +63,96 @@ class _LinkFormState extends State<LinkForm> {
             ))
         .toList();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Form(
-          key: widget.dataKey,
-          child: LinkFormField(
-            linkProvider: folderDraft.folder.items,
-            validator: (_) {
-              if (folderDraft.folder.items.isEmpty) {
-                return "Please add at least one link";
-              }
-              return null;
-            },
-            child: Wrap(
-              alignment: WrapAlignment.center,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                SizedBox(
-                  width: Breakpoints.responsiveWidth(context),
-                  child: Form(
-                    key: _linkFormKey,
-                    child: TextFormField(
-                      controller: _linkController,
-                      decoration:
-                          const InputDecoration(labelText: "Enter Link"),
-                      validator: LinkValidator.validateContent,
-                      minLines: 1,
-                      maxLines: Breakpoints.isMedium(context) ? 23 : 25,
+    return Watch.builder(
+      builder: (context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Form(
+            key: widget.dataKey,
+            child: LinkFormField(
+              linkProvider: folderDraft.folder.items,
+              validator: (_) {
+                if (folderDraft.folder.items.isEmpty) {
+                  return "Please add at least one link";
+                }
+                return null;
+              },
+              child: Wrap(
+                alignment: WrapAlignment.center,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  SizedBox(
+                    width: Breakpoints.responsiveWidth(context),
+                    child: Form(
+                      key: _linkFormKey,
+                      child: TextFormField(
+                        controller: _linkController,
+                        decoration:
+                            const InputDecoration(labelText: "Enter Link"),
+                        validator: LinkValidator.validateContent,
+                        minLines: 1,
+                        maxLines: Breakpoints.isMedium(context) ? 23 : 25,
+                      ),
                     ),
                   ),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    if (_linkFormKey.currentState!.validate()) {
-                      final Key idKey = UniqueKey();
-                      folderDraft.addItem(
-                        FolderItem(
-                          key: idKey,
-                          type: FolderItemType.link,
-                          content: StringContent(value: _linkController.text),
-                        ),
-                      );
-                      stateManager.appendRows([
-                        PlutoRow(
-                          key: idKey,
-                          cells: {
-                            "url": PlutoCell(value: _linkController.text),
-                            "comment": PlutoCell(value: ""),
-                            "tags": PlutoCell(value: [])
-                          },
-                        )
-                      ]);
-                      _linkController.clear();
-                    }
-                  },
-                  child: const Text("Add Link"),
-                ),
-              ],
-            ),
-          ),
-        ),
-        LinkToolbar(
-          onDelete: () {
-            final selectedRows = stateManager.checkedRows;
-            folderDraft.folder.items
-                .removeWhere((item) => selectedRows.any((row) {
-                      return item.key == row.key;
-                    }));
-            stateManager.removeRows(selectedRows);
-          },
-        ),
-        SizedBox(
-          height: 500,
-          child: PlutoGrid(
-            columns: columns,
-            rows: rows,
-            onLoaded: (PlutoGridOnLoadedEvent event) {
-              stateManager = event.stateManager;
-            },
-            configuration: const PlutoGridConfiguration(
-              columnSize: PlutoGridColumnSizeConfig(
-                autoSizeMode: PlutoAutoSizeMode.scale,
+                  ElevatedButton(
+                    onPressed: () {
+                      if (_linkFormKey.currentState!.validate()) {
+                        final Key idKey = UniqueKey();
+                        folderDraft.addItem(
+                          FolderItem(
+                            key: idKey,
+                            type: FolderItemType.link,
+                            content: StringContent(value: _linkController.text),
+                          ),
+                        );
+                        stateManager.appendRows([
+                          PlutoRow(
+                            key: idKey,
+                            cells: {
+                              "url": PlutoCell(value: _linkController.text),
+                              "comment": PlutoCell(value: ""),
+                              "tags": PlutoCell(value: [])
+                            },
+                          )
+                        ]);
+                        _linkController.clear();
+                      }
+                    },
+                    child: const Text("Add Link"),
+                  ),
+                ],
               ),
             ),
           ),
-        ),
-      ],
+          LinkToolbar(
+            onDelete: () {
+              final selectedRows = stateManager.checkedRows;
+              folderDraft.folder.items
+                  .removeWhere((item) => selectedRows.any((row) {
+                        return item.key == row.key;
+                      }));
+              stateManager.removeRows(selectedRows);
+            },
+          ),
+          SizedBox(
+            height: 500,
+            child: PlutoGrid(
+              columns: columns,
+              rows: rows,
+              onLoaded: (PlutoGridOnLoadedEvent event) {
+                stateManager = event.stateManager;
+              },
+              configuration: const PlutoGridConfiguration(
+                columnSize: PlutoGridColumnSizeConfig(
+                  autoSizeMode: PlutoAutoSizeMode.scale,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

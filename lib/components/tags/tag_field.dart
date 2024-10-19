@@ -21,17 +21,32 @@ class _TagFieldState extends State<TagField> {
     final folderDraft = locator.get<Signal<FolderDraft>>().value;
     return Column(
       children: [
-        InfoField(
-          controller: _tagsController,
-          labelText: "Tags",
-          onFieldSubmit: (value) {
-            if (FolderValidator.validateTags(value) == null) {
-              folderDraft.addTag(value, MetadataTypeEnum.tag);
-              setState(() {
-                _tagsController.clear();
-              });
-            }
-          },
+        OverflowBar(
+          children: [
+            FractionallySizedBox(
+              alignment: Alignment.bottomLeft,
+              widthFactor: 0.8,
+              child: InfoField(
+                controller: _tagsController,
+                labelText: "Tags",
+                onFieldSubmit: (value) {
+                  if (FolderValidator.validateTags(value) == null) {
+                    folderDraft.addTag(value, MetadataTypeEnum.tag);
+                    setState(() {
+                      _tagsController.clear();
+                    });
+                  }
+                },
+              ),
+            ),
+            ElevatedButton.icon(
+              onPressed: () => setState(() => folderDraft.folder.tags.add(
+                  Metadata(
+                      value: _tagsController.text,
+                      type: MetadataTypeEnum.tag))),
+              label: const Text("Add"),
+            )
+          ],
         ),
         Padding(
           padding: const EdgeInsets.only(top: 8.0),
@@ -41,7 +56,7 @@ class _TagFieldState extends State<TagField> {
               return InputChip(
                 label: Text(tag.value),
                 onDeleted: () {
-                  folderDraft.removeTag(tag.value);
+                  setState(() => folderDraft.removeTag(tag.value));
                 },
                 deleteIconColor: Colors.red.withOpacity(0.66),
                 backgroundColor:

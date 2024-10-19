@@ -1,29 +1,33 @@
 import "package:chenron/components/forms/link_form.dart";
-import "package:chenron/ui/folder/create/create_stepper.dart";
+import "package:chenron/locator.dart";
+import "package:chenron/providers/folder_provider.dart";
 import "package:flutter/material.dart";
+import "package:signals/signals_flutter.dart";
 
-class FolderDataStep extends StatefulWidget {
-  final GlobalKey<FormState> dataKey;
-  final FolderType folderType;
+class DataStep extends StatefulWidget {
+  final GlobalKey<FormState> formKey;
 
-  const FolderDataStep({
+  const DataStep({
     super.key,
-    required this.dataKey,
-    required this.folderType,
+    required this.formKey,
   });
 
   @override
-  State<FolderDataStep> createState() => _FolderDataStepState();
+  State<DataStep> createState() => _DataStepState();
 }
 
-class _FolderDataStepState extends State<FolderDataStep> {
+class _DataStepState extends State<DataStep> {
+  final _folderType =
+      locator.get<Signal<FolderDraft>>().value.folder.folderType;
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (widget.folderType == FolderType.link)
-          LinkForm(dataKey: widget.dataKey)
+        if (_folderType.value == FolderType.link)
+          LinkForm(dataKey: widget.formKey)
+        else if (_folderType.value == FolderType.document)
+          const Text("Document"),
         //else if (widget.folderType == FolderType.document)
         //   DocumentForm(dataKey: widget.dataKey)
         // else if (widget.folderType == FolderType.folder)

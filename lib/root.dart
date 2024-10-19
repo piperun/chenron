@@ -105,7 +105,7 @@ class CustomPageView extends StatelessWidget {
       children: [
         const PageViewItem(color: Colors.white, child: HomePage(padding: 16)),
         const PageViewItem(color: Colors.white, child: SettingsPage()),
-        PageViewItem(color: Colors.black, child: CreateFolderStepper()),
+        PageViewItem(color: Colors.black, child: CreateStepper()),
         const PageViewItem(color: Colors.white, child: FolderViewer()),
         const PageViewItem(
             color: Colors.white,
