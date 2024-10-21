@@ -34,7 +34,7 @@ extension ConvertDocumentToItem on Document {
       id: id,
       itemId: itemId,
       createdAt: createdAt,
-      content: MapContent({
+      content: MapContent(value: {
         "title": title,
         "body": utf8.decode(content),
       }),

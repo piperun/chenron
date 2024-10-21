@@ -71,17 +71,16 @@ class ChenronDirectories {
 
 Future<Directory> getDefaultApplicationDirectory(
     {bool debugMode = false}) async {
-  final appDir = await getApplicationSupportDirectory();
-  if (await isDirWritable(appDir) && !debugMode) {
-    return appDir;
+  final defaultDir = debugMode
+      ? await getApplicationDocumentsDirectory()
+      : await getApplicationSupportDirectory();
+
+  if (await isDirWritable(defaultDir)) {
+    return defaultDir;
   }
 
-  final docDir = await getApplicationDocumentsDirectory();
-  if (await isDirWritable(docDir) && debugMode) {
-    return docDir;
-  }
-
-  throw Exception("No writable directory found");
+  throw Exception(
+      "No writable directory found. Debug mode: $debugMode, $defaultDir");
 }
 
 /// Checks if the provided [directory] is writable.
