@@ -49,7 +49,7 @@ class FolderItemFactory {
   static FolderItem createDocument(String title, String body) {
     return FolderItem(
         type: FolderItemType.document,
-        content: MapContent({"title": title, "body": body}));
+        content: MapContent(value: {"title": title, "body": body}));
   }
 
   static List<FolderItem> createItems(List<Map<String, dynamic>> itemsData) {

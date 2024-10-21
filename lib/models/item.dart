@@ -1,22 +1,53 @@
 import "dart:convert";
-
+import "package:collection/collection.dart";
+import "package:flutter/material.dart";
 import "package:chenron/database/database.dart";
 import "package:cuid2/cuid2.dart";
 import "package:drift/drift.dart";
-import "package:flutter/material.dart";
 
-sealed class ItemContent {}
+sealed class ItemContent<T> {
+  @override
+  bool operator ==(Object other);
 
-class StringContent extends ItemContent {
-  final String value;
-  final String? archiveOrg;
-  final String? archiveIs;
-  StringContent({required this.value, this.archiveOrg, this.archiveIs});
+  @override
+  int get hashCode;
+  final T value;
+  ItemContent({required this.value});
 }
 
-class MapContent extends ItemContent {
-  final Map<String, String> value;
-  MapContent(this.value);
+class StringContent extends ItemContent<String> {
+  final String? archiveOrg;
+  final String? archiveIs;
+
+  StringContent({required super.value, this.archiveOrg, this.archiveIs});
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is StringContent &&
+        other.value == value &&
+        other.archiveOrg == archiveOrg &&
+        other.archiveIs == archiveIs;
+  }
+
+  @override
+  int get hashCode => Object.hash(value, archiveOrg, archiveIs);
+}
+
+class MapContent extends ItemContent<Map<String, String>> {
+  MapContent({required super.value});
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is MapContent &&
+        const MapEquality<String, String>().equals(other.value, value);
+  }
+
+  @override
+  int get hashCode => const MapEquality<String, String>().hash(value);
 }
 
 class FolderItem {
@@ -28,9 +59,9 @@ class FolderItem {
   String? get itemId => _itemId;
   int? get listId => _listId;
 
-  ItemContent content;
+  final ItemContent content;
   final DateTime? createdAt;
-  FolderItemType type;
+  final FolderItemType type;
 
   FolderItem._internal(this.key, this._listId, this._id, this._itemId,
       this.content, this.createdAt, this.type);
@@ -78,6 +109,22 @@ class FolderItem {
     }
     throw Exception("Invalid id: not a CUID");
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is FolderItem &&
+        other.id == id &&
+        other.itemId == itemId &&
+        other.listId == listId &&
+        other.content == content &&
+        other.createdAt == createdAt &&
+        other.type == type;
+  }
+
+  @override
+  int get hashCode => Object.hash(id, itemId, listId, content, createdAt, type);
 }
 
 enum FolderItemType {

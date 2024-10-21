@@ -75,3 +75,11 @@ class MetadataTypes extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get name => text().unique()();
 }
+
+class Content extends Table {
+  TextColumn get id => text().withLength(min: 30, max: 60)();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  IntColumn get typeId => integer().references(ItemTypes, #id)();
+  BlobColumn get hashkey => blob()();
+  BlobColumn get content => blob()();
+}

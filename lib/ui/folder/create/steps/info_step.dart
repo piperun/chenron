@@ -104,12 +104,14 @@ class _InfoStepState extends State<InfoStep> {
               const FolderTypeDropDown(),
               TextFormField(
                 decoration: const InputDecoration(labelText: "Title"),
+                initialValue: folderDraft.value.folder.folderInfo.title,
                 onSaved: (value) =>
                     folderDraft.value.folder.folderInfo.title = value!,
                 validator: FolderValidator.validateTitle,
               ),
               TextFormField(
                   decoration: const InputDecoration(labelText: "Description"),
+                  initialValue: folderDraft.value.folder.folderInfo.description,
                   onSaved: (value) =>
                       folderDraft.value.folder.folderInfo.description = value!,
                   validator: FolderValidator.validateDescription),
@@ -186,7 +188,6 @@ class _FolderTypeDropDownState extends State<FolderTypeDropDown> {
       onChanged: (FolderType? newValue) {
         setState(() {
           _selectedFolderType.value = newValue;
-          print("aa $_selectedFolderType");
         });
       },
       validator: (value) =>

@@ -58,7 +58,7 @@ class Expandable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final folderDraft = locator.get<Signal<FolderDraft>>().value;
+    final folderDraft = locator.get<Signal<FolderDraft>>();
 
     return Card(
       elevation: 2,
@@ -70,15 +70,15 @@ class Expandable extends StatelessWidget {
         children: [
           ListTile(
             title: const Text("Title"),
-            subtitle: Text(folderDraft.folder.folderInfo.title),
+            subtitle: Text(folderDraft.value.folder.folderInfo.title),
           ),
           ListTile(
             title: const Text("Description"),
-            subtitle: Text(folderDraft.folder.folderInfo.description),
+            subtitle: Text(folderDraft.value.folder.folderInfo.description),
           ),
           ListTile(
             title: const Text("Tags"),
-            subtitle: Text(folderDraft.folder.tags.join(", ")),
+            subtitle: Text(folderDraft.value.folder.tags.join(", ")),
           ),
           OverflowBar(
             children: [
@@ -89,11 +89,12 @@ class Expandable extends StatelessWidget {
                 child: ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  itemCount: folderDraft.folder.items.length,
+                  itemCount: folderDraft.value.folder.items.length,
                   itemBuilder: (context, index) {
                     return () {
-                      switch (
-                          folderDraft.folder.items.elementAt(index).content) {
+                      switch (folderDraft.value.folder.items
+                          .elementAt(index)
+                          .content) {
                         case StringContent link:
                           return ListTile(
                             title: Text(link.value),

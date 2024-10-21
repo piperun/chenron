@@ -60,27 +60,35 @@ class _CreateStepperState extends State<CreateStepper> {
   void _onStepContinue() {
     final currentStep = currentStepSignal.value;
     final formKey = formKeys[currentStep];
-    if (formKey != null && formKey.currentState != null) {
-      if (formKey.currentState!.validate()) {
-        formKey.currentState!.save();
-        if (currentStep == StepperStep.values.last) {
-          final folderDraft = locator.get<Signal<FolderDraft>>().value.folder;
 
-          _saveToDatabase(
-            context,
-            folderDraft.folderInfo,
-            folderDraft.tags.toList(),
-            folderDraft.items.toList(),
-          );
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Data saved successfully!")),
-          );
-        } else {
-          setState(() {
-            currentStepSignal.value = StepperStep.values[currentStep.index + 1];
-          });
-        }
+    if (formKey != null && formKey.currentState != null) {
+      if (!formKey.currentState!.validate()) {
+        return;
       }
+      formKey.currentState!.save();
+    }
+
+    if (currentStep == StepperStep.values.last) {
+      // Last step: Save data to the database
+      final folderDraft = locator.get<Signal<FolderDraft>>().value.folder;
+
+      _saveToDatabase(
+        context,
+        folderDraft.folderInfo,
+        folderDraft.tags.toList(),
+        folderDraft.items.toList(),
+      );
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Folder saved successfully")),
+        );
+      }
+    } else {
+      // Proceed to the next step
+      setState(() {
+        currentStepSignal.value = StepperStep.values[currentStep.index + 1];
+      });
     }
   }
 
@@ -124,8 +132,8 @@ class _CreateStepperState extends State<CreateStepper> {
     List<FolderItem> folderData,
   ) async {
     final database = await locator
-        .get<FutureSignal<AppDatabaseHandler>>()
-        .future
+        .get<Signal<Future<AppDatabaseHandler>>>()
+        .value
         .then((db) => db.appDatabase);
 
     database.createFolderExtended(
