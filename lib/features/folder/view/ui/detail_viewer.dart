@@ -24,51 +24,52 @@ class _DetailViewerState<T> extends State<DetailViewer> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text("Folder Details"),
-          elevation: 0,
-          actions: [
-            IconButton(
-              icon: Icon(_isGridView ? Icons.list : Icons.grid_view),
-              onPressed: () {
-                setState(() {
-                  _isGridView = !_isGridView;
-                });
-              },
-            ),
-          ],
-        ),
-        body: FutureBuilder<FolderResult>(
-          future: widget.fetchData,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (snapshot.hasError) {
-              loggerGlobal.severe(
-                  "DetailViewer", "Error loading folder: ${snapshot.error}");
-              return Center(child: Text("Error: ${snapshot.error}"));
-            }
-            final result = snapshot.data;
-            if (result == null) {
-              return const Center(child: Text("Folder not found"));
-            }
-            return Column(
-              children: [
-                DetailsBody(folder: result.folder),
-                if (result.tags.isNotEmpty)
-                  TagBody(tags: result.tags.map((tag) => tag.name).toSet()),
-                const SizedBox(height: 16),
-                Expanded(
-                  child: ItemsList(
-                    items: result.items,
-                    listBuilder: widget.listBuilder,
-                  ),
+      appBar: AppBar(
+        title: const Text("Folder Details"),
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: Icon(_isGridView ? Icons.list : Icons.grid_view),
+            onPressed: () {
+              setState(() {
+                _isGridView = !_isGridView;
+              });
+            },
+          ),
+        ],
+      ),
+      body: FutureBuilder<FolderResult>(
+        future: widget.fetchData,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            loggerGlobal.severe(
+                "DetailViewer", "Error loading folder: ${snapshot.error}");
+            return Center(child: Text("Error: ${snapshot.error}"));
+          }
+          final result = snapshot.data;
+          if (result == null) {
+            return const Center(child: Text("Folder not found"));
+          }
+          return Column(
+            children: [
+              DetailsBody(folder: result.folder),
+              if (result.tags.isNotEmpty)
+                TagBody(tags: result.tags.map((tag) => tag.name).toSet()),
+              const SizedBox(height: 16),
+              Expanded(
+                child: ItemsList(
+                  items: result.items,
+                  listBuilder: widget.listBuilder,
                 ),
-              ],
-            );
-          },
-        ));
+              ),
+            ],
+          );
+        },
+      ),
+    );
   }
 }
 

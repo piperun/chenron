@@ -1,13 +1,13 @@
 import "package:flutter/material.dart";
-import "package:chenron/components/item_table/layout/list.dart";
-import "package:chenron/components/item_table/layout/grid.dart";
+import "package:chenron/components/item_list/layout/list.dart";
+import "package:chenron/components/item_list/layout/grid.dart";
 
 enum ViewMode {
   list,
   grid,
 }
 
-class ItemTable<T> extends StatefulWidget {
+class ItemList<T> extends StatefulWidget {
   final List<T> items;
   final Widget Function(BuildContext, T) listItemBuilder;
   final Widget Function(BuildContext, T) gridItemBuilder;
@@ -15,7 +15,7 @@ class ItemTable<T> extends StatefulWidget {
   final Function(T)? onItemToggle;
   final Function(T)? onTap;
 
-  const ItemTable({
+  const ItemList({
     super.key,
     required this.items,
     required this.listItemBuilder,
@@ -26,10 +26,10 @@ class ItemTable<T> extends StatefulWidget {
   });
 
   @override
-  State<ItemTable<T>> createState() => _ItemTableState<T>();
+  State<ItemList<T>> createState() => _ItemListState<T>();
 }
 
-class _ItemTableState<T> extends State<ItemTable<T>> {
+class _ItemListState<T> extends State<ItemList<T>> {
   ViewMode viewMode = ViewMode.list;
 
   @override

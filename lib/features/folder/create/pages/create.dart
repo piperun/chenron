@@ -6,9 +6,9 @@ import "package:chenron/models/item.dart";
 import "package:chenron/models/metadata.dart";
 import "package:chenron/providers/folder_provider.dart";
 import "package:chenron/responsible_design/breakpoints.dart";
-import "package:chenron/ui/folder/create/steps/data_step.dart";
-import "package:chenron/ui/folder/create/steps/info_step.dart";
-import "package:chenron/ui/folder/create/steps/preview_step.dart";
+import "package:chenron/features/folder/create/ui/steps/data_step.dart";
+import "package:chenron/features/folder/create/ui/steps/info_step.dart";
+import "package:chenron/features/folder/create/ui/steps/preview_step.dart";
 import "package:flutter/material.dart";
 import "package:signals/signals_flutter.dart";
 

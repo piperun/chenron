@@ -2,9 +2,9 @@ import "dart:async";
 
 import "package:chenron/database/database.dart";
 import "package:chenron/database/extensions/folder/read.dart";
-import "package:chenron/ui/folder/editor.dart";
-import "package:chenron/ui/folder/viewer/folder_detail_view.dart";
-import "package:chenron/ui/folder/viewer/mvc/folder_viewer_model.dart";
+import "package:chenron/features/folder/edit/pages/editor.dart";
+import "package:chenron/features/folder/view/pages/folder_detail_view.dart";
+import "package:chenron/features/folder/view/mvc/folder_viewer_model.dart";
 import "package:flutter/material.dart";
 
 class FolderViewerPresenter extends ChangeNotifier {

@@ -1,19 +1,13 @@
 import "package:chenron/components/buttons/small_button.dart";
-import "package:chenron/components/item_table/item_table.dart";
+import "package:chenron/components/item_list/item_list.dart";
 import "package:chenron/database/database.dart";
 import "package:chenron/database/extensions/folder/read.dart";
-import "package:chenron/components/item_table/layout/grid.dart";
-import "package:chenron/components/item_table/layout/list.dart";
-import "package:chenron/ui/folder/viewer/mvc/folder_viewer_presenter.dart";
-import "package:chenron/ui/folder/viewer/tag_search_bar.dart";
-import "package:chenron/utils/logger.dart";
+import "package:chenron/components/item_list/layout/grid.dart";
+import "package:chenron/components/item_list/layout/list.dart";
+import "package:chenron/features/folder/view/mvc/folder_viewer_presenter.dart";
+import "package:chenron/features/folder/view/ui/tag_search_bar.dart";
 import "package:flutter/material.dart";
-import "package:flutter_hooks/flutter_hooks.dart";
 import "package:signals/signals.dart";
-
-//HACK: This is a hack just to get things rolling
-// We will most definately migrate to the more traditional changeNotifier once this file isn't
-// a spawn of hell
 
 Signal<FolderViewerPresenter> _folderViewerViewModelSignal =
     Signal(FolderViewerPresenter(), autoDispose: true);
@@ -135,7 +129,7 @@ class _ContentBodyState extends State<ContentBody> {
       stream: viewModel.foldersStream,
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          return ItemTable<FolderResult>(
+          return ItemList<FolderResult>(
             items: snapshot.data!,
             listItemBuilder: (context, folder) => FolderListItem(
               folder: folder,

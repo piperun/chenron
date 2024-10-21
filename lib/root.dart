@@ -1,8 +1,8 @@
 import "package:chenron/database/database.dart";
-import "package:chenron/ui/settings/settings_page.dart";
-import "package:chenron/ui/folder/create/create_stepper.dart";
-import "package:chenron/ui/folder/viewer/folder_viewer.dart";
-import "package:chenron/ui/home/homepage.dart";
+import "package:chenron/pages/settings/settings_page.dart";
+import "package:chenron/features/folder/create/pages/create.dart";
+import "package:chenron/features/folder/view/pages/folder_viewer.dart";
+import "package:chenron/pages/home/homepage.dart";
 import "package:easy_sidemenu/easy_sidemenu.dart";
 import "package:flutter/material.dart";
 
