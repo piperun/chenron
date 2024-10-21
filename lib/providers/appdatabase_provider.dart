@@ -7,9 +7,9 @@ final appDatabaseAccessorSignal = signal(initializeAppDatabaseAccessor());
 
 Future<AppDatabaseHandler> initializeAppDatabaseAccessor() async {
   // Wait for chenronDirsSignal to complete
-  final chenronDirs = await chenronDirsSignal.future;
+  final chenronDirs = await chenronDirsSignal.value;
 
-  final databaseName = chenronDirs.databaseName;
+  final databaseName = chenronDirs!.databaseName;
   final databasePath = chenronDirs.dbDir;
 
   final appDatabase = AppDatabaseHandler(

@@ -4,16 +4,16 @@ import "package:chenron/database/database.dart";
 import "package:chenron/database/extensions/operations/database_file_handler.dart";
 
 class ConfigDatabaseFileHandler {
-  final DatabaseLocation databaseLocation;
+  DatabaseLocation? databaseLocation;
   //final DatabaseFileOperations _fileOperations;
   ConfigDatabase? _configDatabase;
 
-  ConfigDatabaseFileHandler({required this.databaseLocation});
+  ConfigDatabaseFileHandler({this.databaseLocation});
 
   ConfigDatabase get configDatabase {
     if (_configDatabase == null) {
       throw StateError(
-          "AppDatabase has not been initialized. Call createDatabase() first.");
+          "ConfigDatabase has not been initialized. Call createDatabase() first.");
     }
     return _configDatabase!;
   }
@@ -23,9 +23,13 @@ class ConfigDatabaseFileHandler {
     File? databasePath,
     bool setupOnInit = false,
   }) {
-    final String dbName = databaseName ?? databaseLocation.databaseFilename;
+    if (databaseLocation == null) {
+      throw StateError(
+          "DatabaseLocation is null. Please provide a valid DatabaseLocation.");
+    }
+    final String dbName = databaseName ?? databaseLocation!.databaseFilename;
     final String path =
-        databasePath?.path ?? databaseLocation.databaseFilePath.path;
+        databasePath?.path ?? databaseLocation!.databaseFilePath.path;
 
     _configDatabase?.close();
     _configDatabase = ConfigDatabase(

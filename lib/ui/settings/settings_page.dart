@@ -7,15 +7,19 @@ import "package:chenron/locator.dart";
 import "package:chenron/providers/configdatabase.dart";
 import "package:chenron/utils/logger.dart";
 import "package:flutter/material.dart";
-import "package:chenron/database/database.dart";
 import "package:chenron/models/user_config.dart";
 import "package:flutter_colorpicker/flutter_colorpicker.dart";
-import "package:provider/provider.dart";
 import "package:signals/signals_flutter.dart";
 
-class SettingsPage extends StatelessWidget {
+class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
 
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+  final configDatabaseSignal = locator.get<Signal<ConfigDatabaseFileHandler>>();
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<UserConfigModel>(
@@ -37,10 +41,8 @@ class SettingsPage extends StatelessWidget {
   }
 
   Future<UserConfigModel> _loadUserConfig(BuildContext context) async {
-    final db = await configDatabaseFileHandlerSignal.value;
-    final configDatabase = db.configDatabase;
-
-    final config = await configDatabase.getUserConfig();
+    final config =
+        await configDatabaseSignal.value.configDatabase.getUserConfig();
     return UserConfigModel(
         id: config?.id,
         darkMode: config?.darkMode,
@@ -95,8 +97,8 @@ class _SettingsContentState extends State<SettingsContent> {
         title: const Text("Settings"),
         backgroundColor: _primaryColor,
       ),
-      body: SingleChildScrollView(
-        child: Padding(
+      body: Watch.builder(
+        builder: (context) => Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -147,13 +149,12 @@ class _SettingsContentState extends State<SettingsContent> {
     );
   }
 
-  Future<void> _updateUserConfig() async {
-    final database =
-        await locator.get<Signal<Future<ConfigDatabaseFileHandler>>>().value;
-    final configDatabase = database.configDatabase;
+  void _updateUserConfig() {
+    final configDatabaseSignal =
+        locator.get<Signal<ConfigDatabaseFileHandler>>();
 
     if (widget.userConfig.id != null) {
-      configDatabase.updateUserConfig(
+      configDatabaseSignal.value.configDatabase.updateUserConfig(
         id: widget.userConfig.id!,
         darkMode: _isDarkMode,
         archiveEnabled: _archiveEnabled,

@@ -1,11 +1,27 @@
+import "package:chenron/database/extensions/operations/config_file_handler.dart";
+import "package:chenron/database/extensions/operations/database_file_handler.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/root.dart";
+import "package:chenron/utils/directory/directory.dart";
 import "package:chenron/utils/logger.dart";
 import "package:chenron/utils/scheduler.dart";
 import "package:flutter/material.dart";
+import "package:signals/signals_flutter.dart";
+
+Future<void> setupConfig() async {
+  final configHandler = locator.get<Signal<ConfigDatabaseFileHandler>>();
+  final baseDir =
+      await locator.get<Signal<Future<ChenronDirectories?>>>().value;
+  final test = DatabaseLocation(
+      databaseDirectory: baseDir!.configDir, databaseFilename: "config.sqlite");
+  configHandler.value.databaseLocation = test;
+  configHandler.value.createDatabase(setupOnInit: true);
+}
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   locatorSetup();
+  await setupConfig();
   scheduleBackup();
   runApp(
     const MyApp(),
@@ -14,7 +30,6 @@ void main() async {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

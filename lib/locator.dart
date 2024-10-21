@@ -14,11 +14,11 @@ final locator = GetIt.I;
 void locatorSetup() {
   locator.registerSingleton<Signal<Future<AppDatabaseHandler>>>(
       signal(initializeAppDatabaseAccessor()));
-  locator.registerSingleton<FutureSignal<ConfigDatabaseFileHandler>>(
-      futureSignal(initializeConfigDatabaseFileHandler));
+  locator.registerSingleton<Signal<ConfigDatabaseFileHandler>>(
+      signal(initializeConfigDatabaseFileHandler()));
 
-  locator.registerSingleton<FutureSignal<ChenronDirectories>>(
-      futureSignal(initializeChenronDirs));
+  locator.registerSingleton<Signal<Future<ChenronDirectories?>>>(
+      signal(initializeChenronDirs()));
   locator.registerSingleton<Signal<FolderStepper>>(signal(FolderStepper()));
   locator.registerSingleton<Signal<FolderDraft>>(
       signal(FolderDraft(), autoDispose: true));
