@@ -8,16 +8,23 @@ import "package:chenron/features/folder/view/mvc/folder_viewer_model.dart";
 import "package:flutter/material.dart";
 
 class FolderViewerPresenter extends ChangeNotifier {
+  List<FolderResult> _currentFolders = [];
   final Set<String> selectedFolders = {};
   final Set<String> selectedTags = {};
+  final SearchController searchController = SearchController();
 
   final _tagsController = StreamController<List<Tag>>.broadcast();
   final _foldersController = StreamController<List<FolderResult>>.broadcast();
+
   final FolderViewerModel _model = FolderViewerModel();
   Stream<List<FolderResult>>? _allFoldersStream;
 
   Stream<List<Tag>> get tagsStream => _tagsController.stream;
   Stream<List<FolderResult>> get foldersStream => _foldersController.stream;
+
+  FolderViewerPresenter() {
+    searchController.addListener(_onSearchChanged);
+  }
 
   Future<void> init() async {
     _allFoldersStream = _model.watchAllFolders();
@@ -48,16 +55,6 @@ class FolderViewerPresenter extends ChangeNotifier {
     notifyListeners();
   }
 
-/*
-    void toggleTag(String tagName) {
-    _viewModel.toggleTag(tagName);
-    if (_viewModel.selectedTags.contains(tagName)) {
-      _dataManager.selectTag(tagName);
-    } else {
-      _dataManager.unselectTag(tagName);
-    }
-  }
-*/
   void onFolderTap(BuildContext context, FolderResult folder) {
     Navigator.push(
       context,
@@ -92,15 +89,33 @@ class FolderViewerPresenter extends ChangeNotifier {
     _tagsController.add(allTags);
   }
 
+  void _onSearchChanged() {
+    _filterAndAddFolders(_currentFolders);
+  }
+
   void _filterAndAddFolders(List<FolderResult> folders) {
-    if (selectedTags.isEmpty) {
-      _foldersController.add(folders);
-    } else {
-      final filteredFolders = folders.where((folder) {
+    _currentFolders = folders;
+    final searchQuery = searchController.text.toLowerCase();
+
+    var filteredFolders = folders;
+
+    // Apply search filter
+    if (searchQuery.isNotEmpty) {
+      filteredFolders = folders.where((folder) {
+        return folder.folder.title.toLowerCase().contains(searchQuery) ||
+            folder.tags
+                .any((tag) => tag.name.toLowerCase().contains(searchQuery));
+      }).toList();
+    }
+
+    // Apply tag filter
+    if (selectedTags.isNotEmpty) {
+      filteredFolders = filteredFolders.where((folder) {
         return folder.tags.any((tag) => selectedTags.contains(tag.name));
       }).toList();
-      _foldersController.add(filteredFolders);
     }
+
+    _foldersController.add(filteredFolders);
   }
 
   void _processFolders(List<FolderResult> folders) {
@@ -114,8 +129,10 @@ class FolderViewerPresenter extends ChangeNotifier {
 
   @override
   void dispose() {
-    super.dispose();
+    searchController.removeListener(_onSearchChanged);
+    searchController.dispose();
     _tagsController.close();
     _foldersController.close();
+    super.dispose();
   }
 }

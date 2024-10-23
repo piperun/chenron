@@ -8,6 +8,7 @@ import "package:chenron/features/folder/view/mvc/folder_viewer_presenter.dart";
 import "package:chenron/features/folder/view/ui/tag_search_bar.dart";
 import "package:flutter/material.dart";
 import "package:signals/signals.dart";
+import "package:flutter_hooks/flutter_hooks.dart";
 
 Signal<FolderViewerPresenter> _folderViewerViewModelSignal =
     Signal(FolderViewerPresenter(), autoDispose: true);
@@ -25,9 +26,15 @@ class _FolderViewerState extends State<FolderViewer> {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      body: FolderViewerBody(
-        header: HeaderBar(),
-        body: ContentBody(),
+      body: Padding(
+        padding: EdgeInsets.all(8.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            HeaderBar(),
+            Expanded(child: ContentBody()),
+          ],
+        ),
       ),
     );
   }
@@ -44,27 +51,6 @@ class _FolderViewerState extends State<FolderViewer> {
   }
 }
 
-class FolderViewerBody extends StatelessWidget {
-  final Widget? header;
-  final Widget? body;
-  final Widget? footer;
-  const FolderViewerBody({this.header, this.body, this.footer, super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (header != null) header!,
-            if (body != null) Expanded(child: body!),
-            if (footer != null) footer!,
-          ],
-        ));
-  }
-}
-
 class HeaderBar extends StatefulWidget {
   const HeaderBar({super.key});
 
@@ -77,7 +63,6 @@ class _HeaderBarState extends State<HeaderBar> {
   @override
   void initState() {
     super.initState();
-    // Initialize _futureMd5 with a default value or null if not needed
     viewModel.init();
   }
 
@@ -88,8 +73,8 @@ class _HeaderBarState extends State<HeaderBar> {
       builder: (context, child) {
         return Column(
           children: [
-            const Padding(
-                padding: EdgeInsets.all(8.0),
+            Padding(
+                padding: const EdgeInsets.all(8.0),
                 child: OverflowBar(
                   spacing: 5,
                   overflowSpacing: 10,
@@ -97,16 +82,18 @@ class _HeaderBarState extends State<HeaderBar> {
                   overflowAlignment: OverflowBarAlignment.center,
                   children: [
                     SearchBar(
+                      controller: viewModel.searchController,
                       hintText: "Search folders or tags...",
+                      onChanged: (value) => setState(() {}),
                     ),
-                    DeleteSelectedButton(),
+                    const DeleteSelectedButton(),
                   ],
                 )),
             TagSearchBar(
                 tagsStream: viewModel.tagsStream,
                 onTagSelected: viewModel.toggleTag,
                 onTagUnselected: viewModel.toggleTag,
-                selectedTags: viewModel.selectedTags)
+                selectedTags: viewModel.selectedTags),
           ],
         );
       },
@@ -114,38 +101,27 @@ class _HeaderBarState extends State<HeaderBar> {
   }
 }
 
-class ContentBody extends StatefulWidget {
+class ContentBody extends HookWidget {
   const ContentBody({super.key});
 
   @override
-  State<ContentBody> createState() => _ContentBodyState();
-}
-
-class _ContentBodyState extends State<ContentBody> {
-  final FolderViewerPresenter viewModel = _folderViewerViewModelSignal.value;
-  @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<FolderResult>>(
-      stream: viewModel.foldersStream,
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          return ItemList<FolderResult>(
-            items: snapshot.data!,
-            listItemBuilder: (context, folder) => FolderListItem(
-              folder: folder,
-              viewModel: viewModel,
-            ),
-            gridItemBuilder: (context, folder) =>
-                FolderGridItem(folder: folder, viewModel: viewModel),
-            isItemSelected: (value) => false,
-          );
-        } else {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        }
-      },
-    );
+    final viewModel = _folderViewerViewModelSignal.value;
+    final foldersSnapshot = useStream(viewModel.foldersStream);
+
+    if (foldersSnapshot.hasData) {
+      return ItemList<FolderResult>(
+        items: foldersSnapshot.data!,
+        listItemBuilder: (context, folder) => FolderListItem(
+          folder: folder,
+          viewModel: viewModel,
+        ),
+        gridItemBuilder: (context, folder) =>
+            FolderGridItem(folder: folder, viewModel: viewModel),
+        isItemSelected: (value) => false,
+      );
+    }
+    return const Center(child: CircularProgressIndicator());
   }
 }
 

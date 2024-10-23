@@ -25,20 +25,26 @@ class FolderDetailView extends StatelessWidget {
         .then((db) =>
             db.appDatabase.getFolder(folderId).then((folder) => folder!));
 
-    return DetailViewer(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Folder Details"),
+      ),
+      body: DetailViewer(
         fetchData: database,
         listBuilder: (context, item) {
-          return ContentTile(itemContent: item.content);
-        });
+          return ItemTile(itemContent: item.content);
+        },
+      ),
+    );
   }
 }
 
-class ContentTile extends StatelessWidget {
+class ItemTile extends StatelessWidget {
   final ItemContent itemContent;
   final String tileContent;
   final Function() launchFunc;
 
-  ContentTile({super.key, required this.itemContent})
+  ItemTile({super.key, required this.itemContent})
       : tileContent = _getTileContent(itemContent),
         launchFunc = _getLaunchFunc(itemContent);
 
