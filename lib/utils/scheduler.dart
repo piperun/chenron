@@ -24,8 +24,6 @@ Future<void> backupDatabase() async {
     if (result != null) {
       loggerGlobal.info("AppDatabaseBackupScheduler",
           "Backup at ${DateTime.now()} successful: ${result.path}");
-    } else {
-      print("Backup failed.");
     }
   } catch (e) {
     loggerGlobal.info("AppDatabaseBackupScheduler",

@@ -46,14 +46,16 @@ class _ItemListState<T> extends State<ItemList<T>> {
               });
             },
           ),
-          Tabular<T>(
-            viewMode: viewMode,
-            items: widget.items,
-            listItemBuilder: widget.listItemBuilder,
-            gridItemBuilder: widget.gridItemBuilder,
-            isItemSelected: widget.isItemSelected,
-            onItemToggle: widget.onItemToggle,
-            onTap: widget.onTap,
+          Expanded(
+            child: Tabular<T>(
+              viewMode: viewMode,
+              items: widget.items,
+              listItemBuilder: widget.listItemBuilder,
+              gridItemBuilder: widget.gridItemBuilder,
+              isItemSelected: widget.isItemSelected,
+              onItemToggle: widget.onItemToggle,
+              onTap: widget.onTap,
+            ),
           ),
         ],
       ),

@@ -1,5 +1,5 @@
 import "package:chenron/database/database.dart";
-import "package:chenron/pages/settings/settings_page.dart";
+import "package:chenron/features/settings/settings_page.dart";
 import "package:chenron/features/folder/create/pages/create.dart";
 import "package:chenron/features/folder/view/pages/folder_viewer.dart";
 import "package:chenron/pages/home/homepage.dart";
@@ -105,7 +105,7 @@ class CustomPageView extends StatelessWidget {
       children: [
         const PageViewItem(color: Colors.white, child: HomePage(padding: 16)),
         const PageViewItem(color: Colors.white, child: SettingsPage()),
-        PageViewItem(color: Colors.black, child: CreateStepper()),
+        const PageViewItem(color: Colors.black, child: CreateFolder()),
         const PageViewItem(color: Colors.white, child: FolderViewer()),
         const PageViewItem(
             color: Colors.white,

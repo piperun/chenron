@@ -1,4 +1,4 @@
-import "package:chenron/components/forms/link_form.dart";
+import "package:chenron/features/folder/create/ui/forms/link_form.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/providers/folder_provider.dart";
 import "package:flutter/material.dart";

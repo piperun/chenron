@@ -14,14 +14,14 @@ import "package:signals/signals_flutter.dart";
 
 enum StepperStep { info, data, preview }
 
-class CreateStepper extends StatefulWidget {
-  const CreateStepper({super.key});
+class CreateFolder extends StatefulWidget {
+  const CreateFolder({super.key});
 
   @override
-  State<CreateStepper> createState() => _CreateStepperState();
+  State<CreateFolder> createState() => _CreateFolderState();
 }
 
-class _CreateStepperState extends State<CreateStepper> {
+class _CreateFolderState extends State<CreateFolder> {
   final currentStepSignal = Signal<StepperStep>(StepperStep.info);
 
   final Map<StepperStep, GlobalKey<FormState>> formKeys = {
