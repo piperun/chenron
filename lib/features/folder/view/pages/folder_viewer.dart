@@ -6,6 +6,7 @@ import "package:chenron/components/item_list/layout/grid.dart";
 import "package:chenron/components/item_list/layout/list.dart";
 import "package:chenron/features/folder/view/mvc/folder_viewer_presenter.dart";
 import "package:chenron/features/folder/view/ui/tag_search_bar.dart";
+import "package:chenron/utils/logger.dart";
 import "package:flutter/material.dart";
 import "package:signals/signals.dart";
 import "package:flutter_hooks/flutter_hooks.dart";
@@ -71,30 +72,32 @@ class _HeaderBarState extends State<HeaderBar> {
     return ListenableBuilder(
       listenable: viewModel,
       builder: (context, child) {
-        return Column(
-          children: [
-            Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: OverflowBar(
-                  spacing: 5,
-                  overflowSpacing: 10,
-                  alignment: MainAxisAlignment.spaceBetween,
-                  overflowAlignment: OverflowBarAlignment.center,
-                  children: [
-                    SearchBar(
-                      controller: viewModel.searchController,
-                      hintText: "Search folders or tags...",
-                      onChanged: (value) => setState(() {}),
-                    ),
-                    const DeleteSelectedButton(),
-                  ],
-                )),
-            TagSearchBar(
-                tagsStream: viewModel.tagsStream,
-                onTagSelected: viewModel.toggleTag,
-                onTagUnselected: viewModel.toggleTag,
-                selectedTags: viewModel.selectedTags),
-          ],
+        return Center(
+          child: Column(
+            children: [
+              Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: OverflowBar(
+                    spacing: 5,
+                    overflowSpacing: 10,
+                    alignment: MainAxisAlignment.spaceBetween,
+                    overflowAlignment: OverflowBarAlignment.center,
+                    children: [
+                      SearchBar(
+                        controller: viewModel.searchController,
+                        hintText: "Search folders or tags...",
+                        onChanged: (value) => setState(() {}),
+                      ),
+                      const DeleteSelectedButton(),
+                    ],
+                  )),
+              TagSearchBar(
+                  tagsStream: viewModel.tagsStream,
+                  onTagSelected: viewModel.toggleTag,
+                  onTagUnselected: viewModel.toggleTag,
+                  selectedTags: viewModel.selectedTags),
+            ],
+          ),
         );
       },
     );
@@ -107,7 +110,22 @@ class ContentBody extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = _folderViewerViewModelSignal.value;
-    final foldersSnapshot = useStream(viewModel.foldersStream);
+
+    final foldersStream =
+        useMemoized(() => viewModel.foldersStream, [viewModel]);
+    final foldersSnapshot = useStream(foldersStream);
+
+    if (foldersSnapshot.hasError) {
+      loggerGlobal.warning(
+          "FolderViewer", "Error loading folders: ${foldersSnapshot.error}");
+      return const Center(
+          child: Column(
+        children: [
+          Icon(Icons.error),
+          Text("Error loading folders"),
+        ],
+      ));
+    }
 
     if (foldersSnapshot.hasData) {
       return ItemList<FolderResult>(

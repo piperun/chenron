@@ -1,10 +1,11 @@
-import "package:chenron/database/database.dart";
+import "package:chenron/features/create/folder/pages/create_folder.dart";
+import "package:chenron/features/create/link/pages/create_link.dart";
+import "package:chenron/features/viewer/pages/viewer.dart";
+import "package:flutter/material.dart";
 import "package:chenron/features/settings/settings_page.dart";
 import "package:chenron/features/folder/create/pages/create.dart";
 import "package:chenron/features/folder/view/pages/folder_viewer.dart";
 import "package:chenron/pages/home/homepage.dart";
-import "package:easy_sidemenu/easy_sidemenu.dart";
-import "package:flutter/material.dart";
 
 class RootPage extends StatefulWidget {
   const RootPage({super.key});
@@ -14,124 +15,133 @@ class RootPage extends StatefulWidget {
 }
 
 class _RootPageState extends State<RootPage> {
-  final PageController pageController = PageController();
-  final SideMenuController sideMenu = SideMenuController();
+  int _selectedIndex = 0;
+  bool _isExtended = true;
 
-  @override
-  void initState() {
-    super.initState();
-    sideMenu.addListener((index) {
-      pageController.jumpToPage(index);
-    });
+  final List<NavigationDestination> _destinations = const [
+    NavigationDestination(
+      icon: Icon(Icons.dashboard_outlined),
+      selectedIcon: Icon(Icons.dashboard),
+      label: "Dashboard",
+    ),
+    NavigationDestination(
+      icon: Icon(Icons.folder_outlined),
+      selectedIcon: Icon(Icons.folder),
+      label: "Folders",
+    ),
+    NavigationDestination(
+      icon: Icon(Icons.settings_outlined),
+      selectedIcon: Icon(Icons.settings),
+      label: "Settings",
+    ),
+    NavigationDestination(
+      icon: Icon(Icons.view_list_outlined),
+      selectedIcon: Icon(Icons.view_list),
+      label: "Viewer",
+    ),
+  ];
+
+  Widget _getPage() {
+    switch (_selectedIndex) {
+      case 0:
+        return const HomePage(padding: 16);
+      case 1:
+        return const FolderViewer();
+      case 2:
+        return const SettingsPage();
+      case 3:
+        return const Viewer();
+      default:
+        return const HomePage(padding: 16);
+    }
+  }
+
+  void _navigateToCreate(BuildContext context, String type) {
+    switch (type) {
+      case "folder":
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const CreateFolderPage()),
+        );
+        break;
+      case "document":
+        // Add document creation navigation
+        break;
+      case "link":
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const CreateLinkPage()),
+        );
+        break;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        CustomSideMenu(sideMenu: sideMenu),
-        const VerticalDivider(width: 0),
-        Flexible(child: CustomPageView(pageController: pageController)),
-      ],
-    );
-  }
-}
-
-class CustomSideMenu extends StatelessWidget {
-  final SideMenuController sideMenu;
-
-  const CustomSideMenu({super.key, required this.sideMenu});
-
-  @override
-  Widget build(BuildContext context) {
-    return SideMenu(
-      controller: sideMenu,
-      style: SideMenuStyle(
-        displayMode: SideMenuDisplayMode.auto,
-        showHamburger: true,
-        hoverColor: Colors.blue[100],
-        selectedHoverColor: Colors.blue[100],
-        selectedColor: Colors.lightBlue,
-        selectedTitleTextStyle: const TextStyle(color: Colors.white),
-        selectedIconColor: Colors.white,
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(_destinations[_selectedIndex].label),
+        actions: [
+          IconButton(
+            tooltip: "Add Link",
+            icon: const Icon(Icons.link),
+            onPressed: () => _navigateToCreate(context, "link"),
+          ),
+          IconButton(
+            tooltip: "Add Document",
+            icon: const Icon(Icons.description),
+            onPressed: () => _navigateToCreate(context, "document"),
+          ),
+          IconButton(
+            tooltip: "Add Folder",
+            icon: const Icon(Icons.create_new_folder),
+            onPressed: () => _navigateToCreate(context, "folder"),
+          ),
+        ],
       ),
-      items: [
-        SideMenuItem(
-          title: "Dashboard",
-          onTap: (index, _) => sideMenu.changePage(index),
-          icon: const Icon(Icons.home),
-          //badgeContent: const Text('3', style: TextStyle(color: Colors.white)),
-          tooltipContent: "Dashboard",
-        ),
-        SideMenuItem(
-          title: "Settings",
-          onTap: (index, _) => sideMenu.changePage(index),
-          icon: const Icon(Icons.settings),
-        ),
-        SideMenuExpansionItem(
-          title: "Folder",
-          icon: const Icon(Icons.folder),
-          children: [
-            SideMenuItem(
-              title: "Create",
-              onTap: (index, _) => sideMenu.changePage(index),
-              icon: const Icon(Icons.create_new_folder),
-              badgeContent:
-                  const Text("3", style: TextStyle(color: Colors.white)),
-              tooltipContent: "Create a new folder",
+      body: Row(
+        children: [
+          NavigationRail(
+            extended: _isExtended,
+            minExtendedWidth: 180,
+            selectedIndex: _selectedIndex,
+            onDestinationSelected: (int index) {
+              setState(() => _selectedIndex = index);
+            },
+            leading: IconButton(
+              icon: Icon(
+                _isExtended ? Icons.chevron_left : Icons.chevron_right,
+              ),
+              onPressed: () {
+                setState(() => _isExtended = !_isExtended);
+              },
             ),
-            SideMenuItem(
-              title: "Viewer",
-              onTap: (index, _) => sideMenu.changePage(index),
-              icon: const Icon(Icons.view_list_outlined),
-            ),
-          ],
-        ),
-      ],
+            destinations: _destinations.map((destination) {
+              return NavigationRailDestination(
+                icon: destination.icon,
+                selectedIcon: destination.selectedIcon,
+                label: Text(destination.label),
+              );
+            }).toList(),
+          ),
+          const VerticalDivider(thickness: 1, width: 1),
+          Expanded(
+            child: _getPage(),
+          ),
+        ],
+      ),
     );
   }
 }
 
-class CustomPageView extends StatelessWidget {
-  final PageController pageController;
+class NavigationDestination {
+  final Widget icon;
+  final Widget selectedIcon;
+  final String label;
 
-  const CustomPageView({super.key, required this.pageController});
-
-  @override
-  Widget build(BuildContext context) {
-    return PageView(
-      controller: pageController,
-      children: [
-        const PageViewItem(color: Colors.white, child: HomePage(padding: 16)),
-        const PageViewItem(color: Colors.white, child: SettingsPage()),
-        const PageViewItem(color: Colors.black, child: CreateFolder()),
-        const PageViewItem(color: Colors.white, child: FolderViewer()),
-        const PageViewItem(
-            color: Colors.white,
-            child: Text("Expansion Item 2", style: TextStyle(fontSize: 35))),
-        const PageViewItem(
-            color: Colors.white,
-            child: Text("Files", style: TextStyle(fontSize: 35))),
-        const PageViewItem(
-            color: Colors.white,
-            child: Text("Download", style: TextStyle(fontSize: 35))),
-      ],
-    );
-  }
-}
-
-class PageViewItem extends StatelessWidget {
-  final Color color;
-  final Widget child;
-
-  const PageViewItem({super.key, required this.color, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: color,
-      child: Center(child: child),
-    );
-  }
+  const NavigationDestination({
+    required this.icon,
+    required this.selectedIcon,
+    required this.label,
+  });
 }

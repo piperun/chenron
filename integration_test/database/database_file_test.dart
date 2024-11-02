@@ -1,13 +1,14 @@
 import "package:chenron/database/database.dart";
 import "package:chenron/database/extensions/operations/database_file_handler.dart";
 import "package:chenron/database/extensions/tags/create.dart";
-import "package:chenron/providers/basedir.dart";
+import "package:chenron/locator.dart";
 import "package:chenron/utils/directory/directory.dart";
-import "package:flutter_riverpod/flutter_riverpod.dart";
 import "package:flutter_test/flutter_test.dart";
 import "package:integration_test/integration_test.dart";
 import "package:path/path.dart" as p;
 import "dart:io";
+
+import "package:signals/signals.dart";
 
 Future<void> setUpFakeData(AppDatabase database, {int len = 5}) async {
   for (int i = 0; i < len; i++) {
@@ -24,16 +25,18 @@ void main() {
   late File createdFilePath;
   late File? importedFilePath;
   late File? exportedFilePath;
-  late ChenronDirectories baseDir;
+  late ChenronDirectories? baseDir;
 
   setUp(
     () async {
-      final container = ProviderContainer();
-      baseDir = await container.read(chenronBaseDirsProvider.future);
+      baseDir = await locator.get<Signal<Future<ChenronDirectories?>>>().value;
+      if (baseDir == null) {
+        throw Exception("Base directory is null");
+      }
 
-      createdFilePath = File(p.join(baseDir.dbDir.path, createdFilename));
+      createdFilePath = File(p.join(baseDir!.dbDir.path, createdFilename));
       databaseLocation = DatabaseLocation(
-          databaseDirectory: baseDir.dbDir, databaseFilename: createdFilename);
+          databaseDirectory: baseDir!.dbDir, databaseFilename: createdFilename);
 
       databaseHandler = AppDatabaseHandler(databaseLocation: databaseLocation);
       databaseHandler.createDatabase(

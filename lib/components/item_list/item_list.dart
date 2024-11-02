@@ -11,6 +11,7 @@ class ItemList<T> extends StatefulWidget {
   final List<T> items;
   final Widget Function(BuildContext, T) listItemBuilder;
   final Widget Function(BuildContext, T) gridItemBuilder;
+  final List<Widget>? extraButtons;
   final bool Function(T) isItemSelected;
   final Function(T)? onItemToggle;
   final Function(T)? onTap;
@@ -20,6 +21,7 @@ class ItemList<T> extends StatefulWidget {
     required this.items,
     required this.listItemBuilder,
     required this.gridItemBuilder,
+    this.extraButtons,
     required this.isItemSelected,
     this.onItemToggle,
     this.onTap,
@@ -40,6 +42,7 @@ class _ItemListState<T> extends State<ItemList<T>> {
         children: [
           TableToolBar(
             viewMode: viewMode,
+            extraButtons: widget.extraButtons,
             onViewModeChanged: (newMode) {
               setState(() {
                 viewMode = newMode;
@@ -106,11 +109,13 @@ class Tabular<T> extends StatelessWidget {
 class TableToolBar extends StatelessWidget {
   final ViewMode viewMode;
   final ValueChanged<ViewMode> onViewModeChanged;
+  final List<Widget>? extraButtons;
 
   const TableToolBar({
     super.key,
     required this.viewMode,
     required this.onViewModeChanged,
+    this.extraButtons,
   });
 
   @override
@@ -118,12 +123,11 @@ class TableToolBar extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
+        if (extraButtons != null) ...extraButtons!,
         IconButton(
           onPressed: () {
-            // Toggle the view mode
             final newMode =
                 viewMode == ViewMode.list ? ViewMode.grid : ViewMode.list;
-            // Notify the parent about the change
             onViewModeChanged(newMode);
           },
           icon: viewMode == ViewMode.list

@@ -1,6 +1,5 @@
 import "package:chenron/components/table/link_toolbar.dart";
 import "package:chenron/providers/folder_provider.dart";
-import "package:chenron/utils/validation/folder_validator.dart";
 import "package:chenron/utils/validation/link_validator.dart";
 import "package:flutter/material.dart";
 import "package:pluto_grid/pluto_grid.dart";
@@ -13,7 +12,7 @@ import "package:signals/signals.dart";
 class LinkForm extends StatefulWidget {
   final GlobalKey<FormState> dataKey;
 
-  const LinkForm({Key? key, required this.dataKey}) : super(key: key);
+  const LinkForm({super.key, required this.dataKey});
 
   @override
   State<LinkForm> createState() => _LinkFormState();

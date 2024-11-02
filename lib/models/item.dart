@@ -130,4 +130,5 @@ class FolderItem {
 enum FolderItemType {
   link,
   document,
+  folder,
 }

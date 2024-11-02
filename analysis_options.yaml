@@ -16,6 +16,10 @@ analyzer:
 custom_lint:
   rules:
   - avoid_ref_inside_state_dispose
+  - avoid_manual_providers_as_generated_provider_dependency
+  - missing_provider_scope
+  - notifier_build
+  - protected_notifier_properties 
 linter:
   # The lint rules applied to this project can be customized in the
   # section below to disable rules from the `package:flutter_lints/flutter.yaml`

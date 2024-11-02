@@ -1,4 +1,4 @@
-import "package:chenron/pages/settings/settings_page.dart";
+import "package:chenron/features/settings/settings_page.dart";
 import 'package:flutter/material.dart';
 import 'package:chenron/models/user_config.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';

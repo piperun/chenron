@@ -4,7 +4,7 @@ import "package:flutter_test/flutter_test.dart";
 import "package:chenron/database/database.dart";
 import "package:chenron/database/extensions/folder/read.dart";
 import "package:chenron/database/extensions/folder/create.dart";
-import "package:chenron/test_lib/folder_factory.dart";
+import "package:chenron/utils/test_lib/folder_factory.dart";
 
 void main() {
   late AppDatabase database;
@@ -240,7 +240,7 @@ void main() {
     });
     test("should watch a single folder with no tags or items", () async {
       final stream = database.watchFolder(
-          folderId: activeFolderResult.folderId, mode: IncludeFolderData.none);
+          folderId: activeFolderResult.folderId!, mode: IncludeFolderData.none);
 
       expect(
           stream,
@@ -254,7 +254,7 @@ void main() {
 
     test("should watch folder with only tags", () async {
       final stream = database.watchFolder(
-          folderId: activeFolderResult.folderId, mode: IncludeFolderData.tags);
+          folderId: activeFolderResult.folderId!, mode: IncludeFolderData.tags);
 
       expect(
           stream,
@@ -269,7 +269,8 @@ void main() {
 
     test("should watch folder with only items", () async {
       final stream = database.watchFolder(
-          folderId: activeFolderResult.folderId, mode: IncludeFolderData.items);
+          folderId: activeFolderResult.folderId!,
+          mode: IncludeFolderData.items);
 
       expect(
           stream,
@@ -283,7 +284,7 @@ void main() {
 
     test("should watch folder with both items and tags", () async {
       final stream = database.watchFolder(
-          folderId: activeFolderResult.folderId, mode: IncludeFolderData.all);
+          folderId: activeFolderResult.folderId!, mode: IncludeFolderData.all);
 
       expect(
           stream,

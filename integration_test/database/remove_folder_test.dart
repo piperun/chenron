@@ -80,8 +80,8 @@ void main() {
           content: StringContent(value: "https://example.com"));
       final document = FolderItem(
           type: FolderItemType.document,
-          content:
-              MapContent({"title": "Test Document", "body": "Test Content"}));
+          content: MapContent(
+              value: {"title": "Test Document", "body": "Test Content"}));
       await database
           .createFolder(folderInfo: folderInfo, items: [link, document]);
 

@@ -25,7 +25,7 @@ extension LinkCreateExtensions on AppDatabase {
 
     if (linkExists == null) {
       linkId = generateId();
-      links.insertOne(
+      await links.insertOne(
         LinksCompanion.insert(id: linkId, content: link),
         mode: InsertMode.insertOrIgnore,
       );

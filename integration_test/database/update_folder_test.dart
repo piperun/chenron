@@ -10,7 +10,7 @@ import "package:chenron/models/item.dart";
 import "package:chenron/models/metadata.dart";
 import "package:drift/drift.dart";
 import "package:flutter_test/flutter_test.dart";
-import "package:chenron/test_lib/folder_factory.dart";
+import "package:chenron/utils/test_lib/folder_factory.dart";
 
 void main() {
   late AppDatabase database;
