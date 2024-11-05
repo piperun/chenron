@@ -1,3 +1,4 @@
+import "package:chenron/components/item_list/item_list.dart";
 import "package:chenron/features/viewer/state/viewer_state.dart";
 import "package:chenron/features/viewer/ui/viewer_base_item.dart";
 import "package:chenron/features/viewer/ui/viewer_grid_item.dart";
@@ -5,52 +6,7 @@ import "package:chenron/features/viewer/ui/viewer_list_item.dart";
 import "package:chenron/models/item.dart";
 import "package:chenron/utils/logger.dart";
 import "package:flutter/material.dart";
-import "package:chenron/components/item_list/item_list.dart";
 import "package:flutter_hooks/flutter_hooks.dart";
-
-class ViewerHeader extends StatelessWidget {
-  const ViewerHeader({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final viewModel = viewerViewModelSignal.value;
-    return ListenableBuilder(
-      listenable: viewModel,
-      builder: (context, _) => Column(
-        children: [
-          SegmentedButton<FolderItemType>(
-            multiSelectionEnabled: true,
-            segments: const [
-              ButtonSegment(
-                value: FolderItemType.folder,
-                icon: Icon(Icons.folder),
-                label: Text("Folders"),
-              ),
-              ButtonSegment(
-                value: FolderItemType.link,
-                icon: Icon(Icons.link),
-                label: Text("Links"),
-              ),
-              ButtonSegment(
-                value: FolderItemType.document,
-                icon: Icon(Icons.description),
-                label: Text("Documents"),
-              ),
-            ],
-            selected: viewModel.selectedTypes,
-            onSelectionChanged: viewModel.onTypesChanged,
-          ),
-          const SizedBox(height: 8),
-          SearchBar(
-            hintText: "Search all items...",
-            leading: const Icon(Icons.search),
-            controller: viewModel.searchController,
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class ViewerContent extends HookWidget {
   const ViewerContent({super.key});

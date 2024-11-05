@@ -1,6 +1,7 @@
 import "package:chenron/components/table/link_toolbar.dart";
 import "package:chenron/core/ui/base_switch.dart";
 import "package:chenron/core/ui/folder_picker.dart";
+import "package:chenron/core/ui/input_field.dart";
 import "package:chenron/database/database.dart";
 import "package:chenron/database/extensions/folder/update.dart";
 import "package:chenron/database/extensions/link/create.dart";
@@ -24,7 +25,6 @@ class CreateLinkPage extends StatefulWidget {
 
 class _CreateLinkPageState extends State<CreateLinkPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final GlobalKey<FormState> _linkFormKey = GlobalKey<FormState>();
   final TextEditingController _linkController = TextEditingController();
   final DataTableNotifier _tableNotifier = DataTableNotifier();
 
@@ -91,29 +91,13 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
                 setState(() => _selectedFolders = selectedFolders);
               },
             ),
-            Form(
-              key: _formKey,
-              child: OverflowBar(
-                children: [
-                  SizedBox(
-                    width: 500,
-                    child: Form(
-                      key: _linkFormKey,
-                      child: TextFormField(
-                        controller: _linkController,
-                        decoration:
-                            const InputDecoration(labelText: "Enter Link"),
-                        validator: LinkValidator.validateContent,
-                      ),
-                    ),
-                  ),
-                  ElevatedButton(
-                    onPressed: _addLink,
-                    child: const Text("Add Link"),
-                  ),
-                ],
-              ),
-            ),
+            InputField(
+                formKey: _formKey,
+                controller: _linkController,
+                labelText: "Link",
+                buttonText: "Add",
+                onPressed: _addLink,
+                validator: LinkValidator.validateContent),
             BaseSwitch(
               value: _isArchiveMode,
               onChange: (value) => setState(() => _isArchiveMode = value),
@@ -134,7 +118,7 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
   }
 
   void _addLink() {
-    if (_linkFormKey.currentState!.validate()) {
+    if (_formKey.currentState!.validate()) {
       final String newLink = _linkController.text.trim();
 
       if (!_isDuplicateLink(newLink)) {

@@ -5,92 +5,123 @@ import "package:chenron/root.dart";
 import "package:chenron/utils/directory/directory.dart";
 import "package:chenron/utils/logger.dart";
 import "package:chenron/utils/scheduler.dart";
+import "package:flutter_hooks/flutter_hooks.dart";
+import "package:chenron/database/extensions/user_config/read.dart";
+import "package:chenron/database/extensions/user_config/update.dart";
 import "package:flutter/material.dart";
 import "package:signals/signals_flutter.dart";
+
+final _themeModeSignal = signal<ThemeMode>(ThemeMode.system);
 
 Future<void> setupConfig() async {
   final configHandler = locator.get<Signal<ConfigDatabaseFileHandler>>();
   final baseDir =
       await locator.get<Signal<Future<ChenronDirectories?>>>().value;
-  final test = DatabaseLocation(
-      databaseDirectory: baseDir!.configDir, databaseFilename: "config.sqlite");
-  configHandler.value.databaseLocation = test;
+  if (baseDir == null) {
+    loggerGlobal.severe("SetupConfig", "Base directory not initialized");
+    throw Exception("Base directory not initialized");
+  }
+  final databaseLocation = DatabaseLocation(
+    databaseDirectory: baseDir.configDir,
+    databaseFilename: "config.sqlite",
+  );
+  configHandler.value.databaseLocation = databaseLocation;
   configHandler.value.createDatabase(setupOnInit: true);
 }
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  locatorSetup();
-  await setupConfig();
-  scheduleBackup();
-  runApp(
-    const MyApp(),
-  );
+  try {
+    WidgetsFlutterBinding.ensureInitialized();
+    locatorSetup();
+    await setupConfig();
+    scheduleBackup();
+    runApp(const MyApp());
+  } catch (e) {
+    loggerGlobal.severe("Startup", "Failed to initialize app: $e");
+    rethrow;
+  }
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: "Flutter Demo",
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+    return Watch(
+      (context) => MaterialApp(
+        title: "Chenron",
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+          useMaterial3: true,
+        ),
+        darkTheme: ThemeData.dark(useMaterial3: true),
+        themeMode: _themeModeSignal.value,
+        themeAnimationDuration: const Duration(milliseconds: 300),
+        themeAnimationCurve: Curves.easeInOut,
+        home: const MyHomePage(title: "Chenron"),
       ),
-      home: const MyHomePage(title: "Flutter Demo Home Page"),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
   final String title;
+
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  _MyHomePageState createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
   @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
-        appBar: AppBar(
-          // TRY THIS: Try changing the color here to a specific color (to
-          // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-          // change color while the other colors stay the same.
-          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          // Here we take the value from the MyHomePage object that was created by
-          // the App.build method, and use it to set our appbar title.
-          title: Text(widget.title),
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: Text(widget.title),
+        actions: [const DarkModeButton()],
+      ),
+      body: const RootPage(),
+    );
+  }
+}
+
+class DarkModeButton extends StatelessWidget {
+  const DarkModeButton({super.key});
+  @override
+  Widget build(BuildContext context) {
+    final configHandler = locator.get<Signal<ConfigDatabaseFileHandler>>();
+
+    return Watch(
+      (context) => IconButton(
+        icon: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          child: Icon(
+            _themeModeSignal.value == ThemeMode.dark
+                ? Icons.dark_mode_rounded
+                : Icons.light_mode_rounded,
+          ),
         ),
-        body: const RootPage());
+        onPressed: () => _handleThemeToggle(configHandler),
+      ),
+    );
+  }
+
+  Future<void> _handleThemeToggle(
+      Signal<ConfigDatabaseFileHandler> handler) async {
+    final config = await handler.value.configDatabase.getUserConfig();
+    if (config == null) return;
+
+    final newDarkMode = !config.darkMode;
+    _themeModeSignal.value = newDarkMode ? ThemeMode.dark : ThemeMode.light;
+    await handler.value.configDatabase.updateUserConfig(
+      id: config.id,
+      darkMode: newDarkMode,
+    );
   }
 }

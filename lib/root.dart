@@ -1,11 +1,56 @@
+import "package:flutter/material.dart";
+// Keep existing imports
 import "package:chenron/features/create/folder/pages/create_folder.dart";
 import "package:chenron/features/create/link/pages/create_link.dart";
 import "package:chenron/features/viewer/pages/viewer.dart";
-import "package:flutter/material.dart";
 import "package:chenron/features/settings/settings_page.dart";
-import "package:chenron/features/folder/create/pages/create.dart";
 import "package:chenron/features/folder/view/pages/folder_viewer.dart";
 import "package:chenron/pages/home/homepage.dart";
+
+enum NavigationSection {
+  dashboard(
+    icon: Icons.dashboard_outlined,
+    selectedIcon: Icons.dashboard,
+    label: "Dashboard",
+    page: HomePage(padding: 16),
+  ),
+  folders(
+    icon: Icons.folder_outlined,
+    selectedIcon: Icons.folder,
+    label: "Folders",
+    page: FolderViewer(),
+  ),
+  settings(
+    icon: Icons.settings_outlined,
+    selectedIcon: Icons.settings,
+    label: "Settings",
+    page: SettingsPage(),
+  ),
+  viewer(
+    icon: Icons.view_list_outlined,
+    selectedIcon: Icons.view_list,
+    label: "Viewer",
+    page: Viewer(),
+  );
+
+  final IconData icon;
+  final IconData selectedIcon;
+  final String label;
+  final Widget page;
+
+  const NavigationSection({
+    required this.icon,
+    required this.selectedIcon,
+    required this.label,
+    required this.page,
+  });
+
+  NavigationRailDestination toDestination() => NavigationRailDestination(
+        icon: Icon(icon),
+        selectedIcon: Icon(selectedIcon),
+        label: Text(label),
+      );
+}
 
 class RootPage extends StatefulWidget {
   const RootPage({super.key});
@@ -15,46 +60,13 @@ class RootPage extends StatefulWidget {
 }
 
 class _RootPageState extends State<RootPage> {
-  int _selectedIndex = 0;
+  NavigationSection _selectedSection = NavigationSection.dashboard;
   bool _isExtended = true;
 
-  final List<NavigationDestination> _destinations = const [
-    NavigationDestination(
-      icon: Icon(Icons.dashboard_outlined),
-      selectedIcon: Icon(Icons.dashboard),
-      label: "Dashboard",
-    ),
-    NavigationDestination(
-      icon: Icon(Icons.folder_outlined),
-      selectedIcon: Icon(Icons.folder),
-      label: "Folders",
-    ),
-    NavigationDestination(
-      icon: Icon(Icons.settings_outlined),
-      selectedIcon: Icon(Icons.settings),
-      label: "Settings",
-    ),
-    NavigationDestination(
-      icon: Icon(Icons.view_list_outlined),
-      selectedIcon: Icon(Icons.view_list),
-      label: "Viewer",
-    ),
-  ];
-
-  Widget _getPage() {
-    switch (_selectedIndex) {
-      case 0:
-        return const HomePage(padding: 16);
-      case 1:
-        return const FolderViewer();
-      case 2:
-        return const SettingsPage();
-      case 3:
-        return const Viewer();
-      default:
-        return const HomePage(padding: 16);
-    }
-  }
+  // Add this field to cache the destinations
+  final List<NavigationRailDestination> _destinations = NavigationSection.values
+      .map((section) => section.toDestination())
+      .toList();
 
   void _navigateToCreate(BuildContext context, String type) {
     switch (type) {
@@ -80,7 +92,7 @@ class _RootPageState extends State<RootPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_destinations[_selectedIndex].label),
+        title: Text(_selectedSection.label),
         actions: [
           IconButton(
             tooltip: "Add Link",
@@ -104,44 +116,23 @@ class _RootPageState extends State<RootPage> {
           NavigationRail(
             extended: _isExtended,
             minExtendedWidth: 180,
-            selectedIndex: _selectedIndex,
-            onDestinationSelected: (int index) {
-              setState(() => _selectedIndex = index);
+            selectedIndex: _selectedSection.index,
+            onDestinationSelected: (index) {
+              setState(
+                  () => _selectedSection = NavigationSection.values[index]);
             },
             leading: IconButton(
-              icon: Icon(
-                _isExtended ? Icons.chevron_left : Icons.chevron_right,
-              ),
-              onPressed: () {
-                setState(() => _isExtended = !_isExtended);
-              },
+              icon:
+                  Icon(_isExtended ? Icons.chevron_left : Icons.chevron_right),
+              onPressed: () => setState(() => _isExtended = !_isExtended),
             ),
-            destinations: _destinations.map((destination) {
-              return NavigationRailDestination(
-                icon: destination.icon,
-                selectedIcon: destination.selectedIcon,
-                label: Text(destination.label),
-              );
-            }).toList(),
+            // Use the cached destinations list instead
+            destinations: _destinations,
           ),
           const VerticalDivider(thickness: 1, width: 1),
-          Expanded(
-            child: _getPage(),
-          ),
+          Expanded(child: _selectedSection.page),
         ],
       ),
     );
   }
-}
-
-class NavigationDestination {
-  final Widget icon;
-  final Widget selectedIcon;
-  final String label;
-
-  const NavigationDestination({
-    required this.icon,
-    required this.selectedIcon,
-    required this.label,
-  });
 }

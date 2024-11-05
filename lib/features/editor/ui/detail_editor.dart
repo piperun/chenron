@@ -147,12 +147,11 @@ class _DetailEditorState extends State<DetailEditor> {
   }
 
   Future<void> _saveChanges() async {
-    final database = await locator
-        .get<Signal<Future<AppDatabaseHandler>>>()
-        .value
-        .then((db) => db.appDatabase);
+    final database =
+        await locator.get<Signal<Future<AppDatabaseHandler>>>().value;
+
     try {
-      database.updateFolder(widget.currentData!.folder.id,
+      await database.appDatabase.updateFolder(widget.currentData!.folder.id,
           title: _titleController.text,
           description: _descriptionController.text,
           itemUpdates: cudItems);

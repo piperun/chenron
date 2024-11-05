@@ -1,7 +1,7 @@
 import "dart:async";
 
 import "package:chenron/database/extensions/folder/read.dart";
-import "package:chenron/features/folder/edit/pages/editor.dart";
+import "package:chenron/features/editor/pages/editor.dart";
 import "package:chenron/features/folder/view/pages/folder_detail_view.dart";
 import "package:chenron/features/viewer/mvc/viewer_model.dart";
 import "package:chenron/features/viewer/ui/viewer_base_item.dart";
@@ -121,10 +121,8 @@ class ViewerPresenter extends ChangeNotifier {
           ),
         );
       case FolderItemType.link:
-        // TODO: Implement link opening
         break;
       case FolderItemType.document:
-        // TODO: Implement document opening
         break;
     }
   }

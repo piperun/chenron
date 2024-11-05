@@ -1,6 +1,7 @@
 import "package:chenron/features/viewer/state/viewer_state.dart";
+import "package:chenron/features/viewer/ui/viewer_content.dart";
 import "package:flutter/material.dart";
-import "package:chenron/features/viewer/ui/viewer_ui.dart";
+import "package:chenron/features/viewer/ui/viewer_header.dart";
 import "package:flutter_hooks/flutter_hooks.dart";
 import "package:signals/signals_flutter.dart";
 

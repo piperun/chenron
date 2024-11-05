@@ -1,4 +1,4 @@
-import "package:chenron/components/edviewer/editor/detail_editor.dart";
+import "package:chenron/features/editor/ui/detail_editor.dart";
 import "package:chenron/database/extensions/folder/read.dart";
 import "package:chenron/database/extensions/operations/database_file_handler.dart";
 import "package:chenron/locator.dart";
