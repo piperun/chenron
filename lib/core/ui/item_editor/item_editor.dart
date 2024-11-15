@@ -7,7 +7,6 @@ import "package:chenron/models/cud.dart";
 import "package:chenron/models/item.dart";
 
 import "package:chenron/components/table/link_toolbar.dart";
-import "package:signals/signals_flutter.dart";
 
 class ItemEditor extends StatefulWidget {
   final List<FolderItem> initialItems;

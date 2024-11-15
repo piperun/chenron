@@ -39,6 +39,12 @@ class ViewerPresenter extends ChangeNotifier {
   void onTypesChanged(Set<FolderItemType> types) {
     selectedTypes.clear();
     selectedTypes.addAll(types);
+
+    selectedItemIds.removeWhere((itemId) {
+      final item = _currentItems.firstWhere((item) => item.id == itemId);
+      return !types.contains(item.type);
+    });
+
     _filterAndAddItems(_currentItems);
     notifyListeners();
   }

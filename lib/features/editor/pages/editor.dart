@@ -140,7 +140,7 @@ class _FolderEditorState extends State<FolderEditor> {
       );
       setState(() {
         _hasChanges = false;
-        cudItems = CUD<FolderItem>(); // Reset the CUD items after saving
+        cudItems = CUD<FolderItem>();
       });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

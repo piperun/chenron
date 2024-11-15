@@ -1,16 +1,16 @@
 // lib/core/ui/editors/info_editor.dart
 
-import 'package:flutter/material.dart';
+import "package:flutter/material.dart";
 
 class InfoEditor extends StatelessWidget {
   final TextEditingController titleController;
   final TextEditingController descriptionController;
 
   const InfoEditor({
-    Key? key,
+    super.key,
     required this.titleController,
     required this.descriptionController,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
