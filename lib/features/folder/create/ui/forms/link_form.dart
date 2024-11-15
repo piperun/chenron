@@ -21,7 +21,7 @@ class LinkForm extends StatefulWidget {
 class _LinkFormState extends State<LinkForm> {
   final GlobalKey<FormState> _linkFormKey = GlobalKey<FormState>();
   final TextEditingController _linkController = TextEditingController();
-  final DataTableNotifier _tableNotifier = DataTableNotifier();
+  final DataGridNotifier _tableNotifier = DataGridNotifier();
 
   final folderDraft = locator.get<Signal<FolderDraft>>();
 
@@ -128,7 +128,7 @@ class _LinkFormState extends State<LinkForm> {
         ),
         SizedBox(
           height: 500,
-          child: FolderDataTable(
+          child: DataGrid(
             columns: _columns,
             rows: _rows,
             notifier: _tableNotifier,

@@ -26,7 +26,7 @@ class CreateLinkPage extends StatefulWidget {
 class _CreateLinkPageState extends State<CreateLinkPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _linkController = TextEditingController();
-  final DataTableNotifier _tableNotifier = DataTableNotifier();
+  final DataGridNotifier _tableNotifier = DataGridNotifier();
 
   List<Folder> _selectedFolders = [];
   // Create a signal for links
@@ -105,7 +105,7 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
             ),
             LinkToolbar(onDelete: _deleteSelected),
             Expanded(
-              child: FolderDataTable(
+              child: DataGrid(
                 columns: _columns,
                 rows: _rows,
                 notifier: _tableNotifier,
@@ -150,8 +150,6 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
     return links.value.any((item) {
       if (item.content is StringContent) {
         return (item.content as StringContent).value == newLink;
-      } else if (item.content is MapContent) {
-        return (item.content as MapContent).value["url"] == newLink;
       }
       return false;
     });

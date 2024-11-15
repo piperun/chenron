@@ -2,13 +2,20 @@ import "package:chenron/models/item.dart";
 import "package:flutter/material.dart";
 import "package:pluto_grid/pluto_grid.dart";
 
-class DataTableNotifier extends ChangeNotifier {
+class DataGridNotifier extends ChangeNotifier {
   PlutoGridStateManager? _stateManager;
 
   PlutoGridStateManager? get stateManager => _stateManager;
 
+  bool checkedRows = false;
+
   void setStateManager(PlutoGridStateManager stateManager) {
     _stateManager = stateManager;
+    notifyListeners();
+  }
+
+  void onRowChecked(PlutoGridOnRowCheckedEvent event) {
+    checkedRows = event.isChecked!;
     notifyListeners();
   }
 

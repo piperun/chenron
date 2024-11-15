@@ -1,5 +1,5 @@
-import "package:chenron/components/edviewer/editor/link/link_add.dart";
 import "package:chenron/components/table/link_toolbar.dart";
+import "package:chenron/core/ui/input_field.dart";
 import "package:chenron/models/cud.dart";
 import "package:chenron/models/item.dart";
 import "package:flutter/material.dart";
@@ -21,12 +21,14 @@ class ItemEditor extends StatefulWidget {
       required this.onUpdate});
 
   @override
-  State<ItemEditor> createState() => _LinkForm2State();
+  State<ItemEditor> createState() => _ItemEditorState();
 }
 
-class _LinkForm2State extends State<ItemEditor> {
+class _ItemEditorState extends State<ItemEditor> {
   late PlutoGridStateManager stateManager;
   CUD<FolderItem> folderItems = CUD<FolderItem>();
+  final TextEditingController _controller = TextEditingController();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool checkedRows = false;
   @override
   void initState() {
@@ -43,10 +45,6 @@ class _LinkForm2State extends State<ItemEditor> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        LinkAdder(
-          stateManager: stateManager,
-          onAdd: _handleAdd,
-        ),
         LinkToolbar(
             onDelete: checkedRows
                 ? () {

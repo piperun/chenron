@@ -8,7 +8,7 @@ import "package:chenron/models/cud.dart";
 import "package:chenron/models/item.dart";
 import "package:chenron/database/extensions/folder/read.dart";
 import "package:chenron/database/extensions/folder/update.dart";
-import "package:chenron/components/edviewer/editor/item_editor.dart";
+import "package:chenron/core/ui/item_editor/item_editor.dart";
 import "package:signals/signals_flutter.dart";
 
 class DetailEditor extends StatefulWidget {
@@ -108,14 +108,6 @@ class _DetailEditorState extends State<DetailEditor> {
                   decoration: const InputDecoration(
                     labelText: "Description",
                   ),
-                ),
-                ItemEditor(
-                  columns: columns,
-                  rows: _loadRows(),
-                  onUpdate: (CUD<FolderItem> updatedItems) {
-                    cudItems = updatedItems;
-                    _updateChangesState();
-                  },
                 ),
               ],
             )),

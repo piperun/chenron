@@ -1,13 +1,13 @@
-import "package:flutter/material.dart";
-import "package:pluto_grid/pluto_grid.dart";
-import "package:chenron/notifiers/link_table_notifier.dart";
+import 'package:flutter/material.dart';
+import 'package:pluto_grid/pluto_grid.dart';
+import 'package:chenron/notifiers/link_table_notifier.dart';
 
-class FolderDataTable extends StatefulWidget {
+class DataGrid extends StatefulWidget {
   final List<PlutoColumn> columns;
   final List<PlutoRow> rows;
-  final DataTableNotifier notifier;
+  final DataGridNotifier notifier;
 
-  const FolderDataTable({
+  const DataGrid({
     super.key,
     required this.columns,
     required this.rows,
@@ -15,10 +15,10 @@ class FolderDataTable extends StatefulWidget {
   });
 
   @override
-  State<FolderDataTable> createState() => _FolderDataTableState();
+  State<DataGrid> createState() => _DataGridState();
 }
 
-class _FolderDataTableState extends State<FolderDataTable> {
+class _DataGridState extends State<DataGrid> {
   @override
   Widget build(BuildContext context) {
     return PlutoGrid(
@@ -27,6 +27,7 @@ class _FolderDataTableState extends State<FolderDataTable> {
       onLoaded: (PlutoGridOnLoadedEvent event) {
         widget.notifier.setStateManager(event.stateManager);
       },
+      onRowChecked: widget.notifier.onRowChecked,
       configuration: const PlutoGridConfiguration(
         columnSize: PlutoGridColumnSizeConfig(
           autoSizeMode: PlutoAutoSizeMode.scale,
