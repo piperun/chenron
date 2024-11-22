@@ -1,40 +1,27 @@
 import "package:chenron/components/metadata_factory.dart";
-import "package:chenron/database/extensions/folder/read.dart";
-import "package:chenron/database/extensions/operations/database_file_handler.dart";
-import "package:chenron/locator.dart";
-import "package:chenron/models/item.dart";
-import "package:chenron/utils/logger.dart";
-import "package:flutter/material.dart";
-import "package:logging/logging.dart";
-import "package:chenron/features/folder/view/ui/detail_viewer.dart";
-import "package:signals/signals_flutter.dart";
-import "package:url_launcher/url_launcher.dart";
 import "package:chenron/components/favicon_display/favicon.dart";
+import "package:chenron/database/extensions/folder/read.dart";
+import "package:chenron/models/item.dart";
+import "package:flutter/material.dart";
+import "package:url_launcher/url_launcher.dart";
 
-class FolderDetailView extends StatelessWidget {
-  final String folderId;
-  final Logger? logger;
+class FolderDetailItems extends StatelessWidget {
+  final FolderResult folderResult;
 
-  const FolderDetailView({super.key, required this.folderId, this.logger});
+  const FolderDetailItems({super.key, required this.folderResult});
 
   @override
   Widget build(BuildContext context) {
-    final database = locator
-        .get<Signal<Future<AppDatabaseHandler>>>()
-        .value
-        .then((db) =>
-            db.appDatabase.getFolder(folderId).then((folder) => folder!));
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Folder Details"),
-      ),
-      body: DetailViewer(
-        fetchData: database,
-        listBuilder: (context, item) {
-          return ItemTile(itemContent: item.content);
-        },
-      ),
+    return ListView.builder(
+      itemCount: folderResult.items.length,
+      itemBuilder: (context, index) {
+        final item = folderResult.items[index];
+        return Card(
+          elevation: 2,
+          margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
+          child: ItemTile(itemContent: item.content),
+        );
+      },
     );
   }
 }

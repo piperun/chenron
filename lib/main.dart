@@ -1,3 +1,4 @@
+import "package:chenron/core/ui/search/searchbar.dart";
 import "package:chenron/database/extensions/operations/config_file_handler.dart";
 import "package:chenron/database/extensions/operations/database_file_handler.dart";
 import "package:chenron/locator.dart";
@@ -5,7 +6,6 @@ import "package:chenron/root.dart";
 import "package:chenron/utils/directory/directory.dart";
 import "package:chenron/utils/logger.dart";
 import "package:chenron/utils/scheduler.dart";
-import "package:flutter_hooks/flutter_hooks.dart";
 import "package:chenron/database/extensions/user_config/read.dart";
 import "package:chenron/database/extensions/user_config/update.dart";
 import "package:flutter/material.dart";
@@ -74,16 +74,12 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   @override
-  void dispose() {
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
+        centerTitle: true,
+        title: const GlobalSearchBar(),
         actions: [const DarkModeButton()],
       ),
       body: const RootPage(),

@@ -3,7 +3,7 @@ import "dart:async";
 import "package:chenron/database/database.dart";
 import "package:chenron/database/extensions/folder/read.dart";
 import "package:chenron/features/editor/pages/editor.dart";
-import "package:chenron/features/folder/view/pages/folder_detail_view.dart";
+import "package:chenron/features/show_folder/pages/show_folder.dart";
 import "package:chenron/features/folder/view/mvc/folder_viewer_model.dart";
 import "package:flutter/material.dart";
 
@@ -59,7 +59,7 @@ class FolderViewerPresenter extends ChangeNotifier {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => FolderDetailView(folderId: folder.folder.id),
+        builder: (context) => ShowFolder(folderId: folder.folder.id),
       ),
     );
   }
