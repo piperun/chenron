@@ -50,7 +50,7 @@ class ViewerModel {
   Stream<List<FolderResult>> watchAllFolders() async* {
     try {
       final db = await loadDatabase();
-      yield* db.watchAllFolders(mode: IncludeFolderData.tags);
+      yield* db.watchAllFolders(modes: {IncludeOptions.tags});
     } catch (e) {
       loggerGlobal.severe("ViewerModel" "Error watching folders: $e", e);
       yield [];
@@ -59,29 +59,29 @@ class ViewerModel {
 
   Stream<List<ViewerItem>> watchAllItems() async* {
     final db = await loadDatabase();
-    final folderStream = db.watchAllFolders(mode: IncludeFolderData.tags).map(
-          (folders) => folders.map(
-            (folder) => ViewerItem(
-              id: folder.folder.id,
-              title: folder.folder.title,
-              description: folder.folder.description,
-              type: FolderItemType.folder,
-              tags: folder.tags,
-            ),
-          ),
-        );
+    final folderStream = db.watchAllFolders(modes: {IncludeOptions.tags}).map(
+      (folders) => folders.map(
+        (folder) => ViewerItem(
+          id: folder.folder.id,
+          title: folder.folder.title,
+          description: folder.folder.description,
+          type: FolderItemType.folder,
+          tags: folder.tags,
+        ),
+      ),
+    );
 
-    final linkStream = db.watchAllLinks(mode: IncludeLinkData.tags).map(
-          (links) => links.map(
-            (link) => ViewerItem(
-              id: link.link.id,
-              title: "",
-              description: link.link.content,
-              type: FolderItemType.link,
-              tags: link.tags,
-            ),
-          ),
-        );
+    final linkStream = db.watchAllLinks(modes: {IncludeLinkData.tags}).map(
+      (links) => links.map(
+        (link) => ViewerItem(
+          id: link.item.id,
+          title: "",
+          description: link.item.content,
+          type: FolderItemType.link,
+          tags: link.tags,
+        ),
+      ),
+    );
 
     yield* Rx.combineLatestList([folderStream, linkStream])
         .map((lists) => lists.expand((list) => list).toList());

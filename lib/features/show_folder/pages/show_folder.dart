@@ -1,5 +1,4 @@
 import "package:chenron/core/ui/search/search_button.dart";
-import "package:chenron/core/ui/search/search_view.dart";
 import "package:chenron/database/extensions/folder/read.dart";
 import "package:chenron/database/extensions/operations/database_file_handler.dart";
 import "package:chenron/features/show_folder/widgets/folder_detail_info.dart";
@@ -18,8 +17,9 @@ class ShowFolder extends StatelessWidget {
     final Future<FolderResult> folderData = locator
         .get<Signal<Future<AppDatabaseHandler>>>()
         .value
-        .then((db) =>
-            db.appDatabase.getFolder(folderId).then((folder) => folder!));
+        .then((db) => db.appDatabase
+            .getFolder(folderId: folderId)
+            .then((folder) => folder!));
 
     return Scaffold(
       appBar: AppBar(

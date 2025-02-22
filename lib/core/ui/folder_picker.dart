@@ -1,8 +1,8 @@
 import "package:chenron/database/extensions/operations/database_file_handler.dart";
-import 'package:flutter/material.dart';
-import 'package:chenron/database/database.dart';
-import 'package:chenron/locator.dart';
-import 'package:chenron/database/extensions/folder/read.dart';
+import "package:flutter/material.dart";
+import "package:chenron/database/database.dart";
+import "package:chenron/locator.dart";
+import "package:chenron/database/extensions/folder/read.dart";
 import "package:signals/signals_flutter.dart";
 
 class FolderPicker extends StatefulWidget {
@@ -37,11 +37,11 @@ class _FolderPickerState extends State<FolderPicker> {
 
   Future<void> _loadInitialFolder() async {
     try {
-      final results = await _db.getAllFolders(mode: IncludeFolderData.none);
+      final results = await _db.getAllFolders();
       if (results.isNotEmpty) {
         setState(() {
           final defaultFolder = results.map((r) => r.folder).firstWhere(
-                (f) => f.title == 'default',
+                (f) => f.title == "default",
                 orElse: () => results.first.folder,
               );
           _selectedFolders.add(defaultFolder);
@@ -84,7 +84,7 @@ class _FolderPickerState extends State<FolderPicker> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Selected Folders',
+          "Selected Folders",
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
@@ -103,7 +103,7 @@ class _FolderPickerState extends State<FolderPicker> {
                 )),
             ActionChip(
               avatar: const Icon(Icons.add),
-              label: const Text('Add Folder'),
+              label: const Text("Add Folder"),
               onPressed: _showFolderSelectionDialog,
             ),
           ],
@@ -131,7 +131,7 @@ class FolderSelectionDialog extends StatefulWidget {
 
 class _FolderSelectionDialogState extends State<FolderSelectionDialog> {
   late Set<Folder> _selectedFolders;
-  String _searchQuery = '';
+  String _searchQuery = "";
   List<Folder> _allFolders = [];
   bool _isLoading = true;
 
@@ -144,8 +144,7 @@ class _FolderSelectionDialogState extends State<FolderSelectionDialog> {
 
   Future<void> _loadFolders() async {
     try {
-      final results =
-          await widget.db.getAllFolders(mode: IncludeFolderData.none);
+      final results = await widget.db.getAllFolders();
       setState(() {
         _allFolders = results.map((r) => r.folder).toList();
         _isLoading = false;
@@ -162,7 +161,7 @@ class _FolderSelectionDialogState extends State<FolderSelectionDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Select Folders'),
+      title: const Text("Select Folders"),
       content: SizedBox(
         width: double.maxFinite,
         child: Column(
@@ -171,7 +170,7 @@ class _FolderSelectionDialogState extends State<FolderSelectionDialog> {
             TextField(
               decoration: const InputDecoration(
                 prefixIcon: Icon(Icons.search),
-                hintText: 'Search folders...',
+                hintText: "Search folders...",
               ),
               onChanged: (value) => setState(() => _searchQuery = value),
             ),
@@ -209,14 +208,14 @@ class _FolderSelectionDialogState extends State<FolderSelectionDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: const Text("Cancel"),
         ),
         FilledButton(
           onPressed: () {
             widget.onSelect(_selectedFolders.toList());
             Navigator.pop(context);
           },
-          child: const Text('Done'),
+          child: const Text("Done"),
         ),
       ],
     );

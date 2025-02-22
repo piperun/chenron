@@ -21,8 +21,10 @@ class GlobalSuggestionBuilder {
 
   Future<List<ListTile>> buildSuggestions() async {
     final handler = await db.value;
-    final folders = await handler.appDatabase.getAllFolders();
-    final links = await handler.appDatabase.getAllLinks();
+    final folders =
+        await handler.appDatabase.searchFolders(query: controller.text);
+
+    final links = await handler.appDatabase.searchLinks(query: controller.text);
 
     if (!context.mounted) return [];
 
@@ -37,8 +39,8 @@ class GlobalSuggestionBuilder {
 
     final matchedLinks = searchMatcher.getTopUrlMatches(
       links,
-      (l) => l.link.content,
-      (l) => l.tags,
+      (link) => link.item.content,
+      (link) => link.tags,
     );
 
     return [
@@ -66,9 +68,9 @@ class SuggestionFactory {
   ListTile createLinkSuggestion(LinkResult link) {
     return SuggestionTile(
       icon: Icons.link,
-      title: link.link.content,
+      title: link.item.content,
       searchText: controller.text,
-      onTapAction: () => _handleUrlLaunch(link.link.content),
+      onTapAction: () => _handleUrlLaunch(link.item.content),
     ).build(context);
   }
 

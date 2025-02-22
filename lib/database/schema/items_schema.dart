@@ -1,5 +1,6 @@
 import "package:drift/drift.dart";
 
+@TableIndex(name: "folder_title", columns: {#title})
 class Folders extends Table {
   TextColumn get id => text().withLength(min: 30, max: 60)();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
@@ -20,10 +21,12 @@ class Links extends Table {
       text().withLength(min: 10, max: 2048).nullable()();
   TextColumn get localArchivePath =>
       text().withLength(min: 10, max: 2048).nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }
 
+@TableIndex(name: "document_title", columns: {#title})
 class Documents extends Table {
   TextColumn get id => text().withLength(min: 30, max: 60)();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
@@ -43,6 +46,8 @@ class Tags extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// New combined index on [folderId] and [itemId].
+@TableIndex(name: "items_folder_item_idx", columns: {#folderId, #itemId})
 class Items extends Table {
   TextColumn get id => text().withLength(min: 30, max: 60)();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
@@ -82,4 +87,7 @@ class Content extends Table {
   IntColumn get typeId => integer().references(ItemTypes, #id)();
   BlobColumn get hashkey => blob()();
   BlobColumn get content => blob()();
+
+  @override
+  Set<Column> get primaryKey => {id};
 }

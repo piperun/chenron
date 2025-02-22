@@ -4,7 +4,7 @@ import "package:chenron/database/extensions/link/read.dart";
 import "package:chenron/utils/web_archive/archive_org/archive_org_options.dart";
 import "package:chenron/utils/web_archive/archive_org/parse_archive_date.dart";
 
-extension ArchiveHelper on AppDatabase {
+extension ArchiveHelperExtension on AppDatabase {
   Future<void> archiveOrgLinks(
     List<String> linkIds,
     UserConfig userConfig, {
@@ -15,9 +15,9 @@ extension ArchiveHelper on AppDatabase {
         userConfig.archiveOrgS3AccessKey!.isNotEmpty &&
         userConfig.archiveOrgS3SecretKey!.isNotEmpty) {
       for (final linkId in linkIds) {
-        final linkResult = await getLink(linkId, mode: IncludeLinkData.none);
+        final linkResult = await getLink(linkId: linkId);
         if (linkResult != null) {
-          final url = linkResult.link.content;
+          final url = linkResult.item.content;
           final archiveDate = parseArchiveDate(url);
           final now = DateTime.now();
 

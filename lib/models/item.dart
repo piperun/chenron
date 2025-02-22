@@ -103,8 +103,6 @@ class FolderItem {
             title: doc["title"] ?? "",
             content: utf8.encode(doc["body"] ?? ""),
           );
-        default:
-          throw Exception("Invalid content type");
       }
     }
     throw Exception("Invalid id: not a CUID");

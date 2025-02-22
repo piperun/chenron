@@ -29,7 +29,7 @@ class FolderViewerModel {
   Stream<List<FolderResult>> watchAllFolders() async* {
     try {
       final db = await loadDatabase();
-      yield* db.watchAllFolders(mode: IncludeFolderData.tags);
+      yield* db.watchAllFolders(modes: {IncludeOptions.tags});
     } catch (e) {
       loggerGlobal.severe("FolderViewerModel" "Error watching folders: $e", e);
       yield [];
