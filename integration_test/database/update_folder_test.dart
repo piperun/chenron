@@ -67,8 +67,8 @@ void main() {
       );
 
       await database.updateFolder(results.folderId!, itemUpdates: folderItems);
-      final updateResult = await database.getFolder(results.folderId!,
-          mode: IncludeFolderData.items);
+      final updateResult = await database.getFolder(
+          folderId: results.folderId!, modes: {IncludeOptions.items});
       final folderItemsResult = await (database.items.select()
             ..where((item) =>
                 item.folderId.equals(results.folderId!) &
@@ -168,8 +168,8 @@ void main() {
       await database.updateFolder(results.folderId!, tagUpdates: addTagsCUD);
 
       // Check that tags were added correctly
-      final addedTags = await database.getFolder(results.folderId!,
-          mode: IncludeFolderData.tags);
+      final addedTags = await database
+          .getFolder(folderId: results.folderId!, modes: {IncludeOptions.tags});
       expect(addedTags!.tags.length, equals(2));
       expect(addedTags.tags.map((t) => t.name).toSet(),
           equals({"deleteMeTag1", "deleteMeTag2"}));
@@ -189,8 +189,8 @@ void main() {
       await database.updateFolder(results.folderId!, tagUpdates: removeTagsCUD);
 
       // Check that tags were removed
-      final updatedFolder = await database.getFolder(results.folderId!,
-          mode: IncludeFolderData.tags);
+      final updatedFolder = await database
+          .getFolder(folderId: results.folderId!, modes: {IncludeOptions.tags});
       expect(updatedFolder!.tags.length, equals(0));
     });
 
