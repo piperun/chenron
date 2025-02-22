@@ -63,12 +63,12 @@ dependencies:
   flutter_hooks: ^0.20.5
   signals: ^5.5.0
   get_it: ^8.0.0
-  sidebarx: ^0.17.1
   flutter_speed_dial: ^7.0.0
   fuzzywuzzy: ^1.2.0
 dev_dependencies:
   drift_dev: ^2.20.0
   build_runner: ^2.4.13
+  benchmark_harness: ^2.3.1
   integration_test:
     sdk: flutter
   flutter_test:
@@ -89,8 +89,6 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
   plugin_platform_interface: any
-  riverpod_generator: ^2.4.2
-  riverpod_lint: ^2.3.12
   custom_lint: ^0.6.4
 flutter:
 
