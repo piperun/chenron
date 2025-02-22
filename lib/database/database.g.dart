@@ -2206,6 +2206,12 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $MetadataTypesTable metadataTypes = $MetadataTypesTable(this);
   late final $MetadataRecordsTable metadataRecords =
       $MetadataRecordsTable(this);
+  late final Index folderTitle =
+      Index('folder_title', 'CREATE INDEX folder_title ON folders (title)');
+  late final Index documentTitle = Index(
+      'document_title', 'CREATE INDEX document_title ON documents (title)');
+  late final Index itemsFolderItemIdx = Index('items_folder_item_idx',
+      'CREATE INDEX items_folder_item_idx ON items (folder_id, item_id)');
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2218,7 +2224,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         itemTypes,
         items,
         metadataTypes,
-        metadataRecords
+        metadataRecords,
+        folderTitle,
+        documentTitle,
+        itemsFolderItemIdx
       ];
   @override
   DriftDatabaseOptions get options =>
@@ -3147,10 +3156,9 @@ final class $$ItemsTableReferences
   static $FoldersTable _folderIdTable(_$AppDatabase db) => db.folders
       .createAlias($_aliasNameGenerator(db.items.folderId, db.folders.id));
 
-  $$FoldersTableProcessedTableManager? get folderId {
-    if ($_item.folderId == null) return null;
+  $$FoldersTableProcessedTableManager get folderId {
     final manager = $$FoldersTableTableManager($_db, $_db.folders)
-        .filter((f) => f.id($_item.folderId!));
+        .filter((f) => f.id($_item.folderId));
     final item = $_typedResult.readTableOrNull(_folderIdTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
@@ -3160,10 +3168,9 @@ final class $$ItemsTableReferences
   static $ItemTypesTable _typeIdTable(_$AppDatabase db) => db.itemTypes
       .createAlias($_aliasNameGenerator(db.items.typeId, db.itemTypes.id));
 
-  $$ItemTypesTableProcessedTableManager? get typeId {
-    if ($_item.typeId == null) return null;
+  $$ItemTypesTableProcessedTableManager get typeId {
     final manager = $$ItemTypesTableTableManager($_db, $_db.itemTypes)
-        .filter((f) => f.id($_item.typeId!));
+        .filter((f) => f.id($_item.typeId));
     final item = $_typedResult.readTableOrNull(_typeIdTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
@@ -3701,10 +3708,9 @@ final class $$MetadataRecordsTableReferences extends BaseReferences<
       db.metadataTypes.createAlias(
           $_aliasNameGenerator(db.metadataRecords.typeId, db.metadataTypes.id));
 
-  $$MetadataTypesTableProcessedTableManager? get typeId {
-    if ($_item.typeId == null) return null;
+  $$MetadataTypesTableProcessedTableManager get typeId {
     final manager = $$MetadataTypesTableTableManager($_db, $_db.metadataTypes)
-        .filter((f) => f.id($_item.typeId!));
+        .filter((f) => f.id($_item.typeId));
     final item = $_typedResult.readTableOrNull(_typeIdTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(

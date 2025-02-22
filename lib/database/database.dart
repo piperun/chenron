@@ -8,6 +8,8 @@ import "package:chenron/utils/directory/directory.dart";
 
 part "database.g.dart";
 
+enum IncludeOptions { tags, items }
+
 enum IdType { linkId, documentId, tagId, folderId }
 
 typedef DeleteRelationRecord = ({String id, IdType idType});
@@ -40,13 +42,17 @@ extension IdTypeExtension on IdType {
 class AppDatabase extends _$AppDatabase {
   static const int idLength = 30;
   final bool setupOnInit;
+  final bool debugMode;
   AppDatabase({
     QueryExecutor? queryExecutor,
     String? databaseName,
     this.setupOnInit = false,
     String? customPath,
+    this.debugMode = false,
   }) : super(_openConnection(
-            databaseName: databaseName ?? "chenron", customPath: customPath));
+            databaseName: databaseName ?? "chenron",
+            customPath: customPath,
+            debugMode: debugMode));
 
   void setup() async {
     if (setupOnInit) {
@@ -58,20 +64,23 @@ class AppDatabase extends _$AppDatabase {
   int get schemaVersion => 1;
 
   static QueryExecutor _openConnection(
-      {String databaseName = "chenron", String? customPath}) {
+      {String databaseName = "chenron",
+      String? customPath,
+      bool debugMode = false}) {
+    // In production, we use the default database path.
     // `driftDatabase` from `package:drift_flutter` stores the database in
     // `getApplicationDocumentsDirectory()`.
-    Future<String> Function()? path;
-    if (customPath != null) {
-      path = () async => customPath;
+    Future<String> Function()? dbPath;
+    if (debugMode) {
+      dbPath = null;
+    } else if (customPath != null) {
+      dbPath = () async => customPath;
     } else {
-      path = () async => (await getDefaultApplicationDirectory()).path;
+      dbPath = () async => (await getDefaultApplicationDirectory()).path;
     }
+
     return driftDatabase(
-        name: databaseName,
-        native: DriftNativeOptions(
-          databasePath: path,
-        ));
+        name: databaseName, native: DriftNativeOptions(databasePath: dbPath));
   }
 }
 
