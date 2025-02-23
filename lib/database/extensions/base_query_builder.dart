@@ -1,7 +1,6 @@
 // Base class with only required methods
 import "package:chenron/database/database.dart";
 import "package:drift/drift.dart";
-import "package:meta/meta.dart";
 import "package:rxdart/rxdart.dart";
 
 abstract class BaseRepository<T, M extends Set<Enum>> {
@@ -143,10 +142,9 @@ abstract class RowJoins<T extends Table, R> {
 }
 
 abstract class RelationBuilder<T> {
-  @protected
   abstract final List<Join> joinList;
   void createJoins(Set<IncludeOptions> includes);
-  List<T?> buildRelations({
+  List<T> buildRelations({
     required List<TypedResult?> rows,
     Set<IncludeOptions> includes,
   });

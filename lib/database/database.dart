@@ -14,6 +14,8 @@ enum IdType { linkId, documentId, tagId, folderId }
 
 typedef DeleteRelationRecord = ({String id, IdType idType});
 
+typedef IncludeItems = Set<IncludeOptions>;
+
 extension IdTypeExtension on IdType {
   String get dbValue {
     switch (this) {

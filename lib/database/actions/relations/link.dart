@@ -21,7 +21,7 @@ class LinkRelationBuilder implements RelationBuilder<LinkResult> {
   }
 
   @override
-  List<LinkResult?> buildRelations({
+  List<LinkResult> buildRelations({
     required List<TypedResult?> rows,
     Set<IncludeOptions> includes = const {},
   }) {

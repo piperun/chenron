@@ -4,15 +4,15 @@ import "package:chenron/database/database.dart";
 import "package:chenron/database/extensions/base_query_builder.dart";
 import "package:drift/drift.dart";
 
-class RelationFactory {
+class RelationFactory<T> {
   final AppDatabase db;
   RelationFactory(this.db);
 
-  RelationBuilder getRelationBuilder(TableInfo table) {
+  RelationBuilder<T> getRelationBuilder(TableInfo table) {
     if (table == db.folders) {
-      return FolderRelationBuilder(db);
+      return FolderRelationBuilder(db) as RelationBuilder<T>;
     } else if (table == db.links) {
-      return LinkRelationBuilder(db);
+      return LinkRelationBuilder(db) as RelationBuilder<T>;
     } else {
       throw UnsupportedError("No join builder for table: ${table.entityName}");
     }
