@@ -1,12 +1,13 @@
 import "package:chenron/components/TextBase/expandable_field.dart";
 import "package:chenron/components/TextBase/text_view.dart";
 import "package:chenron/components/tags/tag_body.dart";
-import "package:chenron/database/extensions/folder/read.dart";
+import "package:chenron/database/actions/handlers/read_handler.dart";
+import "package:chenron/database/database.dart" show Folder;
 import "package:flutter/material.dart";
 import "package:intl/intl.dart";
 
 class FolderDetailInfo extends StatelessWidget {
-  final FolderResult folderResult;
+  final Result<Folder> folderResult;
 
   const FolderDetailInfo({super.key, required this.folderResult});
 
@@ -25,9 +26,9 @@ class FolderDetailInfo extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                TextView.header(title: folderResult.folder.title),
-                ExpandableField(description: folderResult.folder.description),
-                FolderCreationDate(createdAt: folderResult.folder.createdAt),
+                TextView.header(title: folderResult.data.title),
+                ExpandableField(description: folderResult.data.description),
+                FolderCreationDate(createdAt: folderResult.data.createdAt!),
                 if (folderResult.tags.isNotEmpty)
                   TagBody(
                       tags: folderResult.tags.map((tag) => tag.name).toSet()),

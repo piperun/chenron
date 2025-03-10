@@ -1,5 +1,7 @@
 // Base class with only required methods
+import "package:chenron/database/actions/handlers/read_handler.dart";
 import "package:chenron/database/database.dart";
+import "package:chenron/models/item.dart";
 import "package:drift/drift.dart";
 import "package:rxdart/rxdart.dart";
 
@@ -9,10 +11,10 @@ abstract class BaseRepository<T, M extends Set<Enum>> {
   BaseRepository({required this.appDb});
 
   /// Returns the domain object [T] with the given [id], or null if not found.
-  Future<T?> getOne({required String id, M modes});
+  Future<Result<T>?> getOne({required String id, M modes});
 
   /// Returns a list of all domain objects [T].
-  Future<List<T>> getAll({required M modes});
+  Future<List<Result<T>>> getAll({required M modes});
 }
 
 abstract class BaseWatchRepository<T, M extends Set<Enum>>
@@ -21,10 +23,10 @@ abstract class BaseWatchRepository<T, M extends Set<Enum>>
 
   /// Watches (streams) a single domain object [T] with [id].
   /// Emits new values whenever the underlying table data changes.
-  Stream<T?> watchOne({required String id, M modes});
+  Stream<Result<T>?> watchOne({required String id, M modes});
 
   /// Watches all domain objects [T], emitting updates when rows change.
-  Stream<List<T>> watchAll({required M modes});
+  Stream<List<Result<T>>> watchAll({required M modes});
 }
 
 abstract class ExtraRepository<T, M extends Set<Enum>>
@@ -32,7 +34,7 @@ abstract class ExtraRepository<T, M extends Set<Enum>>
   ExtraRepository({required super.appDb});
 
   /// Returns a list of all domain objects [T] matching the given [query].
-  Future<List<T>> searchTable({required String query, M modes});
+  Future<List<Result<T>>> searchTable({required String query, M modes});
 }
 
 abstract class BaseQueryBuilder<T, R> {
@@ -128,7 +130,7 @@ mixin ExtendedQueryBuilder<T, R> on BaseQueryBuilder<T, R> {
 // A generic interface (or abstract class) that each table-specific builder must implement
 abstract class IJoinBuilder<T extends Table, R> {
   // Takes a set of "includes" (e.g. tags, items, etc.) and returns joins
-  List<Join> buildJoins(Set<IncludeOptions> includes);
+  List<Join> buildJoins(IncludeItems includes);
 
   // Returns the base table (folders, links, etc.) associated with this builder
   TableInfo<T, R> get baseTable;
@@ -136,16 +138,24 @@ abstract class IJoinBuilder<T extends Table, R> {
 
 abstract class RowJoins<T extends Table, R> {
   // Takes a set of "includes" (e.g. tags, items, etc.) and returns joins
-  List<Join> joins(Expression<String> relationId);
+  List<Join> createJoins(Expression<String> relationId);
+  Set<TableInfo> get table;
 
   R? readJoins(TypedResult? row);
 }
 
 abstract class RelationBuilder<T> {
   abstract final List<Join> joinList;
-  void createJoins(Set<IncludeOptions> includes);
-  List<T> buildRelations({
+  void createJoins(IncludeItems includes);
+  List<Result<T>> buildRelations({
     required List<TypedResult?> rows,
-    Set<IncludeOptions> includes,
+    IncludeItems includes,
   });
+}
+
+abstract class TableResult<T> {
+  final T data;
+  Set<Tag>? get tags => {};
+  Set<FolderItem>? get items => {};
+  TableResult({required this.data});
 }

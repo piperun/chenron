@@ -1,5 +1,6 @@
 import "dart:async";
 
+import "package:chenron/database/actions/handlers/read_handler.dart";
 import "package:chenron/database/database.dart";
 import "package:chenron/database/extensions/folder/read.dart";
 import "package:chenron/database/extensions/folder/remove.dart";
@@ -26,7 +27,7 @@ class FolderViewerModel {
     }
   }
 
-  Stream<List<FolderResult>> watchAllFolders() async* {
+  Stream<List<Result<Folder>>> watchAllFolders() async* {
     try {
       final db = await loadDatabase();
       yield* db.watchAllFolders(modes: {IncludeOptions.tags});

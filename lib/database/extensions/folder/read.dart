@@ -1,46 +1,45 @@
-import "package:chenron/database/actions/joins/factory.dart";
-import "package:chenron/database/actions/relations/folder.dart";
 import "package:chenron/database/extensions/base_query_builder.dart";
 import "package:chenron/database/actions/handlers/read_handler.dart";
 import "package:chenron/models/item.dart";
 import "package:chenron/database/database.dart";
 
-class FolderResult {
-  final Folder folder;
-  List<Tag> tags = [];
-  List<FolderItem> items = [];
+class FolderResult extends TableResult<Folder> {
+  @override
+  Set<Tag> tags = {};
+  @override
+  Set<FolderItem> items = {};
 
-  FolderResult({required this.folder});
+  FolderResult({required super.data});
 }
 
 extension FolderReadExtensions on AppDatabase {
-  Future<FolderResult?> getFolder({
+  Future<Result<Folder>?> getFolder({
     required String folderId,
     Set<IncludeOptions> modes = const {},
   }) {
     return _FolderReadRepository(db: this).getOne(id: folderId, modes: modes);
   }
 
-  Future<List<FolderResult>> getAllFolders({
+  Future<List<Result<Folder>>> getAllFolders({
     Set<IncludeOptions> modes = const {},
   }) async {
     return _FolderReadRepository(db: this).getAll(modes: modes);
   }
 
-  Stream<FolderResult?> watchFolder({
+  Stream<Result<Folder>?> watchFolder({
     required String folderId,
     Set<IncludeOptions> modes = const {},
   }) {
     return _FolderReadRepository(db: this).watchOne(id: folderId, modes: modes);
   }
 
-  Stream<List<FolderResult>> watchAllFolders({
+  Stream<List<Result<Folder>>> watchAllFolders({
     Set<IncludeOptions> modes = const {},
   }) {
     return _FolderReadRepository(db: this).watchAll(modes: modes);
   }
 
-  Future<List<FolderResult>> searchFolders({
+  Future<List<Result<Folder>>> searchFolders({
     required String query,
     Set<IncludeOptions> modes = const {},
   }) async {
@@ -49,58 +48,68 @@ extension FolderReadExtensions on AppDatabase {
   }
 }
 
-class _FolderReadRepository
-    extends BaseRepository<FolderResult, Set<IncludeOptions>>
+class _FolderReadRepository extends BaseRepository<Folder, Set<IncludeOptions>>
     implements
-        BaseWatchRepository<FolderResult, Set<IncludeOptions>>,
-        ExtraRepository<FolderResult, Set<IncludeOptions>> {
+        BaseWatchRepository<Folder, Set<IncludeOptions>>,
+        ExtraRepository<Folder, Set<IncludeOptions>> {
   final AppDatabase db;
-  final FolderRelationBuilder folderRelationBuilder;
-  final ReadDbHandler<FolderResult> readHandler;
+  final ReadDbHandler<Folder> readHandler;
 
   _FolderReadRepository({required this.db})
-      : folderRelationBuilder = RelationFactory(db)
-            .getRelationBuilder(db.folders) as FolderRelationBuilder,
-        readHandler = ReadDbHandler<FolderResult>(db: db, table: db.folders),
+      : readHandler = ReadDbHandler<Folder>(db: db, table: db.folders),
         super(appDb: db);
 
   @override
-  Future<FolderResult?> getOne({
+  Future<Result<Folder>?> getOne({
     required String id,
     Set<IncludeOptions> modes = const {},
   }) async {
     return readHandler.getOne(
-        predicate: db.folders.id.equals(id), includes: modes);
+        predicate: db.folders.id.equals(id),
+        joinExp: db.folders.id,
+        includes: modes);
   }
 
   @override
-  Future<List<FolderResult>> getAll({
+  Future<List<Result<Folder>>> getAll({
     Set<IncludeOptions> modes = const {},
   }) async {
-    return readHandler.getAll(includes: modes);
+    return readHandler.getAll(
+      includes: modes,
+      joinExp: db.folders.id,
+    );
   }
 
   @override
-  Stream<FolderResult?> watchOne({
+  Stream<Result<Folder>?> watchOne({
     required String id,
     Set<IncludeOptions> modes = const {},
   }) {
     return readHandler.watchOne(
-        includes: modes, predicate: db.folders.id.equals(id));
+        includes: modes,
+        joinExp: db.folders.id,
+        predicate: db.folders.id.equals(id));
   }
 
   @override
-  Stream<List<FolderResult>> watchAll({
+  Stream<List<Result<Folder>>> watchAll({
     Set<IncludeOptions> modes = const {},
   }) {
-    return readHandler.watchAll(includes: modes);
+    return readHandler.watchAll(
+      includes: modes,
+      joinExp: db.folders.id,
+    );
   }
 
   @override
-  Future<List<FolderResult>> searchTable({
+  Future<List<Result<Folder>>> searchTable({
     required String query,
     Set<IncludeOptions> modes = const {},
   }) async {
-    return readHandler.searchTable(query: query, includes: modes);
+    return readHandler.searchTable(
+        query: query,
+        includes: modes,
+        joinExp: db.folders.id,
+        searchColumn: db.folders.title);
   }
 }

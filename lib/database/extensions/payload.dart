@@ -5,7 +5,7 @@ import "package:chenron/database/extensions/folder/update.dart";
 import "package:chenron/database/extensions/user_config/read.dart";
 import "package:chenron/models/cud.dart";
 import "package:chenron/models/folder.dart";
-import "package:chenron/models/folder_results.dart";
+import "package:chenron/models/created_ids.dart";
 import "package:chenron/models/item.dart";
 import "package:chenron/models/metadata.dart";
 import "package:chenron/utils/web_archive/archive_org/archive_org_options.dart";
@@ -18,7 +18,7 @@ extension PayloadExtensions on AppDatabase {
     ArchiveOrgOptions? archiveOptions,
   }) async {
     final configDatabase = ConfigDatabase();
-    FolderResults results = await createFolder(
+    CreatedIds results = await createFolder(
       folderInfo: folderInfo,
       tags: tags,
       items: items,
@@ -26,7 +26,10 @@ extension PayloadExtensions on AppDatabase {
     final UserConfig? userConfig = await configDatabase.getUserConfig();
     if (userConfig == null) return;
     await archiveOrgLinks(
-      results.itemIds!.map((item) => item.linkId!).toList(),
+      results
+          .getRelated(IncludeOptions.items)!
+          .map((item) => item.getSecondaryId(IdKey.linkId)!)
+          .toList(),
       userConfig,
       archiveOptions: archiveOptions,
     );

@@ -8,7 +8,9 @@ class TagJoins implements RowJoins<Tags, Tag> {
   TagJoins(this.db);
 
   @override
-  List<Join> joins(Expression<String> baseJoinExpression) => [
+  Set<TableInfo> get table => {db.tags};
+  @override
+  List<Join> createJoins(Expression<String> baseJoinExpression) => [
         leftOuterJoin(db.metadataRecords,
             db.metadataRecords.itemId.equalsExp(baseJoinExpression)),
         leftOuterJoin(

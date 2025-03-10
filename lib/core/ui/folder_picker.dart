@@ -40,9 +40,9 @@ class _FolderPickerState extends State<FolderPicker> {
       final results = await _db.getAllFolders();
       if (results.isNotEmpty) {
         setState(() {
-          final defaultFolder = results.map((r) => r.folder).firstWhere(
+          final defaultFolder = results.map((r) => r.data).firstWhere(
                 (f) => f.title == "default",
-                orElse: () => results.first.folder,
+                orElse: () => results.first.data,
               );
           _selectedFolders.add(defaultFolder);
           _isLoading = false;
@@ -146,7 +146,7 @@ class _FolderSelectionDialogState extends State<FolderSelectionDialog> {
     try {
       final results = await widget.db.getAllFolders();
       setState(() {
-        _allFolders = results.map((r) => r.folder).toList();
+        _allFolders = results.map((r) => r.data).toList();
         _isLoading = false;
       });
     } catch (e) {

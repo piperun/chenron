@@ -17,7 +17,7 @@ extension ArchiveHelperExtension on AppDatabase {
       for (final linkId in linkIds) {
         final linkResult = await getLink(linkId: linkId);
         if (linkResult != null) {
-          final url = linkResult.item.content;
+          final url = linkResult.data.content;
           final archiveDate = parseArchiveDate(url);
           final now = DateTime.now();
 

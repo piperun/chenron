@@ -12,7 +12,7 @@ enum ArchiveMode {
 }
 
 class FolderDraft {
-  Folder folder = Folder();
+  FolderSignal folder = FolderSignal();
   void updateTitle(String newTitle) {
     folder.folderInfo.title = newTitle;
   }
@@ -38,7 +38,7 @@ class FolderDraft {
   }
 }
 
-class Folder {
+class FolderSignal {
   final FolderInfo folderInfo = FolderInfo(title: "", description: "");
   // Maybe we don't need signals for these, but to be sure it's good to have them
   // one thing to note is that signals as .value will not be updated when the the state updates, only

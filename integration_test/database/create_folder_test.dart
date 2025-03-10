@@ -1,6 +1,6 @@
 import "dart:convert";
 
-import "package:chenron/models/folder_results.dart";
+import "package:chenron/models/created_ids.dart";
 import "package:chenron/models/item.dart";
 import "package:flutter_test/flutter_test.dart";
 import "package:integration_test/integration_test.dart";
@@ -78,14 +78,14 @@ void main() {
 
       expect(metadataResults.length, 3);
       // Check if all metadataIds from the result are in the database
-      for (final metadataId in result.tagIds!) {
+      for (final metadataId in result.typedTags!) {
         expect(metadataResults.any((tag) => tag.id == metadataId.metadataId),
             isTrue);
       }
 
       // Check if all tagIds from the result are in the database
       final tagIds = metadataResults.map((tag) => tag.metadataId).toList();
-      for (final tagId in result.tagIds!) {
+      for (final tagId in result.typedTags!) {
         expect(tagIds.contains(tagId.tagId), isTrue);
       }
 
@@ -154,7 +154,7 @@ void main() {
             ..where((tbl) => tbl.folderId.equals(result.folderId!)))
           .get();
       expect(itemResults.length, 2);
-      _verifyItemIds(itemResults, result.itemIds!);
+      _verifyItemIds(itemResults, result.typedItems!);
     });
   });
 }
@@ -167,7 +167,8 @@ void _verifyListContains(List<String> fetchedIds, List<String> expectedIds) {
   }
 }
 
-void _verifyItemIds(List<Item> fetchResults, List<ItemResults> returnResults) {
+void _verifyItemIds(
+    List<Item> fetchResults, List<CreatedIds<Item>> returnResults) {
   final fetchedIds = {
     "linkIds": fetchResults
         .where((item) => item.typeId == FolderItemType.link.index)

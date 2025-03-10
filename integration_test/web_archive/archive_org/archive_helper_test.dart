@@ -34,8 +34,8 @@ void main() {
       await database.archiveOrgLinks([linkId], userConfig!);
 
       final archivedLink = await database.getLink(linkId: linkId);
-      expect(archivedLink?.item.archiveOrgUrl, isNotNull);
-      expect(archivedLink?.item.archiveOrgUrl,
+      expect(archivedLink?.data.archiveOrgUrl, isNotNull);
+      expect(archivedLink?.data.archiveOrgUrl,
           startsWith("https://web.archive.org/"));
     });
 
@@ -43,12 +43,12 @@ void main() {
       final linkId = await database.createLink(link: testUrl);
       final recentArchiveUrl = await database
           .getLink(linkId: linkId)
-          .then((archiveLink) => archiveLink?.item.archiveOrgUrl);
+          .then((archiveLink) => archiveLink?.data.archiveOrgUrl);
       await database
           .archiveOrgLinks([linkId], userConfig!, archiveDueDate: 20000);
 
       final archivedLink = await database.getLink(linkId: linkId);
-      expect(archivedLink?.item.archiveOrgUrl, equals(recentArchiveUrl));
+      expect(archivedLink?.data.archiveOrgUrl, equals(recentArchiveUrl));
     });
 
     test("archiveOrgLinks re-archives old archive links", () async {
@@ -66,9 +66,9 @@ void main() {
       await database.archiveOrgLinks([linkId], userConfig!, archiveDueDate: 0);
 
       final archivedLink = await database.getLink(linkId: linkId);
-      expect(archivedLink?.item.archiveOrgUrl, isNotNull);
-      expect(archivedLink?.item.archiveOrgUrl, isNot(equals(oldArchiveUrl)));
-      expect(archivedLink?.item.archiveOrgUrl,
+      expect(archivedLink?.data.archiveOrgUrl, isNotNull);
+      expect(archivedLink?.data.archiveOrgUrl, isNot(equals(oldArchiveUrl)));
+      expect(archivedLink?.data.archiveOrgUrl,
           startsWith("https://web.archive.org/"));
     });
   });

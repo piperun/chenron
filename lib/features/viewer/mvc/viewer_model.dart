@@ -1,5 +1,7 @@
 import "dart:async";
 
+import "package:chenron/database/actions/handlers/read_handler.dart"
+    show Result;
 import "package:chenron/database/database.dart";
 import "package:chenron/database/extensions/folder/read.dart";
 import "package:chenron/database/extensions/folder/remove.dart";
@@ -47,7 +49,7 @@ class ViewerModel {
     return true;
   }
 
-  Stream<List<FolderResult>> watchAllFolders() async* {
+  Stream<List<Result<Folder>>> watchAllFolders() async* {
     try {
       final db = await loadDatabase();
       yield* db.watchAllFolders(modes: {IncludeOptions.tags});
@@ -62,21 +64,21 @@ class ViewerModel {
     final folderStream = db.watchAllFolders(modes: {IncludeOptions.tags}).map(
       (folders) => folders.map(
         (folder) => ViewerItem(
-          id: folder.folder.id,
-          title: folder.folder.title,
-          description: folder.folder.description,
+          id: folder.data.id,
+          title: folder.data.title,
+          description: folder.data.description,
           type: FolderItemType.folder,
           tags: folder.tags,
         ),
       ),
     );
 
-    final linkStream = db.watchAllLinks(modes: {IncludeLinkData.tags}).map(
+    final linkStream = db.watchAllLinks(modes: {IncludeOptions.tags}).map(
       (links) => links.map(
         (link) => ViewerItem(
-          id: link.item.id,
+          id: link.data.id,
           title: "",
-          description: link.item.content,
+          description: link.data.content,
           type: FolderItemType.link,
           tags: link.tags,
         ),

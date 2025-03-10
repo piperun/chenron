@@ -53,7 +53,7 @@ class ViewerPresenter extends ChangeNotifier {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ShowFolder(folderId: folder.folder.id),
+        builder: (context) => ShowFolder(folderId: folder.data.id),
       ),
     );
   }

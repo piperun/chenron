@@ -1,3 +1,4 @@
+import "package:chenron/database/actions/handlers/read_handler.dart";
 import "package:chenron/database/database.dart";
 import "package:chenron/database/extensions/folder/create.dart";
 import "package:chenron/database/extensions/folder/read.dart";
@@ -5,7 +6,7 @@ import "package:chenron/database/extensions/folder/update.dart";
 import "package:chenron/database/extensions/tags/create.dart";
 import "package:chenron/models/cud.dart";
 import "package:chenron/models/folder.dart";
-import "package:chenron/models/folder_results.dart";
+import "package:chenron/models/created_ids.dart";
 import "package:chenron/models/item.dart";
 import "package:chenron/models/metadata.dart";
 import "package:drift/drift.dart";
@@ -18,7 +19,7 @@ void main() {
   final List<String> newTagNames = ["NewTags1", "NewTags2"];
   late List<Metadata> testNewTags;
   final List<String> testNewTagIds = [];
-  late FolderResults results;
+  late CreatedIds<Folder> createdIds;
 
   setUp(() async {
     database = AppDatabase(databaseName: "test_db");
@@ -32,7 +33,7 @@ void main() {
 
     testNewTags = MetadataFactory.createTags(newTagNames);
 
-    results = await database.createFolder(
+    createdIds = await database.createFolder(
         folderInfo: FolderInfo(
       title: testFolderData.folder.title,
       description: testFolderData.folder.description,
@@ -66,12 +67,13 @@ void main() {
         ]),
       );
 
-      await database.updateFolder(results.folderId!, itemUpdates: folderItems);
+      await database.updateFolder(createdIds.folderId!,
+          itemUpdates: folderItems);
       final updateResult = await database.getFolder(
-          folderId: results.folderId!, modes: {IncludeOptions.items});
+          folderId: createdIds.folderId!, modes: {IncludeOptions.items});
       final folderItemsResult = await (database.items.select()
             ..where((item) =>
-                item.folderId.equals(results.folderId!) &
+                item.folderId.equals(createdIds.folderId!) &
                 item.id.isIn(updateResult!.items.map((item) => item.itemId!))))
           .get();
 
@@ -89,14 +91,14 @@ void main() {
   group("Update folder: Update", () {
     test("should update folder title and description", () async {
       await database.updateFolder(
-        results.folderId!,
+        createdIds.folderId!,
         title: "new folder title",
         description:
             "Updated Description, this folder is only for testing updateFolder",
       );
 
       final updatedFolder =
-          await database.folders.findById(results.folderId!).getSingle();
+          await database.folders.findById(createdIds.folderId!).getSingle();
       expect(updatedFolder.title, equals("new folder title"));
       expect(
           updatedFolder.description,
@@ -114,10 +116,10 @@ void main() {
 
       final tagUpdates = CUD<Metadata>(update: connectTags);
 
-      await database.updateFolder(results.folderId!, tagUpdates: tagUpdates);
+      await database.updateFolder(createdIds.folderId!, tagUpdates: tagUpdates);
 
       final folderTags = await (database.metadataRecords.select()
-            ..where((t) => t.itemId.equals(results.folderId!))
+            ..where((t) => t.itemId.equals(createdIds.folderId!))
             ..where((tbl) =>
                 tbl.metadataId.isIn(connectTags.map((tag) => tag.metadataId!))))
           .get();
@@ -142,10 +144,11 @@ void main() {
             itemId: "nayscsy4hk75zwg83qxhddtct04ut8")
       ]);
 
-      await database.updateFolder(results.folderId!, itemUpdates: itemUpdates);
+      await database.updateFolder(createdIds.folderId!,
+          itemUpdates: itemUpdates);
 
       final updatedFolderItem = await (database.items.select()
-            ..where((tbl) => tbl.folderId.equals(results.folderId!))
+            ..where((tbl) => tbl.folderId.equals(createdIds.folderId!))
             ..where(
                 (tbl) => tbl.itemId.equals(itemUpdates.update.first.itemId!)))
           .getSingleOrNull();
@@ -165,11 +168,11 @@ void main() {
 
       // Add tags to the folder
       final addTagsCUD = CUD<Metadata>(create: newTags);
-      await database.updateFolder(results.folderId!, tagUpdates: addTagsCUD);
+      await database.updateFolder(createdIds.folderId!, tagUpdates: addTagsCUD);
 
       // Check that tags were added correctly
-      final addedTags = await database
-          .getFolder(folderId: results.folderId!, modes: {IncludeOptions.tags});
+      final addedTags = await database.getFolder(
+          folderId: createdIds.folderId!, modes: {IncludeOptions.tags});
       expect(addedTags!.tags.length, equals(2));
       expect(addedTags.tags.map((t) => t.name).toSet(),
           equals({"deleteMeTag1", "deleteMeTag2"}));
@@ -186,11 +189,12 @@ void main() {
       // Remove tags from the folder
       final removeTagsCUD =
           CUD<Metadata>(remove: tagsToRemove.map((t) => t.id!).toList());
-      await database.updateFolder(results.folderId!, tagUpdates: removeTagsCUD);
+      await database.updateFolder(createdIds.folderId!,
+          tagUpdates: removeTagsCUD);
 
       // Check that tags were removed
-      final updatedFolder = await database
-          .getFolder(folderId: results.folderId!, modes: {IncludeOptions.tags});
+      final updatedFolder = await database.getFolder(
+          folderId: createdIds.folderId!, modes: {IncludeOptions.tags});
       expect(updatedFolder!.tags.length, equals(0));
     });
 
@@ -200,13 +204,15 @@ void main() {
             type: FolderItemType.link,
             content: StringContent(value: "https://example.com"))
       ]);
-      await database.updateFolder(results.folderId!, itemUpdates: itemUpdates);
+      await database.updateFolder(createdIds.folderId!,
+          itemUpdates: itemUpdates);
 
       itemUpdates.remove.add(itemUpdates.create[0].itemId!);
-      await database.updateFolder(results.folderId!, itemUpdates: itemUpdates);
+      await database.updateFolder(createdIds.folderId!,
+          itemUpdates: itemUpdates);
 
       final folderLinks = await (database.items.select()
-            ..where((tbl) => tbl.folderId.equals(results.folderId!))
+            ..where((tbl) => tbl.folderId.equals(createdIds.folderId!))
             ..where((tbl) => tbl.itemId.equals(itemUpdates.create[0].itemId!)))
           .get();
       expect(folderLinks.length, equals(0));

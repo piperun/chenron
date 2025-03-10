@@ -1,5 +1,6 @@
-import "package:chenron/database/extensions/folder/read.dart";
-import "package:chenron/database/extensions/link/read.dart";
+import "package:chenron/database/actions/handlers/read_handler.dart"
+    show Result;
+
 import "package:flutter_test/flutter_test.dart";
 import "package:chenron/core/ui/search/search_matcher.dart";
 import "package:chenron/database/database.dart";
@@ -53,7 +54,7 @@ void main() {
 
       final results = matcher.getTopUrlMatches(
         items,
-        (l) => l.item.content,
+        (l) => l.data.content,
         (l) => l.tags,
       );
 
@@ -67,7 +68,7 @@ void main() {
 
       final results = matcher.getTopUrlMatches(
         items,
-        (l) => l.item.content,
+        (l) => l.data.content,
         (l) => l.tags,
       );
 
@@ -100,7 +101,7 @@ void main() {
 
       final results = matcher.getTopContentMatches(
         items,
-        (f) => f.folder.title,
+        (f) => f.data.title,
         (f) => f.tags,
       );
 
@@ -110,15 +111,15 @@ void main() {
   });
 }
 
-LinkResult _createMockLink(String url) {
-  return LinkResult(
-    item: Link(id: "1", content: url, createdAt: DateTime.now()),
+Result<Link> _createMockLink(String url) {
+  return Result<Link>(
+    data: Link(id: "1", content: url, createdAt: DateTime.now()),
   );
 }
 
-FolderResult _createMockFolder(String title) {
-  return FolderResult(
-    folder: Folder(
+Result<Folder> _createMockFolder(String title) {
+  return Result<Folder>(
+    data: Folder(
         id: "1", title: title, createdAt: DateTime.now(), description: ""),
   );
 }

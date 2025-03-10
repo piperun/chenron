@@ -1,12 +1,14 @@
 import "package:chenron/components/metadata_factory.dart";
 import "package:chenron/components/favicon_display/favicon.dart";
-import "package:chenron/database/extensions/folder/read.dart";
+import "package:chenron/database/actions/handlers/read_handler.dart"
+    show Result;
+import "package:chenron/database/database.dart" show Folder;
 import "package:chenron/models/item.dart";
 import "package:flutter/material.dart";
 import "package:url_launcher/url_launcher.dart";
 
 class FolderDetailItems extends StatelessWidget {
-  final FolderResult folderResult;
+  final Result<Folder> folderResult;
 
   const FolderDetailItems({super.key, required this.folderResult});
 
@@ -15,7 +17,7 @@ class FolderDetailItems extends StatelessWidget {
     return ListView.builder(
       itemCount: folderResult.items.length,
       itemBuilder: (context, index) {
-        final item = folderResult.items[index];
+        final item = folderResult.items.toList()[index];
         return Card(
           elevation: 2,
           margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),

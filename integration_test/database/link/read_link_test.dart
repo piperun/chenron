@@ -1,3 +1,5 @@
+import "package:chenron/database/actions/handlers/read_handler.dart"
+    show Result;
 import "package:flutter_test/flutter_test.dart";
 import "package:chenron/database/database.dart";
 import "package:chenron/database/extensions/link/read.dart";
@@ -57,20 +59,20 @@ void main() {
       );
 
       expect(result, isNotNull);
-      expect(result!.item.id, equals(activeLinkId));
-      expect(result.item.content, equals("https://example.com"));
-      expect(result.item.content, equals("https://example.com"));
+      expect(result!.data.id, equals(activeLinkId));
+      expect(result.data.content, equals("https://example.com"));
+      expect(result.data.content, equals("https://example.com"));
       expect(result.tags, isEmpty);
     });
 
     test("retrieves link with tags", () async {
       final result = await database.getLink(
         linkId: activeLinkId,
-        modes: {IncludeLinkData.tags},
+        modes: {IncludeOptions.tags},
       );
 
       expect(result, isNotNull);
-      expect(result!.item.id, equals(activeLinkId));
+      expect(result!.data.id, equals(activeLinkId));
       expect(result.tags.length, equals(2));
       expect(
         result.tags.map((t) => t.name).toSet(),
@@ -81,12 +83,12 @@ void main() {
     test("retrieves link with all data", () async {
       final result = await database.getLink(
         linkId: activeLinkId,
-        modes: {IncludeLinkData.tags},
+        modes: {IncludeOptions.tags},
       );
 
       expect(result, isNotNull);
-      expect(result!.item.id, equals(activeLinkId));
-      expect(result.item.content, equals("https://example.com"));
+      expect(result!.data.id, equals(activeLinkId));
+      expect(result.data.content, equals("https://example.com"));
       expect(result.tags.length, equals(2));
     });
   });
@@ -96,19 +98,19 @@ void main() {
       final results = await database.getAllLinks();
 
       expect(results.length, equals(2));
-      expect(results.map((r) => r.item.content).toList(),
+      expect(results.map((r) => r.data.content).toList(),
           contains("https://example.com"));
-      expect(results.map((r) => r.item.content).toList(),
+      expect(results.map((r) => r.data.content).toList(),
           contains("https://another-example.com"));
       expect(results.every((r) => r.tags.isEmpty), isTrue);
     });
 
     test("retrieves all links with tags", () async {
-      final results = await database.getAllLinks(modes: {IncludeLinkData.tags});
+      final results = await database.getAllLinks(modes: {IncludeOptions.tags});
 
       expect(results.length, equals(2));
 
-      final activeResult = results.firstWhere((r) => r.item.id == activeLinkId);
+      final activeResult = results.firstWhere((r) => r.data.id == activeLinkId);
       expect(activeResult.tags.length, equals(2));
       expect(
         activeResult.tags.map((t) => t.name).toSet(),
@@ -116,7 +118,7 @@ void main() {
       );
 
       final inactiveResult =
-          results.firstWhere((r) => r.item.id == inactiveLinkId);
+          results.firstWhere((r) => r.data.id == inactiveLinkId);
       expect(inactiveResult.tags.length, equals(2));
       expect(
         inactiveResult.tags.map((t) => t.name).toSet(),
@@ -128,7 +130,7 @@ void main() {
   group("watchLink() Operations", () {
     test("emits error for non-existent link", () async {
       final stream = database.watchLink(linkId: "non_existent_id");
-      expect(stream, emitsError(isA<ArgumentError>()));
+      expect(stream, emits(null));
     });
 
     test("watches link without tags", () async {
@@ -138,9 +140,9 @@ void main() {
 
       expect(
         stream,
-        emitsThrough(predicate<LinkResult>((result) =>
-            result.item.id == activeLinkId &&
-            result.item.content == "https://example.com" &&
+        emitsThrough(predicate<Result<Link>>((result) =>
+            result.data.id == activeLinkId &&
+            result.data.content == "https://example.com" &&
             result.tags.isEmpty)),
       );
     });
@@ -148,13 +150,13 @@ void main() {
     test("watches link with tags", () async {
       final stream = database.watchLink(
         linkId: activeLinkId,
-        modes: {IncludeLinkData.tags},
+        modes: {IncludeOptions.tags},
       );
 
       expect(
         stream,
-        emitsThrough(predicate<LinkResult>((result) =>
-            result.item.id == activeLinkId &&
+        emitsThrough(predicate<Result<Link>>((result) =>
+            result.data.id == activeLinkId &&
             result.tags.length == 2 &&
             result.tags
                 .map((t) => t.name)
@@ -168,22 +170,30 @@ void main() {
     test("watches all links without tags", () async {
       final stream = database.watchAllLinks();
 
+      print("Starting watch all links test");
+
       expect(
         stream,
-        emitsThrough(predicate<List<LinkResult>>((results) =>
-            results.length == 2 &&
-            results.every((r) => r.tags.isEmpty) &&
-            results.map((r) => r.item.content).toSet().containsAll(
-                ["https://example.com", "https://another-example.com"]))),
+        emitsThrough(predicate<List<Result<Link>>>((results) {
+          print("Received results: ${results.length} links");
+          print(
+              "Link contents: ${results.map((r) => r.data.content).toList()}");
+          print("Tags per link: ${results.map((r) => r.tags.length).toList()}");
+
+          return results.length == 2 &&
+              results.every((r) => r.tags.isEmpty) &&
+              results.map((r) => r.data.content).toSet().containsAll(
+                  ["https://example.com", "https://another-example.com"]);
+        })),
       );
     });
 
     test("watches all links with tags", () async {
-      final stream = database.watchAllLinks(modes: {IncludeLinkData.tags});
+      final stream = database.watchAllLinks(modes: {IncludeOptions.tags});
 
       expect(
         stream,
-        emitsThrough(predicate<List<LinkResult>>((results) =>
+        emitsThrough(predicate<List<Result<Link>>>((results) =>
             results.length == 2 &&
             results.every((r) => r.tags.length == 2) &&
             results.any((r) => r.tags

@@ -1,5 +1,5 @@
 import "package:chenron/database/extensions/id.dart";
-import "package:chenron/models/folder_results.dart";
+import "package:chenron/models/created_ids.dart";
 import "package:chenron/models/item.dart";
 import "package:chenron/models/metadata.dart";
 import "package:chenron/database/extensions/insert_ext.dart";
@@ -72,9 +72,9 @@ extension FolderExtensions on AppDatabase {
     }
   }
 
-  Future<Map<String, List<ItemResults>>> _updateFolderContent(
+  Future<Map<String, List<CreatedIds>>> _updateFolderContent(
       String folderId, CUD<FolderItem> itemUpdates) async {
-    Map<String, List<ItemResults>> itemUpdateResults = {
+    Map<String, List<CreatedIds>> itemUpdateResults = {
       "create": [],
       "update": [],
       "remove": []
@@ -101,7 +101,7 @@ extension FolderExtensions on AppDatabase {
               typeId: itemUpdate.type.index,
             ),
           );
-          itemUpdateResults["update"]?.add(ItemResults(itemId: id));
+          itemUpdateResults["update"]?.add(CreatedIds.item(itemId: id));
         }
       });
     }
@@ -119,7 +119,7 @@ extension FolderExtensions on AppDatabase {
             return findFolderId & findItemId;});
             */
           //(tbl) => tbl.folderId.equals(folderId));
-          itemUpdateResults["update"]?.add(ItemResults(itemId: itemId));
+          itemUpdateResults["update"]?.add(CreatedIds.item(itemId: itemId));
         }
       });
     }

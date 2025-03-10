@@ -1,3 +1,5 @@
+import "package:chenron/database/actions/handlers/read_handler.dart";
+import "package:chenron/database/database.dart";
 import "package:chenron/database/extensions/folder/update.dart";
 import "package:flutter/material.dart";
 import "package:chenron/database/extensions/folder/read.dart";
@@ -31,7 +33,7 @@ class _FolderEditorState extends State<FolderEditor> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
 
-  Stream<FolderResult?> watchFolder() async* {
+  Stream<Result<Folder>?> watchFolder() async* {
     final database =
         await locator.get<Signal<Future<AppDatabaseHandler>>>().value;
     yield* database.appDatabase.watchFolder(folderId: widget.folderId);
@@ -55,7 +57,7 @@ class _FolderEditorState extends State<FolderEditor> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<FolderResult?>(
+    return StreamBuilder<Result<Folder>?>(
       stream: watchFolder(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -71,8 +73,8 @@ class _FolderEditorState extends State<FolderEditor> {
           );
         }
 
-        _titleController.text = folderData.folder.title;
-        _descriptionController.text = folderData.folder.description;
+        _titleController.text = folderData.data.title;
+        _descriptionController.text = folderData.data.description;
 
         return Scaffold(
           appBar: AppBar(
@@ -100,7 +102,8 @@ class _FolderEditorState extends State<FolderEditor> {
                         descriptionController: _descriptionController,
                       ),
                       ItemEditor(
-                        initialItems: folderData.items,
+                        //HACK: This is a hack to just make things work, will fix ItemEditort o take in a Set<Item> instead of a List<Item>
+                        initialItems: folderData.items.toList(),
                         onUpdate: _handleItemEditorUpdate,
                       ),
                     ],

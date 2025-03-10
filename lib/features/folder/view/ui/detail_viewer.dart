@@ -35,13 +35,14 @@ class _DetailViewerState<T> extends State<DetailViewer> {
         }
         return Column(
           children: [
-            Expanded(child: DetailsBody(folder: result.folder)),
+            Expanded(child: DetailsBody(folder: result.data)),
             if (result.tags.isNotEmpty)
               TagBody(tags: result.tags.map((tag) => tag.name).toSet()),
             const SizedBox(height: 16),
             Expanded(
               child: ItemsList(
-                items: result.items,
+                //HACK: list hack
+                items: result.items.toList(),
                 listBuilder: widget.listBuilder,
               ),
             ),

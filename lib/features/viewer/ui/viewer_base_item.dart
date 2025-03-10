@@ -6,7 +6,7 @@ class ViewerItem {
   final String title;
   final String description;
   final FolderItemType type;
-  final List<Tag> tags;
+  final Set<Tag> tags;
 
   ViewerItem({
     required this.id,

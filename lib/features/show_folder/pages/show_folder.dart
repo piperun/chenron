@@ -1,4 +1,6 @@
 import "package:chenron/core/ui/search/search_button.dart";
+import "package:chenron/database/actions/handlers/read_handler.dart";
+import "package:chenron/database/database.dart";
 import "package:chenron/database/extensions/folder/read.dart";
 import "package:chenron/database/extensions/operations/database_file_handler.dart";
 import "package:chenron/features/show_folder/widgets/folder_detail_info.dart";
@@ -14,7 +16,7 @@ class ShowFolder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Future<FolderResult> folderData = locator
+    final Future<Result<Folder>> folderData = locator
         .get<Signal<Future<AppDatabaseHandler>>>()
         .value
         .then((db) => db.appDatabase
@@ -28,7 +30,7 @@ class ShowFolder extends StatelessWidget {
           SearchButton(),
         ],
       ),
-      body: FutureBuilder<FolderResult>(
+      body: FutureBuilder<Result<Folder>>(
         future: folderData,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {

@@ -1,7 +1,8 @@
 import "package:chenron/components/buttons/small_button.dart";
 import "package:chenron/components/item_list/item_list.dart";
+import "package:chenron/database/actions/handlers/read_handler.dart"
+    show Result;
 import "package:chenron/database/database.dart";
-import "package:chenron/database/extensions/folder/read.dart";
 import "package:chenron/components/item_list/layout/grid.dart";
 import "package:chenron/components/item_list/layout/list.dart";
 import "package:chenron/features/folder/view/mvc/folder_viewer_presenter.dart";
@@ -128,7 +129,7 @@ class ContentBody extends HookWidget {
     }
 
     if (foldersSnapshot.hasData) {
-      return ItemList<FolderResult>(
+      return ItemList<Result<Folder>>(
         items: foldersSnapshot.data!,
         listItemBuilder: (context, folder) => FolderListItem(
           folder: folder,
@@ -144,7 +145,7 @@ class ContentBody extends HookWidget {
 }
 
 class FolderListItem extends StatelessWidget {
-  final FolderResult folder;
+  final Result<Folder> folder;
   final FolderViewerPresenter viewModel;
 
   const FolderListItem({
@@ -158,11 +159,11 @@ class FolderListItem extends StatelessWidget {
     return AnimatedBuilder(
       animation: viewModel,
       builder: (context, child) {
-        final isSelected = viewModel.selectedFolders.contains(folder.folder.id);
+        final isSelected = viewModel.selectedFolders.contains(folder.data.id);
         return ListItem(
           onTap: () => viewModel.onFolderTap(context, folder),
-          title: Text(folder.folder.title),
-          subtitle: Text(folder.folder.description),
+          title: Text(folder.data.title),
+          subtitle: Text(folder.data.description),
           trailing: OverflowBar(
             children: [
               SmallButton(
@@ -176,7 +177,7 @@ class FolderListItem extends StatelessWidget {
               Checkbox(
                 value: isSelected,
                 onChanged: (bool? value) {
-                  viewModel.toggleFolderSelection(folder.folder.id);
+                  viewModel.toggleFolderSelection(folder.data.id);
                 },
               ),
             ],
@@ -188,7 +189,7 @@ class FolderListItem extends StatelessWidget {
 }
 
 class FolderGridItem extends StatelessWidget {
-  final FolderResult folder;
+  final Result<Folder> folder;
   final FolderViewerPresenter viewModel;
 
   const FolderGridItem({
@@ -202,19 +203,19 @@ class FolderGridItem extends StatelessWidget {
     return AnimatedBuilder(
       animation: viewModel,
       builder: (context, child) {
-        final isSelected = viewModel.selectedFolders.contains(folder.folder.id);
+        final isSelected = viewModel.selectedFolders.contains(folder.data.id);
         return GridItem(
           onTap: () => viewModel.onFolderTap(context, folder),
           header: GridHeader(
-            leading: Text(folder.folder.title),
+            leading: Text(folder.data.title),
             trailing: Checkbox(
               value: isSelected,
               onChanged: (bool? value) {
-                viewModel.toggleFolderSelection(folder.folder.id);
+                viewModel.toggleFolderSelection(folder.data.id);
               },
             ),
           ),
-          body: Text(folder.folder.description),
+          body: Text(folder.data.description),
           footer: GridFooter(
             main: TagList(
               tags: folder.tags,
@@ -276,7 +277,7 @@ class _DeleteSelectedButtonState extends State<DeleteSelectedButton> {
 }
 
 class TagList extends StatelessWidget {
-  final List<Tag> tags;
+  final Set<Tag> tags;
 
   const TagList({super.key, required this.tags});
 

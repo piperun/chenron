@@ -1,159 +1,107 @@
-import 'package:chenron/database/database.dart';
-import "package:drift/drift.dart";
-import 'package:rxdart/rxdart.dart';
-
-enum IncludeLinkData { all, tags, none }
-
-class LinkResult {
-  final Link link;
-  List<Tag> tags = [];
-
-  LinkResult({required this.link});
-}
+import "package:chenron/database/extensions/base_query_builder.dart";
+import "package:chenron/database/actions/handlers/read_handler.dart";
+import "package:chenron/database/database.dart";
 
 extension LinkReadExtensions on AppDatabase {
-  Future<LinkResult?> getLink(String linkId,
-      {IncludeLinkData mode = IncludeLinkData.none}) async {
-    return LinkQueryBuilder(db: this, linkId: linkId, mode: mode).fetchSingle();
+  Future<Result<Link>?> getLink({
+    required String linkId,
+    IncludeItems modes = const {},
+  }) {
+    return _LinkReadRepository(db: this).getOne(id: linkId, modes: modes);
   }
 
-  Future<List<LinkResult>> getAllLinks(
-      {IncludeLinkData mode = IncludeLinkData.none}) {
-    return LinkQueryBuilder(db: this, mode: mode).fetchAll();
+  Future<List<Result<Link>>> getAllLinks({
+    IncludeItems modes = const {},
+  }) async {
+    return _LinkReadRepository(db: this).getAll(modes: modes);
   }
 
-  Stream<LinkResult> watchLink(
-      {linkId, IncludeLinkData mode = IncludeLinkData.none}) {
-    return LinkQueryBuilder(linkId: linkId, db: this, mode: mode).watchSingle();
+  Stream<Result<Link>?> watchLink({
+    required String linkId,
+    IncludeItems modes = const {},
+  }) {
+    return _LinkReadRepository(db: this).watchOne(id: linkId, modes: modes);
   }
 
-  Stream<List<LinkResult>> watchAllLinks(
-      {IncludeLinkData mode = IncludeLinkData.none}) {
-    return LinkQueryBuilder(db: this, mode: mode).watchAll();
+  Stream<List<Result<Link>>> watchAllLinks({
+    IncludeItems modes = const {},
+  }) {
+    return _LinkReadRepository(db: this).watchAll(modes: modes);
+  }
+
+  Future<List<Result<Link>>> searchLinks({
+    required String query,
+    IncludeItems modes = const {},
+  }) async {
+    return _LinkReadRepository(db: this)
+        .searchTable(query: query, modes: modes);
   }
 }
 
-class LinkQueryBuilder {
+class _LinkReadRepository extends BaseRepository<Link, IncludeItems>
+    implements
+        BaseWatchRepository<Link, IncludeItems>,
+        ExtraRepository<Link, IncludeItems> {
   final AppDatabase db;
-  final IncludeLinkData mode;
-  final String? linkId;
+  final ReadDbHandler<Link> readHandler;
 
-  LinkQueryBuilder({required this.db, this.linkId, required this.mode});
+  _LinkReadRepository({required this.db})
+      : readHandler = ReadDbHandler<Link>(db: db, table: db.links),
+        super(appDb: db);
 
-  Future<List<LinkResult>> fetchAll() async {
-    final links = await _getAllLinks();
-    final results = <LinkResult>[];
-
-    for (final link in links) {
-      final result = LinkResult(link: link);
-      if (mode == IncludeLinkData.all || mode == IncludeLinkData.tags) {
-        result.tags = await _getTags(link.id);
-      }
-      results.add(result);
-    }
-
-    return results;
-  }
-
-  Future<LinkResult> fetchSingle() async {
-    if (linkId == null) {
-      throw Exception("Link id is null");
-    }
-    final link = await _getLink(linkId!);
-    final result = LinkResult(link: link);
-    if (mode == IncludeLinkData.none) {
-      return result;
-    }
-
-    if (mode == IncludeLinkData.all || mode == IncludeLinkData.tags) {
-      result.tags = await _getTags(link.id);
-    }
-
-    return result;
-  }
-
-  Stream<LinkResult> watchSingle() {
-    if (linkId == null) {
-      throw ArgumentError("linkId must be provided for watching a single link");
-    }
-
-    final linkStream =
-        (db.select(db.links)..where((l) => l.id.equals(linkId!))).watchSingle();
-
-    if (mode == IncludeLinkData.none) {
-      return linkStream.map((link) => LinkResult(link: link));
-    }
-
-    final tagsStream =
-        mode == IncludeLinkData.all || mode == IncludeLinkData.tags
-            ? _watchTags(linkId!)
-            : Stream.value(<Tag>[]);
-
-    return Rx.combineLatest2(
-      linkStream,
-      tagsStream,
-      (Link link, List<Tag> tags) {
-        final result = LinkResult(link: link);
-        result.tags = tags;
-        return result;
-      },
+  @override
+  Future<Result<Link>?> getOne({
+    required String id,
+    IncludeItems modes = const {},
+  }) async {
+    return readHandler.getOne(
+      includes: modes,
+      predicate: db.links.id.equals(id),
+      joinExp: db.folders.id,
     );
   }
 
-  Stream<List<LinkResult>> watchAll() {
-    final linksStream = db.select(db.links).watch();
-
-    return linksStream.switchMap((links) {
-      final linkStreams = links.map((link) {
-        final tagsStream =
-            mode == IncludeLinkData.all || mode == IncludeLinkData.tags
-                ? _watchTags(link.id)
-                : Stream.value(<Tag>[]);
-
-        return Rx.combineLatest2(
-          Stream.value(link),
-          tagsStream,
-          (Link l, List<Tag> tags) {
-            final result = LinkResult(link: l);
-            result.tags = tags;
-            return result;
-          },
-        );
-      });
-
-      return Rx.combineLatestList(linkStreams);
-    });
+  @override
+  Future<List<Result<Link>>> getAll({
+    IncludeItems modes = const {},
+  }) async {
+    return readHandler.getAll(
+      includes: modes,
+      joinExp: db.folders.id,
+    );
   }
 
-  Future<Link> _getLink(String linkId) {
-    return (db.select(db.links)..where((l) => l.id.equals(linkId))).getSingle();
+  @override
+  Stream<Result<Link>?> watchOne({
+    required String id,
+    IncludeItems modes = const {},
+  }) {
+    return readHandler.watchOne(
+        includes: modes,
+        joinExp: db.folders.id,
+        predicate: db.links.id.equals(id));
   }
 
-  Future<List<Link>> _getAllLinks() {
-    return db.select(db.links).get();
+  @override
+  Stream<List<Result<Link>>> watchAll({
+    IncludeItems modes = const {},
+  }) {
+    return readHandler.watchAll(
+      includes: modes,
+      joinExp: db.folders.id,
+    );
   }
 
-  Future<List<Tag>> _getTags(String linkId) {
-    final rows = (db.select(db.metadataRecords).join([
-      leftOuterJoin(
-          db.tags, db.tags.id.equalsExp(db.metadataRecords.metadataId)),
-    ])
-          ..where(db.metadataRecords.itemId.equals(linkId)))
-        .map((row) {
-      final tag = row.readTable(db.tags);
-      return tag;
-    }).get();
-
-    return rows.then((tags) => tags.whereType<Tag>().toList());
-  }
-
-  Stream<List<Tag>> _watchTags(String linkId) {
-    return (db.select(db.metadataRecords).join([
-      leftOuterJoin(
-          db.tags, db.tags.id.equalsExp(db.metadataRecords.metadataId)),
-    ])
-          ..where(db.metadataRecords.itemId.equals(linkId)))
-        .watch()
-        .map((rows) => rows.map((row) => row.readTable(db.tags)).toList());
+  @override
+  Future<List<Result<Link>>> searchTable({
+    required String query,
+    IncludeItems modes = const {},
+  }) async {
+    return readHandler.searchTable(
+      query: query,
+      includes: modes,
+      joinExp: db.folders.id,
+      searchColumn: db.links.content,
+    );
   }
 }

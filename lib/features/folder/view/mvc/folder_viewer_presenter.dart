@@ -1,26 +1,27 @@
 import "dart:async";
 
+import "package:chenron/database/actions/handlers/read_handler.dart"
+    show Result;
 import "package:chenron/database/database.dart";
-import "package:chenron/database/extensions/folder/read.dart";
 import "package:chenron/features/editor/pages/editor.dart";
 import "package:chenron/features/show_folder/pages/show_folder.dart";
 import "package:chenron/features/folder/view/mvc/folder_viewer_model.dart";
 import "package:flutter/material.dart";
 
 class FolderViewerPresenter extends ChangeNotifier {
-  List<FolderResult> _currentFolders = [];
+  List<Result<Folder>> _currentFolders = [];
   final Set<String> selectedFolders = {};
   final Set<String> selectedTags = {};
   final SearchController searchController = SearchController();
 
   final _tagsController = StreamController<List<Tag>>.broadcast();
-  final _foldersController = StreamController<List<FolderResult>>.broadcast();
+  final _foldersController = StreamController<List<Result<Folder>>>.broadcast();
 
   final FolderViewerModel _model = FolderViewerModel();
-  Stream<List<FolderResult>>? _allFoldersStream;
+  Stream<List<Result<Folder>>>? _allFoldersStream;
 
   Stream<List<Tag>> get tagsStream => _tagsController.stream;
-  Stream<List<FolderResult>> get foldersStream => _foldersController.stream;
+  Stream<List<Result<Folder>>> get foldersStream => _foldersController.stream;
 
   FolderViewerPresenter() {
     searchController.addListener(_onSearchChanged);
@@ -55,21 +56,21 @@ class FolderViewerPresenter extends ChangeNotifier {
     notifyListeners();
   }
 
-  void onFolderTap(BuildContext context, FolderResult folder) {
+  void onFolderTap(BuildContext context, Result<Folder> folder) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ShowFolder(folderId: folder.folder.id),
+        builder: (context) => ShowFolder(folderId: folder.data.id),
       ),
     );
   }
 
-  void onEditTap(BuildContext context, FolderResult folder) {
+  void onEditTap(BuildContext context, Result<Folder> folder) {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => FolderEditor(
-          folderId: folder.folder.id,
+          folderId: folder.data.id,
         ),
       ),
     );
@@ -84,7 +85,7 @@ class FolderViewerPresenter extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _filterFolderTags(List<FolderResult> folders) {
+  void _filterFolderTags(List<Result<Folder>> folders) {
     final allTags = _extractUniqueTags(folders);
     _tagsController.add(allTags);
   }
@@ -93,7 +94,7 @@ class FolderViewerPresenter extends ChangeNotifier {
     _filterAndAddFolders(_currentFolders);
   }
 
-  void _filterAndAddFolders(List<FolderResult> folders) {
+  void _filterAndAddFolders(List<Result<Folder>> folders) {
     _currentFolders = folders;
     final searchQuery = searchController.text.toLowerCase();
 
@@ -102,7 +103,7 @@ class FolderViewerPresenter extends ChangeNotifier {
     // Apply search filter
     if (searchQuery.isNotEmpty) {
       filteredFolders = folders.where((folder) {
-        return folder.folder.title.toLowerCase().contains(searchQuery) ||
+        return folder.data.title.toLowerCase().contains(searchQuery) ||
             folder.tags
                 .any((tag) => tag.name.toLowerCase().contains(searchQuery));
       }).toList();
@@ -118,12 +119,12 @@ class FolderViewerPresenter extends ChangeNotifier {
     _foldersController.add(filteredFolders);
   }
 
-  void _processFolders(List<FolderResult> folders) {
+  void _processFolders(List<Result<Folder>> folders) {
     _filterFolderTags(folders);
     _filterAndAddFolders(folders);
   }
 
-  List<Tag> _extractUniqueTags(List<FolderResult> folders) {
+  List<Tag> _extractUniqueTags(List<Result<Folder>> folders) {
     return folders.expand((folder) => folder.tags).toSet().toList();
   }
 

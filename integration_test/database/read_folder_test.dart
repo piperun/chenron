@@ -1,4 +1,5 @@
-import "package:chenron/models/folder_results.dart";
+import "package:chenron/database/actions/handlers/read_handler.dart";
+import "package:chenron/models/created_ids.dart";
 import "package:chenron/models/item.dart";
 import "package:flutter_test/flutter_test.dart";
 import "package:chenron/database/database.dart";
@@ -10,8 +11,8 @@ void main() {
   late AppDatabase database;
   late FolderTestData activeFolder;
   late FolderTestData inactiveFolder;
-  late FolderResults activeFolderResult;
-  late FolderResults inactiveFolderResult;
+  late CreatedIds<Folder> activeFolderResult;
+  late CreatedIds<Folder> inactiveFolderResult;
 
   setUp(() async {
     database = AppDatabase(databaseName: "test_db", debugMode: true);
@@ -75,10 +76,10 @@ void main() {
           await database.getFolder(folderId: activeFolderResult.folderId!);
 
       expect(retrievedFolder, isNotNull);
-      expect(retrievedFolder!.folder.id, equals(activeFolderResult.folderId));
-      expect(retrievedFolder.folder.title, equals("Active Folder"));
-      expect(retrievedFolder.folder.description,
-          equals("This is an active folder"));
+      expect(retrievedFolder!.data.id, equals(activeFolderResult.folderId));
+      expect(retrievedFolder.data.title, equals("Active Folder"));
+      expect(
+          retrievedFolder.data.description, equals("This is an active folder"));
     });
 
     test("should get folder with only tags", () async {
@@ -114,7 +115,7 @@ void main() {
         folderId: activeFolderResult.folderId!,
         modes: {IncludeOptions.items, IncludeOptions.tags},
       );
-      print(folderWithAll!.folder.title);
+      print(folderWithAll!.data.title);
       folderWithAll.items.forEach((element) {
         print("item's id: ${element.id}");
         print("itemid: ${element.itemId}");
@@ -145,10 +146,10 @@ void main() {
 
       expect(allFolders, isNotEmpty);
       for (var folder in allFolders) {
-        expect(folder.folder.id, isNotNull);
-        expect(folder.folder.title, isNotNull);
-        expect(folder.folder.description, isNotNull);
-        expect(folder.folder.createdAt, isNotNull);
+        expect(folder.data.id, isNotNull);
+        expect(folder.data.title, isNotNull);
+        expect(folder.data.description, isNotNull);
+        expect(folder.data.createdAt, isNotNull);
         expect(folder.items, isEmpty);
         expect(folder.tags, isEmpty);
       }
@@ -167,12 +168,11 @@ void main() {
         final expectedFolder = testFolders[i];
         final folderResults = testFoldersResults[i];
 
-        expect(retrievedFolder.folder.id, equals(folderResults.folderId));
-        expect(
-            retrievedFolder.folder.title, equals(expectedFolder.folder.title));
-        expect(retrievedFolder.folder.description,
+        expect(retrievedFolder.data.id, equals(folderResults.folderId));
+        expect(retrievedFolder.data.title, equals(expectedFolder.folder.title));
+        expect(retrievedFolder.data.description,
             equals(expectedFolder.folder.description));
-        expect(retrievedFolder.folder.createdAt, isNotNull);
+        expect(retrievedFolder.data.createdAt, isNotNull);
         expect(retrievedFolder.items, isEmpty);
         expect(retrievedFolder.tags, isNotEmpty);
 
@@ -194,12 +194,11 @@ void main() {
         final expectedFolder = testFolders[i];
         final folderResults = testFoldersResults[i];
 
-        expect(retrievedFolder.folder.id, equals(folderResults.folderId));
-        expect(
-            retrievedFolder.folder.title, equals(expectedFolder.folder.title));
-        expect(retrievedFolder.folder.description,
+        expect(retrievedFolder.data.id, equals(folderResults.folderId));
+        expect(retrievedFolder.data.title, equals(expectedFolder.folder.title));
+        expect(retrievedFolder.data.description,
             equals(expectedFolder.folder.description));
-        expect(retrievedFolder.folder.createdAt, isNotNull);
+        expect(retrievedFolder.data.createdAt, isNotNull);
         expect(retrievedFolder.items, isNotEmpty);
         expect(retrievedFolder.tags, isEmpty);
 
@@ -221,12 +220,11 @@ void main() {
         final expectedFolder = testFolders[i];
         final folderResults = testFoldersResults[i];
 
-        expect(retrievedFolder.folder.id, equals(folderResults.folderId));
-        expect(
-            retrievedFolder.folder.title, equals(expectedFolder.folder.title));
-        expect(retrievedFolder.folder.description,
+        expect(retrievedFolder.data.id, equals(folderResults.folderId));
+        expect(retrievedFolder.data.title, equals(expectedFolder.folder.title));
+        expect(retrievedFolder.data.description,
             equals(expectedFolder.folder.description));
-        expect(retrievedFolder.folder.createdAt, isNotNull);
+        expect(retrievedFolder.data.createdAt, isNotNull);
         expect(retrievedFolder.items, isNotEmpty);
         expect(retrievedFolder.tags, isNotEmpty);
 
@@ -250,10 +248,10 @@ void main() {
 
       expect(
           stream,
-          emitsThrough(predicate<FolderResult>((result) =>
-              result.folder.id == activeFolderResult.folderId &&
-              result.folder.title == "Active Folder" &&
-              result.folder.description == "This is an active folder" &&
+          emitsThrough(predicate<Result<Folder>>((result) =>
+              result.data.id == activeFolderResult.folderId &&
+              result.data.title == "Active Folder" &&
+              result.data.description == "This is an active folder" &&
               result.tags.isEmpty &&
               result.items.isEmpty)));
     });
@@ -264,7 +262,7 @@ void main() {
 
       expect(
           stream,
-          emitsThrough(predicate<FolderResult>((result) =>
+          emitsThrough(predicate<Result<Folder>>((result) =>
               result.tags.length == 2 &&
               result.tags
                   .map((tag) => tag.name)
@@ -280,7 +278,7 @@ void main() {
 
       await expectLater(
         stream,
-        emitsThrough(predicate<FolderResult>((result) {
+        emitsThrough(predicate<Result<Folder>>((result) {
           return result.items.length == 2 &&
               result.items.any((item) => item.type == FolderItemType.link) &&
               result.items
@@ -297,7 +295,7 @@ void main() {
 
       expect(
           stream,
-          emitsThrough(predicate<FolderResult>((result) =>
+          emitsThrough(predicate<Result<Folder>>((result) =>
               result.tags.length == 2 &&
               result.tags
                   .map((tag) => tag.name)
@@ -315,7 +313,7 @@ void main() {
 
       expect(
           stream,
-          emitsThrough(predicate<List<FolderResult>>((folders) =>
+          emitsThrough(predicate<List<Result<Folder>>>((folders) =>
               folders.length == 2 &&
               folders.every(
                   (folder) => folder.items.isEmpty && folder.tags.isEmpty))));
@@ -326,7 +324,7 @@ void main() {
 
       expect(
           stream,
-          emitsThrough(predicate<List<FolderResult>>((folders) =>
+          emitsThrough(predicate<List<Result<Folder>>>((folders) =>
               folders.length == 2 &&
               folders[0].tags.length == 2 &&
               folders[1].tags.length == 2 &&
@@ -338,7 +336,7 @@ void main() {
 
       expect(
         stream,
-        emitsThrough(predicate<List<FolderResult>>((folders) =>
+        emitsThrough(predicate<List<Result<Folder>>>((folders) =>
             folders.length == 2 &&
             folders[0].items.length == 2 &&
             folders[1].items.length == 2 &&
@@ -347,7 +345,7 @@ void main() {
       stream.listen((folders) {
         print("Folders emitted: ${folders.length}");
         for (var folder in folders) {
-          print("Folder ID: ${folder.folder.id}");
+          print("Folder ID: ${folder.data.id}");
           print("Tags: ${folder.tags.length}");
           print("Items: ${folder.items.length}");
         }
@@ -360,7 +358,7 @@ void main() {
 
       expect(
           stream,
-          emitsThrough(predicate<List<FolderResult>>((folders) =>
+          emitsThrough(predicate<List<Result<Folder>>>((folders) =>
               folders.length == 2 &&
               folders[0].tags.length == 2 &&
               folders[1].tags.length == 2 &&
@@ -374,7 +372,7 @@ void main() {
       final results = await database.searchFolders(query: "Folder");
 
       expect(results.length, equals(2));
-      expect(results.map((r) => r.folder.title).toList(),
+      expect(results.map((r) => r.data.title).toList(),
           containsAll(["Active Folder", "Inactive Folder"]));
     });
 

@@ -4,14 +4,14 @@ import "package:chenron/database/extensions/id.dart";
 import "package:chenron/models/item.dart";
 import "package:chenron/models/metadata.dart";
 import "package:chenron/database/database.dart";
-import "package:chenron/models/folder_results.dart";
+import "package:chenron/models/created_ids.dart";
 import "package:chenron/utils/str_sanitizer.dart";
 import "package:drift/drift.dart";
 
 extension InsertionExtensions on AppDatabase {
-  Future<List<TagResults>> insertTags(
+  Future<List<CreatedIds<Tag>>> insertTags(
       Batch batch, List<Metadata> tagInserts, String folderId) async {
-    List<TagResults> tagResults = [];
+    List<CreatedIds<Tag>> tagResults = [];
     Map<String, String> existingTags = await _getExistingTags(tagInserts);
 
     for (final tag in tagInserts) {
@@ -38,17 +38,17 @@ extension InsertionExtensions on AppDatabase {
           itemId: folderId,
         ),
       );
-      tagResults.add(TagResults(tagId: tagId, metadataId: metadataId));
+      tagResults.add(CreatedIds.tag(tagId: tagId, metadataId: metadataId));
     }
 
     return tagResults;
   }
 
-  Future<List<ItemResults>> insertFolderItems(
+  Future<List<CreatedIds<Item>>> insertFolderItems(
       {required Batch batch,
       required String folderId,
       required List<FolderItem> itemInserts}) async {
-    List<ItemResults> itemResults = [];
+    List<CreatedIds<Item>> itemResults = [];
 
     for (final itemInsert in itemInserts) {
       switch (itemInsert.content) {
@@ -66,7 +66,7 @@ extension InsertionExtensions on AppDatabase {
     return itemResults;
   }
 
-  Future<ItemResults> _insertLink({
+  Future<CreatedIds<Item>> _insertLink({
     required Batch batch,
     required String folderId,
     required String url,
@@ -93,10 +93,10 @@ extension InsertionExtensions on AppDatabase {
         itemId: linkId,
         folderId: folderId,
         type: FolderItemType.link);
-    return ItemResults(linkId: linkId, itemId: itemId);
+    return CreatedIds.item(linkId: linkId, itemId: itemId);
   }
 
-  ItemResults _insertDocument({
+  CreatedIds<Item> _insertDocument({
     required Batch batch,
     required String folderId,
     required Map<String, String> doc,
@@ -117,7 +117,7 @@ extension InsertionExtensions on AppDatabase {
         itemId: documentId,
         folderId: folderId,
         type: FolderItemType.document);
-    return ItemResults(documentId: documentId, itemId: itemId);
+    return CreatedIds.item(documentId: documentId, itemId: itemId);
   }
 
   String _insertItem(

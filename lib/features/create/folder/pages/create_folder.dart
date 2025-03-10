@@ -1,13 +1,12 @@
-import 'package:chenron/components/TextBase/info_field.dart';
-import 'package:chenron/components/tags/tag_field.dart';
-import 'package:chenron/database/database.dart';
-import 'package:chenron/database/extensions/folder/create.dart';
+import "package:chenron/components/TextBase/info_field.dart";
+import "package:chenron/components/tags/tag_field.dart";
+import "package:chenron/database/extensions/folder/create.dart";
 import "package:chenron/database/extensions/operations/database_file_handler.dart";
-import 'package:chenron/locator.dart';
+import "package:chenron/locator.dart";
 import "package:chenron/models/folder.dart";
-import 'package:chenron/utils/validation/folder_validator.dart';
-import 'package:flutter/material.dart';
-import 'package:signals/signals.dart';
+import "package:chenron/utils/validation/folder_validator.dart";
+import "package:flutter/material.dart";
+import "package:signals/signals.dart";
 
 enum FolderType { folder, link, document }
 
@@ -22,7 +21,7 @@ class _CreateFolderPageState extends State<CreateFolderPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-  String _access = 'Private';
+  String _access = "Private";
   FolderType _folderType = FolderType.folder;
 
   @override
@@ -36,7 +35,7 @@ class _CreateFolderPageState extends State<CreateFolderPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create Folder'),
+        title: const Text("Create Folder"),
         actions: [
           IconButton(
             icon: const Icon(Icons.save),
@@ -53,12 +52,12 @@ class _CreateFolderPageState extends State<CreateFolderPage> {
             children: [
               InfoField(
                 controller: _titleController,
-                labelText: 'Title',
+                labelText: "Title",
                 validator: FolderValidator.validateTitle,
               ),
               InfoField(
                 controller: _descriptionController,
-                labelText: 'Description',
+                labelText: "Description",
                 validator: FolderValidator.validateDescription,
               ),
               const TagField(),
@@ -76,10 +75,10 @@ class _CreateFolderPageState extends State<CreateFolderPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Access'),
+        const Text("Access"),
         Row(
           mainAxisAlignment: MainAxisAlignment.start,
-          children: ['Private', 'Unlisted', 'Public'].map((accessType) {
+          children: ["Private", "Unlisted", "Public"].map((accessType) {
             return Padding(
               padding: const EdgeInsets.only(right: 8.0),
               child: ChoiceChip(
