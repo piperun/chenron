@@ -1,5 +1,6 @@
 import "package:cuid2/cuid2.dart";
 
+// TODO: Look into if this is needed or if we can simply use Folder
 class FolderInfo {
   String id;
   String title;

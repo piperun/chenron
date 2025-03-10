@@ -43,8 +43,6 @@ class ItemTile extends StatelessWidget {
         return stringContent.value;
       case MapContent mapContent:
         return mapContent.value["title"] ?? "";
-      default:
-        return "";
     }
   }
 

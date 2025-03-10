@@ -28,7 +28,7 @@ class FolderDetailInfo extends StatelessWidget {
               children: [
                 TextView.header(title: folderResult.data.title),
                 ExpandableField(description: folderResult.data.description),
-                FolderCreationDate(createdAt: folderResult.data.createdAt!),
+                FolderCreationDate(createdAt: folderResult.data.createdAt),
                 if (folderResult.tags.isNotEmpty)
                   TagBody(
                       tags: folderResult.tags.map((tag) => tag.name).toSet()),
