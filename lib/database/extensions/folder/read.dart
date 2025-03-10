@@ -1,16 +1,6 @@
 import "package:chenron/database/extensions/base_query_builder.dart";
 import "package:chenron/database/actions/handlers/read_handler.dart";
-import "package:chenron/models/item.dart";
 import "package:chenron/database/database.dart";
-
-class FolderResult extends TableResult<Folder> {
-  @override
-  Set<Tag> tags = {};
-  @override
-  Set<FolderItem> items = {};
-
-  FolderResult({required super.data});
-}
 
 extension FolderReadExtensions on AppDatabase {
   Future<Result<Folder>?> getFolder({

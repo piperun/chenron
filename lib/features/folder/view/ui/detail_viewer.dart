@@ -1,11 +1,13 @@
 import "package:chenron/components/tags/tag_body.dart";
+import "package:chenron/database/actions/handlers/read_handler.dart"
+    show Result;
+import "package:chenron/database/database.dart" show Folder;
 import "package:chenron/features/folder/view/ui/detail_body.dart";
 import "package:chenron/utils/logger.dart";
 import "package:flutter/material.dart";
-import "package:chenron/database/extensions/folder/read.dart";
 
 class DetailViewer extends StatefulWidget {
-  final Future<FolderResult> fetchData;
+  final Future<Result<Folder>> fetchData;
   final Widget Function(BuildContext, dynamic) listBuilder;
 
   const DetailViewer(
@@ -18,7 +20,7 @@ class DetailViewer extends StatefulWidget {
 class _DetailViewerState<T> extends State<DetailViewer> {
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<FolderResult>(
+    return FutureBuilder<Result<Folder>>(
       future: widget.fetchData,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {

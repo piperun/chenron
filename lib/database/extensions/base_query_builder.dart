@@ -143,19 +143,3 @@ abstract class RowJoins<T extends Table, R> {
 
   R? readJoins(TypedResult? row);
 }
-
-abstract class RelationBuilder<T> {
-  abstract final List<Join> joinList;
-  void createJoins(IncludeItems includes);
-  List<Result<T>> buildRelations({
-    required List<TypedResult?> rows,
-    IncludeItems includes,
-  });
-}
-
-abstract class TableResult<T> {
-  final T data;
-  Set<Tag>? get tags => {};
-  Set<FolderItem>? get items => {};
-  TableResult({required this.data});
-}
