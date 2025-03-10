@@ -1,6 +1,7 @@
 import "package:cuid2/cuid2.dart";
 
-// TODO: Look into if this is needed or if we can simply use Folder
+@Deprecated(
+    "Use Folder instead, this class is exactly the same as Folder, but still using the dangerous id generation")
 class FolderInfo {
   String id;
   String title;
