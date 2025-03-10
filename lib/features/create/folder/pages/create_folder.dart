@@ -22,7 +22,6 @@ class _CreateFolderPageState extends State<CreateFolderPage> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   String _access = "Private";
-  FolderType _folderType = FolderType.folder;
 
   @override
   void dispose() {

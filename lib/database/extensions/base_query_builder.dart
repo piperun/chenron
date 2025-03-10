@@ -1,8 +1,9 @@
 // Base class with only required methods
-import "package:chenron/database/actions/handlers/read_handler.dart";
+import "package:chenron/database/actions/handlers/read_handler.dart"
+    show Result;
 import "package:chenron/database/database.dart";
-import "package:chenron/models/item.dart";
-import "package:drift/drift.dart";
+import "package:drift/drift.dart"
+    show Table, Expression, TableInfo, Join, Selectable, TypedResult;
 import "package:rxdart/rxdart.dart";
 
 abstract class BaseRepository<T, M extends Set<Enum>> {
