@@ -57,7 +57,7 @@ class _LinkReadRepository extends BaseRepository<Link, IncludeItems>
     return readHandler.getOne(
       includes: modes,
       predicate: db.links.id.equals(id),
-      joinExp: db.folders.id,
+      joinExp: db.links.id,
     );
   }
 
@@ -67,7 +67,7 @@ class _LinkReadRepository extends BaseRepository<Link, IncludeItems>
   }) async {
     return readHandler.getAll(
       includes: modes,
-      joinExp: db.folders.id,
+      joinExp: db.links.id,
     );
   }
 
@@ -78,7 +78,7 @@ class _LinkReadRepository extends BaseRepository<Link, IncludeItems>
   }) {
     return readHandler.watchOne(
         includes: modes,
-        joinExp: db.folders.id,
+        joinExp: db.links.id,
         predicate: db.links.id.equals(id));
   }
 
@@ -88,7 +88,7 @@ class _LinkReadRepository extends BaseRepository<Link, IncludeItems>
   }) {
     return readHandler.watchAll(
       includes: modes,
-      joinExp: db.folders.id,
+      joinExp: db.links.id,
     );
   }
 
@@ -100,7 +100,7 @@ class _LinkReadRepository extends BaseRepository<Link, IncludeItems>
     return readHandler.searchTable(
       query: query,
       includes: modes,
-      joinExp: db.folders.id,
+      joinExp: db.links.id,
       searchColumn: db.links.content,
     );
   }

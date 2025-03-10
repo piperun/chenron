@@ -78,7 +78,7 @@ class _TagReadRepository extends BaseRepository<Tag, IncludeItems>
   }) async {
     return readHandler.getAll(
       includes: modes,
-      joinExp: db.folders.id,
+      joinExp: db.tags.id,
     );
   }
 
@@ -89,7 +89,7 @@ class _TagReadRepository extends BaseRepository<Tag, IncludeItems>
   }) {
     return readHandler.watchOne(
       includes: modes,
-      joinExp: db.folders.id,
+      joinExp: db.tags.id,
       predicate: db.tags.id.equals(id),
     );
   }
@@ -100,7 +100,7 @@ class _TagReadRepository extends BaseRepository<Tag, IncludeItems>
   }) {
     return readHandler.watchAll(
       includes: modes,
-      joinExp: db.folders.id,
+      joinExp: db.tags.id,
     );
   }
 
@@ -112,7 +112,7 @@ class _TagReadRepository extends BaseRepository<Tag, IncludeItems>
     return readHandler.searchTable(
       query: query,
       includes: modes,
-      joinExp: db.folders.id,
+      joinExp: db.tags.id,
       searchColumn: null,
     );
   }
