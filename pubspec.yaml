@@ -41,7 +41,7 @@ dependencies:
   easy_sidemenu: ^0.6.0
   pluto_grid: ^8.0.0
   percent_indicator: ^4.2.3
-  fl_chart: ^0.69.0
+  fl_chart: ^0.70.2
   cuid2: ^3.1.0
   logging: ^1.2.0
   meta: ^1.12.0
@@ -60,8 +60,8 @@ dependencies:
   sqlite3: ^2.4.6
   crypto: ^3.0.5
   cron: ^0.6.1
-  flutter_hooks: ^0.20.5
-  signals: ^5.5.0
+  flutter_hooks: ^0.21.2
+  signals: ^6.0.2
   get_it: ^8.0.0
   flutter_speed_dial: ^7.0.0
   fuzzywuzzy: ^1.2.0
