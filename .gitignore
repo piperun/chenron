@@ -51,3 +51,5 @@ target/
 
 *.odt
 example.png
+
+*_old
