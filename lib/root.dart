@@ -3,8 +3,7 @@ import "package:flutter/material.dart";
 import "package:chenron/features/create/folder/pages/create_folder.dart";
 import "package:chenron/features/create/link/pages/create_link.dart";
 import "package:chenron/features/viewer/pages/viewer.dart";
-import "package:chenron/features/settings/settings_page.dart";
-import "package:chenron/features/folder/view/pages/folder_viewer.dart";
+import "package:chenron/features/settings/pages/configuration.dart";
 import "package:chenron/pages/home/homepage.dart";
 
 enum NavigationSection {
@@ -14,17 +13,11 @@ enum NavigationSection {
     label: "Dashboard",
     page: HomePage(padding: 16),
   ),
-  folders(
-    icon: Icons.folder_outlined,
-    selectedIcon: Icons.folder,
-    label: "Folders",
-    page: FolderViewer(),
-  ),
   settings(
     icon: Icons.settings_outlined,
     selectedIcon: Icons.settings,
     label: "Settings",
-    page: SettingsPage(),
+    page: ConfigPage(),
   ),
   viewer(
     icon: Icons.view_list_outlined,
