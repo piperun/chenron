@@ -7,9 +7,9 @@ import "package:chenron/models/item.dart";
 class ViewerListItem extends StatelessWidget {
   final ViewerItem item;
   final bool? checkbox;
-  List<Widget>? extraTrailingWidgets = [];
+  final List<Widget>? extraTrailingWidgets;
 
-  ViewerListItem(
+  const ViewerListItem(
       {super.key,
       required this.item,
       this.checkbox,
