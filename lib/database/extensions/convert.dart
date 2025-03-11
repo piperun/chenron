@@ -1,19 +1,7 @@
 import "dart:convert";
 
-import "package:chenron/models/folder.dart";
 import "package:chenron/models/item.dart";
 import "package:chenron/database/database.dart";
-
-extension ConvertFolderToInfo on Folder {
-  FolderInfo toFolderInfo() {
-    return FolderInfo(
-      id: id,
-      title: title,
-      description: description,
-      createdAt: createdAt,
-    );
-  }
-}
 
 extension ConvertLinkToItem on Link {
   FolderItem toFolderItem(String? itemId) {

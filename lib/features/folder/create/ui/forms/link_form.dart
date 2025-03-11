@@ -23,7 +23,7 @@ class _LinkFormState extends State<LinkForm> {
   final TextEditingController _linkController = TextEditingController();
   final DataGridNotifier _tableNotifier = DataGridNotifier();
 
-  final folderDraft = locator.get<Signal<FolderDraft>>();
+  final folderDraft = locator.get<Signal<FolderSignal>>();
 
   late List<PlutoColumn> _columns;
   late List<PlutoRow> _rows;
@@ -156,7 +156,7 @@ class _LinkFormState extends State<LinkForm> {
       if (_isDuplicateLink(newLink)) {
       } else {
         final Key idKey = UniqueKey();
-        final folderDraft = locator.get<Signal<FolderDraft>>().value;
+        final folderDraft = locator.get<Signal<FolderSignal>>().value;
 
         folderDraft.addItem(
           FolderItem(
@@ -182,7 +182,7 @@ class _LinkFormState extends State<LinkForm> {
   }
 
   void _deleteSelected() {
-    final folderDraft = locator.get<Signal<FolderDraft>>().value;
+    final folderDraft = locator.get<Signal<FolderSignal>>().value;
     final selectedRows = _tableNotifier.stateManager?.checkedRows ?? [];
 
     folderDraft.folder.items.removeWhere(

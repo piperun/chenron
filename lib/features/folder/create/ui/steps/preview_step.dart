@@ -58,7 +58,7 @@ class Expandable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final folderDraft = locator.get<Signal<FolderDraft>>();
+    final folderDraft = locator.get<Signal<FolderSignal>>();
 
     return Card(
       elevation: 2,
@@ -70,11 +70,11 @@ class Expandable extends StatelessWidget {
         children: [
           ListTile(
             title: const Text("Title"),
-            subtitle: Text(folderDraft.value.folder.folderInfo.title),
+            subtitle: Text(folderDraft.value.folder.title),
           ),
           ListTile(
             title: const Text("Description"),
-            subtitle: Text(folderDraft.value.folder.folderInfo.description),
+            subtitle: Text(folderDraft.value.folder.description),
           ),
           ListTile(
             title: const Text("Tags"),

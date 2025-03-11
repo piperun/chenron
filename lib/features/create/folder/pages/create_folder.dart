@@ -100,7 +100,7 @@ class _CreateFolderPageState extends State<CreateFolderPage> {
       final appDb = db.appDatabase;
 
       await appDb.createFolder(
-          folderInfo: FolderInfo(
+          folderInfo: FolderDraft(
         title: _titleController.text,
         description: _descriptionController.text,
       ));

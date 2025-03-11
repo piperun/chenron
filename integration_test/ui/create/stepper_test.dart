@@ -74,7 +74,7 @@ void main() {
       await tester.tap(find.text("Create"));
       await tester.pumpAndSettle();
 
-      expect(find.byType(FolderInfoStep), findsOneWidget);
+      expect(find.byType(FolderDraftStep), findsOneWidget);
 
       Future<void> enterAndVerifyText(String label, String text) async {
         expect(find.widgetWithText(TextFormField, label), findsOneWidget);

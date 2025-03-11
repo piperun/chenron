@@ -16,7 +16,7 @@ extension FolderExtensions on AppDatabase {
       CUD<FolderItem>? itemUpdates}) {
     return batchOps((batch) async {
       if (title != null || description != null) {
-        await _updateFolderInfo(folderId, title, description);
+        await _updateFolderDraft(folderId, title, description);
       }
       if (tagUpdates != null) {
         await _updateFolderTags(folderId, tagUpdates);
@@ -27,7 +27,7 @@ extension FolderExtensions on AppDatabase {
     });
   }
 
-  Future<int> _updateFolderInfo(
+  Future<int> _updateFolderDraft(
       String folderId, String? title, String? description) async {
     final folderUpdate = FoldersCompanion(
       title: title == null ? const Value.absent() : Value(title),

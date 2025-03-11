@@ -1,3 +1,4 @@
+import "package:chenron/models/created_ids.dart";
 import "package:chenron/models/folder.dart";
 import "package:chenron/models/item.dart";
 import "package:chenron/models/metadata.dart";
@@ -14,7 +15,8 @@ void main() {
     late AppDatabase database;
 
     setUp(() async {
-      database = AppDatabase(databaseName: "test_db");
+      database = AppDatabase(
+          databaseName: "test_db", setupOnInit: true, debugMode: true);
 
       await database.delete(database.folders).go();
       await database.delete(database.items).go();
@@ -27,24 +29,28 @@ void main() {
 
     test("Remove folder without tags", () async {
       // Create a test folder
-      final folderInfo = FolderInfo(
+      final folderInfo = FolderDraft(
         title: "Test Folder",
         description: "Test Description",
       );
-      await database.createFolder(folderInfo: folderInfo);
+      CreatedIds<Folder> createdIds =
+          await database.createFolder(folderInfo: folderInfo);
+
+      expect(createdIds.folderId, isNotNull);
 
       // Remove the folder
-      await database.removeFolder(folderInfo.id);
+      await database.removeFolder(createdIds.folderId!);
 
       // Check if the folder is removed
-      final result =
-          await database.folders.findById(folderInfo.id).getSingleOrNull();
+      final result = await database.folders
+          .findById(createdIds.folderId!)
+          .getSingleOrNull();
       expect(result, isNull);
     });
 
     test("Remove folder with tags", () async {
       // Create a test folder with tags
-      final folderInfo = FolderInfo(
+      final folderInfo = FolderDraft(
         title: "Test Folder with Tags",
         description: "Test Description",
       );
@@ -52,26 +58,30 @@ void main() {
         Metadata(value: "tag1", type: MetadataTypeEnum.tag),
         Metadata(value: "tag2", type: MetadataTypeEnum.tag),
       ];
-      await database.createFolder(folderInfo: folderInfo, tags: tags);
+      CreatedIds<Folder> createdIds =
+          await database.createFolder(folderInfo: folderInfo, tags: tags);
+
+      expect(createdIds.folderId, isNotNull);
 
       // Remove the folder
-      await database.removeFolder(folderInfo.id);
+      await database.removeFolder(createdIds.folderId!);
 
       // Check if the folder is removed
-      final folderResult =
-          await database.folders.findById(folderInfo.id).getSingleOrNull();
+      final folderResult = await database.folders
+          .findById(createdIds.folderId!)
+          .getSingleOrNull();
       expect(folderResult, isNull);
 
       // Check if folder tags are removed
       final tagResult = await (database.select(database.metadataRecords)
-            ..where((tbl) => tbl.itemId.equals(folderInfo.id)))
+            ..where((tbl) => tbl.itemId.equals(createdIds.folderId!)))
           .get();
       expect(tagResult, isEmpty);
     });
 
     test("Remove folder with items", () async {
       // Create a test folder with items
-      final folderInfo = FolderInfo(
+      final folderInfo = FolderDraft(
         title: "Test Folder with Items",
         description: "Test Description",
       );
@@ -82,26 +92,30 @@ void main() {
           type: FolderItemType.document,
           content: MapContent(
               value: {"title": "Test Document", "body": "Test Content"}));
-      await database
+
+      CreatedIds<Folder> createdIds = await database
           .createFolder(folderInfo: folderInfo, items: [link, document]);
 
+      expect(createdIds.folderId, isNotNull);
+
       // Remove the folder
-      await database.removeFolder(folderInfo.id);
+      await database.removeFolder(createdIds.folderId!);
 
       // Check if the folder is removed
-      final folderResult =
-          await database.folders.findById(folderInfo.id).getSingleOrNull();
+      final folderResult = await database.folders
+          .findById(createdIds.folderId!)
+          .getSingleOrNull();
       expect(folderResult, isNull);
 
       // Check if folder links are removed
       final linkResult = await (database.select(database.items)
-            ..where((tbl) => tbl.folderId.equals(folderInfo.id)))
+            ..where((tbl) => tbl.folderId.equals(createdIds.folderId!)))
           .get();
       expect(linkResult, isEmpty);
 
       // Check if folder documents are removed
       final documentResult = await (database.select(database.items)
-            ..where((tbl) => tbl.folderId.equals(folderInfo.id)))
+            ..where((tbl) => tbl.folderId.equals(createdIds.folderId!)))
           .get();
       expect(documentResult, isEmpty);
     });

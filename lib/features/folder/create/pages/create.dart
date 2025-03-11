@@ -70,13 +70,13 @@ class _CreateFolderState extends State<CreateFolder> {
 
     if (currentStep == StepperStep.values.last) {
       // Last step: Save data to the database
-      final folderDraft = locator.get<Signal<FolderDraft>>().value.folder;
+      final folderDraft = locator.get<Signal<FolderSignal>>().value;
 
       _saveToDatabase(
-        context,
-        folderDraft.folderInfo,
-        folderDraft.tags.toList(),
-        folderDraft.items.toList(),
+        context: context,
+        folderInfo: folderDraft.folder,
+        tags: folderDraft.folder.tags.toList(),
+        items: folderDraft.folder.items.toList(),
       );
 
       if (context.mounted) {
@@ -125,19 +125,19 @@ class _CreateFolderState extends State<CreateFolder> {
     ];
   }
 
-  void _saveToDatabase(
-    BuildContext context,
-    FolderInfo folderInfo,
-    List<Metadata> tags,
-    List<FolderItem> folderData,
-  ) async {
+  void _saveToDatabase({
+    required BuildContext context,
+    required FolderDraft folderInfo,
+    required List<Metadata> tags,
+    required List<FolderItem> items,
+  }) async {
     final database = await locator
         .get<Signal<Future<AppDatabaseHandler>>>()
         .value
         .then((db) => db.appDatabase);
 
     database.createFolderExtended(
-        folderInfo: folderInfo, tags: tags, items: folderData);
+        folderInfo: folderInfo, tags: tags, items: items);
 
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(

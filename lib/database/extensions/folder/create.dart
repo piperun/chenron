@@ -10,7 +10,7 @@ import "package:drift/drift.dart";
 
 extension FolderExtensions on AppDatabase {
   Future<CreatedIds<Folder>> createFolder({
-    required FolderInfo folderInfo,
+    required FolderDraft folderInfo,
     List<Metadata>? tags,
     List<FolderItem>? items,
   }) async {
@@ -20,7 +20,7 @@ extension FolderExtensions on AppDatabase {
       List<CreatedIds<Item>>? createdItemIds;
       try {
         if (folderInfo.title != "") {
-          folderId = await _createFolderInfo(folderInfo);
+          folderId = await _createFolderDraft(folderInfo);
         }
         if (tags != null) {
           createdTagIds = await _createFolderTags(folderId!, tags);
@@ -40,7 +40,7 @@ extension FolderExtensions on AppDatabase {
     });
   }
 
-  Future<String> _createFolderInfo(FolderInfo folderInfo) async {
+  Future<String> _createFolderDraft(FolderDraft folderInfo) async {
     String id = generateId();
     final newFolder = FoldersCompanion.insert(
       id: id,

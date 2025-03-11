@@ -18,7 +18,7 @@ class _TagFieldState extends State<TagField> {
 
   @override
   Widget build(BuildContext context) {
-    final folderDraft = locator.get<Signal<FolderDraft>>().value;
+    final folderDraft = locator.get<Signal<FolderSignal>>().value;
     return Column(
       children: [
         OverflowBar(

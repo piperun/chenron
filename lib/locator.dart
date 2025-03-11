@@ -20,6 +20,6 @@ void locatorSetup() {
   locator.registerSingleton<Signal<Future<ChenronDirectories?>>>(
       signal(initializeChenronDirs()));
   locator.registerSingleton<Signal<FolderStepper>>(signal(FolderStepper()));
-  locator.registerSingleton<Signal<FolderDraft>>(
-      signal(FolderDraft(), autoDispose: true));
+  locator.registerSingleton<Signal<FolderSignal>>(
+      signal(FolderSignal(), autoDispose: true));
 }

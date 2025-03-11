@@ -12,7 +12,7 @@ import "package:chenron/utils/web_archive/archive_org/archive_org_options.dart";
 
 extension PayloadExtensions on AppDatabase {
   Future<void> createFolderExtended({
-    required FolderInfo folderInfo,
+    required FolderDraft folderInfo,
     List<Metadata>? tags,
     List<FolderItem>? items,
     ArchiveOrgOptions? archiveOptions,
@@ -38,7 +38,7 @@ extension PayloadExtensions on AppDatabase {
 
   Future<void> updateFolderExtended({
     required String folderId,
-    required FolderInfo folderInfo,
+    required FolderDraft folderInfo,
     CUD<Metadata>? tags,
     CUD<FolderItem>? items,
     ArchiveOrgOptions? archiveOptions,

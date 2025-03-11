@@ -25,7 +25,7 @@ extension DatabaseInit on AppDatabase {
 
     if (folderCount == 0) {
       await createFolder(
-        folderInfo: FolderInfo(
+        folderInfo: FolderDraft(
           title: "Default",
           description: "Default folder for all items",
         ),

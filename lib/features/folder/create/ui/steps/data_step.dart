@@ -17,8 +17,7 @@ class DataStep extends StatefulWidget {
 }
 
 class _DataStepState extends State<DataStep> {
-  final _folderType =
-      locator.get<Signal<FolderDraft>>().value.folder.folderType;
+  final _folderType = locator.get<Signal<FolderSignal>>().value.folderType;
   @override
   Widget build(BuildContext context) {
     return Column(

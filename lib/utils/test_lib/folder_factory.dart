@@ -3,7 +3,7 @@ import "package:chenron/models/item.dart";
 import "package:chenron/models/metadata.dart";
 
 class FolderTestData {
-  final FolderInfo folder;
+  final FolderDraft folder;
   final List<Metadata> tags;
   final List<FolderItem> items;
 
@@ -11,9 +11,9 @@ class FolderTestData {
       {required this.folder, required this.tags, required this.items});
 }
 
-class FolderInfoFactory {
-  static FolderInfo create(String title, String description) {
-    return FolderInfo(title: title, description: description);
+class FolderDraftFactory {
+  static FolderDraft create(String title, String description) {
+    return FolderDraft(title: title, description: description);
   }
 }
 
@@ -73,7 +73,7 @@ class FolderTestDataFactory {
     required List<Map<String, dynamic>> itemsData,
   }) {
     return FolderTestData(
-      folder: FolderInfoFactory.create(title, description),
+      folder: FolderDraftFactory.create(title, description),
       tags: MetadataFactory.createTags(tagValues),
       items: FolderItemFactory.createItems(itemsData),
     );

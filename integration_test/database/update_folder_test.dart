@@ -1,4 +1,3 @@
-import "package:chenron/database/actions/handlers/read_handler.dart";
 import "package:chenron/database/database.dart";
 import "package:chenron/database/extensions/folder/create.dart";
 import "package:chenron/database/extensions/folder/read.dart";
@@ -22,7 +21,8 @@ void main() {
   late CreatedIds<Folder> createdIds;
 
   setUp(() async {
-    database = AppDatabase(databaseName: "test_db");
+    database = AppDatabase(
+        databaseName: "test_db", setupOnInit: true, debugMode: true);
 
     testFolderData = FolderTestDataFactory.create(
       title: "update folder",
@@ -34,7 +34,7 @@ void main() {
     testNewTags = MetadataFactory.createTags(newTagNames);
 
     createdIds = await database.createFolder(
-        folderInfo: FolderInfo(
+        folderInfo: FolderDraft(
       title: testFolderData.folder.title,
       description: testFolderData.folder.description,
     ));

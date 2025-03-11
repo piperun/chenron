@@ -12,7 +12,8 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   late AppDatabase database;
   setUp(() {
-    database = AppDatabase(setupOnInit: true, databaseName: "test_db");
+    database = AppDatabase(
+        databaseName: "test_db", setupOnInit: true, debugMode: true);
   });
   tearDown(() async {
     await database.close();

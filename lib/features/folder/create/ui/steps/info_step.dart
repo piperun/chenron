@@ -6,21 +6,21 @@ import "package:chenron/utils/validation/folder_validator.dart";
 import "package:flutter/material.dart";
 import "package:signals/signals_flutter.dart";
 
-class FolderInfoStep extends StatefulWidget {
+class FolderDraftStep extends StatefulWidget {
   final GlobalKey<FormState> formKey;
   final ValueChanged<FolderType> onFolderTypeChanged;
 
-  const FolderInfoStep({
+  const FolderDraftStep({
     super.key,
     required this.formKey,
     required this.onFolderTypeChanged,
   });
 
   @override
-  State<FolderInfoStep> createState() => _FolderInfoStepState();
+  State<FolderDraftStep> createState() => _FolderDraftStepState();
 }
 
-class _FolderInfoStepState extends State<FolderInfoStep> {
+class _FolderDraftStepState extends State<FolderDraftStep> {
   late TextEditingController _titleController;
   late TextEditingController _descriptionController;
   final TextEditingController _tagsController = TextEditingController();
@@ -28,12 +28,11 @@ class _FolderInfoStepState extends State<FolderInfoStep> {
   @override
   void initState() {
     super.initState();
-    final folderDraft = locator.get<Signal<FolderDraft>>().value.folder;
+    final folderDraft = locator.get<Signal<FolderSignal>>().value.folder;
 
-    _titleController =
-        TextEditingController(text: folderDraft.folderInfo.title);
+    _titleController = TextEditingController(text: folderDraft.title);
     _descriptionController =
-        TextEditingController(text: folderDraft.folderInfo.description);
+        TextEditingController(text: folderDraft.description);
   }
 
   @override
@@ -46,7 +45,7 @@ class _FolderInfoStepState extends State<FolderInfoStep> {
 
   @override
   Widget build(BuildContext context) {
-    final folderDraft = locator.get<Signal<FolderDraft>>().value;
+    final folderDraft = locator.get<Signal<FolderSignal>>().value;
     return Watch.builder(
       builder: (context) => Form(
         key: widget.formKey,
@@ -88,7 +87,7 @@ class InfoStep extends StatefulWidget {
 }
 
 class _InfoStepState extends State<InfoStep> {
-  final folderDraft = locator.get<Signal<FolderDraft>>();
+  final folderDraft = locator.get<Signal<FolderSignal>>();
 
   @override
   Widget build(BuildContext context) {
@@ -104,16 +103,15 @@ class _InfoStepState extends State<InfoStep> {
               const FolderTypeDropDown(),
               TextFormField(
                 decoration: const InputDecoration(labelText: "Title"),
-                initialValue: folderDraft.value.folder.folderInfo.title,
-                onSaved: (value) =>
-                    folderDraft.value.folder.folderInfo.title = value!,
+                initialValue: folderDraft.value.folder.title,
+                onSaved: (value) => folderDraft.value.folder.title = value!,
                 validator: FolderValidator.validateTitle,
               ),
               TextFormField(
                   decoration: const InputDecoration(labelText: "Description"),
-                  initialValue: folderDraft.value.folder.folderInfo.description,
+                  initialValue: folderDraft.value.folder.description,
                   onSaved: (value) =>
-                      folderDraft.value.folder.folderInfo.description = value!,
+                      folderDraft.value.folder.description = value!,
                   validator: FolderValidator.validateDescription),
               const TagField(),
             ],
@@ -167,7 +165,7 @@ class FolderTypeDropDown extends StatefulWidget {
 
 class _FolderTypeDropDownState extends State<FolderTypeDropDown> {
   final _selectedFolderType =
-      locator.get<Signal<FolderDraft>>().value.folder.folderType;
+      locator.get<Signal<FolderSignal>>().value.folderType;
   static const Map<FolderType, String> _folderTypeText = {
     FolderType.link: "Link",
     FolderType.document: "Document",
@@ -204,16 +202,16 @@ class ArchiveSelector extends StatefulWidget {
 }
 
 class _ArchiveSelectorState extends State<ArchiveSelector> {
-  final folderDraft = locator.get<Signal<FolderDraft>>();
+  final folderDraft = locator.get<Signal<FolderSignal>>();
   @override
   Widget build(BuildContext context) {
     return ListTile(
       title: const Text("Archive"),
       trailing: SegmentedButton<ArchiveMode>(
-          selected: {folderDraft.value.folder.archiveMode.value},
+          selected: {folderDraft.value.archiveMode.value},
           onSelectionChanged: (Set<ArchiveMode> newSelection) {
             setState(() {
-              folderDraft.value.folder.archiveMode.value = newSelection.first;
+              folderDraft.value.archiveMode.value = newSelection.first;
             });
           },
           segments: const <ButtonSegment<ArchiveMode>>[
