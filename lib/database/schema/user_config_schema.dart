@@ -1,5 +1,6 @@
 import "package:drift/drift.dart";
 
+// TODO: One-to-One relationship between UserConfigs, BackupSettings and ArhicveSettings
 class UserConfigs extends Table {
   TextColumn get id => text().withLength(min: 30, max: 60)();
   BoolColumn get darkMode => boolean().withDefault(const Constant(false))();
