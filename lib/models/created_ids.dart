@@ -85,3 +85,7 @@ extension FolderCreatedIdsExtension on CreatedIds<Folder> {
   List<CreatedIds<Tag>>? get typedTags =>
       getRelated(IncludeOptions.tags)?.cast<CreatedIds<Tag>>();
 }
+
+extension UserConfigExtensions on CreatedIds<UserConfig> {
+  String? get userConfigId => primaryId;
+}
