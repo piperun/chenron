@@ -116,11 +116,11 @@ void main() {
         modes: {IncludeOptions.items, IncludeOptions.tags},
       );
       print(folderWithAll!.data.title);
-      folderWithAll.items.forEach((element) {
+      for (var element in folderWithAll.items) {
         print("item's id: ${element.id}");
         print("itemid: ${element.itemId}");
         print("type: ${element.type}");
-      });
+      }
 
       expect(folderWithAll, isNotNull);
       expect(folderWithAll.items, isNotNull);
