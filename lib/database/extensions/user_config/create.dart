@@ -1,26 +1,31 @@
 import "package:chenron/database/database.dart";
-import "package:chenron/database/schema/user_config_schema.dart";
+import "package:chenron/database/extensions/id.dart";
 import "package:chenron/utils/logger.dart";
+import "package:chenron/models/created_ids.dart";
 import "package:drift/drift.dart";
-import "package:cuid2/cuid2.dart";
 
 extension UserConfigExtensions on ConfigDatabase {
-  Future<void> createUserConfig(UserConfig userConfig) async {
+  Future<CreatedIds<UserConfig>> createUserConfig(UserConfig userConfig) async {
     return transaction(() async {
       try {
+        String id = generateId();
         final insertConfig = UserConfigsCompanion.insert(
-          id: cuidSecure(30),
+          id: id,
           darkMode: Value(userConfig.darkMode),
           colorScheme: Value(userConfig.colorScheme),
           archiveOrgS3AccessKey: Value(userConfig.archiveOrgS3AccessKey),
           archiveOrgS3SecretKey: Value(userConfig.archiveOrgS3SecretKey),
+          copyOnImport: Value(userConfig.copyOnImport),
+          archiveEnabled: Value(userConfig.archiveEnabled),
         );
 
-        await _createUserConfigEntry(insertConfig);
+        final userId = await _createUserConfigEntry(insertConfig);
         loggerGlobal.info(
           "UserConfigActionsCreate",
           "User config created successfully",
         );
+
+        return CreatedIds<UserConfig>(primaryId: userId.toString());
       } catch (e) {
         loggerGlobal.severe(
           "UserConfigActionsCreate",
@@ -31,19 +36,27 @@ extension UserConfigExtensions on ConfigDatabase {
     });
   }
 
-  Future<int> _createUserConfigEntry(UserConfigsCompanion userConfig) async {
-    return await into(userConfigs).insert(userConfig);
+  Future<String> _createUserConfigEntry(UserConfigsCompanion userConfig) async {
+    final id = userConfig.id.value;
+    await into(userConfigs).insert(userConfig);
+    return id;
   }
 }
 
 extension BackupSettingsExtensions on ConfigDatabase {
-  Future<void> createBackupSettings(BackupSetting backupSetting) async {
+  Future<CreatedIds<BackupSetting>> createBackupSettings({
+    required BackupSetting backupSetting,
+    required String userConfigId,
+  }) async {
     return transaction(() async {
       try {
+        final backupId = generateId();
         final insertBackupSetting = BackupSettingsCompanion.insert(
-          id: cuidSecure(30),
+          id: backupId,
+          userConfigId: userConfigId,
           backupFilename: Value(backupSetting.backupFilename),
           backupPath: Value(backupSetting.backupPath),
+          backupInterval: Value(backupSetting.backupInterval),
         );
 
         await _createBackupSettingsEntry(insertBackupSetting);
@@ -51,6 +64,8 @@ extension BackupSettingsExtensions on ConfigDatabase {
           "BackupSettingsCreate",
           "Backup settings created successfully",
         );
+
+        return CreatedIds<BackupSetting>(primaryId: backupId);
       } catch (e) {
         loggerGlobal.severe(
           "BackupSettingsCreate",
@@ -61,8 +76,10 @@ extension BackupSettingsExtensions on ConfigDatabase {
     });
   }
 
-  Future<int> _createBackupSettingsEntry(
+  Future<String> _createBackupSettingsEntry(
       BackupSettingsCompanion backupSetting) async {
-    return await into(backupSettings).insert(backupSetting);
+    final id = backupSetting.id.value;
+    await into(backupSettings).insert(backupSetting);
+    return id;
   }
 }
