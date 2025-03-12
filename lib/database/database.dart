@@ -89,8 +89,10 @@ class AppDatabase extends _$AppDatabase {
 @DriftDatabase(tables: [
   UserConfigs,
   BackupSettings,
+  ArchiveSettings,
 ])
 class ConfigDatabase extends _$ConfigDatabase {
+  static const int idLength = 30;
   bool setupOnInit;
 
   ConfigDatabase({

@@ -2260,7 +2260,7 @@ final class $$FoldersTableReferences
 
   $$ItemsTableProcessedTableManager get itemsRefs {
     final manager = $$ItemsTableTableManager($_db, $_db.items)
-        .filter((f) => f.folderId.id($_item.id));
+        .filter((f) => f.folderId.id.sqlEquals($_itemColumn<String>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_itemsRefsTable($_db));
     return ProcessedTableManager(
@@ -2438,7 +2438,7 @@ class $$FoldersTableTableManager extends RootTableManager<
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (itemsRefs)
-                    await $_getPrefetchedData(
+                    await $_getPrefetchedData<Folder, $FoldersTable, Item>(
                         currentTable: table,
                         referencedTable:
                             $$FoldersTableReferences._itemsRefsTable(db),
@@ -2953,7 +2953,7 @@ final class $$ItemTypesTableReferences
 
   $$ItemsTableProcessedTableManager get itemsRefs {
     final manager = $$ItemsTableTableManager($_db, $_db.items)
-        .filter((f) => f.typeId.id($_item.id));
+        .filter((f) => f.typeId.id.sqlEquals($_itemColumn<int>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_itemsRefsTable($_db));
     return ProcessedTableManager(
@@ -3103,7 +3103,7 @@ class $$ItemTypesTableTableManager extends RootTableManager<
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (itemsRefs)
-                    await $_getPrefetchedData(
+                    await $_getPrefetchedData<ItemType, $ItemTypesTable, Item>(
                         currentTable: table,
                         referencedTable:
                             $$ItemTypesTableReferences._itemsRefsTable(db),
@@ -3157,8 +3157,10 @@ final class $$ItemsTableReferences
       .createAlias($_aliasNameGenerator(db.items.folderId, db.folders.id));
 
   $$FoldersTableProcessedTableManager get folderId {
+    final $_column = $_itemColumn<String>('folder_id')!;
+
     final manager = $$FoldersTableTableManager($_db, $_db.folders)
-        .filter((f) => f.id($_item.folderId));
+        .filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_folderIdTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
@@ -3169,8 +3171,10 @@ final class $$ItemsTableReferences
       .createAlias($_aliasNameGenerator(db.items.typeId, db.itemTypes.id));
 
   $$ItemTypesTableProcessedTableManager get typeId {
+    final $_column = $_itemColumn<int>('type_id')!;
+
     final manager = $$ItemTypesTableTableManager($_db, $_db.itemTypes)
-        .filter((f) => f.id($_item.typeId));
+        .filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_typeIdTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
@@ -3495,7 +3499,7 @@ final class $$MetadataTypesTableReferences
   $$MetadataRecordsTableProcessedTableManager get metadataRecordsRefs {
     final manager =
         $$MetadataRecordsTableTableManager($_db, $_db.metadataRecords)
-            .filter((f) => f.typeId.id($_item.id));
+            .filter((f) => f.typeId.id.sqlEquals($_itemColumn<int>('id')!));
 
     final cache =
         $_typedResult.readTableOrNull(_metadataRecordsRefsTable($_db));
@@ -3648,7 +3652,7 @@ class $$MetadataTypesTableTableManager extends RootTableManager<
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (metadataRecordsRefs)
-                    await $_getPrefetchedData(
+                    await $_getPrefetchedData<MetadataType, $MetadataTypesTable, MetadataRecord>(
                         currentTable: table,
                         referencedTable: $$MetadataTypesTableReferences
                             ._metadataRecordsRefsTable(db),
@@ -3709,8 +3713,10 @@ final class $$MetadataRecordsTableReferences extends BaseReferences<
           $_aliasNameGenerator(db.metadataRecords.typeId, db.metadataTypes.id));
 
   $$MetadataTypesTableProcessedTableManager get typeId {
+    final $_column = $_itemColumn<int>('type_id')!;
+
     final manager = $$MetadataTypesTableTableManager($_db, $_db.metadataTypes)
-        .filter((f) => f.id($_item.typeId));
+        .filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_typeIdTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
@@ -4023,6 +4029,18 @@ class $UserConfigsTable extends UserConfigs
       defaultConstraints: GeneratedColumn.constraintIsAlways(
           'CHECK ("copy_on_import" IN (0, 1))'),
       defaultValue: const Constant(true));
+  static const VerificationMeta _archiveOrgS3AccessKeyMeta =
+      const VerificationMeta('archiveOrgS3AccessKey');
+  @override
+  late final GeneratedColumn<String> archiveOrgS3AccessKey =
+      GeneratedColumn<String>('archive_org_s3_access_key', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _archiveOrgS3SecretKeyMeta =
+      const VerificationMeta('archiveOrgS3SecretKey');
+  @override
+  late final GeneratedColumn<String> archiveOrgS3SecretKey =
+      GeneratedColumn<String>('archive_org_s3_secret_key', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _archiveEnabledMeta =
       const VerificationMeta('archiveEnabled');
   @override
@@ -4039,27 +4057,15 @@ class $UserConfigsTable extends UserConfigs
   late final GeneratedColumn<String> colorScheme = GeneratedColumn<String>(
       'color_scheme', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _archiveOrgS3AccessKeyMeta =
-      const VerificationMeta('archiveOrgS3AccessKey');
-  @override
-  late final GeneratedColumn<String> archiveOrgS3AccessKey =
-      GeneratedColumn<String>('archive_org_s3_access_key', aliasedName, true,
-          type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _archiveOrgS3SecretKeyMeta =
-      const VerificationMeta('archiveOrgS3SecretKey');
-  @override
-  late final GeneratedColumn<String> archiveOrgS3SecretKey =
-      GeneratedColumn<String>('archive_org_s3_secret_key', aliasedName, true,
-          type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
         darkMode,
         copyOnImport,
-        archiveEnabled,
-        colorScheme,
         archiveOrgS3AccessKey,
-        archiveOrgS3SecretKey
+        archiveOrgS3SecretKey,
+        archiveEnabled,
+        colorScheme
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -4086,18 +4092,6 @@ class $UserConfigsTable extends UserConfigs
           copyOnImport.isAcceptableOrUnknown(
               data['copy_on_import']!, _copyOnImportMeta));
     }
-    if (data.containsKey('archive_enabled')) {
-      context.handle(
-          _archiveEnabledMeta,
-          archiveEnabled.isAcceptableOrUnknown(
-              data['archive_enabled']!, _archiveEnabledMeta));
-    }
-    if (data.containsKey('color_scheme')) {
-      context.handle(
-          _colorSchemeMeta,
-          colorScheme.isAcceptableOrUnknown(
-              data['color_scheme']!, _colorSchemeMeta));
-    }
     if (data.containsKey('archive_org_s3_access_key')) {
       context.handle(
           _archiveOrgS3AccessKeyMeta,
@@ -4110,11 +4104,23 @@ class $UserConfigsTable extends UserConfigs
           archiveOrgS3SecretKey.isAcceptableOrUnknown(
               data['archive_org_s3_secret_key']!, _archiveOrgS3SecretKeyMeta));
     }
+    if (data.containsKey('archive_enabled')) {
+      context.handle(
+          _archiveEnabledMeta,
+          archiveEnabled.isAcceptableOrUnknown(
+              data['archive_enabled']!, _archiveEnabledMeta));
+    }
+    if (data.containsKey('color_scheme')) {
+      context.handle(
+          _colorSchemeMeta,
+          colorScheme.isAcceptableOrUnknown(
+              data['color_scheme']!, _colorSchemeMeta));
+    }
     return context;
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => const {};
+  Set<GeneratedColumn> get $primaryKey => {id};
   @override
   UserConfig map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
@@ -4125,16 +4131,16 @@ class $UserConfigsTable extends UserConfigs
           .read(DriftSqlType.bool, data['${effectivePrefix}dark_mode'])!,
       copyOnImport: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}copy_on_import'])!,
-      archiveEnabled: attachedDatabase.typeMapping
-          .read(DriftSqlType.bool, data['${effectivePrefix}archive_enabled'])!,
-      colorScheme: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}color_scheme']),
       archiveOrgS3AccessKey: attachedDatabase.typeMapping.read(
           DriftSqlType.string,
           data['${effectivePrefix}archive_org_s3_access_key']),
       archiveOrgS3SecretKey: attachedDatabase.typeMapping.read(
           DriftSqlType.string,
           data['${effectivePrefix}archive_org_s3_secret_key']),
+      archiveEnabled: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}archive_enabled'])!,
+      colorScheme: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}color_scheme']),
     );
   }
 
@@ -4148,28 +4154,24 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
   final String id;
   final bool darkMode;
   final bool copyOnImport;
-  final bool archiveEnabled;
-  final String? colorScheme;
   final String? archiveOrgS3AccessKey;
   final String? archiveOrgS3SecretKey;
+  final bool archiveEnabled;
+  final String? colorScheme;
   const UserConfig(
       {required this.id,
       required this.darkMode,
       required this.copyOnImport,
-      required this.archiveEnabled,
-      this.colorScheme,
       this.archiveOrgS3AccessKey,
-      this.archiveOrgS3SecretKey});
+      this.archiveOrgS3SecretKey,
+      required this.archiveEnabled,
+      this.colorScheme});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     map['dark_mode'] = Variable<bool>(darkMode);
     map['copy_on_import'] = Variable<bool>(copyOnImport);
-    map['archive_enabled'] = Variable<bool>(archiveEnabled);
-    if (!nullToAbsent || colorScheme != null) {
-      map['color_scheme'] = Variable<String>(colorScheme);
-    }
     if (!nullToAbsent || archiveOrgS3AccessKey != null) {
       map['archive_org_s3_access_key'] =
           Variable<String>(archiveOrgS3AccessKey);
@@ -4177,6 +4179,10 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
     if (!nullToAbsent || archiveOrgS3SecretKey != null) {
       map['archive_org_s3_secret_key'] =
           Variable<String>(archiveOrgS3SecretKey);
+    }
+    map['archive_enabled'] = Variable<bool>(archiveEnabled);
+    if (!nullToAbsent || colorScheme != null) {
+      map['color_scheme'] = Variable<String>(colorScheme);
     }
     return map;
   }
@@ -4186,16 +4192,16 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
       id: Value(id),
       darkMode: Value(darkMode),
       copyOnImport: Value(copyOnImport),
-      archiveEnabled: Value(archiveEnabled),
-      colorScheme: colorScheme == null && nullToAbsent
-          ? const Value.absent()
-          : Value(colorScheme),
       archiveOrgS3AccessKey: archiveOrgS3AccessKey == null && nullToAbsent
           ? const Value.absent()
           : Value(archiveOrgS3AccessKey),
       archiveOrgS3SecretKey: archiveOrgS3SecretKey == null && nullToAbsent
           ? const Value.absent()
           : Value(archiveOrgS3SecretKey),
+      archiveEnabled: Value(archiveEnabled),
+      colorScheme: colorScheme == null && nullToAbsent
+          ? const Value.absent()
+          : Value(colorScheme),
     );
   }
 
@@ -4206,12 +4212,12 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
       id: serializer.fromJson<String>(json['id']),
       darkMode: serializer.fromJson<bool>(json['darkMode']),
       copyOnImport: serializer.fromJson<bool>(json['copyOnImport']),
-      archiveEnabled: serializer.fromJson<bool>(json['archiveEnabled']),
-      colorScheme: serializer.fromJson<String?>(json['colorScheme']),
       archiveOrgS3AccessKey:
           serializer.fromJson<String?>(json['archiveOrgS3AccessKey']),
       archiveOrgS3SecretKey:
           serializer.fromJson<String?>(json['archiveOrgS3SecretKey']),
+      archiveEnabled: serializer.fromJson<bool>(json['archiveEnabled']),
+      colorScheme: serializer.fromJson<String?>(json['colorScheme']),
     );
   }
   @override
@@ -4221,12 +4227,12 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
       'id': serializer.toJson<String>(id),
       'darkMode': serializer.toJson<bool>(darkMode),
       'copyOnImport': serializer.toJson<bool>(copyOnImport),
-      'archiveEnabled': serializer.toJson<bool>(archiveEnabled),
-      'colorScheme': serializer.toJson<String?>(colorScheme),
       'archiveOrgS3AccessKey':
           serializer.toJson<String?>(archiveOrgS3AccessKey),
       'archiveOrgS3SecretKey':
           serializer.toJson<String?>(archiveOrgS3SecretKey),
+      'archiveEnabled': serializer.toJson<bool>(archiveEnabled),
+      'colorScheme': serializer.toJson<String?>(colorScheme),
     };
   }
 
@@ -4234,22 +4240,22 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
           {String? id,
           bool? darkMode,
           bool? copyOnImport,
-          bool? archiveEnabled,
-          Value<String?> colorScheme = const Value.absent(),
           Value<String?> archiveOrgS3AccessKey = const Value.absent(),
-          Value<String?> archiveOrgS3SecretKey = const Value.absent()}) =>
+          Value<String?> archiveOrgS3SecretKey = const Value.absent(),
+          bool? archiveEnabled,
+          Value<String?> colorScheme = const Value.absent()}) =>
       UserConfig(
         id: id ?? this.id,
         darkMode: darkMode ?? this.darkMode,
         copyOnImport: copyOnImport ?? this.copyOnImport,
-        archiveEnabled: archiveEnabled ?? this.archiveEnabled,
-        colorScheme: colorScheme.present ? colorScheme.value : this.colorScheme,
         archiveOrgS3AccessKey: archiveOrgS3AccessKey.present
             ? archiveOrgS3AccessKey.value
             : this.archiveOrgS3AccessKey,
         archiveOrgS3SecretKey: archiveOrgS3SecretKey.present
             ? archiveOrgS3SecretKey.value
             : this.archiveOrgS3SecretKey,
+        archiveEnabled: archiveEnabled ?? this.archiveEnabled,
+        colorScheme: colorScheme.present ? colorScheme.value : this.colorScheme,
       );
   UserConfig copyWithCompanion(UserConfigsCompanion data) {
     return UserConfig(
@@ -4258,17 +4264,17 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
       copyOnImport: data.copyOnImport.present
           ? data.copyOnImport.value
           : this.copyOnImport,
-      archiveEnabled: data.archiveEnabled.present
-          ? data.archiveEnabled.value
-          : this.archiveEnabled,
-      colorScheme:
-          data.colorScheme.present ? data.colorScheme.value : this.colorScheme,
       archiveOrgS3AccessKey: data.archiveOrgS3AccessKey.present
           ? data.archiveOrgS3AccessKey.value
           : this.archiveOrgS3AccessKey,
       archiveOrgS3SecretKey: data.archiveOrgS3SecretKey.present
           ? data.archiveOrgS3SecretKey.value
           : this.archiveOrgS3SecretKey,
+      archiveEnabled: data.archiveEnabled.present
+          ? data.archiveEnabled.value
+          : this.archiveEnabled,
+      colorScheme:
+          data.colorScheme.present ? data.colorScheme.value : this.colorScheme,
     );
   }
 
@@ -4278,17 +4284,23 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
           ..write('id: $id, ')
           ..write('darkMode: $darkMode, ')
           ..write('copyOnImport: $copyOnImport, ')
-          ..write('archiveEnabled: $archiveEnabled, ')
-          ..write('colorScheme: $colorScheme, ')
           ..write('archiveOrgS3AccessKey: $archiveOrgS3AccessKey, ')
-          ..write('archiveOrgS3SecretKey: $archiveOrgS3SecretKey')
+          ..write('archiveOrgS3SecretKey: $archiveOrgS3SecretKey, ')
+          ..write('archiveEnabled: $archiveEnabled, ')
+          ..write('colorScheme: $colorScheme')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, darkMode, copyOnImport, archiveEnabled,
-      colorScheme, archiveOrgS3AccessKey, archiveOrgS3SecretKey);
+  int get hashCode => Object.hash(
+      id,
+      darkMode,
+      copyOnImport,
+      archiveOrgS3AccessKey,
+      archiveOrgS3SecretKey,
+      archiveEnabled,
+      colorScheme);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -4296,61 +4308,61 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
           other.id == this.id &&
           other.darkMode == this.darkMode &&
           other.copyOnImport == this.copyOnImport &&
-          other.archiveEnabled == this.archiveEnabled &&
-          other.colorScheme == this.colorScheme &&
           other.archiveOrgS3AccessKey == this.archiveOrgS3AccessKey &&
-          other.archiveOrgS3SecretKey == this.archiveOrgS3SecretKey);
+          other.archiveOrgS3SecretKey == this.archiveOrgS3SecretKey &&
+          other.archiveEnabled == this.archiveEnabled &&
+          other.colorScheme == this.colorScheme);
 }
 
 class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
   final Value<String> id;
   final Value<bool> darkMode;
   final Value<bool> copyOnImport;
-  final Value<bool> archiveEnabled;
-  final Value<String?> colorScheme;
   final Value<String?> archiveOrgS3AccessKey;
   final Value<String?> archiveOrgS3SecretKey;
+  final Value<bool> archiveEnabled;
+  final Value<String?> colorScheme;
   final Value<int> rowid;
   const UserConfigsCompanion({
     this.id = const Value.absent(),
     this.darkMode = const Value.absent(),
     this.copyOnImport = const Value.absent(),
-    this.archiveEnabled = const Value.absent(),
-    this.colorScheme = const Value.absent(),
     this.archiveOrgS3AccessKey = const Value.absent(),
     this.archiveOrgS3SecretKey = const Value.absent(),
+    this.archiveEnabled = const Value.absent(),
+    this.colorScheme = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   UserConfigsCompanion.insert({
     required String id,
     this.darkMode = const Value.absent(),
     this.copyOnImport = const Value.absent(),
-    this.archiveEnabled = const Value.absent(),
-    this.colorScheme = const Value.absent(),
     this.archiveOrgS3AccessKey = const Value.absent(),
     this.archiveOrgS3SecretKey = const Value.absent(),
+    this.archiveEnabled = const Value.absent(),
+    this.colorScheme = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id);
   static Insertable<UserConfig> custom({
     Expression<String>? id,
     Expression<bool>? darkMode,
     Expression<bool>? copyOnImport,
-    Expression<bool>? archiveEnabled,
-    Expression<String>? colorScheme,
     Expression<String>? archiveOrgS3AccessKey,
     Expression<String>? archiveOrgS3SecretKey,
+    Expression<bool>? archiveEnabled,
+    Expression<String>? colorScheme,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (darkMode != null) 'dark_mode': darkMode,
       if (copyOnImport != null) 'copy_on_import': copyOnImport,
-      if (archiveEnabled != null) 'archive_enabled': archiveEnabled,
-      if (colorScheme != null) 'color_scheme': colorScheme,
       if (archiveOrgS3AccessKey != null)
         'archive_org_s3_access_key': archiveOrgS3AccessKey,
       if (archiveOrgS3SecretKey != null)
         'archive_org_s3_secret_key': archiveOrgS3SecretKey,
+      if (archiveEnabled != null) 'archive_enabled': archiveEnabled,
+      if (colorScheme != null) 'color_scheme': colorScheme,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -4359,21 +4371,21 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
       {Value<String>? id,
       Value<bool>? darkMode,
       Value<bool>? copyOnImport,
-      Value<bool>? archiveEnabled,
-      Value<String?>? colorScheme,
       Value<String?>? archiveOrgS3AccessKey,
       Value<String?>? archiveOrgS3SecretKey,
+      Value<bool>? archiveEnabled,
+      Value<String?>? colorScheme,
       Value<int>? rowid}) {
     return UserConfigsCompanion(
       id: id ?? this.id,
       darkMode: darkMode ?? this.darkMode,
       copyOnImport: copyOnImport ?? this.copyOnImport,
-      archiveEnabled: archiveEnabled ?? this.archiveEnabled,
-      colorScheme: colorScheme ?? this.colorScheme,
       archiveOrgS3AccessKey:
           archiveOrgS3AccessKey ?? this.archiveOrgS3AccessKey,
       archiveOrgS3SecretKey:
           archiveOrgS3SecretKey ?? this.archiveOrgS3SecretKey,
+      archiveEnabled: archiveEnabled ?? this.archiveEnabled,
+      colorScheme: colorScheme ?? this.colorScheme,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -4390,12 +4402,6 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
     if (copyOnImport.present) {
       map['copy_on_import'] = Variable<bool>(copyOnImport.value);
     }
-    if (archiveEnabled.present) {
-      map['archive_enabled'] = Variable<bool>(archiveEnabled.value);
-    }
-    if (colorScheme.present) {
-      map['color_scheme'] = Variable<String>(colorScheme.value);
-    }
     if (archiveOrgS3AccessKey.present) {
       map['archive_org_s3_access_key'] =
           Variable<String>(archiveOrgS3AccessKey.value);
@@ -4403,6 +4409,12 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
     if (archiveOrgS3SecretKey.present) {
       map['archive_org_s3_secret_key'] =
           Variable<String>(archiveOrgS3SecretKey.value);
+    }
+    if (archiveEnabled.present) {
+      map['archive_enabled'] = Variable<bool>(archiveEnabled.value);
+    }
+    if (colorScheme.present) {
+      map['color_scheme'] = Variable<String>(colorScheme.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -4416,10 +4428,10 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
           ..write('id: $id, ')
           ..write('darkMode: $darkMode, ')
           ..write('copyOnImport: $copyOnImport, ')
-          ..write('archiveEnabled: $archiveEnabled, ')
-          ..write('colorScheme: $colorScheme, ')
           ..write('archiveOrgS3AccessKey: $archiveOrgS3AccessKey, ')
           ..write('archiveOrgS3SecretKey: $archiveOrgS3SecretKey, ')
+          ..write('archiveEnabled: $archiveEnabled, ')
+          ..write('colorScheme: $colorScheme, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -4440,6 +4452,15 @@ class $BackupSettingsTable extends BackupSettings
           GeneratedColumn.checkTextLength(minTextLength: 30, maxTextLength: 60),
       type: DriftSqlType.string,
       requiredDuringInsert: true);
+  static const VerificationMeta _userConfigIdMeta =
+      const VerificationMeta('userConfigId');
+  @override
+  late final GeneratedColumn<String> userConfigId = GeneratedColumn<String>(
+      'user_config_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES user_configs (id)'));
   static const VerificationMeta _backupIntervalMeta =
       const VerificationMeta('backupInterval');
   @override
@@ -4460,7 +4481,7 @@ class $BackupSettingsTable extends BackupSettings
       type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns =>
-      [id, backupInterval, backupFilename, backupPath];
+      [id, userConfigId, backupInterval, backupFilename, backupPath];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -4475,6 +4496,14 @@ class $BackupSettingsTable extends BackupSettings
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     } else if (isInserting) {
       context.missing(_idMeta);
+    }
+    if (data.containsKey('user_config_id')) {
+      context.handle(
+          _userConfigIdMeta,
+          userConfigId.isAcceptableOrUnknown(
+              data['user_config_id']!, _userConfigIdMeta));
+    } else if (isInserting) {
+      context.missing(_userConfigIdMeta);
     }
     if (data.containsKey('backup_interval')) {
       context.handle(
@@ -4498,13 +4527,15 @@ class $BackupSettingsTable extends BackupSettings
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => const {};
+  Set<GeneratedColumn> get $primaryKey => {id};
   @override
   BackupSetting map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return BackupSetting(
       id: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      userConfigId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}user_config_id'])!,
       backupInterval: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}backup_interval']),
       backupFilename: attachedDatabase.typeMapping
@@ -4522,11 +4553,13 @@ class $BackupSettingsTable extends BackupSettings
 
 class BackupSetting extends DataClass implements Insertable<BackupSetting> {
   final String id;
+  final String userConfigId;
   final String? backupInterval;
   final String? backupFilename;
   final String? backupPath;
   const BackupSetting(
       {required this.id,
+      required this.userConfigId,
       this.backupInterval,
       this.backupFilename,
       this.backupPath});
@@ -4534,6 +4567,7 @@ class BackupSetting extends DataClass implements Insertable<BackupSetting> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
+    map['user_config_id'] = Variable<String>(userConfigId);
     if (!nullToAbsent || backupInterval != null) {
       map['backup_interval'] = Variable<String>(backupInterval);
     }
@@ -4549,6 +4583,7 @@ class BackupSetting extends DataClass implements Insertable<BackupSetting> {
   BackupSettingsCompanion toCompanion(bool nullToAbsent) {
     return BackupSettingsCompanion(
       id: Value(id),
+      userConfigId: Value(userConfigId),
       backupInterval: backupInterval == null && nullToAbsent
           ? const Value.absent()
           : Value(backupInterval),
@@ -4566,6 +4601,7 @@ class BackupSetting extends DataClass implements Insertable<BackupSetting> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return BackupSetting(
       id: serializer.fromJson<String>(json['id']),
+      userConfigId: serializer.fromJson<String>(json['userConfigId']),
       backupInterval: serializer.fromJson<String?>(json['backupInterval']),
       backupFilename: serializer.fromJson<String?>(json['backupFilename']),
       backupPath: serializer.fromJson<String?>(json['backupPath']),
@@ -4576,6 +4612,7 @@ class BackupSetting extends DataClass implements Insertable<BackupSetting> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
+      'userConfigId': serializer.toJson<String>(userConfigId),
       'backupInterval': serializer.toJson<String?>(backupInterval),
       'backupFilename': serializer.toJson<String?>(backupFilename),
       'backupPath': serializer.toJson<String?>(backupPath),
@@ -4584,11 +4621,13 @@ class BackupSetting extends DataClass implements Insertable<BackupSetting> {
 
   BackupSetting copyWith(
           {String? id,
+          String? userConfigId,
           Value<String?> backupInterval = const Value.absent(),
           Value<String?> backupFilename = const Value.absent(),
           Value<String?> backupPath = const Value.absent()}) =>
       BackupSetting(
         id: id ?? this.id,
+        userConfigId: userConfigId ?? this.userConfigId,
         backupInterval:
             backupInterval.present ? backupInterval.value : this.backupInterval,
         backupFilename:
@@ -4598,6 +4637,9 @@ class BackupSetting extends DataClass implements Insertable<BackupSetting> {
   BackupSetting copyWithCompanion(BackupSettingsCompanion data) {
     return BackupSetting(
       id: data.id.present ? data.id.value : this.id,
+      userConfigId: data.userConfigId.present
+          ? data.userConfigId.value
+          : this.userConfigId,
       backupInterval: data.backupInterval.present
           ? data.backupInterval.value
           : this.backupInterval,
@@ -4613,6 +4655,7 @@ class BackupSetting extends DataClass implements Insertable<BackupSetting> {
   String toString() {
     return (StringBuffer('BackupSetting(')
           ..write('id: $id, ')
+          ..write('userConfigId: $userConfigId, ')
           ..write('backupInterval: $backupInterval, ')
           ..write('backupFilename: $backupFilename, ')
           ..write('backupPath: $backupPath')
@@ -4622,12 +4665,13 @@ class BackupSetting extends DataClass implements Insertable<BackupSetting> {
 
   @override
   int get hashCode =>
-      Object.hash(id, backupInterval, backupFilename, backupPath);
+      Object.hash(id, userConfigId, backupInterval, backupFilename, backupPath);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is BackupSetting &&
           other.id == this.id &&
+          other.userConfigId == this.userConfigId &&
           other.backupInterval == this.backupInterval &&
           other.backupFilename == this.backupFilename &&
           other.backupPath == this.backupPath);
@@ -4635,12 +4679,14 @@ class BackupSetting extends DataClass implements Insertable<BackupSetting> {
 
 class BackupSettingsCompanion extends UpdateCompanion<BackupSetting> {
   final Value<String> id;
+  final Value<String> userConfigId;
   final Value<String?> backupInterval;
   final Value<String?> backupFilename;
   final Value<String?> backupPath;
   final Value<int> rowid;
   const BackupSettingsCompanion({
     this.id = const Value.absent(),
+    this.userConfigId = const Value.absent(),
     this.backupInterval = const Value.absent(),
     this.backupFilename = const Value.absent(),
     this.backupPath = const Value.absent(),
@@ -4648,13 +4694,16 @@ class BackupSettingsCompanion extends UpdateCompanion<BackupSetting> {
   });
   BackupSettingsCompanion.insert({
     required String id,
+    required String userConfigId,
     this.backupInterval = const Value.absent(),
     this.backupFilename = const Value.absent(),
     this.backupPath = const Value.absent(),
     this.rowid = const Value.absent(),
-  }) : id = Value(id);
+  })  : id = Value(id),
+        userConfigId = Value(userConfigId);
   static Insertable<BackupSetting> custom({
     Expression<String>? id,
+    Expression<String>? userConfigId,
     Expression<String>? backupInterval,
     Expression<String>? backupFilename,
     Expression<String>? backupPath,
@@ -4662,6 +4711,7 @@ class BackupSettingsCompanion extends UpdateCompanion<BackupSetting> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (userConfigId != null) 'user_config_id': userConfigId,
       if (backupInterval != null) 'backup_interval': backupInterval,
       if (backupFilename != null) 'backup_filename': backupFilename,
       if (backupPath != null) 'backup_path': backupPath,
@@ -4671,12 +4721,14 @@ class BackupSettingsCompanion extends UpdateCompanion<BackupSetting> {
 
   BackupSettingsCompanion copyWith(
       {Value<String>? id,
+      Value<String>? userConfigId,
       Value<String?>? backupInterval,
       Value<String?>? backupFilename,
       Value<String?>? backupPath,
       Value<int>? rowid}) {
     return BackupSettingsCompanion(
       id: id ?? this.id,
+      userConfigId: userConfigId ?? this.userConfigId,
       backupInterval: backupInterval ?? this.backupInterval,
       backupFilename: backupFilename ?? this.backupFilename,
       backupPath: backupPath ?? this.backupPath,
@@ -4689,6 +4741,9 @@ class BackupSettingsCompanion extends UpdateCompanion<BackupSetting> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<String>(id.value);
+    }
+    if (userConfigId.present) {
+      map['user_config_id'] = Variable<String>(userConfigId.value);
     }
     if (backupInterval.present) {
       map['backup_interval'] = Variable<String>(backupInterval.value);
@@ -4709,9 +4764,321 @@ class BackupSettingsCompanion extends UpdateCompanion<BackupSetting> {
   String toString() {
     return (StringBuffer('BackupSettingsCompanion(')
           ..write('id: $id, ')
+          ..write('userConfigId: $userConfigId, ')
           ..write('backupInterval: $backupInterval, ')
           ..write('backupFilename: $backupFilename, ')
           ..write('backupPath: $backupPath, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ArchiveSettingsTable extends ArchiveSettings
+    with TableInfo<$ArchiveSettingsTable, ArchiveSetting> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ArchiveSettingsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 30, maxTextLength: 60),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _userConfigIdMeta =
+      const VerificationMeta('userConfigId');
+  @override
+  late final GeneratedColumn<String> userConfigId = GeneratedColumn<String>(
+      'user_config_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES user_configs (id)'));
+  static const VerificationMeta _archiveOrgS3AccessKeyMeta =
+      const VerificationMeta('archiveOrgS3AccessKey');
+  @override
+  late final GeneratedColumn<String> archiveOrgS3AccessKey =
+      GeneratedColumn<String>('archive_org_s3_access_key', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _archiveOrgS3SecretKeyMeta =
+      const VerificationMeta('archiveOrgS3SecretKey');
+  @override
+  late final GeneratedColumn<String> archiveOrgS3SecretKey =
+      GeneratedColumn<String>('archive_org_s3_secret_key', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, userConfigId, archiveOrgS3AccessKey, archiveOrgS3SecretKey];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'archive_settings';
+  @override
+  VerificationContext validateIntegrity(Insertable<ArchiveSetting> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('user_config_id')) {
+      context.handle(
+          _userConfigIdMeta,
+          userConfigId.isAcceptableOrUnknown(
+              data['user_config_id']!, _userConfigIdMeta));
+    } else if (isInserting) {
+      context.missing(_userConfigIdMeta);
+    }
+    if (data.containsKey('archive_org_s3_access_key')) {
+      context.handle(
+          _archiveOrgS3AccessKeyMeta,
+          archiveOrgS3AccessKey.isAcceptableOrUnknown(
+              data['archive_org_s3_access_key']!, _archiveOrgS3AccessKeyMeta));
+    }
+    if (data.containsKey('archive_org_s3_secret_key')) {
+      context.handle(
+          _archiveOrgS3SecretKeyMeta,
+          archiveOrgS3SecretKey.isAcceptableOrUnknown(
+              data['archive_org_s3_secret_key']!, _archiveOrgS3SecretKeyMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ArchiveSetting map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ArchiveSetting(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      userConfigId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}user_config_id'])!,
+      archiveOrgS3AccessKey: attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}archive_org_s3_access_key']),
+      archiveOrgS3SecretKey: attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}archive_org_s3_secret_key']),
+    );
+  }
+
+  @override
+  $ArchiveSettingsTable createAlias(String alias) {
+    return $ArchiveSettingsTable(attachedDatabase, alias);
+  }
+}
+
+class ArchiveSetting extends DataClass implements Insertable<ArchiveSetting> {
+  final String id;
+  final String userConfigId;
+  final String? archiveOrgS3AccessKey;
+  final String? archiveOrgS3SecretKey;
+  const ArchiveSetting(
+      {required this.id,
+      required this.userConfigId,
+      this.archiveOrgS3AccessKey,
+      this.archiveOrgS3SecretKey});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['user_config_id'] = Variable<String>(userConfigId);
+    if (!nullToAbsent || archiveOrgS3AccessKey != null) {
+      map['archive_org_s3_access_key'] =
+          Variable<String>(archiveOrgS3AccessKey);
+    }
+    if (!nullToAbsent || archiveOrgS3SecretKey != null) {
+      map['archive_org_s3_secret_key'] =
+          Variable<String>(archiveOrgS3SecretKey);
+    }
+    return map;
+  }
+
+  ArchiveSettingsCompanion toCompanion(bool nullToAbsent) {
+    return ArchiveSettingsCompanion(
+      id: Value(id),
+      userConfigId: Value(userConfigId),
+      archiveOrgS3AccessKey: archiveOrgS3AccessKey == null && nullToAbsent
+          ? const Value.absent()
+          : Value(archiveOrgS3AccessKey),
+      archiveOrgS3SecretKey: archiveOrgS3SecretKey == null && nullToAbsent
+          ? const Value.absent()
+          : Value(archiveOrgS3SecretKey),
+    );
+  }
+
+  factory ArchiveSetting.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ArchiveSetting(
+      id: serializer.fromJson<String>(json['id']),
+      userConfigId: serializer.fromJson<String>(json['userConfigId']),
+      archiveOrgS3AccessKey:
+          serializer.fromJson<String?>(json['archiveOrgS3AccessKey']),
+      archiveOrgS3SecretKey:
+          serializer.fromJson<String?>(json['archiveOrgS3SecretKey']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'userConfigId': serializer.toJson<String>(userConfigId),
+      'archiveOrgS3AccessKey':
+          serializer.toJson<String?>(archiveOrgS3AccessKey),
+      'archiveOrgS3SecretKey':
+          serializer.toJson<String?>(archiveOrgS3SecretKey),
+    };
+  }
+
+  ArchiveSetting copyWith(
+          {String? id,
+          String? userConfigId,
+          Value<String?> archiveOrgS3AccessKey = const Value.absent(),
+          Value<String?> archiveOrgS3SecretKey = const Value.absent()}) =>
+      ArchiveSetting(
+        id: id ?? this.id,
+        userConfigId: userConfigId ?? this.userConfigId,
+        archiveOrgS3AccessKey: archiveOrgS3AccessKey.present
+            ? archiveOrgS3AccessKey.value
+            : this.archiveOrgS3AccessKey,
+        archiveOrgS3SecretKey: archiveOrgS3SecretKey.present
+            ? archiveOrgS3SecretKey.value
+            : this.archiveOrgS3SecretKey,
+      );
+  ArchiveSetting copyWithCompanion(ArchiveSettingsCompanion data) {
+    return ArchiveSetting(
+      id: data.id.present ? data.id.value : this.id,
+      userConfigId: data.userConfigId.present
+          ? data.userConfigId.value
+          : this.userConfigId,
+      archiveOrgS3AccessKey: data.archiveOrgS3AccessKey.present
+          ? data.archiveOrgS3AccessKey.value
+          : this.archiveOrgS3AccessKey,
+      archiveOrgS3SecretKey: data.archiveOrgS3SecretKey.present
+          ? data.archiveOrgS3SecretKey.value
+          : this.archiveOrgS3SecretKey,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ArchiveSetting(')
+          ..write('id: $id, ')
+          ..write('userConfigId: $userConfigId, ')
+          ..write('archiveOrgS3AccessKey: $archiveOrgS3AccessKey, ')
+          ..write('archiveOrgS3SecretKey: $archiveOrgS3SecretKey')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      id, userConfigId, archiveOrgS3AccessKey, archiveOrgS3SecretKey);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ArchiveSetting &&
+          other.id == this.id &&
+          other.userConfigId == this.userConfigId &&
+          other.archiveOrgS3AccessKey == this.archiveOrgS3AccessKey &&
+          other.archiveOrgS3SecretKey == this.archiveOrgS3SecretKey);
+}
+
+class ArchiveSettingsCompanion extends UpdateCompanion<ArchiveSetting> {
+  final Value<String> id;
+  final Value<String> userConfigId;
+  final Value<String?> archiveOrgS3AccessKey;
+  final Value<String?> archiveOrgS3SecretKey;
+  final Value<int> rowid;
+  const ArchiveSettingsCompanion({
+    this.id = const Value.absent(),
+    this.userConfigId = const Value.absent(),
+    this.archiveOrgS3AccessKey = const Value.absent(),
+    this.archiveOrgS3SecretKey = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ArchiveSettingsCompanion.insert({
+    required String id,
+    required String userConfigId,
+    this.archiveOrgS3AccessKey = const Value.absent(),
+    this.archiveOrgS3SecretKey = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        userConfigId = Value(userConfigId);
+  static Insertable<ArchiveSetting> custom({
+    Expression<String>? id,
+    Expression<String>? userConfigId,
+    Expression<String>? archiveOrgS3AccessKey,
+    Expression<String>? archiveOrgS3SecretKey,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (userConfigId != null) 'user_config_id': userConfigId,
+      if (archiveOrgS3AccessKey != null)
+        'archive_org_s3_access_key': archiveOrgS3AccessKey,
+      if (archiveOrgS3SecretKey != null)
+        'archive_org_s3_secret_key': archiveOrgS3SecretKey,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ArchiveSettingsCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? userConfigId,
+      Value<String?>? archiveOrgS3AccessKey,
+      Value<String?>? archiveOrgS3SecretKey,
+      Value<int>? rowid}) {
+    return ArchiveSettingsCompanion(
+      id: id ?? this.id,
+      userConfigId: userConfigId ?? this.userConfigId,
+      archiveOrgS3AccessKey:
+          archiveOrgS3AccessKey ?? this.archiveOrgS3AccessKey,
+      archiveOrgS3SecretKey:
+          archiveOrgS3SecretKey ?? this.archiveOrgS3SecretKey,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (userConfigId.present) {
+      map['user_config_id'] = Variable<String>(userConfigId.value);
+    }
+    if (archiveOrgS3AccessKey.present) {
+      map['archive_org_s3_access_key'] =
+          Variable<String>(archiveOrgS3AccessKey.value);
+    }
+    if (archiveOrgS3SecretKey.present) {
+      map['archive_org_s3_secret_key'] =
+          Variable<String>(archiveOrgS3SecretKey.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ArchiveSettingsCompanion(')
+          ..write('id: $id, ')
+          ..write('userConfigId: $userConfigId, ')
+          ..write('archiveOrgS3AccessKey: $archiveOrgS3AccessKey, ')
+          ..write('archiveOrgS3SecretKey: $archiveOrgS3SecretKey, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -4723,12 +5090,14 @@ abstract class _$ConfigDatabase extends GeneratedDatabase {
   $ConfigDatabaseManager get managers => $ConfigDatabaseManager(this);
   late final $UserConfigsTable userConfigs = $UserConfigsTable(this);
   late final $BackupSettingsTable backupSettings = $BackupSettingsTable(this);
+  late final $ArchiveSettingsTable archiveSettings =
+      $ArchiveSettingsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [userConfigs, backupSettings];
+      [userConfigs, backupSettings, archiveSettings];
   @override
   DriftDatabaseOptions get options =>
       const DriftDatabaseOptions(storeDateTimeAsText: true);
@@ -4739,10 +5108,10 @@ typedef $$UserConfigsTableCreateCompanionBuilder = UserConfigsCompanion
   required String id,
   Value<bool> darkMode,
   Value<bool> copyOnImport,
-  Value<bool> archiveEnabled,
-  Value<String?> colorScheme,
   Value<String?> archiveOrgS3AccessKey,
   Value<String?> archiveOrgS3SecretKey,
+  Value<bool> archiveEnabled,
+  Value<String?> colorScheme,
   Value<int> rowid,
 });
 typedef $$UserConfigsTableUpdateCompanionBuilder = UserConfigsCompanion
@@ -4750,12 +5119,50 @@ typedef $$UserConfigsTableUpdateCompanionBuilder = UserConfigsCompanion
   Value<String> id,
   Value<bool> darkMode,
   Value<bool> copyOnImport,
-  Value<bool> archiveEnabled,
-  Value<String?> colorScheme,
   Value<String?> archiveOrgS3AccessKey,
   Value<String?> archiveOrgS3SecretKey,
+  Value<bool> archiveEnabled,
+  Value<String?> colorScheme,
   Value<int> rowid,
 });
+
+final class $$UserConfigsTableReferences
+    extends BaseReferences<_$ConfigDatabase, $UserConfigsTable, UserConfig> {
+  $$UserConfigsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$BackupSettingsTable, List<BackupSetting>>
+      _backupSettingsRefsTable(_$ConfigDatabase db) =>
+          MultiTypedResultKey.fromTable(db.backupSettings,
+              aliasName: $_aliasNameGenerator(
+                  db.userConfigs.id, db.backupSettings.userConfigId));
+
+  $$BackupSettingsTableProcessedTableManager get backupSettingsRefs {
+    final manager = $$BackupSettingsTableTableManager($_db, $_db.backupSettings)
+        .filter(
+            (f) => f.userConfigId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_backupSettingsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+
+  static MultiTypedResultKey<$ArchiveSettingsTable, List<ArchiveSetting>>
+      _archiveSettingsRefsTable(_$ConfigDatabase db) =>
+          MultiTypedResultKey.fromTable(db.archiveSettings,
+              aliasName: $_aliasNameGenerator(
+                  db.userConfigs.id, db.archiveSettings.userConfigId));
+
+  $$ArchiveSettingsTableProcessedTableManager get archiveSettingsRefs {
+    final manager =
+        $$ArchiveSettingsTableTableManager($_db, $_db.archiveSettings).filter(
+            (f) => f.userConfigId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache =
+        $_typedResult.readTableOrNull(_archiveSettingsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+}
 
 class $$UserConfigsTableFilterComposer
     extends Composer<_$ConfigDatabase, $UserConfigsTable> {
@@ -4775,13 +5182,6 @@ class $$UserConfigsTableFilterComposer
   ColumnFilters<bool> get copyOnImport => $composableBuilder(
       column: $table.copyOnImport, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<bool> get archiveEnabled => $composableBuilder(
-      column: $table.archiveEnabled,
-      builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get colorScheme => $composableBuilder(
-      column: $table.colorScheme, builder: (column) => ColumnFilters(column));
-
   ColumnFilters<String> get archiveOrgS3AccessKey => $composableBuilder(
       column: $table.archiveOrgS3AccessKey,
       builder: (column) => ColumnFilters(column));
@@ -4789,6 +5189,55 @@ class $$UserConfigsTableFilterComposer
   ColumnFilters<String> get archiveOrgS3SecretKey => $composableBuilder(
       column: $table.archiveOrgS3SecretKey,
       builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get archiveEnabled => $composableBuilder(
+      column: $table.archiveEnabled,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get colorScheme => $composableBuilder(
+      column: $table.colorScheme, builder: (column) => ColumnFilters(column));
+
+  Expression<bool> backupSettingsRefs(
+      Expression<bool> Function($$BackupSettingsTableFilterComposer f) f) {
+    final $$BackupSettingsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.backupSettings,
+        getReferencedColumn: (t) => t.userConfigId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$BackupSettingsTableFilterComposer(
+              $db: $db,
+              $table: $db.backupSettings,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<bool> archiveSettingsRefs(
+      Expression<bool> Function($$ArchiveSettingsTableFilterComposer f) f) {
+    final $$ArchiveSettingsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.archiveSettings,
+        getReferencedColumn: (t) => t.userConfigId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ArchiveSettingsTableFilterComposer(
+              $db: $db,
+              $table: $db.archiveSettings,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 }
 
 class $$UserConfigsTableOrderingComposer
@@ -4810,13 +5259,6 @@ class $$UserConfigsTableOrderingComposer
       column: $table.copyOnImport,
       builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<bool> get archiveEnabled => $composableBuilder(
-      column: $table.archiveEnabled,
-      builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get colorScheme => $composableBuilder(
-      column: $table.colorScheme, builder: (column) => ColumnOrderings(column));
-
   ColumnOrderings<String> get archiveOrgS3AccessKey => $composableBuilder(
       column: $table.archiveOrgS3AccessKey,
       builder: (column) => ColumnOrderings(column));
@@ -4824,6 +5266,13 @@ class $$UserConfigsTableOrderingComposer
   ColumnOrderings<String> get archiveOrgS3SecretKey => $composableBuilder(
       column: $table.archiveOrgS3SecretKey,
       builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get archiveEnabled => $composableBuilder(
+      column: $table.archiveEnabled,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get colorScheme => $composableBuilder(
+      column: $table.colorScheme, builder: (column) => ColumnOrderings(column));
 }
 
 class $$UserConfigsTableAnnotationComposer
@@ -4844,17 +5293,59 @@ class $$UserConfigsTableAnnotationComposer
   GeneratedColumn<bool> get copyOnImport => $composableBuilder(
       column: $table.copyOnImport, builder: (column) => column);
 
+  GeneratedColumn<String> get archiveOrgS3AccessKey => $composableBuilder(
+      column: $table.archiveOrgS3AccessKey, builder: (column) => column);
+
+  GeneratedColumn<String> get archiveOrgS3SecretKey => $composableBuilder(
+      column: $table.archiveOrgS3SecretKey, builder: (column) => column);
+
   GeneratedColumn<bool> get archiveEnabled => $composableBuilder(
       column: $table.archiveEnabled, builder: (column) => column);
 
   GeneratedColumn<String> get colorScheme => $composableBuilder(
       column: $table.colorScheme, builder: (column) => column);
 
-  GeneratedColumn<String> get archiveOrgS3AccessKey => $composableBuilder(
-      column: $table.archiveOrgS3AccessKey, builder: (column) => column);
+  Expression<T> backupSettingsRefs<T extends Object>(
+      Expression<T> Function($$BackupSettingsTableAnnotationComposer a) f) {
+    final $$BackupSettingsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.backupSettings,
+        getReferencedColumn: (t) => t.userConfigId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$BackupSettingsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.backupSettings,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 
-  GeneratedColumn<String> get archiveOrgS3SecretKey => $composableBuilder(
-      column: $table.archiveOrgS3SecretKey, builder: (column) => column);
+  Expression<T> archiveSettingsRefs<T extends Object>(
+      Expression<T> Function($$ArchiveSettingsTableAnnotationComposer a) f) {
+    final $$ArchiveSettingsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.archiveSettings,
+        getReferencedColumn: (t) => t.userConfigId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ArchiveSettingsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.archiveSettings,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 }
 
 class $$UserConfigsTableTableManager extends RootTableManager<
@@ -4866,12 +5357,10 @@ class $$UserConfigsTableTableManager extends RootTableManager<
     $$UserConfigsTableAnnotationComposer,
     $$UserConfigsTableCreateCompanionBuilder,
     $$UserConfigsTableUpdateCompanionBuilder,
-    (
-      UserConfig,
-      BaseReferences<_$ConfigDatabase, $UserConfigsTable, UserConfig>
-    ),
+    (UserConfig, $$UserConfigsTableReferences),
     UserConfig,
-    PrefetchHooks Function()> {
+    PrefetchHooks Function(
+        {bool backupSettingsRefs, bool archiveSettingsRefs})> {
   $$UserConfigsTableTableManager(_$ConfigDatabase db, $UserConfigsTable table)
       : super(TableManagerState(
           db: db,
@@ -4886,46 +5375,89 @@ class $$UserConfigsTableTableManager extends RootTableManager<
             Value<String> id = const Value.absent(),
             Value<bool> darkMode = const Value.absent(),
             Value<bool> copyOnImport = const Value.absent(),
-            Value<bool> archiveEnabled = const Value.absent(),
-            Value<String?> colorScheme = const Value.absent(),
             Value<String?> archiveOrgS3AccessKey = const Value.absent(),
             Value<String?> archiveOrgS3SecretKey = const Value.absent(),
+            Value<bool> archiveEnabled = const Value.absent(),
+            Value<String?> colorScheme = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               UserConfigsCompanion(
             id: id,
             darkMode: darkMode,
             copyOnImport: copyOnImport,
-            archiveEnabled: archiveEnabled,
-            colorScheme: colorScheme,
             archiveOrgS3AccessKey: archiveOrgS3AccessKey,
             archiveOrgS3SecretKey: archiveOrgS3SecretKey,
+            archiveEnabled: archiveEnabled,
+            colorScheme: colorScheme,
             rowid: rowid,
           ),
           createCompanionCallback: ({
             required String id,
             Value<bool> darkMode = const Value.absent(),
             Value<bool> copyOnImport = const Value.absent(),
-            Value<bool> archiveEnabled = const Value.absent(),
-            Value<String?> colorScheme = const Value.absent(),
             Value<String?> archiveOrgS3AccessKey = const Value.absent(),
             Value<String?> archiveOrgS3SecretKey = const Value.absent(),
+            Value<bool> archiveEnabled = const Value.absent(),
+            Value<String?> colorScheme = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               UserConfigsCompanion.insert(
             id: id,
             darkMode: darkMode,
             copyOnImport: copyOnImport,
-            archiveEnabled: archiveEnabled,
-            colorScheme: colorScheme,
             archiveOrgS3AccessKey: archiveOrgS3AccessKey,
             archiveOrgS3SecretKey: archiveOrgS3SecretKey,
+            archiveEnabled: archiveEnabled,
+            colorScheme: colorScheme,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable(table),
+                    $$UserConfigsTableReferences(db, table, e)
+                  ))
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: (
+              {backupSettingsRefs = false, archiveSettingsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (backupSettingsRefs) db.backupSettings,
+                if (archiveSettingsRefs) db.archiveSettings
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (backupSettingsRefs)
+                    await $_getPrefetchedData<UserConfig, $UserConfigsTable,
+                            BackupSetting>(
+                        currentTable: table,
+                        referencedTable: $$UserConfigsTableReferences
+                            ._backupSettingsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$UserConfigsTableReferences(db, table, p0)
+                                .backupSettingsRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.userConfigId == item.id),
+                        typedResults: items),
+                  if (archiveSettingsRefs)
+                    await $_getPrefetchedData<UserConfig, $UserConfigsTable,
+                            ArchiveSetting>(
+                        currentTable: table,
+                        referencedTable: $$UserConfigsTableReferences
+                            ._archiveSettingsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$UserConfigsTableReferences(db, table, p0)
+                                .archiveSettingsRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.userConfigId == item.id),
+                        typedResults: items)
+                ];
+              },
+            );
+          },
         ));
 }
 
@@ -4938,15 +5470,14 @@ typedef $$UserConfigsTableProcessedTableManager = ProcessedTableManager<
     $$UserConfigsTableAnnotationComposer,
     $$UserConfigsTableCreateCompanionBuilder,
     $$UserConfigsTableUpdateCompanionBuilder,
-    (
-      UserConfig,
-      BaseReferences<_$ConfigDatabase, $UserConfigsTable, UserConfig>
-    ),
+    (UserConfig, $$UserConfigsTableReferences),
     UserConfig,
-    PrefetchHooks Function()>;
+    PrefetchHooks Function(
+        {bool backupSettingsRefs, bool archiveSettingsRefs})>;
 typedef $$BackupSettingsTableCreateCompanionBuilder = BackupSettingsCompanion
     Function({
   required String id,
+  required String userConfigId,
   Value<String?> backupInterval,
   Value<String?> backupFilename,
   Value<String?> backupPath,
@@ -4955,11 +5486,33 @@ typedef $$BackupSettingsTableCreateCompanionBuilder = BackupSettingsCompanion
 typedef $$BackupSettingsTableUpdateCompanionBuilder = BackupSettingsCompanion
     Function({
   Value<String> id,
+  Value<String> userConfigId,
   Value<String?> backupInterval,
   Value<String?> backupFilename,
   Value<String?> backupPath,
   Value<int> rowid,
 });
+
+final class $$BackupSettingsTableReferences extends BaseReferences<
+    _$ConfigDatabase, $BackupSettingsTable, BackupSetting> {
+  $$BackupSettingsTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static $UserConfigsTable _userConfigIdTable(_$ConfigDatabase db) =>
+      db.userConfigs.createAlias($_aliasNameGenerator(
+          db.backupSettings.userConfigId, db.userConfigs.id));
+
+  $$UserConfigsTableProcessedTableManager get userConfigId {
+    final $_column = $_itemColumn<String>('user_config_id')!;
+
+    final manager = $$UserConfigsTableTableManager($_db, $_db.userConfigs)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_userConfigIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
 
 class $$BackupSettingsTableFilterComposer
     extends Composer<_$ConfigDatabase, $BackupSettingsTable> {
@@ -4983,6 +5536,26 @@ class $$BackupSettingsTableFilterComposer
 
   ColumnFilters<String> get backupPath => $composableBuilder(
       column: $table.backupPath, builder: (column) => ColumnFilters(column));
+
+  $$UserConfigsTableFilterComposer get userConfigId {
+    final $$UserConfigsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.userConfigId,
+        referencedTable: $db.userConfigs,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UserConfigsTableFilterComposer(
+              $db: $db,
+              $table: $db.userConfigs,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 }
 
 class $$BackupSettingsTableOrderingComposer
@@ -5007,6 +5580,26 @@ class $$BackupSettingsTableOrderingComposer
 
   ColumnOrderings<String> get backupPath => $composableBuilder(
       column: $table.backupPath, builder: (column) => ColumnOrderings(column));
+
+  $$UserConfigsTableOrderingComposer get userConfigId {
+    final $$UserConfigsTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.userConfigId,
+        referencedTable: $db.userConfigs,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UserConfigsTableOrderingComposer(
+              $db: $db,
+              $table: $db.userConfigs,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 }
 
 class $$BackupSettingsTableAnnotationComposer
@@ -5029,6 +5622,26 @@ class $$BackupSettingsTableAnnotationComposer
 
   GeneratedColumn<String> get backupPath => $composableBuilder(
       column: $table.backupPath, builder: (column) => column);
+
+  $$UserConfigsTableAnnotationComposer get userConfigId {
+    final $$UserConfigsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.userConfigId,
+        referencedTable: $db.userConfigs,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UserConfigsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.userConfigs,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 }
 
 class $$BackupSettingsTableTableManager extends RootTableManager<
@@ -5040,12 +5653,9 @@ class $$BackupSettingsTableTableManager extends RootTableManager<
     $$BackupSettingsTableAnnotationComposer,
     $$BackupSettingsTableCreateCompanionBuilder,
     $$BackupSettingsTableUpdateCompanionBuilder,
-    (
-      BackupSetting,
-      BaseReferences<_$ConfigDatabase, $BackupSettingsTable, BackupSetting>
-    ),
+    (BackupSetting, $$BackupSettingsTableReferences),
     BackupSetting,
-    PrefetchHooks Function()> {
+    PrefetchHooks Function({bool userConfigId})> {
   $$BackupSettingsTableTableManager(
       _$ConfigDatabase db, $BackupSettingsTable table)
       : super(TableManagerState(
@@ -5059,6 +5669,7 @@ class $$BackupSettingsTableTableManager extends RootTableManager<
               $$BackupSettingsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
+            Value<String> userConfigId = const Value.absent(),
             Value<String?> backupInterval = const Value.absent(),
             Value<String?> backupFilename = const Value.absent(),
             Value<String?> backupPath = const Value.absent(),
@@ -5066,6 +5677,7 @@ class $$BackupSettingsTableTableManager extends RootTableManager<
           }) =>
               BackupSettingsCompanion(
             id: id,
+            userConfigId: userConfigId,
             backupInterval: backupInterval,
             backupFilename: backupFilename,
             backupPath: backupPath,
@@ -5073,6 +5685,7 @@ class $$BackupSettingsTableTableManager extends RootTableManager<
           ),
           createCompanionCallback: ({
             required String id,
+            required String userConfigId,
             Value<String?> backupInterval = const Value.absent(),
             Value<String?> backupFilename = const Value.absent(),
             Value<String?> backupPath = const Value.absent(),
@@ -5080,15 +5693,54 @@ class $$BackupSettingsTableTableManager extends RootTableManager<
           }) =>
               BackupSettingsCompanion.insert(
             id: id,
+            userConfigId: userConfigId,
             backupInterval: backupInterval,
             backupFilename: backupFilename,
             backupPath: backupPath,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable(table),
+                    $$BackupSettingsTableReferences(db, table, e)
+                  ))
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({userConfigId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (userConfigId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.userConfigId,
+                    referencedTable:
+                        $$BackupSettingsTableReferences._userConfigIdTable(db),
+                    referencedColumn: $$BackupSettingsTableReferences
+                        ._userConfigIdTable(db)
+                        .id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
         ));
 }
 
@@ -5101,12 +5753,276 @@ typedef $$BackupSettingsTableProcessedTableManager = ProcessedTableManager<
     $$BackupSettingsTableAnnotationComposer,
     $$BackupSettingsTableCreateCompanionBuilder,
     $$BackupSettingsTableUpdateCompanionBuilder,
-    (
-      BackupSetting,
-      BaseReferences<_$ConfigDatabase, $BackupSettingsTable, BackupSetting>
-    ),
+    (BackupSetting, $$BackupSettingsTableReferences),
     BackupSetting,
-    PrefetchHooks Function()>;
+    PrefetchHooks Function({bool userConfigId})>;
+typedef $$ArchiveSettingsTableCreateCompanionBuilder = ArchiveSettingsCompanion
+    Function({
+  required String id,
+  required String userConfigId,
+  Value<String?> archiveOrgS3AccessKey,
+  Value<String?> archiveOrgS3SecretKey,
+  Value<int> rowid,
+});
+typedef $$ArchiveSettingsTableUpdateCompanionBuilder = ArchiveSettingsCompanion
+    Function({
+  Value<String> id,
+  Value<String> userConfigId,
+  Value<String?> archiveOrgS3AccessKey,
+  Value<String?> archiveOrgS3SecretKey,
+  Value<int> rowid,
+});
+
+final class $$ArchiveSettingsTableReferences extends BaseReferences<
+    _$ConfigDatabase, $ArchiveSettingsTable, ArchiveSetting> {
+  $$ArchiveSettingsTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static $UserConfigsTable _userConfigIdTable(_$ConfigDatabase db) =>
+      db.userConfigs.createAlias($_aliasNameGenerator(
+          db.archiveSettings.userConfigId, db.userConfigs.id));
+
+  $$UserConfigsTableProcessedTableManager get userConfigId {
+    final $_column = $_itemColumn<String>('user_config_id')!;
+
+    final manager = $$UserConfigsTableTableManager($_db, $_db.userConfigs)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_userConfigIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$ArchiveSettingsTableFilterComposer
+    extends Composer<_$ConfigDatabase, $ArchiveSettingsTable> {
+  $$ArchiveSettingsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get archiveOrgS3AccessKey => $composableBuilder(
+      column: $table.archiveOrgS3AccessKey,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get archiveOrgS3SecretKey => $composableBuilder(
+      column: $table.archiveOrgS3SecretKey,
+      builder: (column) => ColumnFilters(column));
+
+  $$UserConfigsTableFilterComposer get userConfigId {
+    final $$UserConfigsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.userConfigId,
+        referencedTable: $db.userConfigs,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UserConfigsTableFilterComposer(
+              $db: $db,
+              $table: $db.userConfigs,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$ArchiveSettingsTableOrderingComposer
+    extends Composer<_$ConfigDatabase, $ArchiveSettingsTable> {
+  $$ArchiveSettingsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get archiveOrgS3AccessKey => $composableBuilder(
+      column: $table.archiveOrgS3AccessKey,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get archiveOrgS3SecretKey => $composableBuilder(
+      column: $table.archiveOrgS3SecretKey,
+      builder: (column) => ColumnOrderings(column));
+
+  $$UserConfigsTableOrderingComposer get userConfigId {
+    final $$UserConfigsTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.userConfigId,
+        referencedTable: $db.userConfigs,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UserConfigsTableOrderingComposer(
+              $db: $db,
+              $table: $db.userConfigs,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$ArchiveSettingsTableAnnotationComposer
+    extends Composer<_$ConfigDatabase, $ArchiveSettingsTable> {
+  $$ArchiveSettingsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get archiveOrgS3AccessKey => $composableBuilder(
+      column: $table.archiveOrgS3AccessKey, builder: (column) => column);
+
+  GeneratedColumn<String> get archiveOrgS3SecretKey => $composableBuilder(
+      column: $table.archiveOrgS3SecretKey, builder: (column) => column);
+
+  $$UserConfigsTableAnnotationComposer get userConfigId {
+    final $$UserConfigsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.userConfigId,
+        referencedTable: $db.userConfigs,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UserConfigsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.userConfigs,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$ArchiveSettingsTableTableManager extends RootTableManager<
+    _$ConfigDatabase,
+    $ArchiveSettingsTable,
+    ArchiveSetting,
+    $$ArchiveSettingsTableFilterComposer,
+    $$ArchiveSettingsTableOrderingComposer,
+    $$ArchiveSettingsTableAnnotationComposer,
+    $$ArchiveSettingsTableCreateCompanionBuilder,
+    $$ArchiveSettingsTableUpdateCompanionBuilder,
+    (ArchiveSetting, $$ArchiveSettingsTableReferences),
+    ArchiveSetting,
+    PrefetchHooks Function({bool userConfigId})> {
+  $$ArchiveSettingsTableTableManager(
+      _$ConfigDatabase db, $ArchiveSettingsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ArchiveSettingsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ArchiveSettingsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ArchiveSettingsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> userConfigId = const Value.absent(),
+            Value<String?> archiveOrgS3AccessKey = const Value.absent(),
+            Value<String?> archiveOrgS3SecretKey = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              ArchiveSettingsCompanion(
+            id: id,
+            userConfigId: userConfigId,
+            archiveOrgS3AccessKey: archiveOrgS3AccessKey,
+            archiveOrgS3SecretKey: archiveOrgS3SecretKey,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required String userConfigId,
+            Value<String?> archiveOrgS3AccessKey = const Value.absent(),
+            Value<String?> archiveOrgS3SecretKey = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              ArchiveSettingsCompanion.insert(
+            id: id,
+            userConfigId: userConfigId,
+            archiveOrgS3AccessKey: archiveOrgS3AccessKey,
+            archiveOrgS3SecretKey: archiveOrgS3SecretKey,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$ArchiveSettingsTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({userConfigId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (userConfigId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.userConfigId,
+                    referencedTable:
+                        $$ArchiveSettingsTableReferences._userConfigIdTable(db),
+                    referencedColumn: $$ArchiveSettingsTableReferences
+                        ._userConfigIdTable(db)
+                        .id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$ArchiveSettingsTableProcessedTableManager = ProcessedTableManager<
+    _$ConfigDatabase,
+    $ArchiveSettingsTable,
+    ArchiveSetting,
+    $$ArchiveSettingsTableFilterComposer,
+    $$ArchiveSettingsTableOrderingComposer,
+    $$ArchiveSettingsTableAnnotationComposer,
+    $$ArchiveSettingsTableCreateCompanionBuilder,
+    $$ArchiveSettingsTableUpdateCompanionBuilder,
+    (ArchiveSetting, $$ArchiveSettingsTableReferences),
+    ArchiveSetting,
+    PrefetchHooks Function({bool userConfigId})>;
 
 class $ConfigDatabaseManager {
   final _$ConfigDatabase _db;
@@ -5115,4 +6031,6 @@ class $ConfigDatabaseManager {
       $$UserConfigsTableTableManager(_db, _db.userConfigs);
   $$BackupSettingsTableTableManager get backupSettings =>
       $$BackupSettingsTableTableManager(_db, _db.backupSettings);
+  $$ArchiveSettingsTableTableManager get archiveSettings =>
+      $$ArchiveSettingsTableTableManager(_db, _db.archiveSettings);
 }
