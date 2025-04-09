@@ -14,7 +14,7 @@ class Folders extends Table {
 class Links extends Table {
   TextColumn get id => text().withLength(min: 30, max: 60)();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
-  TextColumn get content => text().withLength(min: 10, max: 2048).unique()();
+  TextColumn get path => text().withLength(min: 10, max: 2048).unique()();
   TextColumn get archiveOrgUrl =>
       text().withLength(min: 10, max: 2048).nullable()();
   TextColumn get archiveIsUrl =>
@@ -31,7 +31,7 @@ class Documents extends Table {
   TextColumn get id => text().withLength(min: 30, max: 60)();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   TextColumn get title => text().withLength(min: 6, max: 30)();
-  BlobColumn get content => blob()();
+  TextColumn get path => text().unique()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -46,7 +46,6 @@ class Tags extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-/// New combined index on [folderId] and [itemId].
 @TableIndex(name: "items_folder_item_idx", columns: {#folderId, #itemId})
 class Items extends Table {
   TextColumn get id => text().withLength(min: 30, max: 60)();
@@ -79,15 +78,4 @@ class MetadataRecords extends Table {
 class MetadataTypes extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get name => text().unique()();
-}
-
-class Content extends Table {
-  TextColumn get id => text().withLength(min: 30, max: 60)();
-  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
-  IntColumn get typeId => integer().references(ItemTypes, #id)();
-  BlobColumn get hashkey => blob()();
-  BlobColumn get content => blob()();
-
-  @override
-  Set<Column> get primaryKey => {id};
 }
