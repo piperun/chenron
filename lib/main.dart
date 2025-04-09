@@ -1,4 +1,5 @@
 import "package:chenron/core/ui/search/searchbar.dart";
+import "package:chenron/database/database.dart" show UserConfig;
 import "package:chenron/database/extensions/operations/config_file_handler.dart";
 import "package:chenron/database/extensions/operations/database_file_handler.dart";
 import "package:chenron/locator.dart";
@@ -27,6 +28,32 @@ Future<void> setupConfig() async {
   );
   configHandler.value.databaseLocation = databaseLocation;
   configHandler.value.createDatabase(setupOnInit: true);
+
+  // Load theme preference from database
+  await loadThemePreference(configHandler);
+}
+
+// Add this function to load the theme preference
+Future<void> loadThemePreference(
+    Signal<ConfigDatabaseFileHandler> handler) async {
+  try {
+    final UserConfig? config = await handler.value.configDatabase
+        .getUserConfig()
+        .then((config) => config?.data);
+
+    if (config != null) {
+      _themeModeSignal.value =
+          config.darkMode ? ThemeMode.dark : ThemeMode.light;
+      loggerGlobal.info("Theme",
+          "Loaded theme preference: ${config.darkMode ? 'dark' : 'light'}");
+    } else {
+      loggerGlobal.info(
+          "Theme", "No theme preference found, using system default");
+    }
+  } catch (e) {
+    loggerGlobal.warning("Theme", "Failed to load theme preference: $e");
+    // Keep default ThemeMode.system if there's an error
+  }
 }
 
 void main() async {
@@ -69,7 +96,7 @@ class MyHomePage extends StatefulWidget {
   final String title;
 
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
@@ -110,7 +137,9 @@ class DarkModeButton extends StatelessWidget {
 
   Future<void> _handleThemeToggle(
       Signal<ConfigDatabaseFileHandler> handler) async {
-    final config = await handler.value.configDatabase.getUserConfig();
+    final UserConfig? config = await handler.value.configDatabase
+        .getUserConfig()
+        .then((config) => config?.data);
     if (config == null) return;
 
     final newDarkMode = !config.darkMode;
