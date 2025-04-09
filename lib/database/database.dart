@@ -5,31 +5,27 @@ import "package:chenron/database/schema/items_schema.dart";
 import "package:chenron/database/extensions/intial_data/app_database.dart";
 import "package:chenron/database/extensions/intial_data/config_database.dart";
 import "package:chenron/utils/directory/directory.dart";
-
+import "dart:collection";
 part "database.g.dart";
 
-enum IncludeOptions { tags, items }
+enum AppDataInclude { items, tags }
+
+enum ConfigIncludes { archiveSettings, backupSettings, userThemes }
+
+class IncludeOptions<T extends Enum> {
+  final Set<T> options;
+
+  const IncludeOptions(this.options);
+
+  IncludeOptions.unmodifiable(Set<T> options)
+      : options = UnmodifiableSetView(options);
+
+  const IncludeOptions.empty() : options = const {};
+}
 
 enum IdType { linkId, documentId, tagId, folderId }
 
 typedef DeleteRelationRecord = ({String id, IdType idType});
-
-typedef IncludeItems = Set<IncludeOptions>;
-
-extension IdTypeExtension on IdType {
-  String get dbValue {
-    switch (this) {
-      case IdType.linkId:
-        return "link_id";
-      case IdType.documentId:
-        return "document_id";
-      case IdType.tagId:
-        return "tag_id";
-      case IdType.folderId:
-        return "folder_id";
-    }
-  }
-}
 
 @DriftDatabase(tables: [
   Folders,
@@ -88,6 +84,7 @@ class AppDatabase extends _$AppDatabase {
 
 @DriftDatabase(tables: [
   UserConfigs,
+  UserThemes,
   BackupSettings,
   ArchiveSettings,
 ])

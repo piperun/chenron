@@ -304,11 +304,10 @@ class $LinksTable extends Links with TableInfo<$LinksTable, Link> {
       type: DriftSqlType.dateTime,
       requiredDuringInsert: false,
       defaultValue: currentDateAndTime);
-  static const VerificationMeta _contentMeta =
-      const VerificationMeta('content');
+  static const VerificationMeta _pathMeta = const VerificationMeta('path');
   @override
-  late final GeneratedColumn<String> content = GeneratedColumn<String>(
-      'content', aliasedName, false,
+  late final GeneratedColumn<String> path = GeneratedColumn<String>(
+      'path', aliasedName, false,
       additionalChecks: GeneratedColumn.checkTextLength(
           minTextLength: 10, maxTextLength: 2048),
       type: DriftSqlType.string,
@@ -343,7 +342,7 @@ class $LinksTable extends Links with TableInfo<$LinksTable, Link> {
       requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns =>
-      [id, createdAt, content, archiveOrgUrl, archiveIsUrl, localArchivePath];
+      [id, createdAt, path, archiveOrgUrl, archiveIsUrl, localArchivePath];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -363,11 +362,11 @@ class $LinksTable extends Links with TableInfo<$LinksTable, Link> {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
     }
-    if (data.containsKey('content')) {
-      context.handle(_contentMeta,
-          content.isAcceptableOrUnknown(data['content']!, _contentMeta));
+    if (data.containsKey('path')) {
+      context.handle(
+          _pathMeta, path.isAcceptableOrUnknown(data['path']!, _pathMeta));
     } else if (isInserting) {
-      context.missing(_contentMeta);
+      context.missing(_pathMeta);
     }
     if (data.containsKey('archive_org_url')) {
       context.handle(
@@ -400,8 +399,8 @@ class $LinksTable extends Links with TableInfo<$LinksTable, Link> {
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
       createdAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
-      content: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}content'])!,
+      path: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}path'])!,
       archiveOrgUrl: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}archive_org_url']),
       archiveIsUrl: attachedDatabase.typeMapping
@@ -420,14 +419,14 @@ class $LinksTable extends Links with TableInfo<$LinksTable, Link> {
 class Link extends DataClass implements Insertable<Link> {
   final String id;
   final DateTime createdAt;
-  final String content;
+  final String path;
   final String? archiveOrgUrl;
   final String? archiveIsUrl;
   final String? localArchivePath;
   const Link(
       {required this.id,
       required this.createdAt,
-      required this.content,
+      required this.path,
       this.archiveOrgUrl,
       this.archiveIsUrl,
       this.localArchivePath});
@@ -436,7 +435,7 @@ class Link extends DataClass implements Insertable<Link> {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     map['created_at'] = Variable<DateTime>(createdAt);
-    map['content'] = Variable<String>(content);
+    map['path'] = Variable<String>(path);
     if (!nullToAbsent || archiveOrgUrl != null) {
       map['archive_org_url'] = Variable<String>(archiveOrgUrl);
     }
@@ -453,7 +452,7 @@ class Link extends DataClass implements Insertable<Link> {
     return LinksCompanion(
       id: Value(id),
       createdAt: Value(createdAt),
-      content: Value(content),
+      path: Value(path),
       archiveOrgUrl: archiveOrgUrl == null && nullToAbsent
           ? const Value.absent()
           : Value(archiveOrgUrl),
@@ -472,7 +471,7 @@ class Link extends DataClass implements Insertable<Link> {
     return Link(
       id: serializer.fromJson<String>(json['id']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
-      content: serializer.fromJson<String>(json['content']),
+      path: serializer.fromJson<String>(json['path']),
       archiveOrgUrl: serializer.fromJson<String?>(json['archiveOrgUrl']),
       archiveIsUrl: serializer.fromJson<String?>(json['archiveIsUrl']),
       localArchivePath: serializer.fromJson<String?>(json['localArchivePath']),
@@ -484,7 +483,7 @@ class Link extends DataClass implements Insertable<Link> {
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
       'createdAt': serializer.toJson<DateTime>(createdAt),
-      'content': serializer.toJson<String>(content),
+      'path': serializer.toJson<String>(path),
       'archiveOrgUrl': serializer.toJson<String?>(archiveOrgUrl),
       'archiveIsUrl': serializer.toJson<String?>(archiveIsUrl),
       'localArchivePath': serializer.toJson<String?>(localArchivePath),
@@ -494,14 +493,14 @@ class Link extends DataClass implements Insertable<Link> {
   Link copyWith(
           {String? id,
           DateTime? createdAt,
-          String? content,
+          String? path,
           Value<String?> archiveOrgUrl = const Value.absent(),
           Value<String?> archiveIsUrl = const Value.absent(),
           Value<String?> localArchivePath = const Value.absent()}) =>
       Link(
         id: id ?? this.id,
         createdAt: createdAt ?? this.createdAt,
-        content: content ?? this.content,
+        path: path ?? this.path,
         archiveOrgUrl:
             archiveOrgUrl.present ? archiveOrgUrl.value : this.archiveOrgUrl,
         archiveIsUrl:
@@ -514,7 +513,7 @@ class Link extends DataClass implements Insertable<Link> {
     return Link(
       id: data.id.present ? data.id.value : this.id,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
-      content: data.content.present ? data.content.value : this.content,
+      path: data.path.present ? data.path.value : this.path,
       archiveOrgUrl: data.archiveOrgUrl.present
           ? data.archiveOrgUrl.value
           : this.archiveOrgUrl,
@@ -532,7 +531,7 @@ class Link extends DataClass implements Insertable<Link> {
     return (StringBuffer('Link(')
           ..write('id: $id, ')
           ..write('createdAt: $createdAt, ')
-          ..write('content: $content, ')
+          ..write('path: $path, ')
           ..write('archiveOrgUrl: $archiveOrgUrl, ')
           ..write('archiveIsUrl: $archiveIsUrl, ')
           ..write('localArchivePath: $localArchivePath')
@@ -542,14 +541,14 @@ class Link extends DataClass implements Insertable<Link> {
 
   @override
   int get hashCode => Object.hash(
-      id, createdAt, content, archiveOrgUrl, archiveIsUrl, localArchivePath);
+      id, createdAt, path, archiveOrgUrl, archiveIsUrl, localArchivePath);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Link &&
           other.id == this.id &&
           other.createdAt == this.createdAt &&
-          other.content == this.content &&
+          other.path == this.path &&
           other.archiveOrgUrl == this.archiveOrgUrl &&
           other.archiveIsUrl == this.archiveIsUrl &&
           other.localArchivePath == this.localArchivePath);
@@ -558,7 +557,7 @@ class Link extends DataClass implements Insertable<Link> {
 class LinksCompanion extends UpdateCompanion<Link> {
   final Value<String> id;
   final Value<DateTime> createdAt;
-  final Value<String> content;
+  final Value<String> path;
   final Value<String?> archiveOrgUrl;
   final Value<String?> archiveIsUrl;
   final Value<String?> localArchivePath;
@@ -566,7 +565,7 @@ class LinksCompanion extends UpdateCompanion<Link> {
   const LinksCompanion({
     this.id = const Value.absent(),
     this.createdAt = const Value.absent(),
-    this.content = const Value.absent(),
+    this.path = const Value.absent(),
     this.archiveOrgUrl = const Value.absent(),
     this.archiveIsUrl = const Value.absent(),
     this.localArchivePath = const Value.absent(),
@@ -575,17 +574,17 @@ class LinksCompanion extends UpdateCompanion<Link> {
   LinksCompanion.insert({
     required String id,
     this.createdAt = const Value.absent(),
-    required String content,
+    required String path,
     this.archiveOrgUrl = const Value.absent(),
     this.archiveIsUrl = const Value.absent(),
     this.localArchivePath = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
-        content = Value(content);
+        path = Value(path);
   static Insertable<Link> custom({
     Expression<String>? id,
     Expression<DateTime>? createdAt,
-    Expression<String>? content,
+    Expression<String>? path,
     Expression<String>? archiveOrgUrl,
     Expression<String>? archiveIsUrl,
     Expression<String>? localArchivePath,
@@ -594,7 +593,7 @@ class LinksCompanion extends UpdateCompanion<Link> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (createdAt != null) 'created_at': createdAt,
-      if (content != null) 'content': content,
+      if (path != null) 'path': path,
       if (archiveOrgUrl != null) 'archive_org_url': archiveOrgUrl,
       if (archiveIsUrl != null) 'archive_is_url': archiveIsUrl,
       if (localArchivePath != null) 'local_archive_path': localArchivePath,
@@ -605,7 +604,7 @@ class LinksCompanion extends UpdateCompanion<Link> {
   LinksCompanion copyWith(
       {Value<String>? id,
       Value<DateTime>? createdAt,
-      Value<String>? content,
+      Value<String>? path,
       Value<String?>? archiveOrgUrl,
       Value<String?>? archiveIsUrl,
       Value<String?>? localArchivePath,
@@ -613,7 +612,7 @@ class LinksCompanion extends UpdateCompanion<Link> {
     return LinksCompanion(
       id: id ?? this.id,
       createdAt: createdAt ?? this.createdAt,
-      content: content ?? this.content,
+      path: path ?? this.path,
       archiveOrgUrl: archiveOrgUrl ?? this.archiveOrgUrl,
       archiveIsUrl: archiveIsUrl ?? this.archiveIsUrl,
       localArchivePath: localArchivePath ?? this.localArchivePath,
@@ -630,8 +629,8 @@ class LinksCompanion extends UpdateCompanion<Link> {
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
-    if (content.present) {
-      map['content'] = Variable<String>(content.value);
+    if (path.present) {
+      map['path'] = Variable<String>(path.value);
     }
     if (archiveOrgUrl.present) {
       map['archive_org_url'] = Variable<String>(archiveOrgUrl.value);
@@ -653,7 +652,7 @@ class LinksCompanion extends UpdateCompanion<Link> {
     return (StringBuffer('LinksCompanion(')
           ..write('id: $id, ')
           ..write('createdAt: $createdAt, ')
-          ..write('content: $content, ')
+          ..write('path: $path, ')
           ..write('archiveOrgUrl: $archiveOrgUrl, ')
           ..write('archiveIsUrl: $archiveIsUrl, ')
           ..write('localArchivePath: $localArchivePath, ')
@@ -693,14 +692,15 @@ class $DocumentsTable extends Documents
           GeneratedColumn.checkTextLength(minTextLength: 6, maxTextLength: 30),
       type: DriftSqlType.string,
       requiredDuringInsert: true);
-  static const VerificationMeta _contentMeta =
-      const VerificationMeta('content');
+  static const VerificationMeta _pathMeta = const VerificationMeta('path');
   @override
-  late final GeneratedColumn<Uint8List> content = GeneratedColumn<Uint8List>(
-      'content', aliasedName, false,
-      type: DriftSqlType.blob, requiredDuringInsert: true);
+  late final GeneratedColumn<String> path = GeneratedColumn<String>(
+      'path', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'));
   @override
-  List<GeneratedColumn> get $columns => [id, createdAt, title, content];
+  List<GeneratedColumn> get $columns => [id, createdAt, title, path];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -726,11 +726,11 @@ class $DocumentsTable extends Documents
     } else if (isInserting) {
       context.missing(_titleMeta);
     }
-    if (data.containsKey('content')) {
-      context.handle(_contentMeta,
-          content.isAcceptableOrUnknown(data['content']!, _contentMeta));
+    if (data.containsKey('path')) {
+      context.handle(
+          _pathMeta, path.isAcceptableOrUnknown(data['path']!, _pathMeta));
     } else if (isInserting) {
-      context.missing(_contentMeta);
+      context.missing(_pathMeta);
     }
     return context;
   }
@@ -747,8 +747,8 @@ class $DocumentsTable extends Documents
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
       title: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
-      content: attachedDatabase.typeMapping
-          .read(DriftSqlType.blob, data['${effectivePrefix}content'])!,
+      path: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}path'])!,
     );
   }
 
@@ -762,19 +762,19 @@ class Document extends DataClass implements Insertable<Document> {
   final String id;
   final DateTime createdAt;
   final String title;
-  final Uint8List content;
+  final String path;
   const Document(
       {required this.id,
       required this.createdAt,
       required this.title,
-      required this.content});
+      required this.path});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['title'] = Variable<String>(title);
-    map['content'] = Variable<Uint8List>(content);
+    map['path'] = Variable<String>(path);
     return map;
   }
 
@@ -783,7 +783,7 @@ class Document extends DataClass implements Insertable<Document> {
       id: Value(id),
       createdAt: Value(createdAt),
       title: Value(title),
-      content: Value(content),
+      path: Value(path),
     );
   }
 
@@ -794,7 +794,7 @@ class Document extends DataClass implements Insertable<Document> {
       id: serializer.fromJson<String>(json['id']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       title: serializer.fromJson<String>(json['title']),
-      content: serializer.fromJson<Uint8List>(json['content']),
+      path: serializer.fromJson<String>(json['path']),
     );
   }
   @override
@@ -804,27 +804,24 @@ class Document extends DataClass implements Insertable<Document> {
       'id': serializer.toJson<String>(id),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'title': serializer.toJson<String>(title),
-      'content': serializer.toJson<Uint8List>(content),
+      'path': serializer.toJson<String>(path),
     };
   }
 
   Document copyWith(
-          {String? id,
-          DateTime? createdAt,
-          String? title,
-          Uint8List? content}) =>
+          {String? id, DateTime? createdAt, String? title, String? path}) =>
       Document(
         id: id ?? this.id,
         createdAt: createdAt ?? this.createdAt,
         title: title ?? this.title,
-        content: content ?? this.content,
+        path: path ?? this.path,
       );
   Document copyWithCompanion(DocumentsCompanion data) {
     return Document(
       id: data.id.present ? data.id.value : this.id,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       title: data.title.present ? data.title.value : this.title,
-      content: data.content.present ? data.content.value : this.content,
+      path: data.path.present ? data.path.value : this.path,
     );
   }
 
@@ -834,14 +831,13 @@ class Document extends DataClass implements Insertable<Document> {
           ..write('id: $id, ')
           ..write('createdAt: $createdAt, ')
           ..write('title: $title, ')
-          ..write('content: $content')
+          ..write('path: $path')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, createdAt, title, $driftBlobEquality.hash(content));
+  int get hashCode => Object.hash(id, createdAt, title, path);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -849,43 +845,43 @@ class Document extends DataClass implements Insertable<Document> {
           other.id == this.id &&
           other.createdAt == this.createdAt &&
           other.title == this.title &&
-          $driftBlobEquality.equals(other.content, this.content));
+          other.path == this.path);
 }
 
 class DocumentsCompanion extends UpdateCompanion<Document> {
   final Value<String> id;
   final Value<DateTime> createdAt;
   final Value<String> title;
-  final Value<Uint8List> content;
+  final Value<String> path;
   final Value<int> rowid;
   const DocumentsCompanion({
     this.id = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.title = const Value.absent(),
-    this.content = const Value.absent(),
+    this.path = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   DocumentsCompanion.insert({
     required String id,
     this.createdAt = const Value.absent(),
     required String title,
-    required Uint8List content,
+    required String path,
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         title = Value(title),
-        content = Value(content);
+        path = Value(path);
   static Insertable<Document> custom({
     Expression<String>? id,
     Expression<DateTime>? createdAt,
     Expression<String>? title,
-    Expression<Uint8List>? content,
+    Expression<String>? path,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (createdAt != null) 'created_at': createdAt,
       if (title != null) 'title': title,
-      if (content != null) 'content': content,
+      if (path != null) 'path': path,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -894,13 +890,13 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
       {Value<String>? id,
       Value<DateTime>? createdAt,
       Value<String>? title,
-      Value<Uint8List>? content,
+      Value<String>? path,
       Value<int>? rowid}) {
     return DocumentsCompanion(
       id: id ?? this.id,
       createdAt: createdAt ?? this.createdAt,
       title: title ?? this.title,
-      content: content ?? this.content,
+      path: path ?? this.path,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -917,8 +913,8 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
     if (title.present) {
       map['title'] = Variable<String>(title.value);
     }
-    if (content.present) {
-      map['content'] = Variable<Uint8List>(content.value);
+    if (path.present) {
+      map['path'] = Variable<String>(path.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -932,7 +928,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
           ..write('id: $id, ')
           ..write('createdAt: $createdAt, ')
           ..write('title: $title, ')
-          ..write('content: $content, ')
+          ..write('path: $path, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -2470,7 +2466,7 @@ typedef $$FoldersTableProcessedTableManager = ProcessedTableManager<
 typedef $$LinksTableCreateCompanionBuilder = LinksCompanion Function({
   required String id,
   Value<DateTime> createdAt,
-  required String content,
+  required String path,
   Value<String?> archiveOrgUrl,
   Value<String?> archiveIsUrl,
   Value<String?> localArchivePath,
@@ -2479,7 +2475,7 @@ typedef $$LinksTableCreateCompanionBuilder = LinksCompanion Function({
 typedef $$LinksTableUpdateCompanionBuilder = LinksCompanion Function({
   Value<String> id,
   Value<DateTime> createdAt,
-  Value<String> content,
+  Value<String> path,
   Value<String?> archiveOrgUrl,
   Value<String?> archiveIsUrl,
   Value<String?> localArchivePath,
@@ -2500,8 +2496,8 @@ class $$LinksTableFilterComposer extends Composer<_$AppDatabase, $LinksTable> {
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get content => $composableBuilder(
-      column: $table.content, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get path => $composableBuilder(
+      column: $table.path, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get archiveOrgUrl => $composableBuilder(
       column: $table.archiveOrgUrl, builder: (column) => ColumnFilters(column));
@@ -2529,8 +2525,8 @@ class $$LinksTableOrderingComposer
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get content => $composableBuilder(
-      column: $table.content, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get path => $composableBuilder(
+      column: $table.path, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get archiveOrgUrl => $composableBuilder(
       column: $table.archiveOrgUrl,
@@ -2560,8 +2556,8 @@ class $$LinksTableAnnotationComposer
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
-  GeneratedColumn<String> get content =>
-      $composableBuilder(column: $table.content, builder: (column) => column);
+  GeneratedColumn<String> get path =>
+      $composableBuilder(column: $table.path, builder: (column) => column);
 
   GeneratedColumn<String> get archiveOrgUrl => $composableBuilder(
       column: $table.archiveOrgUrl, builder: (column) => column);
@@ -2598,7 +2594,7 @@ class $$LinksTableTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
-            Value<String> content = const Value.absent(),
+            Value<String> path = const Value.absent(),
             Value<String?> archiveOrgUrl = const Value.absent(),
             Value<String?> archiveIsUrl = const Value.absent(),
             Value<String?> localArchivePath = const Value.absent(),
@@ -2607,7 +2603,7 @@ class $$LinksTableTableManager extends RootTableManager<
               LinksCompanion(
             id: id,
             createdAt: createdAt,
-            content: content,
+            path: path,
             archiveOrgUrl: archiveOrgUrl,
             archiveIsUrl: archiveIsUrl,
             localArchivePath: localArchivePath,
@@ -2616,7 +2612,7 @@ class $$LinksTableTableManager extends RootTableManager<
           createCompanionCallback: ({
             required String id,
             Value<DateTime> createdAt = const Value.absent(),
-            required String content,
+            required String path,
             Value<String?> archiveOrgUrl = const Value.absent(),
             Value<String?> archiveIsUrl = const Value.absent(),
             Value<String?> localArchivePath = const Value.absent(),
@@ -2625,7 +2621,7 @@ class $$LinksTableTableManager extends RootTableManager<
               LinksCompanion.insert(
             id: id,
             createdAt: createdAt,
-            content: content,
+            path: path,
             archiveOrgUrl: archiveOrgUrl,
             archiveIsUrl: archiveIsUrl,
             localArchivePath: localArchivePath,
@@ -2654,14 +2650,14 @@ typedef $$DocumentsTableCreateCompanionBuilder = DocumentsCompanion Function({
   required String id,
   Value<DateTime> createdAt,
   required String title,
-  required Uint8List content,
+  required String path,
   Value<int> rowid,
 });
 typedef $$DocumentsTableUpdateCompanionBuilder = DocumentsCompanion Function({
   Value<String> id,
   Value<DateTime> createdAt,
   Value<String> title,
-  Value<Uint8List> content,
+  Value<String> path,
   Value<int> rowid,
 });
 
@@ -2683,8 +2679,8 @@ class $$DocumentsTableFilterComposer
   ColumnFilters<String> get title => $composableBuilder(
       column: $table.title, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<Uint8List> get content => $composableBuilder(
-      column: $table.content, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get path => $composableBuilder(
+      column: $table.path, builder: (column) => ColumnFilters(column));
 }
 
 class $$DocumentsTableOrderingComposer
@@ -2705,8 +2701,8 @@ class $$DocumentsTableOrderingComposer
   ColumnOrderings<String> get title => $composableBuilder(
       column: $table.title, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<Uint8List> get content => $composableBuilder(
-      column: $table.content, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get path => $composableBuilder(
+      column: $table.path, builder: (column) => ColumnOrderings(column));
 }
 
 class $$DocumentsTableAnnotationComposer
@@ -2727,8 +2723,8 @@ class $$DocumentsTableAnnotationComposer
   GeneratedColumn<String> get title =>
       $composableBuilder(column: $table.title, builder: (column) => column);
 
-  GeneratedColumn<Uint8List> get content =>
-      $composableBuilder(column: $table.content, builder: (column) => column);
+  GeneratedColumn<String> get path =>
+      $composableBuilder(column: $table.path, builder: (column) => column);
 }
 
 class $$DocumentsTableTableManager extends RootTableManager<
@@ -2757,28 +2753,28 @@ class $$DocumentsTableTableManager extends RootTableManager<
             Value<String> id = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
             Value<String> title = const Value.absent(),
-            Value<Uint8List> content = const Value.absent(),
+            Value<String> path = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               DocumentsCompanion(
             id: id,
             createdAt: createdAt,
             title: title,
-            content: content,
+            path: path,
             rowid: rowid,
           ),
           createCompanionCallback: ({
             required String id,
             Value<DateTime> createdAt = const Value.absent(),
             required String title,
-            required Uint8List content,
+            required String path,
             Value<int> rowid = const Value.absent(),
           }) =>
               DocumentsCompanion.insert(
             id: id,
             createdAt: createdAt,
             title: title,
-            content: content,
+            path: path,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
@@ -4438,6 +4434,287 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
   }
 }
 
+class $UserThemesTable extends UserThemes
+    with TableInfo<$UserThemesTable, UserTheme> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $UserThemesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 30, maxTextLength: 60),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _userConfigIdMeta =
+      const VerificationMeta('userConfigId');
+  @override
+  late final GeneratedColumn<String> userConfigId = GeneratedColumn<String>(
+      'user_config_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES user_configs (id)'));
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+      'name', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'));
+  static const VerificationMeta _themeMeta = const VerificationMeta('theme');
+  @override
+  late final GeneratedColumn<String> theme = GeneratedColumn<String>(
+      'theme', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [id, userConfigId, name, theme];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'user_themes';
+  @override
+  VerificationContext validateIntegrity(Insertable<UserTheme> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('user_config_id')) {
+      context.handle(
+          _userConfigIdMeta,
+          userConfigId.isAcceptableOrUnknown(
+              data['user_config_id']!, _userConfigIdMeta));
+    } else if (isInserting) {
+      context.missing(_userConfigIdMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('theme')) {
+      context.handle(
+          _themeMeta, theme.isAcceptableOrUnknown(data['theme']!, _themeMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  UserTheme map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return UserTheme(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      userConfigId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}user_config_id'])!,
+      name: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      theme: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}theme']),
+    );
+  }
+
+  @override
+  $UserThemesTable createAlias(String alias) {
+    return $UserThemesTable(attachedDatabase, alias);
+  }
+}
+
+class UserTheme extends DataClass implements Insertable<UserTheme> {
+  final String id;
+  final String userConfigId;
+  final String name;
+  final String? theme;
+  const UserTheme(
+      {required this.id,
+      required this.userConfigId,
+      required this.name,
+      this.theme});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['user_config_id'] = Variable<String>(userConfigId);
+    map['name'] = Variable<String>(name);
+    if (!nullToAbsent || theme != null) {
+      map['theme'] = Variable<String>(theme);
+    }
+    return map;
+  }
+
+  UserThemesCompanion toCompanion(bool nullToAbsent) {
+    return UserThemesCompanion(
+      id: Value(id),
+      userConfigId: Value(userConfigId),
+      name: Value(name),
+      theme:
+          theme == null && nullToAbsent ? const Value.absent() : Value(theme),
+    );
+  }
+
+  factory UserTheme.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return UserTheme(
+      id: serializer.fromJson<String>(json['id']),
+      userConfigId: serializer.fromJson<String>(json['userConfigId']),
+      name: serializer.fromJson<String>(json['name']),
+      theme: serializer.fromJson<String?>(json['theme']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'userConfigId': serializer.toJson<String>(userConfigId),
+      'name': serializer.toJson<String>(name),
+      'theme': serializer.toJson<String?>(theme),
+    };
+  }
+
+  UserTheme copyWith(
+          {String? id,
+          String? userConfigId,
+          String? name,
+          Value<String?> theme = const Value.absent()}) =>
+      UserTheme(
+        id: id ?? this.id,
+        userConfigId: userConfigId ?? this.userConfigId,
+        name: name ?? this.name,
+        theme: theme.present ? theme.value : this.theme,
+      );
+  UserTheme copyWithCompanion(UserThemesCompanion data) {
+    return UserTheme(
+      id: data.id.present ? data.id.value : this.id,
+      userConfigId: data.userConfigId.present
+          ? data.userConfigId.value
+          : this.userConfigId,
+      name: data.name.present ? data.name.value : this.name,
+      theme: data.theme.present ? data.theme.value : this.theme,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserTheme(')
+          ..write('id: $id, ')
+          ..write('userConfigId: $userConfigId, ')
+          ..write('name: $name, ')
+          ..write('theme: $theme')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, userConfigId, name, theme);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is UserTheme &&
+          other.id == this.id &&
+          other.userConfigId == this.userConfigId &&
+          other.name == this.name &&
+          other.theme == this.theme);
+}
+
+class UserThemesCompanion extends UpdateCompanion<UserTheme> {
+  final Value<String> id;
+  final Value<String> userConfigId;
+  final Value<String> name;
+  final Value<String?> theme;
+  final Value<int> rowid;
+  const UserThemesCompanion({
+    this.id = const Value.absent(),
+    this.userConfigId = const Value.absent(),
+    this.name = const Value.absent(),
+    this.theme = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  UserThemesCompanion.insert({
+    required String id,
+    required String userConfigId,
+    required String name,
+    this.theme = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        userConfigId = Value(userConfigId),
+        name = Value(name);
+  static Insertable<UserTheme> custom({
+    Expression<String>? id,
+    Expression<String>? userConfigId,
+    Expression<String>? name,
+    Expression<String>? theme,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (userConfigId != null) 'user_config_id': userConfigId,
+      if (name != null) 'name': name,
+      if (theme != null) 'theme': theme,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  UserThemesCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? userConfigId,
+      Value<String>? name,
+      Value<String?>? theme,
+      Value<int>? rowid}) {
+    return UserThemesCompanion(
+      id: id ?? this.id,
+      userConfigId: userConfigId ?? this.userConfigId,
+      name: name ?? this.name,
+      theme: theme ?? this.theme,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (userConfigId.present) {
+      map['user_config_id'] = Variable<String>(userConfigId.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (theme.present) {
+      map['theme'] = Variable<String>(theme.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserThemesCompanion(')
+          ..write('id: $id, ')
+          ..write('userConfigId: $userConfigId, ')
+          ..write('name: $name, ')
+          ..write('theme: $theme, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $BackupSettingsTable extends BackupSettings
     with TableInfo<$BackupSettingsTable, BackupSetting> {
   @override
@@ -4479,9 +4756,21 @@ class $BackupSettingsTable extends BackupSettings
   late final GeneratedColumn<String> backupPath = GeneratedColumn<String>(
       'backup_path', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _lastBackupTimestampMeta =
+      const VerificationMeta('lastBackupTimestamp');
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, userConfigId, backupInterval, backupFilename, backupPath];
+  late final GeneratedColumn<DateTime> lastBackupTimestamp =
+      GeneratedColumn<DateTime>('last_backup_timestamp', aliasedName, true,
+          type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        userConfigId,
+        backupInterval,
+        backupFilename,
+        backupPath,
+        lastBackupTimestamp
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -4523,6 +4812,12 @@ class $BackupSettingsTable extends BackupSettings
           backupPath.isAcceptableOrUnknown(
               data['backup_path']!, _backupPathMeta));
     }
+    if (data.containsKey('last_backup_timestamp')) {
+      context.handle(
+          _lastBackupTimestampMeta,
+          lastBackupTimestamp.isAcceptableOrUnknown(
+              data['last_backup_timestamp']!, _lastBackupTimestampMeta));
+    }
     return context;
   }
 
@@ -4542,6 +4837,9 @@ class $BackupSettingsTable extends BackupSettings
           .read(DriftSqlType.string, data['${effectivePrefix}backup_filename']),
       backupPath: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}backup_path']),
+      lastBackupTimestamp: attachedDatabase.typeMapping.read(
+          DriftSqlType.dateTime,
+          data['${effectivePrefix}last_backup_timestamp']),
     );
   }
 
@@ -4557,12 +4855,14 @@ class BackupSetting extends DataClass implements Insertable<BackupSetting> {
   final String? backupInterval;
   final String? backupFilename;
   final String? backupPath;
+  final DateTime? lastBackupTimestamp;
   const BackupSetting(
       {required this.id,
       required this.userConfigId,
       this.backupInterval,
       this.backupFilename,
-      this.backupPath});
+      this.backupPath,
+      this.lastBackupTimestamp});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -4576,6 +4876,9 @@ class BackupSetting extends DataClass implements Insertable<BackupSetting> {
     }
     if (!nullToAbsent || backupPath != null) {
       map['backup_path'] = Variable<String>(backupPath);
+    }
+    if (!nullToAbsent || lastBackupTimestamp != null) {
+      map['last_backup_timestamp'] = Variable<DateTime>(lastBackupTimestamp);
     }
     return map;
   }
@@ -4593,6 +4896,9 @@ class BackupSetting extends DataClass implements Insertable<BackupSetting> {
       backupPath: backupPath == null && nullToAbsent
           ? const Value.absent()
           : Value(backupPath),
+      lastBackupTimestamp: lastBackupTimestamp == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastBackupTimestamp),
     );
   }
 
@@ -4605,6 +4911,8 @@ class BackupSetting extends DataClass implements Insertable<BackupSetting> {
       backupInterval: serializer.fromJson<String?>(json['backupInterval']),
       backupFilename: serializer.fromJson<String?>(json['backupFilename']),
       backupPath: serializer.fromJson<String?>(json['backupPath']),
+      lastBackupTimestamp:
+          serializer.fromJson<DateTime?>(json['lastBackupTimestamp']),
     );
   }
   @override
@@ -4616,6 +4924,7 @@ class BackupSetting extends DataClass implements Insertable<BackupSetting> {
       'backupInterval': serializer.toJson<String?>(backupInterval),
       'backupFilename': serializer.toJson<String?>(backupFilename),
       'backupPath': serializer.toJson<String?>(backupPath),
+      'lastBackupTimestamp': serializer.toJson<DateTime?>(lastBackupTimestamp),
     };
   }
 
@@ -4624,7 +4933,8 @@ class BackupSetting extends DataClass implements Insertable<BackupSetting> {
           String? userConfigId,
           Value<String?> backupInterval = const Value.absent(),
           Value<String?> backupFilename = const Value.absent(),
-          Value<String?> backupPath = const Value.absent()}) =>
+          Value<String?> backupPath = const Value.absent(),
+          Value<DateTime?> lastBackupTimestamp = const Value.absent()}) =>
       BackupSetting(
         id: id ?? this.id,
         userConfigId: userConfigId ?? this.userConfigId,
@@ -4633,6 +4943,9 @@ class BackupSetting extends DataClass implements Insertable<BackupSetting> {
         backupFilename:
             backupFilename.present ? backupFilename.value : this.backupFilename,
         backupPath: backupPath.present ? backupPath.value : this.backupPath,
+        lastBackupTimestamp: lastBackupTimestamp.present
+            ? lastBackupTimestamp.value
+            : this.lastBackupTimestamp,
       );
   BackupSetting copyWithCompanion(BackupSettingsCompanion data) {
     return BackupSetting(
@@ -4648,6 +4961,9 @@ class BackupSetting extends DataClass implements Insertable<BackupSetting> {
           : this.backupFilename,
       backupPath:
           data.backupPath.present ? data.backupPath.value : this.backupPath,
+      lastBackupTimestamp: data.lastBackupTimestamp.present
+          ? data.lastBackupTimestamp.value
+          : this.lastBackupTimestamp,
     );
   }
 
@@ -4658,14 +4974,15 @@ class BackupSetting extends DataClass implements Insertable<BackupSetting> {
           ..write('userConfigId: $userConfigId, ')
           ..write('backupInterval: $backupInterval, ')
           ..write('backupFilename: $backupFilename, ')
-          ..write('backupPath: $backupPath')
+          ..write('backupPath: $backupPath, ')
+          ..write('lastBackupTimestamp: $lastBackupTimestamp')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, userConfigId, backupInterval, backupFilename, backupPath);
+  int get hashCode => Object.hash(id, userConfigId, backupInterval,
+      backupFilename, backupPath, lastBackupTimestamp);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -4674,7 +4991,8 @@ class BackupSetting extends DataClass implements Insertable<BackupSetting> {
           other.userConfigId == this.userConfigId &&
           other.backupInterval == this.backupInterval &&
           other.backupFilename == this.backupFilename &&
-          other.backupPath == this.backupPath);
+          other.backupPath == this.backupPath &&
+          other.lastBackupTimestamp == this.lastBackupTimestamp);
 }
 
 class BackupSettingsCompanion extends UpdateCompanion<BackupSetting> {
@@ -4683,6 +5001,7 @@ class BackupSettingsCompanion extends UpdateCompanion<BackupSetting> {
   final Value<String?> backupInterval;
   final Value<String?> backupFilename;
   final Value<String?> backupPath;
+  final Value<DateTime?> lastBackupTimestamp;
   final Value<int> rowid;
   const BackupSettingsCompanion({
     this.id = const Value.absent(),
@@ -4690,6 +5009,7 @@ class BackupSettingsCompanion extends UpdateCompanion<BackupSetting> {
     this.backupInterval = const Value.absent(),
     this.backupFilename = const Value.absent(),
     this.backupPath = const Value.absent(),
+    this.lastBackupTimestamp = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   BackupSettingsCompanion.insert({
@@ -4698,6 +5018,7 @@ class BackupSettingsCompanion extends UpdateCompanion<BackupSetting> {
     this.backupInterval = const Value.absent(),
     this.backupFilename = const Value.absent(),
     this.backupPath = const Value.absent(),
+    this.lastBackupTimestamp = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         userConfigId = Value(userConfigId);
@@ -4707,6 +5028,7 @@ class BackupSettingsCompanion extends UpdateCompanion<BackupSetting> {
     Expression<String>? backupInterval,
     Expression<String>? backupFilename,
     Expression<String>? backupPath,
+    Expression<DateTime>? lastBackupTimestamp,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -4715,6 +5037,8 @@ class BackupSettingsCompanion extends UpdateCompanion<BackupSetting> {
       if (backupInterval != null) 'backup_interval': backupInterval,
       if (backupFilename != null) 'backup_filename': backupFilename,
       if (backupPath != null) 'backup_path': backupPath,
+      if (lastBackupTimestamp != null)
+        'last_backup_timestamp': lastBackupTimestamp,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -4725,6 +5049,7 @@ class BackupSettingsCompanion extends UpdateCompanion<BackupSetting> {
       Value<String?>? backupInterval,
       Value<String?>? backupFilename,
       Value<String?>? backupPath,
+      Value<DateTime?>? lastBackupTimestamp,
       Value<int>? rowid}) {
     return BackupSettingsCompanion(
       id: id ?? this.id,
@@ -4732,6 +5057,7 @@ class BackupSettingsCompanion extends UpdateCompanion<BackupSetting> {
       backupInterval: backupInterval ?? this.backupInterval,
       backupFilename: backupFilename ?? this.backupFilename,
       backupPath: backupPath ?? this.backupPath,
+      lastBackupTimestamp: lastBackupTimestamp ?? this.lastBackupTimestamp,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -4754,6 +5080,10 @@ class BackupSettingsCompanion extends UpdateCompanion<BackupSetting> {
     if (backupPath.present) {
       map['backup_path'] = Variable<String>(backupPath.value);
     }
+    if (lastBackupTimestamp.present) {
+      map['last_backup_timestamp'] =
+          Variable<DateTime>(lastBackupTimestamp.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -4768,6 +5098,7 @@ class BackupSettingsCompanion extends UpdateCompanion<BackupSetting> {
           ..write('backupInterval: $backupInterval, ')
           ..write('backupFilename: $backupFilename, ')
           ..write('backupPath: $backupPath, ')
+          ..write('lastBackupTimestamp: $lastBackupTimestamp, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -5089,6 +5420,7 @@ abstract class _$ConfigDatabase extends GeneratedDatabase {
   _$ConfigDatabase(QueryExecutor e) : super(e);
   $ConfigDatabaseManager get managers => $ConfigDatabaseManager(this);
   late final $UserConfigsTable userConfigs = $UserConfigsTable(this);
+  late final $UserThemesTable userThemes = $UserThemesTable(this);
   late final $BackupSettingsTable backupSettings = $BackupSettingsTable(this);
   late final $ArchiveSettingsTable archiveSettings =
       $ArchiveSettingsTable(this);
@@ -5097,7 +5429,7 @@ abstract class _$ConfigDatabase extends GeneratedDatabase {
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [userConfigs, backupSettings, archiveSettings];
+      [userConfigs, userThemes, backupSettings, archiveSettings];
   @override
   DriftDatabaseOptions get options =>
       const DriftDatabaseOptions(storeDateTimeAsText: true);
@@ -5129,6 +5461,21 @@ typedef $$UserConfigsTableUpdateCompanionBuilder = UserConfigsCompanion
 final class $$UserConfigsTableReferences
     extends BaseReferences<_$ConfigDatabase, $UserConfigsTable, UserConfig> {
   $$UserConfigsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$UserThemesTable, List<UserTheme>>
+      _userThemesRefsTable(_$ConfigDatabase db) =>
+          MultiTypedResultKey.fromTable(db.userThemes,
+              aliasName: $_aliasNameGenerator(
+                  db.userConfigs.id, db.userThemes.userConfigId));
+
+  $$UserThemesTableProcessedTableManager get userThemesRefs {
+    final manager = $$UserThemesTableTableManager($_db, $_db.userThemes).filter(
+        (f) => f.userConfigId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_userThemesRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
 
   static MultiTypedResultKey<$BackupSettingsTable, List<BackupSetting>>
       _backupSettingsRefsTable(_$ConfigDatabase db) =>
@@ -5196,6 +5543,27 @@ class $$UserConfigsTableFilterComposer
 
   ColumnFilters<String> get colorScheme => $composableBuilder(
       column: $table.colorScheme, builder: (column) => ColumnFilters(column));
+
+  Expression<bool> userThemesRefs(
+      Expression<bool> Function($$UserThemesTableFilterComposer f) f) {
+    final $$UserThemesTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.userThemes,
+        getReferencedColumn: (t) => t.userConfigId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UserThemesTableFilterComposer(
+              $db: $db,
+              $table: $db.userThemes,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 
   Expression<bool> backupSettingsRefs(
       Expression<bool> Function($$BackupSettingsTableFilterComposer f) f) {
@@ -5305,6 +5673,27 @@ class $$UserConfigsTableAnnotationComposer
   GeneratedColumn<String> get colorScheme => $composableBuilder(
       column: $table.colorScheme, builder: (column) => column);
 
+  Expression<T> userThemesRefs<T extends Object>(
+      Expression<T> Function($$UserThemesTableAnnotationComposer a) f) {
+    final $$UserThemesTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.userThemes,
+        getReferencedColumn: (t) => t.userConfigId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UserThemesTableAnnotationComposer(
+              $db: $db,
+              $table: $db.userThemes,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
   Expression<T> backupSettingsRefs<T extends Object>(
       Expression<T> Function($$BackupSettingsTableAnnotationComposer a) f) {
     final $$BackupSettingsTableAnnotationComposer composer = $composerBuilder(
@@ -5360,7 +5749,9 @@ class $$UserConfigsTableTableManager extends RootTableManager<
     (UserConfig, $$UserConfigsTableReferences),
     UserConfig,
     PrefetchHooks Function(
-        {bool backupSettingsRefs, bool archiveSettingsRefs})> {
+        {bool userThemesRefs,
+        bool backupSettingsRefs,
+        bool archiveSettingsRefs})> {
   $$UserConfigsTableTableManager(_$ConfigDatabase db, $UserConfigsTable table)
       : super(TableManagerState(
           db: db,
@@ -5418,16 +5809,32 @@ class $$UserConfigsTableTableManager extends RootTableManager<
                   ))
               .toList(),
           prefetchHooksCallback: (
-              {backupSettingsRefs = false, archiveSettingsRefs = false}) {
+              {userThemesRefs = false,
+              backupSettingsRefs = false,
+              archiveSettingsRefs = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [
+                if (userThemesRefs) db.userThemes,
                 if (backupSettingsRefs) db.backupSettings,
                 if (archiveSettingsRefs) db.archiveSettings
               ],
               addJoins: null,
               getPrefetchedDataCallback: (items) async {
                 return [
+                  if (userThemesRefs)
+                    await $_getPrefetchedData<UserConfig, $UserConfigsTable,
+                            UserTheme>(
+                        currentTable: table,
+                        referencedTable: $$UserConfigsTableReferences
+                            ._userThemesRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$UserConfigsTableReferences(db, table, p0)
+                                .userThemesRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.userConfigId == item.id),
+                        typedResults: items),
                   if (backupSettingsRefs)
                     await $_getPrefetchedData<UserConfig, $UserConfigsTable,
                             BackupSetting>(
@@ -5473,7 +5880,267 @@ typedef $$UserConfigsTableProcessedTableManager = ProcessedTableManager<
     (UserConfig, $$UserConfigsTableReferences),
     UserConfig,
     PrefetchHooks Function(
-        {bool backupSettingsRefs, bool archiveSettingsRefs})>;
+        {bool userThemesRefs,
+        bool backupSettingsRefs,
+        bool archiveSettingsRefs})>;
+typedef $$UserThemesTableCreateCompanionBuilder = UserThemesCompanion Function({
+  required String id,
+  required String userConfigId,
+  required String name,
+  Value<String?> theme,
+  Value<int> rowid,
+});
+typedef $$UserThemesTableUpdateCompanionBuilder = UserThemesCompanion Function({
+  Value<String> id,
+  Value<String> userConfigId,
+  Value<String> name,
+  Value<String?> theme,
+  Value<int> rowid,
+});
+
+final class $$UserThemesTableReferences
+    extends BaseReferences<_$ConfigDatabase, $UserThemesTable, UserTheme> {
+  $$UserThemesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $UserConfigsTable _userConfigIdTable(_$ConfigDatabase db) =>
+      db.userConfigs.createAlias(
+          $_aliasNameGenerator(db.userThemes.userConfigId, db.userConfigs.id));
+
+  $$UserConfigsTableProcessedTableManager get userConfigId {
+    final $_column = $_itemColumn<String>('user_config_id')!;
+
+    final manager = $$UserConfigsTableTableManager($_db, $_db.userConfigs)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_userConfigIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$UserThemesTableFilterComposer
+    extends Composer<_$ConfigDatabase, $UserThemesTable> {
+  $$UserThemesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get theme => $composableBuilder(
+      column: $table.theme, builder: (column) => ColumnFilters(column));
+
+  $$UserConfigsTableFilterComposer get userConfigId {
+    final $$UserConfigsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.userConfigId,
+        referencedTable: $db.userConfigs,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UserConfigsTableFilterComposer(
+              $db: $db,
+              $table: $db.userConfigs,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$UserThemesTableOrderingComposer
+    extends Composer<_$ConfigDatabase, $UserThemesTable> {
+  $$UserThemesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get theme => $composableBuilder(
+      column: $table.theme, builder: (column) => ColumnOrderings(column));
+
+  $$UserConfigsTableOrderingComposer get userConfigId {
+    final $$UserConfigsTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.userConfigId,
+        referencedTable: $db.userConfigs,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UserConfigsTableOrderingComposer(
+              $db: $db,
+              $table: $db.userConfigs,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$UserThemesTableAnnotationComposer
+    extends Composer<_$ConfigDatabase, $UserThemesTable> {
+  $$UserThemesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get theme =>
+      $composableBuilder(column: $table.theme, builder: (column) => column);
+
+  $$UserConfigsTableAnnotationComposer get userConfigId {
+    final $$UserConfigsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.userConfigId,
+        referencedTable: $db.userConfigs,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UserConfigsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.userConfigs,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$UserThemesTableTableManager extends RootTableManager<
+    _$ConfigDatabase,
+    $UserThemesTable,
+    UserTheme,
+    $$UserThemesTableFilterComposer,
+    $$UserThemesTableOrderingComposer,
+    $$UserThemesTableAnnotationComposer,
+    $$UserThemesTableCreateCompanionBuilder,
+    $$UserThemesTableUpdateCompanionBuilder,
+    (UserTheme, $$UserThemesTableReferences),
+    UserTheme,
+    PrefetchHooks Function({bool userConfigId})> {
+  $$UserThemesTableTableManager(_$ConfigDatabase db, $UserThemesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$UserThemesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$UserThemesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$UserThemesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> userConfigId = const Value.absent(),
+            Value<String> name = const Value.absent(),
+            Value<String?> theme = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              UserThemesCompanion(
+            id: id,
+            userConfigId: userConfigId,
+            name: name,
+            theme: theme,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required String userConfigId,
+            required String name,
+            Value<String?> theme = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              UserThemesCompanion.insert(
+            id: id,
+            userConfigId: userConfigId,
+            name: name,
+            theme: theme,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$UserThemesTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({userConfigId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (userConfigId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.userConfigId,
+                    referencedTable:
+                        $$UserThemesTableReferences._userConfigIdTable(db),
+                    referencedColumn:
+                        $$UserThemesTableReferences._userConfigIdTable(db).id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$UserThemesTableProcessedTableManager = ProcessedTableManager<
+    _$ConfigDatabase,
+    $UserThemesTable,
+    UserTheme,
+    $$UserThemesTableFilterComposer,
+    $$UserThemesTableOrderingComposer,
+    $$UserThemesTableAnnotationComposer,
+    $$UserThemesTableCreateCompanionBuilder,
+    $$UserThemesTableUpdateCompanionBuilder,
+    (UserTheme, $$UserThemesTableReferences),
+    UserTheme,
+    PrefetchHooks Function({bool userConfigId})>;
 typedef $$BackupSettingsTableCreateCompanionBuilder = BackupSettingsCompanion
     Function({
   required String id,
@@ -5481,6 +6148,7 @@ typedef $$BackupSettingsTableCreateCompanionBuilder = BackupSettingsCompanion
   Value<String?> backupInterval,
   Value<String?> backupFilename,
   Value<String?> backupPath,
+  Value<DateTime?> lastBackupTimestamp,
   Value<int> rowid,
 });
 typedef $$BackupSettingsTableUpdateCompanionBuilder = BackupSettingsCompanion
@@ -5490,6 +6158,7 @@ typedef $$BackupSettingsTableUpdateCompanionBuilder = BackupSettingsCompanion
   Value<String?> backupInterval,
   Value<String?> backupFilename,
   Value<String?> backupPath,
+  Value<DateTime?> lastBackupTimestamp,
   Value<int> rowid,
 });
 
@@ -5537,6 +6206,10 @@ class $$BackupSettingsTableFilterComposer
   ColumnFilters<String> get backupPath => $composableBuilder(
       column: $table.backupPath, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<DateTime> get lastBackupTimestamp => $composableBuilder(
+      column: $table.lastBackupTimestamp,
+      builder: (column) => ColumnFilters(column));
+
   $$UserConfigsTableFilterComposer get userConfigId {
     final $$UserConfigsTableFilterComposer composer = $composerBuilder(
         composer: this,
@@ -5581,6 +6254,10 @@ class $$BackupSettingsTableOrderingComposer
   ColumnOrderings<String> get backupPath => $composableBuilder(
       column: $table.backupPath, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<DateTime> get lastBackupTimestamp => $composableBuilder(
+      column: $table.lastBackupTimestamp,
+      builder: (column) => ColumnOrderings(column));
+
   $$UserConfigsTableOrderingComposer get userConfigId {
     final $$UserConfigsTableOrderingComposer composer = $composerBuilder(
         composer: this,
@@ -5622,6 +6299,9 @@ class $$BackupSettingsTableAnnotationComposer
 
   GeneratedColumn<String> get backupPath => $composableBuilder(
       column: $table.backupPath, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get lastBackupTimestamp => $composableBuilder(
+      column: $table.lastBackupTimestamp, builder: (column) => column);
 
   $$UserConfigsTableAnnotationComposer get userConfigId {
     final $$UserConfigsTableAnnotationComposer composer = $composerBuilder(
@@ -5673,6 +6353,7 @@ class $$BackupSettingsTableTableManager extends RootTableManager<
             Value<String?> backupInterval = const Value.absent(),
             Value<String?> backupFilename = const Value.absent(),
             Value<String?> backupPath = const Value.absent(),
+            Value<DateTime?> lastBackupTimestamp = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               BackupSettingsCompanion(
@@ -5681,6 +6362,7 @@ class $$BackupSettingsTableTableManager extends RootTableManager<
             backupInterval: backupInterval,
             backupFilename: backupFilename,
             backupPath: backupPath,
+            lastBackupTimestamp: lastBackupTimestamp,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -5689,6 +6371,7 @@ class $$BackupSettingsTableTableManager extends RootTableManager<
             Value<String?> backupInterval = const Value.absent(),
             Value<String?> backupFilename = const Value.absent(),
             Value<String?> backupPath = const Value.absent(),
+            Value<DateTime?> lastBackupTimestamp = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               BackupSettingsCompanion.insert(
@@ -5697,6 +6380,7 @@ class $$BackupSettingsTableTableManager extends RootTableManager<
             backupInterval: backupInterval,
             backupFilename: backupFilename,
             backupPath: backupPath,
+            lastBackupTimestamp: lastBackupTimestamp,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
@@ -6029,6 +6713,8 @@ class $ConfigDatabaseManager {
   $ConfigDatabaseManager(this._db);
   $$UserConfigsTableTableManager get userConfigs =>
       $$UserConfigsTableTableManager(_db, _db.userConfigs);
+  $$UserThemesTableTableManager get userThemes =>
+      $$UserThemesTableTableManager(_db, _db.userThemes);
   $$BackupSettingsTableTableManager get backupSettings =>
       $$BackupSettingsTableTableManager(_db, _db.backupSettings);
   $$ArchiveSettingsTableTableManager get archiveSettings =>
