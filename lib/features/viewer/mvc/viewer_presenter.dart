@@ -1,12 +1,10 @@
 import "dart:async";
 
-import "package:chenron/database/actions/handlers/read_handler.dart"
-    show Result;
-import "package:chenron/database/database.dart" show Folder;
 import "package:chenron/features/editor/pages/editor.dart";
 import "package:chenron/features/show_folder/pages/show_folder.dart";
 import "package:chenron/features/viewer/mvc/viewer_model.dart";
 import "package:chenron/features/viewer/ui/viewer_base_item.dart";
+import "package:chenron/models/db_result.dart" show FolderResult;
 import "package:chenron/models/item.dart";
 import "package:flutter/material.dart";
 import "package:url_launcher/url_launcher.dart";
@@ -51,7 +49,7 @@ class ViewerPresenter extends ChangeNotifier {
     notifyListeners();
   }
 
-  void onFolderTap(BuildContext context, Result<Folder> folder) {
+  void onFolderTap(BuildContext context, FolderResult folder) {
     Navigator.push(
       context,
       MaterialPageRoute(

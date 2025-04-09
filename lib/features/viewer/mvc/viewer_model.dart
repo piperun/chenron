@@ -1,7 +1,5 @@
 import "dart:async";
 
-import "package:chenron/database/actions/handlers/read_handler.dart"
-    show Result;
 import "package:chenron/database/database.dart";
 import "package:chenron/database/extensions/folder/read.dart";
 import "package:chenron/database/extensions/folder/remove.dart";
@@ -10,6 +8,7 @@ import "package:chenron/database/extensions/link/remove.dart";
 import "package:chenron/database/extensions/operations/database_file_handler.dart";
 import "package:chenron/features/viewer/ui/viewer_base_item.dart";
 import "package:chenron/locator.dart";
+import "package:chenron/models/db_result.dart" show FolderResult;
 import "package:chenron/models/item.dart";
 import "package:chenron/utils/logger.dart";
 import "package:rxdart/rxdart.dart";
@@ -49,10 +48,12 @@ class ViewerModel {
     return true;
   }
 
-  Stream<List<Result<Folder>>> watchAllFolders() async* {
+  Stream<List<FolderResult>> watchAllFolders() async* {
     try {
       final db = await loadDatabase();
-      yield* db.watchAllFolders(modes: {IncludeOptions.tags});
+      yield* db.watchAllFolders(
+          includeOptions:
+              const IncludeOptions<AppDataInclude>({AppDataInclude.tags}));
     } catch (e) {
       loggerGlobal.severe("ViewerModel" "Error watching folders: $e", e);
       yield [];
@@ -61,29 +62,37 @@ class ViewerModel {
 
   Stream<List<ViewerItem>> watchAllItems() async* {
     final db = await loadDatabase();
-    final folderStream = db.watchAllFolders(modes: {IncludeOptions.tags}).map(
-      (folders) => folders.map(
-        (folder) => ViewerItem(
-          id: folder.data.id,
-          title: folder.data.title,
-          description: folder.data.description,
-          type: FolderItemType.folder,
-          tags: folder.tags,
-        ),
-      ),
-    );
+    final folderStream = db
+        .watchAllFolders(
+            includeOptions:
+                const IncludeOptions<AppDataInclude>({AppDataInclude.tags}))
+        .map(
+          (folders) => folders.map(
+            (folder) => ViewerItem(
+              id: folder.data.id,
+              title: folder.data.title,
+              description: folder.data.description,
+              type: FolderItemType.folder,
+              tags: folder.tags,
+            ),
+          ),
+        );
 
-    final linkStream = db.watchAllLinks(modes: {IncludeOptions.tags}).map(
-      (links) => links.map(
-        (link) => ViewerItem(
-          id: link.data.id,
-          title: "",
-          description: link.data.content,
-          type: FolderItemType.link,
-          tags: link.tags,
-        ),
-      ),
-    );
+    final linkStream = db
+        .watchAllLinks(
+            includeOptions:
+                const IncludeOptions<AppDataInclude>({AppDataInclude.tags}))
+        .map(
+          (links) => links.map(
+            (link) => ViewerItem(
+              id: link.data.id,
+              title: "",
+              description: link.data.path,
+              type: FolderItemType.link,
+              tags: link.tags,
+            ),
+          ),
+        );
 
     yield* Rx.combineLatestList([folderStream, linkStream])
         .map((lists) => lists.expand((list) => list).toList());
