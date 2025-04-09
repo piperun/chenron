@@ -1,13 +1,12 @@
 import "package:chenron/components/TextBase/expandable_field.dart";
 import "package:chenron/components/TextBase/text_view.dart";
 import "package:chenron/components/tags/tag_body.dart";
-import "package:chenron/database/actions/handlers/read_handler.dart";
-import "package:chenron/database/database.dart" show Folder;
+import "package:chenron/models/db_result.dart" show FolderResult;
 import "package:flutter/material.dart";
 import "package:intl/intl.dart";
 
 class FolderDetailInfo extends StatelessWidget {
-  final Result<Folder> folderResult;
+  final FolderResult folderResult;
 
   const FolderDetailInfo({super.key, required this.folderResult});
 
