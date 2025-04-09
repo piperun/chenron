@@ -1,117 +1,120 @@
 import "package:chenron/database/actions/handlers/read_handler.dart";
 import "package:chenron/database/database.dart";
 import "package:chenron/database/extensions/base_query_builder.dart";
+import "package:chenron/models/db_result.dart";
 
 extension TagReadExtensions on AppDatabase {
   /// Retrieves a single tag by its ID.
-  Future<Result<Tag>?> getTag({
+  Future<TagResult?> getTag({
     required String tagId,
-    IncludeItems modes = const {},
+    IncludeOptions includeOptions = const IncludeOptions.empty(),
   }) {
-    return _TagReadRepository(db: this).getOne(id: tagId, modes: modes);
+    return _TagReadRepository(db: this)
+        .getOne(id: tagId, includeOptions: includeOptions);
   }
 
   /// Retrieves all tags. If [modes] contains relation options,
   /// related data can be loaded as well.
-  Future<List<Result<Tag>>> getAllTags({
-    IncludeItems modes = const {},
+  Future<List<TagResult>> getAllTags({
+    IncludeOptions includeOptions = const IncludeOptions.empty(),
   }) {
-    return _TagReadRepository(db: this).getAll(modes: modes);
+    return _TagReadRepository(db: this).getAll(includeOptions: includeOptions);
   }
 
   /// Watches a single tag by its ID as a stream of Result
-  Stream<Result<Tag>?> watchTag({
+  Stream<TagResult?> watchTag({
     required String tagId,
-    IncludeItems modes = const {},
+    IncludeOptions includeOptions = const IncludeOptions.empty(),
   }) {
-    return _TagReadRepository(db: this).watchOne(id: tagId, modes: modes);
+    return _TagReadRepository(db: this)
+        .watchOne(id: tagId, includeOptions: includeOptions);
   }
 
   /// Watches all tags, returning them as a stream of Result lists.
-  Stream<List<Result<Tag>>> watchAllTags({
-    IncludeItems modes = const {},
+  Stream<List<TagResult>> watchAllTags({
+    IncludeOptions includeOptions = const IncludeOptions.empty(),
   }) {
-    return _TagReadRepository(db: this).watchAll(modes: modes);
+    return _TagReadRepository(db: this)
+        .watchAll(includeOptions: includeOptions);
   }
 
   /// Searches for tags by name (or another column if configured)
   /// matching the given [query].
-  Future<List<Result<Tag>>> searchTags({
+  Future<List<TagResult>> searchTags({
     required String query,
-    IncludeItems modes = const {},
+    IncludeOptions includeOptions = const IncludeOptions.empty(),
   }) {
-    return _TagReadRepository(db: this).searchTable(query: query, modes: modes);
+    return _TagReadRepository(db: this)
+        .searchTable(query: query, includeOptions: includeOptions);
   }
 }
 
-class _TagReadRepository extends BaseRepository<Tag, IncludeItems>
+class _TagReadRepository extends BaseRepository<IncludeOptions>
     implements
-        BaseWatchRepository<Tag, IncludeItems>,
-        ExtraRepository<Tag, IncludeItems> {
+        BaseWatchRepository<IncludeOptions>,
+        ExtraRepository<IncludeOptions> {
   final AppDatabase db;
-  final ReadDbHandler<Tag> readHandler;
+  final ReadDbHandler<TagResult> readHandler;
 
   _TagReadRepository({required this.db})
-      : readHandler = ReadDbHandler<Tag>(
+      : readHandler = ReadDbHandler<TagResult>(
           db: db,
           table: db.tags,
-          // Optionally set a searchable column if you like (e.g., db.tags.name):
-          // searchColumn: db.tags.name,
         ),
         super(appDb: db);
 
   @override
-  Future<Result<Tag>?> getOne({
+  Future<TagResult?> getOne({
     required String id,
-    IncludeItems modes = const {},
+    IncludeOptions includeOptions = const IncludeOptions.empty(),
   }) async {
     return readHandler.getOne(
-      includes: modes,
+      includeOptions: includeOptions,
       predicate: db.tags.id.equals(id),
       joinExp: db.tags.id,
     );
   }
 
   @override
-  Future<List<Result<Tag>>> getAll({
-    IncludeItems modes = const {},
+  Future<List<TagResult>> getAll({
+    IncludeOptions includeOptions = const IncludeOptions.empty(),
   }) async {
     return readHandler.getAll(
-      includes: modes,
+      includeOptions: includeOptions,
       joinExp: db.tags.id,
     );
   }
 
   @override
-  Stream<Result<Tag>?> watchOne({
+  Stream<TagResult?> watchOne({
     required String id,
-    IncludeItems modes = const {},
+    IncludeOptions includeOptions = const IncludeOptions.empty(),
   }) {
     return readHandler.watchOne(
-      includes: modes,
+      includeOptions: includeOptions,
       joinExp: db.tags.id,
       predicate: db.tags.id.equals(id),
     );
   }
 
   @override
-  Stream<List<Result<Tag>>> watchAll({
-    IncludeItems modes = const {},
+  Stream<List<TagResult>> watchAll({
+    IncludeOptions includeOptions = const IncludeOptions.empty(),
   }) {
     return readHandler.watchAll(
-      includes: modes,
+      includeOptions: includeOptions,
       joinExp: db.tags.id,
     );
   }
 
   @override
-  Future<List<Result<Tag>>> searchTable({
+  Future<List<TagResult>> searchTable({
     required String query,
-    IncludeItems modes = const {},
+    IncludeOptions includeOptions = const IncludeOptions.empty(),
   }) async {
     return readHandler.searchTable(
       query: query,
-      includes: modes,
+      includeOptions: includeOptions,
       joinExp: db.tags.id,
       searchColumn: null,
     );

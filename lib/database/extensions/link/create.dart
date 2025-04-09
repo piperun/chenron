@@ -1,7 +1,7 @@
-import 'package:chenron/database/database.dart';
-import 'package:chenron/database/extensions/id.dart';
-import 'package:chenron/models/metadata.dart';
-import 'package:drift/drift.dart';
+import "package:chenron/database/database.dart";
+import "package:chenron/database/extensions/id.dart";
+import "package:chenron/models/metadata.dart";
+import "package:drift/drift.dart";
 
 extension LinkCreateExtensions on AppDatabase {
   Future<String> createLink({
@@ -19,14 +19,14 @@ extension LinkCreateExtensions on AppDatabase {
 
   Future<String> _createLink(String link) async {
     Link? linkExists = await (select(links)
-          ..where((tbl) => tbl.content.equals(link)))
+          ..where((tbl) => tbl.path.equals(link)))
         .getSingleOrNull();
     String linkId;
 
     if (linkExists == null) {
       linkId = generateId();
       await links.insertOne(
-        LinksCompanion.insert(id: linkId, content: link),
+        LinksCompanion.insert(id: linkId, path: link),
         mode: InsertMode.insertOrIgnore,
       );
     } else {

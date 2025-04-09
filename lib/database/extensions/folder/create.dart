@@ -1,4 +1,5 @@
 import "package:chenron/database/database.dart";
+import "package:chenron/database/extensions/folder/insert.dart";
 import "package:chenron/database/extensions/id.dart";
 import "package:chenron/database/extensions/insert_ext.dart";
 import "package:chenron/models/folder.dart";
@@ -9,15 +10,15 @@ import "package:chenron/utils/logger.dart";
 import "package:drift/drift.dart";
 
 extension FolderExtensions on AppDatabase {
-  Future<CreatedIds<Folder>> createFolder({
+  Future<FolderResultIds> createFolder({
     required FolderDraft folderInfo,
     List<Metadata>? tags,
     List<FolderItem>? items,
   }) async {
     return transaction(() async {
       String? folderId;
-      List<CreatedIds<Tag>>? createdTagIds;
-      List<CreatedIds<Item>>? createdItemIds;
+      List<TagResultIds>? createdTagIds;
+      List<ItemResultIds>? createdItemIds;
       try {
         if (folderInfo.title != "") {
           folderId = await _createFolderDraft(folderInfo);
@@ -28,10 +29,13 @@ extension FolderExtensions on AppDatabase {
         if (items != null) {
           createdItemIds = await _createFolderContent(folderId!, items);
         }
-        return CreatedIds.folder(
+        if (folderId == null) {
+          throw Exception("Folder ID is null");
+        }
+        return FolderResultIds(
           folderId: folderId,
-          tags: createdTagIds,
-          items: createdItemIds,
+          tagIds: createdTagIds,
+          itemIds: createdItemIds,
         );
       } catch (e) {
         loggerGlobal.severe("FolderActionsCreate", "Error adding folder: $e");
@@ -51,21 +55,34 @@ extension FolderExtensions on AppDatabase {
     return id;
   }
 
-  Future<List<CreatedIds<Tag>>> _createFolderTags(
+  Future<List<TagResultIds>> _createFolderTags(
       String folderId, List<Metadata> tagInserts) async {
-    List<CreatedIds<Tag>> tagResults = [];
-    if (tagInserts.isEmpty) {
-      return tagResults;
-    }
+    if (tagInserts.isEmpty) return [];
+
+    List<TagResultIds> tagResults = [];
+
     await batch((batch) async {
-      tagResults = (await insertTags(batch, tagInserts, folderId));
+      tagResults = await insertTags(
+        batch: batch,
+        tagMetadata: tagInserts,
+      );
+
+      for (final tagResult in tagResults) {
+        insertMetadataRelation(
+          batch: batch,
+          metadataId: tagResult.tagId,
+          itemId: folderId,
+          type: MetadataTypeEnum.tag,
+        );
+      }
     });
+
     return tagResults;
   }
 
-  Future<List<CreatedIds<Item>>> _createFolderContent(
+  Future<List<ItemResultIds>> _createFolderContent(
       String folderId, List<FolderItem> itemInserts) async {
-    List<CreatedIds<Item>> itemResults = [];
+    List<ItemResultIds> itemResults = [];
     if (itemInserts.isEmpty) return itemResults;
 
     await batch((batch) async {

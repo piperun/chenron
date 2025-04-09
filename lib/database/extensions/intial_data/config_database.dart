@@ -5,17 +5,17 @@ import "package:chenron/utils/logger.dart";
 import "package:drift/drift.dart";
 
 extension ConfigDatabaseInit on ConfigDatabase {
-  Future<CreatedIds<UserConfig>> setupUserConfig() async {
+  Future<UserConfigResultIds> setupUserConfig() async {
     final userConfigCreatedId = await _setupUserConfigEntry();
 
-    if (userConfigCreatedId.userConfigId != null) {
-      await _setupBackupConfig(userConfigCreatedId.userConfigId!);
+    if (userConfigCreatedId.userConfigId.isEmpty) {
+      await _setupBackupConfig(userConfigCreatedId.userConfigId);
     }
 
     return userConfigCreatedId;
   }
 
-  Future<CreatedIds<UserConfig>> _setupUserConfigEntry() async {
+  Future<UserConfigResultIds> _setupUserConfigEntry() async {
     try {
       final existingConfig = await (select(userConfigs)).getSingleOrNull();
 
@@ -32,11 +32,11 @@ extension ConfigDatabaseInit on ConfigDatabase {
           archiveOrgS3SecretKey: const Value(null),
         ));
 
-        return CreatedIds<UserConfig>(primaryId: configId);
+        return UserConfigResultIds(userConfigId: configId);
       }
 
       // Return existing config ID
-      return CreatedIds<UserConfig>(primaryId: existingConfig.id);
+      return UserConfigResultIds(userConfigId: existingConfig.id);
     } catch (e) {
       loggerGlobal.severe(
           "SetupUpserConfigEntry", "Error in _setupUserConfigEntry: $e");
@@ -44,7 +44,7 @@ extension ConfigDatabaseInit on ConfigDatabase {
     }
   }
 
-  Future<CreatedIds<BackupSetting>> _setupBackupConfig(
+  Future<BackupSettingsResultIds> _setupBackupConfig(
       String userConfigId) async {
     try {
       final query = select(backupSettings)
@@ -63,10 +63,13 @@ extension ConfigDatabaseInit on ConfigDatabase {
           backupInterval: const Value(null),
         ));
 
-        return CreatedIds<BackupSetting>(primaryId: backupId);
+        return BackupSettingsResultIds(
+            backupSettingsId: backupId, userConfigId: userConfigId);
       }
 
-      return CreatedIds<BackupSetting>(primaryId: existingConfig.id);
+      return BackupSettingsResultIds(
+          backupSettingsId: existingConfig.id,
+          userConfigId: existingConfig.userConfigId);
     } catch (e) {
       loggerGlobal.severe(
           "SetupBackupConfig", "Error in _setupBackupConfig: $e");

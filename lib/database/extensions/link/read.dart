@@ -1,107 +1,111 @@
 import "package:chenron/database/extensions/base_query_builder.dart";
 import "package:chenron/database/actions/handlers/read_handler.dart";
 import "package:chenron/database/database.dart";
+import "package:chenron/models/db_result.dart";
 
 extension LinkReadExtensions on AppDatabase {
-  Future<Result<Link>?> getLink({
+  Future<LinkResult?> getLink({
     required String linkId,
-    IncludeItems modes = const {},
+    IncludeOptions includeOptions = const IncludeOptions.empty(),
   }) {
-    return _LinkReadRepository(db: this).getOne(id: linkId, modes: modes);
+    return _LinkReadRepository(db: this)
+        .getOne(id: linkId, includeOptions: includeOptions);
   }
 
-  Future<List<Result<Link>>> getAllLinks({
-    IncludeItems modes = const {},
+  Future<List<LinkResult>> getAllLinks({
+    IncludeOptions includeOptions = const IncludeOptions.empty(),
   }) async {
-    return _LinkReadRepository(db: this).getAll(modes: modes);
+    return _LinkReadRepository(db: this).getAll(includeOptions: includeOptions);
   }
 
-  Stream<Result<Link>?> watchLink({
+  Stream<LinkResult?> watchLink({
     required String linkId,
-    IncludeItems modes = const {},
+    IncludeOptions includeOptions = const IncludeOptions.empty(),
   }) {
-    return _LinkReadRepository(db: this).watchOne(id: linkId, modes: modes);
+    return _LinkReadRepository(db: this)
+        .watchOne(id: linkId, includeOptions: includeOptions);
   }
 
-  Stream<List<Result<Link>>> watchAllLinks({
-    IncludeItems modes = const {},
+  Stream<List<LinkResult>> watchAllLinks({
+    IncludeOptions includeOptions = const IncludeOptions.empty(),
   }) {
-    return _LinkReadRepository(db: this).watchAll(modes: modes);
+    return _LinkReadRepository(db: this)
+        .watchAll(includeOptions: includeOptions);
   }
 
-  Future<List<Result<Link>>> searchLinks({
+  Future<List<LinkResult>> searchLinks({
     required String query,
-    IncludeItems modes = const {},
+    IncludeOptions includeOptions = const IncludeOptions.empty(),
   }) async {
     return _LinkReadRepository(db: this)
-        .searchTable(query: query, modes: modes);
+        .searchTable(query: query, includeOptions: includeOptions);
   }
 }
 
-class _LinkReadRepository extends BaseRepository<Link, IncludeItems>
+class _LinkReadRepository extends BaseRepository<IncludeOptions>
     implements
-        BaseWatchRepository<Link, IncludeItems>,
-        ExtraRepository<Link, IncludeItems> {
+        BaseWatchRepository<IncludeOptions>,
+        ExtraRepository<IncludeOptions> {
   final AppDatabase db;
-  final ReadDbHandler<Link> readHandler;
+  final ReadDbHandler<LinkResult> readHandler;
 
   _LinkReadRepository({required this.db})
-      : readHandler = ReadDbHandler<Link>(db: db, table: db.links),
+      : readHandler = ReadDbHandler<LinkResult>(db: db, table: db.links),
         super(appDb: db);
 
   @override
-  Future<Result<Link>?> getOne({
+  Future<LinkResult?> getOne({
     required String id,
-    IncludeItems modes = const {},
+    IncludeOptions includeOptions = const IncludeOptions.empty(),
   }) async {
     return readHandler.getOne(
-      includes: modes,
+      includeOptions: includeOptions,
       predicate: db.links.id.equals(id),
       joinExp: db.links.id,
     );
   }
 
   @override
-  Future<List<Result<Link>>> getAll({
-    IncludeItems modes = const {},
+  Future<List<LinkResult>> getAll({
+    IncludeOptions includeOptions = const IncludeOptions.empty(),
   }) async {
     return readHandler.getAll(
-      includes: modes,
+      includeOptions: includeOptions,
       joinExp: db.links.id,
     );
   }
 
   @override
-  Stream<Result<Link>?> watchOne({
+  Stream<LinkResult?> watchOne({
     required String id,
-    IncludeItems modes = const {},
+    IncludeOptions includeOptions = const IncludeOptions.empty(),
   }) {
     return readHandler.watchOne(
-        includes: modes,
+        includeOptions: includeOptions,
         joinExp: db.links.id,
         predicate: db.links.id.equals(id));
   }
 
   @override
-  Stream<List<Result<Link>>> watchAll({
-    IncludeItems modes = const {},
+  Stream<List<LinkResult>> watchAll({
+    IncludeOptions includeOptions = const IncludeOptions.empty(),
   }) {
     return readHandler.watchAll(
-      includes: modes,
+      includeOptions: includeOptions,
       joinExp: db.links.id,
     );
   }
 
   @override
-  Future<List<Result<Link>>> searchTable({
+  Future<List<LinkResult>> searchTable({
     required String query,
-    IncludeItems modes = const {},
+    IncludeOptions includeOptions = const IncludeOptions.empty(),
   }) async {
     return readHandler.searchTable(
       query: query,
-      includes: modes,
+      includeOptions: includeOptions,
       joinExp: db.links.id,
-      searchColumn: db.links.content,
+      searchColumn: db.links.path,
     );
   }
 }

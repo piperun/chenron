@@ -5,7 +5,7 @@ import "package:chenron/models/created_ids.dart";
 import "package:drift/drift.dart";
 
 extension UserConfigExtensions on ConfigDatabase {
-  Future<CreatedIds<UserConfig>> createUserConfig(UserConfig userConfig) async {
+  Future<UserConfigResultIds> createUserConfig(UserConfig userConfig) async {
     return transaction(() async {
       try {
         String id = generateId();
@@ -25,7 +25,7 @@ extension UserConfigExtensions on ConfigDatabase {
           "User config created successfully",
         );
 
-        return CreatedIds<UserConfig>(primaryId: userId.toString());
+        return UserConfigResultIds(userConfigId: userId.toString());
       } catch (e) {
         loggerGlobal.severe(
           "UserConfigActionsCreate",
@@ -44,7 +44,7 @@ extension UserConfigExtensions on ConfigDatabase {
 }
 
 extension BackupSettingsExtensions on ConfigDatabase {
-  Future<CreatedIds<BackupSetting>> createBackupSettings({
+  Future<BackupSettingsResultIds> createBackupSettings({
     required BackupSetting backupSetting,
     required String userConfigId,
   }) async {
@@ -65,7 +65,8 @@ extension BackupSettingsExtensions on ConfigDatabase {
           "Backup settings created successfully",
         );
 
-        return CreatedIds<BackupSetting>(primaryId: backupId);
+        return BackupSettingsResultIds(
+            backupSettingsId: backupId, userConfigId: userConfigId);
       } catch (e) {
         loggerGlobal.severe(
           "BackupSettingsCreate",
