@@ -94,7 +94,7 @@ class Expandable extends StatelessWidget {
                     return () {
                       switch (folderDraft.value.folder.items
                           .elementAt(index)
-                          .content) {
+                          .path) {
                         case StringContent link:
                           return ListTile(
                             title: Text(link.value),
