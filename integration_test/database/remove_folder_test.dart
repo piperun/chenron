@@ -33,17 +33,17 @@ void main() {
         title: "Test Folder",
         description: "Test Description",
       );
-      CreatedIds<Folder> createdIds =
+      FolderResultIds createdIds =
           await database.createFolder(folderInfo: folderInfo);
 
       expect(createdIds.folderId, isNotNull);
 
       // Remove the folder
-      await database.removeFolder(createdIds.folderId!);
+      await database.removeFolder(createdIds.folderId);
 
       // Check if the folder is removed
       final result = await database.folders
-          .findById(createdIds.folderId!)
+          .findById(createdIds.folderId)
           .getSingleOrNull();
       expect(result, isNull);
     });
@@ -58,23 +58,23 @@ void main() {
         Metadata(value: "tag1", type: MetadataTypeEnum.tag),
         Metadata(value: "tag2", type: MetadataTypeEnum.tag),
       ];
-      CreatedIds<Folder> createdIds =
+      FolderResultIds createdIds =
           await database.createFolder(folderInfo: folderInfo, tags: tags);
 
       expect(createdIds.folderId, isNotNull);
 
       // Remove the folder
-      await database.removeFolder(createdIds.folderId!);
+      await database.removeFolder(createdIds.folderId);
 
       // Check if the folder is removed
       final folderResult = await database.folders
-          .findById(createdIds.folderId!)
+          .findById(createdIds.folderId)
           .getSingleOrNull();
       expect(folderResult, isNull);
 
       // Check if folder tags are removed
       final tagResult = await (database.select(database.metadataRecords)
-            ..where((tbl) => tbl.itemId.equals(createdIds.folderId!)))
+            ..where((tbl) => tbl.itemId.equals(createdIds.folderId)))
           .get();
       expect(tagResult, isEmpty);
     });
@@ -93,29 +93,29 @@ void main() {
           content: MapContent(
               value: {"title": "Test Document", "body": "Test Content"}));
 
-      CreatedIds<Folder> createdIds = await database
+      FolderResultIds createdIds = await database
           .createFolder(folderInfo: folderInfo, items: [link, document]);
 
       expect(createdIds.folderId, isNotNull);
 
       // Remove the folder
-      await database.removeFolder(createdIds.folderId!);
+      await database.removeFolder(createdIds.folderId);
 
       // Check if the folder is removed
       final folderResult = await database.folders
-          .findById(createdIds.folderId!)
+          .findById(createdIds.folderId)
           .getSingleOrNull();
       expect(folderResult, isNull);
 
       // Check if folder links are removed
       final linkResult = await (database.select(database.items)
-            ..where((tbl) => tbl.folderId.equals(createdIds.folderId!)))
+            ..where((tbl) => tbl.folderId.equals(createdIds.folderId)))
           .get();
       expect(linkResult, isEmpty);
 
       // Check if folder documents are removed
       final documentResult = await (database.select(database.items)
-            ..where((tbl) => tbl.folderId.equals(createdIds.folderId!)))
+            ..where((tbl) => tbl.folderId.equals(createdIds.folderId)))
           .get();
       expect(documentResult, isEmpty);
     });
