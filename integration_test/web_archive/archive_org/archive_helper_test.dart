@@ -18,7 +18,8 @@ void main() {
   setUp(() async {
     database = AppDatabase(setupOnInit: true, databaseName: "test_db");
     configDatabase = ConfigDatabase();
-    userConfig = await configDatabase.getUserConfig();
+    userConfig =
+        await configDatabase.getUserConfig().then((config) => config?.data);
     testUrl = "https://example.org/";
   });
 
@@ -58,7 +59,7 @@ void main() {
       await database.links.insertOne(
           LinksCompanion.insert(
             id: linkId,
-            content: testUrl,
+            path: testUrl,
             archiveOrgUrl: drift.Value(oldArchiveUrl),
           ),
           mode: drift.InsertMode.insertOrReplace);
