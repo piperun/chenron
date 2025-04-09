@@ -1,17 +1,16 @@
 import "package:chenron/components/table/link_toolbar.dart";
-import "package:chenron/core/ui/input_field.dart";
 import "package:chenron/models/cud.dart";
 import "package:chenron/models/item.dart";
 import "package:flutter/material.dart";
-import "package:pluto_grid/pluto_grid.dart";
+import "package:trina_grid/trina_grid.dart";
 import "package:collection/collection.dart";
 
 //TODO: This will much later in v0.10+ be turned into a base for all editors and not just link.
 // Effectively when we need document to actually exist it'll be added, for now as we only need links
 // we can just use this... Still need to rename this to LinkEditor.
 class ItemEditor extends StatefulWidget {
-  final List<PlutoColumn> columns;
-  final List<PlutoRow> rows;
+  final List<TrinaColumn> columns;
+  final List<TrinaRow> rows;
   final Function(CUD<FolderItem>) onUpdate;
 
   const ItemEditor(
@@ -25,7 +24,7 @@ class ItemEditor extends StatefulWidget {
 }
 
 class _ItemEditorState extends State<ItemEditor> {
-  late PlutoGridStateManager stateManager;
+  late TrinaGridStateManager stateManager;
   CUD<FolderItem> folderItems = CUD<FolderItem>();
   final TextEditingController _controller = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -33,11 +32,11 @@ class _ItemEditorState extends State<ItemEditor> {
   @override
   void initState() {
     super.initState();
-    stateManager = PlutoGridStateManager(
+    stateManager = TrinaGridStateManager(
       columns: widget.columns,
       rows: widget.rows,
       gridFocusNode: FocusNode(),
-      scroll: PlutoGridScrollController(),
+      scroll: TrinaGridScrollController(),
     );
   }
 
@@ -54,7 +53,7 @@ class _ItemEditorState extends State<ItemEditor> {
                       if (index != -1) {
                         String url = row.cells["url"]!.value;
                         FolderItem? item = folderItems.create.firstWhereOrNull(
-                          (item) => item.content == url,
+                          (item) => item.path == url,
                         );
                         if (item != null && item?.id != null) {
                           folderItems.create.remove(item);
@@ -72,18 +71,18 @@ class _ItemEditorState extends State<ItemEditor> {
                 : null),
         SizedBox(
             height: 600,
-            child: PlutoGrid(
+            child: TrinaGrid(
               columns: widget.columns,
               rows: widget.rows,
-              onLoaded: (PlutoGridOnLoadedEvent event) {
+              onLoaded: (TrinaGridOnLoadedEvent event) {
                 stateManager = event.stateManager;
               },
-              onRowChecked: (PlutoGridOnRowCheckedEvent event) => setState(() {
+              onRowChecked: (TrinaGridOnRowCheckedEvent event) => setState(() {
                 checkedRows = stateManager.checkedRows.isNotEmpty;
               }),
-              configuration: const PlutoGridConfiguration(
-                columnSize: PlutoGridColumnSizeConfig(
-                  autoSizeMode: PlutoAutoSizeMode.scale,
+              configuration: const TrinaGridConfiguration(
+                columnSize: TrinaGridColumnSizeConfig(
+                  autoSizeMode: TrinaAutoSizeMode.scale,
                 ),
               ),
             ))

@@ -1,7 +1,7 @@
 import "package:chenron/components/tables/link_table.dart";
 import "package:chenron/notifiers/link_table_notifier.dart";
 import "package:flutter/material.dart";
-import "package:pluto_grid/pluto_grid.dart";
+import "package:trina_grid/trina_grid.dart";
 import "package:intl/intl.dart";
 import "package:chenron/models/cud.dart";
 import "package:chenron/models/item.dart";
@@ -26,38 +26,38 @@ class _ItemEditorState extends State<ItemEditor> {
   final DataGridNotifier _notifier = DataGridNotifier();
   CUD<FolderItem> folderItems = CUD<FolderItem>();
 
-  final List<PlutoColumn> columns = [
-    PlutoColumn(
+  final List<TrinaColumn> columns = [
+    TrinaColumn(
       title: "Content",
       field: "content",
-      type: PlutoColumnType.text(),
+      type: TrinaColumnType.text(),
       enableRowChecked: true,
     ),
-    PlutoColumn(
+    TrinaColumn(
       title: "Type",
       field: "type",
-      type: PlutoColumnType.text(),
+      type: TrinaColumnType.text(),
       enableEditingMode: false,
     ),
-    PlutoColumn(
+    TrinaColumn(
       title: "Added",
       field: "createdAt",
-      type: PlutoColumnType.text(),
+      type: TrinaColumnType.text(),
       enableEditingMode: false,
     ),
   ];
 
-  List<PlutoRow> _loadRows() {
+  List<TrinaRow> _loadRows() {
     return widget.initialItems.map((item) {
       final String createdAtStr = item.createdAt != null
           ? DateFormat("yyyy-MM-dd HH:mm:ss").format(item.createdAt!)
           : "";
-      return PlutoRow(
+      return TrinaRow(
         cells: {
-          "id": PlutoCell(value: item.id),
-          "content": PlutoCell(value: item.content.value),
-          "type": PlutoCell(value: item.type.toString().split(".").last),
-          "createdAt": PlutoCell(value: createdAtStr),
+          "id": TrinaCell(value: item.id),
+          "content": TrinaCell(value: item.path.value),
+          "type": TrinaCell(value: item.type.toString().split(".").last),
+          "createdAt": TrinaCell(value: createdAtStr),
         },
       );
     }).toList();

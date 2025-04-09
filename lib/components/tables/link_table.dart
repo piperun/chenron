@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:pluto_grid/pluto_grid.dart';
+import 'package:trina_grid/trina_grid.dart';
 import 'package:chenron/notifiers/link_table_notifier.dart';
 
 class DataGrid extends StatefulWidget {
-  final List<PlutoColumn> columns;
-  final List<PlutoRow> rows;
+  final List<TrinaColumn> columns;
+  final List<TrinaRow> rows;
   final DataGridNotifier notifier;
 
   const DataGrid({
@@ -21,16 +21,16 @@ class DataGrid extends StatefulWidget {
 class _DataGridState extends State<DataGrid> {
   @override
   Widget build(BuildContext context) {
-    return PlutoGrid(
+    return TrinaGrid(
       columns: widget.columns,
       rows: widget.rows,
-      onLoaded: (PlutoGridOnLoadedEvent event) {
+      onLoaded: (TrinaGridOnLoadedEvent event) {
         widget.notifier.setStateManager(event.stateManager);
       },
       onRowChecked: widget.notifier.onRowChecked,
-      configuration: const PlutoGridConfiguration(
-        columnSize: PlutoGridColumnSizeConfig(
-          autoSizeMode: PlutoAutoSizeMode.scale,
+      configuration: const TrinaGridConfiguration(
+        columnSize: TrinaGridColumnSizeConfig(
+          autoSizeMode: TrinaAutoSizeMode.scale,
         ),
       ),
     );
