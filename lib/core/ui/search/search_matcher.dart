@@ -18,7 +18,7 @@ class SearchMatcher {
   List<T> getTopContentMatches<T>(
     List<T> items,
     String Function(T) getContent,
-    Set<Tag> Function(T) getTags,
+    List<Tag> Function(T) getTags,
   ) {
     if (!_isValidSearch()) return [];
 
@@ -38,7 +38,7 @@ class SearchMatcher {
   List<T> getTopUrlMatches<T>(
     List<T> items,
     String Function(T) getContent,
-    Set<Tag> Function(T) getTags,
+    List<Tag> Function(T) getTags,
   ) {
     if (!_isValidSearch()) return [];
 
@@ -59,7 +59,7 @@ class SearchMatcher {
     return _limitResults(scoredItems.map((e) => e.$1).toList());
   }
 
-  int _calculateScore(String content, Set<Tag> tags) {
+  int _calculateScore(String content, List<Tag> tags) {
     final contentScore = partialRatio(searchText, content.toLowerCase());
 
     if (tags.isEmpty) return contentScore;

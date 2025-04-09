@@ -1,9 +1,9 @@
 import "package:chenron/core/ui/search/search_matcher.dart";
 import "package:chenron/core/utils/text_highlighter.dart";
-import "package:chenron/database/actions/handlers/read_handler.dart";
-import "package:chenron/database/database.dart";
+
 import "package:chenron/database/extensions/operations/database_file_handler.dart";
 import "package:chenron/features/show_folder/pages/show_folder.dart";
+import "package:chenron/models/db_result.dart" show FolderResult, LinkResult;
 import "package:flutter/material.dart";
 import "package:chenron/database/extensions/folder/read.dart";
 import "package:chenron/database/extensions/link/read.dart";
@@ -41,7 +41,7 @@ class GlobalSuggestionBuilder {
 
     final matchedLinks = searchMatcher.getTopUrlMatches(
       links,
-      (link) => link.data.content,
+      (link) => link.data.path,
       (link) => link.tags,
     );
 
@@ -58,7 +58,7 @@ class SuggestionFactory {
 
   SuggestionFactory(this.context, this.controller);
 
-  ListTile createFolderSuggestion(Result<Folder> folder) {
+  ListTile createFolderSuggestion(FolderResult folder) {
     return SuggestionTile(
       icon: Icons.folder,
       title: folder.data.title,
@@ -67,12 +67,12 @@ class SuggestionFactory {
     ).build(context);
   }
 
-  ListTile createLinkSuggestion(Result<Link> link) {
+  ListTile createLinkSuggestion(LinkResult link) {
     return SuggestionTile(
       icon: Icons.link,
-      title: link.data.content,
+      title: link.data.path,
       searchText: controller.text,
-      onTapAction: () => _handleUrlLaunch(link.data.content),
+      onTapAction: () => _handleUrlLaunch(link.data.path),
     ).build(context);
   }
 
