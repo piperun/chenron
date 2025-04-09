@@ -2,7 +2,7 @@ import "package:chenron/components/table/link_toolbar.dart";
 import "package:chenron/providers/folder_provider.dart";
 import "package:chenron/utils/validation/link_validator.dart";
 import "package:flutter/material.dart";
-import "package:pluto_grid/pluto_grid.dart";
+import "package:trina_grid/trina_grid.dart";
 import "package:chenron/components/tables/link_table.dart";
 import "package:chenron/notifiers/link_table_notifier.dart";
 import "package:chenron/locator.dart";
@@ -25,38 +25,38 @@ class _LinkFormState extends State<LinkForm> {
 
   final folderDraft = locator.get<Signal<FolderSignal>>();
 
-  late List<PlutoColumn> _columns;
-  late List<PlutoRow> _rows;
+  late List<TrinaColumn> _columns;
+  late List<TrinaRow> _rows;
 
   @override
   void initState() {
     super.initState();
     _columns = [
-      PlutoColumn(
+      TrinaColumn(
         title: "URL",
         field: "url",
-        type: PlutoColumnType.text(),
+        type: TrinaColumnType.text(),
         enableRowChecked: true,
       ),
-      PlutoColumn(
+      TrinaColumn(
         title: "Comment",
         field: "comment",
-        type: PlutoColumnType.text(),
+        type: TrinaColumnType.text(),
       ),
-      PlutoColumn(
+      TrinaColumn(
         title: "Tags",
         field: "tags",
-        type: PlutoColumnType.text(),
+        type: TrinaColumnType.text(),
       ),
     ];
 
     _rows = folderDraft.value.folder.items
-        .map((link) => PlutoRow(
+        .map((link) => TrinaRow(
               key: link.key,
               cells: {
-                "url": PlutoCell(value: (link.content as StringContent).value),
-                "comment": PlutoCell(value: ""),
-                "tags": PlutoCell(value: []),
+                "url": TrinaCell(value: (link.path as StringContent).value),
+                "comment": TrinaCell(value: ""),
+                "tags": TrinaCell(value: []),
               },
             ))
         .toList();
@@ -101,12 +101,12 @@ class _LinkFormState extends State<LinkForm> {
                         content: StringContent(value: _linkController.text),
                       ),
                     );
-                    final newRow = PlutoRow(
+                    final newRow = TrinaRow(
                       key: idKey,
                       cells: {
-                        "url": PlutoCell(value: _linkController.text),
-                        "comment": PlutoCell(value: ""),
-                        "tags": PlutoCell(value: []),
+                        "url": TrinaCell(value: _linkController.text),
+                        "comment": TrinaCell(value: ""),
+                        "tags": TrinaCell(value: []),
                       },
                     );
                     _tableNotifier.appendRow(newRow, key: "url");
@@ -140,10 +140,10 @@ class _LinkFormState extends State<LinkForm> {
 
   bool _isDuplicateLink(String newLink) {
     return folderDraft.value.folder.items.any((item) {
-      if (item.content is StringContent) {
-        return (item.content as StringContent).value == newLink;
-      } else if (item.content is MapContent) {
-        return (item.content as MapContent).value["url"] == newLink;
+      if (item.path is StringContent) {
+        return (item.path as StringContent).value == newLink;
+      } else if (item.path is MapContent) {
+        return (item.path as MapContent).value["url"] == newLink;
       }
       return false;
     });
@@ -166,12 +166,12 @@ class _LinkFormState extends State<LinkForm> {
           ),
         );
 
-        final newRow = PlutoRow(
+        final newRow = TrinaRow(
           key: idKey,
           cells: {
-            'url': PlutoCell(value: newLink),
-            'comment': PlutoCell(value: ''),
-            'tags': PlutoCell(value: []),
+            'url': TrinaCell(value: newLink),
+            'comment': TrinaCell(value: ''),
+            'tags': TrinaCell(value: []),
           },
         );
 

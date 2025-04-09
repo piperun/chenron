@@ -1,6 +1,5 @@
-import "package:chenron/database/actions/handlers/read_handler.dart";
-import "package:chenron/database/database.dart";
 import "package:chenron/database/extensions/folder/update.dart";
+import "package:chenron/models/db_result.dart";
 import "package:flutter/material.dart";
 import "package:chenron/database/extensions/folder/read.dart";
 import "package:chenron/database/extensions/operations/database_file_handler.dart";
@@ -33,7 +32,7 @@ class _FolderEditorState extends State<FolderEditor> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
 
-  Stream<Result<Folder>?> watchFolder() async* {
+  Stream<FolderResult?> watchFolder() async* {
     final database =
         await locator.get<Signal<Future<AppDatabaseHandler>>>().value;
     yield* database.appDatabase.watchFolder(folderId: widget.folderId);
@@ -57,7 +56,7 @@ class _FolderEditorState extends State<FolderEditor> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<Result<Folder>?>(
+    return StreamBuilder<FolderResult?>(
       stream: watchFolder(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {

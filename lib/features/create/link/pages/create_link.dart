@@ -10,7 +10,7 @@ import "package:chenron/locator.dart";
 import "package:chenron/models/cud.dart";
 import "package:chenron/utils/validation/link_validator.dart";
 import "package:flutter/material.dart";
-import "package:pluto_grid/pluto_grid.dart";
+import "package:trina_grid/trina_grid.dart";
 import "package:chenron/components/tables/link_table.dart";
 import "package:chenron/notifiers/link_table_notifier.dart";
 import "package:chenron/models/item.dart";
@@ -32,8 +32,8 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
   // Create a signal for links
   final links = signal<List<FolderItem>>([]);
 
-  late List<PlutoColumn> _columns;
-  late List<PlutoRow> _rows;
+  late List<TrinaColumn> _columns;
+  late List<TrinaRow> _rows;
 
   // Add to state class:
   bool _isArchiveMode = false;
@@ -42,21 +42,21 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
   void initState() {
     super.initState();
     _columns = [
-      PlutoColumn(
+      TrinaColumn(
         title: "URL",
         field: "url",
-        type: PlutoColumnType.text(),
+        type: TrinaColumnType.text(),
         enableRowChecked: true,
       ),
-      PlutoColumn(
+      TrinaColumn(
         title: "Comment",
         field: "comment",
-        type: PlutoColumnType.text(),
+        type: TrinaColumnType.text(),
       ),
-      PlutoColumn(
+      TrinaColumn(
         title: "Tags",
         field: "tags",
-        type: PlutoColumnType.text(),
+        type: TrinaColumnType.text(),
       ),
     ];
 
@@ -131,12 +131,12 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
 
         links.value = [...links.value, newItem];
 
-        final newRow = PlutoRow(
+        final newRow = TrinaRow(
           key: idKey,
           cells: {
-            "url": PlutoCell(value: newLink),
-            "comment": PlutoCell(value: ""),
-            "tags": PlutoCell(value: []),
+            "url": TrinaCell(value: newLink),
+            "comment": TrinaCell(value: ""),
+            "tags": TrinaCell(value: []),
           },
         );
 
@@ -148,8 +148,8 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
 
   bool _isDuplicateLink(String newLink) {
     return links.value.any((item) {
-      if (item.content is StringContent) {
-        return (item.content as StringContent).value == newLink;
+      if (item.path is StringContent) {
+        return (item.path as StringContent).value == newLink;
       }
       return false;
     });
@@ -175,9 +175,9 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
 
     for (final folderId in targetFolders) {
       for (final link in links.value) {
-        if (link.content is StringContent) {
+        if (link.path is StringContent) {
           final linkId = await appDb.createLink(
-            link: (link.content as StringContent).value,
+            link: (link.path as StringContent).value,
             // TODO: When we implement tags for links.
           );
 
@@ -189,7 +189,7 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
                 FolderItem(
                   type: FolderItemType.link,
                   itemId: linkId,
-                  content: link.content,
+                  content: link.path,
                 )
               ],
               remove: [],
