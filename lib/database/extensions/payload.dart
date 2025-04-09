@@ -4,6 +4,7 @@ import "package:chenron/database/extensions/folder/create.dart";
 import "package:chenron/database/extensions/folder/update.dart";
 import "package:chenron/database/extensions/user_config/read.dart";
 import "package:chenron/models/cud.dart";
+import "package:chenron/models/db_result.dart" show UserConfigResult;
 import "package:chenron/models/folder.dart";
 import "package:chenron/models/created_ids.dart";
 import "package:chenron/models/item.dart";
@@ -18,19 +19,16 @@ extension PayloadExtensions on AppDatabase {
     ArchiveOrgOptions? archiveOptions,
   }) async {
     final configDatabase = ConfigDatabase();
-    CreatedIds results = await createFolder(
+    FolderResultIds results = await createFolder(
       folderInfo: folderInfo,
       tags: tags,
       items: items,
     );
-    final UserConfig? userConfig = await configDatabase.getUserConfig();
+    final UserConfigResult? userConfig = await configDatabase.getUserConfig();
     if (userConfig == null) return;
     await archiveOrgLinks(
-      results
-          .getRelated(IncludeOptions.items)!
-          .map((item) => item.getSecondaryId(IdKey.linkId)!)
-          .toList(),
-      userConfig,
+      results.itemIds!.map((item) => item.linkId).whereType<String>().toList(),
+      userConfig.data,
       archiveOptions: archiveOptions,
     );
     await configDatabase.close();
@@ -51,7 +49,7 @@ extension PayloadExtensions on AppDatabase {
       tagUpdates: tags,
       itemUpdates: items,
     );
-    final UserConfig? userConfig = await configDatabase.getUserConfig();
+    final UserConfigResult? userConfig = await configDatabase.getUserConfig();
     if (userConfig == null || items == null) return;
 
     List<String> archiveCreateLinks =
@@ -62,7 +60,7 @@ extension PayloadExtensions on AppDatabase {
       if (archiveList.isEmpty) continue;
       await archiveOrgLinks(
         archiveList,
-        userConfig,
+        userConfig.data,
         archiveOptions: archiveOptions,
       );
     }
