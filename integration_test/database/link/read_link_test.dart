@@ -1,5 +1,4 @@
-import "package:chenron/database/actions/handlers/read_handler.dart"
-    show Result;
+import "package:chenron/models/db_result.dart" show LinkResult;
 import "package:flutter_test/flutter_test.dart";
 import "package:chenron/database/database.dart";
 import "package:chenron/database/extensions/link/read.dart";
@@ -30,12 +29,12 @@ void main() {
     );
 
     activeLinkId = await database.createLink(
-      link: activeLink.link.content,
+      link: activeLink.link.path,
       tags: activeLink.tags,
     );
 
     inactiveLinkId = await database.createLink(
-      link: inactiveLink.link.content,
+      link: inactiveLink.link.path,
       tags: inactiveLink.tags,
     );
   });
@@ -49,7 +48,8 @@ void main() {
 
   group("getLink() Operations", () {
     test("returns null for non-existent link", () async {
-      final result = await database.getLink(linkId: "non_existent_id");
+      final LinkResult? result =
+          await database.getLink(linkId: "non_existent_id");
       expect(result, isNull);
     });
 
@@ -60,15 +60,16 @@ void main() {
 
       expect(result, isNotNull);
       expect(result!.data.id, equals(activeLinkId));
-      expect(result.data.content, equals("https://example.com"));
-      expect(result.data.content, equals("https://example.com"));
+      expect(result.data.path, equals("https://example.com"));
+      expect(result.data.path, equals("https://example.com"));
       expect(result.tags, isEmpty);
     });
 
     test("retrieves link with tags", () async {
       final result = await database.getLink(
         linkId: activeLinkId,
-        modes: {IncludeOptions.tags},
+        includeOptions:
+            const IncludeOptions<AppDataInclude>({AppDataInclude.tags}),
       );
 
       expect(result, isNotNull);
@@ -83,12 +84,13 @@ void main() {
     test("retrieves link with all data", () async {
       final result = await database.getLink(
         linkId: activeLinkId,
-        modes: {IncludeOptions.tags},
+        includeOptions:
+            const IncludeOptions<AppDataInclude>({AppDataInclude.tags}),
       );
 
       expect(result, isNotNull);
       expect(result!.data.id, equals(activeLinkId));
-      expect(result.data.content, equals("https://example.com"));
+      expect(result.data.path, equals("https://example.com"));
       expect(result.tags.length, equals(2));
     });
   });
@@ -98,15 +100,17 @@ void main() {
       final results = await database.getAllLinks();
 
       expect(results.length, equals(2));
-      expect(results.map((r) => r.data.content).toList(),
+      expect(results.map((r) => r.data.path).toList(),
           contains("https://example.com"));
-      expect(results.map((r) => r.data.content).toList(),
+      expect(results.map((r) => r.data.path).toList(),
           contains("https://another-example.com"));
       expect(results.every((r) => r.tags.isEmpty), isTrue);
     });
 
     test("retrieves all links with tags", () async {
-      final results = await database.getAllLinks(modes: {IncludeOptions.tags});
+      final results = await database.getAllLinks(
+          includeOptions:
+              const IncludeOptions<AppDataInclude>({AppDataInclude.tags}));
 
       expect(results.length, equals(2));
 
@@ -140,9 +144,9 @@ void main() {
 
       expect(
         stream,
-        emitsThrough(predicate<Result<Link>>((result) =>
+        emitsThrough(predicate<LinkResult>((result) =>
             result.data.id == activeLinkId &&
-            result.data.content == "https://example.com" &&
+            result.data.path == "https://example.com" &&
             result.tags.isEmpty)),
       );
     });
@@ -150,12 +154,13 @@ void main() {
     test("watches link with tags", () async {
       final stream = database.watchLink(
         linkId: activeLinkId,
-        modes: {IncludeOptions.tags},
+        includeOptions:
+            const IncludeOptions<AppDataInclude>({AppDataInclude.tags}),
       );
 
       expect(
         stream,
-        emitsThrough(predicate<Result<Link>>((result) =>
+        emitsThrough(predicate<LinkResult>((result) =>
             result.data.id == activeLinkId &&
             result.tags.length == 2 &&
             result.tags
@@ -174,26 +179,27 @@ void main() {
 
       expect(
         stream,
-        emitsThrough(predicate<List<Result<Link>>>((results) {
+        emitsThrough(predicate<List<LinkResult>>((results) {
           print("Received results: ${results.length} links");
-          print(
-              "Link contents: ${results.map((r) => r.data.content).toList()}");
+          print("Link contents: ${results.map((r) => r.data.path).toList()}");
           print("Tags per link: ${results.map((r) => r.tags.length).toList()}");
 
           return results.length == 2 &&
               results.every((r) => r.tags.isEmpty) &&
-              results.map((r) => r.data.content).toSet().containsAll(
+              results.map((r) => r.data.path).toSet().containsAll(
                   ["https://example.com", "https://another-example.com"]);
         })),
       );
     });
 
     test("watches all links with tags", () async {
-      final stream = database.watchAllLinks(modes: {IncludeOptions.tags});
+      final stream = database.watchAllLinks(
+          includeOptions:
+              const IncludeOptions<AppDataInclude>({AppDataInclude.tags}));
 
       expect(
         stream,
-        emitsThrough(predicate<List<Result<Link>>>((results) =>
+        emitsThrough(predicate<List<LinkResult>>((results) =>
             results.length == 2 &&
             results.every((r) => r.tags.length == 2) &&
             results.any((r) => r.tags
