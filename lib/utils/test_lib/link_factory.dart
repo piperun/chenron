@@ -13,7 +13,7 @@ class LinkFactory {
   static Link create(String url) {
     return Link(
       id: cuidSecure(30),
-      content: url,
+      path: url,
       createdAt: DateTime.now(),
     );
   }

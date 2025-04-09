@@ -1,5 +1,4 @@
-import "package:chenron/database/actions/handlers/read_handler.dart"
-    show Result;
+import "package:chenron/models/db_result.dart";
 
 import "package:flutter_test/flutter_test.dart";
 import "package:chenron/core/ui/search/search_matcher.dart";
@@ -54,7 +53,7 @@ void main() {
 
       final results = matcher.getTopUrlMatches(
         items,
-        (l) => l.data.content,
+        (l) => l.data.path,
         (l) => l.tags,
       );
 
@@ -68,7 +67,7 @@ void main() {
 
       final results = matcher.getTopUrlMatches(
         items,
-        (l) => l.data.content,
+        (l) => l.data.path,
         (l) => l.tags,
       );
 
@@ -111,15 +110,18 @@ void main() {
   });
 }
 
-Result<Link> _createMockLink(String url) {
-  return Result<Link>(
-    data: Link(id: "1", content: url, createdAt: DateTime.now()),
+LinkResult _createMockLink(String url) {
+  return LinkResult(
+    data: Link(id: "1", path: url, createdAt: DateTime.now()),
+    tags: [],
   );
 }
 
-Result<Folder> _createMockFolder(String title) {
-  return Result<Folder>(
+FolderResult _createMockFolder(String title) {
+  return FolderResult(
     data: Folder(
         id: "1", title: title, createdAt: DateTime.now(), description: ""),
+    tags: [],
+    items: [],
   );
 }

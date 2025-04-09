@@ -1,25 +1,25 @@
 import "package:chenron/models/item.dart";
 import "package:flutter/material.dart";
-import "package:pluto_grid/pluto_grid.dart";
+import "package:trina_grid/trina_grid.dart";
 
 class DataGridNotifier extends ChangeNotifier {
-  PlutoGridStateManager? _stateManager;
+  TrinaGridStateManager? _stateManager;
 
-  PlutoGridStateManager? get stateManager => _stateManager;
+  TrinaGridStateManager? get stateManager => _stateManager;
 
   bool checkedRows = false;
 
-  void setStateManager(PlutoGridStateManager stateManager) {
+  void setStateManager(TrinaGridStateManager stateManager) {
     _stateManager = stateManager;
     notifyListeners();
   }
 
-  void onRowChecked(PlutoGridOnRowCheckedEvent event) {
+  void onRowChecked(TrinaGridOnRowCheckedEvent event) {
     checkedRows = event.isChecked!;
     notifyListeners();
   }
 
-  void appendRow(PlutoRow row, {String? key}) {
+  void appendRow(TrinaRow row, {String? key}) {
     if (_stateManager != null) {
       String? newUrl = row.cells[key]?.value;
 
@@ -42,37 +42,37 @@ class DataGridNotifier extends ChangeNotifier {
     notifyListeners();
   }
 
-  List<PlutoRow> getRows(List<FolderItem> items) {
+  List<TrinaRow> getRows(List<FolderItem> items) {
     return items.map((link) {
-      if (link.content is StringContent) {
+      if (link.path is StringContent) {
         // Handling StringContent
-        final content = link.content as StringContent;
-        return PlutoRow(
+        final content = link.path as StringContent;
+        return TrinaRow(
           key: link.key,
           cells: {
-            "url": PlutoCell(value: content.value),
-            "comment": PlutoCell(value: ""),
-            "tags": PlutoCell(value: []),
+            "url": TrinaCell(value: content.value),
+            "comment": TrinaCell(value: ""),
+            "tags": TrinaCell(value: []),
           },
         );
-      } else if (link.content is MapContent) {
-        final content = link.content as MapContent;
+      } else if (link.path is MapContent) {
+        final content = link.path as MapContent;
         final mapValue = content.value;
-        return PlutoRow(
+        return TrinaRow(
           key: link.key,
           cells: {
-            "url": PlutoCell(value: mapValue["url"] ?? ""),
-            "comment": PlutoCell(value: mapValue["comment"] ?? ""),
-            "tags": PlutoCell(value: mapValue["tags"] ?? []),
+            "url": TrinaCell(value: mapValue["url"] ?? ""),
+            "comment": TrinaCell(value: mapValue["comment"] ?? ""),
+            "tags": TrinaCell(value: mapValue["tags"] ?? []),
           },
         );
       } else {
-        return PlutoRow(
+        return TrinaRow(
           key: link.key,
           cells: {
-            "url": PlutoCell(value: ""),
-            "comment": PlutoCell(value: ""),
-            "tags": PlutoCell(value: []),
+            "url": TrinaCell(value: ""),
+            "comment": TrinaCell(value: ""),
+            "tags": TrinaCell(value: []),
           },
         );
       }
