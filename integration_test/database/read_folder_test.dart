@@ -1,5 +1,6 @@
 import "package:chenron/database/actions/handlers/read_handler.dart";
 import "package:chenron/models/created_ids.dart";
+import "package:chenron/models/db_result.dart";
 import "package:chenron/models/item.dart";
 import "package:flutter_test/flutter_test.dart";
 import "package:chenron/database/database.dart";
@@ -11,8 +12,8 @@ void main() {
   late AppDatabase database;
   late FolderTestData activeFolder;
   late FolderTestData inactiveFolder;
-  late CreatedIds<Folder> activeFolderResult;
-  late CreatedIds<Folder> inactiveFolderResult;
+  late FolderResultIds activeFolderResultIds;
+  late FolderResultIds unusedFolderResultIds;
 
   setUp(() async {
     database = AppDatabase(databaseName: "test_db", debugMode: true);
@@ -43,13 +44,13 @@ void main() {
       ],
     );
 
-    activeFolderResult = await database.createFolder(
+    activeFolderResultIds = await database.createFolder(
       folderInfo: activeFolder.folder,
       tags: activeFolder.tags,
       items: activeFolder.items,
     );
 
-    inactiveFolderResult = await database.createFolder(
+    unusedFolderResultIds = await database.createFolder(
       folderInfo: inactiveFolder.folder,
       tags: inactiveFolder.tags,
       items: inactiveFolder.items,
@@ -73,10 +74,10 @@ void main() {
     });
     test("should get a single folder with no tags or items", () async {
       final retrievedFolder =
-          await database.getFolder(folderId: activeFolderResult.folderId!);
+          await database.getFolder(folderId: activeFolderResultIds.folderId);
 
       expect(retrievedFolder, isNotNull);
-      expect(retrievedFolder!.data.id, equals(activeFolderResult.folderId));
+      expect(retrievedFolder!.data.id, equals(activeFolderResultIds.folderId));
       expect(retrievedFolder.data.title, equals("Active Folder"));
       expect(
           retrievedFolder.data.description, equals("This is an active folder"));
@@ -84,7 +85,9 @@ void main() {
 
     test("should get folder with only tags", () async {
       final folderWithTags = await database.getFolder(
-          folderId: activeFolderResult.folderId!, modes: {IncludeOptions.tags});
+          folderId: activeFolderResultIds.folderId,
+          includeOptions:
+              const IncludeOptions<AppDataInclude>({AppDataInclude.tags}));
 
       expect(folderWithTags, isNotNull);
       expect(folderWithTags!.tags, isNotNull);
@@ -95,8 +98,9 @@ void main() {
     });
     test("should get folder with only items", () async {
       final folderWithItems = await database.getFolder(
-          folderId: activeFolderResult.folderId!,
-          modes: {IncludeOptions.items});
+          folderId: activeFolderResultIds.folderId,
+          includeOptions:
+              const IncludeOptions<AppDataInclude>({AppDataInclude.items}));
 
       expect(folderWithItems, isNotNull);
       expect(folderWithItems!.items, isNotNull);
@@ -112,8 +116,9 @@ void main() {
     });
     test("should get folder with both items and tags", () async {
       final folderWithAll = await database.getFolder(
-        folderId: activeFolderResult.folderId!,
-        modes: {IncludeOptions.items, IncludeOptions.tags},
+        folderId: activeFolderResultIds.folderId,
+        includeOptions: const IncludeOptions<AppDataInclude>(
+            {AppDataInclude.items, AppDataInclude.tags}),
       );
       print(folderWithAll!.data.title);
       for (var element in folderWithAll.items) {
@@ -155,13 +160,14 @@ void main() {
       }
     });
     test("should get all folders with only tags", () async {
-      final allFolders =
-          await database.getAllFolders(modes: {IncludeOptions.tags});
+      final allFolders = await database.getAllFolders(
+          includeOptions:
+              const IncludeOptions<AppDataInclude>({AppDataInclude.tags}));
 
       expect(allFolders.length, equals(2));
 
       final testFolders = [activeFolder, inactiveFolder];
-      final testFoldersResults = [activeFolderResult, inactiveFolderResult];
+      final testFoldersResults = [activeFolderResultIds, unusedFolderResultIds];
 
       for (int i = 0; i < allFolders.length; i++) {
         final retrievedFolder = allFolders[i];
@@ -181,13 +187,14 @@ void main() {
       }
     });
     test("should get all folders with only items", () async {
-      final allFolders =
-          await database.getAllFolders(modes: {IncludeOptions.items});
+      final allFolders = await database.getAllFolders(
+          includeOptions:
+              const IncludeOptions<AppDataInclude>({AppDataInclude.items}));
 
       expect(allFolders.length, equals(2));
 
       final testFolders = [activeFolder, inactiveFolder];
-      final testFoldersResults = [activeFolderResult, inactiveFolderResult];
+      final testFoldersResults = [activeFolderResultIds, unusedFolderResultIds];
 
       for (int i = 0; i < allFolders.length; i++) {
         final retrievedFolder = allFolders[i];
@@ -207,13 +214,14 @@ void main() {
       }
     });
     test("should get all folders with both items and tags", () async {
-      final allFolders = await database
-          .getAllFolders(modes: {IncludeOptions.items, IncludeOptions.tags});
+      final allFolders = await database.getAllFolders(
+          includeOptions: const IncludeOptions<AppDataInclude>(
+              {AppDataInclude.items, AppDataInclude.tags}));
 
       expect(allFolders.length, equals(2));
 
       final testFolders = [activeFolder, inactiveFolder];
-      final testFoldersResults = [activeFolderResult, inactiveFolderResult];
+      final testFoldersResults = [activeFolderResultIds, unusedFolderResultIds];
 
       for (int i = 0; i < allFolders.length; i++) {
         final retrievedFolder = allFolders[i];
@@ -244,12 +252,12 @@ void main() {
     });
     test("should watch a single folder with no tags or items", () async {
       final stream =
-          database.watchFolder(folderId: activeFolderResult.folderId!);
+          database.watchFolder(folderId: activeFolderResultIds.folderId);
 
       expect(
           stream,
-          emitsThrough(predicate<Result<Folder>>((result) =>
-              result.data.id == activeFolderResult.folderId &&
+          emitsThrough(predicate<FolderResult>((result) =>
+              result.data.id == activeFolderResultIds.folderId &&
               result.data.title == "Active Folder" &&
               result.data.description == "This is an active folder" &&
               result.tags.isEmpty &&
@@ -258,11 +266,13 @@ void main() {
 
     test("should watch folder with only tags", () async {
       final stream = database.watchFolder(
-          folderId: activeFolderResult.folderId!, modes: {IncludeOptions.tags});
+          folderId: activeFolderResultIds.folderId,
+          includeOptions:
+              const IncludeOptions<AppDataInclude>({AppDataInclude.tags}));
 
       expect(
           stream,
-          emitsThrough(predicate<Result<Folder>>((result) =>
+          emitsThrough(predicate<FolderResult>((result) =>
               result.tags.length == 2 &&
               result.tags
                   .map((tag) => tag.name)
@@ -273,12 +283,13 @@ void main() {
 
     test("should watch folder with only items", () async {
       final stream = database.watchFolder(
-          folderId: activeFolderResult.folderId!,
-          modes: {IncludeOptions.items});
+          folderId: activeFolderResultIds.folderId,
+          includeOptions:
+              const IncludeOptions<AppDataInclude>({AppDataInclude.items}));
 
       await expectLater(
         stream,
-        emitsThrough(predicate<Result<Folder>>((result) {
+        emitsThrough(predicate<FolderResult>((result) {
           return result.items.length == 2 &&
               result.items.any((item) => item.type == FolderItemType.link) &&
               result.items
@@ -290,12 +301,13 @@ void main() {
 
     test("should watch folder with both items and tags", () async {
       final stream = database.watchFolder(
-          folderId: activeFolderResult.folderId!,
-          modes: {IncludeOptions.items, IncludeOptions.tags});
+          folderId: activeFolderResultIds.folderId,
+          includeOptions: const IncludeOptions<AppDataInclude>(
+              {AppDataInclude.items, AppDataInclude.tags}));
 
       expect(
           stream,
-          emitsThrough(predicate<Result<Folder>>((result) =>
+          emitsThrough(predicate<FolderResult>((result) =>
               result.tags.length == 2 &&
               result.tags
                   .map((tag) => tag.name)
@@ -313,18 +325,20 @@ void main() {
 
       expect(
           stream,
-          emitsThrough(predicate<List<Result<Folder>>>((folders) =>
+          emitsThrough(predicate<List<FolderResult>>((folders) =>
               folders.length == 2 &&
               folders.every(
                   (folder) => folder.items.isEmpty && folder.tags.isEmpty))));
     });
 
     test("should watch all folders with only tags", () async {
-      final stream = database.watchAllFolders(modes: {IncludeOptions.tags});
+      final stream = database.watchAllFolders(
+          includeOptions:
+              const IncludeOptions<AppDataInclude>({AppDataInclude.tags}));
 
       expect(
           stream,
-          emitsThrough(predicate<List<Result<Folder>>>((folders) =>
+          emitsThrough(predicate<List<FolderResult>>((folders) =>
               folders.length == 2 &&
               folders[0].tags.length == 2 &&
               folders[1].tags.length == 2 &&
@@ -332,11 +346,13 @@ void main() {
     });
 
     test("should watch all folders with only items", () async {
-      final stream = database.watchAllFolders(modes: {IncludeOptions.items});
+      final stream = database.watchAllFolders(
+          includeOptions:
+              const IncludeOptions<AppDataInclude>({AppDataInclude.items}));
 
       expect(
         stream,
-        emitsThrough(predicate<List<Result<Folder>>>((folders) =>
+        emitsThrough(predicate<List<FolderResult>>((folders) =>
             folders.length == 2 &&
             folders[0].items.length == 2 &&
             folders[1].items.length == 2 &&
@@ -353,12 +369,13 @@ void main() {
     });
 
     test("should watch all folders with both items and tags", () async {
-      final stream = database
-          .watchAllFolders(modes: {IncludeOptions.items, IncludeOptions.tags});
+      final stream = database.watchAllFolders(
+          includeOptions: const IncludeOptions<AppDataInclude>(
+              {AppDataInclude.items, AppDataInclude.tags}));
 
       expect(
           stream,
-          emitsThrough(predicate<List<Result<Folder>>>((folders) =>
+          emitsThrough(predicate<List<FolderResult>>((folders) =>
               folders.length == 2 &&
               folders[0].tags.length == 2 &&
               folders[1].tags.length == 2 &&
@@ -383,13 +400,17 @@ void main() {
     });
 
     test("should respect IncludeOptions modes", () async {
-      final resultsWithItems = await database
-          .searchFolders(query: "Active", modes: {IncludeOptions.items});
+      final resultsWithItems = await database.searchFolders(
+          query: "Active",
+          includeOptions:
+              const IncludeOptions<AppDataInclude>({AppDataInclude.items}));
       expect(resultsWithItems[0].items, isNotEmpty);
       expect(resultsWithItems[0].tags, isEmpty);
 
-      final resultsWithTags = await database
-          .searchFolders(query: "Active", modes: {IncludeOptions.tags});
+      final resultsWithTags = await database.searchFolders(
+          query: "Active",
+          includeOptions:
+              const IncludeOptions<AppDataInclude>({AppDataInclude.tags}));
       expect(resultsWithTags[0].items, isEmpty);
       expect(resultsWithTags[0].tags, isNotEmpty);
     });
