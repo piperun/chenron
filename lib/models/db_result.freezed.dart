@@ -1,0 +1,631 @@
+// dart format width=80
+// coverage:ignore-file
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint
+// ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
+
+part of 'db_result.dart';
+
+// **************************************************************************
+// FreezedGenerator
+// **************************************************************************
+
+// dart format off
+T _$identity<T>(T value) => value;
+
+/// @nodoc
+mixin _$DbResult {
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType && other is DbResult);
+  }
+
+  @override
+  int get hashCode => runtimeType.hashCode;
+
+  @override
+  String toString() {
+    return 'DbResult()';
+  }
+}
+
+/// @nodoc
+class $DbResultCopyWith<$Res> {
+  $DbResultCopyWith(DbResult _, $Res Function(DbResult) __);
+}
+
+/// @nodoc
+
+class FolderResult implements DbResult {
+  const FolderResult(
+      {required this.data,
+      required final List<Tag> tags,
+      required final List<FolderItem> items})
+      : _tags = tags,
+        _items = items;
+
+  final Folder data;
+  final List<Tag> _tags;
+  List<Tag> get tags {
+    if (_tags is EqualUnmodifiableListView) return _tags;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_tags);
+  }
+
+  final List<FolderItem> _items;
+  List<FolderItem> get items {
+    if (_items is EqualUnmodifiableListView) return _items;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_items);
+  }
+
+  /// Create a copy of DbResult
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $FolderResultCopyWith<FolderResult> get copyWith =>
+      _$FolderResultCopyWithImpl<FolderResult>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is FolderResult &&
+            (identical(other.data, data) || other.data == data) &&
+            const DeepCollectionEquality().equals(other._tags, _tags) &&
+            const DeepCollectionEquality().equals(other._items, _items));
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      runtimeType,
+      data,
+      const DeepCollectionEquality().hash(_tags),
+      const DeepCollectionEquality().hash(_items));
+
+  @override
+  String toString() {
+    return 'DbResult.folder(data: $data, tags: $tags, items: $items)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $FolderResultCopyWith<$Res>
+    implements $DbResultCopyWith<$Res> {
+  factory $FolderResultCopyWith(
+          FolderResult value, $Res Function(FolderResult) _then) =
+      _$FolderResultCopyWithImpl;
+  @useResult
+  $Res call({Folder data, List<Tag> tags, List<FolderItem> items});
+}
+
+/// @nodoc
+class _$FolderResultCopyWithImpl<$Res> implements $FolderResultCopyWith<$Res> {
+  _$FolderResultCopyWithImpl(this._self, this._then);
+
+  final FolderResult _self;
+  final $Res Function(FolderResult) _then;
+
+  /// Create a copy of DbResult
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? data = null,
+    Object? tags = null,
+    Object? items = null,
+  }) {
+    return _then(FolderResult(
+      data: null == data
+          ? _self.data
+          : data // ignore: cast_nullable_to_non_nullable
+              as Folder,
+      tags: null == tags
+          ? _self._tags
+          : tags // ignore: cast_nullable_to_non_nullable
+              as List<Tag>,
+      items: null == items
+          ? _self._items
+          : items // ignore: cast_nullable_to_non_nullable
+              as List<FolderItem>,
+    ));
+  }
+}
+
+/// @nodoc
+
+class LinkResult implements DbResult {
+  const LinkResult({required this.data, required final List<Tag> tags})
+      : _tags = tags;
+
+  final Link data;
+  final List<Tag> _tags;
+  List<Tag> get tags {
+    if (_tags is EqualUnmodifiableListView) return _tags;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_tags);
+  }
+
+  /// Create a copy of DbResult
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $LinkResultCopyWith<LinkResult> get copyWith =>
+      _$LinkResultCopyWithImpl<LinkResult>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is LinkResult &&
+            (identical(other.data, data) || other.data == data) &&
+            const DeepCollectionEquality().equals(other._tags, _tags));
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      runtimeType, data, const DeepCollectionEquality().hash(_tags));
+
+  @override
+  String toString() {
+    return 'DbResult.link(data: $data, tags: $tags)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $LinkResultCopyWith<$Res>
+    implements $DbResultCopyWith<$Res> {
+  factory $LinkResultCopyWith(
+          LinkResult value, $Res Function(LinkResult) _then) =
+      _$LinkResultCopyWithImpl;
+  @useResult
+  $Res call({Link data, List<Tag> tags});
+}
+
+/// @nodoc
+class _$LinkResultCopyWithImpl<$Res> implements $LinkResultCopyWith<$Res> {
+  _$LinkResultCopyWithImpl(this._self, this._then);
+
+  final LinkResult _self;
+  final $Res Function(LinkResult) _then;
+
+  /// Create a copy of DbResult
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? data = null,
+    Object? tags = null,
+  }) {
+    return _then(LinkResult(
+      data: null == data
+          ? _self.data
+          : data // ignore: cast_nullable_to_non_nullable
+              as Link,
+      tags: null == tags
+          ? _self._tags
+          : tags // ignore: cast_nullable_to_non_nullable
+              as List<Tag>,
+    ));
+  }
+}
+
+/// @nodoc
+
+class DocumentResult implements DbResult {
+  const DocumentResult(
+      {required this.title, required this.path, final List<Tag>? tags})
+      : _tags = tags;
+
+  final String title;
+  final String path;
+  final List<Tag>? _tags;
+  List<Tag>? get tags {
+    final value = _tags;
+    if (value == null) return null;
+    if (_tags is EqualUnmodifiableListView) return _tags;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(value);
+  }
+
+  /// Create a copy of DbResult
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $DocumentResultCopyWith<DocumentResult> get copyWith =>
+      _$DocumentResultCopyWithImpl<DocumentResult>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is DocumentResult &&
+            (identical(other.title, title) || other.title == title) &&
+            (identical(other.path, path) || other.path == path) &&
+            const DeepCollectionEquality().equals(other._tags, _tags));
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      runtimeType, title, path, const DeepCollectionEquality().hash(_tags));
+
+  @override
+  String toString() {
+    return 'DbResult.document(title: $title, path: $path, tags: $tags)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $DocumentResultCopyWith<$Res>
+    implements $DbResultCopyWith<$Res> {
+  factory $DocumentResultCopyWith(
+          DocumentResult value, $Res Function(DocumentResult) _then) =
+      _$DocumentResultCopyWithImpl;
+  @useResult
+  $Res call({String title, String path, List<Tag>? tags});
+}
+
+/// @nodoc
+class _$DocumentResultCopyWithImpl<$Res>
+    implements $DocumentResultCopyWith<$Res> {
+  _$DocumentResultCopyWithImpl(this._self, this._then);
+
+  final DocumentResult _self;
+  final $Res Function(DocumentResult) _then;
+
+  /// Create a copy of DbResult
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? title = null,
+    Object? path = null,
+    Object? tags = freezed,
+  }) {
+    return _then(DocumentResult(
+      title: null == title
+          ? _self.title
+          : title // ignore: cast_nullable_to_non_nullable
+              as String,
+      path: null == path
+          ? _self.path
+          : path // ignore: cast_nullable_to_non_nullable
+              as String,
+      tags: freezed == tags
+          ? _self._tags
+          : tags // ignore: cast_nullable_to_non_nullable
+              as List<Tag>?,
+    ));
+  }
+}
+
+/// @nodoc
+
+class TagResult implements DbResult {
+  const TagResult(
+      {required this.name,
+      final List<String>? relatedFolderIds,
+      final List<String>? relatedLinkIds,
+      final List<String>? relatedDocumentIds})
+      : _relatedFolderIds = relatedFolderIds,
+        _relatedLinkIds = relatedLinkIds,
+        _relatedDocumentIds = relatedDocumentIds;
+
+  final String name;
+  final List<String>? _relatedFolderIds;
+  List<String>? get relatedFolderIds {
+    final value = _relatedFolderIds;
+    if (value == null) return null;
+    if (_relatedFolderIds is EqualUnmodifiableListView)
+      return _relatedFolderIds;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(value);
+  }
+
+  final List<String>? _relatedLinkIds;
+  List<String>? get relatedLinkIds {
+    final value = _relatedLinkIds;
+    if (value == null) return null;
+    if (_relatedLinkIds is EqualUnmodifiableListView) return _relatedLinkIds;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(value);
+  }
+
+  final List<String>? _relatedDocumentIds;
+  List<String>? get relatedDocumentIds {
+    final value = _relatedDocumentIds;
+    if (value == null) return null;
+    if (_relatedDocumentIds is EqualUnmodifiableListView)
+      return _relatedDocumentIds;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(value);
+  }
+
+  /// Create a copy of DbResult
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $TagResultCopyWith<TagResult> get copyWith =>
+      _$TagResultCopyWithImpl<TagResult>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is TagResult &&
+            (identical(other.name, name) || other.name == name) &&
+            const DeepCollectionEquality()
+                .equals(other._relatedFolderIds, _relatedFolderIds) &&
+            const DeepCollectionEquality()
+                .equals(other._relatedLinkIds, _relatedLinkIds) &&
+            const DeepCollectionEquality()
+                .equals(other._relatedDocumentIds, _relatedDocumentIds));
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      runtimeType,
+      name,
+      const DeepCollectionEquality().hash(_relatedFolderIds),
+      const DeepCollectionEquality().hash(_relatedLinkIds),
+      const DeepCollectionEquality().hash(_relatedDocumentIds));
+
+  @override
+  String toString() {
+    return 'DbResult.tag(name: $name, relatedFolderIds: $relatedFolderIds, relatedLinkIds: $relatedLinkIds, relatedDocumentIds: $relatedDocumentIds)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $TagResultCopyWith<$Res>
+    implements $DbResultCopyWith<$Res> {
+  factory $TagResultCopyWith(TagResult value, $Res Function(TagResult) _then) =
+      _$TagResultCopyWithImpl;
+  @useResult
+  $Res call(
+      {String name,
+      List<String>? relatedFolderIds,
+      List<String>? relatedLinkIds,
+      List<String>? relatedDocumentIds});
+}
+
+/// @nodoc
+class _$TagResultCopyWithImpl<$Res> implements $TagResultCopyWith<$Res> {
+  _$TagResultCopyWithImpl(this._self, this._then);
+
+  final TagResult _self;
+  final $Res Function(TagResult) _then;
+
+  /// Create a copy of DbResult
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? name = null,
+    Object? relatedFolderIds = freezed,
+    Object? relatedLinkIds = freezed,
+    Object? relatedDocumentIds = freezed,
+  }) {
+    return _then(TagResult(
+      name: null == name
+          ? _self.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      relatedFolderIds: freezed == relatedFolderIds
+          ? _self._relatedFolderIds
+          : relatedFolderIds // ignore: cast_nullable_to_non_nullable
+              as List<String>?,
+      relatedLinkIds: freezed == relatedLinkIds
+          ? _self._relatedLinkIds
+          : relatedLinkIds // ignore: cast_nullable_to_non_nullable
+              as List<String>?,
+      relatedDocumentIds: freezed == relatedDocumentIds
+          ? _self._relatedDocumentIds
+          : relatedDocumentIds // ignore: cast_nullable_to_non_nullable
+              as List<String>?,
+    ));
+  }
+}
+
+/// @nodoc
+
+class UserConfigResult implements DbResult {
+  const UserConfigResult(
+      {required this.data,
+      final List<UserTheme>? userThemes,
+      this.backupSettings,
+      this.archiveSetting})
+      : _userThemes = userThemes;
+
+  final UserConfig data;
+  final List<UserTheme>? _userThemes;
+  List<UserTheme>? get userThemes {
+    final value = _userThemes;
+    if (value == null) return null;
+    if (_userThemes is EqualUnmodifiableListView) return _userThemes;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(value);
+  }
+
+  final BackupSetting? backupSettings;
+  final ArchiveSetting? archiveSetting;
+
+  /// Create a copy of DbResult
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $UserConfigResultCopyWith<UserConfigResult> get copyWith =>
+      _$UserConfigResultCopyWithImpl<UserConfigResult>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is UserConfigResult &&
+            (identical(other.data, data) || other.data == data) &&
+            const DeepCollectionEquality()
+                .equals(other._userThemes, _userThemes) &&
+            (identical(other.backupSettings, backupSettings) ||
+                other.backupSettings == backupSettings) &&
+            (identical(other.archiveSetting, archiveSetting) ||
+                other.archiveSetting == archiveSetting));
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      runtimeType,
+      data,
+      const DeepCollectionEquality().hash(_userThemes),
+      backupSettings,
+      archiveSetting);
+
+  @override
+  String toString() {
+    return 'DbResult.userConfig(data: $data, userThemes: $userThemes, backupSettings: $backupSettings, archiveSetting: $archiveSetting)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $UserConfigResultCopyWith<$Res>
+    implements $DbResultCopyWith<$Res> {
+  factory $UserConfigResultCopyWith(
+          UserConfigResult value, $Res Function(UserConfigResult) _then) =
+      _$UserConfigResultCopyWithImpl;
+  @useResult
+  $Res call(
+      {UserConfig data,
+      List<UserTheme>? userThemes,
+      BackupSetting? backupSettings,
+      ArchiveSetting? archiveSetting});
+}
+
+/// @nodoc
+class _$UserConfigResultCopyWithImpl<$Res>
+    implements $UserConfigResultCopyWith<$Res> {
+  _$UserConfigResultCopyWithImpl(this._self, this._then);
+
+  final UserConfigResult _self;
+  final $Res Function(UserConfigResult) _then;
+
+  /// Create a copy of DbResult
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? data = null,
+    Object? userThemes = freezed,
+    Object? backupSettings = freezed,
+    Object? archiveSetting = freezed,
+  }) {
+    return _then(UserConfigResult(
+      data: null == data
+          ? _self.data
+          : data // ignore: cast_nullable_to_non_nullable
+              as UserConfig,
+      userThemes: freezed == userThemes
+          ? _self._userThemes
+          : userThemes // ignore: cast_nullable_to_non_nullable
+              as List<UserTheme>?,
+      backupSettings: freezed == backupSettings
+          ? _self.backupSettings
+          : backupSettings // ignore: cast_nullable_to_non_nullable
+              as BackupSetting?,
+      archiveSetting: freezed == archiveSetting
+          ? _self.archiveSetting
+          : archiveSetting // ignore: cast_nullable_to_non_nullable
+              as ArchiveSetting?,
+    ));
+  }
+}
+
+/// @nodoc
+
+class UserThemeResult implements DbResult {
+  const UserThemeResult(
+      {required this.theme,
+      this.userConfigId,
+      final List<String>? sharedUserIds})
+      : _sharedUserIds = sharedUserIds;
+
+  final UserTheme theme;
+//NOTE: This will most likely be remove in the future when we implement users
+  final String? userConfigId;
+  final List<String>? _sharedUserIds;
+  List<String>? get sharedUserIds {
+    final value = _sharedUserIds;
+    if (value == null) return null;
+    if (_sharedUserIds is EqualUnmodifiableListView) return _sharedUserIds;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(value);
+  }
+
+  /// Create a copy of DbResult
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $UserThemeResultCopyWith<UserThemeResult> get copyWith =>
+      _$UserThemeResultCopyWithImpl<UserThemeResult>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is UserThemeResult &&
+            (identical(other.theme, theme) || other.theme == theme) &&
+            (identical(other.userConfigId, userConfigId) ||
+                other.userConfigId == userConfigId) &&
+            const DeepCollectionEquality()
+                .equals(other._sharedUserIds, _sharedUserIds));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, theme, userConfigId,
+      const DeepCollectionEquality().hash(_sharedUserIds));
+
+  @override
+  String toString() {
+    return 'DbResult.userTheme(theme: $theme, userConfigId: $userConfigId, sharedUserIds: $sharedUserIds)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $UserThemeResultCopyWith<$Res>
+    implements $DbResultCopyWith<$Res> {
+  factory $UserThemeResultCopyWith(
+          UserThemeResult value, $Res Function(UserThemeResult) _then) =
+      _$UserThemeResultCopyWithImpl;
+  @useResult
+  $Res call(
+      {UserTheme theme, String? userConfigId, List<String>? sharedUserIds});
+}
+
+/// @nodoc
+class _$UserThemeResultCopyWithImpl<$Res>
+    implements $UserThemeResultCopyWith<$Res> {
+  _$UserThemeResultCopyWithImpl(this._self, this._then);
+
+  final UserThemeResult _self;
+  final $Res Function(UserThemeResult) _then;
+
+  /// Create a copy of DbResult
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? theme = null,
+    Object? userConfigId = freezed,
+    Object? sharedUserIds = freezed,
+  }) {
+    return _then(UserThemeResult(
+      theme: null == theme
+          ? _self.theme
+          : theme // ignore: cast_nullable_to_non_nullable
+              as UserTheme,
+      userConfigId: freezed == userConfigId
+          ? _self.userConfigId
+          : userConfigId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      sharedUserIds: freezed == sharedUserIds
+          ? _self._sharedUserIds
+          : sharedUserIds // ignore: cast_nullable_to_non_nullable
+              as List<String>?,
+    ));
+  }
+}
+
+// dart format on

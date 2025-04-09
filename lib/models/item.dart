@@ -1,4 +1,3 @@
-import "dart:convert";
 import "package:collection/collection.dart";
 import "package:flutter/material.dart";
 import "package:chenron/database/database.dart";
@@ -59,12 +58,12 @@ class FolderItem {
   String? get itemId => _itemId;
   int? get listId => _listId;
 
-  final ItemContent content;
+  final ItemContent path;
   final DateTime? createdAt;
   final FolderItemType type;
 
   FolderItem._internal(this.key, this._listId, this._id, this._itemId,
-      this.content, this.createdAt, this.type);
+      this.path, this.createdAt, this.type);
 
   factory FolderItem({
     Key? key,
@@ -90,18 +89,18 @@ class FolderItem {
 
   Insertable toFolderItem(String id) {
     if (isCuid(id)) {
-      switch (content) {
+      switch (path) {
         case StringContent():
           return LinksCompanion.insert(
             id: id,
-            content: (content as StringContent).value,
+            path: (path as StringContent).value,
           );
         case MapContent():
-          final doc = (content as MapContent).value;
+          final doc = (path as MapContent).value;
           return DocumentsCompanion.insert(
             id: id,
             title: doc["title"] ?? "",
-            content: utf8.encode(doc["body"] ?? ""),
+            path: doc["body"] ?? "",
           );
       }
     }
@@ -116,13 +115,13 @@ class FolderItem {
         other.id == id &&
         other.itemId == itemId &&
         other.listId == listId &&
-        other.content == content &&
+        other.path == path &&
         other.createdAt == createdAt &&
         other.type == type;
   }
 
   @override
-  int get hashCode => Object.hash(id, itemId, listId, content, createdAt, type);
+  int get hashCode => Object.hash(id, itemId, listId, path, createdAt, type);
 }
 
 enum FolderItemType {
