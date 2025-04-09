@@ -8,20 +8,10 @@ class TagJoins implements RowJoins<Tags, Tag> {
   TagJoins(this.db);
 
   @override
-  Set<TableInfo> get table => {db.tags};
-  @override
   List<Join> createJoins(Expression<String> baseJoinExpression) => [
         leftOuterJoin(db.metadataRecords,
             db.metadataRecords.itemId.equalsExp(baseJoinExpression)),
         leftOuterJoin(
             db.tags, db.tags.id.equalsExp(db.metadataRecords.metadataId)),
       ];
-
-  @override
-  Tag? readJoins(TypedResult? row) {
-    if (row == null) return null;
-    final tag = row.readTableOrNull(db.tags);
-
-    return tag;
-  }
 }
