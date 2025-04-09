@@ -1,184 +1,113 @@
-import "package:chenron/database/actions/joins/item.dart";
-import "package:chenron/database/actions/joins/tag.dart";
+import "package:chenron/database/actions/joins/relation_builder.dart";
 import "package:chenron/database/database.dart";
-import "package:chenron/database/extensions/base_query_builder.dart";
-import "package:chenron/models/item.dart";
+import "package:chenron/models/db_result.dart";
 import "package:drift/drift.dart";
 
-class Result<T> {
-  final T data;
-  Set<Tag> tags;
-  Set<FolderItem> items;
-  Result({
-    required this.data,
-    Set<Tag>? tags,
-    Set<FolderItem>? items,
-  })  : tags = tags ?? {},
-        items = items ?? {};
-}
-
-class ReadDbHandler<T> {
-  final AppDatabase db;
+class ReadDbHandler<T extends DbResult> {
+  final GeneratedDatabase db;
   final TableInfo table;
-  NewRelationBuilder<T> testBuilder;
+  final RelationBuilder<T> relationBuilder;
+
   ReadDbHandler({required this.db, required this.table})
-      : testBuilder = NewRelationBuilder(db);
-  Future<Result<T>?> getOne({
+      : relationBuilder = db is AppDatabase
+            ? RelationBuilder<T>.forAppDatabase(db)
+            : RelationBuilder<T>.forConfigDatabase(db as ConfigDatabase);
+
+  Future<T?> getOne({
     required Expression<bool> predicate,
     required Expression<String> joinExp,
-    IncludeItems includes = const {},
+    required IncludeOptions<Enum> includeOptions,
   }) async {
     List<Join<HasResultSet, dynamic>> joinsList =
-        testBuilder.createQueryJoins(includes, joinExp);
+        relationBuilder.createQueryJoins(includeOptions, joinExp);
     final query = db.select(table).join(joinsList)..where(predicate);
     final rows = await query.get();
     if (rows.isEmpty) {
       return null;
     }
-    final List<Result<T>> results = testBuilder.processQueryResults(
-        includes: includes, mainTable: table, rows: rows);
+
+    final List<T> results = relationBuilder.processQueryResults(
+        includeOptions: includeOptions, mainTable: table, rows: rows);
 
     return results.isEmpty ? null : results.first;
   }
 
-  Future<List<Result<T>>> getAll({
-    IncludeItems includes = const {},
+  Future<List<T>> getAll({
+    required IncludeOptions<Enum> includeOptions,
     required Expression<String> joinExp,
   }) async {
     List<Join<HasResultSet, dynamic>> joinsList =
-        testBuilder.createQueryJoins(includes, joinExp);
+        relationBuilder.createQueryJoins(includeOptions, joinExp);
     final query = db.select(table).join(joinsList);
     final rows = await query.get();
-    final List<Result<T>> results = testBuilder.processQueryResults(
-        includes: includes, mainTable: table, rows: rows);
+
+    final List<T> results = relationBuilder.processQueryResults(
+        includeOptions: includeOptions, mainTable: table, rows: rows);
     return results;
   }
 
-  Stream<Result<T>?> watchOne({
+  Stream<T?> watchOne({
     required Expression<bool> predicate,
     required Expression<String> joinExp,
-    IncludeItems includes = const {},
+    required IncludeOptions<Enum> includeOptions,
   }) {
     List<Join<HasResultSet, dynamic>> joinsList =
-        testBuilder.createQueryJoins(includes, joinExp);
+        relationBuilder.createQueryJoins(includeOptions, joinExp);
     final query = db.select(table).join(joinsList)..where(predicate);
 
     return query.watch().map((rows) {
-      final List<Result<T>> results = testBuilder.processQueryResults(
-          includes: includes, mainTable: table, rows: rows);
+      final List<T> results = relationBuilder.processQueryResults(
+          includeOptions: includeOptions, mainTable: table, rows: rows);
       if (results.isEmpty) return null;
       return results.first;
     });
   }
 
-  Stream<List<Result<T>>> watchAll({
-    IncludeItems includes = const {},
+  Stream<List<T>> watchAll({
+    required IncludeOptions<Enum> includeOptions,
     required Expression<String> joinExp,
   }) {
     List<Join<HasResultSet, dynamic>> joinsList =
-        testBuilder.createQueryJoins(includes, joinExp);
+        relationBuilder.createQueryJoins(includeOptions, joinExp);
     final query = db.select(table).join(joinsList);
-    return query.watch().map((rows) => testBuilder.processQueryResults(
-        includes: includes, mainTable: table, rows: rows));
+
+    return query.watch().map((rows) => relationBuilder.processQueryResults(
+        includeOptions: includeOptions, mainTable: table, rows: rows));
   }
 
-  Future<List<Result<T>>> searchTable({
+  Future<List<T>> searchTable({
     required String query,
     required Expression<String> joinExp,
     required GeneratedColumn<String>? searchColumn,
-    IncludeItems includes = const {},
+    required IncludeOptions<Enum> includeOptions,
   }) async {
     if (searchColumn == null) {
       throw Exception("Search column cannot be null");
     }
+
     List<Join<HasResultSet, dynamic>> joinsList =
-        testBuilder.createQueryJoins(includes, joinExp);
+        relationBuilder.createQueryJoins(includeOptions, joinExp);
     final folders = (db.select(table).join(joinsList))
       ..where(searchColumn.like("%$query%"));
 
     final rows = await folders.get();
-    return testBuilder.processQueryResults(
-        includes: includes, mainTable: table, rows: rows);
+    return relationBuilder.processQueryResults(
+        includeOptions: includeOptions, mainTable: table, rows: rows);
   }
 
-  //unimplemented for now, incase data gets big enough to require segmented fetching instead of joining
-  Future<R?> getOneSegmented<$Table extends Table, R extends DataClass>(
-    TableInfo<$Table, R> table,
-    Expression<bool> Function($Table t) filter,
-  ) async {
-    return (db.select(table)..where(filter)).getSingleOrNull();
-  }
-
-// NOTE: Might be used later if we want to remove more duplicate code
+  // Utility method that builds a query with common options
   Selectable<TypedResult> _buildQuery({
-    required IncludeItems includes,
+    required IncludeOptions<Enum> includeOptions,
     required Expression<String> joinExp,
     required Expression<bool> predicate,
     String? folderId,
   }) {
     List<Join<HasResultSet, dynamic>> joinsList =
-        testBuilder.createQueryJoins(includes, joinExp);
+        relationBuilder.createQueryJoins(includeOptions, joinExp);
     final query = db.select(table).join(joinsList);
     if (folderId != null) {
       query.where(predicate);
     }
     return query;
-  }
-}
-
-class NewRelationBuilder<T> {
-  final AppDatabase db;
-  final Map<IncludeOptions, RowJoins> rowJoins;
-
-  NewRelationBuilder(this.db)
-      : rowJoins = {
-          IncludeOptions.tags: TagJoins(db),
-          IncludeOptions.items: ItemJoins(db),
-        };
-
-  List<Join> createQueryJoins(
-      IncludeItems includes, Expression<String> joinExp) {
-    final joins = <Join>[];
-    if (includes.contains(IncludeOptions.tags)) {
-      joins.addAll(rowJoins[IncludeOptions.tags]!.createJoins(joinExp));
-    }
-    if (includes.contains(IncludeOptions.items)) {
-      joins.addAll(rowJoins[IncludeOptions.items]!.createJoins(joinExp));
-    }
-    return joins;
-  }
-
-  List<Result<T>> processQueryResults({
-    required List<TypedResult?> rows,
-    required TableInfo mainTable,
-    required IncludeItems includes,
-  }) {
-    final resultMap = <String, Result<T>>{};
-
-    for (final row in rows.whereType<TypedResult>()) {
-      final entityData = row.readTable(mainTable) as T;
-      final entityId = (entityData as dynamic).id as String;
-
-      final result =
-          resultMap.putIfAbsent(entityId, () => Result<T>(data: entityData));
-
-      for (final include in includes) {
-        final join = rowJoins[include];
-        if (join == null) continue;
-
-        switch (include) {
-          case IncludeOptions.tags:
-            final tag = join.readJoins(row);
-            if (tag != null) result.tags.add(tag as Tag);
-            break;
-          case IncludeOptions.items:
-            final item = join.readJoins(row);
-            if (item != null) result.items.add(item as FolderItem);
-            break;
-        }
-      }
-    }
-
-    return resultMap.values.toList();
   }
 }

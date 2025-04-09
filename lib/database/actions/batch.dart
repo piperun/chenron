@@ -1,6 +1,7 @@
 import "package:chenron/utils/logger.dart";
-import "package:drift/drift.dart";
-import "package:chenron/database/database.dart";
+import "package:drift/drift.dart"
+    show TableInfo, Insertable, InsertMode, DoNothing, Expression, Table;
+import "package:chenron/database/database.dart" show AppDatabase;
 
 extension BatchExtensions on AppDatabase {
   Future<void> batchOps(
