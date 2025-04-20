@@ -11,8 +11,7 @@ extension ArchiveHelperExtension on AppDatabase {
     int archiveDueDate = 7,
     ArchiveOrgOptions? archiveOptions,
   }) async {
-    if (userConfig.archiveEnabled &&
-        userConfig.archiveOrgS3AccessKey!.isNotEmpty &&
+    if (userConfig.archiveOrgS3AccessKey!.isNotEmpty &&
         userConfig.archiveOrgS3SecretKey!.isNotEmpty) {
       for (final linkId in linkIds) {
         final linkResult = await getLink(linkId: linkId);

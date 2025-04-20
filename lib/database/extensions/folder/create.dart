@@ -1,94 +1,46 @@
 import "package:chenron/database/database.dart";
-import "package:chenron/database/extensions/folder/insert.dart";
-import "package:chenron/database/extensions/id.dart";
-import "package:chenron/database/extensions/insert_ext.dart";
+import "package:chenron/database/operations/folder/folder_create_vepr.dart";
 import "package:chenron/models/folder.dart";
 import "package:chenron/models/created_ids.dart";
 import "package:chenron/models/item.dart";
 import "package:chenron/models/metadata.dart";
 import "package:chenron/utils/logger.dart";
-import "package:drift/drift.dart";
 
 extension FolderExtensions on AppDatabase {
+  /// Creates a new folder along with its optional tags and items using the VEPR pattern.
   Future<FolderResultIds> createFolder({
     required FolderDraft folderInfo,
     List<Metadata>? tags,
     List<FolderItem>? items,
   }) async {
+    // Public API method acts as the RUNNER
+
+    // 1. Instantiate the specific VEPR implementation
+    final operation = FolderCreateVEPR(this); // Pass the AppDatabase instance
+
+    final FolderCreateInput input = (
+      folderInfo: folderInfo,
+      tags: tags,
+      items: items,
+    );
+
     return transaction(() async {
-      String? folderId;
-      List<TagResultIds>? createdTagIds;
-      List<ItemResultIds>? createdItemIds;
       try {
-        if (folderInfo.title != "") {
-          folderId = await _createFolderDraft(folderInfo);
-        }
-        if (tags != null) {
-          createdTagIds = await _createFolderTags(folderId!, tags);
-        }
-        if (items != null) {
-          createdItemIds = await _createFolderContent(folderId!, items);
-        }
-        if (folderId == null) {
-          throw Exception("Folder ID is null");
-        }
-        return FolderResultIds(
-          folderId: folderId,
-          tagIds: createdTagIds,
-          itemIds: createdItemIds,
-        );
+        // Call the VEPR steps sequentially
+        operation.logStep("Runner", "Starting createFolder operation");
+        operation.validate(input);
+        final execResult = await operation.execute(input);
+        final procResult = await operation.process(input, execResult);
+        final finalResult = operation.buildResult(execResult, procResult);
+        operation.logStep("Runner", "Operation completed successfully");
+        return finalResult;
       } catch (e) {
-        loggerGlobal.severe("FolderActionsCreate", "Error adding folder: $e");
+        // Log the error before rethrowing
+        loggerGlobal.severe(
+            "FolderCreateRunner", "Error during createFolder operation: $e");
+        // Transaction will handle rollback
         rethrow;
       }
     });
-  }
-
-  Future<String> _createFolderDraft(FolderDraft folderInfo) async {
-    String id = generateId();
-    final newFolder = FoldersCompanion.insert(
-      id: id,
-      title: folderInfo.title,
-      description: folderInfo.description,
-    );
-    await folders.insertOne(newFolder);
-    return id;
-  }
-
-  Future<List<TagResultIds>> _createFolderTags(
-      String folderId, List<Metadata> tagInserts) async {
-    if (tagInserts.isEmpty) return [];
-
-    List<TagResultIds> tagResults = [];
-
-    await batch((batch) async {
-      tagResults = await insertTags(
-        batch: batch,
-        tagMetadata: tagInserts,
-      );
-
-      for (final tagResult in tagResults) {
-        insertMetadataRelation(
-          batch: batch,
-          metadataId: tagResult.tagId,
-          itemId: folderId,
-          type: MetadataTypeEnum.tag,
-        );
-      }
-    });
-
-    return tagResults;
-  }
-
-  Future<List<ItemResultIds>> _createFolderContent(
-      String folderId, List<FolderItem> itemInserts) async {
-    List<ItemResultIds> itemResults = [];
-    if (itemInserts.isEmpty) return itemResults;
-
-    await batch((batch) async {
-      itemResults = await insertFolderItems(
-          batch: batch, folderId: folderId, itemInserts: itemInserts);
-    });
-    return itemResults;
   }
 }

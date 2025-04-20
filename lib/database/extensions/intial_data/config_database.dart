@@ -26,8 +26,6 @@ extension ConfigDatabaseInit on ConfigDatabase {
           id: configId,
           darkMode: const Value(false),
           copyOnImport: const Value(true),
-          archiveEnabled: const Value(false),
-          colorScheme: const Value(null),
           archiveOrgS3AccessKey: const Value(null),
           archiveOrgS3SecretKey: const Value(null),
         ));

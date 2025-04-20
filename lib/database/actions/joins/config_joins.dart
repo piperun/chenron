@@ -11,7 +11,6 @@ class ConfigRelationBuilder<T extends DbResult> extends RelationBuilder<T> {
   ConfigRelationBuilder(ConfigDatabase db)
       : super(db, {
           ConfigIncludes.backupSettings: BackupSettingsJoins(db),
-          ConfigIncludes.archiveSettings: ArchiveSettingsJoins(db),
           ConfigIncludes.userThemes: UserThemesJoins(db),
         });
 
@@ -68,21 +67,6 @@ class BackupSettingsJoins implements RowJoins<BackupSettings, BackupSetting> {
     return [
       leftOuterJoin(
           db.backupSettings, db.backupSettings.id.equalsExp(relationId)),
-    ];
-  }
-}
-
-class ArchiveSettingsJoins
-    implements RowJoins<ArchiveSettings, ArchiveSetting> {
-  final ConfigDatabase db;
-
-  ArchiveSettingsJoins(this.db);
-
-  @override
-  List<Join> createJoins(Expression<String> relationId) {
-    return [
-      leftOuterJoin(
-          db.archiveSettings, db.archiveSettings.id.equalsExp(relationId)),
     ];
   }
 }
