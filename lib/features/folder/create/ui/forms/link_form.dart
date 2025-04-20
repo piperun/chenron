@@ -169,9 +169,9 @@ class _LinkFormState extends State<LinkForm> {
         final newRow = TrinaRow(
           key: idKey,
           cells: {
-            'url': TrinaCell(value: newLink),
-            'comment': TrinaCell(value: ''),
-            'tags': TrinaCell(value: []),
+            "url": TrinaCell(value: newLink),
+            "comment": TrinaCell(value: ""),
+            "tags": TrinaCell(value: []),
           },
         );
 

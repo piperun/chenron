@@ -9,9 +9,9 @@ import "package:chenron/utils/logger.dart";
 import "package:chenron/models/cud.dart";
 import "package:chenron/models/item.dart";
 
-import "package:chenron/core/ui/editors/info_editor.dart";
-import "package:chenron/core/ui/item_editor/item_editor.dart";
-import "package:chenron/core/ui/item_editor/item_adder.dart";
+import "package:chenron/shared/ui/editors/info_editor.dart";
+import "package:chenron/shared/ui/item_editor/item_editor.dart";
+import "package:chenron/shared/ui/item_editor/item_adder.dart";
 
 class FolderEditor extends StatefulWidget {
   final String folderId;

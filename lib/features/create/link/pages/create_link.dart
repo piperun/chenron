@@ -1,7 +1,7 @@
 import "package:chenron/components/table/link_toolbar.dart";
-import "package:chenron/core/ui/base_switch.dart";
-import "package:chenron/core/ui/folder_picker.dart";
-import "package:chenron/core/ui/input_field.dart";
+import "package:chenron/shared/ui/base_switch.dart";
+import "package:chenron/shared/ui/folder_picker.dart";
+import "package:chenron/shared/ui/input_field.dart";
 import "package:chenron/database/database.dart";
 import "package:chenron/database/extensions/folder/update.dart";
 import "package:chenron/database/extensions/link/create.dart";
