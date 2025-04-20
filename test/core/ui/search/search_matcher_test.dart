@@ -1,7 +1,7 @@
 import "package:chenron/models/db_result.dart";
 
 import "package:flutter_test/flutter_test.dart";
-import "package:chenron/core/ui/search/search_matcher.dart";
+import "package:chenron/shared/ui/search/search_matcher.dart";
 import "package:chenron/database/database.dart";
 
 void main() {
