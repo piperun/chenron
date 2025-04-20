@@ -28,11 +28,11 @@ extension UserConfigReadExtensions on ConfigDatabase {
 
   // User theme methods matching exactly how folder works
   Future<UserThemeResult?> getUserTheme({
-    required String themeId,
+    required String themeKey,
     IncludeOptions<Enum> includeOptions = const IncludeOptions.empty(),
   }) {
     return _UserThemeReadRepository(db: this).getOne(
-      id: themeId,
+      id: themeKey,
       includeOptions: includeOptions,
     );
   }

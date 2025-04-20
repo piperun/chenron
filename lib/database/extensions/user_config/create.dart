@@ -12,11 +12,9 @@ extension UserConfigExtensions on ConfigDatabase {
         final insertConfig = UserConfigsCompanion.insert(
           id: id,
           darkMode: Value(userConfig.darkMode),
-          colorScheme: Value(userConfig.colorScheme),
           archiveOrgS3AccessKey: Value(userConfig.archiveOrgS3AccessKey),
           archiveOrgS3SecretKey: Value(userConfig.archiveOrgS3SecretKey),
           copyOnImport: Value(userConfig.copyOnImport),
-          archiveEnabled: Value(userConfig.archiveEnabled),
         );
 
         final userId = await _createUserConfigEntry(insertConfig);
