@@ -1,8 +1,8 @@
 import "package:chenron/database/actions/builders/result_builder.dart";
-import "package:chenron/database/actions/builders/result/folder_result_builder.dart";
-import "package:chenron/database/actions/builders/result/link_result_builder.dart";
-import "package:chenron/database/actions/builders/result/document_result_builder.dart";
-import "package:chenron/database/actions/builders/result/tag_result_builder.dart";
+import "package:chenron/database/actions/builders/app_database/folder_result_builder.dart";
+import "package:chenron/database/actions/builders/app_database/link_result_builder.dart";
+import "package:chenron/database/actions/builders/app_database/document_result_builder.dart";
+import "package:chenron/database/actions/builders/app_database/tag_result_builder.dart";
 import "package:chenron/database/database.dart";
 import "package:chenron/models/db_result.dart";
 import "package:drift/drift.dart";
@@ -25,6 +25,6 @@ class ResultBuilderFactory {
       return TagResultBuilder(entity, _db);
     }
 
-    throw ArgumentError('Unsupported entity type: ${entity.runtimeType}');
+    throw ArgumentError("Unsupported entity type: ${entity.runtimeType}");
   }
 }

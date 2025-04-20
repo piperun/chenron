@@ -1,12 +1,11 @@
-import 'package:drift/drift.dart';
-import 'package:chenron/database/actions/builders/result_builder.dart';
-import 'package:chenron/database/database.dart';
-import 'package:chenron/models/db_result.dart';
+import "package:drift/drift.dart";
+import "package:chenron/database/actions/builders/result_builder.dart";
+import "package:chenron/database/database.dart";
+import "package:chenron/models/db_result.dart";
 
 class UserConfigResultBuilder implements ResultBuilder<UserConfigResult> {
   final UserConfig _userConfig;
   BackupSetting? _backupSettings;
-  ArchiveSetting? _archiveSetting;
   final List<UserTheme> _userThemes = [];
   final ConfigDatabase _db;
 
@@ -24,13 +23,6 @@ class UserConfigResultBuilder implements ResultBuilder<UserConfigResult> {
       }
     }
 
-    if (includeOptions.contains(ConfigIncludes.archiveSettings)) {
-      final archive = row.readTableOrNull(_db.archiveSettings);
-      if (archive != null) {
-        _archiveSetting = archive;
-      }
-    }
-
     if (includeOptions.contains(ConfigIncludes.userThemes)) {
       final theme = row.readTableOrNull(_db.userThemes);
       if (theme != null && !_userThemes.any((t) => t.id == theme.id)) {
@@ -44,7 +36,6 @@ class UserConfigResultBuilder implements ResultBuilder<UserConfigResult> {
     return UserConfigResult(
       data: _userConfig,
       backupSettings: _backupSettings,
-      archiveSetting: _archiveSetting,
       userThemes: _userThemes.isEmpty ? null : _userThemes,
     );
   }
