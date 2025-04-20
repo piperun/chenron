@@ -10,7 +10,9 @@ part "database.g.dart";
 
 enum AppDataInclude { items, tags }
 
-enum ConfigIncludes { archiveSettings, backupSettings, userThemes }
+enum ConfigIncludes { archiveSettings, backupSettings, userThemes, userConfig }
+
+enum ThemeType { custom, system }
 
 class IncludeOptions<T extends Enum> {
   final Set<T> options;
@@ -86,7 +88,6 @@ class AppDatabase extends _$AppDatabase {
   UserConfigs,
   UserThemes,
   BackupSettings,
-  ArchiveSettings,
 ])
 class ConfigDatabase extends _$ConfigDatabase {
   static const int idLength = 30;

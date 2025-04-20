@@ -4025,6 +4025,26 @@ class $UserConfigsTable extends UserConfigs
       defaultConstraints: GeneratedColumn.constraintIsAlways(
           'CHECK ("copy_on_import" IN (0, 1))'),
       defaultValue: const Constant(true));
+  static const VerificationMeta _defaultArchiveIsMeta =
+      const VerificationMeta('defaultArchiveIs');
+  @override
+  late final GeneratedColumn<bool> defaultArchiveIs = GeneratedColumn<bool>(
+      'default_archive_is', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("default_archive_is" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _defaultArchiveOrgMeta =
+      const VerificationMeta('defaultArchiveOrg');
+  @override
+  late final GeneratedColumn<bool> defaultArchiveOrg = GeneratedColumn<bool>(
+      'default_archive_org', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("default_archive_org" IN (0, 1))'),
+      defaultValue: const Constant(false));
   static const VerificationMeta _archiveOrgS3AccessKeyMeta =
       const VerificationMeta('archiveOrgS3AccessKey');
   @override
@@ -4037,31 +4057,31 @@ class $UserConfigsTable extends UserConfigs
   late final GeneratedColumn<String> archiveOrgS3SecretKey =
       GeneratedColumn<String>('archive_org_s3_secret_key', aliasedName, true,
           type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _archiveEnabledMeta =
-      const VerificationMeta('archiveEnabled');
+  static const VerificationMeta _selectedThemeKeyMeta =
+      const VerificationMeta('selectedThemeKey');
   @override
-  late final GeneratedColumn<bool> archiveEnabled = GeneratedColumn<bool>(
-      'archive_enabled', aliasedName, false,
-      type: DriftSqlType.bool,
-      requiredDuringInsert: false,
-      defaultConstraints: GeneratedColumn.constraintIsAlways(
-          'CHECK ("archive_enabled" IN (0, 1))'),
-      defaultValue: const Constant(true));
-  static const VerificationMeta _colorSchemeMeta =
-      const VerificationMeta('colorScheme');
-  @override
-  late final GeneratedColumn<String> colorScheme = GeneratedColumn<String>(
-      'color_scheme', aliasedName, true,
+  late final GeneratedColumn<String> selectedThemeKey = GeneratedColumn<String>(
+      'selected_theme_key', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _selectedThemeTypeMeta =
+      const VerificationMeta('selectedThemeType');
+  @override
+  late final GeneratedColumn<int> selectedThemeType = GeneratedColumn<int>(
+      'selected_theme_type', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
   @override
   List<GeneratedColumn> get $columns => [
         id,
         darkMode,
         copyOnImport,
+        defaultArchiveIs,
+        defaultArchiveOrg,
         archiveOrgS3AccessKey,
         archiveOrgS3SecretKey,
-        archiveEnabled,
-        colorScheme
+        selectedThemeKey,
+        selectedThemeType
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -4088,6 +4108,18 @@ class $UserConfigsTable extends UserConfigs
           copyOnImport.isAcceptableOrUnknown(
               data['copy_on_import']!, _copyOnImportMeta));
     }
+    if (data.containsKey('default_archive_is')) {
+      context.handle(
+          _defaultArchiveIsMeta,
+          defaultArchiveIs.isAcceptableOrUnknown(
+              data['default_archive_is']!, _defaultArchiveIsMeta));
+    }
+    if (data.containsKey('default_archive_org')) {
+      context.handle(
+          _defaultArchiveOrgMeta,
+          defaultArchiveOrg.isAcceptableOrUnknown(
+              data['default_archive_org']!, _defaultArchiveOrgMeta));
+    }
     if (data.containsKey('archive_org_s3_access_key')) {
       context.handle(
           _archiveOrgS3AccessKeyMeta,
@@ -4100,17 +4132,17 @@ class $UserConfigsTable extends UserConfigs
           archiveOrgS3SecretKey.isAcceptableOrUnknown(
               data['archive_org_s3_secret_key']!, _archiveOrgS3SecretKeyMeta));
     }
-    if (data.containsKey('archive_enabled')) {
+    if (data.containsKey('selected_theme_key')) {
       context.handle(
-          _archiveEnabledMeta,
-          archiveEnabled.isAcceptableOrUnknown(
-              data['archive_enabled']!, _archiveEnabledMeta));
+          _selectedThemeKeyMeta,
+          selectedThemeKey.isAcceptableOrUnknown(
+              data['selected_theme_key']!, _selectedThemeKeyMeta));
     }
-    if (data.containsKey('color_scheme')) {
+    if (data.containsKey('selected_theme_type')) {
       context.handle(
-          _colorSchemeMeta,
-          colorScheme.isAcceptableOrUnknown(
-              data['color_scheme']!, _colorSchemeMeta));
+          _selectedThemeTypeMeta,
+          selectedThemeType.isAcceptableOrUnknown(
+              data['selected_theme_type']!, _selectedThemeTypeMeta));
     }
     return context;
   }
@@ -4127,16 +4159,20 @@ class $UserConfigsTable extends UserConfigs
           .read(DriftSqlType.bool, data['${effectivePrefix}dark_mode'])!,
       copyOnImport: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}copy_on_import'])!,
+      defaultArchiveIs: attachedDatabase.typeMapping.read(
+          DriftSqlType.bool, data['${effectivePrefix}default_archive_is'])!,
+      defaultArchiveOrg: attachedDatabase.typeMapping.read(
+          DriftSqlType.bool, data['${effectivePrefix}default_archive_org'])!,
       archiveOrgS3AccessKey: attachedDatabase.typeMapping.read(
           DriftSqlType.string,
           data['${effectivePrefix}archive_org_s3_access_key']),
       archiveOrgS3SecretKey: attachedDatabase.typeMapping.read(
           DriftSqlType.string,
           data['${effectivePrefix}archive_org_s3_secret_key']),
-      archiveEnabled: attachedDatabase.typeMapping
-          .read(DriftSqlType.bool, data['${effectivePrefix}archive_enabled'])!,
-      colorScheme: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}color_scheme']),
+      selectedThemeKey: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}selected_theme_key']),
+      selectedThemeType: attachedDatabase.typeMapping.read(
+          DriftSqlType.int, data['${effectivePrefix}selected_theme_type'])!,
     );
   }
 
@@ -4150,24 +4186,30 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
   final String id;
   final bool darkMode;
   final bool copyOnImport;
+  final bool defaultArchiveIs;
+  final bool defaultArchiveOrg;
   final String? archiveOrgS3AccessKey;
   final String? archiveOrgS3SecretKey;
-  final bool archiveEnabled;
-  final String? colorScheme;
+  final String? selectedThemeKey;
+  final int selectedThemeType;
   const UserConfig(
       {required this.id,
       required this.darkMode,
       required this.copyOnImport,
+      required this.defaultArchiveIs,
+      required this.defaultArchiveOrg,
       this.archiveOrgS3AccessKey,
       this.archiveOrgS3SecretKey,
-      required this.archiveEnabled,
-      this.colorScheme});
+      this.selectedThemeKey,
+      required this.selectedThemeType});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     map['dark_mode'] = Variable<bool>(darkMode);
     map['copy_on_import'] = Variable<bool>(copyOnImport);
+    map['default_archive_is'] = Variable<bool>(defaultArchiveIs);
+    map['default_archive_org'] = Variable<bool>(defaultArchiveOrg);
     if (!nullToAbsent || archiveOrgS3AccessKey != null) {
       map['archive_org_s3_access_key'] =
           Variable<String>(archiveOrgS3AccessKey);
@@ -4176,10 +4218,10 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
       map['archive_org_s3_secret_key'] =
           Variable<String>(archiveOrgS3SecretKey);
     }
-    map['archive_enabled'] = Variable<bool>(archiveEnabled);
-    if (!nullToAbsent || colorScheme != null) {
-      map['color_scheme'] = Variable<String>(colorScheme);
+    if (!nullToAbsent || selectedThemeKey != null) {
+      map['selected_theme_key'] = Variable<String>(selectedThemeKey);
     }
+    map['selected_theme_type'] = Variable<int>(selectedThemeType);
     return map;
   }
 
@@ -4188,16 +4230,18 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
       id: Value(id),
       darkMode: Value(darkMode),
       copyOnImport: Value(copyOnImport),
+      defaultArchiveIs: Value(defaultArchiveIs),
+      defaultArchiveOrg: Value(defaultArchiveOrg),
       archiveOrgS3AccessKey: archiveOrgS3AccessKey == null && nullToAbsent
           ? const Value.absent()
           : Value(archiveOrgS3AccessKey),
       archiveOrgS3SecretKey: archiveOrgS3SecretKey == null && nullToAbsent
           ? const Value.absent()
           : Value(archiveOrgS3SecretKey),
-      archiveEnabled: Value(archiveEnabled),
-      colorScheme: colorScheme == null && nullToAbsent
+      selectedThemeKey: selectedThemeKey == null && nullToAbsent
           ? const Value.absent()
-          : Value(colorScheme),
+          : Value(selectedThemeKey),
+      selectedThemeType: Value(selectedThemeType),
     );
   }
 
@@ -4208,12 +4252,14 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
       id: serializer.fromJson<String>(json['id']),
       darkMode: serializer.fromJson<bool>(json['darkMode']),
       copyOnImport: serializer.fromJson<bool>(json['copyOnImport']),
+      defaultArchiveIs: serializer.fromJson<bool>(json['defaultArchiveIs']),
+      defaultArchiveOrg: serializer.fromJson<bool>(json['defaultArchiveOrg']),
       archiveOrgS3AccessKey:
           serializer.fromJson<String?>(json['archiveOrgS3AccessKey']),
       archiveOrgS3SecretKey:
           serializer.fromJson<String?>(json['archiveOrgS3SecretKey']),
-      archiveEnabled: serializer.fromJson<bool>(json['archiveEnabled']),
-      colorScheme: serializer.fromJson<String?>(json['colorScheme']),
+      selectedThemeKey: serializer.fromJson<String?>(json['selectedThemeKey']),
+      selectedThemeType: serializer.fromJson<int>(json['selectedThemeType']),
     );
   }
   @override
@@ -4223,12 +4269,14 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
       'id': serializer.toJson<String>(id),
       'darkMode': serializer.toJson<bool>(darkMode),
       'copyOnImport': serializer.toJson<bool>(copyOnImport),
+      'defaultArchiveIs': serializer.toJson<bool>(defaultArchiveIs),
+      'defaultArchiveOrg': serializer.toJson<bool>(defaultArchiveOrg),
       'archiveOrgS3AccessKey':
           serializer.toJson<String?>(archiveOrgS3AccessKey),
       'archiveOrgS3SecretKey':
           serializer.toJson<String?>(archiveOrgS3SecretKey),
-      'archiveEnabled': serializer.toJson<bool>(archiveEnabled),
-      'colorScheme': serializer.toJson<String?>(colorScheme),
+      'selectedThemeKey': serializer.toJson<String?>(selectedThemeKey),
+      'selectedThemeType': serializer.toJson<int>(selectedThemeType),
     };
   }
 
@@ -4236,22 +4284,28 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
           {String? id,
           bool? darkMode,
           bool? copyOnImport,
+          bool? defaultArchiveIs,
+          bool? defaultArchiveOrg,
           Value<String?> archiveOrgS3AccessKey = const Value.absent(),
           Value<String?> archiveOrgS3SecretKey = const Value.absent(),
-          bool? archiveEnabled,
-          Value<String?> colorScheme = const Value.absent()}) =>
+          Value<String?> selectedThemeKey = const Value.absent(),
+          int? selectedThemeType}) =>
       UserConfig(
         id: id ?? this.id,
         darkMode: darkMode ?? this.darkMode,
         copyOnImport: copyOnImport ?? this.copyOnImport,
+        defaultArchiveIs: defaultArchiveIs ?? this.defaultArchiveIs,
+        defaultArchiveOrg: defaultArchiveOrg ?? this.defaultArchiveOrg,
         archiveOrgS3AccessKey: archiveOrgS3AccessKey.present
             ? archiveOrgS3AccessKey.value
             : this.archiveOrgS3AccessKey,
         archiveOrgS3SecretKey: archiveOrgS3SecretKey.present
             ? archiveOrgS3SecretKey.value
             : this.archiveOrgS3SecretKey,
-        archiveEnabled: archiveEnabled ?? this.archiveEnabled,
-        colorScheme: colorScheme.present ? colorScheme.value : this.colorScheme,
+        selectedThemeKey: selectedThemeKey.present
+            ? selectedThemeKey.value
+            : this.selectedThemeKey,
+        selectedThemeType: selectedThemeType ?? this.selectedThemeType,
       );
   UserConfig copyWithCompanion(UserConfigsCompanion data) {
     return UserConfig(
@@ -4260,17 +4314,24 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
       copyOnImport: data.copyOnImport.present
           ? data.copyOnImport.value
           : this.copyOnImport,
+      defaultArchiveIs: data.defaultArchiveIs.present
+          ? data.defaultArchiveIs.value
+          : this.defaultArchiveIs,
+      defaultArchiveOrg: data.defaultArchiveOrg.present
+          ? data.defaultArchiveOrg.value
+          : this.defaultArchiveOrg,
       archiveOrgS3AccessKey: data.archiveOrgS3AccessKey.present
           ? data.archiveOrgS3AccessKey.value
           : this.archiveOrgS3AccessKey,
       archiveOrgS3SecretKey: data.archiveOrgS3SecretKey.present
           ? data.archiveOrgS3SecretKey.value
           : this.archiveOrgS3SecretKey,
-      archiveEnabled: data.archiveEnabled.present
-          ? data.archiveEnabled.value
-          : this.archiveEnabled,
-      colorScheme:
-          data.colorScheme.present ? data.colorScheme.value : this.colorScheme,
+      selectedThemeKey: data.selectedThemeKey.present
+          ? data.selectedThemeKey.value
+          : this.selectedThemeKey,
+      selectedThemeType: data.selectedThemeType.present
+          ? data.selectedThemeType.value
+          : this.selectedThemeType,
     );
   }
 
@@ -4280,10 +4341,12 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
           ..write('id: $id, ')
           ..write('darkMode: $darkMode, ')
           ..write('copyOnImport: $copyOnImport, ')
+          ..write('defaultArchiveIs: $defaultArchiveIs, ')
+          ..write('defaultArchiveOrg: $defaultArchiveOrg, ')
           ..write('archiveOrgS3AccessKey: $archiveOrgS3AccessKey, ')
           ..write('archiveOrgS3SecretKey: $archiveOrgS3SecretKey, ')
-          ..write('archiveEnabled: $archiveEnabled, ')
-          ..write('colorScheme: $colorScheme')
+          ..write('selectedThemeKey: $selectedThemeKey, ')
+          ..write('selectedThemeType: $selectedThemeType')
           ..write(')'))
         .toString();
   }
@@ -4293,10 +4356,12 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
       id,
       darkMode,
       copyOnImport,
+      defaultArchiveIs,
+      defaultArchiveOrg,
       archiveOrgS3AccessKey,
       archiveOrgS3SecretKey,
-      archiveEnabled,
-      colorScheme);
+      selectedThemeKey,
+      selectedThemeType);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -4304,61 +4369,73 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
           other.id == this.id &&
           other.darkMode == this.darkMode &&
           other.copyOnImport == this.copyOnImport &&
+          other.defaultArchiveIs == this.defaultArchiveIs &&
+          other.defaultArchiveOrg == this.defaultArchiveOrg &&
           other.archiveOrgS3AccessKey == this.archiveOrgS3AccessKey &&
           other.archiveOrgS3SecretKey == this.archiveOrgS3SecretKey &&
-          other.archiveEnabled == this.archiveEnabled &&
-          other.colorScheme == this.colorScheme);
+          other.selectedThemeKey == this.selectedThemeKey &&
+          other.selectedThemeType == this.selectedThemeType);
 }
 
 class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
   final Value<String> id;
   final Value<bool> darkMode;
   final Value<bool> copyOnImport;
+  final Value<bool> defaultArchiveIs;
+  final Value<bool> defaultArchiveOrg;
   final Value<String?> archiveOrgS3AccessKey;
   final Value<String?> archiveOrgS3SecretKey;
-  final Value<bool> archiveEnabled;
-  final Value<String?> colorScheme;
+  final Value<String?> selectedThemeKey;
+  final Value<int> selectedThemeType;
   final Value<int> rowid;
   const UserConfigsCompanion({
     this.id = const Value.absent(),
     this.darkMode = const Value.absent(),
     this.copyOnImport = const Value.absent(),
+    this.defaultArchiveIs = const Value.absent(),
+    this.defaultArchiveOrg = const Value.absent(),
     this.archiveOrgS3AccessKey = const Value.absent(),
     this.archiveOrgS3SecretKey = const Value.absent(),
-    this.archiveEnabled = const Value.absent(),
-    this.colorScheme = const Value.absent(),
+    this.selectedThemeKey = const Value.absent(),
+    this.selectedThemeType = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   UserConfigsCompanion.insert({
     required String id,
     this.darkMode = const Value.absent(),
     this.copyOnImport = const Value.absent(),
+    this.defaultArchiveIs = const Value.absent(),
+    this.defaultArchiveOrg = const Value.absent(),
     this.archiveOrgS3AccessKey = const Value.absent(),
     this.archiveOrgS3SecretKey = const Value.absent(),
-    this.archiveEnabled = const Value.absent(),
-    this.colorScheme = const Value.absent(),
+    this.selectedThemeKey = const Value.absent(),
+    this.selectedThemeType = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id);
   static Insertable<UserConfig> custom({
     Expression<String>? id,
     Expression<bool>? darkMode,
     Expression<bool>? copyOnImport,
+    Expression<bool>? defaultArchiveIs,
+    Expression<bool>? defaultArchiveOrg,
     Expression<String>? archiveOrgS3AccessKey,
     Expression<String>? archiveOrgS3SecretKey,
-    Expression<bool>? archiveEnabled,
-    Expression<String>? colorScheme,
+    Expression<String>? selectedThemeKey,
+    Expression<int>? selectedThemeType,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (darkMode != null) 'dark_mode': darkMode,
       if (copyOnImport != null) 'copy_on_import': copyOnImport,
+      if (defaultArchiveIs != null) 'default_archive_is': defaultArchiveIs,
+      if (defaultArchiveOrg != null) 'default_archive_org': defaultArchiveOrg,
       if (archiveOrgS3AccessKey != null)
         'archive_org_s3_access_key': archiveOrgS3AccessKey,
       if (archiveOrgS3SecretKey != null)
         'archive_org_s3_secret_key': archiveOrgS3SecretKey,
-      if (archiveEnabled != null) 'archive_enabled': archiveEnabled,
-      if (colorScheme != null) 'color_scheme': colorScheme,
+      if (selectedThemeKey != null) 'selected_theme_key': selectedThemeKey,
+      if (selectedThemeType != null) 'selected_theme_type': selectedThemeType,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -4367,21 +4444,25 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
       {Value<String>? id,
       Value<bool>? darkMode,
       Value<bool>? copyOnImport,
+      Value<bool>? defaultArchiveIs,
+      Value<bool>? defaultArchiveOrg,
       Value<String?>? archiveOrgS3AccessKey,
       Value<String?>? archiveOrgS3SecretKey,
-      Value<bool>? archiveEnabled,
-      Value<String?>? colorScheme,
+      Value<String?>? selectedThemeKey,
+      Value<int>? selectedThemeType,
       Value<int>? rowid}) {
     return UserConfigsCompanion(
       id: id ?? this.id,
       darkMode: darkMode ?? this.darkMode,
       copyOnImport: copyOnImport ?? this.copyOnImport,
+      defaultArchiveIs: defaultArchiveIs ?? this.defaultArchiveIs,
+      defaultArchiveOrg: defaultArchiveOrg ?? this.defaultArchiveOrg,
       archiveOrgS3AccessKey:
           archiveOrgS3AccessKey ?? this.archiveOrgS3AccessKey,
       archiveOrgS3SecretKey:
           archiveOrgS3SecretKey ?? this.archiveOrgS3SecretKey,
-      archiveEnabled: archiveEnabled ?? this.archiveEnabled,
-      colorScheme: colorScheme ?? this.colorScheme,
+      selectedThemeKey: selectedThemeKey ?? this.selectedThemeKey,
+      selectedThemeType: selectedThemeType ?? this.selectedThemeType,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -4398,6 +4479,12 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
     if (copyOnImport.present) {
       map['copy_on_import'] = Variable<bool>(copyOnImport.value);
     }
+    if (defaultArchiveIs.present) {
+      map['default_archive_is'] = Variable<bool>(defaultArchiveIs.value);
+    }
+    if (defaultArchiveOrg.present) {
+      map['default_archive_org'] = Variable<bool>(defaultArchiveOrg.value);
+    }
     if (archiveOrgS3AccessKey.present) {
       map['archive_org_s3_access_key'] =
           Variable<String>(archiveOrgS3AccessKey.value);
@@ -4406,11 +4493,11 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
       map['archive_org_s3_secret_key'] =
           Variable<String>(archiveOrgS3SecretKey.value);
     }
-    if (archiveEnabled.present) {
-      map['archive_enabled'] = Variable<bool>(archiveEnabled.value);
+    if (selectedThemeKey.present) {
+      map['selected_theme_key'] = Variable<String>(selectedThemeKey.value);
     }
-    if (colorScheme.present) {
-      map['color_scheme'] = Variable<String>(colorScheme.value);
+    if (selectedThemeType.present) {
+      map['selected_theme_type'] = Variable<int>(selectedThemeType.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -4424,10 +4511,12 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
           ..write('id: $id, ')
           ..write('darkMode: $darkMode, ')
           ..write('copyOnImport: $copyOnImport, ')
+          ..write('defaultArchiveIs: $defaultArchiveIs, ')
+          ..write('defaultArchiveOrg: $defaultArchiveOrg, ')
           ..write('archiveOrgS3AccessKey: $archiveOrgS3AccessKey, ')
           ..write('archiveOrgS3SecretKey: $archiveOrgS3SecretKey, ')
-          ..write('archiveEnabled: $archiveEnabled, ')
-          ..write('colorScheme: $colorScheme, ')
+          ..write('selectedThemeKey: $selectedThemeKey, ')
+          ..write('selectedThemeType: $selectedThemeType, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -4464,13 +4553,42 @@ class $UserThemesTable extends UserThemes
       type: DriftSqlType.string,
       requiredDuringInsert: true,
       defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'));
-  static const VerificationMeta _themeMeta = const VerificationMeta('theme');
+  static const VerificationMeta _primaryColorMeta =
+      const VerificationMeta('primaryColor');
   @override
-  late final GeneratedColumn<String> theme = GeneratedColumn<String>(
-      'theme', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
+  late final GeneratedColumn<int> primaryColor = GeneratedColumn<int>(
+      'primary_color', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _secondaryColorMeta =
+      const VerificationMeta('secondaryColor');
   @override
-  List<GeneratedColumn> get $columns => [id, userConfigId, name, theme];
+  late final GeneratedColumn<int> secondaryColor = GeneratedColumn<int>(
+      'secondary_color', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _tertiaryColorMeta =
+      const VerificationMeta('tertiaryColor');
+  @override
+  late final GeneratedColumn<int> tertiaryColor = GeneratedColumn<int>(
+      'tertiary_color', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _seedTypeMeta =
+      const VerificationMeta('seedType');
+  @override
+  late final GeneratedColumn<int> seedType = GeneratedColumn<int>(
+      'seed_type', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        userConfigId,
+        name,
+        primaryColor,
+        secondaryColor,
+        tertiaryColor,
+        seedType
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -4500,9 +4618,31 @@ class $UserThemesTable extends UserThemes
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
-    if (data.containsKey('theme')) {
+    if (data.containsKey('primary_color')) {
       context.handle(
-          _themeMeta, theme.isAcceptableOrUnknown(data['theme']!, _themeMeta));
+          _primaryColorMeta,
+          primaryColor.isAcceptableOrUnknown(
+              data['primary_color']!, _primaryColorMeta));
+    } else if (isInserting) {
+      context.missing(_primaryColorMeta);
+    }
+    if (data.containsKey('secondary_color')) {
+      context.handle(
+          _secondaryColorMeta,
+          secondaryColor.isAcceptableOrUnknown(
+              data['secondary_color']!, _secondaryColorMeta));
+    } else if (isInserting) {
+      context.missing(_secondaryColorMeta);
+    }
+    if (data.containsKey('tertiary_color')) {
+      context.handle(
+          _tertiaryColorMeta,
+          tertiaryColor.isAcceptableOrUnknown(
+              data['tertiary_color']!, _tertiaryColorMeta));
+    }
+    if (data.containsKey('seed_type')) {
+      context.handle(_seedTypeMeta,
+          seedType.isAcceptableOrUnknown(data['seed_type']!, _seedTypeMeta));
     }
     return context;
   }
@@ -4519,8 +4659,14 @@ class $UserThemesTable extends UserThemes
           .read(DriftSqlType.string, data['${effectivePrefix}user_config_id'])!,
       name: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
-      theme: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}theme']),
+      primaryColor: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}primary_color'])!,
+      secondaryColor: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}secondary_color'])!,
+      tertiaryColor: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}tertiary_color']),
+      seedType: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}seed_type'])!,
     );
   }
 
@@ -4534,21 +4680,30 @@ class UserTheme extends DataClass implements Insertable<UserTheme> {
   final String id;
   final String userConfigId;
   final String name;
-  final String? theme;
+  final int primaryColor;
+  final int secondaryColor;
+  final int? tertiaryColor;
+  final int seedType;
   const UserTheme(
       {required this.id,
       required this.userConfigId,
       required this.name,
-      this.theme});
+      required this.primaryColor,
+      required this.secondaryColor,
+      this.tertiaryColor,
+      required this.seedType});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     map['user_config_id'] = Variable<String>(userConfigId);
     map['name'] = Variable<String>(name);
-    if (!nullToAbsent || theme != null) {
-      map['theme'] = Variable<String>(theme);
+    map['primary_color'] = Variable<int>(primaryColor);
+    map['secondary_color'] = Variable<int>(secondaryColor);
+    if (!nullToAbsent || tertiaryColor != null) {
+      map['tertiary_color'] = Variable<int>(tertiaryColor);
     }
+    map['seed_type'] = Variable<int>(seedType);
     return map;
   }
 
@@ -4557,8 +4712,12 @@ class UserTheme extends DataClass implements Insertable<UserTheme> {
       id: Value(id),
       userConfigId: Value(userConfigId),
       name: Value(name),
-      theme:
-          theme == null && nullToAbsent ? const Value.absent() : Value(theme),
+      primaryColor: Value(primaryColor),
+      secondaryColor: Value(secondaryColor),
+      tertiaryColor: tertiaryColor == null && nullToAbsent
+          ? const Value.absent()
+          : Value(tertiaryColor),
+      seedType: Value(seedType),
     );
   }
 
@@ -4569,7 +4728,10 @@ class UserTheme extends DataClass implements Insertable<UserTheme> {
       id: serializer.fromJson<String>(json['id']),
       userConfigId: serializer.fromJson<String>(json['userConfigId']),
       name: serializer.fromJson<String>(json['name']),
-      theme: serializer.fromJson<String?>(json['theme']),
+      primaryColor: serializer.fromJson<int>(json['primaryColor']),
+      secondaryColor: serializer.fromJson<int>(json['secondaryColor']),
+      tertiaryColor: serializer.fromJson<int?>(json['tertiaryColor']),
+      seedType: serializer.fromJson<int>(json['seedType']),
     );
   }
   @override
@@ -4579,7 +4741,10 @@ class UserTheme extends DataClass implements Insertable<UserTheme> {
       'id': serializer.toJson<String>(id),
       'userConfigId': serializer.toJson<String>(userConfigId),
       'name': serializer.toJson<String>(name),
-      'theme': serializer.toJson<String?>(theme),
+      'primaryColor': serializer.toJson<int>(primaryColor),
+      'secondaryColor': serializer.toJson<int>(secondaryColor),
+      'tertiaryColor': serializer.toJson<int?>(tertiaryColor),
+      'seedType': serializer.toJson<int>(seedType),
     };
   }
 
@@ -4587,12 +4752,19 @@ class UserTheme extends DataClass implements Insertable<UserTheme> {
           {String? id,
           String? userConfigId,
           String? name,
-          Value<String?> theme = const Value.absent()}) =>
+          int? primaryColor,
+          int? secondaryColor,
+          Value<int?> tertiaryColor = const Value.absent(),
+          int? seedType}) =>
       UserTheme(
         id: id ?? this.id,
         userConfigId: userConfigId ?? this.userConfigId,
         name: name ?? this.name,
-        theme: theme.present ? theme.value : this.theme,
+        primaryColor: primaryColor ?? this.primaryColor,
+        secondaryColor: secondaryColor ?? this.secondaryColor,
+        tertiaryColor:
+            tertiaryColor.present ? tertiaryColor.value : this.tertiaryColor,
+        seedType: seedType ?? this.seedType,
       );
   UserTheme copyWithCompanion(UserThemesCompanion data) {
     return UserTheme(
@@ -4601,7 +4773,16 @@ class UserTheme extends DataClass implements Insertable<UserTheme> {
           ? data.userConfigId.value
           : this.userConfigId,
       name: data.name.present ? data.name.value : this.name,
-      theme: data.theme.present ? data.theme.value : this.theme,
+      primaryColor: data.primaryColor.present
+          ? data.primaryColor.value
+          : this.primaryColor,
+      secondaryColor: data.secondaryColor.present
+          ? data.secondaryColor.value
+          : this.secondaryColor,
+      tertiaryColor: data.tertiaryColor.present
+          ? data.tertiaryColor.value
+          : this.tertiaryColor,
+      seedType: data.seedType.present ? data.seedType.value : this.seedType,
     );
   }
 
@@ -4611,13 +4792,17 @@ class UserTheme extends DataClass implements Insertable<UserTheme> {
           ..write('id: $id, ')
           ..write('userConfigId: $userConfigId, ')
           ..write('name: $name, ')
-          ..write('theme: $theme')
+          ..write('primaryColor: $primaryColor, ')
+          ..write('secondaryColor: $secondaryColor, ')
+          ..write('tertiaryColor: $tertiaryColor, ')
+          ..write('seedType: $seedType')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, userConfigId, name, theme);
+  int get hashCode => Object.hash(id, userConfigId, name, primaryColor,
+      secondaryColor, tertiaryColor, seedType);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -4625,43 +4810,63 @@ class UserTheme extends DataClass implements Insertable<UserTheme> {
           other.id == this.id &&
           other.userConfigId == this.userConfigId &&
           other.name == this.name &&
-          other.theme == this.theme);
+          other.primaryColor == this.primaryColor &&
+          other.secondaryColor == this.secondaryColor &&
+          other.tertiaryColor == this.tertiaryColor &&
+          other.seedType == this.seedType);
 }
 
 class UserThemesCompanion extends UpdateCompanion<UserTheme> {
   final Value<String> id;
   final Value<String> userConfigId;
   final Value<String> name;
-  final Value<String?> theme;
+  final Value<int> primaryColor;
+  final Value<int> secondaryColor;
+  final Value<int?> tertiaryColor;
+  final Value<int> seedType;
   final Value<int> rowid;
   const UserThemesCompanion({
     this.id = const Value.absent(),
     this.userConfigId = const Value.absent(),
     this.name = const Value.absent(),
-    this.theme = const Value.absent(),
+    this.primaryColor = const Value.absent(),
+    this.secondaryColor = const Value.absent(),
+    this.tertiaryColor = const Value.absent(),
+    this.seedType = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   UserThemesCompanion.insert({
     required String id,
     required String userConfigId,
     required String name,
-    this.theme = const Value.absent(),
+    required int primaryColor,
+    required int secondaryColor,
+    this.tertiaryColor = const Value.absent(),
+    this.seedType = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         userConfigId = Value(userConfigId),
-        name = Value(name);
+        name = Value(name),
+        primaryColor = Value(primaryColor),
+        secondaryColor = Value(secondaryColor);
   static Insertable<UserTheme> custom({
     Expression<String>? id,
     Expression<String>? userConfigId,
     Expression<String>? name,
-    Expression<String>? theme,
+    Expression<int>? primaryColor,
+    Expression<int>? secondaryColor,
+    Expression<int>? tertiaryColor,
+    Expression<int>? seedType,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (userConfigId != null) 'user_config_id': userConfigId,
       if (name != null) 'name': name,
-      if (theme != null) 'theme': theme,
+      if (primaryColor != null) 'primary_color': primaryColor,
+      if (secondaryColor != null) 'secondary_color': secondaryColor,
+      if (tertiaryColor != null) 'tertiary_color': tertiaryColor,
+      if (seedType != null) 'seed_type': seedType,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -4670,13 +4875,19 @@ class UserThemesCompanion extends UpdateCompanion<UserTheme> {
       {Value<String>? id,
       Value<String>? userConfigId,
       Value<String>? name,
-      Value<String?>? theme,
+      Value<int>? primaryColor,
+      Value<int>? secondaryColor,
+      Value<int?>? tertiaryColor,
+      Value<int>? seedType,
       Value<int>? rowid}) {
     return UserThemesCompanion(
       id: id ?? this.id,
       userConfigId: userConfigId ?? this.userConfigId,
       name: name ?? this.name,
-      theme: theme ?? this.theme,
+      primaryColor: primaryColor ?? this.primaryColor,
+      secondaryColor: secondaryColor ?? this.secondaryColor,
+      tertiaryColor: tertiaryColor ?? this.tertiaryColor,
+      seedType: seedType ?? this.seedType,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -4693,8 +4904,17 @@ class UserThemesCompanion extends UpdateCompanion<UserTheme> {
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
-    if (theme.present) {
-      map['theme'] = Variable<String>(theme.value);
+    if (primaryColor.present) {
+      map['primary_color'] = Variable<int>(primaryColor.value);
+    }
+    if (secondaryColor.present) {
+      map['secondary_color'] = Variable<int>(secondaryColor.value);
+    }
+    if (tertiaryColor.present) {
+      map['tertiary_color'] = Variable<int>(tertiaryColor.value);
+    }
+    if (seedType.present) {
+      map['seed_type'] = Variable<int>(seedType.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -4708,7 +4928,10 @@ class UserThemesCompanion extends UpdateCompanion<UserTheme> {
           ..write('id: $id, ')
           ..write('userConfigId: $userConfigId, ')
           ..write('name: $name, ')
-          ..write('theme: $theme, ')
+          ..write('primaryColor: $primaryColor, ')
+          ..write('secondaryColor: $secondaryColor, ')
+          ..write('tertiaryColor: $tertiaryColor, ')
+          ..write('seedType: $seedType, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -4736,8 +4959,8 @@ class $BackupSettingsTable extends BackupSettings
       'user_config_id', aliasedName, false,
       type: DriftSqlType.string,
       requiredDuringInsert: true,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('REFERENCES user_configs (id)'));
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES user_configs (id) ON DELETE CASCADE'));
   static const VerificationMeta _backupIntervalMeta =
       const VerificationMeta('backupInterval');
   @override
@@ -5105,331 +5328,30 @@ class BackupSettingsCompanion extends UpdateCompanion<BackupSetting> {
   }
 }
 
-class $ArchiveSettingsTable extends ArchiveSettings
-    with TableInfo<$ArchiveSettingsTable, ArchiveSetting> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $ArchiveSettingsTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<String> id = GeneratedColumn<String>(
-      'id', aliasedName, false,
-      additionalChecks:
-          GeneratedColumn.checkTextLength(minTextLength: 30, maxTextLength: 60),
-      type: DriftSqlType.string,
-      requiredDuringInsert: true);
-  static const VerificationMeta _userConfigIdMeta =
-      const VerificationMeta('userConfigId');
-  @override
-  late final GeneratedColumn<String> userConfigId = GeneratedColumn<String>(
-      'user_config_id', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('REFERENCES user_configs (id)'));
-  static const VerificationMeta _archiveOrgS3AccessKeyMeta =
-      const VerificationMeta('archiveOrgS3AccessKey');
-  @override
-  late final GeneratedColumn<String> archiveOrgS3AccessKey =
-      GeneratedColumn<String>('archive_org_s3_access_key', aliasedName, true,
-          type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _archiveOrgS3SecretKeyMeta =
-      const VerificationMeta('archiveOrgS3SecretKey');
-  @override
-  late final GeneratedColumn<String> archiveOrgS3SecretKey =
-      GeneratedColumn<String>('archive_org_s3_secret_key', aliasedName, true,
-          type: DriftSqlType.string, requiredDuringInsert: false);
-  @override
-  List<GeneratedColumn> get $columns =>
-      [id, userConfigId, archiveOrgS3AccessKey, archiveOrgS3SecretKey];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'archive_settings';
-  @override
-  VerificationContext validateIntegrity(Insertable<ArchiveSetting> instance,
-      {bool isInserting = false}) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    } else if (isInserting) {
-      context.missing(_idMeta);
-    }
-    if (data.containsKey('user_config_id')) {
-      context.handle(
-          _userConfigIdMeta,
-          userConfigId.isAcceptableOrUnknown(
-              data['user_config_id']!, _userConfigIdMeta));
-    } else if (isInserting) {
-      context.missing(_userConfigIdMeta);
-    }
-    if (data.containsKey('archive_org_s3_access_key')) {
-      context.handle(
-          _archiveOrgS3AccessKeyMeta,
-          archiveOrgS3AccessKey.isAcceptableOrUnknown(
-              data['archive_org_s3_access_key']!, _archiveOrgS3AccessKeyMeta));
-    }
-    if (data.containsKey('archive_org_s3_secret_key')) {
-      context.handle(
-          _archiveOrgS3SecretKeyMeta,
-          archiveOrgS3SecretKey.isAcceptableOrUnknown(
-              data['archive_org_s3_secret_key']!, _archiveOrgS3SecretKeyMeta));
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  ArchiveSetting map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return ArchiveSetting(
-      id: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
-      userConfigId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}user_config_id'])!,
-      archiveOrgS3AccessKey: attachedDatabase.typeMapping.read(
-          DriftSqlType.string,
-          data['${effectivePrefix}archive_org_s3_access_key']),
-      archiveOrgS3SecretKey: attachedDatabase.typeMapping.read(
-          DriftSqlType.string,
-          data['${effectivePrefix}archive_org_s3_secret_key']),
-    );
-  }
-
-  @override
-  $ArchiveSettingsTable createAlias(String alias) {
-    return $ArchiveSettingsTable(attachedDatabase, alias);
-  }
-}
-
-class ArchiveSetting extends DataClass implements Insertable<ArchiveSetting> {
-  final String id;
-  final String userConfigId;
-  final String? archiveOrgS3AccessKey;
-  final String? archiveOrgS3SecretKey;
-  const ArchiveSetting(
-      {required this.id,
-      required this.userConfigId,
-      this.archiveOrgS3AccessKey,
-      this.archiveOrgS3SecretKey});
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<String>(id);
-    map['user_config_id'] = Variable<String>(userConfigId);
-    if (!nullToAbsent || archiveOrgS3AccessKey != null) {
-      map['archive_org_s3_access_key'] =
-          Variable<String>(archiveOrgS3AccessKey);
-    }
-    if (!nullToAbsent || archiveOrgS3SecretKey != null) {
-      map['archive_org_s3_secret_key'] =
-          Variable<String>(archiveOrgS3SecretKey);
-    }
-    return map;
-  }
-
-  ArchiveSettingsCompanion toCompanion(bool nullToAbsent) {
-    return ArchiveSettingsCompanion(
-      id: Value(id),
-      userConfigId: Value(userConfigId),
-      archiveOrgS3AccessKey: archiveOrgS3AccessKey == null && nullToAbsent
-          ? const Value.absent()
-          : Value(archiveOrgS3AccessKey),
-      archiveOrgS3SecretKey: archiveOrgS3SecretKey == null && nullToAbsent
-          ? const Value.absent()
-          : Value(archiveOrgS3SecretKey),
-    );
-  }
-
-  factory ArchiveSetting.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return ArchiveSetting(
-      id: serializer.fromJson<String>(json['id']),
-      userConfigId: serializer.fromJson<String>(json['userConfigId']),
-      archiveOrgS3AccessKey:
-          serializer.fromJson<String?>(json['archiveOrgS3AccessKey']),
-      archiveOrgS3SecretKey:
-          serializer.fromJson<String?>(json['archiveOrgS3SecretKey']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<String>(id),
-      'userConfigId': serializer.toJson<String>(userConfigId),
-      'archiveOrgS3AccessKey':
-          serializer.toJson<String?>(archiveOrgS3AccessKey),
-      'archiveOrgS3SecretKey':
-          serializer.toJson<String?>(archiveOrgS3SecretKey),
-    };
-  }
-
-  ArchiveSetting copyWith(
-          {String? id,
-          String? userConfigId,
-          Value<String?> archiveOrgS3AccessKey = const Value.absent(),
-          Value<String?> archiveOrgS3SecretKey = const Value.absent()}) =>
-      ArchiveSetting(
-        id: id ?? this.id,
-        userConfigId: userConfigId ?? this.userConfigId,
-        archiveOrgS3AccessKey: archiveOrgS3AccessKey.present
-            ? archiveOrgS3AccessKey.value
-            : this.archiveOrgS3AccessKey,
-        archiveOrgS3SecretKey: archiveOrgS3SecretKey.present
-            ? archiveOrgS3SecretKey.value
-            : this.archiveOrgS3SecretKey,
-      );
-  ArchiveSetting copyWithCompanion(ArchiveSettingsCompanion data) {
-    return ArchiveSetting(
-      id: data.id.present ? data.id.value : this.id,
-      userConfigId: data.userConfigId.present
-          ? data.userConfigId.value
-          : this.userConfigId,
-      archiveOrgS3AccessKey: data.archiveOrgS3AccessKey.present
-          ? data.archiveOrgS3AccessKey.value
-          : this.archiveOrgS3AccessKey,
-      archiveOrgS3SecretKey: data.archiveOrgS3SecretKey.present
-          ? data.archiveOrgS3SecretKey.value
-          : this.archiveOrgS3SecretKey,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('ArchiveSetting(')
-          ..write('id: $id, ')
-          ..write('userConfigId: $userConfigId, ')
-          ..write('archiveOrgS3AccessKey: $archiveOrgS3AccessKey, ')
-          ..write('archiveOrgS3SecretKey: $archiveOrgS3SecretKey')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(
-      id, userConfigId, archiveOrgS3AccessKey, archiveOrgS3SecretKey);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is ArchiveSetting &&
-          other.id == this.id &&
-          other.userConfigId == this.userConfigId &&
-          other.archiveOrgS3AccessKey == this.archiveOrgS3AccessKey &&
-          other.archiveOrgS3SecretKey == this.archiveOrgS3SecretKey);
-}
-
-class ArchiveSettingsCompanion extends UpdateCompanion<ArchiveSetting> {
-  final Value<String> id;
-  final Value<String> userConfigId;
-  final Value<String?> archiveOrgS3AccessKey;
-  final Value<String?> archiveOrgS3SecretKey;
-  final Value<int> rowid;
-  const ArchiveSettingsCompanion({
-    this.id = const Value.absent(),
-    this.userConfigId = const Value.absent(),
-    this.archiveOrgS3AccessKey = const Value.absent(),
-    this.archiveOrgS3SecretKey = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-  ArchiveSettingsCompanion.insert({
-    required String id,
-    required String userConfigId,
-    this.archiveOrgS3AccessKey = const Value.absent(),
-    this.archiveOrgS3SecretKey = const Value.absent(),
-    this.rowid = const Value.absent(),
-  })  : id = Value(id),
-        userConfigId = Value(userConfigId);
-  static Insertable<ArchiveSetting> custom({
-    Expression<String>? id,
-    Expression<String>? userConfigId,
-    Expression<String>? archiveOrgS3AccessKey,
-    Expression<String>? archiveOrgS3SecretKey,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (userConfigId != null) 'user_config_id': userConfigId,
-      if (archiveOrgS3AccessKey != null)
-        'archive_org_s3_access_key': archiveOrgS3AccessKey,
-      if (archiveOrgS3SecretKey != null)
-        'archive_org_s3_secret_key': archiveOrgS3SecretKey,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  ArchiveSettingsCompanion copyWith(
-      {Value<String>? id,
-      Value<String>? userConfigId,
-      Value<String?>? archiveOrgS3AccessKey,
-      Value<String?>? archiveOrgS3SecretKey,
-      Value<int>? rowid}) {
-    return ArchiveSettingsCompanion(
-      id: id ?? this.id,
-      userConfigId: userConfigId ?? this.userConfigId,
-      archiveOrgS3AccessKey:
-          archiveOrgS3AccessKey ?? this.archiveOrgS3AccessKey,
-      archiveOrgS3SecretKey:
-          archiveOrgS3SecretKey ?? this.archiveOrgS3SecretKey,
-      rowid: rowid ?? this.rowid,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<String>(id.value);
-    }
-    if (userConfigId.present) {
-      map['user_config_id'] = Variable<String>(userConfigId.value);
-    }
-    if (archiveOrgS3AccessKey.present) {
-      map['archive_org_s3_access_key'] =
-          Variable<String>(archiveOrgS3AccessKey.value);
-    }
-    if (archiveOrgS3SecretKey.present) {
-      map['archive_org_s3_secret_key'] =
-          Variable<String>(archiveOrgS3SecretKey.value);
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('ArchiveSettingsCompanion(')
-          ..write('id: $id, ')
-          ..write('userConfigId: $userConfigId, ')
-          ..write('archiveOrgS3AccessKey: $archiveOrgS3AccessKey, ')
-          ..write('archiveOrgS3SecretKey: $archiveOrgS3SecretKey, ')
-          ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
 abstract class _$ConfigDatabase extends GeneratedDatabase {
   _$ConfigDatabase(QueryExecutor e) : super(e);
   $ConfigDatabaseManager get managers => $ConfigDatabaseManager(this);
   late final $UserConfigsTable userConfigs = $UserConfigsTable(this);
   late final $UserThemesTable userThemes = $UserThemesTable(this);
   late final $BackupSettingsTable backupSettings = $BackupSettingsTable(this);
-  late final $ArchiveSettingsTable archiveSettings =
-      $ArchiveSettingsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [userConfigs, userThemes, backupSettings, archiveSettings];
+      [userConfigs, userThemes, backupSettings];
+  @override
+  StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules(
+        [
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('user_configs',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('backup_settings', kind: UpdateKind.delete),
+            ],
+          ),
+        ],
+      );
   @override
   DriftDatabaseOptions get options =>
       const DriftDatabaseOptions(storeDateTimeAsText: true);
@@ -5440,10 +5362,12 @@ typedef $$UserConfigsTableCreateCompanionBuilder = UserConfigsCompanion
   required String id,
   Value<bool> darkMode,
   Value<bool> copyOnImport,
+  Value<bool> defaultArchiveIs,
+  Value<bool> defaultArchiveOrg,
   Value<String?> archiveOrgS3AccessKey,
   Value<String?> archiveOrgS3SecretKey,
-  Value<bool> archiveEnabled,
-  Value<String?> colorScheme,
+  Value<String?> selectedThemeKey,
+  Value<int> selectedThemeType,
   Value<int> rowid,
 });
 typedef $$UserConfigsTableUpdateCompanionBuilder = UserConfigsCompanion
@@ -5451,10 +5375,12 @@ typedef $$UserConfigsTableUpdateCompanionBuilder = UserConfigsCompanion
   Value<String> id,
   Value<bool> darkMode,
   Value<bool> copyOnImport,
+  Value<bool> defaultArchiveIs,
+  Value<bool> defaultArchiveOrg,
   Value<String?> archiveOrgS3AccessKey,
   Value<String?> archiveOrgS3SecretKey,
-  Value<bool> archiveEnabled,
-  Value<String?> colorScheme,
+  Value<String?> selectedThemeKey,
+  Value<int> selectedThemeType,
   Value<int> rowid,
 });
 
@@ -5492,23 +5418,6 @@ final class $$UserConfigsTableReferences
     return ProcessedTableManager(
         manager.$state.copyWith(prefetchedData: cache));
   }
-
-  static MultiTypedResultKey<$ArchiveSettingsTable, List<ArchiveSetting>>
-      _archiveSettingsRefsTable(_$ConfigDatabase db) =>
-          MultiTypedResultKey.fromTable(db.archiveSettings,
-              aliasName: $_aliasNameGenerator(
-                  db.userConfigs.id, db.archiveSettings.userConfigId));
-
-  $$ArchiveSettingsTableProcessedTableManager get archiveSettingsRefs {
-    final manager =
-        $$ArchiveSettingsTableTableManager($_db, $_db.archiveSettings).filter(
-            (f) => f.userConfigId.id.sqlEquals($_itemColumn<String>('id')!));
-
-    final cache =
-        $_typedResult.readTableOrNull(_archiveSettingsRefsTable($_db));
-    return ProcessedTableManager(
-        manager.$state.copyWith(prefetchedData: cache));
-  }
 }
 
 class $$UserConfigsTableFilterComposer
@@ -5529,6 +5438,14 @@ class $$UserConfigsTableFilterComposer
   ColumnFilters<bool> get copyOnImport => $composableBuilder(
       column: $table.copyOnImport, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<bool> get defaultArchiveIs => $composableBuilder(
+      column: $table.defaultArchiveIs,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get defaultArchiveOrg => $composableBuilder(
+      column: $table.defaultArchiveOrg,
+      builder: (column) => ColumnFilters(column));
+
   ColumnFilters<String> get archiveOrgS3AccessKey => $composableBuilder(
       column: $table.archiveOrgS3AccessKey,
       builder: (column) => ColumnFilters(column));
@@ -5537,12 +5454,13 @@ class $$UserConfigsTableFilterComposer
       column: $table.archiveOrgS3SecretKey,
       builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<bool> get archiveEnabled => $composableBuilder(
-      column: $table.archiveEnabled,
+  ColumnFilters<String> get selectedThemeKey => $composableBuilder(
+      column: $table.selectedThemeKey,
       builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get colorScheme => $composableBuilder(
-      column: $table.colorScheme, builder: (column) => ColumnFilters(column));
+  ColumnFilters<int> get selectedThemeType => $composableBuilder(
+      column: $table.selectedThemeType,
+      builder: (column) => ColumnFilters(column));
 
   Expression<bool> userThemesRefs(
       Expression<bool> Function($$UserThemesTableFilterComposer f) f) {
@@ -5585,27 +5503,6 @@ class $$UserConfigsTableFilterComposer
             ));
     return f(composer);
   }
-
-  Expression<bool> archiveSettingsRefs(
-      Expression<bool> Function($$ArchiveSettingsTableFilterComposer f) f) {
-    final $$ArchiveSettingsTableFilterComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.id,
-        referencedTable: $db.archiveSettings,
-        getReferencedColumn: (t) => t.userConfigId,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$ArchiveSettingsTableFilterComposer(
-              $db: $db,
-              $table: $db.archiveSettings,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return f(composer);
-  }
 }
 
 class $$UserConfigsTableOrderingComposer
@@ -5627,6 +5524,14 @@ class $$UserConfigsTableOrderingComposer
       column: $table.copyOnImport,
       builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<bool> get defaultArchiveIs => $composableBuilder(
+      column: $table.defaultArchiveIs,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get defaultArchiveOrg => $composableBuilder(
+      column: $table.defaultArchiveOrg,
+      builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get archiveOrgS3AccessKey => $composableBuilder(
       column: $table.archiveOrgS3AccessKey,
       builder: (column) => ColumnOrderings(column));
@@ -5635,12 +5540,13 @@ class $$UserConfigsTableOrderingComposer
       column: $table.archiveOrgS3SecretKey,
       builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<bool> get archiveEnabled => $composableBuilder(
-      column: $table.archiveEnabled,
+  ColumnOrderings<String> get selectedThemeKey => $composableBuilder(
+      column: $table.selectedThemeKey,
       builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get colorScheme => $composableBuilder(
-      column: $table.colorScheme, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<int> get selectedThemeType => $composableBuilder(
+      column: $table.selectedThemeType,
+      builder: (column) => ColumnOrderings(column));
 }
 
 class $$UserConfigsTableAnnotationComposer
@@ -5661,17 +5567,23 @@ class $$UserConfigsTableAnnotationComposer
   GeneratedColumn<bool> get copyOnImport => $composableBuilder(
       column: $table.copyOnImport, builder: (column) => column);
 
+  GeneratedColumn<bool> get defaultArchiveIs => $composableBuilder(
+      column: $table.defaultArchiveIs, builder: (column) => column);
+
+  GeneratedColumn<bool> get defaultArchiveOrg => $composableBuilder(
+      column: $table.defaultArchiveOrg, builder: (column) => column);
+
   GeneratedColumn<String> get archiveOrgS3AccessKey => $composableBuilder(
       column: $table.archiveOrgS3AccessKey, builder: (column) => column);
 
   GeneratedColumn<String> get archiveOrgS3SecretKey => $composableBuilder(
       column: $table.archiveOrgS3SecretKey, builder: (column) => column);
 
-  GeneratedColumn<bool> get archiveEnabled => $composableBuilder(
-      column: $table.archiveEnabled, builder: (column) => column);
+  GeneratedColumn<String> get selectedThemeKey => $composableBuilder(
+      column: $table.selectedThemeKey, builder: (column) => column);
 
-  GeneratedColumn<String> get colorScheme => $composableBuilder(
-      column: $table.colorScheme, builder: (column) => column);
+  GeneratedColumn<int> get selectedThemeType => $composableBuilder(
+      column: $table.selectedThemeType, builder: (column) => column);
 
   Expression<T> userThemesRefs<T extends Object>(
       Expression<T> Function($$UserThemesTableAnnotationComposer a) f) {
@@ -5714,27 +5626,6 @@ class $$UserConfigsTableAnnotationComposer
             ));
     return f(composer);
   }
-
-  Expression<T> archiveSettingsRefs<T extends Object>(
-      Expression<T> Function($$ArchiveSettingsTableAnnotationComposer a) f) {
-    final $$ArchiveSettingsTableAnnotationComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.id,
-        referencedTable: $db.archiveSettings,
-        getReferencedColumn: (t) => t.userConfigId,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$ArchiveSettingsTableAnnotationComposer(
-              $db: $db,
-              $table: $db.archiveSettings,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return f(composer);
-  }
 }
 
 class $$UserConfigsTableTableManager extends RootTableManager<
@@ -5748,10 +5639,7 @@ class $$UserConfigsTableTableManager extends RootTableManager<
     $$UserConfigsTableUpdateCompanionBuilder,
     (UserConfig, $$UserConfigsTableReferences),
     UserConfig,
-    PrefetchHooks Function(
-        {bool userThemesRefs,
-        bool backupSettingsRefs,
-        bool archiveSettingsRefs})> {
+    PrefetchHooks Function({bool userThemesRefs, bool backupSettingsRefs})> {
   $$UserConfigsTableTableManager(_$ConfigDatabase db, $UserConfigsTable table)
       : super(TableManagerState(
           db: db,
@@ -5766,40 +5654,48 @@ class $$UserConfigsTableTableManager extends RootTableManager<
             Value<String> id = const Value.absent(),
             Value<bool> darkMode = const Value.absent(),
             Value<bool> copyOnImport = const Value.absent(),
+            Value<bool> defaultArchiveIs = const Value.absent(),
+            Value<bool> defaultArchiveOrg = const Value.absent(),
             Value<String?> archiveOrgS3AccessKey = const Value.absent(),
             Value<String?> archiveOrgS3SecretKey = const Value.absent(),
-            Value<bool> archiveEnabled = const Value.absent(),
-            Value<String?> colorScheme = const Value.absent(),
+            Value<String?> selectedThemeKey = const Value.absent(),
+            Value<int> selectedThemeType = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               UserConfigsCompanion(
             id: id,
             darkMode: darkMode,
             copyOnImport: copyOnImport,
+            defaultArchiveIs: defaultArchiveIs,
+            defaultArchiveOrg: defaultArchiveOrg,
             archiveOrgS3AccessKey: archiveOrgS3AccessKey,
             archiveOrgS3SecretKey: archiveOrgS3SecretKey,
-            archiveEnabled: archiveEnabled,
-            colorScheme: colorScheme,
+            selectedThemeKey: selectedThemeKey,
+            selectedThemeType: selectedThemeType,
             rowid: rowid,
           ),
           createCompanionCallback: ({
             required String id,
             Value<bool> darkMode = const Value.absent(),
             Value<bool> copyOnImport = const Value.absent(),
+            Value<bool> defaultArchiveIs = const Value.absent(),
+            Value<bool> defaultArchiveOrg = const Value.absent(),
             Value<String?> archiveOrgS3AccessKey = const Value.absent(),
             Value<String?> archiveOrgS3SecretKey = const Value.absent(),
-            Value<bool> archiveEnabled = const Value.absent(),
-            Value<String?> colorScheme = const Value.absent(),
+            Value<String?> selectedThemeKey = const Value.absent(),
+            Value<int> selectedThemeType = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               UserConfigsCompanion.insert(
             id: id,
             darkMode: darkMode,
             copyOnImport: copyOnImport,
+            defaultArchiveIs: defaultArchiveIs,
+            defaultArchiveOrg: defaultArchiveOrg,
             archiveOrgS3AccessKey: archiveOrgS3AccessKey,
             archiveOrgS3SecretKey: archiveOrgS3SecretKey,
-            archiveEnabled: archiveEnabled,
-            colorScheme: colorScheme,
+            selectedThemeKey: selectedThemeKey,
+            selectedThemeType: selectedThemeType,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
@@ -5809,15 +5705,12 @@ class $$UserConfigsTableTableManager extends RootTableManager<
                   ))
               .toList(),
           prefetchHooksCallback: (
-              {userThemesRefs = false,
-              backupSettingsRefs = false,
-              archiveSettingsRefs = false}) {
+              {userThemesRefs = false, backupSettingsRefs = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [
                 if (userThemesRefs) db.userThemes,
-                if (backupSettingsRefs) db.backupSettings,
-                if (archiveSettingsRefs) db.archiveSettings
+                if (backupSettingsRefs) db.backupSettings
               ],
               addJoins: null,
               getPrefetchedDataCallback: (items) async {
@@ -5847,19 +5740,6 @@ class $$UserConfigsTableTableManager extends RootTableManager<
                         referencedItemsForCurrentItem:
                             (item, referencedItems) => referencedItems
                                 .where((e) => e.userConfigId == item.id),
-                        typedResults: items),
-                  if (archiveSettingsRefs)
-                    await $_getPrefetchedData<UserConfig, $UserConfigsTable,
-                            ArchiveSetting>(
-                        currentTable: table,
-                        referencedTable: $$UserConfigsTableReferences
-                            ._archiveSettingsRefsTable(db),
-                        managerFromTypedResult: (p0) =>
-                            $$UserConfigsTableReferences(db, table, p0)
-                                .archiveSettingsRefs,
-                        referencedItemsForCurrentItem:
-                            (item, referencedItems) => referencedItems
-                                .where((e) => e.userConfigId == item.id),
                         typedResults: items)
                 ];
               },
@@ -5879,22 +5759,25 @@ typedef $$UserConfigsTableProcessedTableManager = ProcessedTableManager<
     $$UserConfigsTableUpdateCompanionBuilder,
     (UserConfig, $$UserConfigsTableReferences),
     UserConfig,
-    PrefetchHooks Function(
-        {bool userThemesRefs,
-        bool backupSettingsRefs,
-        bool archiveSettingsRefs})>;
+    PrefetchHooks Function({bool userThemesRefs, bool backupSettingsRefs})>;
 typedef $$UserThemesTableCreateCompanionBuilder = UserThemesCompanion Function({
   required String id,
   required String userConfigId,
   required String name,
-  Value<String?> theme,
+  required int primaryColor,
+  required int secondaryColor,
+  Value<int?> tertiaryColor,
+  Value<int> seedType,
   Value<int> rowid,
 });
 typedef $$UserThemesTableUpdateCompanionBuilder = UserThemesCompanion Function({
   Value<String> id,
   Value<String> userConfigId,
   Value<String> name,
-  Value<String?> theme,
+  Value<int> primaryColor,
+  Value<int> secondaryColor,
+  Value<int?> tertiaryColor,
+  Value<int> seedType,
   Value<int> rowid,
 });
 
@@ -5933,8 +5816,18 @@ class $$UserThemesTableFilterComposer
   ColumnFilters<String> get name => $composableBuilder(
       column: $table.name, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get theme => $composableBuilder(
-      column: $table.theme, builder: (column) => ColumnFilters(column));
+  ColumnFilters<int> get primaryColor => $composableBuilder(
+      column: $table.primaryColor, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get secondaryColor => $composableBuilder(
+      column: $table.secondaryColor,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get tertiaryColor => $composableBuilder(
+      column: $table.tertiaryColor, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get seedType => $composableBuilder(
+      column: $table.seedType, builder: (column) => ColumnFilters(column));
 
   $$UserConfigsTableFilterComposer get userConfigId {
     final $$UserConfigsTableFilterComposer composer = $composerBuilder(
@@ -5972,8 +5865,20 @@ class $$UserThemesTableOrderingComposer
   ColumnOrderings<String> get name => $composableBuilder(
       column: $table.name, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get theme => $composableBuilder(
-      column: $table.theme, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<int> get primaryColor => $composableBuilder(
+      column: $table.primaryColor,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get secondaryColor => $composableBuilder(
+      column: $table.secondaryColor,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get tertiaryColor => $composableBuilder(
+      column: $table.tertiaryColor,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get seedType => $composableBuilder(
+      column: $table.seedType, builder: (column) => ColumnOrderings(column));
 
   $$UserConfigsTableOrderingComposer get userConfigId {
     final $$UserConfigsTableOrderingComposer composer = $composerBuilder(
@@ -6011,8 +5916,17 @@ class $$UserThemesTableAnnotationComposer
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
 
-  GeneratedColumn<String> get theme =>
-      $composableBuilder(column: $table.theme, builder: (column) => column);
+  GeneratedColumn<int> get primaryColor => $composableBuilder(
+      column: $table.primaryColor, builder: (column) => column);
+
+  GeneratedColumn<int> get secondaryColor => $composableBuilder(
+      column: $table.secondaryColor, builder: (column) => column);
+
+  GeneratedColumn<int> get tertiaryColor => $composableBuilder(
+      column: $table.tertiaryColor, builder: (column) => column);
+
+  GeneratedColumn<int> get seedType =>
+      $composableBuilder(column: $table.seedType, builder: (column) => column);
 
   $$UserConfigsTableAnnotationComposer get userConfigId {
     final $$UserConfigsTableAnnotationComposer composer = $composerBuilder(
@@ -6061,28 +5975,40 @@ class $$UserThemesTableTableManager extends RootTableManager<
             Value<String> id = const Value.absent(),
             Value<String> userConfigId = const Value.absent(),
             Value<String> name = const Value.absent(),
-            Value<String?> theme = const Value.absent(),
+            Value<int> primaryColor = const Value.absent(),
+            Value<int> secondaryColor = const Value.absent(),
+            Value<int?> tertiaryColor = const Value.absent(),
+            Value<int> seedType = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               UserThemesCompanion(
             id: id,
             userConfigId: userConfigId,
             name: name,
-            theme: theme,
+            primaryColor: primaryColor,
+            secondaryColor: secondaryColor,
+            tertiaryColor: tertiaryColor,
+            seedType: seedType,
             rowid: rowid,
           ),
           createCompanionCallback: ({
             required String id,
             required String userConfigId,
             required String name,
-            Value<String?> theme = const Value.absent(),
+            required int primaryColor,
+            required int secondaryColor,
+            Value<int?> tertiaryColor = const Value.absent(),
+            Value<int> seedType = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               UserThemesCompanion.insert(
             id: id,
             userConfigId: userConfigId,
             name: name,
-            theme: theme,
+            primaryColor: primaryColor,
+            secondaryColor: secondaryColor,
+            tertiaryColor: tertiaryColor,
+            seedType: seedType,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
@@ -6440,273 +6366,6 @@ typedef $$BackupSettingsTableProcessedTableManager = ProcessedTableManager<
     (BackupSetting, $$BackupSettingsTableReferences),
     BackupSetting,
     PrefetchHooks Function({bool userConfigId})>;
-typedef $$ArchiveSettingsTableCreateCompanionBuilder = ArchiveSettingsCompanion
-    Function({
-  required String id,
-  required String userConfigId,
-  Value<String?> archiveOrgS3AccessKey,
-  Value<String?> archiveOrgS3SecretKey,
-  Value<int> rowid,
-});
-typedef $$ArchiveSettingsTableUpdateCompanionBuilder = ArchiveSettingsCompanion
-    Function({
-  Value<String> id,
-  Value<String> userConfigId,
-  Value<String?> archiveOrgS3AccessKey,
-  Value<String?> archiveOrgS3SecretKey,
-  Value<int> rowid,
-});
-
-final class $$ArchiveSettingsTableReferences extends BaseReferences<
-    _$ConfigDatabase, $ArchiveSettingsTable, ArchiveSetting> {
-  $$ArchiveSettingsTableReferences(
-      super.$_db, super.$_table, super.$_typedResult);
-
-  static $UserConfigsTable _userConfigIdTable(_$ConfigDatabase db) =>
-      db.userConfigs.createAlias($_aliasNameGenerator(
-          db.archiveSettings.userConfigId, db.userConfigs.id));
-
-  $$UserConfigsTableProcessedTableManager get userConfigId {
-    final $_column = $_itemColumn<String>('user_config_id')!;
-
-    final manager = $$UserConfigsTableTableManager($_db, $_db.userConfigs)
-        .filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_userConfigIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-        manager.$state.copyWith(prefetchedData: [item]));
-  }
-}
-
-class $$ArchiveSettingsTableFilterComposer
-    extends Composer<_$ConfigDatabase, $ArchiveSettingsTable> {
-  $$ArchiveSettingsTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<String> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get archiveOrgS3AccessKey => $composableBuilder(
-      column: $table.archiveOrgS3AccessKey,
-      builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get archiveOrgS3SecretKey => $composableBuilder(
-      column: $table.archiveOrgS3SecretKey,
-      builder: (column) => ColumnFilters(column));
-
-  $$UserConfigsTableFilterComposer get userConfigId {
-    final $$UserConfigsTableFilterComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.userConfigId,
-        referencedTable: $db.userConfigs,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$UserConfigsTableFilterComposer(
-              $db: $db,
-              $table: $db.userConfigs,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return composer;
-  }
-}
-
-class $$ArchiveSettingsTableOrderingComposer
-    extends Composer<_$ConfigDatabase, $ArchiveSettingsTable> {
-  $$ArchiveSettingsTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<String> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get archiveOrgS3AccessKey => $composableBuilder(
-      column: $table.archiveOrgS3AccessKey,
-      builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get archiveOrgS3SecretKey => $composableBuilder(
-      column: $table.archiveOrgS3SecretKey,
-      builder: (column) => ColumnOrderings(column));
-
-  $$UserConfigsTableOrderingComposer get userConfigId {
-    final $$UserConfigsTableOrderingComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.userConfigId,
-        referencedTable: $db.userConfigs,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$UserConfigsTableOrderingComposer(
-              $db: $db,
-              $table: $db.userConfigs,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return composer;
-  }
-}
-
-class $$ArchiveSettingsTableAnnotationComposer
-    extends Composer<_$ConfigDatabase, $ArchiveSettingsTable> {
-  $$ArchiveSettingsTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<String> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get archiveOrgS3AccessKey => $composableBuilder(
-      column: $table.archiveOrgS3AccessKey, builder: (column) => column);
-
-  GeneratedColumn<String> get archiveOrgS3SecretKey => $composableBuilder(
-      column: $table.archiveOrgS3SecretKey, builder: (column) => column);
-
-  $$UserConfigsTableAnnotationComposer get userConfigId {
-    final $$UserConfigsTableAnnotationComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.userConfigId,
-        referencedTable: $db.userConfigs,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$UserConfigsTableAnnotationComposer(
-              $db: $db,
-              $table: $db.userConfigs,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return composer;
-  }
-}
-
-class $$ArchiveSettingsTableTableManager extends RootTableManager<
-    _$ConfigDatabase,
-    $ArchiveSettingsTable,
-    ArchiveSetting,
-    $$ArchiveSettingsTableFilterComposer,
-    $$ArchiveSettingsTableOrderingComposer,
-    $$ArchiveSettingsTableAnnotationComposer,
-    $$ArchiveSettingsTableCreateCompanionBuilder,
-    $$ArchiveSettingsTableUpdateCompanionBuilder,
-    (ArchiveSetting, $$ArchiveSettingsTableReferences),
-    ArchiveSetting,
-    PrefetchHooks Function({bool userConfigId})> {
-  $$ArchiveSettingsTableTableManager(
-      _$ConfigDatabase db, $ArchiveSettingsTable table)
-      : super(TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$ArchiveSettingsTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$ArchiveSettingsTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$ArchiveSettingsTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<String> id = const Value.absent(),
-            Value<String> userConfigId = const Value.absent(),
-            Value<String?> archiveOrgS3AccessKey = const Value.absent(),
-            Value<String?> archiveOrgS3SecretKey = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              ArchiveSettingsCompanion(
-            id: id,
-            userConfigId: userConfigId,
-            archiveOrgS3AccessKey: archiveOrgS3AccessKey,
-            archiveOrgS3SecretKey: archiveOrgS3SecretKey,
-            rowid: rowid,
-          ),
-          createCompanionCallback: ({
-            required String id,
-            required String userConfigId,
-            Value<String?> archiveOrgS3AccessKey = const Value.absent(),
-            Value<String?> archiveOrgS3SecretKey = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              ArchiveSettingsCompanion.insert(
-            id: id,
-            userConfigId: userConfigId,
-            archiveOrgS3AccessKey: archiveOrgS3AccessKey,
-            archiveOrgS3SecretKey: archiveOrgS3SecretKey,
-            rowid: rowid,
-          ),
-          withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable(table),
-                    $$ArchiveSettingsTableReferences(db, table, e)
-                  ))
-              .toList(),
-          prefetchHooksCallback: ({userConfigId = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [],
-              addJoins: <
-                  T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic>>(state) {
-                if (userConfigId) {
-                  state = state.withJoin(
-                    currentTable: table,
-                    currentColumn: table.userConfigId,
-                    referencedTable:
-                        $$ArchiveSettingsTableReferences._userConfigIdTable(db),
-                    referencedColumn: $$ArchiveSettingsTableReferences
-                        ._userConfigIdTable(db)
-                        .id,
-                  ) as T;
-                }
-
-                return state;
-              },
-              getPrefetchedDataCallback: (items) async {
-                return [];
-              },
-            );
-          },
-        ));
-}
-
-typedef $$ArchiveSettingsTableProcessedTableManager = ProcessedTableManager<
-    _$ConfigDatabase,
-    $ArchiveSettingsTable,
-    ArchiveSetting,
-    $$ArchiveSettingsTableFilterComposer,
-    $$ArchiveSettingsTableOrderingComposer,
-    $$ArchiveSettingsTableAnnotationComposer,
-    $$ArchiveSettingsTableCreateCompanionBuilder,
-    $$ArchiveSettingsTableUpdateCompanionBuilder,
-    (ArchiveSetting, $$ArchiveSettingsTableReferences),
-    ArchiveSetting,
-    PrefetchHooks Function({bool userConfigId})>;
 
 class $ConfigDatabaseManager {
   final _$ConfigDatabase _db;
@@ -6717,6 +6376,4 @@ class $ConfigDatabaseManager {
       $$UserThemesTableTableManager(_db, _db.userThemes);
   $$BackupSettingsTableTableManager get backupSettings =>
       $$BackupSettingsTableTableManager(_db, _db.backupSettings);
-  $$ArchiveSettingsTableTableManager get archiveSettings =>
-      $$ArchiveSettingsTableTableManager(_db, _db.archiveSettings);
 }
