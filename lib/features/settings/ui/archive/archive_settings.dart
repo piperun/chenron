@@ -1,0 +1,99 @@
+import 'package:flutter/material.dart';
+import 'package:signals/signals_flutter.dart'; // Import signals
+import 'package:chenron/features/settings/controller/config_controller.dart'; // Import controller
+// Import the specific widget (assuming it's adapted or we adapt it here)
+import 'package:chenron/features/settings/ui/archive/components/archive_org_credentials.dart';
+import 'package:chenron/utils/logger.dart';
+
+class ArchiveSettings extends StatelessWidget {
+  // Changed to StatelessWidget
+  final ConfigController controller; // Accept the controller
+
+  const ArchiveSettings({
+    super.key,
+    required this.controller, // Require the controller
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Watch relevant signals for reactive UI updates
+    final useDefaultIs = controller.defaultArchiveIs.watch(context);
+    final useDefaultOrg = controller.defaultArchiveOrg.watch(context);
+    final accessKey = controller.archiveOrgS3AccessKey.watch(context);
+    final secretKey = controller.archiveOrgS3SecretKey.watch(context);
+
+    // Determine if S3 keys are present directly from controller signals
+    final bool s3KeysPresent = (accessKey?.trim().isNotEmpty ?? false) &&
+        (secretKey?.trim().isNotEmpty ?? false);
+
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 12.0),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                "Archive Settings",
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+            ),
+            const Divider(),
+            // Default Archive Toggles
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Text(
+                "Default Archiving Behavior",
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ),
+            SwitchListTile(
+              title: const Text("Archive to archive.is by Default"),
+              subtitle: const Text(
+                  "Automatically attempt archiving to archive.is for new items."),
+              value: useDefaultIs, // Read from controller signal
+              onChanged: (value) {
+                // Update controller signal
+                controller.updateDefaultArchiveIs(value: value);
+                loggerGlobal.info(
+                    "ArchiveSettings", "Default archive.is changed: $value");
+              },
+            ),
+            SwitchListTile(
+              title: const Text("Archive to archive.org by Default"),
+              subtitle: Text(
+                s3KeysPresent
+                    ? "Automatically attempt archiving to archive.org for new items."
+                    : "Enter S3 Access Key and Secret Key below to enable this option.",
+                style: !s3KeysPresent
+                    ? TextStyle(color: Theme.of(context).disabledColor)
+                    : null,
+              ),
+              value: useDefaultOrg, // Read from controller signal
+              // Disable switch if keys aren't present
+              onChanged: s3KeysPresent
+                  ? (value) {
+                      // Update controller signal
+                      controller.updateDefaultArchiveOrg(value: value);
+                      loggerGlobal.info("ArchiveSettings",
+                          "Default archive.org changed: $value");
+                    }
+                  : null,
+            ),
+            const Divider(),
+
+            // Archive.org Configuration Section
+            // Pass the controller down to the credentials widget
+            ArchiveOrgCredentialsWidget(
+              controller: controller, // Pass the controller
+            ),
+
+            // --- Placeholders remain unchanged ---
+          ],
+        ),
+      ),
+    );
+  }
+}
