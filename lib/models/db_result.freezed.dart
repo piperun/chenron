@@ -430,8 +430,7 @@ class UserConfigResult implements DbResult {
   const UserConfigResult(
       {required this.data,
       final List<UserTheme>? userThemes,
-      this.backupSettings,
-      this.archiveSetting})
+      this.backupSettings})
       : _userThemes = userThemes;
 
   final UserConfig data;
@@ -445,7 +444,6 @@ class UserConfigResult implements DbResult {
   }
 
   final BackupSetting? backupSettings;
-  final ArchiveSetting? archiveSetting;
 
   /// Create a copy of DbResult
   /// with the given fields replaced by the non-null parameter values.
@@ -463,22 +461,16 @@ class UserConfigResult implements DbResult {
             const DeepCollectionEquality()
                 .equals(other._userThemes, _userThemes) &&
             (identical(other.backupSettings, backupSettings) ||
-                other.backupSettings == backupSettings) &&
-            (identical(other.archiveSetting, archiveSetting) ||
-                other.archiveSetting == archiveSetting));
+                other.backupSettings == backupSettings));
   }
 
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      data,
-      const DeepCollectionEquality().hash(_userThemes),
-      backupSettings,
-      archiveSetting);
+  int get hashCode => Object.hash(runtimeType, data,
+      const DeepCollectionEquality().hash(_userThemes), backupSettings);
 
   @override
   String toString() {
-    return 'DbResult.userConfig(data: $data, userThemes: $userThemes, backupSettings: $backupSettings, archiveSetting: $archiveSetting)';
+    return 'DbResult.userConfig(data: $data, userThemes: $userThemes, backupSettings: $backupSettings)';
   }
 }
 
@@ -492,8 +484,7 @@ abstract mixin class $UserConfigResultCopyWith<$Res>
   $Res call(
       {UserConfig data,
       List<UserTheme>? userThemes,
-      BackupSetting? backupSettings,
-      ArchiveSetting? archiveSetting});
+      BackupSetting? backupSettings});
 }
 
 /// @nodoc
@@ -511,7 +502,6 @@ class _$UserConfigResultCopyWithImpl<$Res>
     Object? data = null,
     Object? userThemes = freezed,
     Object? backupSettings = freezed,
-    Object? archiveSetting = freezed,
   }) {
     return _then(UserConfigResult(
       data: null == data
@@ -526,10 +516,6 @@ class _$UserConfigResultCopyWithImpl<$Res>
           ? _self.backupSettings
           : backupSettings // ignore: cast_nullable_to_non_nullable
               as BackupSetting?,
-      archiveSetting: freezed == archiveSetting
-          ? _self.archiveSetting
-          : archiveSetting // ignore: cast_nullable_to_non_nullable
-              as ArchiveSetting?,
     ));
   }
 }
@@ -538,12 +524,12 @@ class _$UserConfigResultCopyWithImpl<$Res>
 
 class UserThemeResult implements DbResult {
   const UserThemeResult(
-      {required this.theme,
+      {required this.data,
       this.userConfigId,
       final List<String>? sharedUserIds})
       : _sharedUserIds = sharedUserIds;
 
-  final UserTheme theme;
+  final UserTheme data;
 //NOTE: This will most likely be remove in the future when we implement users
   final String? userConfigId;
   final List<String>? _sharedUserIds;
@@ -567,7 +553,7 @@ class UserThemeResult implements DbResult {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is UserThemeResult &&
-            (identical(other.theme, theme) || other.theme == theme) &&
+            (identical(other.data, data) || other.data == data) &&
             (identical(other.userConfigId, userConfigId) ||
                 other.userConfigId == userConfigId) &&
             const DeepCollectionEquality()
@@ -575,12 +561,12 @@ class UserThemeResult implements DbResult {
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, theme, userConfigId,
+  int get hashCode => Object.hash(runtimeType, data, userConfigId,
       const DeepCollectionEquality().hash(_sharedUserIds));
 
   @override
   String toString() {
-    return 'DbResult.userTheme(theme: $theme, userConfigId: $userConfigId, sharedUserIds: $sharedUserIds)';
+    return 'DbResult.userTheme(data: $data, userConfigId: $userConfigId, sharedUserIds: $sharedUserIds)';
   }
 }
 
@@ -592,7 +578,7 @@ abstract mixin class $UserThemeResultCopyWith<$Res>
       _$UserThemeResultCopyWithImpl;
   @useResult
   $Res call(
-      {UserTheme theme, String? userConfigId, List<String>? sharedUserIds});
+      {UserTheme data, String? userConfigId, List<String>? sharedUserIds});
 }
 
 /// @nodoc
@@ -607,14 +593,14 @@ class _$UserThemeResultCopyWithImpl<$Res>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   $Res call({
-    Object? theme = null,
+    Object? data = null,
     Object? userConfigId = freezed,
     Object? sharedUserIds = freezed,
   }) {
     return _then(UserThemeResult(
-      theme: null == theme
-          ? _self.theme
-          : theme // ignore: cast_nullable_to_non_nullable
+      data: null == data
+          ? _self.data
+          : data // ignore: cast_nullable_to_non_nullable
               as UserTheme,
       userConfigId: freezed == userConfigId
           ? _self.userConfigId

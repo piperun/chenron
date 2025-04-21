@@ -1,12 +1,5 @@
 import "package:chenron/database/database.dart"
-    show
-        ArchiveSetting,
-        BackupSetting,
-        Folder,
-        Link,
-        Tag,
-        UserConfig,
-        UserTheme;
+    show BackupSetting, Folder, Link, Tag, UserConfig, UserTheme;
 import "package:chenron/models/item.dart";
 import "package:freezed_annotation/freezed_annotation.dart";
 part "db_result.freezed.dart";
@@ -41,11 +34,10 @@ abstract class DbResult with _$DbResult {
     required UserConfig data,
     List<UserTheme>? userThemes,
     BackupSetting? backupSettings,
-    ArchiveSetting? archiveSetting,
   }) = UserConfigResult;
 
   const factory DbResult.userTheme({
-    required UserTheme theme,
+    required UserTheme data,
     //NOTE: This will most likely be remove in the future when we implement users
     String? userConfigId,
     List<String>? sharedUserIds,
