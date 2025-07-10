@@ -80,7 +80,7 @@ abstract final class NierTheme implements BaseAppTheme {
     useMaterial3: true,
     cupertinoOverrideTheme: const CupertinoThemeData(applyThemeToAll: true),
   ).copyWith(
-    cardTheme: CardTheme(color: NierColors.yorha.surfaceOffWhite),
+    cardTheme: CardThemeData(color: NierColors.yorha.surfaceOffWhite),
   );
   static final darkTheme = FlexThemeData.dark(
     colors: dark,

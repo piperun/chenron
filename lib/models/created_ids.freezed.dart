@@ -552,12 +552,12 @@ class _$MetadataResultIdsCopyWithImpl<$Res>
 class UserConfigResultIds implements CreatedIds {
   const UserConfigResultIds(
       {required this.userConfigId,
-      final List<UserThemesResultIds>? userThemesIds})
+      final List<UserThemeResultIds>? userThemesIds})
       : _userThemesIds = userThemesIds;
 
   final String userConfigId;
-  final List<UserThemesResultIds>? _userThemesIds;
-  List<UserThemesResultIds>? get userThemesIds {
+  final List<UserThemeResultIds>? _userThemesIds;
+  List<UserThemeResultIds>? get userThemesIds {
     final value = _userThemesIds;
     if (value == null) return null;
     if (_userThemesIds is EqualUnmodifiableListView) return _userThemesIds;
@@ -600,7 +600,7 @@ abstract mixin class $UserConfigResultIdsCopyWith<$Res>
           UserConfigResultIds value, $Res Function(UserConfigResultIds) _then) =
       _$UserConfigResultIdsCopyWithImpl;
   @useResult
-  $Res call({String userConfigId, List<UserThemesResultIds>? userThemesIds});
+  $Res call({String userConfigId, List<UserThemeResultIds>? userThemesIds});
 }
 
 /// @nodoc
@@ -626,15 +626,15 @@ class _$UserConfigResultIdsCopyWithImpl<$Res>
       userThemesIds: freezed == userThemesIds
           ? _self._userThemesIds
           : userThemesIds // ignore: cast_nullable_to_non_nullable
-              as List<UserThemesResultIds>?,
+              as List<UserThemeResultIds>?,
     ));
   }
 }
 
 /// @nodoc
 
-class UserThemesResultIds implements CreatedIds {
-  const UserThemesResultIds(
+class UserThemeResultIds implements CreatedIds {
+  const UserThemeResultIds(
       {required this.userThemeId, required this.userConfigId});
 
   final String userThemeId;
@@ -644,14 +644,14 @@ class UserThemesResultIds implements CreatedIds {
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @pragma('vm:prefer-inline')
-  $UserThemesResultIdsCopyWith<UserThemesResultIds> get copyWith =>
-      _$UserThemesResultIdsCopyWithImpl<UserThemesResultIds>(this, _$identity);
+  $UserThemeResultIdsCopyWith<UserThemeResultIds> get copyWith =>
+      _$UserThemeResultIdsCopyWithImpl<UserThemeResultIds>(this, _$identity);
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is UserThemesResultIds &&
+            other is UserThemeResultIds &&
             (identical(other.userThemeId, userThemeId) ||
                 other.userThemeId == userThemeId) &&
             (identical(other.userConfigId, userConfigId) ||
@@ -668,22 +668,22 @@ class UserThemesResultIds implements CreatedIds {
 }
 
 /// @nodoc
-abstract mixin class $UserThemesResultIdsCopyWith<$Res>
+abstract mixin class $UserThemeResultIdsCopyWith<$Res>
     implements $CreatedIdsCopyWith<$Res> {
-  factory $UserThemesResultIdsCopyWith(
-          UserThemesResultIds value, $Res Function(UserThemesResultIds) _then) =
-      _$UserThemesResultIdsCopyWithImpl;
+  factory $UserThemeResultIdsCopyWith(
+          UserThemeResultIds value, $Res Function(UserThemeResultIds) _then) =
+      _$UserThemeResultIdsCopyWithImpl;
   @useResult
   $Res call({String userThemeId, String userConfigId});
 }
 
 /// @nodoc
-class _$UserThemesResultIdsCopyWithImpl<$Res>
-    implements $UserThemesResultIdsCopyWith<$Res> {
-  _$UserThemesResultIdsCopyWithImpl(this._self, this._then);
+class _$UserThemeResultIdsCopyWithImpl<$Res>
+    implements $UserThemeResultIdsCopyWith<$Res> {
+  _$UserThemeResultIdsCopyWithImpl(this._self, this._then);
 
-  final UserThemesResultIds _self;
-  final $Res Function(UserThemesResultIds) _then;
+  final UserThemeResultIds _self;
+  final $Res Function(UserThemeResultIds) _then;
 
   /// Create a copy of CreatedIds
   /// with the given fields replaced by the non-null parameter values.
@@ -692,7 +692,7 @@ class _$UserThemesResultIdsCopyWithImpl<$Res>
     Object? userThemeId = null,
     Object? userConfigId = null,
   }) {
-    return _then(UserThemesResultIds(
+    return _then(UserThemeResultIds(
       userThemeId: null == userThemeId
           ? _self.userThemeId
           : userThemeId // ignore: cast_nullable_to_non_nullable

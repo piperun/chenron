@@ -39,12 +39,12 @@ class CreatedIds with _$CreatedIds {
 
   const factory CreatedIds.userConfig({
     required String userConfigId,
-    List<UserThemesResultIds>? userThemesIds,
+    List<UserThemeResultIds>? userThemesIds,
   }) = UserConfigResultIds;
   const factory CreatedIds.userTheme({
     required String userThemeId,
     required String userConfigId,
-  }) = UserThemesResultIds;
+  }) = UserThemeResultIds;
 
   const factory CreatedIds.backupSettings({
     required String backupSettingsId,
