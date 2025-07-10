@@ -56,7 +56,7 @@ class ArchiveSettings extends StatelessWidget {
               value: useDefaultIs, // Read from controller signal
               onChanged: (value) {
                 // Update controller signal
-                controller.updateDefaultArchiveIs(value: value);
+                controller.updateDefaultArchiveIs(enabled: value);
                 loggerGlobal.info(
                     "ArchiveSettings", "Default archive.is changed: $value");
               },
@@ -76,7 +76,7 @@ class ArchiveSettings extends StatelessWidget {
               onChanged: s3KeysPresent
                   ? (value) {
                       // Update controller signal
-                      controller.updateDefaultArchiveOrg(value: value);
+                      controller.updateDefaultArchiveOrg(enabled: value);
                       loggerGlobal.info("ArchiveSettings",
                           "Default archive.org changed: $value");
                     }

@@ -6,7 +6,6 @@ import "package:signals/signals.dart";
 final appDatabaseAccessorSignal = signal(initializeAppDatabaseAccessor());
 
 Future<AppDatabaseHandler> initializeAppDatabaseAccessor() async {
-  // Wait for chenronDirsSignal to complete
   final chenronDirs = await chenronDirsSignal.value;
 
   final databaseName = chenronDirs!.databaseName;

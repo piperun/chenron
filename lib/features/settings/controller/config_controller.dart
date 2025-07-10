@@ -27,7 +27,7 @@ class ThemeChoice {
 
 class ConfigController {
   final ConfigService _configService = locator.get<ConfigService>();
-  final ThemeController _themeController = locator.get<ThemeController>();
+  final ThemeController _themeController = ThemeController();
 
   final isLoading = signal<bool>(true);
   final error = signal<String?>(null);
@@ -45,6 +45,7 @@ class ConfigController {
     error.value = null;
     try {
       final configResult = await _configService.getUserConfig();
+      await _themeController.initialize();
       if (configResult != null) {
         final config = configResult.data;
         userConfig.value = config;
@@ -91,15 +92,10 @@ class ConfigController {
   }
 
   Future<void> _loadAvailableThemes() async {
-    // Combine predefined, custom themes etc. into ThemeChoice list
     final List<ThemeChoice> choices = [];
 
-    // Example: Add predefined themes (replace with actual logic)
-    // You might get these keys/names from ThemeController or ConfigService
     choices.add(ThemeChoice(
         key: "nier", name: "Nier Automata", type: ThemeType.system));
-    choices.add(ThemeChoice(
-        key: "mandyRed", name: "Mandy Red", type: ThemeType.system));
 
     // Example: Add standard FlexScheme themes
     for (var scheme in FlexScheme.values) {

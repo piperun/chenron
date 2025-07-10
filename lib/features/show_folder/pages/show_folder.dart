@@ -1,4 +1,4 @@
-import "package:chenron/core/ui/search/search_button.dart";
+import "package:chenron/shared/ui/search/search_button.dart";
 import "package:chenron/database/extensions/folder/read.dart";
 import "package:chenron/database/extensions/operations/database_file_handler.dart";
 import "package:chenron/features/show_folder/widgets/folder_detail_info.dart";
