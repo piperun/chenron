@@ -1,5 +1,5 @@
 import "package:chenron/core/themes/nier_colors.dart";
-import "package:chenron/features/theme/model/app_theme.dart";
+import "package:chenron/core/theme/model/app_theme.dart";
 import "package:flex_color_scheme/flex_color_scheme.dart";
 import "package:flutter/cupertino.dart";
 import "package:flutter/material.dart";

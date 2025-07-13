@@ -26,19 +26,13 @@ Future<ChenronDirectories?> initializeChenronDirs() async {
     // Create directories (this ensures logDir exists)
     await chenronDirectories.createDirectories();
 
-    loggerGlobal.setupLogging(
-      logDir: chenronDirectories.logDir,
-      logToFileInDebug: false,
-    );
-
-    loggerGlobal.info(
-        "BaseDir", "Chenron directories created and logger setup complete.");
+    // Note: Logger setup is now handled in MainSetup._setupLogging()
+    // to avoid initialization order issues
 
     return chenronDirectories;
   } catch (e, stackTrace) {
     debugPrint("CRITICAL Error in initializeChenronDirs: $e\n$stackTrace");
-    loggerGlobal.severe(
-        "BaseDirSignal", "Error in initializeChenronDirs: $e\n$stackTrace");
+    // Don't use loggerGlobal here as it may not be initialized yet
     return null;
   }
 }

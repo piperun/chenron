@@ -1,5 +1,5 @@
 import 'package:chenron/core/themes/nier_theme.dart'; // Import your predefined theme
-import 'package:chenron/features/theme/controller/theme_controller.dart'; // For ThemeSchemePair typedef
+import 'package:chenron/core/theme/controller/theme_controller.dart'; // For ThemeSchemePair typedef
 import 'package:flex_color_scheme/flex_color_scheme.dart';
 // Add imports for any other predefined themes here
 

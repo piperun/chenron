@@ -1,7 +1,7 @@
 import "package:chenron/core/setup/main_setup.dart";
 import "package:chenron/features/home/pages/error_page.dart";
-import "package:chenron/features/home/pages/homepage.dart";
-import 'package:chenron/features/theme/manager/theme_manager.dart';
+import "package:chenron/features/home/pages/root.dart";
+import "package:chenron/features/theme/manager/theme_manager.dart";
 import "package:chenron/locator.dart";
 
 import "package:flutter/material.dart";
@@ -50,7 +50,7 @@ class MyApp extends StatelessWidget {
         themeAnimationDuration: const Duration(milliseconds: 300),
         themeAnimationCurve: Curves.easeInOut,
         themeMode: currentMode ?? ThemeMode.light,
-        home: const HomePage(title: "Chenron"),
+        home: const RootPage(),
       );
     });
   }
