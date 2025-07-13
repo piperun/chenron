@@ -1,4 +1,4 @@
-import "package:chenron/shared/ui/search/search_matcher.dart";
+import "package:chenron/shared/search/search_matcher.dart";
 import "package:chenron/shared/utils/text_highlighter.dart";
 
 import "package:chenron/database/extensions/operations/database_file_handler.dart";

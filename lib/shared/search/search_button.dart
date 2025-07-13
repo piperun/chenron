@@ -1,5 +1,5 @@
 import "package:flutter/material.dart";
-import "package:chenron/shared/ui/search/search_view.dart";
+import "package:chenron/shared/search/search_view.dart";
 
 class SearchButton extends StatelessWidget {
   const SearchButton({super.key});

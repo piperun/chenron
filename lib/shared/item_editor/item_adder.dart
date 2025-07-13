@@ -1,6 +1,6 @@
 import "package:flutter/material.dart";
-import "package:chenron/shared/ui/item_editor/link_editor.dart";
-import "package:chenron/shared/ui/item_editor/document_editor.dart";
+import "package:chenron/shared/item_editor/link_editor.dart";
+import "package:chenron/shared/item_editor/document_editor.dart";
 
 class ItemAdder extends StatelessWidget {
   final Function(String item) onAddLink;

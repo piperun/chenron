@@ -1,6 +1,6 @@
 import "dart:async";
 
-import "package:chenron/shared/ui/search/suggestion_builder.dart";
+import "package:chenron/shared/search/suggestion_builder.dart";
 import "package:chenron/shared/utils/debouncer.dart";
 import "package:chenron/database/extensions/operations/database_file_handler.dart";
 import "package:flutter/material.dart";

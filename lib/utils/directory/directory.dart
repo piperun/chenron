@@ -1,5 +1,6 @@
 import "dart:io";
 
+import "package:flutter/foundation.dart";
 import "package:path/path.dart" as p;
 import "package:path_provider/path_provider.dart";
 
@@ -123,7 +124,8 @@ Future<bool> isDirWritable(Directory directory) async {
     await tempFile.delete();
     return true;
   } on FileSystemException catch (e) {
-    loggerGlobal.severe("ApplicationDirectory", "Write Error: ${e.message}");
+    // Use debugPrint instead of logger as this may be called before logger initialization
+    debugPrint("ApplicationDirectory Write Error: ${e.message}");
     return false;
   }
 }
