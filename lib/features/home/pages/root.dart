@@ -4,8 +4,8 @@ import "package:chenron/features/create/folder/pages/create_folder.dart";
 import "package:chenron/features/create/link/pages/create_link.dart";
 import "package:chenron/features/viewer/pages/viewer.dart";
 import "package:chenron/features/settings/pages/configuration.dart";
-import "package:chenron/pages/home/homepage.dart"; // Assuming this is the correct path for HomePage
-import 'package:chenron/locator.dart'; // Keep locator if needed for other things
+import "package:chenron/features/dashboard/pages/dashboard.dart";
+import 'package:chenron/locator.dart';
 import 'package:chenron/utils/logger.dart';
 
 enum NavigationSection {
@@ -13,7 +13,7 @@ enum NavigationSection {
     icon: Icons.dashboard_outlined,
     selectedIcon: Icons.dashboard,
     label: "Dashboard",
-    page: HomePage(padding: 16), // Adjusted constructor if needed
+    page: DashBoard(padding: 16),
   ),
   settings(
     icon: Icons.settings_outlined,

@@ -157,7 +157,10 @@ class ConfigController {
 
     isLoading.value = true;
     error.value = null;
+    
     try {
+      loggerGlobal.info("ConfigController", "Starting save operation...");
+      
       await _configService.updateUserConfig(
         configId: config.id,
         defaultArchiveIs: defaultArchiveIs.peek(),
@@ -170,16 +173,21 @@ class ConfigController {
 
       await _themeController.changeTheme(selectedTheme.key, selectedTheme.type);
 
-      userConfig.value = (await _configService.getUserConfig())?.data;
+      // Refresh the user config to reflect the saved changes
+      final updatedConfigResult = await _configService.getUserConfig();
+      if (updatedConfigResult != null) {
+        userConfig.value = updatedConfigResult.data;
+      }
 
       loggerGlobal.info("ConfigController", "Settings saved successfully.");
-      isLoading.value = false;
       return true;
     } catch (e, s) {
       loggerGlobal.severe("ConfigController", "Error saving settings", e, s);
       error.value = "Failed to save settings: $e";
-      isLoading.value = false;
       return false;
+    } finally {
+      // Always set loading to false in the finally block
+      isLoading.value = false;
     }
   }
 

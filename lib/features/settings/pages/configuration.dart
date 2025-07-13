@@ -1,11 +1,11 @@
-import 'package:flutter/material.dart';
-import 'package:signals/signals_flutter.dart'; // For Watch
+import "package:flutter/material.dart";
+import "package:signals/signals_flutter.dart";
 
-import 'package:chenron/features/settings/controller/config_controller.dart'; // Import the controller
-import 'package:chenron/features/settings/ui/archive/archive_settings.dart';
-import 'package:chenron/features/settings/ui/theme/theme_settings.dart';
-import 'package:chenron/locator.dart';
-import 'package:chenron/utils/logger.dart';
+import "package:chenron/features/settings/controller/config_controller.dart";
+import "package:chenron/features/settings/ui/archive/archive_settings.dart";
+import "package:chenron/features/settings/ui/theme/theme_settings.dart";
+import "package:chenron/locator.dart";
+import "package:chenron/utils/logger.dart";
 
 class ConfigPage extends StatefulWidget {
   const ConfigPage({super.key});
@@ -123,30 +123,38 @@ class SettingsBody extends StatelessWidget {
   const SettingsBody({required this.controller, super.key});
 
   Future<void> _save(BuildContext context) async {
-    // Show immediate feedback
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+    // Show immediate feedback with a ScaffoldMessengerState reference
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    
+    scaffoldMessenger.showSnackBar(const SnackBar(
         content: Text("Saving..."),
         duration: Duration(seconds: 60))); // Keep visible while saving
 
     final success = await controller.saveSettings();
 
-    // Hide saving indicator
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    }
+    // Always hide the current snackbar first
+    scaffoldMessenger.hideCurrentSnackBar();
+    
+    // Wait a brief moment to ensure the previous snackbar is dismissed
+    await Future.delayed(const Duration(milliseconds: 100));
 
     // Show result feedback
     if (context.mounted) {
       if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Settings saved successfully!")),
+        scaffoldMessenger.showSnackBar(
+          const SnackBar(
+            content: Text("Settings saved successfully!"),
+            duration: Duration(seconds: 2),
+          ),
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessenger.showSnackBar(
           SnackBar(
-              content: Text(
-                  "Error saving settings: ${controller.error.peek() ?? 'Unknown error'}"), // Show error from controller
-              backgroundColor: Theme.of(context).colorScheme.error),
+            content: Text(
+                "Error saving settings: ${controller.error.peek() ?? 'Unknown error'}"),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            duration: const Duration(seconds: 4),
+          ),
         );
       }
     }
