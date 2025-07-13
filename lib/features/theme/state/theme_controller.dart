@@ -1,7 +1,7 @@
 import "package:chenron/database/database.dart" show ThemeType;
 import "package:chenron/database/extensions/operations/config_file_handler.dart";
-import "package:chenron/core/theme/service/theme_service.dart";
-import "package:chenron/core/theme/utils/theme_utils.dart";
+import "package:chenron/features/theme/state/theme_service.dart";
+import "package:chenron/features/theme/state/theme_utils.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/models/db_result.dart";
 import "package:chenron/utils/logger.dart";

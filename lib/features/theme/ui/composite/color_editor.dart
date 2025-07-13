@@ -1,4 +1,4 @@
-import "package:chenron/features/settings/ui/theme/components/color_picker.dart";
+import "package:chenron/features/theme/ui/components/color_picker.dart";
 import "package:flutter/material.dart";
 
 class ColorEditor extends StatelessWidget {

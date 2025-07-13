@@ -1,6 +1,6 @@
 import "package:chenron/database/extensions/user_theme/create.dart";
 import "package:chenron/database/extensions/user_theme/remove.dart";
-import "package:chenron/features/theme/models/theme_service_model.dart";
+import "package:chenron/features/theme/model/theme_service_model.dart";
 import "package:chenron/models/created_ids.dart";
 
 import "package:chenron/database/database.dart";

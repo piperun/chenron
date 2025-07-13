@@ -1,4 +1,4 @@
-import "package:chenron/features/settings/ui/theme/components/generate_theme/preset_button.dart";
+import "package:chenron/features/theme/ui/components/generate_theme/preset_button.dart";
 import "package:flutter/material.dart"
     show
         BuildContext,

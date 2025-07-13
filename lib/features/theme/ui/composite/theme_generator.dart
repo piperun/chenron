@@ -1,6 +1,6 @@
 // 2. Theme Generator Component
-import "package:chenron/features/settings/ui/theme/components/generate_theme/color_preset_selector.dart";
-import "package:chenron/features/settings/ui/theme/components/color_picker.dart";
+import "package:chenron/features/theme/ui/components/generate_theme/color_preset_selector.dart";
+import "package:chenron/features/theme/ui/components/color_picker.dart";
 import "package:flutter/material.dart";
 
 class ThemeGenerator extends StatelessWidget {
