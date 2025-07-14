@@ -1,9 +1,7 @@
-import 'dart:async';
-import 'dart:convert'; // For Uri.encodeComponent if needed, though http handles it
-import 'package:chenron/utils/logger.dart';
-import 'package:http/http.dart' as http;
-import 'package:html/parser.dart' show parse;
-import 'package:html/dom.dart' as dom;
+import "dart:async";
+import "package:chenron/utils/logger.dart";
+import "package:http/http.dart" as http;
+import "package:html/parser.dart" show parse;
 
 class ArchiveIsClient {
   final String defaultUserAgent =
@@ -52,9 +50,9 @@ class ArchiveIsClient {
     try {
       final document = parse(htmlBody);
       // Find the input element with name="submitid"
-      final element = document.querySelector('input[name="submitid"]');
+      final element = document.querySelector("input[name='submitid']");
       if (element != null) {
-        final submitId = element.attributes['value'];
+        final submitId = element.attributes["value"];
         if (submitId != null && submitId.isNotEmpty) {
           loggerGlobal.info("ArchiveIsClient", "Extracted submitid: $submitId");
           return submitId;
@@ -128,7 +126,7 @@ class ArchiveIsClient {
       // 4. POST to submit URL - DO NOT follow redirects automatically
       loggerGlobal.info(
           "ArchiveIsClient", "POST $submitUrl with target: $targetUrl");
-      final request = http.Request('POST', submitUrl)
+      final request = http.Request("POST", submitUrl)
         ..headers.addAll(headers)
         ..followRedirects =
             false // Important: We need to check headers before redirect
@@ -145,9 +143,9 @@ class ArchiveIsClient {
       // loggerGlobal.debug("ArchiveIsClient", "Response Headers: ${response.headers}"); // Optional: Debug headers
 
       // Check Refresh header (often used for immediate redirect)
-      if (response.headers.containsKey('refresh')) {
-        final refreshHeader = response.headers['refresh']!;
-        final parts = refreshHeader.split(';url=');
+      if (response.headers.containsKey("refresh")) {
+        final refreshHeader = response.headers["refresh"]!;
+        final parts = refreshHeader.split(";url=");
         if (parts.length == 2) {
           final memento = parts[1];
           loggerGlobal.info("ArchiveIsClient",
@@ -158,8 +156,8 @@ class ArchiveIsClient {
 
       // Check Location header (standard for redirects, status 3xx)
       if ((response.statusCode >= 300 && response.statusCode < 400) &&
-          response.headers.containsKey('location')) {
-        final memento = response.headers['location']!;
+          response.headers.containsKey("location")) {
+        final memento = response.headers["location"]!;
         // Sometimes the location might be relative, resolve it against the domain
         final mementoUri = Uri.parse(memento);
         if (!mementoUri.hasScheme) {
@@ -180,7 +178,7 @@ class ArchiveIsClient {
       loggerGlobal.severe(
           "ArchiveIsClient", "Response Status: ${response.statusCode}");
       loggerGlobal.severe("ArchiveIsClient",
-          "Response Body (truncated): ${response.body.length > 500 ? response.body.substring(0, 500) + '...' : response.body}");
+          "Response Body (truncated): ${response.body.length > 500 ? "${response.body.substring(0, 500)}..." : response.body}");
       throw Exception(
           "Archiving failed: Memento URL not found in archive.is response.");
     } catch (e) {
