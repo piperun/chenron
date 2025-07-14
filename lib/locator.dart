@@ -7,8 +7,10 @@ import "package:chenron/providers/folder_provider.dart";
 import "package:chenron/utils/directory/directory.dart";
 import "package:get_it/get_it.dart";
 import "package:signals/signals_flutter.dart";
-import 'package:chenron/features/theme/manager/theme_manager.dart';
-import 'package:chenron/database/database.dart';
+import "package:chenron/features/theme/state/theme_manager.dart";
+import "package:chenron/database/database.dart";
+import "package:chenron/features/settings/service/config_service.dart";
+import "package:chenron/features/settings/controller/config_controller.dart";
 
 final locator = GetIt.I;
 
@@ -29,4 +31,10 @@ void locatorSetup() {
     final ConfigDatabase configDb = configHandler.configDatabase;
     return ThemeManager(configDb);
   });
+
+  // Register ConfigService
+  locator.registerLazySingleton<ConfigService>(() => ConfigService());
+
+  // Register ConfigController
+  locator.registerLazySingleton<ConfigController>(() => ConfigController());
 }
