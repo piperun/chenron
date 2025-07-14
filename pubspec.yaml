@@ -67,6 +67,8 @@ dependencies:
   trina_grid: ^1.6.5
   shared_preferences: ^2.5.3
   flex_color_scheme: ^8.2.0
+  go_router: ^16.0.0
+  html: ^0.15.4
 dev_dependencies:
   drift_dev: ^2.20.0
   build_runner: ^2.4.15

@@ -1,12 +1,12 @@
-import 'package:flutter/material.dart';
+import "package:flutter/material.dart";
 // Keep existing imports for pages
 import "package:chenron/features/create/folder/pages/create_folder.dart";
 import "package:chenron/features/create/link/pages/create_link.dart";
 import "package:chenron/features/viewer/pages/viewer.dart";
 import "package:chenron/features/settings/pages/configuration.dart";
 import "package:chenron/features/dashboard/pages/dashboard.dart";
-import 'package:chenron/locator.dart';
-import 'package:chenron/utils/logger.dart';
+import "package:chenron/locator.dart";
+import "package:chenron/utils/logger.dart";
 
 enum NavigationSection {
   dashboard(
@@ -26,6 +26,18 @@ enum NavigationSection {
     selectedIcon: Icons.view_list,
     label: "Viewer",
     page: Viewer(),
+  ),
+  createFolder(
+    icon: Icons.create_new_folder_outlined,
+    selectedIcon: Icons.create_new_folder,
+    label: "Add Folder",
+    page: const CreateFolderPage(),
+  ),
+  createLink(
+    icon: Icons.add_link,
+    selectedIcon: Icons.link,
+    label: "Add Link",
+    page: const CreateLinkPage(),
   );
 
   final IconData icon;
@@ -67,47 +79,35 @@ class _RootPageState extends State<RootPage> {
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: const Text('Discard Unsaved Changes?'),
+        title: const Text("Discard Unsaved Changes?"),
         content: const Text(
-            'You have unsaved changes on the Settings page. Do you want to discard them and navigate away?'),
+            "You have unsaved changes on the Settings page. Do you want to discard them and navigate away?"),
         actions: <Widget>[
           TextButton(
-            onPressed: () => Navigator.of(context).pop(false), // Stay
-            child: const Text('Stay'),
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text("Stay"),
           ),
           TextButton(
             style: TextButton.styleFrom(
                 foregroundColor: Theme.of(context).colorScheme.error),
-            onPressed: () => Navigator.of(context).pop(true), // Discard
-            child: const Text('Discard'),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text("Discard"),
           ),
         ],
       ),
     );
-    return shouldDiscard ?? false; // Return false if dialog dismissed otherwise
+    return shouldDiscard ?? false;
   }
 
   void _navigateToCreate(BuildContext context, String type) {
     // Consider making these routes named routes for better management
     switch (type) {
-      case "folder":
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const CreateFolderPage()),
-        );
-        break;
       case "document":
         loggerGlobal.warning(
             "RootPage", "Document creation not implemented yet.");
         // TODO: Add document creation navigation
         ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Document creation coming soon!")));
-        break;
-      case "link":
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const CreateLinkPage()),
-        );
         break;
       default:
         loggerGlobal.warning("RootPage", "Unknown creation type: $type");
@@ -141,7 +141,7 @@ class _RootPageState extends State<RootPage> {
           IconButton(
             tooltip: "Add Link",
             icon: const Icon(Icons.link),
-            onPressed: () => _navigateToCreate(context, "link"),
+            onPressed: () => _onDestinationSelected(NavigationSection.createLink.index),
           ),
           IconButton(
             tooltip: "Add Document",
@@ -151,7 +151,7 @@ class _RootPageState extends State<RootPage> {
           IconButton(
             tooltip: "Add Folder",
             icon: const Icon(Icons.create_new_folder),
-            onPressed: () => _navigateToCreate(context, "folder"),
+            onPressed: () => _onDestinationSelected(NavigationSection.createFolder.index),
           ),
         ],
       ),

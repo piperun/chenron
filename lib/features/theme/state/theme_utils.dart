@@ -1,4 +1,4 @@
-import 'package:chenron/core/themes/nier_theme.dart'; // Import your predefined theme
+import "package:chenron/shared/themes/nier/nier_theme.dart";
 import 'package:chenron/features/theme/state/theme_controller.dart'; // For ThemeVariants typedef
 import 'package:flex_color_scheme/flex_color_scheme.dart';
 // Add imports for any other predefined themes here
@@ -10,7 +10,10 @@ import 'package:flex_color_scheme/flex_color_scheme.dart';
 ThemeVariants? getPredefinedTheme(String themeKey) {
   switch (themeKey) {
     case "nier":
-      return (light: NierTheme.lightTheme, dark: NierTheme.darkTheme);
+      return (
+        light: NierTheme.staticLightTheme,
+        dark: NierTheme.staticDarkTheme
+      );
 
     default:
       return null;
