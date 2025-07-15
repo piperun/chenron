@@ -22,7 +22,7 @@ final class LoggerImpl {
   }) {
     if (_isSetup) {
       // Avoid attaching multiple listeners if called again
-      print("Warning: Logger setup attempted multiple times.");
+      debugPrint("Warning: Logger setup attempted multiple times.");
       return;
     }
 
@@ -32,14 +32,14 @@ final class LoggerImpl {
       // 1. Console Logging (Always in Debug)
       if (kDebugMode) {
         // Standard console output format
-        print(
+        debugPrint(
             "${record.level.name}: ${record.time}: ${record.loggerName}: ${record.message}");
         if (record.error != null) {
-          print("  ERROR: ${record.error}");
+          debugPrint("  ERROR: ${record.error}");
         }
         if (record.stackTrace != null) {
           // Consider printing only a summary or using devtools for full trace
-          print("  STACKTRACE: ${record.stackTrace}");
+          debugPrint("  STACKTRACE: ${record.stackTrace}");
         }
       }
 
@@ -52,7 +52,7 @@ final class LoggerImpl {
           if (!logDir.existsSync()) {
             logDir.createSync(recursive: true);
             // Log this potentially unexpected creation to console
-            print("Warning: Log directory created by logger: ${logDir.path}");
+            debugPrint("Warning: Log directory created by logger: ${logDir.path}");
           }
 
           // Simple filename based on timestamp - adjust if needed
@@ -78,15 +78,15 @@ final class LoggerImpl {
           );
         } catch (e, s) {
           // If file logging fails, print error to console to avoid crashing
-          print("!!! LOGGER FILE WRITE FAILED: $e");
-          print("!!! StackTrace: $s");
+          debugPrint("!!! LOGGER FILE WRITE FAILED: $e");
+          debugPrint("!!! StackTrace: $s");
         }
       }
     });
 
     _isSetup = true;
     // Use print for this initial confirmation as logger might not be fully ready
-    print(
+    debugPrint(
         "Logger setup complete. Log directory: ${logDir.path}. File logging in debug: $logToFileInDebug");
   }
 
