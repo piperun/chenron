@@ -4,7 +4,6 @@ import "package:flutter/foundation.dart";
 import "package:path/path.dart" as p;
 import "package:path_provider/path_provider.dart";
 
-import "package:chenron/utils/logger.dart";
 
 class ChenronDirectories {
   final File databaseName;
@@ -84,37 +83,7 @@ Future<Directory> getDefaultApplicationDirectory(
       "No writable directory found. Debug mode: $debugMode, $defaultDir");
 }
 
-/// Checks if the provided [directory] is writable.
-///
-/// This function attempts to create, write to, and delete a temporary file
-/// within the specified [directory] to determine if it has write permissions.
-///
-/// - If all operations succeed, the function returns `true`, indicating that
-///   the directory is writable.
-/// - If a `FileSystemException` occurs during any of the file operations,
-///   it logs the error and returns `false`, indicating that the directory
-///   is not writable.
-///
-/// **Parameters:**
-/// - `directory` (`Directory`): The directory to check for write permissions.
-///
-/// **Returns:**
-/// - `Future<bool>`: A `Future` that completes with `true` if the directory
-///   is writable, or `false` otherwise.
-///
-/// **Example:**
-/// ```dart
-/// final dir = Directory('/path/to/directory');
-/// final isWritable = await isDirWritable(dir);
-/// if (isWritable) {
-///   print('The directory is writable.');
-/// } else {
-///   print('The directory is not writable.');
-/// }
-/// ```
-///
-/// **Throws:**
-/// - Does not throw. Exceptions are caught and handled internally.
+
 Future<bool> isDirWritable(Directory directory) async {
   try {
     final tempFile = File(p.join(

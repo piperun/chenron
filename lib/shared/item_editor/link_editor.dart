@@ -1,9 +1,8 @@
 import "package:flutter/material.dart";
-import "base_item_editor.dart";
+import "package:chenron/shared/item_editor/base_item_editor.dart";
 
 class LinkEditor extends BaseItemEditor<String> {
-  const LinkEditor({super.key, required Function(String) onAdd})
-      : super(onAdd: onAdd);
+  const LinkEditor({super.key, required super.onAdd});
 
   @override
   _LinkEditorState createState() => _LinkEditorState();
