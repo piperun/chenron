@@ -1,7 +1,7 @@
 import "package:chenron/core/setup/main_setup.dart";
-import "package:chenron/features/home/pages/error_page.dart";
-import "package:chenron/features/home/pages/root.dart";
-import "package:chenron/features/theme/manager/theme_manager.dart";
+import "package:chenron/features/shell/pages/error_page.dart";
+import "package:chenron/features/shell/pages/root.dart";
+import "package:chenron/features/theme/state/theme_manager.dart";
 import "package:chenron/locator.dart";
 
 import "package:flutter/material.dart";
