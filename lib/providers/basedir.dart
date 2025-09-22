@@ -10,7 +10,7 @@ final Signal<Future<ChenronDirectories?>> chenronDirsSignal =
 
 Future<ChenronDirectories?> initializeChenronDirs() async {
   try {
-    File databaseName = File("chenron");
+    File databaseName = File("app.sqlite");
     const bool debugMode = kDebugMode;
 
     // Fetch the default application directory

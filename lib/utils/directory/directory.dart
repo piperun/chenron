@@ -10,6 +10,9 @@ class ChenronDirectories {
   final Directory baseDir;
 
   late final Directory chenronDir;
+  // Canonical database directory
+  late final Directory databaseDir;
+  // Backwards-compatible aliases
   late final Directory dbDir;
   late final Directory importDir;
   late final Directory configDir;
@@ -47,21 +50,30 @@ class ChenronDirectories {
   }
 
   void _initializeDirectories() {
-    chenronDir = Directory(p.join(baseDir.path, "chenron"));
-    dbDir = Directory(p.join(chenronDir.path, "db"));
+    // Use chenron/debug in debug builds, otherwise chenron/
+    chenronDir = kDebugMode
+        ? Directory(p.join(baseDir.path, "chenron", "debug"))
+        : Directory(p.join(baseDir.path, "chenron"));
+
+    // New base structure: database/, log/, backup/
+    databaseDir = Directory(p.join(chenronDir.path, "database"));
+
+    // Backwards-compatible aliases point to the canonical database folder
+    dbDir = databaseDir;
+    configDir = databaseDir;
+
     importDir = Directory(p.join(chenronDir.path, "import"));
-    configDir = Directory(p.join(chenronDir.path, "config"));
-    backupAppDbDir = Directory(p.join(chenronDir.path, "backup",
-        p.basenameWithoutExtension(databaseName.path)));
+
+    // Backups split into app and config
+    backupAppDbDir = Directory(p.join(chenronDir.path, "backup", "app"));
     backupConfigDbDir = Directory(p.join(chenronDir.path, "backup", "config"));
     logDir = Directory(p.join(chenronDir.path, "log"));
   }
 
   Future<void> createDirectories() async {
     await Future.wait([
-      dbDir.create(recursive: true),
+      databaseDir.create(recursive: true),
       importDir.create(recursive: true),
-      configDir.create(recursive: true),
       backupAppDbDir.create(recursive: true),
       backupConfigDbDir.create(recursive: true),
       logDir.create(recursive: true),
