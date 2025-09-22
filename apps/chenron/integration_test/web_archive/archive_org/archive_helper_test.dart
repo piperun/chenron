@@ -1,3 +1,4 @@
+import 'dart:io';
 import "package:chenron/database/extensions/id.dart";
 import "package:chenron/database/extensions/link/read.dart";
 import "package:chenron/database/extensions/user_config/read.dart";
@@ -7,17 +8,34 @@ import "package:integration_test/integration_test.dart";
 import "package:chenron/database/database.dart";
 import "package:chenron/database/extensions/archive_helper.dart";
 import "package:chenron/database/extensions/link/create.dart";
+import "package:chenron/test_support/path_provider_fake.dart";
+import "package:chenron/test_support/logger_setup.dart";
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  // Install fakes and test logger once for this suite.
+  late String basePath;
+  setUpAll(() {
+    installFakePathProvider();
+    installTestLogger();
+    // Use a dedicated temp directory for databases to avoid Windows write quirks.
+    basePath = Directory.systemTemp.createTempSync('chenron_db_test').path;
+    // Suppress drift multiple database warnings in tests.
+    drift.driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
+  });
+
   late AppDatabase database;
   late ConfigDatabase configDatabase;
   late UserConfig? userConfig;
   late String testUrl;
 
   setUp(() async {
-    database = AppDatabase(setupOnInit: true, databaseName: "test_db");
-    configDatabase = ConfigDatabase();
+    database = AppDatabase(
+      setupOnInit: true,
+      databaseName: "test_db",
+      customPath: basePath,
+    );
+    configDatabase = ConfigDatabase(customPath: basePath);
     userConfig =
         await configDatabase.getUserConfig().then((config) => config?.data);
     testUrl = "https://example.org/";

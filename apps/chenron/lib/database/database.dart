@@ -54,7 +54,7 @@ class AppDatabase extends _$AppDatabase {
             customPath: customPath,
             debugMode: debugMode));
 
-  void setup() async {
+  Future<void> setup() async {
     if (setupOnInit) {
       await setupEnumTypes();
     }
@@ -120,7 +120,7 @@ class ConfigDatabase extends _$ConfigDatabase {
         ));
   }
 
-  void setup() async {
+  Future<void> setup() async {
     if (setupOnInit) {
       await setupUserConfig();
     }

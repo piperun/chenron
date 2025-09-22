@@ -2,9 +2,19 @@ import "package:flutter_test/flutter_test.dart";
 import "package:integration_test/integration_test.dart";
 import "package:chenron/database/database.dart";
 import "package:chenron/utils/web_archive/archive_org/archive_org.dart";
+import "package:chenron/test_support/path_provider_fake.dart";
+import "package:chenron/test_support/logger_setup.dart";
+import "package:drift/drift.dart" as drift;
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  // Install fakes and test logger once for this suite.
+  setUpAll(() {
+    installFakePathProvider();
+    installTestLogger();
+    drift.driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
+  });
+
   late ConfigDatabase database;
   late ArchiveOrgClient archiveClient;
 

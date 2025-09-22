@@ -8,7 +8,14 @@ import "package:chenron/database/extensions/folder/read.dart";
 import "package:chenron/database/extensions/folder/create.dart";
 import "package:chenron/utils/test_lib/folder_factory.dart";
 
+import "package:chenron/test_support/path_provider_fake.dart";
+import "package:chenron/test_support/logger_setup.dart";
+
 void main() {
+  setUpAll(() {
+    installFakePathProvider();
+    installTestLogger();
+  });
   late AppDatabase database;
   late FolderTestData activeFolder;
   late FolderTestData inactiveFolder;

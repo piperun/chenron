@@ -14,7 +14,6 @@ class ChenronDirectories {
   late final Directory databaseDir;
   // Backwards-compatible aliases
   late final Directory dbDir;
-  late final Directory importDir;
   late final Directory configDir;
   late final Directory backupAppDbDir;
   late final Directory backupConfigDbDir;
@@ -62,8 +61,6 @@ class ChenronDirectories {
     dbDir = databaseDir;
     configDir = databaseDir;
 
-    importDir = Directory(p.join(chenronDir.path, "import"));
-
     // Backups split into app and config
     backupAppDbDir = Directory(p.join(chenronDir.path, "backup", "app"));
     backupConfigDbDir = Directory(p.join(chenronDir.path, "backup", "config"));
@@ -73,7 +70,6 @@ class ChenronDirectories {
   Future<void> createDirectories() async {
     await Future.wait([
       databaseDir.create(recursive: true),
-      importDir.create(recursive: true),
       backupAppDbDir.create(recursive: true),
       backupConfigDbDir.create(recursive: true),
       logDir.create(recursive: true),

@@ -10,7 +10,8 @@ import "dart:io";
 
 import "package:signals/signals.dart";
 
-import "../test_support/path_provider_fake.dart";
+import "package:chenron/test_support/path_provider_fake.dart";
+import "package:chenron/test_support/logger_setup.dart";
 
 Future<void> setUpFakeData(AppDatabase database, {int len = 5}) async {
   for (int i = 0; i < len; i++) {
@@ -24,8 +25,19 @@ void main() {
   // Install fake path_provider and configure DI before any signals resolve
   setUpAll(() async {
     installFakePathProvider();
-    locatorSetup();
-    await locator.allReady();
+    installTestLogger();
+
+    // Provide a test-specific base directory via GetIt without full locator setup
+    await locator.reset();
+    final tempBase = Directory.systemTemp.createTempSync('chenron_base_dir');
+    final testDirs = ChenronDirectories(
+      databaseName: File('app.sqlite'),
+      baseDir: tempBase,
+    );
+    await testDirs.createDirectories();
+    locator.registerSingleton<Signal<Future<ChenronDirectories?>>>(
+      signal(Future.value(testDirs)),
+    );
   });
 
   late DatabaseLocation databaseLocation;
@@ -69,10 +81,11 @@ void main() {
           reason: "File at $createdFilePath does not exist");
     });
     test("importDatabase throws when given invalid path", () async {
+      final invalidPath = File(p.join(baseDir!.dbDir.path, 'nonexistent.sqlite'));
       expect(
-          databaseHandler.importDatabase(createdFilePath,
+          databaseHandler.importDatabase(invalidPath,
               setupOnInit: false, copyImport: false),
-          throwsA(isA<Error>()));
+          throwsA(isA<ArgumentError>()));
     });
   });
   group("Export Database Tests", () {

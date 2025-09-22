@@ -12,7 +12,14 @@ import "package:drift/drift.dart";
 import "package:flutter_test/flutter_test.dart";
 import "package:chenron/utils/test_lib/folder_factory.dart";
 
+import "package:chenron/test_support/path_provider_fake.dart";
+import "package:chenron/test_support/logger_setup.dart";
+
 void main() {
+  setUpAll(() {
+    installFakePathProvider();
+    installTestLogger();
+  });
   late AppDatabase database;
   late FolderTestData testFolderData;
   final List<String> newTagNames = ["NewTags1", "NewTags2"];

@@ -2,8 +2,14 @@ import 'package:integration_test/integration_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:chenron/providers/basedir.dart';
 
+import 'package:chenron/test_support/path_provider_fake.dart';
+
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+
+  setUpAll(() {
+    installFakePathProvider();
+  });
 
   group('basedir provider', () {
     test('initializeChenronDirs uses app.sqlite and correct layout', () async {

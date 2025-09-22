@@ -8,17 +8,19 @@ import "package:chenron/database/database.dart";
 import "package:integration_test/integration_test.dart";
 import "package:path_provider/path_provider.dart";
 
-import "../test_support/path_provider_fake.dart";
+import "package:chenron/test_support/path_provider_fake.dart";
+import "package:chenron/test_support/logger_setup.dart";
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(() {
     installFakePathProvider();
+    installTestLogger();
   });
   late AppDatabase database;
 
   setUp(() {
-    database = AppDatabase(databaseName: "test_db");
+    database = AppDatabase(databaseName: "test_db", debugMode: true);
   });
   tearDown(() async {
     await database.close();
@@ -30,7 +32,7 @@ void main() {
   });
 
   test("AppDatabase constructor initializes with no setup file database", () {
-    final db = AppDatabase(databaseName: "test_db");
+    final db = AppDatabase(databaseName: "test_db", debugMode: true);
     expect(db.schemaVersion, equals(1));
   });
 
@@ -46,7 +48,8 @@ void main() {
   test("AppDatabase constructor with setupOnInit initializes item types",
       () async {
     final setupDatabase =
-        AppDatabase(databaseName: "test_db", setupOnInit: true);
+        AppDatabase(databaseName: "test_db", setupOnInit: true, debugMode: true);
+    await setupDatabase.setup();
 
     final itemTypes = await setupDatabase.select(setupDatabase.itemTypes).get();
     final metadataTypes =

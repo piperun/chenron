@@ -55,7 +55,6 @@ void main() {
         // Check that the directories were created
         final chenronDir = Directory(p.join(testDir.path, "chenron", "debug"));
         final databaseDir = Directory(p.join(chenronDir.path, "database"));
-        final importDir = Directory(p.join(chenronDir.path, "import"));
         final backupAppDbDir =
             Directory(p.join(chenronDir.path, "backup", "app"));
         final backupConfigDbDir =
@@ -64,7 +63,6 @@ void main() {
 
         expect(await chenronDir.exists(), isTrue);
         expect(await databaseDir.exists(), isTrue);
-        expect(await importDir.exists(), isTrue);
         expect(await backupAppDbDir.exists(), isTrue);
         expect(await backupConfigDbDir.exists(), isTrue);
         expect(await logDir.exists(), isTrue);
