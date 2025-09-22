@@ -1,0 +1,3 @@
+D:/Programming/Flutter/chenron_project/apps/chenron/build/windows/x64/_deps/sqlite3-subbuild/CMakeFiles/sqlite3-populate.dir
+D:/Programming/Flutter/chenron_project/apps/chenron/build/windows/x64/_deps/sqlite3-subbuild/CMakeFiles/ALL_BUILD.dir
+D:/Programming/Flutter/chenron_project/apps/chenron/build/windows/x64/_deps/sqlite3-subbuild/CMakeFiles/ZERO_CHECK.dir

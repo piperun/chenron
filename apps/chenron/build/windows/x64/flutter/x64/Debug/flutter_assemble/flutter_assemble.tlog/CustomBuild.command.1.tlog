@@ -1,0 +1,28 @@
+^D:\PROGRAMMING\FLUTTER\CHENRON_PROJECT\APPS\CHENRON\BUILD\WINDOWS\X64\CMAKEFILES\72ED121D013BBCDD8182D484716554D7\FLUTTER_WINDOWS.DLL.RULE
+setlocal
+"C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -E env FLUTTER_ROOT=C:\Users\Lechuck\scoop\apps\flutter\3.35.4 PROJECT_DIR=D:\Programming\Flutter\chenron_project\apps\chenron FLUTTER_ROOT=C:\Users\Lechuck\scoop\apps\flutter\3.35.4 FLUTTER_EPHEMERAL_DIR=D:\Programming\Flutter\chenron_project\apps\chenron\windows\flutter\ephemeral PROJECT_DIR=D:\Programming\Flutter\chenron_project\apps\chenron FLUTTER_TARGET=D:\Programming\Flutter\chenron_project\apps\chenron\lib\main.dart DART_DEFINES=RkxVVFRFUl9WRVJTSU9OPTMuMzUuNA==,RkxVVFRFUl9DSEFOTkVMPXN0YWJsZQ==,RkxVVFRFUl9HSVRfVVJMPWh0dHBzOi8vZ2l0aHViLmNvbS9mbHV0dGVyL2ZsdXR0ZXIuZ2l0,RkxVVFRFUl9GUkFNRVdPUktfUkVWSVNJT049ZDY5M2I0YjlkYg==,RkxVVFRFUl9FTkdJTkVfUkVWSVNJT049YzI5ODA5MTM1MQ==,RkxVVFRFUl9EQVJUX1ZFUlNJT049My45LjI= DART_OBFUSCATION=false TRACK_WIDGET_CREATION=true TREE_SHAKE_ICONS=false PACKAGE_CONFIG=D:\Programming\Flutter\chenron_project\.dart_tool\package_config.json C:/Users/Lechuck/scoop/apps/flutter/3.35.4/packages/flutter_tools/bin/tool_backend.bat windows-x64 Debug
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^D:\PROGRAMMING\FLUTTER\CHENRON_PROJECT\APPS\CHENRON\BUILD\WINDOWS\X64\CMAKEFILES\0501B9B956395417B3E296EA985A30FB\FLUTTER_ASSEMBLE.RULE
+setlocal
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^D:\PROGRAMMING\FLUTTER\CHENRON_PROJECT\APPS\CHENRON\WINDOWS\FLUTTER\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -SD:/Programming/Flutter/chenron_project/apps/chenron/windows -BD:/Programming/Flutter/chenron_project/apps/chenron/build/windows/x64 --check-stamp-file D:/Programming/Flutter/chenron_project/apps/chenron/build/windows/x64/flutter/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

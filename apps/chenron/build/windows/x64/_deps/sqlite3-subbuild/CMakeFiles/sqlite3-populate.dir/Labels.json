@@ -1,0 +1,46 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "D:/Programming/Flutter/chenron_project/apps/chenron/build/windows/x64/_deps/sqlite3-subbuild/CMakeFiles/sqlite3-populate"
+		},
+		{
+			"file" : "D:/Programming/Flutter/chenron_project/apps/chenron/build/windows/x64/_deps/sqlite3-subbuild/CMakeFiles/5a68113b065700a188d39b06a665657f/sqlite3-populate.rule"
+		},
+		{
+			"file" : "D:/Programming/Flutter/chenron_project/apps/chenron/build/windows/x64/_deps/sqlite3-subbuild/CMakeFiles/ba6b0ce7a241d918fd5ae4d8cec3640b/sqlite3-populate-complete.rule"
+		},
+		{
+			"file" : "D:/Programming/Flutter/chenron_project/apps/chenron/build/windows/x64/_deps/sqlite3-subbuild/CMakeFiles/92fe8886b0b4ac6a6d9ac3f1f77a1ae5/sqlite3-populate-build.rule"
+		},
+		{
+			"file" : "D:/Programming/Flutter/chenron_project/apps/chenron/build/windows/x64/_deps/sqlite3-subbuild/CMakeFiles/92fe8886b0b4ac6a6d9ac3f1f77a1ae5/sqlite3-populate-configure.rule"
+		},
+		{
+			"file" : "D:/Programming/Flutter/chenron_project/apps/chenron/build/windows/x64/_deps/sqlite3-subbuild/CMakeFiles/92fe8886b0b4ac6a6d9ac3f1f77a1ae5/sqlite3-populate-download.rule"
+		},
+		{
+			"file" : "D:/Programming/Flutter/chenron_project/apps/chenron/build/windows/x64/_deps/sqlite3-subbuild/CMakeFiles/92fe8886b0b4ac6a6d9ac3f1f77a1ae5/sqlite3-populate-install.rule"
+		},
+		{
+			"file" : "D:/Programming/Flutter/chenron_project/apps/chenron/build/windows/x64/_deps/sqlite3-subbuild/CMakeFiles/92fe8886b0b4ac6a6d9ac3f1f77a1ae5/sqlite3-populate-mkdir.rule"
+		},
+		{
+			"file" : "D:/Programming/Flutter/chenron_project/apps/chenron/build/windows/x64/_deps/sqlite3-subbuild/CMakeFiles/92fe8886b0b4ac6a6d9ac3f1f77a1ae5/sqlite3-populate-patch.rule"
+		},
+		{
+			"file" : "D:/Programming/Flutter/chenron_project/apps/chenron/build/windows/x64/_deps/sqlite3-subbuild/CMakeFiles/92fe8886b0b4ac6a6d9ac3f1f77a1ae5/sqlite3-populate-test.rule"
+		},
+		{
+			"file" : "D:/Programming/Flutter/chenron_project/apps/chenron/build/windows/x64/_deps/sqlite3-subbuild/CMakeFiles/92fe8886b0b4ac6a6d9ac3f1f77a1ae5/sqlite3-populate-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"sqlite3-populate"
+		],
+		"name" : "sqlite3-populate"
+	}
+}
