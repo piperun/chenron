@@ -11,7 +11,7 @@ import "package:chenron/database/extensions/archive_helper.dart";
 import "package:chenron/database/extensions/link/create.dart";
 import "package:chenron/test_support/path_provider_fake.dart";
 import "package:chenron/test_support/logger_setup.dart";
-import "package:chenron/utils/web_archive/archive_org/archive_org.dart";
+import "package:web_archiver/web_archiver.dart";
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();

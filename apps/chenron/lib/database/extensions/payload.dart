@@ -9,7 +9,7 @@ import "package:chenron/models/folder.dart";
 import "package:chenron/models/created_ids.dart";
 import "package:chenron/models/item.dart";
 import "package:chenron/models/metadata.dart";
-import "package:chenron/utils/web_archive/archive_org/archive_org_options.dart";
+import "package:web_archiver/web_archiver.dart";
 
 extension PayloadExtensions on AppDatabase {
   Future<void> createFolderExtended({

@@ -1,0 +1,38 @@
+name: tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-offline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+            channel: 'stable'
+      - name: Pub get (workspace)
+        run: flutter pub get
+      - name: Run basedir package tests
+        run: flutter test packages/basedir
+      - name: Run archive offline tests
+        run: flutter test apps/chenron/integration_test/web_archive/archive_org
+
+  test-online:
+    if: ${{ secrets.CHENRON_ARCHIVE_ORG_KEY != '' && secrets.CHENRON_ARCHIVE_ORG_SECRET != '' }}
+    runs-on: ubuntu-latest
+    env:
+      CHENRON_ARCHIVE_ORG_KEY: ${{ secrets.CHENRON_ARCHIVE_ORG_KEY }}
+      CHENRON_ARCHIVE_ORG_SECRET: ${{ secrets.CHENRON_ARCHIVE_ORG_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+            channel: 'stable'
+      - name: Pub get (workspace)
+        run: flutter pub get
+      - name: Run archive online tests only
+        run: flutter test --name online apps/chenron/integration_test/web_archive/archive_org/archive_test.dart

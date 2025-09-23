@@ -1,7 +1,6 @@
 import "package:chenron/database/database.dart";
 import "package:chenron/utils/logger.dart";
-import "package:chenron/utils/web_archive/archive_org/archive_org.dart";
-import "package:chenron/utils/web_archive/archive_org/archive_org_options.dart";
+import "package:web_archiver/web_archiver.dart";
 import "package:drift/drift.dart";
 
 extension ArchiveLinkExtensions on AppDatabase {

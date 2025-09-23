@@ -1,8 +1,7 @@
 import "package:chenron/database/database.dart";
 import "package:chenron/database/extensions/link/archive.dart";
 import "package:chenron/database/extensions/link/read.dart";
-import "package:chenron/utils/web_archive/archive_org/archive_org_options.dart";
-import "package:chenron/utils/web_archive/archive_org/parse_archive_date.dart";
+import "package:web_archiver/web_archiver.dart";
 
 extension ArchiveHelperExtension on AppDatabase {
   Future<void> archiveOrgLinks(
