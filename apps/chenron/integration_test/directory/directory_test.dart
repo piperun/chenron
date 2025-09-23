@@ -3,9 +3,11 @@ import "dart:io";
 import "package:flutter_test/flutter_test.dart";
 import "package:path/path.dart" as p;
 
-import "package:chenron/utils/directory/directory.dart";
+import "package:basedir/directory.dart";
 
 void main() {
+  test('Directory tests moved to basedir package', () {}, skip: 'moved to packages/basedir/test');
+  return;
   group("Directory Initialization and Checks", () {
     late Directory testDir;
     late String databaseName;

@@ -2,7 +2,7 @@ import "dart:io";
 import "package:chenron/database/database.dart";
 import "package:chenron/database/file_operations.dart";
 import "package:chenron/locator.dart";
-import "package:chenron/utils/directory/directory.dart";
+import "package:basedir/directory.dart";
 import "package:chenron/utils/logger.dart";
 import "package:path/path.dart" as p;
 import "package:signals/signals.dart";

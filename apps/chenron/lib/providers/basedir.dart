@@ -2,7 +2,7 @@ import "dart:io";
 
 import "package:chenron/utils/logger.dart"; // Import logger
 import "package:flutter/foundation.dart";
-import "package:chenron/utils/directory/directory.dart";
+import "package:basedir/directory.dart";
 import "package:signals/signals.dart";
 
 final Signal<Future<ChenronDirectories?>> chenronDirsSignal =

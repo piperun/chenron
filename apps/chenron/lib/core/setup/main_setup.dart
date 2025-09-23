@@ -1,7 +1,7 @@
 // lib/initialization/app_setupr.dart
 import "package:chenron/database/extensions/operations/database_file_handler.dart";
 import "package:chenron/locator.dart";
-import "package:chenron/utils/directory/directory.dart";
+import "package:basedir/directory.dart";
 import "package:chenron/utils/logger.dart";
 import "package:chenron/database/extensions/operations/config_file_handler.dart";
 import "package:flutter/foundation.dart";

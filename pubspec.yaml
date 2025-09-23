@@ -6,3 +6,4 @@ environment:
 
 workspace:
   - apps/chenron
+  - packages/basedir

@@ -4,7 +4,7 @@ import "package:drift_flutter/drift_flutter.dart";
 import "package:chenron/database/schema/items_schema.dart";
 import "package:chenron/database/extensions/intial_data/app_database.dart";
 import "package:chenron/database/extensions/intial_data/config_database.dart";
-import "package:chenron/utils/directory/directory.dart";
+import "package:basedir/directory.dart";
 import "dart:collection";
 part "database.g.dart";
 

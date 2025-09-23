@@ -2,7 +2,7 @@ import "package:chenron/database/database.dart";
 import "package:chenron/database/extensions/operations/database_file_handler.dart";
 import "package:chenron/database/extensions/tags/create.dart";
 import "package:chenron/locator.dart";
-import "package:chenron/utils/directory/directory.dart";
+import "package:basedir/directory.dart";
 import "package:flutter_test/flutter_test.dart";
 import "package:integration_test/integration_test.dart";
 import "package:path/path.dart" as p;
