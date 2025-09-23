@@ -49,7 +49,7 @@ class AppDatabase extends _$AppDatabase {
     this.setupOnInit = false,
     String? customPath,
     this.debugMode = false,
-  }) : super(_openConnection(
+  }) : super(queryExecutor ?? _openConnection(
             databaseName: databaseName ?? "chenron",
             customPath: customPath,
             debugMode: debugMode));
@@ -98,7 +98,7 @@ class ConfigDatabase extends _$ConfigDatabase {
     String? databaseName,
     this.setupOnInit = false,
     String? customPath,
-  }) : super(_openConnection(customPath: customPath));
+  }) : super(queryExecutor ?? _openConnection(customPath: customPath));
 
   @override
   int get schemaVersion => 1;

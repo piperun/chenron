@@ -3,6 +3,7 @@ import "package:chenron/database/extensions/id.dart";
 import "package:chenron/database/extensions/link/read.dart";
 import "package:chenron/database/extensions/user_config/read.dart";
 import "package:drift/drift.dart" as drift;
+import "package:drift/native.dart";
 import "package:flutter_test/flutter_test.dart";
 import "package:integration_test/integration_test.dart";
 import "package:chenron/database/database.dart";
@@ -10,16 +11,16 @@ import "package:chenron/database/extensions/archive_helper.dart";
 import "package:chenron/database/extensions/link/create.dart";
 import "package:chenron/test_support/path_provider_fake.dart";
 import "package:chenron/test_support/logger_setup.dart";
+import "package:chenron/utils/web_archive/archive_org/archive_org.dart";
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   // Install fakes and test logger once for this suite.
-  late String basePath;
   setUpAll(() {
     installFakePathProvider();
     installTestLogger();
-    // Use a dedicated temp directory for databases to avoid Windows write quirks.
-    basePath = Directory.systemTemp.createTempSync('chenron_db_test').path;
+    // Use a fake Archive.org client to keep tests offline and deterministic.
+    archiveOrgClientFactory = (key, secret) => _FakeArchiveOrgClient();
     // Suppress drift multiple database warnings in tests.
     drift.driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
   });
@@ -31,11 +32,25 @@ void main() {
 
   setUp(() async {
     database = AppDatabase(
+      queryExecutor: NativeDatabase.memory(),
       setupOnInit: true,
       databaseName: "test_db",
-      customPath: basePath,
+      debugMode: true,
     );
-    configDatabase = ConfigDatabase(customPath: basePath);
+    await database.setup();
+    configDatabase = ConfigDatabase(
+      queryExecutor: NativeDatabase.memory(),
+      setupOnInit: true,
+    );
+    await configDatabase.setup();
+    // Ensure archive.org credentials are present to enable archiving paths in tests
+    await (configDatabase.update(configDatabase.userConfigs)).write(
+      UserConfigsCompanion(
+        archiveOrgS3AccessKey: const drift.Value('test_key'),
+        archiveOrgS3SecretKey: const drift.Value('test_secret'),
+      ),
+    );
+
     userConfig =
         await configDatabase.getUserConfig().then((config) => config?.data);
     testUrl = "https://example.org/";
@@ -46,7 +61,7 @@ void main() {
     await configDatabase.close();
   });
 
-  group("ArchiveHelper", () {
+  group("[offline] ArchiveHelper", () {
     test("archiveOrgLinks archives new links", () async {
       final linkId = await database.createLink(link: testUrl);
 
@@ -60,9 +75,13 @@ void main() {
 
     test("archiveOrgLinks skips recent archive links", () async {
       final linkId = await database.createLink(link: testUrl);
+      // Pre-archive once so the link has a recent archive
+      await database.archiveOrgLinks([linkId], userConfig!, archiveDueDate: 0);
       final recentArchiveUrl = await database
           .getLink(linkId: linkId)
           .then((archiveLink) => archiveLink?.data.archiveOrgUrl);
+
+      // With a large due date, a recent archive should be skipped
       await database
           .archiveOrgLinks([linkId], userConfig!, archiveDueDate: 20000);
 
@@ -91,4 +110,14 @@ void main() {
           startsWith("https://web.archive.org/"));
     });
   });
+}
+
+class _FakeArchiveOrgClient extends ArchiveOrgClient {
+  _FakeArchiveOrgClient() : super('', '');
+
+  @override
+  Future<String> archiveAndWait(String targetUrl) async {
+    // Return a deterministic archived URL differing from older timestamps
+    return 'https://web.archive.org/web/20990101000000/$targetUrl';
+  }
 }

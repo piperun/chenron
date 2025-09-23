@@ -4,6 +4,9 @@ import "package:chenron/utils/logger.dart";
 import "package:http/http.dart" as http;
 import "package:chenron/utils/web_archive/archive_org/archive_org_options.dart";
 
+typedef ArchiveOrgClientFactory = ArchiveOrgClient Function(String apiKey, String apiSecret);
+ArchiveOrgClientFactory archiveOrgClientFactory = (apiKey, apiSecret) => ArchiveOrgClient(apiKey, apiSecret);
+
 class ArchiveOrgClient {
   final String apiKey;
   final String apiSecret;
