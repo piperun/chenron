@@ -4,80 +4,93 @@ import "package:flutter/foundation.dart";
 import "package:path/path.dart" as p;
 import "package:path_provider/path_provider.dart";
 
-class ChenronDirectories {
-  final File databaseName;
-  final Directory baseDir;
+/// A typed, unbiased directory schema that maps enum keys to relative path segments.
+///
+/// This class is generic and does not prescribe any particular directory layout.
+/// Consumers define their own enum and provide the mapping via [paths].
+class DirSchema<K extends Enum> {
+  /// Creates a directory schema from a mapping of enum keys to relative path segments.
+  const DirSchema({required this.paths});
 
-  late final Directory chenronDir;
-  // Canonical database directory
-  late final Directory databaseDir;
-  // Backwards-compatible aliases
-  late final Directory dbDir;
-  late final Directory configDir;
-  late final Directory backupAppDbDir;
-  late final Directory backupConfigDbDir;
-  late final Directory logDir;
-
-  // Private constructor
-  ChenronDirectories._internal({
-    required this.databaseName,
-    required this.baseDir,
-  }) {
-    _initializeDirectories();
-  }
-
-  // Cache to store instances
-  static final Map<String, ChenronDirectories> _cache = {};
-
-  // Factory constructor
-  factory ChenronDirectories({
-    required File databaseName,
-    required Directory baseDir,
-  }) {
-    final key = "${databaseName}_${baseDir.path}";
-    if (_cache.containsKey(key)) {
-      return _cache[key]!;
-    } else {
-      final instance = ChenronDirectories._internal(
-        databaseName: databaseName,
-        baseDir: baseDir,
-        );
-      _cache[key] = instance;
-      return instance;
-    }
-  }
-
-  void _initializeDirectories() {
-    // Use chenron/debug in debug builds, otherwise chenron/
-    chenronDir = kDebugMode
-        ? Directory(p.join(baseDir.path, "chenron", "debug"))
-        : Directory(p.join(baseDir.path, "chenron"));
-
-    // New base structure: database/, log/, backup/
-    databaseDir = Directory(p.join(chenronDir.path, "database"));
-
-    // Backwards-compatible aliases point to the canonical database folder
-    dbDir = databaseDir;
-    configDir = databaseDir;
-
-    // Backups split into app and config
-    backupAppDbDir = Directory(p.join(chenronDir.path, "backup", "app"));
-    backupConfigDbDir = Directory(p.join(chenronDir.path, "backup", "config"));
-    logDir = Directory(p.join(chenronDir.path, "log"));
-  }
-
-  Future<void> createDirectories() async {
-    await Future.wait([
-      databaseDir.create(recursive: true),
-      backupAppDbDir.create(recursive: true),
-      backupConfigDbDir.create(recursive: true),
-      logDir.create(recursive: true),
-    ]);
-  }
+  /// The mapping from enum keys to relative path segments under the app root.
+  final Map<K, List<String>> paths;
 }
 
+/// Resolves and manages application directories defined by a [DirSchema].
+///
+/// - [K] is an enum type declared by the consumer to represent directory keys.
+/// - No defaults are assumed. Call [create] with explicit keys, or [createAll].
+class BaseDirectories<K extends Enum> {
+  /// Creates a resolver for application directories defined by [schema].
+  BaseDirectories({
+    required this.appName,
+    required this.platformBaseDir,
+    required this.schema,
+    this.debugMode = false,
+  }) {
+    appRoot = Directory(
+      debugMode
+          ? p.join(platformBaseDir.path, appName, 'debug')
+          : p.join(platformBaseDir.path, appName),
+    );
+
+    _dirs = <K, Directory>{
+      for (final MapEntry<K, List<String>> entry in schema.paths.entries)
+        entry.key: Directory(
+            p.joinAll(<String>[appRoot.path, ...entry.value])),
+    };
+  }
+
+  /// The application name used for the root folder under the platform directory.
+  final String appName;
+
+  /// The platform-provided base directory (e.g., path_provider's documents/support dir).
+  final Directory platformBaseDir;
+
+  /// The schema describing which directories exist, relative to [appRoot].
+  final DirSchema<K> schema;
+
+  /// Whether to include a "debug" segment under the app root.
+  final bool debugMode;
+
+  /// The resolved application root directory: `<platform>/<appName>[/debug]`
+  late final Directory appRoot;
+
+  /// Resolved directories for each enum key in [schema].
+  late final Map<K, Directory> _dirs;
+
+/// Creates directories for the specified [include] keys.
+/// If [include] is null or empty, nothing is created.
+Future<void> create({Set<K>? include}) async {
+  final Set<K> keys = include ?? <K>{};
+  if (keys.isEmpty) return;
+  await Future.wait<Directory>(
+      keys.map((K k) => _dirs[k]!.create(recursive: true)));
+}
+
+  /// Convenience to create all directories declared in the schema.
+  Future<void> createAll() async {
+    await create(include: schema.paths.keys.toSet());
+  }
+
+  /// Returns the resolved [Directory] for the given [key].
+  Directory operator [](K key) => _dirs[key]!;
+
+  /// Returns the resolved [Directory] for the given [key].
+  Directory dir(K key) => _dirs[key]!;
+
+  /// Returns the resolved [Directory] for the given [key], or null if missing.
+  Directory? tryDir(K key) => _dirs[key];
+}
+
+/// Selects a reasonable default application directory for the platform and build mode.
+///
+/// - Debug: getApplicationDocumentsDirectory()
+/// - Release: getApplicationSupportDirectory()
+///
+/// Throws if the selected directory is not writable.
 Future<Directory> getDefaultApplicationDirectory({bool debugMode = false}) async {
-  final defaultDir = debugMode
+  final Directory defaultDir = debugMode
       ? await getApplicationDocumentsDirectory()
       : await getApplicationSupportDirectory();
 
@@ -89,12 +102,14 @@ Future<Directory> getDefaultApplicationDirectory({bool debugMode = false}) async
       "No writable directory found. Debug mode: $debugMode, $defaultDir");
 }
 
+/// Checks whether [directory] is writable by attempting to create, write, and delete a temp file.
 Future<bool> isDirWritable(Directory directory) async {
   try {
-    final tempFile = File(p.join(
+    final File tempFile = File(p.join(
         directory.path, "temp_${DateTime.now().millisecondsSinceEpoch}"));
     await tempFile.create();
-    await tempFile.writeAsBytes([DateTime.now().millisecondsSinceEpoch]);
+    await tempFile
+        .writeAsBytes(<int>[DateTime.now().millisecondsSinceEpoch]);
     await tempFile.delete();
     return true;
   } on FileSystemException catch (e) {

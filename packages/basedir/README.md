@@ -1,19 +1,15 @@
 # basedir
 
-Directory utilities for Chenron applications. Provides a consistent, cross-platform base layout and helpers for directory creation and writability checks.
+Typed, unbiased directory utilities for Flutter/Dart apps. Define your app’s directory structure with an enum and a small schema, then resolve and create directories in a cross-platform way.
 
 ## Features
 
-- ChenronDirectories class that resolves application directories:
-  - chenron/(debug/)/database
-  - chenron/(debug/)/backup/app
-  - chenron/(debug/)/backup/config
-  - chenron/(debug/)/log
-- Respect debug/release:
+- Enum-driven schemas: map enum keys to relative path segments
+- No defaults or app bias: create exactly what you specify
+- Debug/release aware app root
   - Debug: path_provider.getApplicationDocumentsDirectory()
   - Release: path_provider.getApplicationSupportDirectory()
-- getDefaultApplicationDirectory(): picks a writable directory or throws
-- isDirWritable(): quickly verifies write access
+- Helpers: getDefaultApplicationDirectory(), isDirWritable()
 
 ## Install (workspace)
 
@@ -23,9 +19,10 @@ This package is part of your Dart/Flutter workspace. Root `pubspec.yaml` include
 workspace:
   - apps/chenron
   - packages/basedir
+  - packages/web_archiver
 ```
 
-In `apps/chenron/pubspec.yaml`:
+In an app package:
 
 ```
 dependencies:
@@ -34,15 +31,38 @@ dependencies:
 
 ## Usage
 
+Define your own enum and schema in your app:
+
 ```dart
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:basedir/directory.dart';
 
-final baseDirs = ChenronDirectories(
-  databaseName: File('app.sqlite'),
-  baseDir: await getDefaultApplicationDirectory(debugMode: kDebugMode),
+enum MyDirs { database, backupApp, backupConfig, log }
+
+const mySchema = DirSchema<MyDirs>(paths: {
+  MyDirs.database: ['database'],
+  MyDirs.backupApp: ['backup', 'app'],
+  MyDirs.backupConfig: ['backup', 'config'],
+  MyDirs.log: ['log'],
+});
+
+final base = BaseDirectories<MyDirs>(
+  appName: 'my_app',
+  platformBaseDir: await getDefaultApplicationDirectory(debugMode: kDebugMode),
+  schema: mySchema,
+  debugMode: kDebugMode,
 );
-await baseDirs.createDirectories();
-print(baseDirs.databaseDir.path);
+
+// Explicit creation: you decide what to create (no implicit defaults)
+await base.create(include: {
+  MyDirs.database,
+  MyDirs.backupApp,
+  MyDirs.backupConfig,
+  MyDirs.log,
+});
+
+print(base[MyDirs.database].path); // <platform>/<my_app>/debug/database (in debug)
 ```
 
 ## Testing

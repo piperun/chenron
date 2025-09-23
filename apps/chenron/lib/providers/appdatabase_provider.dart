@@ -2,19 +2,20 @@ import "package:chenron/database/extensions/operations/database_file_handler.dar
 import "package:chenron/providers/basedir.dart";
 
 import "package:signals/signals.dart";
+import "package:chenron/base_dirs/schema.dart";
 
 final appDatabaseAccessorSignal = signal(initializeAppDatabaseAccessor());
 
 Future<AppDatabaseHandler> initializeAppDatabaseAccessor() async {
-  final chenronDirs = await chenronDirsSignal.value;
+  final baseDirs = await baseDirsSignal.value;
 
-  final databaseName = chenronDirs!.databaseName;
-  final databasePath = chenronDirs.dbDir;
+  final databaseDirectory = baseDirs!.databaseDir;
+  const databaseFilename = "app.sqlite";
 
   final appDatabase = AppDatabaseHandler(
     databaseLocation: DatabaseLocation(
-      databaseDirectory: databasePath,
-      databaseFilename: databaseName.path,
+      databaseDirectory: databaseDirectory,
+      databaseFilename: databaseFilename,
     ),
   );
   appDatabase.initDatabase();

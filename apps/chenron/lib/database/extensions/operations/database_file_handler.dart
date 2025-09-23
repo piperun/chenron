@@ -6,6 +6,7 @@ import "package:basedir/directory.dart";
 import "package:chenron/utils/logger.dart";
 import "package:path/path.dart" as p;
 import "package:signals/signals.dart";
+import "package:chenron/base_dirs/schema.dart";
 
 class DatabaseLocation {
   /// This only returns the directory
@@ -101,13 +102,13 @@ class AppDatabaseHandler {
     if (_checkDatabaseFile(dbFile)) {
       await _appDatabase?.close();
 
-      final baseDirFutureSignal =
-          locator.get<Signal<Future<ChenronDirectories?>>>() as Signal<Future<ChenronDirectories?>>;
-      final baseDir = await baseDirFutureSignal.value ??
+      final baseDirsFutureSignal = locator
+          .get<Signal<Future<BaseDirectories<ChenronDir>?>>>();
+      final baseDirs = await baseDirsFutureSignal.value ??
           (throw StateError('Base directories not resolved'));
       if (copyImport) {
         result = await _fileOperations.importByCopy(
-            dbFile: dbFile, importDirectory: baseDir.databaseDir);
+            dbFile: dbFile, importDirectory: baseDirs.databaseDir);
       } else {
         // Directly use the provided database file
         databaseLocation.databaseFilename = p.basename(dbFile.path);
@@ -124,14 +125,14 @@ class AppDatabaseHandler {
 
   Future<File?> backupDatabase() async {
     File? result;
-    final baseDirFutureSignal =
-        locator.get<Signal<Future<ChenronDirectories?>>>() as Signal<Future<ChenronDirectories?>>;
-    final baseDir = await baseDirFutureSignal.value ??
+    final baseDirsFutureSignal =
+        locator.get<Signal<Future<BaseDirectories<ChenronDir>?>>>();
+    final baseDirs = await baseDirsFutureSignal.value ??
         (throw StateError('Base directories not resolved'));
     try {
       result = await _fileOperations.backupDatabase(
         dbFile: databaseLocation.databaseFilePath,
-        backupDirectory: baseDir.backupAppDbDir,
+        backupDirectory: baseDirs.backupAppDir,
       );
     } catch (e) {
       // Handle the exception here

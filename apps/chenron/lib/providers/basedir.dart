@@ -1,38 +1,41 @@
 import "dart:io";
 
-import "package:chenron/utils/logger.dart"; // Import logger
 import "package:flutter/foundation.dart";
 import "package:basedir/directory.dart";
 import "package:signals/signals.dart";
 
-final Signal<Future<ChenronDirectories?>> chenronDirsSignal =
-    signal(initializeChenronDirs());
+import "package:chenron/base_dirs/schema.dart";
 
-Future<ChenronDirectories?> initializeChenronDirs() async {
+final Signal<Future<BaseDirectories<ChenronDir>?>> baseDirsSignal =
+    signal(initializeBaseDirs());
+
+Future<BaseDirectories<ChenronDir>?> initializeBaseDirs() async {
   try {
-    File databaseName = File("app.sqlite");
     const bool debugMode = kDebugMode;
 
     // Fetch the default application directory
-    final Directory baseDir =
+    final Directory platformBase =
         await getDefaultApplicationDirectory(debugMode: debugMode);
 
-    // Instantiate ChenronDirectories
-    final chenronDirectories = ChenronDirectories(
-      databaseName: databaseName,
-      baseDir: baseDir,
+    // Instantiate BaseDirectories with Chenron schema
+    final baseDirs = BaseDirectories<ChenronDir>(
+      appName: 'chenron',
+      platformBaseDir: platformBase,
+      schema: chenronSchema,
+      debugMode: debugMode,
     );
 
-    // Create directories (this ensures logDir exists)
-    await chenronDirectories.createDirectories();
+    // Explicitly create the Chenron directories we need
+    await baseDirs.create(include: {
+      ChenronDir.database,
+      ChenronDir.backupApp,
+      ChenronDir.backupConfig,
+      ChenronDir.log,
+    });
 
-    // Note: Logger setup is now handled in MainSetup._setupLogging()
-    // to avoid initialization order issues
-
-    return chenronDirectories;
+    return baseDirs;
   } catch (e, stackTrace) {
-    debugPrint("CRITICAL Error in initializeChenronDirs: $e\n$stackTrace");
-    // Don't use loggerGlobal here as it may not be initialized yet
+    debugPrint("CRITICAL Error in initializeBaseDirs: $e\n$stackTrace");
     return null;
   }
 }

@@ -11,6 +11,7 @@ import "package:chenron/features/theme/state/theme_manager.dart";
 import "package:chenron/database/database.dart";
 import "package:chenron/features/settings/service/config_service.dart";
 import "package:chenron/features/settings/controller/config_controller.dart";
+import "package:chenron/base_dirs/schema.dart";
 
 final locator = GetIt.I;
 
@@ -20,8 +21,8 @@ void locatorSetup() {
   locator.registerSingleton<Signal<ConfigDatabaseFileHandler>>(
       signal(initializeConfigDatabaseFileHandler()));
 
-  locator.registerSingleton<Signal<Future<ChenronDirectories?>>>(
-      signal(initializeChenronDirs()));
+  locator.registerSingleton<Signal<Future<BaseDirectories<ChenronDir>?>>>(
+      baseDirsSignal);
   locator.registerSingleton<Signal<FolderSignal>>(
       signal(FolderSignal(), autoDispose: true));
 

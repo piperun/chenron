@@ -7,6 +7,7 @@ import "package:chenron/database/extensions/operations/config_file_handler.dart"
 import "package:flutter/foundation.dart";
 import "package:signals/signals_flutter.dart"; // Or core if no Flutter needed here
 import "dart:io"; // For Directory
+import "package:chenron/base_dirs/schema.dart";
 
 class InitializationException implements Exception {
   final String message;
@@ -45,13 +46,13 @@ class MainSetup {
       _setupLocator();
 
       // 2. Resolve Base Directories (Critical for subsequent steps)
-      final ChenronDirectories baseDir = await _resolveBaseDirectory();
+      final BaseDirectories<ChenronDir> baseDirs = await _resolveBaseDirectory();
       // 4. Setup Logging (Now that config might be ready and dirs are known)
-      await _setupLogging(baseDir);
+      await _setupLogging(baseDirs);
       // Logger should be fully functional now (including file logging if enabled)
       loggerGlobal.info("MainSetup", "Logging setup complete.");
       // 3. Setup Configuration Database
-      await _setupConfig(baseDir);
+      await _setupConfig(baseDirs);
       loggerGlobal.info("MainSetup", "Config database setup complete.");
 
       _setupDone = true;
@@ -86,15 +87,15 @@ class MainSetup {
     }
   }
 
-  static Future<ChenronDirectories> _resolveBaseDirectory() async {
+  static Future<BaseDirectories<ChenronDir>> _resolveBaseDirectory() async {
     try {
-      final baseDirFuture = locator.get<Signal<Future<ChenronDirectories?>>>();
-      final baseDir = await baseDirFuture.value;
+      final baseDirsFuture = locator.get<Signal<Future<BaseDirectories<ChenronDir>?>>>();
+      final baseDirs = await baseDirsFuture.value;
 
-      if (baseDir == null) {
+      if (baseDirs == null) {
         throw Exception("Base directory future resolved to null.");
       }
-      return baseDir;
+      return baseDirs;
     } catch (e, s) {
       const errorMsg = "Failed to resolve base directories.";
       // ignore: avoid_print
@@ -103,11 +104,11 @@ class MainSetup {
     }
   }
 
-  static Future<void> _setupConfig(ChenronDirectories baseDir) async {
+  static Future<void> _setupConfig(BaseDirectories<ChenronDir> baseDirs) async {
     try {
       final configHandler = locator.get<Signal<ConfigDatabaseFileHandler>>();
       final databaseLocation = DatabaseLocation(
-        databaseDirectory: baseDir.configDir,
+        databaseDirectory: baseDirs.dir(ChenronDir.database),
         databaseFilename: "config.sqlite",
       );
       configHandler.value.databaseLocation = databaseLocation;
@@ -121,9 +122,9 @@ class MainSetup {
     }
   }
 
-  static Future<void> _setupLogging(ChenronDirectories baseDir) async {
+  static Future<void> _setupLogging(BaseDirectories<ChenronDir> baseDirs) async {
     try {
-      final logDir = Directory(baseDir.logDir.path);
+      final logDir = Directory(baseDirs.dir(ChenronDir.log).path);
 
       // Ensure the directory exists *before* setting up the logger
       // (setupLogging might assume it exists)

@@ -64,6 +64,19 @@ void main() {
       expect(archivedUrl, isNotEmpty);
       expect(archivedUrl, contains("web.archive.org/web/"));
     });
+
+    test("handles pending job via checkStatus", () async {
+      const targetUrl = "https://example.com";
+      final result = await archiveClient.archiveUrl(targetUrl);
+      if (result.startsWith('http')) {
+        // Immediate success path
+        expect(result, contains("web.archive.org"));
+      } else {
+        // Pending path: result is job_id
+        final status = await archiveClient.checkStatus(result);
+        expect(status["status"], anyOf(["success", "pending", "error"]));
+      }
+    });
   });
 }
 

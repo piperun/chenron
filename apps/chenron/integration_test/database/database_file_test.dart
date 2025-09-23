@@ -12,6 +12,7 @@ import "package:signals/signals.dart";
 
 import "package:chenron/test_support/path_provider_fake.dart";
 import "package:chenron/test_support/logger_setup.dart";
+import "package:chenron/base_dirs/schema.dart";
 
 Future<void> setUpFakeData(AppDatabase database, {int len = 5}) async {
   for (int i = 0; i < len; i++) {
@@ -30,12 +31,21 @@ void main() {
     // Provide a test-specific base directory via GetIt without full locator setup
     await locator.reset();
     final tempBase = Directory.systemTemp.createTempSync('chenron_base_dir');
-    final testDirs = ChenronDirectories(
-      databaseName: File('app.sqlite'),
-      baseDir: tempBase,
+
+    final testDirs = BaseDirectories<ChenronDir>(
+      appName: 'chenron',
+      platformBaseDir: tempBase,
+      schema: chenronSchema,
+      debugMode: true,
     );
-    await testDirs.createDirectories();
-    locator.registerSingleton<Signal<Future<ChenronDirectories?>>>(
+    await testDirs.create(include: {
+      ChenronDir.database,
+      ChenronDir.backupApp,
+      ChenronDir.backupConfig,
+      ChenronDir.log,
+    });
+
+    locator.registerSingleton<Signal<Future<BaseDirectories<ChenronDir>?>>>(
       signal(Future.value(testDirs)),
     );
   });
@@ -46,18 +56,21 @@ void main() {
   late File createdFilePath;
   late File? importedFilePath;
   late File? exportedFilePath;
-  late ChenronDirectories? baseDir;
+  late BaseDirectories<ChenronDir>? baseDirs;
 
   setUp(
     () async {
-      baseDir = await locator.get<Signal<Future<ChenronDirectories?>>>().value;
-      if (baseDir == null) {
-        throw Exception("Base directory is null");
+      baseDirs = await locator
+          .get<Signal<Future<BaseDirectories<ChenronDir>?>>>()
+          .value;
+      if (baseDirs == null) {
+        throw Exception("Base directories are null");
       }
 
-      createdFilePath = File(p.join(baseDir!.dbDir.path, createdFilename));
+      createdFilePath = File(p.join(baseDirs!.databaseDir.path, createdFilename));
       databaseLocation = DatabaseLocation(
-          databaseDirectory: baseDir!.dbDir, databaseFilename: createdFilename);
+          databaseDirectory: baseDirs!.databaseDir,
+          databaseFilename: createdFilename);
 
       databaseHandler = AppDatabaseHandler(databaseLocation: databaseLocation);
       databaseHandler.createDatabase(
@@ -81,7 +94,8 @@ void main() {
           reason: "File at $createdFilePath does not exist");
     });
     test("importDatabase throws when given invalid path", () async {
-      final invalidPath = File(p.join(baseDir!.dbDir.path, 'nonexistent.sqlite'));
+      final invalidPath =
+          File(p.join(baseDirs!.databaseDir.path, 'nonexistent.sqlite'));
       expect(
           databaseHandler.importDatabase(invalidPath,
               setupOnInit: false, copyImport: false),

@@ -5,6 +5,7 @@ import 'package:chenron/providers/basedir.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
+import 'package:chenron/base_dirs/schema.dart';
 
 class _FakePathProvider extends Fake with MockPlatformInterfaceMixin implements PathProviderPlatform {
   final String docs;
@@ -32,15 +33,14 @@ void main() {
       );
     });
 
-    test('initializeChenronDirs uses app.sqlite and expected layout', () async {
-      final dirs = await initializeChenronDirs();
-      expect(dirs, isNotNull);
+    test('initializeBaseDirs creates expected layout', () async {
+      final base = await initializeBaseDirs();
+      expect(base, isNotNull);
       final norm = (String s) => s.replaceAll('\\', '/');
 
-      expect(p.basename(dirs!.databaseName.path), 'app.sqlite');
-      expect(norm(dirs.databaseDir.path).endsWith('chenron/debug/database') || norm(dirs.databaseDir.path).endsWith('chenron/database'), isTrue);
-      expect(norm(dirs.backupAppDbDir.path).endsWith('chenron/debug/backup/app') || norm(dirs.backupAppDbDir.path).endsWith('chenron/backup/app'), isTrue);
-      expect(norm(dirs.backupConfigDbDir.path).endsWith('chenron/debug/backup/config') || norm(dirs.backupConfigDbDir.path).endsWith('chenron/backup/config'), isTrue);
+      expect(norm(base!.databaseDir.path).endsWith('chenron/debug/database') || norm(base.databaseDir.path).endsWith('chenron/database'), isTrue);
+      expect(norm(base.backupAppDir.path).endsWith('chenron/debug/backup/app') || norm(base.backupAppDir.path).endsWith('chenron/backup/app'), isTrue);
+      expect(norm(base.backupConfigDir.path).endsWith('chenron/debug/backup/config') || norm(base.backupConfigDir.path).endsWith('chenron/backup/config'), isTrue);
     });
   });
 }
