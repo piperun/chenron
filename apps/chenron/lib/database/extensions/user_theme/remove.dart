@@ -1,7 +1,7 @@
 import "package:chenron/database/database.dart";
 import "package:chenron/database/schema/user_config_schema.dart";
 import "package:chenron/utils/logger.dart";
-import 'package:drift/drift.dart';
+import "package:drift/drift.dart";
 
 extension UserThemeRemoveExtensions on ConfigDatabase {
   Future<void> removeUserTheme({

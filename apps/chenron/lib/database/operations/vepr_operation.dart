@@ -1,5 +1,5 @@
-import 'package:chenron/utils/logger.dart';
-import 'package:drift/drift.dart'; // Import GeneratedDatabase
+import "package:chenron/utils/logger.dart";
+import "package:drift/drift.dart"; // Import GeneratedDatabase
 
 /// Abstract base class defining the Validate-Execute-Process-Result (VEPR) sequence.
 /// Generic over the specific Database type (DB), Input, Execution Result,

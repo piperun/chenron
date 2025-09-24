@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
-import 'package:chenron/features/create/folder/pages/create_folder.dart';
-import 'package:chenron/features/create/link/pages/create_link.dart';
-import 'dart:math' as math;
+import "package:flutter/material.dart";
+import "package:chenron/features/create/folder/pages/create_folder.dart";
+import "package:chenron/features/create/link/pages/create_link.dart";
+import "dart:math" as math;
 
 class ShellNavigationRail extends StatelessWidget {
   final bool isExtended;
@@ -79,21 +79,21 @@ class _CreateExpansionTile extends StatelessWidget {
       ),
       child: IntrinsicWidth(
         child: ExpansionTile(
-          title: const Text('Create'),
+          title: const Text("Create"),
           children: <Widget>[
             ListTile(
               leading: const Icon(Icons.create_new_folder_outlined),
-              title: const Text('Folder'),
-              onTap: () => onNavigateToCreate(context, CreateFolderPage(), 'Add Folder'),
+              title: const Text("Folder"),
+              onTap: () => onNavigateToCreate(context, CreateFolderPage(), "Add Folder"),
             ),
             ListTile(
               leading: const Icon(Icons.add_link),
-              title: const Text('Link'),
-              onTap: () => onNavigateToCreate(context, CreateLinkPage(), 'Add Link'),
+              title: const Text("Link"),
+              onTap: () => onNavigateToCreate(context, CreateLinkPage(), "Add Link"),
             ),
             ListTile(
               leading: const Icon(Icons.article_outlined),
-              title: const Text('Document'),
+              title: const Text("Document"),
               onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text("Document creation coming soon!")),

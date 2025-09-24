@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:trina_grid/trina_grid.dart';
-import 'package:chenron/notifiers/link_table_notifier.dart';
+import "package:flutter/material.dart";
+import "package:trina_grid/trina_grid.dart";
+import "package:chenron/notifiers/link_table_notifier.dart";
 
 class DataGrid extends StatefulWidget {
   final List<TrinaColumn> columns;

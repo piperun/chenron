@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:chenron/features/create/folder/pages/create_folder.dart';
-import 'package:chenron/features/create/link/pages/create_link.dart';
+import "package:flutter/material.dart";
+import "package:chenron/features/create/folder/pages/create_folder.dart";
+import "package:chenron/features/create/link/pages/create_link.dart";
 
 class ShellAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Function(BuildContext, Widget, String) onNavigateToCreate;
@@ -69,7 +69,7 @@ class _LogoSection extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           const Text(
-            'chenron',
+            "chenron",
             style: TextStyle(
               color: Colors.black87,
               fontSize: 16,
@@ -145,16 +145,16 @@ class _ActionsSection extends StatelessWidget {
             color: Colors.grey,
             size: 20,
           ),
-          tooltip: 'Create',
+          tooltip: "Create",
           onSelected: (String value) {
             switch (value) {
-              case 'folder':
-                onNavigateToCreate(context, CreateFolderPage(), 'Add Folder');
+              case "folder":
+                onNavigateToCreate(context, CreateFolderPage(), "Add Folder");
                 break;
-              case 'link':
-                onNavigateToCreate(context, CreateLinkPage(), 'Add Link');
+              case "link":
+                onNavigateToCreate(context, CreateLinkPage(), "Add Link");
                 break;
-              case 'document':
+              case "document":
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text("Document creation coming soon!")),
                 );
@@ -163,26 +163,26 @@ class _ActionsSection extends StatelessWidget {
           },
           itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
             const PopupMenuItem<String>(
-              value: 'folder',
+              value: "folder",
               child: ListTile(
                 leading: Icon(Icons.create_new_folder_outlined),
-                title: Text('Folder'),
+                title: Text("Folder"),
                 contentPadding: EdgeInsets.zero,
               ),
             ),
             const PopupMenuItem<String>(
-              value: 'link',
+              value: "link",
               child: ListTile(
                 leading: Icon(Icons.add_link),
-                title: Text('Link'),
+                title: Text("Link"),
                 contentPadding: EdgeInsets.zero,
               ),
             ),
             const PopupMenuItem<String>(
-              value: 'document',
+              value: "document",
               child: ListTile(
                 leading: Icon(Icons.article_outlined),
-                title: Text('Document'),
+                title: Text("Document"),
                 contentPadding: EdgeInsets.zero,
               ),
             ),

@@ -1,7 +1,7 @@
-import 'package:drift/drift.dart';
-import 'package:chenron/database/actions/builders/result_builder.dart';
-import 'package:chenron/database/database.dart';
-import 'package:chenron/models/db_result.dart';
+import "package:drift/drift.dart";
+import "package:chenron/database/actions/builders/result_builder.dart";
+import "package:chenron/database/database.dart";
+import "package:chenron/models/db_result.dart";
 
 class DocumentResultBuilder implements ResultBuilder<DocumentResult> {
   final Document _document;

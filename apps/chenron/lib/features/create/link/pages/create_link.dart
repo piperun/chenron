@@ -170,7 +170,7 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
     final appDb = db.appDatabase;
 
     final targetFolders = _selectedFolders.isEmpty
-        ? ['default']
+        ? ["default"]
         : _selectedFolders.map((f) => f.id).toList();
 
     for (final folderId in targetFolders) {

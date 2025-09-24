@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import "package:flutter/material.dart";
 
 abstract class BaseItemEditor<T> extends StatefulWidget {
   final Function(T item) onAdd;

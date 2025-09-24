@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:chenron/features/create/folder/pages/create_folder.dart';
-import 'package:chenron/features/create/link/pages/create_link.dart';
-import 'package:chenron/features/viewer/pages/viewer.dart';
-import 'package:chenron/features/settings/pages/configuration.dart';
-import 'package:chenron/features/dashboard/pages/dashboard.dart';
+import "package:flutter/material.dart";
+import "package:chenron/features/create/folder/pages/create_folder.dart";
+import "package:chenron/features/create/link/pages/create_link.dart";
+import "package:chenron/features/viewer/pages/viewer.dart";
+import "package:chenron/features/settings/pages/configuration.dart";
+import "package:chenron/features/dashboard/pages/dashboard.dart";
 
 enum NavigationSection {
   dashboard(
