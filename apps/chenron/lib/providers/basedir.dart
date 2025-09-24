@@ -19,7 +19,7 @@ Future<BaseDirectories<ChenronDir>?> initializeBaseDirs() async {
 
     // Instantiate BaseDirectories with Chenron schema
     final baseDirs = BaseDirectories<ChenronDir>(
-      appName: 'chenron',
+      appName: "chenron",
       platformBaseDir: platformBase,
       schema: chenronSchema,
       debugMode: debugMode,

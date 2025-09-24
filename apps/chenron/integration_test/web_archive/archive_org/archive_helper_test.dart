@@ -1,4 +1,4 @@
-import 'dart:io';
+import "dart:io";
 import "package:chenron/database/extensions/id.dart";
 import "package:chenron/database/extensions/link/read.dart";
 import "package:chenron/database/extensions/user_config/read.dart";
@@ -46,8 +46,8 @@ void main() {
     // Ensure archive.org credentials are present to enable archiving paths in tests
     await (configDatabase.update(configDatabase.userConfigs)).write(
       UserConfigsCompanion(
-        archiveOrgS3AccessKey: const drift.Value('test_key'),
-        archiveOrgS3SecretKey: const drift.Value('test_secret'),
+        archiveOrgS3AccessKey: const drift.Value("test_key"),
+        archiveOrgS3SecretKey: const drift.Value("test_secret"),
       ),
     );
 
@@ -113,11 +113,11 @@ void main() {
 }
 
 class _FakeArchiveOrgClient extends ArchiveOrgClient {
-  _FakeArchiveOrgClient() : super('', '');
+  _FakeArchiveOrgClient() : super("", "");
 
   @override
   Future<String> archiveAndWait(String targetUrl) async {
     // Return a deterministic archived URL differing from older timestamps
-    return 'https://web.archive.org/web/20990101000000/$targetUrl';
+    return "https://web.archive.org/web/20990101000000/$targetUrl";
   }
 }

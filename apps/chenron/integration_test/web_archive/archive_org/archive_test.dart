@@ -1,9 +1,9 @@
-import 'dart:io';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:integration_test/integration_test.dart';
-import 'package:web_archiver/web_archiver.dart';
-import 'package:chenron/test_support/path_provider_fake.dart';
-import 'package:chenron/test_support/logger_setup.dart';
+import "dart:io";
+import "package:flutter_test/flutter_test.dart";
+import "package:integration_test/integration_test.dart";
+import "package:web_archiver/web_archiver.dart";
+import "package:chenron/test_support/path_provider_fake.dart";
+import "package:chenron/test_support/logger_setup.dart";
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -16,7 +16,7 @@ void main() {
   group("[offline] ArchiveOrgClient", () {
     setUpAll(() {
       archiveOrgClientFactory = (k, s) => _FakeArchiveOrgClient();
-      archiveClient = archiveOrgClientFactory('', '');
+      archiveClient = archiveOrgClientFactory("", "");
     });
 
     test("archives a single URL successfully", () async {
@@ -68,7 +68,7 @@ void main() {
     test("handles pending job via checkStatus", () async {
       const targetUrl = "https://example.com";
       final result = await archiveClient.archiveUrl(targetUrl);
-      if (result.startsWith('http')) {
+      if (result.startsWith("http")) {
         // Immediate success path
         expect(result, contains("web.archive.org"));
       } else {
@@ -81,13 +81,13 @@ void main() {
 }
 
 class _FakeArchiveOrgClient extends ArchiveOrgClient {
-  _FakeArchiveOrgClient() : super('', '');
+  _FakeArchiveOrgClient() : super("", "");
 
   @override
   Future<bool> checkAuthentication() async => true;
 
   @override
   Future<String> archiveAndWait(String targetUrl) async {
-    return 'https://web.archive.org/web/20990101000000/$targetUrl';
+    return "https://web.archive.org/web/20990101000000/$targetUrl";
   }
 }

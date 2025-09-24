@@ -1,11 +1,11 @@
-import 'dart:io';
+import "dart:io";
 
-import 'package:flutter_test/flutter_test.dart';
-import 'package:chenron/providers/basedir.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
-import 'package:plugin_platform_interface/plugin_platform_interface.dart';
-import 'package:chenron/base_dirs/schema.dart';
+import "package:flutter_test/flutter_test.dart";
+import "package:chenron/providers/basedir.dart";
+import "package:path/path.dart" as p;
+import "package:path_provider_platform_interface/path_provider_platform_interface.dart";
+import "package:plugin_platform_interface/plugin_platform_interface.dart";
+import "package:chenron/base_dirs/schema.dart";
 
 class _FakePathProvider extends Fake with MockPlatformInterfaceMixin implements PathProviderPlatform {
   final String docs;
@@ -23,9 +23,9 @@ class _FakePathProvider extends Fake with MockPlatformInterfaceMixin implements 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  group('basedir provider (with fake path_provider)', () {
+  group("basedir provider (with fake path_provider)", () {
     setUp(() async {
-      final tmp = Directory.systemTemp.createTempSync('chenron_test').path;
+      final tmp = Directory.systemTemp.createTempSync("chenron_test").path;
       PathProviderPlatform.instance = _FakePathProvider(
         docs: tmp,
         support: tmp,
@@ -33,14 +33,14 @@ void main() {
       );
     });
 
-    test('initializeBaseDirs creates expected layout', () async {
+    test("initializeBaseDirs creates expected layout", () async {
       final base = await initializeBaseDirs();
       expect(base, isNotNull);
-      final norm = (String s) => s.replaceAll('\\', '/');
+      final norm = (String s) => s.replaceAll("\\", "/");
 
-      expect(norm(base!.databaseDir.path).endsWith('chenron/debug/database') || norm(base.databaseDir.path).endsWith('chenron/database'), isTrue);
-      expect(norm(base.backupAppDir.path).endsWith('chenron/debug/backup/app') || norm(base.backupAppDir.path).endsWith('chenron/backup/app'), isTrue);
-      expect(norm(base.backupConfigDir.path).endsWith('chenron/debug/backup/config') || norm(base.backupConfigDir.path).endsWith('chenron/backup/config'), isTrue);
+      expect(norm(base!.databaseDir.path).endsWith("chenron/debug/database") || norm(base.databaseDir.path).endsWith("chenron/database"), isTrue);
+      expect(norm(base.backupAppDir.path).endsWith("chenron/debug/backup/app") || norm(base.backupAppDir.path).endsWith("chenron/backup/app"), isTrue);
+      expect(norm(base.backupConfigDir.path).endsWith("chenron/debug/backup/config") || norm(base.backupConfigDir.path).endsWith("chenron/backup/config"), isTrue);
     });
   });
 }

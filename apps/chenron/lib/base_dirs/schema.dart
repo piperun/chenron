@@ -1,16 +1,16 @@
-import 'dart:io';
+import "dart:io";
 
-import 'package:basedir/directory.dart';
+import "package:basedir/directory.dart";
 
 /// Enum keys representing Chenron app directories.
 enum ChenronDir { database, backupApp, backupConfig, log }
 
 /// Chenron directory schema mapping keys to relative path segments.
 const chenronSchema = DirSchema<ChenronDir>(paths: {
-  ChenronDir.database: ['database'],
-  ChenronDir.backupApp: ['backup', 'app'],
-  ChenronDir.backupConfig: ['backup', 'config'],
-  ChenronDir.log: ['log'],
+  ChenronDir.database: ["database"],
+  ChenronDir.backupApp: ["backup", "app"],
+  ChenronDir.backupConfig: ["backup", "config"],
+  ChenronDir.log: ["log"],
 });
 
 /// Convenience getters for Chenron directories.

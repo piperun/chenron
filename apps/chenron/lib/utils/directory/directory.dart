@@ -1,1 +1,1 @@
-export 'package:basedir/directory.dart';
+export "package:basedir/directory.dart";

@@ -30,10 +30,10 @@ void main() {
 
     // Provide a test-specific base directory via GetIt without full locator setup
     await locator.reset();
-    final tempBase = Directory.systemTemp.createTempSync('chenron_base_dir');
+    final tempBase = Directory.systemTemp.createTempSync("chenron_base_dir");
 
     final testDirs = BaseDirectories<ChenronDir>(
-      appName: 'chenron',
+      appName: "chenron",
       platformBaseDir: tempBase,
       schema: chenronSchema,
       debugMode: true,
@@ -95,7 +95,7 @@ void main() {
     });
     test("importDatabase throws when given invalid path", () async {
       final invalidPath =
-          File(p.join(baseDirs!.databaseDir.path, 'nonexistent.sqlite'));
+          File(p.join(baseDirs!.databaseDir.path, "nonexistent.sqlite"));
       expect(
           databaseHandler.importDatabase(invalidPath,
               setupOnInit: false, copyImport: false),
