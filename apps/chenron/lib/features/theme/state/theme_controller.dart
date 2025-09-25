@@ -8,6 +8,7 @@ import "package:chenron/utils/logger.dart";
 import "package:flex_color_scheme/flex_color_scheme.dart";
 import "package:flutter/material.dart";
 import "package:signals/signals_flutter.dart";
+import "package:vibe/vibe.dart";
 
 ThemeServiceDB? _themeService;
 
@@ -92,41 +93,13 @@ ThemeVariants generateSeedTheme({
   int? tertiaryColor,
   required int seedType,
 }) {
-  final FlexSchemeColor customColors = FlexSchemeColor(
+  final bool useSec = seedType >= 2;
+  final bool useTer = seedType >= 3;
+  return buildSeededVariants(
     primary: Color(primaryColor),
     secondary: Color(secondaryColor),
     tertiary: tertiaryColor != null ? Color(tertiaryColor) : null,
-  );
-
-  FlexColorScheme lightScheme;
-  FlexColorScheme darkScheme;
-
-  if (seedType > 0) {
-    final FlexKeyColors keyColorSettings = FlexKeyColors(
-      useKeyColors: true,
-      useSecondary: seedType >= 2,
-      useTertiary: seedType >= 3,
-    );
-
-    lightScheme = FlexColorScheme.light(
-      colors: customColors,
-      keyColors: keyColorSettings,
-    );
-    darkScheme = FlexColorScheme.dark(
-      colors: customColors,
-      keyColors: keyColorSettings,
-    );
-  } else {
-    lightScheme = FlexColorScheme.light(
-      colors: customColors,
-    );
-    darkScheme = FlexColorScheme.dark(
-      colors: customColors,
-    );
-  }
-
-  return (
-    light: lightScheme.toTheme,
-    dark: darkScheme.toTheme,
+    useSecondary: useSec,
+    useTertiary: useTer,
   );
 }

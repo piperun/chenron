@@ -8,3 +8,4 @@ workspace:
   - apps/chenron
   - packages/basedir
   - packages/web_archiver
+  - packages/vibe
