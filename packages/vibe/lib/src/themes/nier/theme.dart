@@ -31,7 +31,8 @@ ThemeVariants buildNierTheme(
         scaffoldBackgroundSchemeColor: SchemeColor.primary,
         textButtonSchemeColor: SchemeColor.tertiary,
         appBarBackgroundSchemeColor: SchemeColor.primary,
-        elevatedButtonSchemeColor: SchemeColor.primary,
+        elevatedButtonSchemeColor: SchemeColor.tertiary,
+        filledButtonSchemeColor: SchemeColor.secondary,
       );
 
   final FlexSchemeData scheme = FlexSchemeData(
