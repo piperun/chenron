@@ -3,6 +3,7 @@ import "package:chenron/features/shell/pages/error_page.dart";
 import "package:chenron/features/shell/pages/root.dart";
 import "package:chenron/features/theme/state/theme_manager.dart";
 import "package:chenron/locator.dart";
+import "package:chenron/providers/theme_controller_signal.dart";
 
 import "package:flutter/material.dart";
 import "package:signals/signals_flutter.dart";
@@ -32,21 +33,19 @@ class MyApp extends StatelessWidget {
     final themeManager = locator.get<ThemeManager>();
 
     return Watch((context) {
-      final currentMode = themeManager.themeModeSignal.value;
+      final ThemeMode? currentMode = themeManager.themeModeSignal.value;
 
-      loggerGlobal.fine("MyApp.build", "Building with ThemeMode: $currentMode");
+      // Get current theme variants (light/dark) from ThemeController
+      final themeController = themeControllerSignal.value;
+      final variants = themeController.currentThemeSignal.value;
 
-      final lightTheme = ThemeData.light(useMaterial3: true).copyWith(
-        appBarTheme: const AppBarTheme(backgroundColor: Colors.blue),
-      );
-      final darkTheme = ThemeData.dark(useMaterial3: true).copyWith(
-        appBarTheme: const AppBarTheme(backgroundColor: Colors.indigo),
-      );
+      loggerGlobal.fine(
+          "MyApp.build", "Building with ThemeMode: $currentMode and dynamic theme");
 
       return MaterialApp(
         title: "Chenron",
-        theme: lightTheme,
-        darkTheme: darkTheme,
+        theme: variants.light,
+        darkTheme: variants.dark,
         themeAnimationDuration: const Duration(milliseconds: 300),
         themeAnimationCurve: Curves.easeInOut,
         themeMode: currentMode ?? ThemeMode.light,

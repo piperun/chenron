@@ -68,9 +68,9 @@ final class NierTheme extends BaseAppTheme {
     navigationRailSelectedIconSchemeColor: SchemeColor.surface,
     navigationRailUnselectedIconSchemeColor: SchemeColor.onSurfaceVariant,
     navigationRailIndicatorSchemeColor: SchemeColor.secondary,
-    navigationRailLabelType: NavigationRailLabelType.all,
+    // Do not force label type; allow app state (extended) to control labels
     searchBarShadowColor: NierColors.yorha.outlineGrey,
-    scaffoldBackgroundSchemeColor: SchemeColor.surface,
+    // Let scaffoldBackground (from the ThemeData) control the page background
   );
 
   @override

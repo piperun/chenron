@@ -202,10 +202,7 @@ class SaveSettingsButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: ElevatedButton(
-        onPressed: onPressed, // Use the passed callback (can be null)
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-        ),
+        onPressed: onPressed, // Theme controls appearance globally via ElevatedButtonTheme
         child: const Text("Save Settings"),
       ),
     );

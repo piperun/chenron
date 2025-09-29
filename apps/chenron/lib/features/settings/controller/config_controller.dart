@@ -3,6 +3,7 @@ import "package:signals/signals_flutter.dart";
 import "package:chenron/database/database.dart";
 import "package:chenron/features/settings/service/config_service.dart";
 import "package:chenron/features/theme/state/theme_controller.dart";
+import "package:chenron/providers/theme_controller_signal.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/utils/logger.dart";
 
@@ -27,7 +28,7 @@ class ThemeChoice {
 
 class ConfigController {
   final ConfigService _configService = locator.get<ConfigService>();
-  final ThemeController _themeController = ThemeController();
+  final ThemeController _themeController = themeControllerSignal.value;
 
   final isLoading = signal<bool>(true);
   final error = signal<String?>(null);
@@ -45,7 +46,6 @@ class ConfigController {
     error.value = null;
     try {
       final configResult = await _configService.getUserConfig();
-      await _themeController.initialize();
       if (configResult != null) {
         final config = configResult.data;
         userConfig.value = config;

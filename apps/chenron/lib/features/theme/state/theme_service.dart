@@ -129,4 +129,9 @@ class ThemeServiceDB implements ThemeService {
     }
     return updateResult;
   }
+
+  /// Fetch a specific custom theme by its key.
+  Future<UserThemeResult?> getThemeByKey(String themeKey) async {
+    return _db.getUserTheme(themeKey: themeKey);
+  }
 }

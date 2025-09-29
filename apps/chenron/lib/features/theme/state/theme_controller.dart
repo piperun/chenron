@@ -41,32 +41,82 @@ class ThemeController {
 
   Future<void> changeThemeMode({required bool isDark}) async {
     themeModeSignal.value = isDark ? ThemeMode.dark : ThemeMode.light;
-    await _themeService?.changeThemeMode(isDark: !isDark);
+    await _themeService?.changeThemeMode(isDark: isDark);
   }
 
   Future<void> changeTheme(String themeKey, ThemeType themeType) async {
-    return _themeService?.changeTheme(themeKey, themeType);
+    await _themeService?.changeTheme(themeKey, themeType);
+
+    // Apply immediately without relying on stale config snapshots
+    if (themeType == ThemeType.custom) {
+      final UserThemeResult? theme = await _themeService?.getThemeByKey(themeKey);
+      if (theme != null) {
+        currentThemeSignal.value = generateSeedTheme(
+          primaryColor: theme.data.primaryColor,
+          secondaryColor: theme.data.secondaryColor,
+          tertiaryColor: theme.data.tertiaryColor,
+          seedType: theme.data.seedType,
+        );
+        return;
+      }
+      // Fallback if custom theme missing: try predefined by key
+      final fallback = getPredefinedTheme(themeKey);
+      if (fallback != null) {
+        currentThemeSignal.value = fallback;
+        return;
+      }
+    } else {
+      final variants = getPredefinedTheme(themeKey);
+      if (variants != null) {
+        currentThemeSignal.value = variants;
+        return;
+      }
+    }
+
+    // Ultimate fallback if nothing matched
+    currentThemeSignal.value = (
+      light: FlexThemeData.light(scheme: FlexScheme.blueWhale),
+      dark: FlexThemeData.dark(scheme: FlexScheme.blueWhale),
+    );
   }
 
   Future<void> setCurrentTheme() async {
-    final UserThemeResult? theme = await _themeService?.getCurrentTheme();
-    if (theme == null) return;
-    if (_themeService?.configData.data.selectedThemeType ==
-        ThemeType.custom.index) {
-      currentThemeSignal.value = generateSeedTheme(
-        primaryColor: theme.data.primaryColor,
-        secondaryColor: theme.data.secondaryColor,
-        tertiaryColor: theme.data.tertiaryColor,
-        seedType: theme.data.seedType,
+    loggerGlobal.info("ThemeController", "Applying theme from persisted config...");
+    final String? key = _themeService?.configData.data.selectedThemeKey;
+    final int? typeIndex = _themeService?.configData.data.selectedThemeType;
+
+    // Fallback if config incomplete
+    if (key == null || typeIndex == null) {
+      loggerGlobal.warning("ThemeController", "No persisted theme selection found. Using fallback.");
+      currentThemeSignal.value = (
+        light: FlexThemeData.light(scheme: FlexScheme.blueWhale),
+        dark: FlexThemeData.dark(scheme: FlexScheme.blueWhale),
       );
-    } else {
-      currentThemeSignal.value = getPredefinedTheme(
-              _themeService?.configData.data.selectedThemeKey ?? "") ??
-          (
-            light: FlexThemeData.light(scheme: FlexScheme.blueWhale),
-            dark: FlexThemeData.dark(scheme: FlexScheme.blueWhale)
-          );
+      return;
     }
+
+    if (typeIndex == ThemeType.custom.index) {
+      loggerGlobal.fine("ThemeController", "Persisted theme type: custom, key=$key");
+      final UserThemeResult? theme = await _themeService?.getThemeByKey(key);
+      if (theme != null) {
+        currentThemeSignal.value = generateSeedTheme(
+          primaryColor: theme.data.primaryColor,
+          secondaryColor: theme.data.secondaryColor,
+          tertiaryColor: theme.data.tertiaryColor,
+          seedType: theme.data.seedType,
+        );
+        return;
+      }
+      // If custom theme missing, fall through to predefined lookup
+      loggerGlobal.warning("ThemeController", "Custom theme $key not found. Falling back to predefined mapping.");
+    }
+
+    loggerGlobal.fine("ThemeController", "Persisted theme type: system, key=$key");
+    final variants = getPredefinedTheme(key);
+    currentThemeSignal.value = variants ?? (
+      light: FlexThemeData.light(scheme: FlexScheme.blueWhale),
+      dark: FlexThemeData.dark(scheme: FlexScheme.blueWhale),
+    );
   }
 
   Future<ThemeMode> getThemeMode() async {
