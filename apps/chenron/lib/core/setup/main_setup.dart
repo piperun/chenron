@@ -4,6 +4,7 @@ import "package:chenron/locator.dart";
 import "package:basedir/directory.dart";
 import "package:chenron/utils/logger.dart";
 import "package:chenron/database/extensions/operations/config_file_handler.dart";
+import "package:chenron/features/theme/state/theme_utils.dart";
 import "package:flutter/foundation.dart";
 import "package:signals/signals_flutter.dart"; // Or core if no Flutter needed here
 import "dart:io"; // For Directory
@@ -54,6 +55,9 @@ class MainSetup {
       // 3. Setup Configuration Database
       await _setupConfig(baseDirs);
       loggerGlobal.info("MainSetup", "Config database setup complete.");
+      // 5. Initialize Theme Registry
+      initializeThemeRegistry();
+      loggerGlobal.info("MainSetup", "Theme registry initialized.");
 
       _setupDone = true;
       loggerGlobal.info(
