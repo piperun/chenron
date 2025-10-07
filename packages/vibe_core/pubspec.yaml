@@ -1,0 +1,18 @@
+name: vibe_core
+description: Core theming contracts and infrastructure for the vibe theme system
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.5.0
+
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
