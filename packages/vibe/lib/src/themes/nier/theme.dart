@@ -1,15 +1,51 @@
 import 'package:flex_color_scheme/flex_color_scheme.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart'
-    show CardThemeData, DialogThemeData, ThemeData;
+import 'package:flutter/material.dart' show CardThemeData, DialogThemeData;
+import 'package:vibe/src/specs/flex_theme_spec.dart';
 import 'package:vibe/src/themes/nier/colors.dart';
-import 'package:vibe/src/types.dart';
+import 'package:vibe_core/vibe_core.dart';
 
-/// Build Nier theme variants using FlexSchemeColor for light/dark
-ThemeVariants buildNierTheme(
-    {FlexSubThemesData? subThemes, bool useMaterial3 = true}) {
-  final FlexSubThemesData sub = subThemes ??
-      FlexSubThemesData(
+/// Nier: Automata themed implementation
+class NierTheme extends FlexThemeSpec {
+  @override
+  ThemeId get id => const ThemeId('nier');
+
+  @override
+  ThemeMetadata get metadata => const ThemeMetadata(
+        name: 'Nier: Automata',
+        description: 'Color scheme based on Nier: Automata UI',
+        author: 'YorHa',
+        version: '1.0.0',
+        tags: <String>['game', 'beige', 'minimal'],
+      );
+
+  @override
+  FlexSchemeData get schemeData => FlexSchemeData(
+        name: metadata.name,
+        description: metadata.description,
+        light: FlexSchemeColor(
+          primary: NierColors.yorha.canvasBeige,
+          primaryContainer: NierColors.yorha.surfaceOffWhite,
+          secondary: NierColors.yorha.textBrownGrey,
+          secondaryContainer: NierColors.yorha.textBrownDarker,
+          tertiary: NierColors.yorha.outlineGrey,
+          tertiaryContainer: NierColors.yorha.textBrownGrey,
+          error: NierColors.yorha.hudRed,
+          errorContainer: NierColors.yorha.hudTeal,
+        ),
+        dark: FlexSchemeColor(
+          primary: NierColors.yorha.textBrownGrey,
+          primaryContainer: NierColors.yorha.textBrownDarker,
+          secondary: NierColors.yorha.canvasBeige,
+          secondaryContainer: NierColors.yorha.surfaceOffWhite,
+          tertiary: NierColors.yorha.textBrownDarkOutline,
+          tertiaryContainer: NierColors.yorha.outlineGrey,
+          error: NierColors.yorha.hudRed,
+          errorContainer: NierColors.yorha.hudTeal,
+        ),
+      );
+
+  @override
+  FlexSubThemesData get subThemes => FlexSubThemesData(
         interactionEffects: true,
         tintedDisabledControls: true,
         blendOnColors: true,
@@ -35,66 +71,31 @@ ThemeVariants buildNierTheme(
         filledButtonSchemeColor: SchemeColor.secondary,
       );
 
-  final FlexSchemeData scheme = FlexSchemeData(
-    name: 'Nier',
-    description: 'Color scheme based on Nier: Automata UI',
-    light: FlexSchemeColor(
-      primary: NierColors.yorha.canvasBeige,
-      primaryContainer: NierColors.yorha.surfaceOffWhite,
-      secondary: NierColors.yorha.textBrownGrey,
-      secondaryContainer: NierColors.yorha.textBrownDarker,
-      tertiary: NierColors.yorha.outlineGrey,
-      tertiaryContainer: NierColors.yorha.textBrownGrey,
-      error: NierColors.yorha.hudRed,
-      errorContainer: NierColors.yorha.hudTeal,
-    ),
-    dark: FlexSchemeColor(
-      primary: NierColors.yorha.textBrownGrey,
-      primaryContainer: NierColors.yorha.textBrownDarker,
-      secondary: NierColors.yorha.canvasBeige,
-      secondaryContainer: NierColors.yorha.surfaceOffWhite,
-      tertiary: NierColors.yorha.textBrownDarkOutline,
-      tertiaryContainer: NierColors.yorha.outlineGrey,
-      error: NierColors.yorha.hudRed,
-      errorContainer: NierColors.yorha.hudTeal,
-    ),
-  );
+  @override
+  ThemeVariants build() {
+    final ThemeVariants base = super.build();
 
-// Build light theme and apply legacy card background
-  final ThemeData light = FlexColorScheme.light(
-    colors: scheme.light,
-    surfaceMode: FlexSurfaceMode.level,
-    blendLevel: 8,
-    subThemesData: sub,
-    useMaterial3: useMaterial3,
-  ).toTheme.copyWith(
+    // Apply Nier-specific tweaks
+    return (
+      light: base.light.copyWith(
         cardTheme: CardThemeData(color: NierColors.yorha.surfaceOffWhite),
-        visualDensity: FlexColorScheme.comfortablePlatformDensity,
-        cupertinoOverrideTheme: const CupertinoThemeData(applyThemeToAll: true),
-      );
+      ),
+      dark: base.dark.copyWith(
+        colorScheme: base.dark.colorScheme.copyWith(
+          surface: NierColors.yorha.textBrownGrey,
+        ),
+        dialogTheme:
+            DialogThemeData(backgroundColor: NierColors.yorha.textBrownDarker),
+      ),
+    );
+  }
+}
 
-  // Build dark theme with legacy tweaks
-  final ThemeData darkBase = FlexColorScheme.dark(
-    colors: scheme.dark,
-    surfaceMode: FlexSurfaceMode.level,
-    blendLevel: 15,
-    subThemesData: sub,
-    useMaterial3: useMaterial3,
-  ).toTheme;
-
-  final ThemeData dark = darkBase.copyWith(
-    // Adjust surface tone and dialog background to match legacy
-    colorScheme: darkBase.colorScheme.copyWith(
-      surface: NierColors.yorha.textBrownGrey,
-    ),
-    dialogTheme:
-        DialogThemeData(backgroundColor: NierColors.yorha.textBrownDarker),
-    visualDensity: FlexColorScheme.comfortablePlatformDensity,
-    cupertinoOverrideTheme: const CupertinoThemeData(applyThemeToAll: true),
-  );
-
-  return (
-    light: light,
-    dark: dark,
-  );
+/// Legacy builder function for backward compatibility
+/// @Deprecated('Use NierTheme() instead')
+ThemeVariants buildNierTheme({
+  FlexSubThemesData? subThemes,
+  bool useMaterial3 = true,
+}) {
+  return NierTheme().build();
 }
