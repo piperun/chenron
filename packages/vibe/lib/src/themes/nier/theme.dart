@@ -1,5 +1,5 @@
 import 'package:flex_color_scheme/flex_color_scheme.dart';
-import 'package:flutter/material.dart' show CardThemeData, DialogThemeData;
+import 'package:flutter/material.dart';
 import 'package:vibe/src/specs/flex_theme_spec.dart';
 import 'package:vibe/src/themes/nier/colors.dart';
 import 'package:vibe_core/vibe_core.dart';
@@ -79,6 +79,34 @@ class NierTheme extends FlexThemeSpec {
     return (
       light: base.light.copyWith(
         cardTheme: CardThemeData(color: NierColors.yorha.surfaceOffWhite),
+        // Fix DropdownMenu to use theme colors
+        dropdownMenuTheme: DropdownMenuThemeData(
+          textStyle: TextStyle(color: base.light.colorScheme.secondary),
+          inputDecorationTheme: InputDecorationTheme(
+            filled: true,
+            fillColor: base.light.colorScheme.primary,
+            border: OutlineInputBorder(
+              borderSide: BorderSide(color: base.light.colorScheme.primary),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: base.light.colorScheme.primary),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide:
+                  BorderSide(color: base.light.colorScheme.primary, width: 2),
+            ),
+          ),
+          menuStyle: MenuStyle(
+            backgroundColor: WidgetStatePropertyAll<Color>(
+                base.light.colorScheme.primaryContainer),
+          ),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: base.light.colorScheme.secondary,
+            foregroundColor: base.light.colorScheme.primary,
+          ),
+        ),
       ),
       dark: base.dark.copyWith(
         colorScheme: base.dark.colorScheme.copyWith(
@@ -86,6 +114,36 @@ class NierTheme extends FlexThemeSpec {
         ),
         dialogTheme:
             DialogThemeData(backgroundColor: NierColors.yorha.textBrownDarker),
+        // Fix DropdownMenu to use theme colors
+        dropdownMenuTheme: DropdownMenuThemeData(
+          textStyle: TextStyle(
+            color: base.dark.colorScheme.onSurface,
+          ),
+          inputDecorationTheme: InputDecorationTheme(
+            filled: true,
+            fillColor: NierColors.yorha.textBrownDarker,
+            border: OutlineInputBorder(
+              borderSide: BorderSide(color: base.dark.colorScheme.outline),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: base.dark.colorScheme.outline),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide:
+                  BorderSide(color: base.dark.colorScheme.primary, width: 2),
+            ),
+          ),
+          menuStyle: MenuStyle(
+            backgroundColor:
+                WidgetStatePropertyAll<Color>(NierColors.yorha.textBrownDarker),
+          ),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: base.light.colorScheme.primary,
+            foregroundColor: base.light.colorScheme.secondary,
+          ),
+        ),
       ),
     );
   }
