@@ -192,7 +192,6 @@ class SettingsBody extends StatelessWidget {
   }
 }
 
-// --- SaveSettingsButton --- (Mostly unchanged, but onPressed is now simpler)
 class SaveSettingsButton extends StatelessWidget {
   final VoidCallback? onPressed; // Changed to VoidCallback? to allow disabling
 
@@ -202,7 +201,8 @@ class SaveSettingsButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: ElevatedButton(
-        onPressed: onPressed, // Theme controls appearance globally via ElevatedButtonTheme
+        onPressed:
+            onPressed, // Theme controls appearance globally via ElevatedButtonTheme
         child: const Text("Save Settings"),
       ),
     );
