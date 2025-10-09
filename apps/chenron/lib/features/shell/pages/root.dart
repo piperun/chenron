@@ -1,67 +1,11 @@
+import "package:chenron/features/shell/ui/sections/appbar_section.dart";
 import "package:flutter/material.dart";
 import "package:chenron/features/create/folder/pages/create_folder.dart";
 import "package:chenron/features/create/link/pages/create_link.dart";
-import "package:chenron/features/viewer/pages/viewer.dart";
-import "package:chenron/features/settings/pages/configuration.dart";
-import "package:chenron/features/dashboard/pages/dashboard.dart";
 import "package:chenron/shared/search/searchbar.dart";
 import "package:chenron/shared/ui/dark_mode.dart";
 import "package:chenron/utils/logger.dart";
-
-// Navigation sections that appear in the sidebar
-enum NavigationSection {
-  dashboard(
-    icon: Icons.dashboard_outlined,
-    selectedIcon: Icons.dashboard,
-    label: "Dashboard",
-    page: DashBoard(padding: 16),
-  ),
-  viewer(
-    icon: Icons.view_list_outlined,
-    selectedIcon: Icons.view_list,
-    label: "Viewer",
-    page: Viewer(),
-  );
-
-  final IconData icon;
-  final IconData selectedIcon;
-  final String label;
-  final Widget page;
-
-  const NavigationSection({
-    required this.icon,
-    required this.selectedIcon,
-    required this.label,
-    required this.page,
-  });
-
-  NavigationRailDestination toDestination() => NavigationRailDestination(
-        icon: Icon(icon),
-        selectedIcon: Icon(selectedIcon),
-        label: Text(label),
-      );
-}
-
-// Enum for all possible pages including Settings
-enum AppPage {
-  dashboard(NavigationSection.dashboard),
-  viewer(NavigationSection.viewer),
-  settings(null);
-
-  final NavigationSection? navSection;
-  const AppPage(this.navSection);
-
-  Widget get page {
-    switch (this) {
-      case AppPage.dashboard:
-        return const DashBoard(padding: 16);
-      case AppPage.viewer:
-        return const Viewer();
-      case AppPage.settings:
-        return const ConfigPage();
-    }
-  }
-}
+import "package:chenron/features/shell/ui/sections/navigation_section.dart";
 
 class RootPage extends StatefulWidget {
   const RootPage({super.key});
