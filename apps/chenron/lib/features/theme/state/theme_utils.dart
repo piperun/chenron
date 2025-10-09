@@ -1,5 +1,4 @@
 import "package:flex_color_scheme/flex_color_scheme.dart";
-import "package:flutter/material.dart";
 import "package:vibe/vibe.dart";
 
 /// Global theme registry (initialized in main)
@@ -44,7 +43,7 @@ class _FlexSchemeTheme implements ThemeSpec {
   @override
   ThemeMetadata get metadata => ThemeMetadata(
         name: scheme.name,
-        description: 'FlexColorScheme ${scheme.name}',
+        description: "FlexColorScheme ${scheme.name}",
       );
 
   @override

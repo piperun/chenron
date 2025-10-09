@@ -5,6 +5,7 @@ import "package:chenron/features/viewer/pages/viewer.dart";
 import "package:chenron/features/settings/pages/configuration.dart";
 import "package:chenron/features/dashboard/pages/dashboard.dart";
 import "package:chenron/shared/search/searchbar.dart";
+import "package:chenron/shared/ui/dark_mode.dart";
 import "package:chenron/utils/logger.dart";
 
 // Navigation sections that appear in the sidebar
@@ -180,6 +181,7 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
       actions: [
+        const DarkModeToggle(),
         IconButton(
           tooltip: "Settings",
           icon: const Icon(Icons.settings_outlined),
@@ -298,7 +300,8 @@ class _CreateBottomSheet extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             "Choose what you'd like to add",
-            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+            style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 24),
           _CreateOption(
