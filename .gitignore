@@ -33,7 +33,7 @@ migrate_working_dir/
 **/build/
 build/
 /build/
-apps/*/build/*
+apps/*/build/
 
 # Symbolication related
 app.*.symbols
@@ -58,3 +58,4 @@ example.png
 
 *_old
 
+*.html
