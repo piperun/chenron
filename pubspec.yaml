@@ -7,6 +7,7 @@ environment:
 workspace:
   - apps/chenron
   - packages/basedir
+  - packages/cache_manager
   - packages/vibe_core
   - packages/vibe
   - packages/web_archiver
