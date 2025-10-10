@@ -70,8 +70,13 @@ class MetadataTitle extends StatelessWidget {
 
 class MetadataDescription extends StatelessWidget {
   final MetadataWidget widget;
+  final int maxLines;
 
-  const MetadataDescription({super.key, required this.widget});
+  const MetadataDescription({
+    super.key,
+    required this.widget,
+    this.maxLines = 2,
+  });
 
   Future<Map<String, dynamic>?> _getCachedMetadata() async {
     if (widget.metadata != null) return widget.metadata;
@@ -99,6 +104,7 @@ class MetadataDescription extends StatelessWidget {
                 fontStyle: FontStyle.italic,
               ),
               softWrap: true,
+              maxLines: maxLines,
               overflow: TextOverflow.ellipsis,
             );
           }
