@@ -1,42 +1,33 @@
 import "package:chenron/utils/logger.dart";
 import "package:chenron/utils/str_sanitizer.dart";
 import "package:flutter/material.dart";
-import "package:metadata_fetch/metadata_fetch.dart";
+import "package:cache_manager/cache_manager.dart";
 
 enum MetadataType { title, description, image, url }
 
 class MetadataFactory {
-  static final Map<String, Metadata?> _cache = {};
   static final Map<String, MetadataWidget> _widgetCache = {};
 
   static Future<MetadataWidget> createMetadataWidget(String url) async {
-    if (!_cache.containsKey(url)) {
-      _cache[url] = await MetadataFetch.extract(url);
+    final cacheKey = "widget_$url";
+
+    if (_widgetCache.containsKey(cacheKey)) {
+      return _widgetCache[cacheKey]!;
     }
 
-    final metadata = _cache[url];
-    final cacheKey = _getCacheKey(metadata);
+    // Use MetadataCache instead of direct SharedPreferences
+    final metadata = await MetadataCache.get(url);
 
-    return _widgetCache.putIfAbsent(
-      cacheKey,
-      () => MetadataWidget(url: url, metadata: metadata),
-    );
-  }
+    final widget = MetadataWidget(url: url, metadata: metadata);
+    _widgetCache[cacheKey] = widget;
 
-  static String _getCacheKey(Metadata? metadata) {
-    if (metadata?.title != null) {
-      return "title:${metadata!.title}";
-    } else if (metadata?.image != null) {
-      return "image:${metadata!.image}";
-    } else {
-      return 'url:${metadata?.url ?? ''}';
-    }
+    return widget;
   }
 }
 
 class MetadataWidget {
   final String url;
-  final Metadata? metadata;
+  final Map<String, dynamic>? metadata;
 
   MetadataWidget({required this.url, this.metadata});
 
@@ -51,18 +42,24 @@ class MetadataTitle extends StatelessWidget {
 
   const MetadataTitle({super.key, required this.widget});
 
+  Future<Map<String, dynamic>?> _getCachedMetadata() async {
+    if (widget.metadata != null) return widget.metadata;
+    return await MetadataCache.get(widget.url);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Metadata?>(
-      future: MetadataFetch.extract(widget.url),
+    return FutureBuilder<Map<String, dynamic>?>(
+      future: _getCachedMetadata(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Text("Loading...");
         } else if (snapshot.hasError) {
           return Text(widget.url);
         } else {
+          final title = snapshot.data?["title"] as String? ?? "";
           return Text(
-            removeDupSpaces(snapshot.data?.title ?? ""),
+            removeDupSpaces(title),
             style: const TextStyle(fontWeight: FontWeight.bold),
           );
         }
@@ -76,10 +73,15 @@ class MetadataDescription extends StatelessWidget {
 
   const MetadataDescription({super.key, required this.widget});
 
+  Future<Map<String, dynamic>?> _getCachedMetadata() async {
+    if (widget.metadata != null) return widget.metadata;
+    return await MetadataCache.get(widget.url);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Metadata?>(
-      future: MetadataFetch.extract(widget.url),
+    return FutureBuilder<Map<String, dynamic>?>(
+      future: _getCachedMetadata(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Text("Loading...");
@@ -88,27 +90,19 @@ class MetadataDescription extends StatelessWidget {
               "MetadataDescription", "Error: ${snapshot.error}");
           return const Text("No description available.");
         } else {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                widget.url,
-                style: const TextStyle(color: Colors.blue),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
+          final description = snapshot.data?["description"] as String?;
+          if (description != null) {
+            return Text(
+              description,
+              style: const TextStyle(
+                color: Colors.grey,
+                fontStyle: FontStyle.italic,
               ),
-              if (snapshot.data?.description != null)
-                Text(
-                  snapshot.data!.description!,
-                  style: const TextStyle(
-                    color: Colors.grey,
-                    fontStyle: FontStyle.italic,
-                  ),
-                  softWrap: true,
-                  overflow: TextOverflow.ellipsis,
-                ),
-            ],
-          );
+              softWrap: true,
+              overflow: TextOverflow.ellipsis,
+            );
+          }
+          return const SizedBox.shrink();
         }
       },
     );
@@ -120,17 +114,26 @@ class MetadataImage extends StatelessWidget {
 
   const MetadataImage({super.key, required this.widget});
 
+  Future<Map<String, dynamic>?> _getCachedMetadata() async {
+    if (widget.metadata != null) return widget.metadata;
+    return await MetadataCache.get(widget.url);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Metadata?>(
-      future: MetadataFetch.extract(widget.url),
+    return FutureBuilder<Map<String, dynamic>?>(
+      future: _getCachedMetadata(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const CircularProgressIndicator();
-        } else if (snapshot.hasError || snapshot.data?.image == null) {
+        } else if (snapshot.hasError) {
           return const SizedBox();
         } else {
-          return Image.network(snapshot.data!.image!);
+          final imageUrl = snapshot.data?["image"] as String?;
+          if (imageUrl != null) {
+            return Image.network(imageUrl);
+          }
+          return const SizedBox();
         }
       },
     );
@@ -142,17 +145,23 @@ class MetadataUrl extends StatelessWidget {
 
   const MetadataUrl({super.key, required this.widget});
 
+  Future<Map<String, dynamic>?> _getCachedMetadata() async {
+    if (widget.metadata != null) return widget.metadata;
+    return await MetadataCache.get(widget.url);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Metadata?>(
-      future: MetadataFetch.extract(widget.url),
+    return FutureBuilder<Map<String, dynamic>?>(
+      future: _getCachedMetadata(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Text("Loading...");
         } else if (snapshot.hasError) {
           return Text(widget.url);
         } else {
-          return Text(snapshot.data?.url ?? widget.url);
+          final url = snapshot.data?["url"] as String? ?? widget.url;
+          return Text(url);
         }
       },
     );
