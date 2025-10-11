@@ -11,7 +11,16 @@ import "package:signals/signals.dart";
 enum FolderType { folder, link, document }
 
 class CreateFolderPage extends StatefulWidget {
-  const CreateFolderPage({super.key});
+  final bool hideAppBar;
+  final ValueChanged<VoidCallback>? onSaveCallbackReady;
+  final ValueChanged<bool>? onValidationChanged;
+  
+  const CreateFolderPage({
+    super.key,
+    this.hideAppBar = false,
+    this.onSaveCallbackReady,
+    this.onValidationChanged,
+  });
 
   @override
   State<CreateFolderPage> createState() => _CreateFolderPageState();
@@ -24,21 +33,46 @@ class _CreateFolderPageState extends State<CreateFolderPage> {
   String _access = "Private";
 
   @override
+  void initState() {
+    super.initState();
+    
+    // Provide save callback to parent if requested
+    widget.onSaveCallbackReady?.call(saveFolder);
+    
+    // Add listeners to update validation state
+    _titleController.addListener(_updateValidationState);
+    _descriptionController.addListener(_updateValidationState);
+    
+    // Initially invalid (empty form) - defer to avoid setState during build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.onValidationChanged?.call(false);
+    });
+  }
+
+  @override
   void dispose() {
+    _titleController.removeListener(_updateValidationState);
+    _descriptionController.removeListener(_updateValidationState);
     _titleController.dispose();
     _descriptionController.dispose();
     super.dispose();
   }
 
+  void _updateValidationState() {
+    // Form is valid if title is not empty
+    final isValid = _titleController.text.trim().isNotEmpty;
+    widget.onValidationChanged?.call(isValid);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: widget.hideAppBar ? null : AppBar(
         title: const Text("Create Folder"),
         actions: [
           IconButton(
             icon: const Icon(Icons.save),
-            onPressed: _saveFolder,
+            onPressed: saveFolder,
           ),
         ],
       ),
@@ -94,7 +128,7 @@ class _CreateFolderPageState extends State<CreateFolderPage> {
     );
   }
 
-  Future<void> _saveFolder() async {
+  Future<void> saveFolder() async {
     if (_formKey.currentState!.validate()) {
       final db = await locator.get<Signal<Future<AppDatabaseHandler>>>().value;
       final appDb = db.appDatabase;

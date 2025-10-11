@@ -17,7 +17,16 @@ import "package:chenron/models/item.dart";
 import "package:signals/signals.dart";
 
 class CreateLinkPage extends StatefulWidget {
-  const CreateLinkPage({super.key});
+  final bool hideAppBar;
+  final ValueChanged<VoidCallback>? onSaveCallbackReady;
+  final ValueChanged<bool>? onValidationChanged;
+  
+  const CreateLinkPage({
+    super.key,
+    this.hideAppBar = false,
+    this.onSaveCallbackReady,
+    this.onValidationChanged,
+  });
 
   @override
   State<CreateLinkPage> createState() => _CreateLinkPageState();
@@ -41,6 +50,15 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
   @override
   void initState() {
     super.initState();
+    
+    // Provide save callback to parent if requested
+    widget.onSaveCallbackReady?.call(saveLinks);
+    
+    // Initially no links, so invalid - defer to avoid setState during build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.onValidationChanged?.call(false);
+    });
+    
     _columns = [
       TrinaColumn(
         title: "URL",
@@ -72,12 +90,12 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: widget.hideAppBar ? null : AppBar(
         title: const Text("Add Links"),
         actions: [
           IconButton(
             icon: const Icon(Icons.save),
-            onPressed: _saveLinks,
+            onPressed: saveLinks,
           ),
         ],
       ),
@@ -142,6 +160,9 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
 
         _tableNotifier.appendRow(newRow);
         _linkController.clear();
+        
+        // Notify parent that we now have valid content
+        widget.onValidationChanged?.call(true);
       }
     }
   }
@@ -163,9 +184,12 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
         .toList();
 
     _tableNotifier.removeSelectedRows();
+    
+    // Update validation state - invalid if no links remain
+    widget.onValidationChanged?.call(links.value.isNotEmpty);
   }
 
-  Future<void> _saveLinks() async {
+  Future<void> saveLinks() async {
     final db = await locator.get<Signal<Future<AppDatabaseHandler>>>().value;
     final appDb = db.appDatabase;
 
