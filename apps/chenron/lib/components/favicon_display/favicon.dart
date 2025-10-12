@@ -15,7 +15,14 @@ class Favicon extends StatelessWidget {
 
   static Future<String?> _getFavIconUrl(String url) async {
     if (!_cache.containsKey(url)) {
-      _cache[url] = FaviconFinder.getBest(url).then((favicon) => favicon?.url);
+      _cache[url] = FaviconFinder.getBest(url).then((favicon) {
+        return favicon?.url;
+      }).catchError((error) {
+        // Log the error once and cache the null result
+        loggerGlobal.warning(
+            "FavIcon", "Error while fetching favicon: $error");
+        return null;
+      });
     }
     return _cache[url];
   }
@@ -27,25 +34,44 @@ class Favicon extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.hasData && snapshot.data != null) {
           if (snapshot.data!.endsWith("svg")) {
-            return SvgPicture.network(snapshot.data!);
+            return SvgPicture.network(
+              snapshot.data!,
+              width: 16,
+              height: 16,
+              placeholderBuilder: (context) => const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+              errorBuilder: (context, error, stackTrace) {
+                // Silently handle SVG parsing errors
+                // This catches errors but they still get logged by the SVG parser
+                return const Icon(Icons.link, size: 16);
+              },
+            );
           } else {
-            return Image.network(snapshot.data!);
+            return Image.network(
+              snapshot.data!,
+              width: 16,
+              height: 16,
+              errorBuilder: (context, error, stackTrace) {
+                return const Icon(Icons.link, size: 16);
+              },
+            );
           }
         }
         if (snapshot.hasError) {
-          loggerGlobal.warning(
-              "FavIcon", "Error while fetching favicon: ${snapshot.error}");
-          return const Icon(Icons.link);
+          // Error already logged and cached in _getFavIconUrl
+          return const Icon(Icons.link, size: 16);
         }
         if (snapshot.connectionState != ConnectionState.done) {
-          return const RepaintBoundary(
-            child: CircularProgressIndicator(
-                strokeWidth: 8,
-                strokeAlign: BorderSide.strokeAlignCenter,
-                backgroundColor: Colors.blue),
+          return const SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(strokeWidth: 2),
           );
         } else {
-          return const Icon(Icons.link);
+          return const Icon(Icons.link, size: 16);
         }
       },
     );

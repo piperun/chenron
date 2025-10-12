@@ -43,33 +43,36 @@ class ItemCardView extends StatelessWidget {
                 ItemImageHeader(url: url),
 
               // Content section
-              Flexible(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(14),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
+                    mainAxisSize: MainAxisSize.max,
                     children: [
                       // Meta row
                       ItemMetaRow(item: item, url: url),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
 
                       // Title
                       ItemTitle(item: item, url: url),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 4),
 
                       // Description (up to 3 lines in card view)
                       ItemDescription(item: item, url: url, maxLines: 3),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 6),
 
                       // URL bar with copy button (only for links)
                       if (item.type == FolderItemType.link &&
                           url.isNotEmpty) ...[
                         ItemUrlBar(url: url),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 6),
                       ],
 
-                      // Tags
+                      // Spacer to push tags to bottom
+                      const Spacer(),
+
+                      // Tags at bottom
                       Wrap(
                         spacing: 6,
                         runSpacing: 6,

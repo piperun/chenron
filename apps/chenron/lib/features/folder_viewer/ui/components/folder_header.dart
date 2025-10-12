@@ -8,6 +8,8 @@ class FolderHeader extends StatelessWidget {
   final VoidCallback onBack;
   final bool isExpanded;
   final VoidCallback onToggle;
+  final bool isLocked;
+  final VoidCallback onToggleLock;
 
   const FolderHeader({
     super.key,
@@ -16,6 +18,8 @@ class FolderHeader extends StatelessWidget {
     required this.onBack,
     this.isExpanded = true,
     required this.onToggle,
+    this.isLocked = false,
+    required this.onToggleLock,
   });
 
   String _formatDate(DateTime? date) {
@@ -100,18 +104,50 @@ class FolderHeader extends StatelessWidget {
                 ),
               ),
               const Spacer(),
+              // Lock button
               Material(
                 color: Colors.white.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(6),
                 child: InkWell(
-                  onTap: onToggle,
+                  onTap: onToggleLock,
+                  borderRadius: BorderRadius.circular(6),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 200),
+                      transitionBuilder: (child, animation) {
+                        return FadeTransition(
+                          opacity: animation,
+                          child: ScaleTransition(
+                            scale: animation,
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: Icon(
+                        isLocked ? Icons.lock : Icons.lock_open,
+                        key: ValueKey<bool>(isLocked),
+                        size: 20,
+                        color: Colors.white.withOpacity(0.95),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              // Expand/collapse button
+              Material(
+                color: Colors.white.withOpacity(isLocked ? 0.1 : 0.2),
+                borderRadius: BorderRadius.circular(6),
+                child: InkWell(
+                  onTap: isLocked ? null : onToggle,
                   borderRadius: BorderRadius.circular(6),
                   child: Padding(
                     padding: const EdgeInsets.all(8),
                     child: Icon(
                       isExpanded ? Icons.expand_less : Icons.expand_more,
                       size: 20,
-                      color: Colors.white.withOpacity(0.95),
+                      color: Colors.white.withOpacity(isLocked ? 0.4 : 0.95),
                     ),
                   ),
                 ),

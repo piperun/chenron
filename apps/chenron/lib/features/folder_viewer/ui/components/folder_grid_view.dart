@@ -45,23 +45,29 @@ class FolderGridView extends StatelessWidget {
             final minCardWidth = 280.0;
             final spacing = 16.0;
 
-            // Determine how many columns can fit
+            // Determine how many columns can fit based on width AND item count
             int columns = 1;
-            if (availableWidth > minCardWidth * 2 + spacing) {
+            if (availableWidth > minCardWidth * 2 + spacing &&
+                items.length >= 2) {
               columns = 2;
             }
-            if (availableWidth > minCardWidth * 3 + spacing * 2) {
+            if (availableWidth > minCardWidth * 3 + spacing * 2 &&
+                items.length >= 3) {
               columns = 3;
             }
-            if (availableWidth > minCardWidth * 4 + spacing * 3) {
+            if (availableWidth > minCardWidth * 4 + spacing * 3 &&
+                items.length >= 4) {
               columns = 4;
+            }
+            if (availableWidth > minCardWidth * 5 + spacing * 4 &&
+                items.length >= 5) {
+              columns = 5;
             }
 
             return GridView.builder(
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: columns,
-                childAspectRatio:
-                    0.95, // Make cards taller for multi-line descriptions
+                childAspectRatio: 0.85,
                 crossAxisSpacing: spacing,
                 mainAxisSpacing: spacing,
               ),

@@ -31,7 +31,7 @@ class ItemListView extends StatelessWidget {
             color: theme.cardColor,
           ),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               // Thumbnail image (left side) for links
               if (item.type == FolderItemType.link && url.isNotEmpty)

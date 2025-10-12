@@ -50,23 +50,9 @@ class ItemUtils {
   }
 
   static List<Widget> buildTags(FolderItem item) {
-    return [
-      Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-        decoration: BoxDecoration(
-          color: const Color(0xFFE3F2FD),
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: Text(
-          item.type.name,
-          style: const TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w500,
-            color: Color(0xFF1976D2),
-          ),
-        ),
-      ),
-    ];
+    // Return empty list - type is shown as a badge, not a tag
+    // In the future, actual tags can be added here
+    return [];
   }
 }
 
