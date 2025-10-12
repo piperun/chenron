@@ -1,20 +1,23 @@
-import "package:chenron/components/table/link_toolbar.dart";
-import "package:chenron/shared/ui/base_switch.dart";
-import "package:chenron/shared/ui/folder_picker.dart";
-import "package:chenron/shared/ui/input_field.dart";
+import "package:flutter/material.dart";
 import "package:chenron/database/database.dart";
 import "package:chenron/database/extensions/folder/update.dart";
 import "package:chenron/database/extensions/link/create.dart";
 import "package:chenron/database/extensions/operations/database_file_handler.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/models/cud.dart";
-import "package:chenron/utils/validation/link_validator.dart";
-import "package:flutter/material.dart";
-import "package:trina_grid/trina_grid.dart";
-import "package:chenron/components/tables/link_table.dart";
-import "package:chenron/notifiers/link_table_notifier.dart";
 import "package:chenron/models/item.dart";
 import "package:signals/signals.dart";
+import "package:chenron/features/create/link/notifiers/create_link_notifier.dart";
+import "package:chenron/features/create/link/widgets/link_folder_section.dart";
+import "package:chenron/features/create/link/widgets/link_input_section.dart";
+import "package:chenron/features/create/link/widgets/link_archive_toggle.dart";
+import "package:chenron/features/create/link/widgets/link_tags_section.dart";
+import "package:chenron/features/create/link/widgets/link_table_section.dart";
+import "package:chenron/features/create/link/widgets/link_edit_bottom_sheet.dart";
+import "package:chenron/features/create/link/services/url_parser_service.dart";
+import "package:chenron/utils/validation/link_validator.dart";
+import "package:chenron/utils/validation/tag_validator.dart";
+import "package:chenron/notifiers/link_table_notifier.dart";
 
 class CreateLinkPage extends StatefulWidget {
   final bool hideAppBar;
@@ -33,163 +36,232 @@ class CreateLinkPage extends StatefulWidget {
 }
 
 class _CreateLinkPageState extends State<CreateLinkPage> {
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final TextEditingController _linkController = TextEditingController();
+  late CreateLinkNotifier _notifier;
   final DataGridNotifier _tableNotifier = DataGridNotifier();
-
   List<Folder> _selectedFolders = [];
-  // Create a signal for links
-  final links = signal<List<FolderItem>>([]);
-
-  late List<TrinaColumn> _columns;
-  late List<TrinaRow> _rows;
-
-  // Add to state class:
-  bool _isArchiveMode = false;
 
   @override
   void initState() {
     super.initState();
+    _notifier = CreateLinkNotifier();
     
     // Provide save callback to parent if requested
-    widget.onSaveCallbackReady?.call(saveLinks);
+    widget.onSaveCallbackReady?.call(_saveLinks);
     
-    // Initially no links, so invalid - defer to avoid setState during build
+    // Listen to notifier for validation changes
+    _notifier.addListener(_onNotifierChanged);
+    
+    // Initially no links, so invalid
     WidgetsBinding.instance.addPostFrameCallback((_) {
       widget.onValidationChanged?.call(false);
     });
-    
-    _columns = [
-      TrinaColumn(
-        title: "URL",
-        field: "url",
-        type: TrinaColumnType.text(),
-        enableRowChecked: true,
-      ),
-      TrinaColumn(
-        title: "Comment",
-        field: "comment",
-        type: TrinaColumnType.text(),
-      ),
-      TrinaColumn(
-        title: "Tags",
-        field: "tags",
-        type: TrinaColumnType.text(),
-      ),
-    ];
+  }
 
-    _rows = [];
+  void _onNotifierChanged() {
+    widget.onValidationChanged?.call(_notifier.hasEntries);
+    setState(() {});
   }
 
   @override
   void dispose() {
-    _linkController.dispose();
+    _notifier.removeListener(_onNotifierChanged);
+    _notifier.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: widget.hideAppBar ? null : AppBar(
-        title: const Text("Add Links"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: saveLinks,
-          ),
-        ],
-      ),
+      appBar: widget.hideAppBar
+          ? null
+          : AppBar(
+              title: const Text("Add Links"),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.save),
+                  onPressed: _saveLinks,
+                ),
+              ],
+            ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            FolderPicker(
-              onFoldersSelected: (selectedFolders) {
-                setState(() => _selectedFolders = selectedFolders);
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              LinkFolderSection(
+              selectedFolders: _selectedFolders,
+              onFoldersChanged: (folders) {
+                setState(() {
+                  _selectedFolders = folders;
+                  _notifier.setSelectedFolders(
+                    folders.map((f) => f.id).toList(),
+                  );
+                });
               },
             ),
-            InputField(
-                formKey: _formKey,
-                controller: _linkController,
-                labelText: "Link",
-                buttonText: "Add",
-                onPressed: _addLink,
-                validator: LinkValidator.validateContent),
-            BaseSwitch(
-              value: _isArchiveMode,
-              onChange: (value) => setState(() => _isArchiveMode = value),
-              label: "Archive Link(s)",
+            LinkInputSection(
+              mode: _notifier.inputMode,
+              onModeChanged: _notifier.setInputMode,
+              onAddSingle: _handleAddSingle,
+              onAddBulk: _handleAddBulk,
             ),
-            LinkToolbar(onDelete: _deleteSelected),
-            Expanded(
-              child: DataGrid(
-                columns: _columns,
-                rows: _rows,
+            LinkArchiveToggle(
+              value: _notifier.isArchiveMode,
+              onChanged: (value) => _notifier.setArchiveMode(value: value),
+            ),
+            LinkTagsSection(
+              tags: _notifier.globalTags,
+              onTagAdded: _notifier.addGlobalTag,
+              onTagRemoved: _notifier.removeGlobalTag,
+            ),
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: 300,
+                maxHeight: MediaQuery.of(context).size.height * 0.5,
+              ),
+              child: LinkTableSection(
+                entries: _notifier.entries,
                 notifier: _tableNotifier,
+                onEdit: _handleEdit,
+                onDelete: _handleDelete,
+                onDeleteSelected: _handleDeleteSelected,
+                onClearAll: _handleClearAll,
+                folderNames: _selectedFolders.fold<Map<String, String>>({}, (map, folder) {
+                  map[folder.id] = folder.title;
+                  return map;
+                }),
               ),
             ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  void _addLink() {
-    if (_formKey.currentState!.validate()) {
-      final String newLink = _linkController.text.trim();
+  void _handleAddSingle(String input) {
+    final parsed = UrlParserService.parseSingleLine(input);
+    if (parsed == null) return;
+    
+    // Validate URL
+    final urlError = LinkValidator.validateContent(parsed.url);
+    if (urlError != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(urlError)),
+      );
+      return;
+    }
+    
+    // Validate tags using TagValidator
+    final tagError = TagValidator.validateTags(parsed.tags);
+    if (tagError != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(tagError)),
+      );
+      return;
+    }
+    
+    _notifier.addEntry(
+      url: parsed.url,
+      tags: parsed.tags,
+    );
+  }
 
-      if (!_isDuplicateLink(newLink)) {
-        final Key idKey = UniqueKey();
-        final newItem = FolderItem(
-          key: idKey,
-          type: FolderItemType.link,
-          content: StringContent(value: newLink),
-        );
-
-        links.value = [...links.value, newItem];
-
-        final newRow = TrinaRow(
-          key: idKey,
-          cells: {
-            "url": TrinaCell(value: newLink),
-            "comment": TrinaCell(value: ""),
-            "tags": TrinaCell(value: []),
-          },
-        );
-
-        _tableNotifier.appendRow(newRow);
-        _linkController.clear();
-        
-        // Notify parent that we now have valid content
-        widget.onValidationChanged?.call(true);
+  void _handleAddBulk(String input) {
+    final parsed = UrlParserService.parseBulkLines(input);
+    
+    int validCount = 0;
+    int invalidCount = 0;
+    final validEntries = <Map<String, dynamic>>[];
+    final List<String> invalidReasons = [];
+    
+    for (final p in parsed) {
+      // Validate URL
+      final urlError = LinkValidator.validateContent(p.url);
+      if (urlError != null) {
+        invalidCount++;
+        invalidReasons.add("${p.url}: $urlError");
+        continue;
       }
+      
+      // Validate tags using TagValidator
+      final tagError = TagValidator.validateTags(p.tags);
+      if (tagError != null) {
+        invalidCount++;
+        invalidReasons.add("${p.url}: $tagError");
+        continue;
+      }
+      
+      // All validations passed
+      validEntries.add({
+        "url": p.url,
+        "tags": p.tags,
+      });
+      validCount++;
+    }
+    
+    if (validEntries.isNotEmpty) {
+      _notifier.addEntries(validEntries);
+    }
+    
+    if (invalidCount > 0) {
+      String message = "Added $validCount valid URL(s). Skipped $invalidCount invalid URL(s).";
+      if (invalidReasons.isNotEmpty && invalidReasons.length <= 3) {
+        message += "\n${invalidReasons.join('\n')}";
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          duration: const Duration(seconds: 5),
+        ),
+      );
+    } else if (validCount > 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Added $validCount URL(s) successfully")),
+      );
     }
   }
 
-  bool _isDuplicateLink(String newLink) {
-    return links.value.any((item) {
-      if (item.path is StringContent) {
-        return (item.path as StringContent).value == newLink;
-      }
-      return false;
-    });
+  void _handleEdit(Key key) {
+    final entry = _notifier.getEntry(key);
+    if (entry == null) return;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => LinkEditBottomSheet(
+        entry: entry,
+        availableFolders: _selectedFolders.isEmpty ? null : _selectedFolders,
+        onSave: (updatedEntry) {
+          _notifier.updateEntry(key, updatedEntry);
+          Navigator.pop(context);
+        },
+        onCancel: () => Navigator.pop(context),
+      ),
+    );
   }
 
-  void _deleteSelected() {
+  void _handleDelete(Key key) {
+    _notifier.removeEntry(key);
+  }
+
+  void _handleDeleteSelected() {
     final selectedRows = _tableNotifier.stateManager?.checkedRows ?? [];
-
-    links.value = links.value
-        .where((item) => !selectedRows.any((row) => item.key == row.key))
-        .toList();
-
+    final keys = selectedRows.map((row) => row.key).whereType<Key>().toList();
+    _notifier.removeEntries(keys);
     _tableNotifier.removeSelectedRows();
-    
-    // Update validation state - invalid if no links remain
-    widget.onValidationChanged?.call(links.value.isNotEmpty);
   }
 
-  Future<void> saveLinks() async {
+  void _handleClearAll() {
+    _notifier.clearEntries();
+  }
+
+  Future<void> _saveLinks() async {
+    if (_notifier.entries.isEmpty) return;
+
     final db = await locator.get<Signal<Future<AppDatabaseHandler>>>().value;
     final appDb = db.appDatabase;
 
@@ -198,31 +270,29 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
         : _selectedFolders.map((f) => f.id).toList();
 
     for (final folderId in targetFolders) {
-      for (final link in links.value) {
-        if (link.path is StringContent) {
-          final linkId = await appDb.createLink(
-            link: (link.path as StringContent).value,
-            // TODO: When we implement tags for links.
-          );
+      for (final entry in _notifier.entries) {
+        final linkId = await appDb.createLink(
+          link: entry.url,
+          // TODO: When we implement tags for links.
+        );
 
-          await appDb.updateFolder(
-            folderId,
-            itemUpdates: CUD(
-              create: [],
-              update: [
-                FolderItem(
-                  type: FolderItemType.link,
-                  itemId: linkId,
-                  content: link.path,
-                )
-              ],
-              remove: [],
-            ),
-          );
-        }
+        await appDb.updateFolder(
+          folderId,
+          itemUpdates: CUD(
+            create: [],
+            update: [
+              FolderItem(
+                type: FolderItemType.link,
+                itemId: linkId,
+                content: StringContent(value: entry.url),
+              )
+            ],
+            remove: [],
+          ),
+        );
       }
     }
-    //FIXME: Flutter doesn't like having navigators in an async function.
+
     if (mounted) {
       Navigator.pop(context);
     }
