@@ -1,69 +1,42 @@
 import "package:chenron/database/database.dart";
-import "package:chenron/database/extensions/id.dart";
+import "package:chenron/database/operations/link/link_create_vepr.dart";
+import "package:chenron/models/created_ids.dart";
 import "package:chenron/models/metadata.dart";
-import "package:drift/drift.dart";
+import "package:chenron/utils/logger.dart";
 
 extension LinkCreateExtensions on AppDatabase {
-  Future<String> createLink({
+  /// Creates a new link along with its optional tags using the VEPR pattern.
+  Future<LinkResultIds> createLink({
     required String link,
     List<Metadata>? tags,
   }) async {
+    // Public API method acts as the RUNNER
+
+    // 1. Instantiate the specific VEPR implementation
+    final operation = LinkCreateVEPR(this);
+
+    final LinkCreateInput input = (
+      url: link,
+      tags: tags,
+    );
+
     return transaction(() async {
-      final linkId = await _createLink(link);
-      if (tags != null && tags.isNotEmpty) {
-        await _createLinkTags(linkId, tags);
-      }
-      return linkId;
-    });
-  }
-
-  Future<String> _createLink(String link) async {
-    Link? linkExists = await (select(links)
-          ..where((tbl) => tbl.path.equals(link)))
-        .getSingleOrNull();
-    String linkId;
-
-    if (linkExists == null) {
-      linkId = generateId();
-      await links.insertOne(
-        LinksCompanion.insert(id: linkId, path: link),
-        mode: InsertMode.insertOrIgnore,
-      );
-    } else {
-      linkId = linkExists.id;
-    }
-    return linkId;
-  }
-
-  Future<void> _createLinkTags(String linkId, List<Metadata> tags) async {
-    await batch((batch) async {
-      for (var tag in tags) {
-        final tagId = await _getOrCreateTag(tag.value);
-        batch.insert(
-          metadataRecords,
-          MetadataRecordsCompanion.insert(
-            id: generateId(),
-            itemId: linkId,
-            metadataId: tagId,
-            typeId: MetadataTypeEnum.tag.index,
-          ),
-        );
+      try {
+        // Call the VEPR steps sequentially
+        operation.logStep("Runner", "Starting createLink operation");
+        operation.validate(input);
+        final execResult = await operation.execute(input);
+        final procResult = await operation.process(input, execResult);
+        final finalResult = operation.buildResult(execResult, procResult);
+        operation.logStep("Runner", "Operation completed successfully");
+        return finalResult;
+      } catch (e) {
+        // Log the error before rethrowing
+        loggerGlobal.severe(
+            "LinkCreateRunner", "Error during createLink operation: $e");
+        // Transaction will handle rollback
+        rethrow;
       }
     });
-  }
-
-  Future<String> _getOrCreateTag(String tagName) async {
-    final existingTag = await (select(tags)
-          ..where((t) => t.name.equals(tagName)))
-        .getSingleOrNull();
-    if (existingTag != null) {
-      return existingTag.id;
-    }
-    final newTagId = generateId();
-    await tags.insertOne(TagsCompanion.insert(
-      id: newTagId,
-      name: tagName,
-    ));
-    return newTagId;
   }
 }

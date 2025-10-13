@@ -92,3 +92,94 @@ post_save_navigation TEXT DEFAULT 'returnToPrevious'
 - Default should remain "Return to Previous Page" for least surprising behavior
 - Consider A/B testing or analytics to see which option users prefer
 - May want to have different preferences per item type (e.g., always go to Viewer for Links, stay in create mode for Folders)
+
+---
+
+# TODO: Bulk Link Validation Performance Optimization
+
+## Feature: Multi-threaded Bulk Validation for Large Inputs
+
+### Overview
+Optimize bulk link validation performance for very large inputs (thousands of URLs) using Dart isolates and chunked processing.
+
+### Current Implementation
+- `BulkValidatorService.validateBulkInput()` processes all lines synchronously on the main thread
+- Works well for typical use cases (< 1000 URLs)
+- May cause UI lag with very large inputs
+
+### Optimization Strategy
+
+#### Phase 1: Chunked Processing (Future)
+```dart
+// Process validation in chunks to allow UI updates
+static Future<BulkValidationResult> validateBulkInputAsync(String input, {
+  int chunkSize = 100,
+}) async {
+  final lines = input.split("\n");
+  final results = <LineValidationResult>[];
+  
+  for (int i = 0; i < lines.length; i += chunkSize) {
+    final chunk = lines.skip(i).take(chunkSize);
+    final chunkResults = _validateChunk(chunk, startIndex: i);
+    results.addAll(chunkResults);
+    
+    // Allow UI to update between chunks
+    await Future.delayed(Duration.zero);
+  }
+  
+  return BulkValidationResult(lines: results);
+}
+```
+
+#### Phase 2: Multi-threading with Isolates (Future)
+```dart
+// Use Dart isolates for true parallel processing
+static Future<BulkValidationResult> validateBulkInputParallel(String input) async {
+  final lines = input.split("\n");
+  final numIsolates = Platform.numberOfProcessors;
+  final chunkSize = (lines.length / numIsolates).ceil();
+  
+  final futures = <Future<List<LineValidationResult>>>[];
+  
+  for (int i = 0; i < numIsolates; i++) {
+    final start = i * chunkSize;
+    final end = min((i + 1) * chunkSize, lines.length);
+    final chunk = lines.sublist(start, end);
+    
+    // Spawn isolate for this chunk
+    futures.add(Isolate.run(() => _validateChunk(chunk, startIndex: start)));
+  }
+  
+  final results = await Future.wait(futures);
+  return BulkValidationResult(lines: results.expand((r) => r).toList());
+}
+```
+
+### Performance Targets
+- < 100 URLs: No optimization needed (< 50ms)
+- 100-1000 URLs: Chunked processing (show progress)
+- 1000+ URLs: Multi-threaded isolates (show progress bar)
+
+### Implementation Tasks
+
+- [ ] Benchmark current implementation with various input sizes
+- [ ] Implement chunked validation with progress callback
+- [ ] Create progress indicator UI for bulk validation
+- [ ] Implement isolate-based parallel validation
+- [ ] Add unit tests for concurrent validation
+- [ ] Add setting to enable/disable parallel validation
+- [ ] Document performance characteristics in code comments
+
+### Testing Strategy
+- Test with 10, 100, 1000, 10000 URLs
+- Measure validation time and UI responsiveness
+- Test cancellation of in-progress validation
+- Verify validation results are identical between sync and async methods
+
+### Priority
+**Low** - Current implementation is sufficient for most use cases. Implement only if performance issues are reported.
+
+### Related Components
+- `lib/features/create/link/services/bulk_validator_service.dart`
+- `lib/features/create/link/widgets/link_input_section.dart`
+- `lib/components/TextBase/validating_text_controller.dart`
