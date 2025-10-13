@@ -1,6 +1,5 @@
-// dart format width=80
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// coverage:ignore-file
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
@@ -33,6 +32,335 @@ mixin _$CreatedIds {
 /// @nodoc
 class $CreatedIdsCopyWith<$Res> {
   $CreatedIdsCopyWith(CreatedIds _, $Res Function(CreatedIds) __);
+}
+
+/// Adds pattern-matching-related methods to [CreatedIds].
+extension CreatedIdsPatterns on CreatedIds {
+  /// A variant of `map` that fallback to returning `orElse`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(FolderResultIds value)? folder,
+    TResult Function(LinkResultIds value)? link,
+    TResult Function(DocumentResultIds value)? document,
+    TResult Function(TagResultIds value)? tag,
+    TResult Function(ItemResultIds value)? item,
+    TResult Function(MetadataResultIds value)? metadata,
+    TResult Function(UserConfigResultIds value)? userConfig,
+    TResult Function(UserThemeResultIds value)? userTheme,
+    TResult Function(BackupSettingsResultIds value)? backupSettings,
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case FolderResultIds() when folder != null:
+        return folder(_that);
+      case LinkResultIds() when link != null:
+        return link(_that);
+      case DocumentResultIds() when document != null:
+        return document(_that);
+      case TagResultIds() when tag != null:
+        return tag(_that);
+      case ItemResultIds() when item != null:
+        return item(_that);
+      case MetadataResultIds() when metadata != null:
+        return metadata(_that);
+      case UserConfigResultIds() when userConfig != null:
+        return userConfig(_that);
+      case UserThemeResultIds() when userTheme != null:
+        return userTheme(_that);
+      case BackupSettingsResultIds() when backupSettings != null:
+        return backupSettings(_that);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// Callbacks receives the raw object, upcasted.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case final Subclass2 value:
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(FolderResultIds value) folder,
+    required TResult Function(LinkResultIds value) link,
+    required TResult Function(DocumentResultIds value) document,
+    required TResult Function(TagResultIds value) tag,
+    required TResult Function(ItemResultIds value) item,
+    required TResult Function(MetadataResultIds value) metadata,
+    required TResult Function(UserConfigResultIds value) userConfig,
+    required TResult Function(UserThemeResultIds value) userTheme,
+    required TResult Function(BackupSettingsResultIds value) backupSettings,
+  }) {
+    final _that = this;
+    switch (_that) {
+      case FolderResultIds():
+        return folder(_that);
+      case LinkResultIds():
+        return link(_that);
+      case DocumentResultIds():
+        return document(_that);
+      case TagResultIds():
+        return tag(_that);
+      case ItemResultIds():
+        return item(_that);
+      case MetadataResultIds():
+        return metadata(_that);
+      case UserConfigResultIds():
+        return userConfig(_that);
+      case UserThemeResultIds():
+        return userTheme(_that);
+      case BackupSettingsResultIds():
+        return backupSettings(_that);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `map` that fallback to returning `null`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(FolderResultIds value)? folder,
+    TResult? Function(LinkResultIds value)? link,
+    TResult? Function(DocumentResultIds value)? document,
+    TResult? Function(TagResultIds value)? tag,
+    TResult? Function(ItemResultIds value)? item,
+    TResult? Function(MetadataResultIds value)? metadata,
+    TResult? Function(UserConfigResultIds value)? userConfig,
+    TResult? Function(UserThemeResultIds value)? userTheme,
+    TResult? Function(BackupSettingsResultIds value)? backupSettings,
+  }) {
+    final _that = this;
+    switch (_that) {
+      case FolderResultIds() when folder != null:
+        return folder(_that);
+      case LinkResultIds() when link != null:
+        return link(_that);
+      case DocumentResultIds() when document != null:
+        return document(_that);
+      case TagResultIds() when tag != null:
+        return tag(_that);
+      case ItemResultIds() when item != null:
+        return item(_that);
+      case MetadataResultIds() when metadata != null:
+        return metadata(_that);
+      case UserConfigResultIds() when userConfig != null:
+        return userConfig(_that);
+      case UserThemeResultIds() when userTheme != null:
+        return userTheme(_that);
+      case BackupSettingsResultIds() when backupSettings != null:
+        return backupSettings(_that);
+      case _:
+        return null;
+    }
+  }
+
+  /// A variant of `when` that fallback to an `orElse` callback.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String folderId, List<ItemResultIds>? itemIds,
+            List<TagResultIds>? tagIds)?
+        folder,
+    TResult Function(String linkId, List<TagResultIds>? tagIds)? link,
+    TResult Function(String documentId, List<String>? tagIds)? document,
+    TResult Function(String tagId, List<String>? itemIds, bool wasCreated)? tag,
+    TResult Function(
+            String itemId, String folderId, String? linkId, String? documentId)?
+        item,
+    TResult Function(String metadataId, String itemId)? metadata,
+    TResult Function(
+            String userConfigId, List<UserThemeResultIds>? userThemesIds)?
+        userConfig,
+    TResult Function(String userThemeId, String userConfigId)? userTheme,
+    TResult Function(String backupSettingsId, String userConfigId)?
+        backupSettings,
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case FolderResultIds() when folder != null:
+        return folder(_that.folderId, _that.itemIds, _that.tagIds);
+      case LinkResultIds() when link != null:
+        return link(_that.linkId, _that.tagIds);
+      case DocumentResultIds() when document != null:
+        return document(_that.documentId, _that.tagIds);
+      case TagResultIds() when tag != null:
+        return tag(_that.tagId, _that.itemIds, _that.wasCreated);
+      case ItemResultIds() when item != null:
+        return item(
+            _that.itemId, _that.folderId, _that.linkId, _that.documentId);
+      case MetadataResultIds() when metadata != null:
+        return metadata(_that.metadataId, _that.itemId);
+      case UserConfigResultIds() when userConfig != null:
+        return userConfig(_that.userConfigId, _that.userThemesIds);
+      case UserThemeResultIds() when userTheme != null:
+        return userTheme(_that.userThemeId, _that.userConfigId);
+      case BackupSettingsResultIds() when backupSettings != null:
+        return backupSettings(_that.backupSettingsId, _that.userConfigId);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// As opposed to `map`, this offers destructuring.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case Subclass2(:final field2):
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(String folderId, List<ItemResultIds>? itemIds,
+            List<TagResultIds>? tagIds)
+        folder,
+    required TResult Function(String linkId, List<TagResultIds>? tagIds) link,
+    required TResult Function(String documentId, List<String>? tagIds) document,
+    required TResult Function(
+            String tagId, List<String>? itemIds, bool wasCreated)
+        tag,
+    required TResult Function(
+            String itemId, String folderId, String? linkId, String? documentId)
+        item,
+    required TResult Function(String metadataId, String itemId) metadata,
+    required TResult Function(
+            String userConfigId, List<UserThemeResultIds>? userThemesIds)
+        userConfig,
+    required TResult Function(String userThemeId, String userConfigId)
+        userTheme,
+    required TResult Function(String backupSettingsId, String userConfigId)
+        backupSettings,
+  }) {
+    final _that = this;
+    switch (_that) {
+      case FolderResultIds():
+        return folder(_that.folderId, _that.itemIds, _that.tagIds);
+      case LinkResultIds():
+        return link(_that.linkId, _that.tagIds);
+      case DocumentResultIds():
+        return document(_that.documentId, _that.tagIds);
+      case TagResultIds():
+        return tag(_that.tagId, _that.itemIds, _that.wasCreated);
+      case ItemResultIds():
+        return item(
+            _that.itemId, _that.folderId, _that.linkId, _that.documentId);
+      case MetadataResultIds():
+        return metadata(_that.metadataId, _that.itemId);
+      case UserConfigResultIds():
+        return userConfig(_that.userConfigId, _that.userThemesIds);
+      case UserThemeResultIds():
+        return userTheme(_that.userThemeId, _that.userConfigId);
+      case BackupSettingsResultIds():
+        return backupSettings(_that.backupSettingsId, _that.userConfigId);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `when` that fallback to returning `null`
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(String folderId, List<ItemResultIds>? itemIds,
+            List<TagResultIds>? tagIds)?
+        folder,
+    TResult? Function(String linkId, List<TagResultIds>? tagIds)? link,
+    TResult? Function(String documentId, List<String>? tagIds)? document,
+    TResult? Function(String tagId, List<String>? itemIds, bool wasCreated)?
+        tag,
+    TResult? Function(
+            String itemId, String folderId, String? linkId, String? documentId)?
+        item,
+    TResult? Function(String metadataId, String itemId)? metadata,
+    TResult? Function(
+            String userConfigId, List<UserThemeResultIds>? userThemesIds)?
+        userConfig,
+    TResult? Function(String userThemeId, String userConfigId)? userTheme,
+    TResult? Function(String backupSettingsId, String userConfigId)?
+        backupSettings,
+  }) {
+    final _that = this;
+    switch (_that) {
+      case FolderResultIds() when folder != null:
+        return folder(_that.folderId, _that.itemIds, _that.tagIds);
+      case LinkResultIds() when link != null:
+        return link(_that.linkId, _that.tagIds);
+      case DocumentResultIds() when document != null:
+        return document(_that.documentId, _that.tagIds);
+      case TagResultIds() when tag != null:
+        return tag(_that.tagId, _that.itemIds, _that.wasCreated);
+      case ItemResultIds() when item != null:
+        return item(
+            _that.itemId, _that.folderId, _that.linkId, _that.documentId);
+      case MetadataResultIds() when metadata != null:
+        return metadata(_that.metadataId, _that.itemId);
+      case UserConfigResultIds() when userConfig != null:
+        return userConfig(_that.userConfigId, _that.userThemesIds);
+      case UserThemeResultIds() when userTheme != null:
+        return userTheme(_that.userThemeId, _that.userConfigId);
+      case BackupSettingsResultIds() when backupSettings != null:
+        return backupSettings(_that.backupSettingsId, _that.userConfigId);
+      case _:
+        return null;
+    }
+  }
 }
 
 /// @nodoc
@@ -144,12 +472,12 @@ class _$FolderResultIdsCopyWithImpl<$Res>
 /// @nodoc
 
 class LinkResultIds implements CreatedIds {
-  const LinkResultIds({required this.linkId, final List<String>? tagIds})
+  const LinkResultIds({required this.linkId, final List<TagResultIds>? tagIds})
       : _tagIds = tagIds;
 
   final String linkId;
-  final List<String>? _tagIds;
-  List<String>? get tagIds {
+  final List<TagResultIds>? _tagIds;
+  List<TagResultIds>? get tagIds {
     final value = _tagIds;
     if (value == null) return null;
     if (_tagIds is EqualUnmodifiableListView) return _tagIds;
@@ -190,7 +518,7 @@ abstract mixin class $LinkResultIdsCopyWith<$Res>
           LinkResultIds value, $Res Function(LinkResultIds) _then) =
       _$LinkResultIdsCopyWithImpl;
   @useResult
-  $Res call({String linkId, List<String>? tagIds});
+  $Res call({String linkId, List<TagResultIds>? tagIds});
 }
 
 /// @nodoc
@@ -216,7 +544,7 @@ class _$LinkResultIdsCopyWithImpl<$Res>
       tagIds: freezed == tagIds
           ? _self._tagIds
           : tagIds // ignore: cast_nullable_to_non_nullable
-              as List<String>?,
+              as List<TagResultIds>?,
     ));
   }
 }
@@ -306,7 +634,10 @@ class _$DocumentResultIdsCopyWithImpl<$Res>
 /// @nodoc
 
 class TagResultIds implements CreatedIds {
-  const TagResultIds({required this.tagId, final List<String>? itemIds})
+  const TagResultIds(
+      {required this.tagId,
+      final List<String>? itemIds,
+      this.wasCreated = false})
       : _itemIds = itemIds;
 
   final String tagId;
@@ -318,6 +649,9 @@ class TagResultIds implements CreatedIds {
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableListView(value);
   }
+
+  @JsonKey()
+  final bool wasCreated;
 
   /// Create a copy of CreatedIds
   /// with the given fields replaced by the non-null parameter values.
@@ -332,16 +666,18 @@ class TagResultIds implements CreatedIds {
         (other.runtimeType == runtimeType &&
             other is TagResultIds &&
             (identical(other.tagId, tagId) || other.tagId == tagId) &&
-            const DeepCollectionEquality().equals(other._itemIds, _itemIds));
+            const DeepCollectionEquality().equals(other._itemIds, _itemIds) &&
+            (identical(other.wasCreated, wasCreated) ||
+                other.wasCreated == wasCreated));
   }
 
   @override
-  int get hashCode => Object.hash(
-      runtimeType, tagId, const DeepCollectionEquality().hash(_itemIds));
+  int get hashCode => Object.hash(runtimeType, tagId,
+      const DeepCollectionEquality().hash(_itemIds), wasCreated);
 
   @override
   String toString() {
-    return 'CreatedIds.tag(tagId: $tagId, itemIds: $itemIds)';
+    return 'CreatedIds.tag(tagId: $tagId, itemIds: $itemIds, wasCreated: $wasCreated)';
   }
 }
 
@@ -352,7 +688,7 @@ abstract mixin class $TagResultIdsCopyWith<$Res>
           TagResultIds value, $Res Function(TagResultIds) _then) =
       _$TagResultIdsCopyWithImpl;
   @useResult
-  $Res call({String tagId, List<String>? itemIds});
+  $Res call({String tagId, List<String>? itemIds, bool wasCreated});
 }
 
 /// @nodoc
@@ -368,6 +704,7 @@ class _$TagResultIdsCopyWithImpl<$Res> implements $TagResultIdsCopyWith<$Res> {
   $Res call({
     Object? tagId = null,
     Object? itemIds = freezed,
+    Object? wasCreated = null,
   }) {
     return _then(TagResultIds(
       tagId: null == tagId
@@ -378,6 +715,10 @@ class _$TagResultIdsCopyWithImpl<$Res> implements $TagResultIdsCopyWith<$Res> {
           ? _self._itemIds
           : itemIds // ignore: cast_nullable_to_non_nullable
               as List<String>?,
+      wasCreated: null == wasCreated
+          ? _self.wasCreated
+          : wasCreated // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }

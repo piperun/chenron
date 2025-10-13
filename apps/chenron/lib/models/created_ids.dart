@@ -12,7 +12,7 @@ class CreatedIds with _$CreatedIds {
 
   const factory CreatedIds.link({
     required String linkId,
-    List<String>? tagIds,
+    List<TagResultIds>? tagIds,
   }) = LinkResultIds;
 
   const factory CreatedIds.document({
@@ -23,6 +23,7 @@ class CreatedIds with _$CreatedIds {
   const factory CreatedIds.tag({
     required String tagId,
     List<String>? itemIds,
+    @Default(false) bool wasCreated,
   }) = TagResultIds;
 
   const factory CreatedIds.item({

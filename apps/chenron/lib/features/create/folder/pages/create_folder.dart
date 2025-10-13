@@ -14,12 +14,16 @@ class CreateFolderPage extends StatefulWidget {
   final bool hideAppBar;
   final ValueChanged<VoidCallback>? onSaveCallbackReady;
   final ValueChanged<bool>? onValidationChanged;
+  final VoidCallback? onClose;
+  final VoidCallback? onSaved;
   
   const CreateFolderPage({
     super.key,
     this.hideAppBar = false,
     this.onSaveCallbackReady,
     this.onValidationChanged,
+    this.onClose,
+    this.onSaved,
   });
 
   @override
@@ -66,6 +70,9 @@ class _CreateFolderPageState extends State<CreateFolderPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isValid = _titleController.text.trim().isNotEmpty;
+    
     return Scaffold(
       appBar: widget.hideAppBar ? null : AppBar(
         title: const Text("Create Folder"),
@@ -76,7 +83,42 @@ class _CreateFolderPageState extends State<CreateFolderPage> {
           ),
         ],
       ),
-      body: Padding(
+      body: Column(
+        children: [
+          // Header with close button when in main page mode
+          if (widget.hideAppBar && widget.onClose != null)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(color: theme.colorScheme.outlineVariant),
+                ),
+              ),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: widget.onClose,
+                    tooltip: "Close",
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    "Create Folder",
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const Spacer(),
+                  FilledButton.icon(
+                    onPressed: isValid ? saveFolder : null,
+                    icon: const Icon(Icons.save, size: 18),
+                    label: const Text("Save"),
+                  ),
+                ],
+              ),
+            ),
+          Expanded(
+            child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
@@ -100,6 +142,9 @@ class _CreateFolderPageState extends State<CreateFolderPage> {
             ],
           ),
         ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -140,7 +185,13 @@ class _CreateFolderPageState extends State<CreateFolderPage> {
       ));
 
       if (mounted) {
-        Navigator.pop(context);
+        // If onSaved callback provided, call it (main page mode)
+        if (widget.onSaved != null) {
+          widget.onSaved!();
+        } else {
+          // Otherwise, close via Navigator (modal mode)
+          Navigator.pop(context);
+        }
       }
     }
   }

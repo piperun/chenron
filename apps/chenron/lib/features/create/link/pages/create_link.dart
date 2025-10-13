@@ -15,20 +15,27 @@ import "package:chenron/features/create/link/widgets/link_tags_section.dart";
 import "package:chenron/features/create/link/widgets/link_table_section.dart";
 import "package:chenron/features/create/link/widgets/link_edit_bottom_sheet.dart";
 import "package:chenron/features/create/link/services/url_parser_service.dart";
+import "package:chenron/features/create/link/services/bulk_validator_service.dart";
+import "package:chenron/features/create/link/models/validation_result.dart";
 import "package:chenron/utils/validation/link_validator.dart";
 import "package:chenron/utils/validation/tag_validator.dart";
 import "package:chenron/notifiers/link_table_notifier.dart";
+import "package:chenron/models/metadata.dart";
 
 class CreateLinkPage extends StatefulWidget {
   final bool hideAppBar;
   final ValueChanged<VoidCallback>? onSaveCallbackReady;
   final ValueChanged<bool>? onValidationChanged;
+  final VoidCallback? onClose;
+  final VoidCallback? onSaved;
   
   const CreateLinkPage({
     super.key,
     this.hideAppBar = false,
     this.onSaveCallbackReady,
     this.onValidationChanged,
+    this.onClose,
+    this.onSaved,
   });
 
   @override
@@ -71,6 +78,8 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Scaffold(
       appBar: widget.hideAppBar
           ? null
@@ -83,7 +92,42 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
                 ),
               ],
             ),
-      body: Padding(
+      body: Column(
+        children: [
+          // Header with close button when in main page mode
+          if (widget.hideAppBar && widget.onClose != null)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(color: theme.colorScheme.outlineVariant),
+                ),
+              ),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: widget.onClose,
+                    tooltip: "Close",
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    "Add Links",
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const Spacer(),
+                  FilledButton.icon(
+                    onPressed: _notifier.hasEntries ? _saveLinks : null,
+                    icon: const Icon(Icons.save, size: 18),
+                    label: const Text("Save"),
+                  ),
+                ],
+              ),
+            ),
+          Expanded(
+            child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
           child: Column(
@@ -137,6 +181,9 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
             ],
           ),
         ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -169,58 +216,42 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
     );
   }
 
-  void _handleAddBulk(String input) {
-    final parsed = UrlParserService.parseBulkLines(input);
+  void _handleAddBulk(String input, BulkValidationResult validationResult) {
+    // First validate the bulk input
+    final result = BulkValidatorService.validateBulkInput(input);
     
-    int validCount = 0;
-    int invalidCount = 0;
-    final validEntries = <Map<String, dynamic>>[];
-    final List<String> invalidReasons = [];
-    
-    for (final p in parsed) {
-      // Validate URL
-      final urlError = LinkValidator.validateContent(p.url);
-      if (urlError != null) {
-        invalidCount++;
-        invalidReasons.add("${p.url}: $urlError");
-        continue;
-      }
+    // Add only valid entries to the table
+    if (result.hasValidLines) {
+      final validEntries = result.validLinesData.map((line) => {
+        "url": line.url!,
+        "tags": line.tags ?? [],
+      }).toList();
       
-      // Validate tags using TagValidator
-      final tagError = TagValidator.validateTags(p.tags);
-      if (tagError != null) {
-        invalidCount++;
-        invalidReasons.add("${p.url}: $tagError");
-        continue;
-      }
-      
-      // All validations passed
-      validEntries.add({
-        "url": p.url,
-        "tags": p.tags,
-      });
-      validCount++;
-    }
-    
-    if (validEntries.isNotEmpty) {
       _notifier.addEntries(validEntries);
-    }
-    
-    if (invalidCount > 0) {
-      String message = "Added $validCount valid URL(s). Skipped $invalidCount invalid URL(s).";
-      if (invalidReasons.isNotEmpty && invalidReasons.length <= 3) {
-        message += "\n${invalidReasons.join('\n')}";
+      
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "Added ${result.validLines} valid URL(s) successfully"
+              "${result.hasErrors ? '. ${result.invalidLines} invalid URLs remain in input.' : ''}",
+            ),
+            duration: const Duration(seconds: 3),
+          ),
+        );
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          duration: const Duration(seconds: 5),
-        ),
-      );
-    } else if (validCount > 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Added $validCount URL(s) successfully")),
-      );
+    } else if (result.hasErrors) {
+      // All lines have errors - show message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("All ${result.invalidLines} URLs have validation errors. Please fix and try again."),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
     }
   }
 
@@ -271,9 +302,17 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
 
     for (final folderId in targetFolders) {
       for (final entry in _notifier.entries) {
-        final linkId = await appDb.createLink(
+        // Convert tags to Metadata objects
+        final tags = entry.tags.isNotEmpty
+            ? entry.tags.map((tag) => Metadata(
+                value: tag,
+                type: MetadataTypeEnum.tag,
+              )).toList()
+            : null;
+        
+        final result = await appDb.createLink(
           link: entry.url,
-          // TODO: When we implement tags for links.
+          tags: tags,
         );
 
         await appDb.updateFolder(
@@ -283,7 +322,7 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
             update: [
               FolderItem(
                 type: FolderItemType.link,
-                itemId: linkId,
+                itemId: result.linkId,
                 content: StringContent(value: entry.url),
               )
             ],
@@ -294,7 +333,13 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
     }
 
     if (mounted) {
-      Navigator.pop(context);
+      // If onSaved callback provided, call it (main page mode)
+      if (widget.onSaved != null) {
+        widget.onSaved!();
+      } else {
+        // Otherwise, close via Navigator (modal mode)
+        Navigator.pop(context);
+      }
     }
   }
 }

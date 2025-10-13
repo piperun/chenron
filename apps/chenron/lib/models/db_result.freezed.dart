@@ -1,6 +1,5 @@
-// dart format width=80
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// coverage:ignore-file
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
@@ -33,6 +32,279 @@ mixin _$DbResult {
 /// @nodoc
 class $DbResultCopyWith<$Res> {
   $DbResultCopyWith(DbResult _, $Res Function(DbResult) __);
+}
+
+/// Adds pattern-matching-related methods to [DbResult].
+extension DbResultPatterns on DbResult {
+  /// A variant of `map` that fallback to returning `orElse`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(FolderResult value)? folder,
+    TResult Function(LinkResult value)? link,
+    TResult Function(DocumentResult value)? document,
+    TResult Function(TagResult value)? tag,
+    TResult Function(UserConfigResult value)? userConfig,
+    TResult Function(UserThemeResult value)? userTheme,
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case FolderResult() when folder != null:
+        return folder(_that);
+      case LinkResult() when link != null:
+        return link(_that);
+      case DocumentResult() when document != null:
+        return document(_that);
+      case TagResult() when tag != null:
+        return tag(_that);
+      case UserConfigResult() when userConfig != null:
+        return userConfig(_that);
+      case UserThemeResult() when userTheme != null:
+        return userTheme(_that);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// Callbacks receives the raw object, upcasted.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case final Subclass2 value:
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(FolderResult value) folder,
+    required TResult Function(LinkResult value) link,
+    required TResult Function(DocumentResult value) document,
+    required TResult Function(TagResult value) tag,
+    required TResult Function(UserConfigResult value) userConfig,
+    required TResult Function(UserThemeResult value) userTheme,
+  }) {
+    final _that = this;
+    switch (_that) {
+      case FolderResult():
+        return folder(_that);
+      case LinkResult():
+        return link(_that);
+      case DocumentResult():
+        return document(_that);
+      case TagResult():
+        return tag(_that);
+      case UserConfigResult():
+        return userConfig(_that);
+      case UserThemeResult():
+        return userTheme(_that);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `map` that fallback to returning `null`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(FolderResult value)? folder,
+    TResult? Function(LinkResult value)? link,
+    TResult? Function(DocumentResult value)? document,
+    TResult? Function(TagResult value)? tag,
+    TResult? Function(UserConfigResult value)? userConfig,
+    TResult? Function(UserThemeResult value)? userTheme,
+  }) {
+    final _that = this;
+    switch (_that) {
+      case FolderResult() when folder != null:
+        return folder(_that);
+      case LinkResult() when link != null:
+        return link(_that);
+      case DocumentResult() when document != null:
+        return document(_that);
+      case TagResult() when tag != null:
+        return tag(_that);
+      case UserConfigResult() when userConfig != null:
+        return userConfig(_that);
+      case UserThemeResult() when userTheme != null:
+        return userTheme(_that);
+      case _:
+        return null;
+    }
+  }
+
+  /// A variant of `when` that fallback to an `orElse` callback.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(Folder data, List<Tag> tags, List<FolderItem> items)?
+        folder,
+    TResult Function(Link data, List<Tag> tags)? link,
+    TResult Function(String title, String path, List<Tag>? tags)? document,
+    TResult Function(String name, List<String>? relatedFolderIds,
+            List<String>? relatedLinkIds, List<String>? relatedDocumentIds)?
+        tag,
+    TResult Function(UserConfig data, List<UserTheme>? userThemes,
+            BackupSetting? backupSettings)?
+        userConfig,
+    TResult Function(
+            UserTheme data, String? userConfigId, List<String>? sharedUserIds)?
+        userTheme,
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case FolderResult() when folder != null:
+        return folder(_that.data, _that.tags, _that.items);
+      case LinkResult() when link != null:
+        return link(_that.data, _that.tags);
+      case DocumentResult() when document != null:
+        return document(_that.title, _that.path, _that.tags);
+      case TagResult() when tag != null:
+        return tag(_that.name, _that.relatedFolderIds, _that.relatedLinkIds,
+            _that.relatedDocumentIds);
+      case UserConfigResult() when userConfig != null:
+        return userConfig(_that.data, _that.userThemes, _that.backupSettings);
+      case UserThemeResult() when userTheme != null:
+        return userTheme(_that.data, _that.userConfigId, _that.sharedUserIds);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// As opposed to `map`, this offers destructuring.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case Subclass2(:final field2):
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(
+            Folder data, List<Tag> tags, List<FolderItem> items)
+        folder,
+    required TResult Function(Link data, List<Tag> tags) link,
+    required TResult Function(String title, String path, List<Tag>? tags)
+        document,
+    required TResult Function(String name, List<String>? relatedFolderIds,
+            List<String>? relatedLinkIds, List<String>? relatedDocumentIds)
+        tag,
+    required TResult Function(UserConfig data, List<UserTheme>? userThemes,
+            BackupSetting? backupSettings)
+        userConfig,
+    required TResult Function(
+            UserTheme data, String? userConfigId, List<String>? sharedUserIds)
+        userTheme,
+  }) {
+    final _that = this;
+    switch (_that) {
+      case FolderResult():
+        return folder(_that.data, _that.tags, _that.items);
+      case LinkResult():
+        return link(_that.data, _that.tags);
+      case DocumentResult():
+        return document(_that.title, _that.path, _that.tags);
+      case TagResult():
+        return tag(_that.name, _that.relatedFolderIds, _that.relatedLinkIds,
+            _that.relatedDocumentIds);
+      case UserConfigResult():
+        return userConfig(_that.data, _that.userThemes, _that.backupSettings);
+      case UserThemeResult():
+        return userTheme(_that.data, _that.userConfigId, _that.sharedUserIds);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `when` that fallback to returning `null`
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(Folder data, List<Tag> tags, List<FolderItem> items)?
+        folder,
+    TResult? Function(Link data, List<Tag> tags)? link,
+    TResult? Function(String title, String path, List<Tag>? tags)? document,
+    TResult? Function(String name, List<String>? relatedFolderIds,
+            List<String>? relatedLinkIds, List<String>? relatedDocumentIds)?
+        tag,
+    TResult? Function(UserConfig data, List<UserTheme>? userThemes,
+            BackupSetting? backupSettings)?
+        userConfig,
+    TResult? Function(
+            UserTheme data, String? userConfigId, List<String>? sharedUserIds)?
+        userTheme,
+  }) {
+    final _that = this;
+    switch (_that) {
+      case FolderResult() when folder != null:
+        return folder(_that.data, _that.tags, _that.items);
+      case LinkResult() when link != null:
+        return link(_that.data, _that.tags);
+      case DocumentResult() when document != null:
+        return document(_that.title, _that.path, _that.tags);
+      case TagResult() when tag != null:
+        return tag(_that.name, _that.relatedFolderIds, _that.relatedLinkIds,
+            _that.relatedDocumentIds);
+      case UserConfigResult() when userConfig != null:
+        return userConfig(_that.data, _that.userThemes, _that.backupSettings);
+      case UserThemeResult() when userTheme != null:
+        return userTheme(_that.data, _that.userConfigId, _that.sharedUserIds);
+      case _:
+        return null;
+    }
+  }
 }
 
 /// @nodoc
