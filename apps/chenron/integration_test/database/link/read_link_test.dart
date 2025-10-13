@@ -1,15 +1,22 @@
+// ignore_for_file: avoid_print
+
+import "dart:io";
 import "package:chenron/models/db_result.dart" show LinkResult;
 import "package:flutter_test/flutter_test.dart";
 import "package:chenron/database/database.dart";
 import "package:chenron/database/extensions/link/read.dart";
 import "package:chenron/database/extensions/link/create.dart";
 import "package:chenron/utils/test_lib/link_factory.dart";
+import "package:chenron/utils/logger.dart";
 
 import "../../test_support/path_provider_fake.dart";
 
 void main() {
   setUpAll(() {
     installFakePathProvider();
+    // Initialize logger for VEPR operations with temp directory
+    final tempDir = Directory.systemTemp.createTempSync("test_logs");
+    loggerGlobal.setupLogging(logDir: tempDir, logToFileInDebug: false);
   });
   late AppDatabase database;
   late LinkTestData activeLink;
@@ -33,15 +40,17 @@ void main() {
       tagValues: ["news", "media"],
     );
 
-    activeLinkId = await database.createLink(
+    final activeLinkResult = await database.createLink(
       link: activeLink.link.path,
       tags: activeLink.tags,
     );
+    activeLinkId = activeLinkResult.linkId;
 
-    inactiveLinkId = await database.createLink(
+    final inactiveLinkResult = await database.createLink(
       link: inactiveLink.link.path,
       tags: inactiveLink.tags,
     );
+    inactiveLinkId = inactiveLinkResult.linkId;
   });
 
   tearDown(() async {

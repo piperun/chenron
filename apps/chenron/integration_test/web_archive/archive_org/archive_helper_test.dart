@@ -1,4 +1,3 @@
-import "dart:io";
 import "package:chenron/database/extensions/id.dart";
 import "package:chenron/database/extensions/link/read.dart";
 import "package:chenron/database/extensions/user_config/read.dart";
@@ -63,7 +62,8 @@ void main() {
 
   group("[offline] ArchiveHelper", () {
     test("archiveOrgLinks archives new links", () async {
-      final linkId = await database.createLink(link: testUrl);
+      final linkResult = await database.createLink(link: testUrl);
+      final linkId = linkResult.linkId;
 
       await database.archiveOrgLinks([linkId], userConfig!);
 
@@ -74,7 +74,8 @@ void main() {
     });
 
     test("archiveOrgLinks skips recent archive links", () async {
-      final linkId = await database.createLink(link: testUrl);
+      final linkResult = await database.createLink(link: testUrl);
+      final linkId = linkResult.linkId;
       // Pre-archive once so the link has a recent archive
       await database.archiveOrgLinks([linkId], userConfig!, archiveDueDate: 0);
       final recentArchiveUrl = await database
