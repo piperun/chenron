@@ -1,11 +1,16 @@
 import "package:flutter/material.dart";
 import "package:chenron/features/create/link/notifiers/create_link_notifier.dart";
+import "package:chenron/components/TextBase/code_input_field.dart";
+import "package:chenron/components/TextBase/validating_text_controller.dart";
+import "package:chenron/features/create/link/models/validation_result.dart";
+import "package:chenron/features/create/link/services/bulk_validator_service.dart";
+import "package:chenron/features/create/link/widgets/validation_error_panel.dart";
 
 class LinkInputSection extends StatefulWidget {
   final InputMode mode;
   final ValueChanged<InputMode> onModeChanged;
   final ValueChanged<String> onAddSingle;
-  final ValueChanged<String> onAddBulk;
+  final void Function(String, BulkValidationResult) onAddBulk;
 
   const LinkInputSection({
     super.key,
@@ -21,7 +26,15 @@ class LinkInputSection extends StatefulWidget {
 
 class _LinkInputSectionState extends State<LinkInputSection> {
   final TextEditingController _singleController = TextEditingController();
-  final TextEditingController _bulkController = TextEditingController();
+  late final ValidatingTextController _bulkController;
+  BulkValidationResult? _bulkValidationResult;
+  String? _singleInputError;
+
+  @override
+  void initState() {
+    super.initState();
+    _bulkController = ValidatingTextController();
+  }
 
   @override
   void dispose() {
@@ -40,10 +53,67 @@ class _LinkInputSectionState extends State<LinkInputSection> {
     } else {
       final text = _bulkController.text;
       if (text.trim().isNotEmpty) {
-        widget.onAddBulk(text);
+        // Validate the bulk input first
+        final result = BulkValidatorService.validateBulkInput(text);
+        
+        // Update the UI with validation results
+        setState(() {
+          _bulkValidationResult = result;
+          _bulkController.updateValidation(result);
+        });
+        
+        // Pass to parent for processing
+        widget.onAddBulk(text, result);
+        
+        // After processing, remove valid lines and keep only errors
+        if (result.hasValidLines) {
+          _removeValidLinesFromInput(result);
+        }
       }
     }
   }
+  
+  /// Removes valid lines from the input, leaving only error lines
+  void _removeValidLinesFromInput(BulkValidationResult result) {
+    final lines = _bulkController.text.split("\n");
+    final errorLineNumbers = result.errorLines.map((e) => e.lineNumber).toSet();
+    final remainingLines = <String>[];
+    
+    for (int i = 0; i < lines.length; i++) {
+      final lineNumber = i + 1;
+      final line = lines[i];
+      
+      // Keep the line if:
+      // 1. It has errors (in errorLineNumbers)
+      // 2. It's empty or a comment (not processed by validator)
+      if (errorLineNumbers.contains(lineNumber) ||
+          line.trim().isEmpty ||
+          line.trim().startsWith("#")) {
+        remainingLines.add(line);
+      }
+    }
+    
+    // Update the controller with only error lines
+    final newText = remainingLines.join("\n");
+    _bulkController.text = newText;
+    
+    // Update validation to reflect the new state
+    if (remainingLines.any((l) => l.trim().isNotEmpty && !l.trim().startsWith("#"))) {
+      // Re-validate the remaining text
+      final newResult = BulkValidatorService.validateBulkInput(newText);
+      setState(() {
+        _bulkValidationResult = newResult;
+        _bulkController.updateValidation(newResult);
+      });
+    } else {
+      // No lines left, clear validation
+      setState(() {
+        _bulkValidationResult = null;
+        _bulkController.updateValidation(null);
+      });
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -79,11 +149,23 @@ class _LinkInputSectionState extends State<LinkInputSection> {
                   ? _SingleInput(
                       controller: _singleController,
                       onAdd: _handleAdd,
+                      errorText: _singleInputError,
                     )
                   : _BulkInput(
                       controller: _bulkController,
+                      validationResult: _bulkValidationResult,
                       onAdd: _handleAdd,
-                      onClear: () => _bulkController.clear(),
+                      onClear: () {
+                        _bulkController.clear();
+                        setState(() {
+                          _bulkValidationResult = null;
+                          _bulkController.updateValidation(null);
+                        });
+                      },
+                      onDismissErrors: () => setState(() {
+                        _bulkValidationResult = null;
+                        _bulkController.updateValidation(null);
+                      }),
                     ),
             ),
           ],
@@ -172,10 +254,12 @@ class _ModeButton extends StatelessWidget {
 class _SingleInput extends StatelessWidget {
   final TextEditingController controller;
   final VoidCallback onAdd;
+  final String? errorText;
 
   const _SingleInput({
     required this.controller,
     required this.onAdd,
+    this.errorText,
   });
 
   @override
@@ -186,10 +270,12 @@ class _SingleInput extends StatelessWidget {
         Expanded(
           child: TextField(
             controller: controller,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: "URL",
               hintText: "https://example.com | tag1, tag2",
-              border: OutlineInputBorder(),
+              border: const OutlineInputBorder(),
+              errorText: errorText,
+              errorMaxLines: 3,
             ),
             onSubmitted: (_) => onAdd(),
           ),
@@ -206,14 +292,18 @@ class _SingleInput extends StatelessWidget {
 }
 
 class _BulkInput extends StatelessWidget {
-  final TextEditingController controller;
+  final ValidatingTextController controller;
+  final BulkValidationResult? validationResult;
   final VoidCallback onAdd;
   final VoidCallback onClear;
+  final VoidCallback? onDismissErrors;
 
   const _BulkInput({
     required this.controller,
+    this.validationResult,
     required this.onAdd,
     required this.onClear,
+    this.onDismissErrors,
   });
 
   @override
@@ -222,16 +312,26 @@ class _BulkInput extends StatelessWidget {
       key: const ValueKey("bulk"),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        TextField(
-          controller: controller,
-          decoration: const InputDecoration(
-            labelText: "URLs (one per line)",
-            hintText: "https://example.com | tag1, tag2\nhttps://another.com #tag1 #tag2\n# Lines starting with # are comments",
-            border: OutlineInputBorder(),
+        // Label above the input
+        Text(
+          "URLs (one per line)",
+          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
-          maxLines: 8,
-          style: const TextStyle(fontFamily: "monospace"),
         ),
+        const SizedBox(height: 8),
+        CodeInputField(
+          controller: controller,
+          validationResult: validationResult,
+          hintText: "https://example.com | tag1, tag2\nhttps://another.com #tag1 #tag2\n# Lines starting with # are comments",
+          maxLines: 8,
+        ),
+        // Error panel
+        if (validationResult != null && validationResult!.hasErrors)
+          ValidationErrorPanel(
+            validationResult: validationResult!,
+            onDismiss: onDismissErrors,
+          ),
         const SizedBox(height: 12),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,

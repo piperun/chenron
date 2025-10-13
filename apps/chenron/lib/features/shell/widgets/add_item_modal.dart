@@ -8,15 +8,17 @@ enum ItemType {
   document,
 }
 
-/// A modal that allows users to select an item type and then shows the appropriate form.
+/// A modal that allows users to select an item type.
 ///
-/// Flow:
-/// 1. Shows type selector (Link, Folder, Document)
-/// 2. User clicks a type
-/// 3. Transitions to the form for that type
-/// 4. User can go back to type selector or close modal
+/// When used standalone, shows type selector and form.
+/// When used with callback, just shows type selector and calls callback.
 class AddItemModal extends StatefulWidget {
-  const AddItemModal({super.key});
+  final ValueChanged<ItemType>? onTypeSelected;
+  
+  const AddItemModal({
+    super.key,
+    this.onTypeSelected,
+  });
 
   @override
   State<AddItemModal> createState() => _AddItemModalState();
@@ -26,6 +28,14 @@ class _AddItemModalState extends State<AddItemModal> {
   ItemType? _selectedType;
 
   void _onTypeSelected(ItemType type) {
+    // If callback provided, call it and close modal
+    if (widget.onTypeSelected != null) {
+      widget.onTypeSelected!(type);
+      Navigator.pop(context);
+      return;
+    }
+    
+    // Otherwise, show form in modal (legacy behavior)
     setState(() => _selectedType = type);
   }
 

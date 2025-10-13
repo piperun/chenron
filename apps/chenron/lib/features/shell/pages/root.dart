@@ -15,13 +15,34 @@ class RootPage extends StatefulWidget {
 
 class _RootPageState extends State<RootPage> {
   AppPage _currentPage = AppPage.dashboard;
+  AppPage? _previousPage;
   bool _isExtended = true;
 
   void _showCreateModal() {
     showDialog(
       context: context,
-      builder: (context) => const AddItemModal(),
+      builder: (context) => AddItemModal(
+        onTypeSelected: _navigateToCreatePage,
+      ),
     );
+  }
+
+  void _navigateToCreatePage(ItemType type) {
+    setState(() {
+      _previousPage = _currentPage;
+      _currentPage = switch (type) {
+        ItemType.link => AppPage.createLink,
+        ItemType.folder => AppPage.createFolder,
+        ItemType.document => AppPage.createFolder, // TODO: Update when document page exists
+      };
+    });
+  }
+
+  void _returnToPreviousPage() {
+    setState(() {
+      _currentPage = _previousPage ?? AppPage.dashboard;
+      _previousPage = null;
+    });
   }
 
   void _onDestinationSelected(int index) {
@@ -69,10 +90,42 @@ class _RootPageState extends State<RootPage> {
             onAddPressed: _showCreateModal,
           ),
           const VerticalDivider(thickness: 1, width: 1),
-          Expanded(child: _currentPage.page),
+          Expanded(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              switchInCurve: Curves.easeInOut,
+              switchOutCurve: Curves.easeInOut,
+              child: KeyedSubtree(
+                key: ValueKey(_currentPage),
+                child: _currentPage.getPage(
+                  onClose: _returnToPreviousPage,
+                  onSaved: _handleSaved,
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
+  }
+
+  void _handleSaved() {
+    // Return to previous page
+    _returnToPreviousPage();
+    
+    // Show success snackbar with "Add Another" action
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text("✓ Item saved successfully"),
+          action: SnackBarAction(
+            label: "Add Another",
+            onPressed: _showCreateModal,
+          ),
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    }
   }
 }
 
