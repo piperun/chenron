@@ -89,6 +89,8 @@ class BulkValidatorService {
         startIndex: urlStart,
         endIndex: urlEnd,
       ));
+      // Don't validate format if too short - prevents validator errors
+      return errors;
     }
 
     if (SchemaRules.url.max != null && url.length > SchemaRules.url.max!) {

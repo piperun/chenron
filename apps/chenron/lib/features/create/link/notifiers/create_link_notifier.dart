@@ -90,6 +90,9 @@ class CreateLinkNotifier extends ChangeNotifier {
 
   /// Adds multiple entries (bulk mode)
   void addEntries(List<Map<String, dynamic>> entriesData) {
+    loggerGlobal.info("CreateLinkNotifier",
+        "Adding ${entriesData.length} entries in bulk mode");
+
     for (final data in entriesData) {
       addEntry(
         url: data["url"] as String,
@@ -98,7 +101,9 @@ class CreateLinkNotifier extends ChangeNotifier {
       );
     }
 
-    // Validate all at once
+    loggerGlobal.info("CreateLinkNotifier",
+        "Starting validation for ${entriesData.length} entries");
+    // Validate all at once (non-blocking)
     _validateAllEntries();
   }
 
@@ -144,8 +149,9 @@ class CreateLinkNotifier extends ChangeNotifier {
     if (index == -1) return;
 
     final entry = _entries[index];
-    
-    loggerGlobal.info("CreateLinkNotifier", "Starting validation for URL: ${entry.url}");
+
+    loggerGlobal.info(
+        "CreateLinkNotifier", "Starting validation for URL: ${entry.url}");
 
     // Set validating status
     _entries[index] = entry.copyWith(
@@ -156,11 +162,9 @@ class CreateLinkNotifier extends ChangeNotifier {
     try {
       // Perform validation
       final result = await UrlValidatorService.validateUrl(entry.url);
-      
-      loggerGlobal.info(
-        "CreateLinkNotifier",
-        "Validation completed for ${entry.url}: isValid=${result.isValid}, isReachable=${result.isReachable}, message=${result.message}"
-      );
+
+      loggerGlobal.info("CreateLinkNotifier",
+          "Validation completed for ${entry.url}: isValid=${result.isValid}, isReachable=${result.isReachable}, message=${result.message}");
 
       // Update entry with result
       final updatedIndex = _entries.indexWhere((e) => e.key == key);
@@ -168,13 +172,16 @@ class CreateLinkNotifier extends ChangeNotifier {
         LinkValidationStatus status;
         if (!result.isValid) {
           status = LinkValidationStatus.invalid;
-          loggerGlobal.warning("CreateLinkNotifier", "URL ${entry.url} is INVALID");
+          loggerGlobal.warning(
+              "CreateLinkNotifier", "URL ${entry.url} is INVALID");
         } else if (!result.isReachable) {
           status = LinkValidationStatus.unreachable;
-          loggerGlobal.warning("CreateLinkNotifier", "URL ${entry.url} is UNREACHABLE: ${result.message}");
+          loggerGlobal.warning("CreateLinkNotifier",
+              "URL ${entry.url} is UNREACHABLE: ${result.message}");
         } else {
           status = LinkValidationStatus.valid;
-          loggerGlobal.info("CreateLinkNotifier", "URL ${entry.url} is VALID (status code: ${result.statusCode})");
+          loggerGlobal.info("CreateLinkNotifier",
+              "URL ${entry.url} is VALID (status code: ${result.statusCode})");
         }
 
         _entries[updatedIndex] = _entries[updatedIndex].copyWith(
@@ -184,8 +191,9 @@ class CreateLinkNotifier extends ChangeNotifier {
         notifyListeners();
       }
     } catch (e, stackTrace) {
-      loggerGlobal.severe("CreateLinkNotifier", "Validation error for ${entry.url}: $e", e, stackTrace);
-      
+      loggerGlobal.severe("CreateLinkNotifier",
+          "Validation error for ${entry.url}: $e", e, stackTrace);
+
       // Mark as unreachable on error
       final updatedIndex = _entries.indexWhere((e) => e.key == key);
       if (updatedIndex != -1) {
@@ -198,7 +206,23 @@ class CreateLinkNotifier extends ChangeNotifier {
     }
   }
 
-  /// Validates all entries
+  /// Validates all entries in parallel (non-blocking)
+  Future<void> _validateAllEntriesParallel() async {
+    loggerGlobal.info("CreateLinkNotifier",
+        "Starting parallel validation for ${_entries.length} entries");
+    final startTime = DateTime.now();
+
+    // Validate all entries in parallel using Future.wait
+    await Future.wait(
+      _entries.map((entry) => _validateEntry(entry.key)),
+    );
+
+    final duration = DateTime.now().difference(startTime);
+    loggerGlobal.info("CreateLinkNotifier",
+        "Parallel validation completed in ${duration.inMilliseconds}ms");
+  }
+
+  /// Validates all entries sequentially (kept for compatibility)
   Future<void> _validateAllEntries() async {
     for (final entry in _entries) {
       await _validateEntry(entry.key);

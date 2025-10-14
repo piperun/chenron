@@ -28,7 +28,7 @@ class CreateLinkPage extends StatefulWidget {
   final ValueChanged<bool>? onValidationChanged;
   final VoidCallback? onClose;
   final VoidCallback? onSaved;
-  
+
   const CreateLinkPage({
     super.key,
     this.hideAppBar = false,
@@ -51,13 +51,13 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
   void initState() {
     super.initState();
     _notifier = CreateLinkNotifier();
-    
+
     // Provide save callback to parent if requested
     widget.onSaveCallbackReady?.call(_saveLinks);
-    
+
     // Listen to notifier for validation changes
     _notifier.addListener(_onNotifierChanged);
-    
+
     // Initially no links, so invalid
     WidgetsBinding.instance.addPostFrameCallback((_) {
       widget.onValidationChanged?.call(false);
@@ -79,7 +79,7 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       appBar: widget.hideAppBar
           ? null
@@ -128,59 +128,62 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
             ),
           Expanded(
             child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              LinkFolderSection(
-              selectedFolders: _selectedFolders,
-              onFoldersChanged: (folders) {
-                setState(() {
-                  _selectedFolders = folders;
-                  _notifier.setSelectedFolders(
-                    folders.map((f) => f.id).toList(),
-                  );
-                });
-              },
-            ),
-            LinkInputSection(
-              mode: _notifier.inputMode,
-              onModeChanged: _notifier.setInputMode,
-              onAddSingle: _handleAddSingle,
-              onAddBulk: _handleAddBulk,
-            ),
-            LinkArchiveToggle(
-              value: _notifier.isArchiveMode,
-              onChanged: (value) => _notifier.setArchiveMode(value: value),
-            ),
-            LinkTagsSection(
-              tags: _notifier.globalTags,
-              onTagAdded: _notifier.addGlobalTag,
-              onTagRemoved: _notifier.removeGlobalTag,
-            ),
-            ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: 300,
-                maxHeight: MediaQuery.of(context).size.height * 0.5,
+              padding: const EdgeInsets.all(16.0),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    LinkFolderSection(
+                      selectedFolders: _selectedFolders,
+                      onFoldersChanged: (folders) {
+                        setState(() {
+                          _selectedFolders = folders;
+                          _notifier.setSelectedFolders(
+                            folders.map((f) => f.id).toList(),
+                          );
+                        });
+                      },
+                    ),
+                    LinkInputSection(
+                      mode: _notifier.inputMode,
+                      onModeChanged: _notifier.setInputMode,
+                      onAddSingle: _handleAddSingle,
+                      onAddBulk: _handleAddBulk,
+                    ),
+                    LinkArchiveToggle(
+                      value: _notifier.isArchiveMode,
+                      onChanged: (value) =>
+                          _notifier.setArchiveMode(value: value),
+                    ),
+                    LinkTagsSection(
+                      tags: _notifier.globalTags,
+                      onTagAdded: _notifier.addGlobalTag,
+                      onTagRemoved: _notifier.removeGlobalTag,
+                    ),
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: 300,
+                        maxHeight: (MediaQuery.of(context).size.height * 0.5)
+                            .clamp(300.0, double.infinity),
+                      ),
+                      child: LinkTableSection(
+                        entries: _notifier.entries,
+                        notifier: _tableNotifier,
+                        onEdit: _handleEdit,
+                        onDelete: _handleDelete,
+                        onDeleteSelected: _handleDeleteSelected,
+                        onClearAll: _handleClearAll,
+                        folderNames: _selectedFolders
+                            .fold<Map<String, String>>({}, (map, folder) {
+                          map[folder.id] = folder.title;
+                          return map;
+                        }),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              child: LinkTableSection(
-                entries: _notifier.entries,
-                notifier: _tableNotifier,
-                onEdit: _handleEdit,
-                onDelete: _handleDelete,
-                onDeleteSelected: _handleDeleteSelected,
-                onClearAll: _handleClearAll,
-                folderNames: _selectedFolders.fold<Map<String, String>>({}, (map, folder) {
-                  map[folder.id] = folder.title;
-                  return map;
-                }),
-              ),
-            ),
-            ],
-          ),
-        ),
             ),
           ),
         ],
@@ -191,7 +194,7 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
   void _handleAddSingle(String input) {
     final parsed = UrlParserService.parseSingleLine(input);
     if (parsed == null) return;
-    
+
     // Validate URL
     final urlError = LinkValidator.validateContent(parsed.url);
     if (urlError != null) {
@@ -200,7 +203,7 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
       );
       return;
     }
-    
+
     // Validate tags using TagValidator
     final tagError = TagValidator.validateTags(parsed.tags);
     if (tagError != null) {
@@ -209,7 +212,7 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
       );
       return;
     }
-    
+
     _notifier.addEntry(
       url: parsed.url,
       tags: parsed.tags,
@@ -219,16 +222,18 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
   void _handleAddBulk(String input, BulkValidationResult validationResult) {
     // First validate the bulk input
     final result = BulkValidatorService.validateBulkInput(input);
-    
+
     // Add only valid entries to the table
     if (result.hasValidLines) {
-      final validEntries = result.validLinesData.map((line) => {
-        "url": line.url!,
-        "tags": line.tags ?? [],
-      }).toList();
-      
+      final validEntries = result.validLinesData
+          .map((line) => {
+                "url": line.url!,
+                "tags": line.tags ?? [],
+              })
+          .toList();
+
       _notifier.addEntries(validEntries);
-      
+
       // Show success message
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -246,7 +251,8 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("All ${result.invalidLines} URLs have validation errors. Please fix and try again."),
+            content: Text(
+                "All ${result.invalidLines} URLs have validation errors. Please fix and try again."),
             backgroundColor: Theme.of(context).colorScheme.error,
             duration: const Duration(seconds: 4),
           ),
@@ -304,12 +310,14 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
       for (final entry in _notifier.entries) {
         // Convert tags to Metadata objects
         final tags = entry.tags.isNotEmpty
-            ? entry.tags.map((tag) => Metadata(
-                value: tag,
-                type: MetadataTypeEnum.tag,
-              )).toList()
+            ? entry.tags
+                .map((tag) => Metadata(
+                      value: tag,
+                      type: MetadataTypeEnum.tag,
+                    ))
+                .toList()
             : null;
-        
+
         final result = await appDb.createLink(
           link: entry.url,
           tags: tags,
