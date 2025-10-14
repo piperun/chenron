@@ -1,0 +1,146 @@
+import "package:flutter/material.dart";
+import "package:chenron/utils/validation/tag_validator.dart";
+
+class FolderTagsSection extends StatefulWidget {
+  final Set<String> tags;
+  final ValueChanged<String> onTagAdded;
+  final ValueChanged<String> onTagRemoved;
+
+  const FolderTagsSection({
+    super.key,
+    required this.tags,
+    required this.onTagAdded,
+    required this.onTagRemoved,
+  });
+
+  @override
+  State<FolderTagsSection> createState() => _FolderTagsSectionState();
+}
+
+class _FolderTagsSectionState extends State<FolderTagsSection> {
+  final TextEditingController _controller = TextEditingController();
+  String? _errorText;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _addTag() {
+    final tag = _controller.text.trim().toLowerCase();
+
+    if (tag.isEmpty) {
+      setState(() => _errorText = null);
+      return;
+    }
+
+    // Validate using TagValidator
+    final validationError = TagValidator.validateTag(tag);
+    if (validationError != null) {
+      setState(() => _errorText = validationError);
+      return;
+    }
+
+    // Check for duplicates
+    if (widget.tags.contains(tag)) {
+      setState(() => _errorText = "Tag '$tag' already exists");
+      return;
+    }
+
+    widget.onTagAdded(tag);
+    _controller.clear();
+    setState(() => _errorText = null);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.label, size: 20, color: theme.colorScheme.primary),
+                const SizedBox(width: 8),
+                Text(
+                  "Tags",
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              "Add tags to organize this folder",
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    decoration: InputDecoration(
+                      labelText: "Add tag",
+                      hintText: "Enter tag name",
+                      border: const OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.tag),
+                      errorText: _errorText,
+                    ),
+                    onSubmitted: (_) => _addTag(),
+                    onChanged: (_) {
+                      if (_errorText != null) {
+                        setState(() => _errorText = null);
+                      }
+                    },
+                  ),
+                ),
+                const SizedBox(width: 12),
+                FilledButton.icon(
+                  onPressed: _addTag,
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text("Add"),
+                ),
+              ],
+            ),
+            if (widget.tags.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: widget.tags.map((tag) {
+                  return InputChip(
+                    label: Text("#$tag"),
+                    onDeleted: () => widget.onTagRemoved(tag),
+                    deleteIconColor: theme.colorScheme.error,
+                    backgroundColor: theme.colorScheme.secondaryContainer,
+                    labelStyle: TextStyle(
+                      color: theme.colorScheme.onSecondaryContainer,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      side: BorderSide(
+                        color:
+                            theme.colorScheme.secondary.withValues(alpha: 0.5),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}

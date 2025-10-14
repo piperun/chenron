@@ -1,14 +1,19 @@
-import "package:chenron/components/TextBase/info_field.dart";
-import "package:chenron/components/tags/tag_field.dart";
+import "package:flutter/material.dart";
+import "package:chenron/database/database.dart";
 import "package:chenron/database/extensions/folder/create.dart";
+import "package:chenron/database/extensions/folder/update.dart";
 import "package:chenron/database/extensions/operations/database_file_handler.dart";
 import "package:chenron/locator.dart";
+import "package:chenron/models/cud.dart";
+import "package:chenron/models/item.dart";
+import "package:chenron/models/metadata.dart";
 import "package:chenron/models/folder.dart";
-import "package:chenron/utils/validation/folder_validator.dart";
-import "package:flutter/material.dart";
 import "package:signals/signals.dart";
-
-enum FolderType { folder, link, document }
+import "package:chenron/features/create/folder/notifiers/create_folder_notifier.dart";
+import "package:chenron/features/create/folder/widgets/folder_input_section.dart";
+import "package:chenron/features/create/folder/widgets/folder_parent_section.dart";
+import "package:chenron/features/create/folder/widgets/folder_tags_section.dart";
+import "package:chenron/utils/validation/folder_validator.dart";
 
 class CreateFolderPage extends StatefulWidget {
   final bool hideAppBar;
@@ -16,7 +21,7 @@ class CreateFolderPage extends StatefulWidget {
   final ValueChanged<bool>? onValidationChanged;
   final VoidCallback? onClose;
   final VoidCallback? onSaved;
-  
+
   const CreateFolderPage({
     super.key,
     this.hideAppBar = false,
@@ -31,58 +36,88 @@ class CreateFolderPage extends StatefulWidget {
 }
 
 class _CreateFolderPageState extends State<CreateFolderPage> {
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  late CreateFolderNotifier _notifier;
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-  String _access = "Private";
+  List<Folder> _selectedParentFolders = [];
+  String? _titleError;
+  String? _descriptionError;
 
   @override
   void initState() {
     super.initState();
-    
+    _notifier = CreateFolderNotifier();
+
     // Provide save callback to parent if requested
-    widget.onSaveCallbackReady?.call(saveFolder);
-    
-    // Add listeners to update validation state
-    _titleController.addListener(_updateValidationState);
-    _descriptionController.addListener(_updateValidationState);
-    
-    // Initially invalid (empty form) - defer to avoid setState during build
+    widget.onSaveCallbackReady?.call(_saveFolder);
+
+    // Listen to notifier for validation changes
+    _notifier.addListener(_onNotifierChanged);
+
+    // Listen to text controllers
+    _titleController.addListener(_onTitleChanged);
+    _descriptionController.addListener(_onDescriptionChanged);
+
+    // Initially invalid (empty form)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       widget.onValidationChanged?.call(false);
     });
   }
 
-  @override
-  void dispose() {
-    _titleController.removeListener(_updateValidationState);
-    _descriptionController.removeListener(_updateValidationState);
-    _titleController.dispose();
-    _descriptionController.dispose();
-    super.dispose();
+  void _onNotifierChanged() {
+    widget.onValidationChanged?.call(_notifier.isValid);
+    setState(() {});
   }
 
-  void _updateValidationState() {
-    // Form is valid if title is not empty
-    final isValid = _titleController.text.trim().isNotEmpty;
-    widget.onValidationChanged?.call(isValid);
+  void _onTitleChanged() {
+    final title = _titleController.text;
+    _notifier.setTitle(title);
+
+    // Validate and show error inline
+    final error = FolderValidator.validateTitle(title);
+    if (_titleError != error) {
+      setState(() => _titleError = error);
+    }
+  }
+
+  void _onDescriptionChanged() {
+    final description = _descriptionController.text;
+    _notifier.setDescription(description);
+
+    // Validate and show error inline
+    final error = FolderValidator.validateDescription(description);
+    if (_descriptionError != error) {
+      setState(() => _descriptionError = error);
+    }
+  }
+
+  @override
+  void dispose() {
+    _notifier.removeListener(_onNotifierChanged);
+    _titleController.removeListener(_onTitleChanged);
+    _descriptionController.removeListener(_onDescriptionChanged);
+    _titleController.dispose();
+    _descriptionController.dispose();
+    _notifier.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isValid = _titleController.text.trim().isNotEmpty;
-    
+
     return Scaffold(
-      appBar: widget.hideAppBar ? null : AppBar(
-        title: const Text("Create Folder"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: saveFolder,
-          ),
-        ],
-      ),
+      appBar: widget.hideAppBar
+          ? null
+          : AppBar(
+              title: const Text("Create Folder"),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.save),
+                  onPressed: _notifier.isValid ? _saveFolder : null,
+                ),
+              ],
+            ),
       body: Column(
         children: [
           // Header with close button when in main page mode
@@ -110,7 +145,7 @@ class _CreateFolderPageState extends State<CreateFolderPage> {
                   ),
                   const Spacer(),
                   FilledButton.icon(
-                    onPressed: isValid ? saveFolder : null,
+                    onPressed: _notifier.isValid ? _saveFolder : null,
                     icon: const Icon(Icons.save, size: 18),
                     label: const Text("Save"),
                   ),
@@ -119,29 +154,37 @@ class _CreateFolderPageState extends State<CreateFolderPage> {
             ),
           Expanded(
             child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              InfoField(
-                controller: _titleController,
-                labelText: "Title",
-                validator: FolderValidator.validateTitle,
+              padding: const EdgeInsets.all(16.0),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    FolderInputSection(
+                      titleController: _titleController,
+                      descriptionController: _descriptionController,
+                      titleError: _titleError,
+                      descriptionError: _descriptionError,
+                    ),
+                    FolderParentSection(
+                      selectedFolders: _selectedParentFolders,
+                      onFoldersChanged: (folders) {
+                        setState(() {
+                          _selectedParentFolders = folders;
+                          _notifier.setParentFolders(
+                            folders.map((f) => f.id).toList(),
+                          );
+                        });
+                      },
+                    ),
+                    FolderTagsSection(
+                      tags: _notifier.tags.value,
+                      onTagAdded: _notifier.addTag,
+                      onTagRemoved: _notifier.removeTag,
+                    ),
+                  ],
+                ),
               ),
-              InfoField(
-                controller: _descriptionController,
-                labelText: "Description",
-                validator: FolderValidator.validateDescription,
-              ),
-              const TagField(),
-              const SizedBox(height: 20),
-              _buildAccessSelection(),
-              const SizedBox(height: 20),
-            ],
-          ),
-        ),
             ),
           ),
         ],
@@ -149,49 +192,71 @@ class _CreateFolderPageState extends State<CreateFolderPage> {
     );
   }
 
-  Widget _buildAccessSelection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text("Access"),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: ["Private", "Unlisted", "Public"].map((accessType) {
-            return Padding(
-              padding: const EdgeInsets.only(right: 8.0),
-              child: ChoiceChip(
-                label: Text(accessType),
-                selected: _access == accessType,
-                onSelected: (bool selected) {
-                  setState(() => _access = accessType);
-                },
-              ),
-            );
-          }).toList(),
-        ),
-      ],
+  Future<void> _saveFolder() async {
+    // Validate before saving
+    final titleError = FolderValidator.validateTitle(_titleController.text);
+    final descriptionError =
+        FolderValidator.validateDescription(_descriptionController.text);
+
+    if (titleError != null || descriptionError != null) {
+      setState(() {
+        _titleError = titleError;
+        _descriptionError = descriptionError;
+      });
+      return;
+    }
+
+    if (!_notifier.isValid) return;
+
+    final db = await locator.get<Signal<Future<AppDatabaseHandler>>>().value;
+    final appDb = db.appDatabase;
+
+    // Convert tags to Metadata objects
+    final tags = _notifier.tags.value.isNotEmpty
+        ? _notifier.tags.value
+            .map((tag) => Metadata(
+                  value: tag,
+                  type: MetadataTypeEnum.tag,
+                ))
+            .toList()
+        : null;
+
+    // Create the folder
+    final result = await appDb.createFolder(
+      folderInfo: FolderDraft(
+        title: _notifier.title.value,
+        description: _notifier.description.value,
+      ),
+      tags: tags,
     );
-  }
 
-  Future<void> saveFolder() async {
-    if (_formKey.currentState!.validate()) {
-      final db = await locator.get<Signal<Future<AppDatabaseHandler>>>().value;
-      final appDb = db.appDatabase;
+    // Add the new folder to parent folders if any selected
+    if (_selectedParentFolders.isNotEmpty) {
+      for (final parentFolder in _selectedParentFolders) {
+        await appDb.updateFolder(
+          parentFolder.id,
+          itemUpdates: CUD(
+            create: [],
+            update: [
+              FolderItem(
+                type: FolderItemType.folder,
+                itemId: result.folderId,
+                content: StringContent(value: _notifier.title.value),
+              )
+            ],
+            remove: [],
+          ),
+        );
+      }
+    }
 
-      await appDb.createFolder(
-          folderInfo: FolderDraft(
-        title: _titleController.text,
-        description: _descriptionController.text,
-      ));
-
-      if (mounted) {
-        // If onSaved callback provided, call it (main page mode)
-        if (widget.onSaved != null) {
-          widget.onSaved!();
-        } else {
-          // Otherwise, close via Navigator (modal mode)
-          Navigator.pop(context);
-        }
+    if (mounted) {
+      // If onSaved callback provided, call it (main page mode)
+      if (widget.onSaved != null) {
+        widget.onSaved!();
+      } else {
+        // Otherwise, close via Navigator (modal mode)
+        Navigator.pop(context);
       }
     }
   }
