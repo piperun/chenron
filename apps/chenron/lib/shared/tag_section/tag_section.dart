@@ -1,23 +1,27 @@
 import "package:flutter/material.dart";
 import "package:chenron/utils/validation/tag_validator.dart";
 
-class FolderTagsSection extends StatefulWidget {
+class TagSection extends StatefulWidget {
+  final String? title;
+  final String? description;
   final Set<String> tags;
   final ValueChanged<String> onTagAdded;
   final ValueChanged<String> onTagRemoved;
 
-  const FolderTagsSection({
+  const TagSection({
     super.key,
+    this.title,
+    this.description,
     required this.tags,
     required this.onTagAdded,
     required this.onTagRemoved,
   });
 
   @override
-  State<FolderTagsSection> createState() => _FolderTagsSectionState();
+  State<TagSection> createState() => _TagSectionState();
 }
 
-class _FolderTagsSectionState extends State<FolderTagsSection> {
+class _TagSectionState extends State<TagSection> {
   final TextEditingController _controller = TextEditingController();
   String? _errorText;
 
@@ -70,7 +74,7 @@ class _FolderTagsSectionState extends State<FolderTagsSection> {
                 Icon(Icons.label, size: 20, color: theme.colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
-                  "Tags",
+                  widget.title ?? "Tags",
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -79,7 +83,7 @@ class _FolderTagsSectionState extends State<FolderTagsSection> {
             ),
             const SizedBox(height: 4),
             Text(
-              "Add tags to organize this folder",
+              widget.description ?? "",
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),

@@ -1,3 +1,4 @@
+import "package:chenron/shared/tag_section/tag_section.dart";
 import "package:flutter/material.dart";
 import "package:chenron/database/database.dart";
 import "package:chenron/database/extensions/folder/update.dart";
@@ -11,7 +12,6 @@ import "package:chenron/features/create/link/notifiers/create_link_notifier.dart
 import "package:chenron/features/create/link/widgets/link_folder_section.dart";
 import "package:chenron/features/create/link/widgets/link_input_section.dart";
 import "package:chenron/features/create/link/widgets/link_archive_toggle.dart";
-import "package:chenron/features/create/link/widgets/link_tags_section.dart";
 import "package:chenron/features/create/link/widgets/link_table_section.dart";
 import "package:chenron/features/create/link/widgets/link_edit_bottom_sheet.dart";
 import "package:chenron/features/create/link/services/url_parser_service.dart";
@@ -156,7 +156,10 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
                       onChanged: (value) =>
                           _notifier.setArchiveMode(value: value),
                     ),
-                    LinkTagsSection(
+                    TagSection(
+                      title: "Global Tags",
+                      description:
+                          "Add tags to all links created in this session",
                       tags: _notifier.globalTags,
                       onTagAdded: _notifier.addGlobalTag,
                       onTagRemoved: _notifier.removeGlobalTag,

@@ -1,3 +1,5 @@
+import "package:chenron/shared/folder_input/folder_input_section.dart";
+import "package:chenron/shared/tag_section/tag_section.dart";
 import "package:flutter/material.dart";
 import "package:chenron/database/database.dart";
 import "package:chenron/database/extensions/folder/create.dart";
@@ -10,9 +12,7 @@ import "package:chenron/models/metadata.dart";
 import "package:chenron/models/folder.dart";
 import "package:signals/signals.dart";
 import "package:chenron/features/create/folder/notifiers/create_folder_notifier.dart";
-import "package:chenron/features/create/folder/widgets/folder_input_section.dart";
 import "package:chenron/features/create/folder/widgets/folder_parent_section.dart";
-import "package:chenron/features/create/folder/widgets/folder_tags_section.dart";
 import "package:chenron/utils/validation/folder_validator.dart";
 
 class CreateFolderPage extends StatefulWidget {
@@ -84,7 +84,6 @@ class _CreateFolderPageState extends State<CreateFolderPage> {
     final description = _descriptionController.text;
     _notifier.setDescription(description);
 
-    // Validate and show error inline
     final error = FolderValidator.validateDescription(description);
     if (_descriptionError != error) {
       setState(() => _descriptionError = error);
@@ -177,7 +176,8 @@ class _CreateFolderPageState extends State<CreateFolderPage> {
                         });
                       },
                     ),
-                    FolderTagsSection(
+                    TagSection(
+                      description: "Add tags to this folder",
                       tags: _notifier.tags.value,
                       onTagAdded: _notifier.addTag,
                       onTagRemoved: _notifier.removeTag,
