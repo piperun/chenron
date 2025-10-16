@@ -18,6 +18,7 @@ typedef UserConfigUpdateInput = ({
   bool? defaultArchiveOrg,
   String? archiveOrgS3AccessKey,
   String? archiveOrgS3SecretKey,
+  int? timeDisplayFormat,
   CUD<UserTheme>? themeUpdates,
 });
 
@@ -126,6 +127,9 @@ class UserConfigUpdateVEPR extends VEPROperation<
           : const Value.absent(),
       selectedThemeType: input.selectedThemeType != null
           ? Value(input.selectedThemeType!.index)
+          : const Value.absent(),
+      timeDisplayFormat: input.timeDisplayFormat != null
+          ? Value(input.timeDisplayFormat!)
           : const Value.absent(),
     );
 
