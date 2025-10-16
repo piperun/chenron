@@ -41,6 +41,8 @@ class ConfigController {
   final defaultArchiveOrg = signal<bool>(false);
   final archiveOrgS3AccessKey = signal<String?>(null);
   final archiveOrgS3SecretKey = signal<String?>(null);
+  final timeDisplayFormat = signal<int>(0); // 0 = relative, 1 = absolute
+
   Future<void> initialize() async {
     isLoading.value = true;
     error.value = null;
@@ -54,6 +56,7 @@ class ConfigController {
         defaultArchiveOrg.value = config.defaultArchiveOrg;
         archiveOrgS3AccessKey.value = config.archiveOrgS3AccessKey;
         archiveOrgS3SecretKey.value = config.archiveOrgS3SecretKey;
+        timeDisplayFormat.value = config.timeDisplayFormat;
 
         await _loadAvailableThemes();
         final initialChoice = availableThemes.peek().firstWhere(
@@ -70,6 +73,7 @@ class ConfigController {
         defaultArchiveOrg.value = false;
         archiveOrgS3AccessKey.value = null;
         archiveOrgS3SecretKey.value = null;
+        timeDisplayFormat.value = 0;
         await _loadAvailableThemes();
         selectedThemeChoice.value = availableThemes.peek().isNotEmpty
             ? availableThemes.peek().first
@@ -84,6 +88,7 @@ class ConfigController {
       defaultArchiveOrg.value = false;
       archiveOrgS3AccessKey.value = null;
       archiveOrgS3SecretKey.value = null;
+      timeDisplayFormat.value = 0;
       availableThemes.value = [];
       selectedThemeChoice.value = null;
     } finally {
@@ -141,6 +146,10 @@ class ConfigController {
     archiveOrgS3SecretKey.value = value;
   }
 
+  void updateTimeDisplayFormat(int value) {
+    timeDisplayFormat.value = value;
+  }
+
   // --- Saving ---
   Future<bool> saveSettings() async {
     final config = userConfig.peek();
@@ -169,6 +178,7 @@ class ConfigController {
         archiveOrgS3SecretKey: archiveOrgS3SecretKey.peek()?.trim(),
         selectedThemeKey: selectedTheme.key,
         selectedThemeType: selectedTheme.type,
+        timeDisplayFormat: timeDisplayFormat.peek(),
       );
 
       await _themeController.changeTheme(selectedTheme.key, selectedTheme.type);
@@ -206,6 +216,7 @@ class ConfigController {
         archiveOrgS3SecretKey.peek()?.trim() !=
             originalConfig.archiveOrgS3SecretKey ||
         currentSelected?.key != originalConfig.selectedThemeKey ||
-        currentSelected?.type.index != originalConfig.selectedThemeType;
+        currentSelected?.type.index != originalConfig.selectedThemeType ||
+        timeDisplayFormat.peek() != originalConfig.timeDisplayFormat;
   }
 }

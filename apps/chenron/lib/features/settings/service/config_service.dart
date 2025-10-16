@@ -49,6 +49,7 @@ class ConfigService {
     required String? archiveOrgS3SecretKey,
     required String? selectedThemeKey,
     required ThemeType selectedThemeType,
+    required int timeDisplayFormat,
     // Add other config fields as needed
   }) async {
     try {
@@ -62,6 +63,7 @@ class ConfigService {
         archiveOrgS3SecretKey: archiveOrgS3SecretKey,
         selectedThemeKey: selectedThemeKey,
         selectedThemeType: selectedThemeType,
+        timeDisplayFormat: timeDisplayFormat,
         // Note: Theme CUD operations removed as draft logic is gone
       );
       loggerGlobal.info("ConfigService", "User config updated successfully.");

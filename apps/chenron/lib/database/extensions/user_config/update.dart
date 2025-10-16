@@ -13,6 +13,7 @@ extension UserConfigUpdateExtensions on ConfigDatabase {
     bool? defaultArchiveOrg,
     String? archiveOrgS3AccessKey,
     String? archiveOrgS3SecretKey,
+    int? timeDisplayFormat,
     CUD<UserTheme>? themeUpdates,
   }) async {
     final operation = UserConfigUpdateVEPR(this);
@@ -26,6 +27,7 @@ extension UserConfigUpdateExtensions on ConfigDatabase {
       defaultArchiveOrg: defaultArchiveOrg,
       archiveOrgS3AccessKey: archiveOrgS3AccessKey,
       archiveOrgS3SecretKey: archiveOrgS3SecretKey,
+      timeDisplayFormat: timeDisplayFormat,
       themeUpdates: themeUpdates,
     );
 
