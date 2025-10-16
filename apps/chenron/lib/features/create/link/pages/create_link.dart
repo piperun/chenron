@@ -46,6 +46,8 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
   late CreateLinkNotifier _notifier;
   final DataGridNotifier _tableNotifier = DataGridNotifier();
   List<Folder> _selectedFolders = [];
+  String? _singleInputError;
+  String? _generalError;
 
   @override
   void initState() {
@@ -94,6 +96,42 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
             ),
       body: Column(
         children: [
+          // General error banner
+          if (_generalError != null)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.errorContainer,
+                border: Border(
+                  bottom: BorderSide(color: theme.colorScheme.error, width: 2),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    color: theme.colorScheme.error,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      "Error: $_generalError",
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onErrorContainer,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, size: 18),
+                    onPressed: () => setState(() => _generalError = null),
+                    color: theme.colorScheme.error,
+                    tooltip: "Dismiss",
+                  ),
+                ],
+              ),
+            ),
           // Header with close button when in main page mode
           if (widget.hideAppBar && widget.onClose != null)
             Container(
@@ -150,6 +188,9 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
                       onModeChanged: _notifier.setInputMode,
                       onAddSingle: _handleAddSingle,
                       onAddBulk: _handleAddBulk,
+                      singleInputError: _singleInputError,
+                      onErrorDismissed: () =>
+                          setState(() => _singleInputError = null),
                     ),
                     LinkArchiveToggle(
                       value: _notifier.isArchiveMode,
@@ -196,25 +237,35 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
 
   void _handleAddSingle(String input) {
     final parsed = UrlParserService.parseSingleLine(input);
-    if (parsed == null) return;
+    if (parsed == null) {
+      setState(() {
+        _singleInputError = "Invalid input format";
+      });
+      return;
+    }
 
     // Validate URL
     final urlError = LinkValidator.validateContent(parsed.url);
     if (urlError != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(urlError)),
-      );
+      setState(() {
+        _singleInputError = urlError;
+      });
       return;
     }
 
     // Validate tags using TagValidator
     final tagError = TagValidator.validateTags(parsed.tags);
     if (tagError != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(tagError)),
-      );
+      setState(() {
+        _singleInputError = tagError;
+      });
       return;
     }
+
+    // Clear any previous errors
+    setState(() {
+      _singleInputError = null;
+    });
 
     _notifier.addEntry(
       url: parsed.url,
@@ -245,23 +296,13 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
               "Added ${result.validLines} valid URL(s) successfully"
               "${result.hasErrors ? '. ${result.invalidLines} invalid URLs remain in input.' : ''}",
             ),
+            backgroundColor: Colors.green,
             duration: const Duration(seconds: 3),
           ),
         );
       }
-    } else if (result.hasErrors) {
-      // All lines have errors - show message
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                "All ${result.invalidLines} URLs have validation errors. Please fix and try again."),
-            backgroundColor: Theme.of(context).colorScheme.error,
-            duration: const Duration(seconds: 4),
-          ),
-        );
-      }
     }
+    // For bulk mode, inline errors are already shown in the ValidationErrorPanel
   }
 
   void _handleEdit(Key key) {
@@ -302,54 +343,73 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
   Future<void> _saveLinks() async {
     if (_notifier.entries.isEmpty) return;
 
-    final db = await locator.get<Signal<Future<AppDatabaseHandler>>>().value;
-    final appDb = db.appDatabase;
+    try {
+      final db = await locator.get<Signal<Future<AppDatabaseHandler>>>().value;
+      final appDb = db.appDatabase;
 
-    final targetFolders = _selectedFolders.isEmpty
-        ? ["default"]
-        : _selectedFolders.map((f) => f.id).toList();
+      final targetFolders = _selectedFolders.isEmpty
+          ? ["default"]
+          : _selectedFolders.map((f) => f.id).toList();
 
-    for (final folderId in targetFolders) {
-      for (final entry in _notifier.entries) {
-        // Convert tags to Metadata objects
-        final tags = entry.tags.isNotEmpty
-            ? entry.tags
-                .map((tag) => Metadata(
-                      value: tag,
-                      type: MetadataTypeEnum.tag,
-                    ))
-                .toList()
-            : null;
+      for (final folderId in targetFolders) {
+        for (final entry in _notifier.entries) {
+          // Convert tags to Metadata objects
+          final tags = entry.tags.isNotEmpty
+              ? entry.tags
+                  .map((tag) => Metadata(
+                        value: tag,
+                        type: MetadataTypeEnum.tag,
+                      ))
+                  .toList()
+              : null;
 
-        final result = await appDb.createLink(
-          link: entry.url,
-          tags: tags,
-        );
+          final result = await appDb.createLink(
+            link: entry.url,
+            tags: tags,
+          );
 
-        await appDb.updateFolder(
-          folderId,
-          itemUpdates: CUD(
-            create: [],
-            update: [
-              FolderItem(
-                type: FolderItemType.link,
-                itemId: result.linkId,
-                content: StringContent(value: entry.url),
-              )
-            ],
-            remove: [],
+          await appDb.updateFolder(
+            folderId,
+            itemUpdates: CUD(
+              create: [],
+              update: [
+                FolderItem(
+                  type: FolderItemType.link,
+                  itemId: result.linkId,
+                  content: StringContent(value: entry.url),
+                )
+              ],
+              remove: [],
+            ),
+          );
+        }
+      }
+
+      if (mounted) {
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "Successfully saved ${_notifier.entries.length} link(s)",
+            ),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
           ),
         );
-      }
-    }
 
-    if (mounted) {
-      // If onSaved callback provided, call it (main page mode)
-      if (widget.onSaved != null) {
-        widget.onSaved!();
-      } else {
-        // Otherwise, close via Navigator (modal mode)
-        Navigator.pop(context);
+        // If onSaved callback provided, call it (main page mode)
+        if (widget.onSaved != null) {
+          widget.onSaved!();
+        } else {
+          // Otherwise, close via Navigator (modal mode)
+          Navigator.pop(context);
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _generalError = "Could not save: ${e.toString()}";
+        });
       }
     }
   }
