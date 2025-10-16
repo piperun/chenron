@@ -1,3 +1,5 @@
+import "package:chenron/shared/labeled_text_field/labeled_text_field.dart";
+import "package:chenron/shared/section_card/section_card.dart";
 import "package:flutter/material.dart";
 import "package:chenron/utils/validation/tag_validator.dart";
 
@@ -61,90 +63,63 @@ class _TagSectionState extends State<TagSection> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return CardSection(
+      title: widget.title ?? "Tags",
+      description: widget.description ?? "",
+      sectionIcon: const Icon(
+        Icons.label,
+      ),
+      children: [
+        Row(
           children: [
-            Row(
-              children: [
-                Icon(Icons.label, size: 20, color: theme.colorScheme.primary),
-                const SizedBox(width: 8),
-                Text(
-                  widget.title ?? "Tags",
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Text(
-              widget.description ?? "",
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+            Expanded(
+              child: LabeledTextField(
+                controller: _controller,
+                labelText: "Add tag",
+                hintText: "Enter tag name",
+                icon: const Icon(Icons.tag),
+                errorText: _errorText,
+                onSubmitted: (_) => _addTag(),
+                onChanged: (_) {
+                  if (_errorText != null) {
+                    setState(() => _errorText = null);
+                  }
+                },
               ),
             ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    decoration: InputDecoration(
-                      labelText: "Add tag",
-                      hintText: "Enter tag name",
-                      border: const OutlineInputBorder(),
-                      prefixIcon: const Icon(Icons.tag),
-                      errorText: _errorText,
-                    ),
-                    onSubmitted: (_) => _addTag(),
-                    onChanged: (_) {
-                      if (_errorText != null) {
-                        setState(() => _errorText = null);
-                      }
-                    },
-                  ),
-                ),
-                const SizedBox(width: 12),
-                FilledButton.icon(
-                  onPressed: _addTag,
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const Text("Add"),
-                ),
-              ],
+            const SizedBox(width: 12),
+            FilledButton.icon(
+              onPressed: _addTag,
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text("Add"),
             ),
-            if (widget.tags.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: widget.tags.map((tag) {
-                  return InputChip(
-                    label: Text("#$tag"),
-                    onDeleted: () => widget.onTagRemoved(tag),
-                    deleteIconColor: theme.colorScheme.error,
-                    backgroundColor: theme.colorScheme.secondaryContainer,
-                    labelStyle: TextStyle(
-                      color: theme.colorScheme.onSecondaryContainer,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                      side: BorderSide(
-                        color:
-                            theme.colorScheme.secondary.withValues(alpha: 0.5),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ],
           ],
         ),
-      ),
+        if (widget.tags.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: widget.tags.map((tag) {
+              return InputChip(
+                label: Text("#$tag"),
+                onDeleted: () => widget.onTagRemoved(tag),
+                deleteIconColor: theme.colorScheme.error,
+                backgroundColor: theme.colorScheme.secondaryContainer,
+                labelStyle: TextStyle(
+                  color: theme.colorScheme.onSecondaryContainer,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  side: BorderSide(
+                    color: theme.colorScheme.secondary.withValues(alpha: 0.5),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ],
     );
   }
 }

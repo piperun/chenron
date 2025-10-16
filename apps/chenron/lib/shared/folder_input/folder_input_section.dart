@@ -1,0 +1,46 @@
+import "package:chenron/shared/labeled_text_field/labeled_text_field.dart";
+import "package:chenron/shared/section_card/section_card.dart";
+import "package:flutter/material.dart";
+
+class FolderInputSection extends StatelessWidget {
+  final TextEditingController titleController;
+  final TextEditingController descriptionController;
+  final String? titleError;
+  final String? descriptionError;
+
+  const FolderInputSection({
+    super.key,
+    required this.titleController,
+    required this.descriptionController,
+    this.titleError,
+    this.descriptionError,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return CardSection(
+      title: "Folder information",
+      sectionIcon: const Icon(Icons.folder_outlined),
+      children: [
+        LabeledTextField(
+          controller: titleController,
+          labelText: "Title",
+          hintText: "Enter folder title",
+          icon: const Icon(Icons.title),
+          errorText: titleError,
+          textInputAction: TextInputAction.next,
+        ),
+        const SizedBox(height: 16),
+        LabeledTextField(
+          controller: descriptionController,
+          labelText: "Description",
+          hintText: "Enter folder description (optional)",
+          icon: const Icon(Icons.description),
+          errorText: descriptionError,
+          maxLines: 3,
+          textInputAction: TextInputAction.done,
+        ),
+      ],
+    );
+  }
+}
