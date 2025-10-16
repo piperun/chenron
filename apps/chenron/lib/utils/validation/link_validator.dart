@@ -6,15 +6,15 @@ import "package:validator_dart/src/validators/is_length.dart";
 class LinkValidator {
   static String? validateContent(String? value) {
     if (value == null || value.isEmpty) {
-      return "Content cannot be empty";
+      return "Please enter a URL.";
     }
     if (!Validator.isLength(value,
         options: LengthOptions(
             min: SchemaRules.url.min, max: SchemaRules.url.max))) {
-      return "Content must be at least 10 characters long";
+      return "URL must be between ${SchemaRules.url.min} and ${SchemaRules.url.max} characters.";
     }
     if (!Validator.isURL(value)) {
-      return "Content must be a valid URL";
+      return "Please enter a valid URL (e.g. https://example.com).";
     }
     return null;
   }
