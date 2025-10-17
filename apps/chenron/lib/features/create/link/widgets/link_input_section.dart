@@ -1,5 +1,6 @@
 import "package:chenron/features/create/link/widgets/link_inputs.dart";
 import "package:chenron/features/create/link/widgets/link_mode_switcher.dart";
+import "package:chenron/shared/section_card/section_card.dart";
 import "package:flutter/material.dart";
 import "package:chenron/features/create/link/notifiers/create_link_notifier.dart";
 import "package:chenron/components/TextBase/editable_code_field.dart";
@@ -13,6 +14,7 @@ class LinkInputSection extends StatefulWidget {
   final void Function(String, BulkValidationResult) onAddBulk;
   final String? singleInputError;
   final VoidCallback? onErrorDismissed;
+  final String? keyPrefix;
 
   const LinkInputSection({
     super.key,
@@ -22,6 +24,7 @@ class LinkInputSection extends StatefulWidget {
     required this.onAddBulk,
     this.singleInputError,
     this.onErrorDismissed,
+    this.keyPrefix,
   });
 
   @override
@@ -124,59 +127,44 @@ class _LinkInputSectionState extends State<LinkInputSection> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                ModeSwitcher(
-                  mode: widget.mode,
-                  onModeChanged: widget.onModeChanged,
-                ),
-                if (widget.mode == InputMode.bulk)
-                  Text(
-                    "Tip: Use '| tag1, tag2' or '#tag1 #tag2' for inline tags",
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 200),
-              child: widget.mode == InputMode.single
-                  ? SingleInput(
-                      key: const ValueKey("single_input"),
-                      controller: _singleController,
-                      onAdd: _handleAdd,
-                      errorText: widget.singleInputError,
-                    )
-                  : BulkInput(
-                      fieldKey: _bulkFieldKey,
-                      validationResult: _bulkValidationResult,
-                      onAdd: _handleAdd,
-                      onClear: () {
-                        _bulkFieldKey.currentState?.clear();
-                        setState(() {
-                          _bulkValidationResult = null;
-                        });
-                      },
-                      onDismissErrors: () => setState(() {
-                        _bulkValidationResult = null;
-                      }),
-                    ),
-            ),
-          ],
+    return CardSection(
+      title: const Text("Links"),
+      sectionIcon: const Icon(Icons.bookmark),
+      trailing: Text("Tip: Use '| tag1, tag2' or '#tag1 #tag2' for inline tags",
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant)),
+      children: [
+        ModeSwitcher(
+          mode: widget.mode,
+          onModeChanged: widget.onModeChanged,
         ),
-      ),
+        const SizedBox(height: 16),
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 200),
+          child: widget.mode == InputMode.single
+              ? SingleInput(
+                  key: const ValueKey("single_input"),
+                  keyPrefix: widget.keyPrefix,
+                  controller: _singleController,
+                  onAdd: _handleAdd,
+                  errorText: widget.singleInputError,
+                )
+              : BulkInput(
+                  fieldKey: _bulkFieldKey,
+                  validationResult: _bulkValidationResult,
+                  onAdd: _handleAdd,
+                  onClear: () {
+                    _bulkFieldKey.currentState?.clear();
+                    setState(() {
+                      _bulkValidationResult = null;
+                    });
+                  },
+                  onDismissErrors: () => setState(() {
+                    _bulkValidationResult = null;
+                  }),
+                ),
+        ),
+      ],
     );
   }
 }

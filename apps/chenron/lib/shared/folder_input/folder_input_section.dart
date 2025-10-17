@@ -7,6 +7,7 @@ class FolderInputSection extends StatelessWidget {
   final TextEditingController descriptionController;
   final String? titleError;
   final String? descriptionError;
+  final String? keyPrefix;
 
   const FolderInputSection({
     super.key,
@@ -14,6 +15,7 @@ class FolderInputSection extends StatelessWidget {
     required this.descriptionController,
     this.titleError,
     this.descriptionError,
+    this.keyPrefix,
   });
 
   @override
@@ -30,6 +32,9 @@ class FolderInputSection extends StatelessWidget {
       sectionIcon: const Icon(Icons.folder_outlined),
       children: [
         LabeledTextField(
+          key: keyPrefix != null
+              ? Key('${keyPrefix}_title_input')
+              : const Key('folder_title_input'),
           controller: titleController,
           labelText: "Title",
           hintText: "Enter folder title",
@@ -39,6 +44,9 @@ class FolderInputSection extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         LabeledTextField(
+          key: keyPrefix != null
+              ? Key('${keyPrefix}_description_input')
+              : const Key('folder_description_input'),
           controller: descriptionController,
           labelText: "Description",
           hintText: "Enter folder description (optional)",

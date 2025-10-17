@@ -4,39 +4,57 @@ import "package:flutter/material.dart";
 class ModeSwitcher extends StatelessWidget {
   final InputMode mode;
   final ValueChanged<InputMode> onModeChanged;
+  final String? hintText;
 
   const ModeSwitcher({
     super.key,
     required this.mode,
     required this.onModeChanged,
+    this.hintText,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: theme.colorScheme.outline),
-        borderRadius: BorderRadius.circular(12),
-        color: theme.colorScheme.surfaceContainerHighest,
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _ModeButton(
-            label: "Single",
-            isActive: mode == InputMode.single,
-            onTap: () => onModeChanged(InputMode.single),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: theme.colorScheme.outline),
+            borderRadius: BorderRadius.circular(12),
+            color: theme.colorScheme.surfaceContainerHighest,
           ),
-          _ModeButton(
-            key: const Key("bulk_button"),
-            label: "Bulk",
-            isActive: mode == InputMode.bulk,
-            onTap: () => onModeChanged(InputMode.bulk),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _ModeButton(
+                label: "Single",
+                isActive: mode == InputMode.single,
+                onTap: () => onModeChanged(InputMode.single),
+              ),
+              _ModeButton(
+                key: const Key("bulk_mode_button"),
+                label: "Bulk",
+                isActive: mode == InputMode.bulk,
+                onTap: () => onModeChanged(InputMode.bulk),
+              ),
+            ],
+          ),
+        ),
+        if (hintText != null) ...[
+          const SizedBox(width: 16),
+          Flexible(
+            child: Text(
+              hintText!,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
           ),
         ],
-      ),
+      ],
     );
   }
 }

@@ -8,12 +8,14 @@ class SingleInput extends StatelessWidget {
   final TextEditingController controller;
   final VoidCallback onAdd;
   final String? errorText;
+  final String? keyPrefix;
 
   const SingleInput({
     super.key,
     required this.controller,
     required this.onAdd,
     this.errorText,
+    this.keyPrefix,
   });
 
   @override
@@ -32,6 +34,9 @@ class SingleInput extends StatelessWidget {
         ),
         const SizedBox(width: 12),
         FilledButton.icon(
+          key: keyPrefix != null
+              ? Key("${keyPrefix}_add_button")
+              : const Key("single_add_button"),
           onPressed: onAdd,
           icon: const Icon(Icons.add, size: 18),
           label: const Text("Add"),
@@ -87,6 +92,7 @@ class BulkInput extends StatelessWidget {
             Row(
               children: [
                 TextButton(
+                  key: const Key("bulk_clear_button"),
                   onPressed: onClear,
                   child: const Text("Clear"),
                 ),
@@ -95,7 +101,7 @@ class BulkInput extends StatelessWidget {
                   key: const Key("bulk_add_button"),
                   onPressed: onAdd,
                   icon: const Icon(Icons.upload, size: 18),
-                  label: const Text("Parse & Add"),
+                  label: const Text("Add"),
                 ),
               ],
             ),

@@ -9,6 +9,7 @@ class TagSection extends StatefulWidget {
   final Set<String> tags;
   final ValueChanged<String> onTagAdded;
   final ValueChanged<String> onTagRemoved;
+  final String? keyPrefix;
 
   const TagSection({
     super.key,
@@ -17,6 +18,7 @@ class TagSection extends StatefulWidget {
     required this.tags,
     required this.onTagAdded,
     required this.onTagRemoved,
+    this.keyPrefix,
   });
 
   @override
@@ -86,6 +88,9 @@ class _TagSectionState extends State<TagSection> {
           children: [
             Expanded(
               child: LabeledTextField(
+                key: widget.keyPrefix != null
+                    ? Key('${widget.keyPrefix}_tag_input')
+                    : null,
                 controller: _controller,
                 labelText: "Add tag",
                 hintText: "Enter tag name",
@@ -101,6 +106,9 @@ class _TagSectionState extends State<TagSection> {
             ),
             const SizedBox(width: 12),
             FilledButton.icon(
+              key: widget.keyPrefix != null
+                  ? Key('${widget.keyPrefix}_tag_add_button')
+                  : null,
               onPressed: _addTag,
               icon: const Icon(Icons.add, size: 18),
               label: const Text("Add"),
@@ -114,6 +122,9 @@ class _TagSectionState extends State<TagSection> {
             runSpacing: 8,
             children: widget.tags.map((tag) {
               return InputChip(
+                key: widget.keyPrefix != null
+                    ? Key('${widget.keyPrefix}_tag_chip_$tag')
+                    : null,
                 label: Text("#$tag"),
                 onDeleted: () => widget.onTagRemoved(tag),
                 deleteIconColor: theme.colorScheme.error,
