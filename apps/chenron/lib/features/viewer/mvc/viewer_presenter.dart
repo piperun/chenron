@@ -1,6 +1,6 @@
 import "dart:async";
 
-import "package:chenron/features/editor/pages/editor.dart";
+import "package:chenron/features/folder_editor/pages/folder_editor.dart";
 import "package:chenron/features/folder_viewer/pages/folder_viewer_page.dart";
 import "package:chenron/features/viewer/mvc/viewer_model.dart";
 import "package:chenron/features/viewer/ui/viewer_base_item.dart";

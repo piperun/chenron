@@ -45,6 +45,7 @@ class LinkFolderSection extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             FolderPicker(
+              key: const Key('link_folder_picker'),
               onFoldersSelected: onFoldersChanged,
             ),
           ],

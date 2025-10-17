@@ -17,6 +17,7 @@ class LinkArchiveToggle extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: SwitchListTile(
+          key: const Key('archive_toggle_switch'),
           title: const Text("Archive new links"),
           subtitle: const Text("Automatically archive links when added"),
           value: value,

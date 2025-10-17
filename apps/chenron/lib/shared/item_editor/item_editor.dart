@@ -1,5 +1,5 @@
 import "package:chenron/components/tables/link_table.dart";
-import "package:chenron/notifiers/link_table_notifier.dart";
+import "package:chenron/notifiers/item_table_notifier.dart";
 import "package:flutter/material.dart";
 import "package:trina_grid/trina_grid.dart";
 import "package:intl/intl.dart";
@@ -23,7 +23,7 @@ class ItemEditor extends StatefulWidget {
 }
 
 class _ItemEditorState extends State<ItemEditor> {
-  final DataGridNotifier _notifier = DataGridNotifier();
+  final ItemTableNotifier _notifier = ItemTableNotifier();
   CUD<FolderItem> folderItems = CUD<FolderItem>();
 
   final List<TrinaColumn> columns = [

@@ -112,6 +112,7 @@ class _CreateFolderPageState extends State<CreateFolderPage> {
               title: const Text("Create Folder"),
               actions: [
                 IconButton(
+                  key: const Key('create_folder_save_button'),
                   icon: const Icon(Icons.save),
                   onPressed: _notifier.isValid ? _saveFolder : null,
                 ),
@@ -131,6 +132,7 @@ class _CreateFolderPageState extends State<CreateFolderPage> {
               child: Row(
                 children: [
                   IconButton(
+                    key: const Key('create_folder_close_button'),
                     icon: const Icon(Icons.close),
                     onPressed: widget.onClose,
                     tooltip: "Close",
@@ -144,6 +146,7 @@ class _CreateFolderPageState extends State<CreateFolderPage> {
                   ),
                   const Spacer(),
                   FilledButton.icon(
+                    key: const Key('create_folder_header_save_button'),
                     onPressed: _notifier.isValid ? _saveFolder : null,
                     icon: const Icon(Icons.save, size: 18),
                     label: const Text("Save"),
@@ -177,6 +180,7 @@ class _CreateFolderPageState extends State<CreateFolderPage> {
                       },
                     ),
                     TagSection(
+                      keyPrefix: 'folder_tags',
                       description: "Add tags to this folder",
                       tags: _notifier.tags.value,
                       onTagAdded: _notifier.addTag,

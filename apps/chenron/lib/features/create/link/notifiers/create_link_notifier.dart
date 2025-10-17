@@ -187,6 +187,7 @@ class CreateLinkNotifier extends ChangeNotifier {
         _entries[updatedIndex] = _entries[updatedIndex].copyWith(
           validationStatus: status,
           validationMessage: result.message,
+          validationStatusCode: result.statusCode,
         );
         notifyListeners();
       }

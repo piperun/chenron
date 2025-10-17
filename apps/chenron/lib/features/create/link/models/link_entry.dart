@@ -18,6 +18,7 @@ class LinkEntry {
   final String? comment;
   final LinkValidationStatus validationStatus;
   final String? validationMessage;
+  final int? validationStatusCode;
 
   LinkEntry({
     required this.key,
@@ -28,6 +29,7 @@ class LinkEntry {
     this.comment,
     this.validationStatus = LinkValidationStatus.pending,
     this.validationMessage,
+    this.validationStatusCode,
   });
 
   LinkEntry copyWith({
@@ -39,6 +41,7 @@ class LinkEntry {
     String? comment,
     LinkValidationStatus? validationStatus,
     String? validationMessage,
+    int? validationStatusCode,
   }) {
     return LinkEntry(
       key: key ?? this.key,
@@ -49,6 +52,7 @@ class LinkEntry {
       comment: comment ?? this.comment,
       validationStatus: validationStatus ?? this.validationStatus,
       validationMessage: validationMessage ?? this.validationMessage,
+      validationStatusCode: validationStatusCode ?? this.validationStatusCode,
     );
   }
 
@@ -64,7 +68,8 @@ class LinkEntry {
         other.isArchived == isArchived &&
         other.comment == comment &&
         other.validationStatus == validationStatus &&
-        other.validationMessage == validationMessage;
+        other.validationMessage == validationMessage &&
+        other.validationStatusCode == validationStatusCode;
   }
 
   @override
@@ -77,7 +82,7 @@ class LinkEntry {
       isArchived,
       comment,
       validationStatus,
-      validationMessage,
+      Object.hash(validationMessage, validationStatusCode),
     );
   }
 

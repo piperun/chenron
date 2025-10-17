@@ -19,7 +19,7 @@ import "package:chenron/features/create/link/services/bulk_validator_service.dar
 import "package:chenron/features/create/link/models/validation_result.dart";
 import "package:chenron/utils/validation/link_validator.dart";
 import "package:chenron/utils/validation/tag_validator.dart";
-import "package:chenron/notifiers/link_table_notifier.dart";
+import "package:chenron/notifiers/item_table_notifier.dart";
 import "package:chenron/models/metadata.dart";
 
 class CreateLinkPage extends StatefulWidget {
@@ -44,7 +44,7 @@ class CreateLinkPage extends StatefulWidget {
 
 class _CreateLinkPageState extends State<CreateLinkPage> {
   late CreateLinkNotifier _notifier;
-  final DataGridNotifier _tableNotifier = DataGridNotifier();
+  final ItemTableNotifier _tableNotifier = ItemTableNotifier();
   List<Folder> _selectedFolders = [];
   String? _singleInputError;
   String? _generalError;
@@ -89,6 +89,7 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
               title: const Text("Add Links"),
               actions: [
                 IconButton(
+                  key: const Key('create_link_save_button'),
                   icon: const Icon(Icons.save),
                   onPressed: _saveLinks,
                 ),
@@ -144,6 +145,7 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
               child: Row(
                 children: [
                   IconButton(
+                    key: const Key('create_link_close_button'),
                     icon: const Icon(Icons.close),
                     onPressed: widget.onClose,
                     tooltip: "Close",
@@ -157,6 +159,7 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
                   ),
                   const Spacer(),
                   FilledButton.icon(
+                    key: const Key('create_link_header_save_button'),
                     onPressed: _notifier.hasEntries ? _saveLinks : null,
                     icon: const Icon(Icons.save, size: 18),
                     label: const Text("Save"),
@@ -184,6 +187,7 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
                       },
                     ),
                     LinkInputSection(
+                      keyPrefix: 'link_input',
                       mode: _notifier.inputMode,
                       onModeChanged: _notifier.setInputMode,
                       onAddSingle: _handleAddSingle,
@@ -198,6 +202,7 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
                           _notifier.setArchiveMode(value: value),
                     ),
                     TagSection(
+                      keyPrefix: 'global_tags',
                       title: "Global Tags",
                       description:
                           "Add tags to all links created in this session",

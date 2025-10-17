@@ -4071,6 +4071,14 @@ class $UserConfigsTable extends UserConfigs
       type: DriftSqlType.int,
       requiredDuringInsert: false,
       defaultValue: const Constant(0));
+  static const VerificationMeta _timeDisplayFormatMeta =
+      const VerificationMeta('timeDisplayFormat');
+  @override
+  late final GeneratedColumn<int> timeDisplayFormat = GeneratedColumn<int>(
+      'time_display_format', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -4081,7 +4089,8 @@ class $UserConfigsTable extends UserConfigs
         archiveOrgS3AccessKey,
         archiveOrgS3SecretKey,
         selectedThemeKey,
-        selectedThemeType
+        selectedThemeType,
+        timeDisplayFormat
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -4144,6 +4153,12 @@ class $UserConfigsTable extends UserConfigs
           selectedThemeType.isAcceptableOrUnknown(
               data['selected_theme_type']!, _selectedThemeTypeMeta));
     }
+    if (data.containsKey('time_display_format')) {
+      context.handle(
+          _timeDisplayFormatMeta,
+          timeDisplayFormat.isAcceptableOrUnknown(
+              data['time_display_format']!, _timeDisplayFormatMeta));
+    }
     return context;
   }
 
@@ -4173,6 +4188,8 @@ class $UserConfigsTable extends UserConfigs
           DriftSqlType.string, data['${effectivePrefix}selected_theme_key']),
       selectedThemeType: attachedDatabase.typeMapping.read(
           DriftSqlType.int, data['${effectivePrefix}selected_theme_type'])!,
+      timeDisplayFormat: attachedDatabase.typeMapping.read(
+          DriftSqlType.int, data['${effectivePrefix}time_display_format'])!,
     );
   }
 
@@ -4192,6 +4209,7 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
   final String? archiveOrgS3SecretKey;
   final String? selectedThemeKey;
   final int selectedThemeType;
+  final int timeDisplayFormat;
   const UserConfig(
       {required this.id,
       required this.darkMode,
@@ -4201,7 +4219,8 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
       this.archiveOrgS3AccessKey,
       this.archiveOrgS3SecretKey,
       this.selectedThemeKey,
-      required this.selectedThemeType});
+      required this.selectedThemeType,
+      required this.timeDisplayFormat});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -4222,6 +4241,7 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
       map['selected_theme_key'] = Variable<String>(selectedThemeKey);
     }
     map['selected_theme_type'] = Variable<int>(selectedThemeType);
+    map['time_display_format'] = Variable<int>(timeDisplayFormat);
     return map;
   }
 
@@ -4242,6 +4262,7 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
           ? const Value.absent()
           : Value(selectedThemeKey),
       selectedThemeType: Value(selectedThemeType),
+      timeDisplayFormat: Value(timeDisplayFormat),
     );
   }
 
@@ -4260,6 +4281,7 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
           serializer.fromJson<String?>(json['archiveOrgS3SecretKey']),
       selectedThemeKey: serializer.fromJson<String?>(json['selectedThemeKey']),
       selectedThemeType: serializer.fromJson<int>(json['selectedThemeType']),
+      timeDisplayFormat: serializer.fromJson<int>(json['timeDisplayFormat']),
     );
   }
   @override
@@ -4277,6 +4299,7 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
           serializer.toJson<String?>(archiveOrgS3SecretKey),
       'selectedThemeKey': serializer.toJson<String?>(selectedThemeKey),
       'selectedThemeType': serializer.toJson<int>(selectedThemeType),
+      'timeDisplayFormat': serializer.toJson<int>(timeDisplayFormat),
     };
   }
 
@@ -4289,7 +4312,8 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
           Value<String?> archiveOrgS3AccessKey = const Value.absent(),
           Value<String?> archiveOrgS3SecretKey = const Value.absent(),
           Value<String?> selectedThemeKey = const Value.absent(),
-          int? selectedThemeType}) =>
+          int? selectedThemeType,
+          int? timeDisplayFormat}) =>
       UserConfig(
         id: id ?? this.id,
         darkMode: darkMode ?? this.darkMode,
@@ -4306,6 +4330,7 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
             ? selectedThemeKey.value
             : this.selectedThemeKey,
         selectedThemeType: selectedThemeType ?? this.selectedThemeType,
+        timeDisplayFormat: timeDisplayFormat ?? this.timeDisplayFormat,
       );
   UserConfig copyWithCompanion(UserConfigsCompanion data) {
     return UserConfig(
@@ -4332,6 +4357,9 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
       selectedThemeType: data.selectedThemeType.present
           ? data.selectedThemeType.value
           : this.selectedThemeType,
+      timeDisplayFormat: data.timeDisplayFormat.present
+          ? data.timeDisplayFormat.value
+          : this.timeDisplayFormat,
     );
   }
 
@@ -4346,7 +4374,8 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
           ..write('archiveOrgS3AccessKey: $archiveOrgS3AccessKey, ')
           ..write('archiveOrgS3SecretKey: $archiveOrgS3SecretKey, ')
           ..write('selectedThemeKey: $selectedThemeKey, ')
-          ..write('selectedThemeType: $selectedThemeType')
+          ..write('selectedThemeType: $selectedThemeType, ')
+          ..write('timeDisplayFormat: $timeDisplayFormat')
           ..write(')'))
         .toString();
   }
@@ -4361,7 +4390,8 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
       archiveOrgS3AccessKey,
       archiveOrgS3SecretKey,
       selectedThemeKey,
-      selectedThemeType);
+      selectedThemeType,
+      timeDisplayFormat);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -4374,7 +4404,8 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
           other.archiveOrgS3AccessKey == this.archiveOrgS3AccessKey &&
           other.archiveOrgS3SecretKey == this.archiveOrgS3SecretKey &&
           other.selectedThemeKey == this.selectedThemeKey &&
-          other.selectedThemeType == this.selectedThemeType);
+          other.selectedThemeType == this.selectedThemeType &&
+          other.timeDisplayFormat == this.timeDisplayFormat);
 }
 
 class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
@@ -4387,6 +4418,7 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
   final Value<String?> archiveOrgS3SecretKey;
   final Value<String?> selectedThemeKey;
   final Value<int> selectedThemeType;
+  final Value<int> timeDisplayFormat;
   final Value<int> rowid;
   const UserConfigsCompanion({
     this.id = const Value.absent(),
@@ -4398,6 +4430,7 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
     this.archiveOrgS3SecretKey = const Value.absent(),
     this.selectedThemeKey = const Value.absent(),
     this.selectedThemeType = const Value.absent(),
+    this.timeDisplayFormat = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   UserConfigsCompanion.insert({
@@ -4410,6 +4443,7 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
     this.archiveOrgS3SecretKey = const Value.absent(),
     this.selectedThemeKey = const Value.absent(),
     this.selectedThemeType = const Value.absent(),
+    this.timeDisplayFormat = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id);
   static Insertable<UserConfig> custom({
@@ -4422,6 +4456,7 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
     Expression<String>? archiveOrgS3SecretKey,
     Expression<String>? selectedThemeKey,
     Expression<int>? selectedThemeType,
+    Expression<int>? timeDisplayFormat,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -4436,6 +4471,7 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
         'archive_org_s3_secret_key': archiveOrgS3SecretKey,
       if (selectedThemeKey != null) 'selected_theme_key': selectedThemeKey,
       if (selectedThemeType != null) 'selected_theme_type': selectedThemeType,
+      if (timeDisplayFormat != null) 'time_display_format': timeDisplayFormat,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -4450,6 +4486,7 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
       Value<String?>? archiveOrgS3SecretKey,
       Value<String?>? selectedThemeKey,
       Value<int>? selectedThemeType,
+      Value<int>? timeDisplayFormat,
       Value<int>? rowid}) {
     return UserConfigsCompanion(
       id: id ?? this.id,
@@ -4463,6 +4500,7 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
           archiveOrgS3SecretKey ?? this.archiveOrgS3SecretKey,
       selectedThemeKey: selectedThemeKey ?? this.selectedThemeKey,
       selectedThemeType: selectedThemeType ?? this.selectedThemeType,
+      timeDisplayFormat: timeDisplayFormat ?? this.timeDisplayFormat,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -4499,6 +4537,9 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
     if (selectedThemeType.present) {
       map['selected_theme_type'] = Variable<int>(selectedThemeType.value);
     }
+    if (timeDisplayFormat.present) {
+      map['time_display_format'] = Variable<int>(timeDisplayFormat.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -4517,6 +4558,7 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
           ..write('archiveOrgS3SecretKey: $archiveOrgS3SecretKey, ')
           ..write('selectedThemeKey: $selectedThemeKey, ')
           ..write('selectedThemeType: $selectedThemeType, ')
+          ..write('timeDisplayFormat: $timeDisplayFormat, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -5368,6 +5410,7 @@ typedef $$UserConfigsTableCreateCompanionBuilder = UserConfigsCompanion
   Value<String?> archiveOrgS3SecretKey,
   Value<String?> selectedThemeKey,
   Value<int> selectedThemeType,
+  Value<int> timeDisplayFormat,
   Value<int> rowid,
 });
 typedef $$UserConfigsTableUpdateCompanionBuilder = UserConfigsCompanion
@@ -5381,6 +5424,7 @@ typedef $$UserConfigsTableUpdateCompanionBuilder = UserConfigsCompanion
   Value<String?> archiveOrgS3SecretKey,
   Value<String?> selectedThemeKey,
   Value<int> selectedThemeType,
+  Value<int> timeDisplayFormat,
   Value<int> rowid,
 });
 
@@ -5460,6 +5504,10 @@ class $$UserConfigsTableFilterComposer
 
   ColumnFilters<int> get selectedThemeType => $composableBuilder(
       column: $table.selectedThemeType,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get timeDisplayFormat => $composableBuilder(
+      column: $table.timeDisplayFormat,
       builder: (column) => ColumnFilters(column));
 
   Expression<bool> userThemesRefs(
@@ -5547,6 +5595,10 @@ class $$UserConfigsTableOrderingComposer
   ColumnOrderings<int> get selectedThemeType => $composableBuilder(
       column: $table.selectedThemeType,
       builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get timeDisplayFormat => $composableBuilder(
+      column: $table.timeDisplayFormat,
+      builder: (column) => ColumnOrderings(column));
 }
 
 class $$UserConfigsTableAnnotationComposer
@@ -5584,6 +5636,9 @@ class $$UserConfigsTableAnnotationComposer
 
   GeneratedColumn<int> get selectedThemeType => $composableBuilder(
       column: $table.selectedThemeType, builder: (column) => column);
+
+  GeneratedColumn<int> get timeDisplayFormat => $composableBuilder(
+      column: $table.timeDisplayFormat, builder: (column) => column);
 
   Expression<T> userThemesRefs<T extends Object>(
       Expression<T> Function($$UserThemesTableAnnotationComposer a) f) {
@@ -5660,6 +5715,7 @@ class $$UserConfigsTableTableManager extends RootTableManager<
             Value<String?> archiveOrgS3SecretKey = const Value.absent(),
             Value<String?> selectedThemeKey = const Value.absent(),
             Value<int> selectedThemeType = const Value.absent(),
+            Value<int> timeDisplayFormat = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               UserConfigsCompanion(
@@ -5672,6 +5728,7 @@ class $$UserConfigsTableTableManager extends RootTableManager<
             archiveOrgS3SecretKey: archiveOrgS3SecretKey,
             selectedThemeKey: selectedThemeKey,
             selectedThemeType: selectedThemeType,
+            timeDisplayFormat: timeDisplayFormat,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -5684,6 +5741,7 @@ class $$UserConfigsTableTableManager extends RootTableManager<
             Value<String?> archiveOrgS3SecretKey = const Value.absent(),
             Value<String?> selectedThemeKey = const Value.absent(),
             Value<int> selectedThemeType = const Value.absent(),
+            Value<int> timeDisplayFormat = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               UserConfigsCompanion.insert(
@@ -5696,6 +5754,7 @@ class $$UserConfigsTableTableManager extends RootTableManager<
             archiveOrgS3SecretKey: archiveOrgS3SecretKey,
             selectedThemeKey: selectedThemeKey,
             selectedThemeType: selectedThemeType,
+            timeDisplayFormat: timeDisplayFormat,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
