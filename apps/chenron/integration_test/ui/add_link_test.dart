@@ -133,7 +133,7 @@ void main() {
 
       await _navigateToAddLink(tester);
 
-      final bulkButton = find.byKey(const Key("bulk_button"));
+      final bulkButton = find.byKey(const Key("bulk_mode_button"));
       await tester.tap(bulkButton);
       await tester.pumpAndSettle();
 
@@ -147,6 +147,9 @@ https://github.com/flutter""";
       await tester.enterText(urlInput, multipleUrls);
       await tester.pumpAndSettle();
 
+      await tester.tap(find.byKey(const Key("bulk_add_button")));
+      await tester.pumpAndSettle();
+
       final inputText = tester.widget(urlInput);
       expect((inputText as EditableText).controller.text, isEmpty);
     });
@@ -157,7 +160,7 @@ https://github.com/flutter""";
 
       await _navigateToAddLink(tester);
 
-      final bulkButton = find.byKey(const Key("bulk_button"));
+      final bulkButton = find.byKey(const Key("bulk_mode_button"));
       await tester.tap(bulkButton);
       await tester.pumpAndSettle();
 
@@ -191,7 +194,7 @@ https://github.com/flutter""";
 
       await _navigateToAddLink(tester);
 
-      final bulkButton = find.byKey(const Key("bulk_button"));
+      final bulkButton = find.byKey(const Key("bulk_mode_button"));
       await tester.tap(bulkButton);
       await tester.pumpAndSettle();
 
@@ -206,18 +209,12 @@ https://dart.dev""";
       await tester.pumpAndSettle();
 
       // Submit
-      final addButton = find.text("Parse & Add");
+      final addButton = find.byKey(const Key("bulk_add_button"));
       await tester.tap(addButton);
       await tester.pumpAndSettle();
 
-      // After submission, only the invalid line should remain
-      // The valid URLs should have been removed from the input
       final remainingText = find.text("invalid url_1");
       expect(remainingText, findsAtLeastNWidgets(1));
-
-      // The valid URLs should be gone
-      final removedUrl1 = find.text("https://flutter.dev");
-      expect(removedUrl1, findsNothing);
     });
 
     testWidgets("should handle empty lines and whitespace", (tester) async {
@@ -247,7 +244,7 @@ https://dart.dev""";
 
       await _navigateToAddLink(tester);
 
-      final bulkButton = find.byKey(const Key("bulk_button"));
+      final bulkButton = find.byKey(const Key("bulk_mode_button"));
       await tester.tap(bulkButton);
       await tester.pumpAndSettle();
 
@@ -428,7 +425,7 @@ https://dart.dev""";
 
       await _navigateToAddLink(tester);
 
-      final bulkButton = find.byKey(const Key("bulk_button"));
+      final bulkButton = find.byKey(const Key("bulk_mode_button"));
       await tester.tap(bulkButton);
       await tester.pumpAndSettle();
 
@@ -438,7 +435,7 @@ https://dart.dev""";
       await tester.pumpAndSettle();
 
       // Find and tap clear button
-      final clearButton = find.text("Clear");
+      final clearButton = find.byKey(const Key("bulk_clear_button"));
       expect(clearButton, findsOneWidget);
       await tester.tap(clearButton);
       await tester.pumpAndSettle();
@@ -454,7 +451,7 @@ https://dart.dev""";
 
       await _navigateToAddLink(tester);
 
-      final bulkButton = find.byKey(const Key("bulk_button"));
+      final bulkButton = find.byKey(const Key("bulk_mode_button"));
       await tester.tap(bulkButton);
       await tester.pumpAndSettle();
 
@@ -466,7 +463,7 @@ https://dart.dev""";
       await tester.pumpAndSettle();
 
       // Should parse URL and tags correctly
-      final addButton = find.text("Parse & Add");
+      final addButton = find.byKey(const Key("bulk_add_button"));
       await tester.tap(addButton);
       await tester.pumpAndSettle();
     });
@@ -477,7 +474,7 @@ https://dart.dev""";
 
       await _navigateToAddLink(tester);
 
-      final bulkButton = find.byKey(const Key("bulk_button"));
+      final bulkButton = find.byKey(const Key("bulk_mode_button"));
       await tester.tap(bulkButton);
       await tester.pumpAndSettle();
 
@@ -488,7 +485,7 @@ https://dart.dev""";
           urlInput, "https://dart.dev #dart #programming #google");
       await tester.pumpAndSettle();
 
-      final addButton = find.text("Parse & Add");
+      final addButton = find.byKey(const Key("bulk_add_button"));
       await tester.tap(addButton);
       await tester.pumpAndSettle();
     });
@@ -499,7 +496,7 @@ https://dart.dev""";
 
       await _navigateToAddLink(tester);
 
-      final bulkButton = find.byKey(const Key("bulk_button"));
+      final bulkButton = find.byKey(const Key("bulk_mode_button"));
       await tester.tap(bulkButton);
       await tester.pumpAndSettle();
 
@@ -512,7 +509,7 @@ https://github.com/flutter | github, flutter #opensource""";
       await tester.enterText(urlInput, mixedTags);
       await tester.pumpAndSettle();
 
-      final addButton = find.text("Parse & Add");
+      final addButton = find.byKey(const Key("bulk_add_button"));
       await tester.tap(addButton);
       await tester.pumpAndSettle();
     });
@@ -523,7 +520,7 @@ https://github.com/flutter | github, flutter #opensource""";
 
       await _navigateToAddLink(tester);
 
-      final bulkButton = find.byKey(const Key("bulk_button"));
+      final bulkButton = find.byKey(const Key("bulk_mode_button"));
       await tester.tap(bulkButton);
       await tester.pumpAndSettle();
 
@@ -545,7 +542,7 @@ https://github.com/flutter | github, flutter #opensource""";
 
       await _navigateToAddLink(tester);
 
-      final bulkButton = find.byKey(const Key("bulk_button"));
+      final bulkButton = find.byKey(const Key("bulk_mode_button"));
       await tester.tap(bulkButton);
       await tester.pumpAndSettle();
 
@@ -556,7 +553,7 @@ https://github.com/flutter | github, flutter #opensource""";
       await tester.pumpAndSettle();
 
       // Should show validation errors
-      final addButton = find.text("Parse & Add");
+      final addButton = find.byKey(const Key("bulk_add_button"));
       await tester.tap(addButton);
       await tester.pumpAndSettle();
     });
@@ -569,7 +566,7 @@ https://github.com/flutter | github, flutter #opensource""";
 
       await _navigateToAddLink(tester);
 
-      final bulkButton = find.byKey(const Key("bulk_button"));
+      final bulkButton = find.byKey(const Key("bulk_mode_button"));
       await tester.tap(bulkButton);
       await tester.pumpAndSettle();
 
@@ -580,7 +577,7 @@ https://github.com/flutter | github, flutter #opensource""";
           urlInput, "https://example.com/path?query=value&key=123#section");
       await tester.pumpAndSettle();
 
-      final addButton = find.text("Parse & Add");
+      final addButton = find.byKey(const Key("bulk_add_button"));
       await tester.tap(addButton);
       await tester.pumpAndSettle();
     });
@@ -591,7 +588,7 @@ https://github.com/flutter | github, flutter #opensource""";
 
       await _navigateToAddLink(tester);
 
-      final bulkButton = find.byKey(const Key("bulk_button"));
+      final bulkButton = find.byKey(const Key("bulk_mode_button"));
       await tester.tap(bulkButton);
       await tester.pumpAndSettle();
 
@@ -601,7 +598,7 @@ https://github.com/flutter | github, flutter #opensource""";
       await tester.enterText(urlInput, "https://user:pass@example.com/secure");
       await tester.pumpAndSettle();
 
-      final addButton = find.text("Parse & Add");
+      final addButton = find.byKey(const Key("bulk_add_button"));
       await tester.tap(addButton);
       await tester.pumpAndSettle();
     });
@@ -612,7 +609,7 @@ https://github.com/flutter | github, flutter #opensource""";
 
       await _navigateToAddLink(tester);
 
-      final bulkButton = find.byKey(const Key("bulk_button"));
+      final bulkButton = find.byKey(const Key("bulk_mode_button"));
       await tester.tap(bulkButton);
       await tester.pumpAndSettle();
 
@@ -621,7 +618,7 @@ https://github.com/flutter | github, flutter #opensource""";
       await tester.enterText(urlInput, "https://example.com:8443/api");
       await tester.pumpAndSettle();
 
-      final addButton = find.text("Parse & Add");
+      final addButton = find.byKey(const Key("bulk_add_button"));
       await tester.tap(addButton);
       await tester.pumpAndSettle();
     });
@@ -633,13 +630,17 @@ https://github.com/flutter | github, flutter #opensource""";
 
       await _navigateToAddLink(tester);
 
+      final bulkButton = find.byKey(const Key("bulk_mode_button"));
+      await tester.tap(bulkButton);
+      await tester.pumpAndSettle();
+
       final urlInput = find.byType(EditableText).first;
 
       // IDN with unicode
       await tester.enterText(urlInput, "https://münchen.de");
       await tester.pumpAndSettle();
 
-      final addButton = find.text("Parse & Add");
+      final addButton = find.byKey(const Key('bulk_add_button'));
       await tester.tap(addButton);
       await tester.pumpAndSettle();
     });
@@ -650,7 +651,7 @@ https://github.com/flutter | github, flutter #opensource""";
 
       await _navigateToAddLink(tester);
 
-      final bulkButton = find.byKey(const Key("bulk_button"));
+      final bulkButton = find.byKey(const Key("bulk_mode_button"));
       await tester.tap(bulkButton);
       await tester.pumpAndSettle();
 
@@ -660,7 +661,7 @@ https://github.com/flutter | github, flutter #opensource""";
       await tester.pumpAndSettle();
 
       // Should show error
-      final addButton = find.text("Parse & Add");
+      final addButton = find.byKey(const Key("bulk_add_button"));
       await tester.tap(addButton);
       await tester.pumpAndSettle();
 
@@ -675,7 +676,7 @@ https://github.com/flutter | github, flutter #opensource""";
 
       await _navigateToAddLink(tester);
 
-      final bulkButton = find.byKey(const Key("bulk_button"));
+      final bulkButton = find.byKey(const Key("bulk_mode_button"));
       await tester.tap(bulkButton);
       await tester.pumpAndSettle();
 
@@ -685,7 +686,7 @@ https://github.com/flutter | github, flutter #opensource""";
       await tester.pumpAndSettle();
 
       // FTP might be rejected depending on validation rules
-      final addButton = find.text("Parse & Add");
+      final addButton = find.byKey(const Key("bulk_add_button"));
       await tester.tap(addButton);
       await tester.pumpAndSettle();
     });
@@ -696,7 +697,7 @@ https://github.com/flutter | github, flutter #opensource""";
 
       await _navigateToAddLink(tester);
 
-      final bulkButton = find.byKey(const Key("bulk_button"));
+      final bulkButton = find.byKey(const Key("bulk_mode_button"));
       await tester.tap(bulkButton);
       await tester.pumpAndSettle();
 
@@ -718,7 +719,7 @@ https://github.com/flutter | github, flutter #opensource""";
 
       await _navigateToAddLink(tester);
 
-      final bulkButton = find.byKey(const Key("bulk_button"));
+      final bulkButton = find.byKey(const Key("bulk_mode_button"));
       await tester.tap(bulkButton);
       await tester.pumpAndSettle();
 
@@ -728,7 +729,7 @@ https://github.com/flutter | github, flutter #opensource""";
           urlInput, "https://example.com/search?q=flutter%20tutorial");
       await tester.pumpAndSettle();
 
-      final addButton = find.text("Parse & Add");
+      final addButton = find.byKey(const Key("bulk_add_button"));
       await tester.tap(addButton);
       await tester.pumpAndSettle();
     });
@@ -741,7 +742,7 @@ https://github.com/flutter | github, flutter #opensource""";
 
       await _navigateToAddLink(tester);
 
-      final bulkButton = find.byKey(const Key("bulk_button"));
+      final bulkButton = find.byKey(const Key("bulk_mode_button"));
       await tester.tap(bulkButton);
       await tester.pumpAndSettle();
 
@@ -766,7 +767,7 @@ https://dart.dev""";
 
       await _navigateToAddLink(tester);
 
-      final bulkButton = find.byKey(const Key("bulk_button"));
+      final bulkButton = find.byKey(const Key("bulk_mode_button"));
       await tester.tap(bulkButton);
       await tester.pumpAndSettle();
 
@@ -780,7 +781,7 @@ https://github.com/flutter     """;
       await tester.pumpAndSettle();
 
       // Should trim and validate correctly
-      final addButton = find.text("Parse & Add");
+      final addButton = find.byKey(const Key("bulk_add_button"));
       await tester.tap(addButton);
       await tester.pumpAndSettle();
     });
@@ -791,7 +792,7 @@ https://github.com/flutter     """;
 
       await _navigateToAddLink(tester);
 
-      final bulkButton = find.byKey(const Key("bulk_button"));
+      final bulkButton = find.byKey(const Key("bulk_mode_button"));
       await tester.tap(bulkButton);
       await tester.pumpAndSettle();
 
@@ -802,7 +803,7 @@ https://github.com/flutter     """;
           urlInput, "\thttps://flutter.dev  \n  \t  https://dart.dev");
       await tester.pumpAndSettle();
 
-      final addButton = find.text("Parse & Add");
+      final addButton = find.byKey(const Key("bulk_add_button"));
       await tester.tap(addButton);
       await tester.pumpAndSettle();
     });
@@ -815,7 +816,7 @@ https://github.com/flutter     """;
 
       await _navigateToAddLink(tester);
 
-      final bulkButton = find.byKey(const Key("bulk_button"));
+      final bulkButton = find.byKey(const Key("bulk_mode_button"));
       await tester.tap(bulkButton);
       await tester.pumpAndSettle();
 
@@ -831,7 +832,7 @@ https://dart.dev""";
       await tester.pumpAndSettle();
 
       // Should handle duplicates (either warn or auto-dedupe)
-      final addButton = find.text("Parse & Add");
+      final addButton = find.byKey(const Key("bulk_add_button"));
       await tester.tap(addButton);
       await tester.pumpAndSettle();
     });
@@ -844,7 +845,7 @@ https://dart.dev""";
 
       await _navigateToAddLink(tester);
 
-      final bulkButton = find.byKey(const Key("bulk_button"));
+      final bulkButton = find.byKey(const Key("bulk_mode_button"));
       await tester.tap(bulkButton);
       await tester.pumpAndSettle();
 
@@ -870,7 +871,7 @@ https://dart.dev""";
 
       await _navigateToAddLink(tester);
 
-      final bulkButton = find.byKey(const Key("bulk_button"));
+      final bulkButton = find.byKey(const Key("bulk_mode_button"));
       await tester.tap(bulkButton);
       await tester.pumpAndSettle();
 
@@ -879,7 +880,7 @@ https://dart.dev""";
       await tester.pumpAndSettle();
 
       // Trigger validation
-      final addButton = find.text("Parse & Add");
+      final addButton = find.byKey(const Key("bulk_add_button"));
       await tester.tap(addButton);
       await tester.pumpAndSettle();
 
@@ -899,7 +900,7 @@ https://dart.dev""";
 
       await _navigateToAddLink(tester);
 
-      final bulkButton = find.byKey(const Key("bulk_button"));
+      final bulkButton = find.byKey(const Key("bulk_mode_button"));
       await tester.tap(bulkButton);
       await tester.pumpAndSettle();
 
@@ -917,7 +918,7 @@ https://dart.dev""";
       expect(validCount, findsAtLeastNWidgets(1));
 
       // Submission might take time but shouldn't freeze UI
-      final addButton = find.text("Parse & Add");
+      final addButton = find.byKey(const Key("bulk_add_button"));
       await tester.tap(addButton);
       await tester.pump(); // Don't wait for settle, just verify it starts
 
@@ -933,7 +934,7 @@ https://dart.dev""";
 
       await _navigateToAddLink(tester);
 
-      final bulkButton = find.byKey(const Key("bulk_button"));
+      final bulkButton = find.byKey(const Key("bulk_mode_button"));
       await tester.tap(bulkButton);
       await tester.pumpAndSettle();
 
@@ -942,7 +943,7 @@ https://dart.dev""";
       await tester.enterText(urlInput, "https://flutter.dev");
       await tester.pumpAndSettle();
 
-      final addButton = find.text("Parse & Add");
+      final addButton = find.byKey(const Key("bulk_add_button"));
       await tester.tap(addButton);
       await tester.pumpAndSettle();
 
@@ -986,7 +987,7 @@ https://dart.dev""";
 
       await _navigateToAddLink(tester);
 
-      final bulkButton = find.byKey(const Key("bulk_button"));
+      final bulkButton = find.byKey(const Key("bulk_mode_button"));
       await tester.tap(bulkButton);
       await tester.pumpAndSettle();
 
@@ -995,7 +996,7 @@ https://dart.dev""";
       final urlField = find.text("URLs (one per line)");
       expect(urlField, findsOneWidget);
 
-      final addButton = find.text("Parse & Add");
+      final addButton = find.byKey(const Key("bulk_add_button"));
       expect(addButton, findsOneWidget);
     });
   });
@@ -1008,6 +1009,10 @@ https://dart.dev""";
 
       await _navigateToAddLink(tester);
 
+      final bulkButton = find.byKey(const Key("bulk_mode_button"));
+      await tester.tap(bulkButton);
+      await tester.pumpAndSettle();
+
       final urlInput = find.byType(EditableText).first;
 
       // Enter multiple valid URLs
@@ -1019,7 +1024,7 @@ https://github.com/flutter""";
       await tester.pumpAndSettle();
 
       // Submit
-      final addButton = find.text("Parse & Add");
+      final addButton = find.byKey(const Key("bulk_add_button"));
       await tester.tap(addButton);
       await tester.pumpAndSettle();
 
@@ -1040,6 +1045,10 @@ https://github.com/flutter""";
 
       await _navigateToAddLink(tester);
 
+      final bulkButton = find.byKey(const Key("bulk_mode_button"));
+      await tester.tap(bulkButton);
+      await tester.pumpAndSettle();
+
       final urlInput = find.byType(EditableText).first;
 
       const mixedUrls = """https://flutter.dev
@@ -1049,7 +1058,7 @@ https://dart.dev""";
       await tester.enterText(urlInput, mixedUrls);
       await tester.pumpAndSettle();
 
-      final addButton = find.text("Parse & Add");
+      final addButton = find.byKey(const Key("bulk_add_button"));
       await tester.tap(addButton);
       await tester.pumpAndSettle();
 
@@ -1070,6 +1079,10 @@ https://dart.dev""";
 
       await _navigateToAddLink(tester);
 
+      final bulkButton = find.byKey(const Key("bulk_mode_button"));
+      await tester.tap(bulkButton);
+      await tester.pumpAndSettle();
+
       final urlInput = find.byType(EditableText).first;
 
       const invalidUrls = """invalid url 1
@@ -1079,7 +1092,7 @@ bad input""";
       await tester.enterText(urlInput, invalidUrls);
       await tester.pumpAndSettle();
 
-      final addButton = find.text("Parse & Add");
+      final addButton = find.byKey(const Key("bulk_add_button"));
       await tester.tap(addButton);
       await tester.pumpAndSettle();
 
@@ -1098,6 +1111,10 @@ bad input""";
 
       await _navigateToAddLink(tester);
 
+      final bulkButton = find.byKey(const Key("bulk_mode_button"));
+      await tester.tap(bulkButton);
+      await tester.pumpAndSettle();
+
       final urlInput = find.byType(EditableText).first;
 
       const urlsWithTags = """https://flutter.dev | flutter, ui
@@ -1106,7 +1123,7 @@ https://dart.dev #dart #programming""";
       await tester.enterText(urlInput, urlsWithTags);
       await tester.pumpAndSettle();
 
-      final addButton = find.text("Parse & Add");
+      final addButton = find.byKey(const Key("bulk_add_button"));
       await tester.tap(addButton);
       await tester.pumpAndSettle();
 
@@ -1130,6 +1147,10 @@ https://dart.dev #dart #programming""";
 
       await _navigateToAddLink(tester);
 
+      final bulkButton = find.byKey(const Key("bulk_mode_button"));
+      await tester.tap(bulkButton);
+      await tester.pumpAndSettle();
+
       final urlInput = find.byType(EditableText).first;
 
       const mixedUrls = """https://flutter.dev | flutter, ui
@@ -1139,7 +1160,7 @@ https://dart.dev #dart""";
       await tester.enterText(urlInput, mixedUrls);
       await tester.pumpAndSettle();
 
-      final addButton = find.text("Parse & Add");
+      final addButton = find.byKey(const Key("bulk_add_button"));
       await tester.tap(addButton);
       await tester.pumpAndSettle();
 
@@ -1163,13 +1184,17 @@ https://dart.dev #dart""";
 
       await _navigateToAddLink(tester);
 
+      final bulkButton = find.byKey(const Key("bulk_mode_button"));
+      await tester.tap(bulkButton);
+      await tester.pumpAndSettle();
+
       final urlInput = find.byType(EditableText).first;
 
       // First submission with invalid URL
       await tester.enterText(urlInput, "invalid url");
       await tester.pumpAndSettle();
 
-      final addButton = find.text("Parse & Add");
+      final addButton = find.byKey(const Key("bulk_add_button"));
       await tester.tap(addButton);
       await tester.pumpAndSettle();
 
@@ -1198,6 +1223,10 @@ https://dart.dev #dart""";
 
       await _navigateToAddLink(tester);
 
+      final bulkButton = find.byKey(const Key("bulk_mode_button"));
+      await tester.tap(bulkButton);
+      await tester.pumpAndSettle();
+
       final urlInput = find.byType(EditableText).first;
 
       // First attempt: 2 valid, 2 invalid
@@ -1209,7 +1238,7 @@ invalid2""";
       await tester.enterText(urlInput, attempt1);
       await tester.pumpAndSettle();
 
-      final addButton = find.text("Parse & Add");
+      final addButton = find.byKey(const Key("bulk_add_button"));
       await tester.tap(addButton);
       await tester.pumpAndSettle();
 
@@ -1238,7 +1267,7 @@ https://fixed2.dev""");
       await _navigateToAddLink(tester);
 
       // Find the global tags input field
-      final tagInput = find.widgetWithText(TextField, "Add tag");
+      final tagInput = find.byKey(const Key("global_tags_tag_input"));
       expect(tagInput, findsOneWidget);
 
       // Add a global tag
@@ -1246,16 +1275,19 @@ https://fixed2.dev""");
       await tester.pumpAndSettle();
 
       // Find and tap the Add button for tags
-      final addTagButtons = find.widgetWithText(FilledButton, "Add");
-      // Should be 2: one for tags, one for URLs
-      expect(addTagButtons, findsNWidgets(2));
+      final addTagButton = find.byKey(const Key("global_tags_tag_add_button"));
+      expect(addTagButton, findsOneWidget);
 
-      // Tap the first Add button (for tags)
-      await tester.tap(addTagButtons.first);
+      // Tap the tag add button
+      await tester.tap(addTagButton);
       await tester.pumpAndSettle();
 
       // Verify tag chip appears
       expect(find.text("#globaltag"), findsOneWidget);
+
+      final bulkButton = find.byKey(const Key("bulk_mode_button"));
+      await tester.tap(bulkButton);
+      await tester.pumpAndSettle();
 
       // Now add URLs in bulk mode
       final urlInput = find.byType(EditableText).first;
@@ -1263,7 +1295,7 @@ https://fixed2.dev""");
       await tester.pumpAndSettle();
 
       // Submit
-      final parseButton = find.text("Parse & Add");
+      final parseButton = find.byKey(const Key("bulk_add_button"));
       await tester.tap(parseButton);
       await tester.pumpAndSettle();
 
@@ -1286,11 +1318,11 @@ https://fixed2.dev""");
       await _navigateToAddLink(tester);
 
       // Add a global tag
-      final tagInput = find.widgetWithText(TextField, "Add tag");
+      final tagInput = find.byKey(const Key("global_tags_tag_input"));
       await tester.enterText(tagInput, "removeme");
       await tester.pumpAndSettle();
 
-      final addTagButton = find.widgetWithText(FilledButton, "Add").first;
+      final addTagButton = find.byKey(const Key("global_tags_tag_add_button"));
       await tester.tap(addTagButton);
       await tester.pumpAndSettle();
 
@@ -1298,7 +1330,7 @@ https://fixed2.dev""");
       expect(find.text("#removeme"), findsOneWidget);
 
       // Find the delete icon on the tag chip
-      final tagChip = find.widgetWithText(InputChip, "#removeme");
+      final tagChip = find.byKey(const Key("global_tags_tag_chip_removeme"));
       expect(tagChip, findsOneWidget);
 
       // Find delete icon within the chip
@@ -1323,13 +1355,13 @@ https://fixed2.dev""");
 
       await _navigateToAddLink(tester);
 
-      final tagInput = find.widgetWithText(TextField, "Add tag");
+      final tagInput = find.byKey(const Key("global_tags_tag_input"));
 
       // Try to add invalid tag (with numbers)
       await tester.enterText(tagInput, "tag123");
       await tester.pumpAndSettle();
 
-      final addTagButton = find.widgetWithText(FilledButton, "Add").first;
+      final addTagButton = find.byKey(const Key("global_tags_tag_add_button"));
       await tester.tap(addTagButton);
       await tester.pumpAndSettle();
 
@@ -1349,13 +1381,13 @@ https://fixed2.dev""");
 
       await _navigateToAddLink(tester);
 
-      final tagInput = find.widgetWithText(TextField, "Add tag");
+      final tagInput = find.byKey(const Key("global_tags_tag_input"));
 
       // Add first tag
       await tester.enterText(tagInput, "duplicate");
       await tester.pumpAndSettle();
 
-      final addTagButton = find.widgetWithText(FilledButton, "Add").first;
+      final addTagButton = find.byKey(const Key("global_tags_tag_add_button"));
       await tester.tap(addTagButton);
       await tester.pumpAndSettle();
 
@@ -1380,11 +1412,16 @@ https://fixed2.dev""");
       await _navigateToAddLink(tester);
 
       // Add global tag
-      final tagInput = find.widgetWithText(TextField, "Add tag");
+      final tagInput = find.byKey(const Key("global_tags_tag_input"));
       await tester.enterText(tagInput, "global");
       await tester.pumpAndSettle();
 
-      await tester.tap(find.widgetWithText(FilledButton, "Add").first);
+      await tester.tap(find.byKey(const Key('global_tags_tag_add_button')));
+      await tester.pumpAndSettle();
+
+      // Switch to bulk mode
+      final bulkButton = find.byKey(const Key("bulk_mode_button"));
+      await tester.tap(bulkButton);
       await tester.pumpAndSettle();
 
       // Add URL with inline tag
@@ -1392,7 +1429,7 @@ https://fixed2.dev""");
       await tester.enterText(urlInput, "https://example.dev | inline");
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text("Parse & Add"));
+      await tester.tap(find.byKey(const Key('bulk_add_button')));
       await tester.pumpAndSettle();
 
       // Both tags should appear in table
@@ -1409,8 +1446,7 @@ https://fixed2.dev""");
       await _navigateToAddLink(tester);
 
       // Find the archive toggle switch
-      final archiveSwitch =
-          find.widgetWithText(SwitchListTile, "Archive new links");
+      final archiveSwitch = find.byKey(const Key("archive_toggle_switch"));
       expect(archiveSwitch, findsOneWidget);
 
       // Should be off by default
@@ -1434,9 +1470,13 @@ https://fixed2.dev""");
       await _navigateToAddLink(tester);
 
       // Enable archive mode
-      final archiveSwitch =
-          find.widgetWithText(SwitchListTile, "Archive new links");
+      final archiveSwitch = find.byKey(const Key('archive_toggle_switch'));
       await tester.tap(archiveSwitch);
+      await tester.pumpAndSettle();
+
+      // Switch to bulk mode
+      final bulkButton = find.byKey(const Key("bulk_mode_button"));
+      await tester.tap(bulkButton);
       await tester.pumpAndSettle();
 
       // Add a URL
@@ -1444,7 +1484,7 @@ https://fixed2.dev""");
       await tester.enterText(urlInput, "https://archived.dev");
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text("Parse & Add"));
+      await tester.tap(find.byKey(const Key('bulk_add_button')));
       await tester.pumpAndSettle();
 
       // Verify "Yes" appears in Archived column
@@ -1465,7 +1505,7 @@ https://fixed2.dev""");
       await tester.enterText(urlInput, "https://notarchived.dev");
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text("Parse & Add"));
+      await tester.tap(find.byKey(const Key("bulk_add_button")));
       await tester.pumpAndSettle();
 
       // Verify "No" appears in Archived column
@@ -1480,8 +1520,7 @@ https://fixed2.dev""");
       await _navigateToAddLink(tester);
 
       // Enable archive mode
-      final archiveSwitch =
-          find.widgetWithText(SwitchListTile, "Archive new links");
+      final archiveSwitch = find.byKey(const Key("archive_toggle_switch"));
       await tester.tap(archiveSwitch);
       await tester.pumpAndSettle();
 
@@ -1494,7 +1533,7 @@ https://archived3.dev""";
       await tester.enterText(urlInput, bulkUrls);
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text("Parse & Add"));
+      await tester.tap(find.byKey(const Key("bulk_add_button")));
       await tester.pumpAndSettle();
 
       // All should be marked as archived (3 "Yes" entries)

@@ -1,11 +1,11 @@
 import "package:flutter/material.dart";
 import "package:trina_grid/trina_grid.dart";
-import "package:chenron/notifiers/link_table_notifier.dart";
+import "package:chenron/notifiers/item_table_notifier.dart";
 
 class DataGrid extends StatefulWidget {
   final List<TrinaColumn> columns;
   final List<TrinaRow> rows;
-  final DataGridNotifier notifier;
+  final ItemTableNotifier notifier;
 
   const DataGrid({
     super.key,
