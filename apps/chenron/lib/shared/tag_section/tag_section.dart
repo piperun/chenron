@@ -64,8 +64,20 @@ class _TagSectionState extends State<TagSection> {
     final theme = Theme.of(context);
 
     return CardSection(
-      title: widget.title ?? "Tags",
-      description: widget.description ?? "",
+      title: Text(
+        widget.title ?? "Tags",
+        style: theme.textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      description: widget.description != null
+          ? Text(
+              widget.description!,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            )
+          : null,
       sectionIcon: const Icon(
         Icons.label,
       ),

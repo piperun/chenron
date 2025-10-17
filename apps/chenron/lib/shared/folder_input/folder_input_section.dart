@@ -18,8 +18,15 @@ class FolderInputSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return CardSection(
-      title: "Folder information",
+      title: Text(
+        "Folder information",
+        style: theme.textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.w600,
+        ),
+      ),
       sectionIcon: const Icon(Icons.folder_outlined),
       children: [
         LabeledTextField(
