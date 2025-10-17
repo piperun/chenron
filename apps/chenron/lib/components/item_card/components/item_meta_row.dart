@@ -3,6 +3,10 @@ import "package:chenron/models/item.dart";
 import "package:chenron/components/favicon_display/favicon.dart";
 import "package:chenron/components/item_card/item_utils.dart";
 import "package:chenron/components/item_card/item_info_modal.dart";
+import "package:chenron/shared/utils/time_formatter.dart";
+import "package:chenron/features/settings/controller/config_controller.dart";
+import "package:chenron/locator.dart";
+import "package:signals/signals_flutter.dart";
 
 // Meta row with favicon, domain, and time
 class ItemMetaRow extends StatelessWidget {
@@ -46,13 +50,7 @@ class ItemMetaRow extends StatelessWidget {
               color: theme.textTheme.bodySmall?.color?.withOpacity(0.5),
             ),
           ),
-          Text(
-            "1d ago",
-            style: TextStyle(
-              fontSize: 12,
-              color: theme.textTheme.bodySmall?.color?.withOpacity(0.5),
-            ),
-          ),
+          _TimeDisplay(item: item),
           const SizedBox(width: 6),
           InkWell(
             onTap: () => showItemInfoModal(context, item),
@@ -76,13 +74,7 @@ class ItemMetaRow extends StatelessWidget {
       children: [
         ItemIcon(type: item.type),
         const SizedBox(width: 8),
-        Text(
-          "1d ago",
-          style: TextStyle(
-            fontSize: 12,
-            color: theme.textTheme.bodySmall?.color?.withOpacity(0.5),
-          ),
-        ),
+        _TimeDisplay(item: item),
         const Spacer(),
         InkWell(
           onTap: () => showItemInfoModal(context, item),
@@ -98,6 +90,39 @@ class ItemMetaRow extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+// Widget to display time with tooltip based on user preference
+class _TimeDisplay extends StatelessWidget {
+  final FolderItem item;
+
+  const _TimeDisplay({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final controller = locator.get<ConfigController>();
+
+    return Watch(
+      (context) {
+        final timeFormat =
+            TimeDisplayFormat.values[controller.timeDisplayFormat.value];
+        final displayText = TimeFormatter.format(item.createdAt, timeFormat);
+        final tooltipText = TimeFormatter.formatTooltip(item.createdAt);
+
+        return Tooltip(
+          message: tooltipText,
+          child: Text(
+            displayText,
+            style: TextStyle(
+              fontSize: 12,
+              color: theme.textTheme.bodySmall?.color?.withOpacity(0.5),
+            ),
+          ),
+        );
+      },
     );
   }
 }

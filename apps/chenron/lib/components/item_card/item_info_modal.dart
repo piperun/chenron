@@ -1,13 +1,13 @@
 import "package:flutter/material.dart";
 import "package:chenron/models/item.dart";
 import "package:chenron/components/item_card/item_utils.dart";
-import "package:chenron/components/metadata_factory.dart";
+import "package:chenron/shared/utils/time_formatter.dart";
 import "package:cache_manager/cache_manager.dart";
 
 // Show detailed item info modal
 void showItemInfoModal(BuildContext context, FolderItem item) {
   final url = ItemUtils.getUrl(item);
-  
+
   showDialog(
     context: context,
     builder: (context) => ItemInfoModal(item: item, url: url),
@@ -98,7 +98,8 @@ class ItemInfoModal extends StatelessWidget {
                     _InfoSection(
                       title: "Type",
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
                           color: const Color(0xFFE3F2FD),
                           borderRadius: BorderRadius.circular(4),
@@ -116,7 +117,9 @@ class ItemInfoModal extends StatelessWidget {
                     const SizedBox(height: 16),
 
                     // Title
-                    if (item.type == FolderItemType.link && url != null && url!.isNotEmpty)
+                    if (item.type == FolderItemType.link &&
+                        url != null &&
+                        url!.isNotEmpty)
                       FutureBuilder<Map<String, dynamic>?>(
                         future: MetadataCache.get(url!),
                         builder: (context, snapshot) {
@@ -144,11 +147,14 @@ class ItemInfoModal extends StatelessWidget {
                       ),
 
                     // Description
-                    if (item.type == FolderItemType.link && url != null && url!.isNotEmpty)
+                    if (item.type == FolderItemType.link &&
+                        url != null &&
+                        url!.isNotEmpty)
                       FutureBuilder<Map<String, dynamic>?>(
                         future: MetadataCache.get(url!),
                         builder: (context, snapshot) {
-                          final description = snapshot.data?["description"] as String?;
+                          final description =
+                              snapshot.data?["description"] as String?;
                           if (description != null && description.isNotEmpty) {
                             return Column(
                               children: [
@@ -159,7 +165,8 @@ class ItemInfoModal extends StatelessWidget {
                                     style: TextStyle(
                                       fontSize: 14,
                                       height: 1.5,
-                                      color: theme.colorScheme.onSurface.withOpacity(0.8),
+                                      color: theme.colorScheme.onSurface
+                                          .withOpacity(0.8),
                                     ),
                                   ),
                                 ),
@@ -172,7 +179,9 @@ class ItemInfoModal extends StatelessWidget {
                       ),
 
                     // URL
-                    if (item.type == FolderItemType.link && url != null && url!.isNotEmpty) ...[
+                    if (item.type == FolderItemType.link &&
+                        url != null &&
+                        url!.isNotEmpty) ...[
                       _InfoSection(
                         title: "URL",
                         child: SelectableText(
@@ -185,7 +194,7 @@ class ItemInfoModal extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      
+
                       // Domain
                       _InfoSection(
                         title: "Domain",
@@ -201,16 +210,31 @@ class ItemInfoModal extends StatelessWidget {
                       const SizedBox(height: 16),
                     ],
 
-                    // Created date
+                    // Created date with full timestamp
                     if (item.createdAt != null) ...[
                       _InfoSection(
                         title: "Created",
-                        child: Text(
-                          _formatDateTime(item.createdAt!),
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: theme.colorScheme.onSurface.withOpacity(0.8),
-                          ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              TimeFormatter.formatFull(item.createdAt),
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: theme.colorScheme.onSurface,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              "(${TimeFormatter.formatRelative(item.createdAt)})",
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: theme.colorScheme.onSurface
+                                    .withOpacity(0.6),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -244,7 +268,7 @@ class ItemInfoModal extends StatelessWidget {
 
   Widget _buildTagsSection(ThemeData theme) {
     final tags = ItemUtils.buildTags(item);
-    
+
     if (tags.isEmpty) {
       return Text(
         "No tags",
@@ -261,32 +285,6 @@ class ItemInfoModal extends StatelessWidget {
       runSpacing: 8,
       children: tags,
     );
-  }
-
-  String _formatDateTime(DateTime dateTime) {
-    final now = DateTime.now();
-    final difference = now.difference(dateTime);
-
-    if (difference.inDays == 0) {
-      if (difference.inHours == 0) {
-        if (difference.inMinutes == 0) {
-          return "Just now";
-        }
-        return "${difference.inMinutes}m ago";
-      }
-      return "${difference.inHours}h ago";
-    } else if (difference.inDays < 7) {
-      return "${difference.inDays}d ago";
-    } else if (difference.inDays < 30) {
-      final weeks = (difference.inDays / 7).floor();
-      return "$weeks week${weeks > 1 ? 's' : ''} ago";
-    } else if (difference.inDays < 365) {
-      final months = (difference.inDays / 30).floor();
-      return "$months month${months > 1 ? 's' : ''} ago";
-    } else {
-      final years = (difference.inDays / 365).floor();
-      return "$years year${years > 1 ? 's' : ''} ago";
-    }
   }
 }
 
