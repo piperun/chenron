@@ -1,5 +1,6 @@
 import "package:chenron/utils/logger.dart";
 import "package:chenron/utils/str_sanitizer.dart";
+import "package:chenron/utils/metadata.dart";
 import "package:flutter/material.dart";
 import "package:cache_manager/cache_manager.dart";
 
@@ -8,6 +9,36 @@ enum MetadataType { title, description, image, url }
 class MetadataFactory {
   static final Map<String, MetadataWidget> _widgetCache = {};
 
+  /// Get cached metadata; if missing or stale, fetch fresh from web and cache it.
+  static Future<Map<String, dynamic>?> getOrFetch(String url) async {
+    // Try cache (returns null if MISS or STALE)
+    final cached = await MetadataCache.get(url);
+    if (cached != null) return cached;
+
+    // Avoid duplicate concurrent fetches
+    if (MetadataCache.isFetching(url)) return null;
+    if (!MetadataCache.shouldRetry(url)) return null;
+
+    try {
+      MetadataCache.startFetching(url);
+      final fetched = await MetadataFetcher.fetch(url);
+      final data = <String, dynamic>{
+        'title': fetched.title,
+        'description': fetched.description,
+        'image': fetched.image,
+        'url': fetched.url ?? url,
+      };
+      await MetadataCache.set(url, data);
+      MetadataCache.clearFailure(url);
+      return data;
+    } catch (e) {
+      MetadataCache.recordFailure(url);
+      return null;
+    } finally {
+      MetadataCache.stopFetching(url);
+    }
+  }
+
   static Future<MetadataWidget> createMetadataWidget(String url) async {
     final cacheKey = "widget_$url";
 
@@ -15,8 +46,8 @@ class MetadataFactory {
       return _widgetCache[cacheKey]!;
     }
 
-    // Use MetadataCache instead of direct SharedPreferences
-    final metadata = await MetadataCache.get(url);
+    // Try cache or fetch on miss
+    final metadata = await getOrFetch(url);
 
     final widget = MetadataWidget(url: url, metadata: metadata);
     _widgetCache[cacheKey] = widget;
@@ -43,8 +74,26 @@ class MetadataTitle extends StatelessWidget {
   const MetadataTitle({super.key, required this.widget});
 
   Future<Map<String, dynamic>?> _getCachedMetadata() async {
-    if (widget.metadata != null) return widget.metadata;
-    return await MetadataCache.get(widget.url);
+    if (widget.metadata != null) {
+      loggerGlobal.info(
+        "MetadataTitle",
+        "Using provided metadata for: ${widget.url} | Title: ${widget.metadata?['title'] ?? 'N/A'}",
+      );
+      return widget.metadata;
+    }
+    final data = await MetadataFactory.getOrFetch(widget.url);
+    if (data != null) {
+      loggerGlobal.info(
+        "MetadataTitle",
+        "Loaded metadata for: ${widget.url} | Title: ${data['title'] ?? 'N/A'}",
+      );
+    } else {
+      loggerGlobal.warning(
+        "MetadataTitle",
+        "No metadata available for: ${widget.url}",
+      );
+    }
+    return data;
   }
 
   @override
@@ -80,7 +129,7 @@ class MetadataDescription extends StatelessWidget {
 
   Future<Map<String, dynamic>?> _getCachedMetadata() async {
     if (widget.metadata != null) return widget.metadata;
-    return await MetadataCache.get(widget.url);
+    return await MetadataFactory.getOrFetch(widget.url);
   }
 
   @override
@@ -122,7 +171,7 @@ class MetadataImage extends StatelessWidget {
 
   Future<Map<String, dynamic>?> _getCachedMetadata() async {
     if (widget.metadata != null) return widget.metadata;
-    return await MetadataCache.get(widget.url);
+    return await MetadataFactory.getOrFetch(widget.url);
   }
 
   @override
@@ -153,7 +202,7 @@ class MetadataUrl extends StatelessWidget {
 
   Future<Map<String, dynamic>?> _getCachedMetadata() async {
     if (widget.metadata != null) return widget.metadata;
-    return await MetadataCache.get(widget.url);
+    return await MetadataFactory.getOrFetch(widget.url);
   }
 
   @override
