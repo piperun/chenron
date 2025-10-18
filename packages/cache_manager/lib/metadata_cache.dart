@@ -1,5 +1,8 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'package:logging/logging.dart';
+
+final _logger = Logger('MetadataCache');
 
 /// Manages persistent caching of metadata using SharedPreferences
 class MetadataCache {
@@ -18,7 +21,14 @@ class MetadataCache {
   static Future<Map<String, dynamic>?> get(String url) async {
     // Check memory cache first
     if (_memoryCache.containsKey(url)) {
-      return _memoryCache[url] as Map<String, dynamic>?;
+      final data = _memoryCache[url] as Map<String, dynamic>?;
+      if (data != null && _isFresh(data)) {
+        _logger.fine('Memory cache HIT (FRESH) for: $url | Title: ${data['title'] ?? 'N/A'}');
+        return data;
+      } else if (data != null) {
+        _logger.fine('Memory cache HIT (STALE) for: $url | Title: ${data['title'] ?? 'N/A'}');
+        return null; // Stale data, return null to trigger refetch
+      }
     }
 
     // Check persistent cache
@@ -28,26 +38,41 @@ class MetadataCache {
       final cached = prefs.getString(key);
       if (cached != null) {
         final json = jsonDecode(cached) as Map<String, dynamic>;
-        _memoryCache[url] = json;
-        return json;
+        if (_isFresh(json)) {
+          _memoryCache[url] = json;
+          _logger.fine('Persistent cache HIT (FRESH) for: $url | Title: ${json['title'] ?? 'N/A'}');
+          return json;
+        } else {
+          _logger.fine('Persistent cache HIT (STALE) for: $url | Title: ${json['title'] ?? 'N/A'} | Needs refetch');
+          return null; // Stale data, return null to trigger refetch
+        }
+      } else {
+        _logger.fine('Cache MISS for: $url');
       }
     } catch (e) {
-      // Log error if needed
+      _logger.warning('Cache error for: $url | Error: $e');
     }
     return null;
   }
 
   /// Save metadata to cache (both memory and persistent)
   static Future<void> set(String url, Map<String, dynamic> metadata) async {
-    _memoryCache[url] = metadata;
+    // Add fetchedAt timestamp
+    final metadataWithTimestamp = {
+      ...metadata,
+      'fetchedAt': DateTime.now().toIso8601String(),
+    };
+    
+    _memoryCache[url] = metadataWithTimestamp;
+    _logger.info('Cached metadata for: $url | Title: ${metadata['title'] ?? 'N/A'}');
     
     try {
       final prefs = await _sharedPrefs;
       final key = 'metadata_$url';
-      final json = jsonEncode(metadata);
+      final json = jsonEncode(metadataWithTimestamp);
       await prefs.setString(key, json);
     } catch (e) {
-      // Log error if needed
+      _logger.warning('Failed to persist cache for: $url | Error: $e');
     }
   }
 
@@ -106,6 +131,25 @@ class MetadataCache {
       }
     } catch (e) {
       // Log error if needed
+    }
+  }
+
+  /// Check if cached metadata is fresh (less than 7 days old)
+  static bool _isFresh(Map<String, dynamic> metadata) {
+    final fetchedAtStr = metadata['fetchedAt'] as String?;
+    if (fetchedAtStr == null) {
+      // Old cache format without timestamp - consider stale
+      return false;
+    }
+    
+    try {
+      final fetchedAt = DateTime.parse(fetchedAtStr);
+      final age = DateTime.now().difference(fetchedAt);
+      final isFresh = age.inDays < 7;
+      return isFresh;
+    } catch (e) {
+      // Invalid timestamp - consider stale
+      return false;
     }
   }
 

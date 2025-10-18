@@ -1,4 +1,5 @@
 import "package:metadata_fetch/metadata_fetch.dart";
+import "package:chenron/utils/logger.dart";
 
 class MetadataFetcher {
   final String? title;
@@ -9,8 +10,13 @@ class MetadataFetcher {
   MetadataFetcher({this.title, this.description, this.image, this.url});
 
   static Future<MetadataFetcher> fetch(String url) async {
+    loggerGlobal.info("MetadataFetcher", "Fetching metadata for: $url");
     try {
       final metadata = await MetadataFetch.extract(url);
+      loggerGlobal.info(
+        "MetadataFetcher",
+        "Successfully fetched metadata for: $url | Title: ${metadata?.title ?? 'N/A'} | Description: ${metadata?.description != null ? '${metadata!.description!.substring(0, metadata.description!.length > 50 ? 50 : metadata.description!.length)}...' : 'N/A'} | Image: ${metadata?.image != null ? 'Yes' : 'No'}",
+      );
       return MetadataFetcher(
         title: metadata?.title,
         description: metadata?.description,
@@ -18,6 +24,10 @@ class MetadataFetcher {
         url: metadata?.url,
       );
     } catch (e) {
+      loggerGlobal.warning(
+        "MetadataFetcher",
+        "Failed to fetch metadata for: $url | Error: ${e.toString()}",
+      );
       rethrow;
     }
   }
