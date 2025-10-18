@@ -70,7 +70,7 @@ class UrlParserService {
 
   /// Extracts tags from a string
   /// Supports comma-separated and space-separated formats
-  /// Only allows alphabetic characters (a-z)
+  /// Returns all tags (including potentially invalid ones) for validation
   static List<String> _parseTags(String tagsStr) {
     if (tagsStr.isEmpty) return [];
 
@@ -82,8 +82,8 @@ class UrlParserService {
     for (final part in parts) {
       final cleaned = part.trim().replaceAll(RegExp(r"^#+"), "").toLowerCase();
       
-      // Only allow alphabetic characters
-      if (cleaned.isNotEmpty && RegExp(r"^[a-zA-Z]+$").hasMatch(cleaned)) {
+      // Keep ALL non-empty tags (including invalid ones) so they can be validated
+      if (cleaned.isNotEmpty) {
         tags.add(cleaned);
       }
     }

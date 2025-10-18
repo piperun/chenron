@@ -3,12 +3,19 @@ import "package:vibe/vibe.dart";
 
 /// Global theme registry (initialized in main)
 late final ThemeRegistry<ThemeSpec> themeRegistry;
+bool _themeRegistryInitialized = false;
 
 /// Initialize the theme registry with all available themes
 void initializeThemeRegistry() {
+  // Skip if already initialized (happens in tests)
+  if (_themeRegistryInitialized) {
+    return;
+  }
+  
   themeRegistry = ThemeRegistry<ThemeSpec>(
     validator: const NoOpValidator(), // Can enable validation in debug mode
   );
+  _themeRegistryInitialized = true;
 
   // Register built-in themes
   themeRegistry.register(NierTheme());
