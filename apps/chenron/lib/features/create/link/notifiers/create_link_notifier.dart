@@ -214,8 +214,9 @@ class CreateLinkNotifier extends ChangeNotifier {
     final startTime = DateTime.now();
 
     // Validate all entries in parallel using Future.wait
+    final keys = _entries.map((e) => e.key).toList(growable: false);
     await Future.wait(
-      _entries.map((entry) => _validateEntry(entry.key)),
+      keys.map((key) => _validateEntry(key)),
     );
 
     final duration = DateTime.now().difference(startTime);
@@ -225,8 +226,9 @@ class CreateLinkNotifier extends ChangeNotifier {
 
   /// Validates all entries sequentially (kept for compatibility)
   Future<void> _validateAllEntries() async {
-    for (final entry in _entries) {
-      await _validateEntry(entry.key);
+    final keys = _entries.map((e) => e.key).toList(growable: false);
+    for (final key in keys) {
+      await _validateEntry(key);
     }
   }
 

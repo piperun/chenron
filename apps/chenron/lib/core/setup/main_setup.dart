@@ -6,8 +6,8 @@ import "package:chenron/utils/logger.dart";
 import "package:chenron/database/extensions/operations/config_file_handler.dart";
 import "package:chenron/features/theme/state/theme_utils.dart";
 import "package:flutter/foundation.dart";
-import "package:signals/signals_flutter.dart"; // Or core if no Flutter needed here
-import "dart:io"; // For Directory
+import "package:signals/signals_flutter.dart";
+import "dart:io";
 import "package:chenron/base_dirs/schema.dart";
 
 class InitializationException implements Exception {
@@ -33,10 +33,21 @@ class MainSetup {
   static bool _setupDone = false;
 
   static Future<void> setup() async {
-    if (_setupDone) {
+    // Check if GetIt was reset (indicates test scenario requiring re-init)
+    final getItWasReset = _setupDone && !locator.isRegistered<Signal<Future<AppDatabaseHandler>>>();
+    
+    if (_setupDone && !getItWasReset) {
       // ignore: avoid_print
       print("Warning: MainSetup.setup() called more than once.");
       return;
+    }
+    
+    if (getItWasReset) {
+      // GetIt was reset, allow re-initialization
+      _setupDone = false;
+      if (kDebugMode) {
+        print("MainSetup: GetIt was reset, re-initializing...");
+      }
     }
 
     if (kDebugMode) {
