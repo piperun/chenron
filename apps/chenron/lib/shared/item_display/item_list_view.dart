@@ -1,14 +1,18 @@
 import "package:flutter/material.dart";
 import "package:chenron/models/item.dart";
-import "package:chenron/components/item_card/item_card.dart";
+import "package:chenron/shared/item_display/widgets/viewer_item/viewer_item.dart";
 import "package:url_launcher/url_launcher.dart";
 
-class FolderListView extends StatelessWidget {
+class ItemListView extends StatelessWidget {
   final List<FolderItem> items;
+  final bool showImages;
+  final void Function(FolderItem)? onItemTap;
 
-  const FolderListView({
+  const ItemListView({
     super.key,
     required this.items,
+    this.showImages = true,
+    this.onItemTap,
   });
 
   Future<void> _launchUrl(FolderItem item) async {
@@ -21,6 +25,17 @@ class FolderListView extends StatelessWidget {
         }
       }
     }
+  }
+
+  VoidCallback? _getItemTapHandler(FolderItem item) {
+    if (onItemTap != null) {
+      return () => onItemTap!(item);
+    }
+    // Default behavior: launch links
+    if (item.type == FolderItemType.link) {
+      return () => _launchUrl(item);
+    }
+    return null;
   }
 
   @override
@@ -44,12 +59,11 @@ class FolderListView extends StatelessWidget {
           separatorBuilder: (context, index) => const SizedBox(height: 8),
           itemBuilder: (context, index) {
             final item = items[index];
-            return ItemCard(
+            return ViewerItem(
               item: item,
               mode: PreviewMode.list,
-              onTap: item.type == FolderItemType.link
-                  ? () => _launchUrl(item)
-                  : null,
+              onTap: _getItemTapHandler(item),
+              showImage: showImages,
             );
           },
         ),
@@ -74,7 +88,7 @@ class _EmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            "No items in this folder",
+            "No items found",
             style: TextStyle(
               fontSize: 16,
               color: theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
@@ -82,7 +96,7 @@ class _EmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            "Add links, documents, or create subfolders to get started",
+            "Try adjusting your search or filters",
             style: TextStyle(
               fontSize: 14,
               color: theme.textTheme.bodyMedium?.color?.withOpacity(0.5),
@@ -94,4 +108,3 @@ class _EmptyState extends StatelessWidget {
     );
   }
 }
-

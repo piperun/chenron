@@ -61,9 +61,10 @@ class FolderItem {
   final ItemContent path;
   final DateTime? createdAt;
   final FolderItemType type;
+  final List<Tag> tags;
 
   FolderItem._internal(this.key, this._listId, this._id, this._itemId,
-      this.path, this.createdAt, this.type);
+      this.path, this.createdAt, this.type, this.tags);
 
   factory FolderItem({
     Key? key,
@@ -73,9 +74,10 @@ class FolderItem {
     required ItemContent content,
     DateTime? createdAt,
     required FolderItemType type,
+    List<Tag> tags = const [],
   }) {
     return FolderItem._internal(
-        key, listId, id, itemId, content, createdAt, type);
+        key, listId, id, itemId, content, createdAt, type, tags);
   }
 
   Insertable toCompanion(String folderId) {
@@ -117,11 +119,12 @@ class FolderItem {
         other.listId == listId &&
         other.path == path &&
         other.createdAt == createdAt &&
-        other.type == type;
+        other.type == type &&
+        const ListEquality().equals(other.tags, tags);
   }
 
   @override
-  int get hashCode => Object.hash(id, itemId, listId, path, createdAt, type);
+  int get hashCode => Object.hash(id, itemId, listId, path, createdAt, type, const ListEquality().hash(tags));
 }
 
 enum FolderItemType {

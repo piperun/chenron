@@ -1,14 +1,14 @@
 import "package:flutter/material.dart";
 import "package:chenron/models/item.dart";
 
-class StatsBar extends StatelessWidget {
+class ItemStatsBar extends StatelessWidget {
   final int linkCount;
   final int documentCount;
   final int folderCount;
   final Set<FolderItemType> selectedTypes;
   final ValueChanged<Set<FolderItemType>> onFilterChanged;
 
-  const StatsBar({
+  const ItemStatsBar({
     super.key,
     required this.linkCount,
     required this.documentCount,

@@ -1,7 +1,7 @@
 import "package:flutter/material.dart";
 import "package:chenron/models/item.dart";
 import "package:chenron/components/metadata_factory.dart";
-import "package:chenron/components/item_card/item_utils.dart";
+import "package:chenron/shared/item_display/widgets/viewer_item/item_utils.dart";
 
 // Description widget
 class ItemDescription extends StatelessWidget {

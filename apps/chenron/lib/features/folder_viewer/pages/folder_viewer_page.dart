@@ -1,9 +1,9 @@
 import "package:flutter/material.dart";
 import "package:chenron/features/folder_viewer/ui/components/folder_header.dart";
-import "package:chenron/features/folder_viewer/ui/components/folder_toolbar.dart";
-import "package:chenron/features/folder_viewer/ui/components/stats_bar.dart";
-import "package:chenron/features/folder_viewer/ui/components/folder_grid_view.dart";
-import "package:chenron/features/folder_viewer/ui/components/folder_list_view.dart";
+import "package:chenron/shared/item_display/item_toolbar.dart";
+import "package:chenron/shared/item_display/item_stats_bar.dart";
+import "package:chenron/shared/item_display/item_grid_view.dart";
+import "package:chenron/shared/item_display/item_list_view.dart";
 import "package:chenron/database/extensions/folder/read.dart";
 import "package:chenron/database/extensions/operations/database_file_handler.dart";
 import "package:chenron/locator.dart";
@@ -12,15 +12,7 @@ import "package:chenron/models/item.dart";
 import "package:chenron/database/database.dart" show IncludeOptions, AppDataInclude, Folder;
 import "package:signals/signals_flutter.dart";
 import "package:shared_preferences/shared_preferences.dart";
-
-enum ViewMode { grid, list }
-
-enum SortMode {
-  nameAsc,
-  nameDesc,
-  dateAsc,
-  dateDesc,
-}
+import "package:chenron/features/viewer/state/viewer_state.dart";
 
 class FolderViewerPage extends StatefulWidget {
   final String folderId;
@@ -53,7 +45,7 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
         .then((db) => db.appDatabase
             .getFolder(
               folderId: widget.folderId,
-              includeOptions: const IncludeOptions({AppDataInclude.items}),
+              includeOptions: const IncludeOptions({AppDataInclude.items, AppDataInclude.tags}),
             )
             .then((folder) => folder!));
   }
@@ -257,17 +249,22 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
                   child: _isHeaderExpanded
                       ? FolderHeader(
                           folder: result.data,
+                          tags: result.tags,
                           totalItems: result.items.length,
                           onBack: () => Navigator.pop(context),
                           isExpanded: _isHeaderExpanded,
                           onToggle: () => setState(() => _isHeaderExpanded = !_isHeaderExpanded),
                           isLocked: _isHeaderLocked,
                           onToggleLock: _toggleHeaderLock,
+                          onTagTap: (tagName) {
+                            Navigator.pop(context);
+                            viewerViewModelSignal.value.searchController.text = tagName;
+                          },
                         )
                       : _buildCollapsedHeader(result.data),
                 ),
               ),
-              FolderToolbar(
+              ItemToolbar(
                 searchQuery: _searchQuery,
                 onSearchChanged: _onSearchChanged,
                 selectedTypes: _selectedTypes,
@@ -277,7 +274,7 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
                 viewMode: _viewMode,
                 onViewModeChanged: _onViewModeChanged,
               ),
-              StatsBar(
+              ItemStatsBar(
                 linkCount: itemCounts[FolderItemType.link] ?? 0,
                 documentCount: itemCounts[FolderItemType.document] ?? 0,
                 folderCount: itemCounts[FolderItemType.folder] ?? 0,
@@ -286,8 +283,8 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
               ),
               Expanded(
                 child: _viewMode == ViewMode.grid
-                    ? FolderGridView(items: filteredItems)
-                    : FolderListView(items: filteredItems),
+                    ? ItemGridView(items: filteredItems)
+                    : ItemListView(items: filteredItems),
               ),
             ],
           );

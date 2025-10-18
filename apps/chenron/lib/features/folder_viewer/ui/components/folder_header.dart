@@ -4,22 +4,26 @@ import "package:intl/intl.dart";
 
 class FolderHeader extends StatelessWidget {
   final Folder folder;
+  final List<Tag> tags;
   final int totalItems;
   final VoidCallback onBack;
   final bool isExpanded;
   final VoidCallback onToggle;
   final bool isLocked;
   final VoidCallback onToggleLock;
+  final ValueChanged<String>? onTagTap;
 
   const FolderHeader({
     super.key,
     required this.folder,
+    this.tags = const [],
     required this.totalItems,
     required this.onBack,
     this.isExpanded = true,
     required this.onToggle,
     this.isLocked = false,
     required this.onToggleLock,
+    this.onTagTap,
   });
 
   String _formatDate(DateTime? date) {
@@ -185,6 +189,21 @@ class FolderHeader extends StatelessWidget {
             ],
           ),
           
+          // Tags as interactive chips
+          if (tags.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: tags
+                  .map((tag) => _TagChip(
+                        tag: tag,
+                        onTap: onTagTap != null ? () => onTagTap!(tag.name) : null,
+                      ))
+                  .toList(),
+            ),
+          ],
+          
           // Description (if exists)
           if (folder.description.isNotEmpty) ...[
             const SizedBox(height: 12),
@@ -198,6 +217,59 @@ class FolderHeader extends StatelessWidget {
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+class _TagChip extends StatefulWidget {
+  final Tag tag;
+  final VoidCallback? onTap;
+
+  const _TagChip({required this.tag, this.onTap});
+
+  @override
+  State<_TagChip> createState() => _TagChipState();
+}
+
+class _TagChipState extends State<_TagChip> {
+  bool _hovering = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final baseColor = theme.colorScheme.secondaryContainer;
+    final hoverColor = theme.colorScheme.secondary.withOpacity(0.2);
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovering = true),
+      onExit: (_) => setState(() => _hovering = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: _hovering ? hoverColor : baseColor.withOpacity(0.25),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: theme.colorScheme.secondary.withOpacity(_hovering ? 0.9 : 0.6),
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.tag, size: 14, color: theme.colorScheme.secondary),
+              const SizedBox(width: 6),
+              Text(
+                widget.tag.name,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: theme.colorScheme.onSecondaryContainer,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

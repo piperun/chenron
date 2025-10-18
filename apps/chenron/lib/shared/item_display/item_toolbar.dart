@@ -1,9 +1,16 @@
 import "package:flutter/material.dart";
-import "package:chenron/features/folder_viewer/pages/folder_viewer_page.dart";
 import "package:chenron/models/item.dart";
-import "package:signals_flutter/signals_flutter.dart";
 
-class FolderToolbar extends StatelessWidget {
+enum ViewMode { grid, list }
+
+enum SortMode {
+  nameAsc,
+  nameDesc,
+  dateAsc,
+  dateDesc,
+}
+
+class ItemToolbar extends StatelessWidget {
   final String searchQuery;
   final ValueChanged<String> onSearchChanged;
   final Set<FolderItemType> selectedTypes;
@@ -12,8 +19,9 @@ class FolderToolbar extends StatelessWidget {
   final ValueChanged<SortMode> onSortChanged;
   final ViewMode viewMode;
   final ValueChanged<ViewMode> onViewModeChanged;
+  final bool showSearch;
 
-  const FolderToolbar({
+  const ItemToolbar({
     super.key,
     required this.searchQuery,
     required this.onSearchChanged,
@@ -23,6 +31,7 @@ class FolderToolbar extends StatelessWidget {
     required this.onSortChanged,
     required this.viewMode,
     required this.onViewModeChanged,
+    this.showSearch = true,
   });
 
   @override
@@ -43,41 +52,44 @@ class FolderToolbar extends StatelessWidget {
       child: LayoutBuilder(
         builder: (context, constraints) {
           // Calculate 50% width for search bar, minimum 300px
-          final searchWidth = (constraints.maxWidth * 0.5).clamp(300.0, double.infinity);
-          
+          final searchWidth =
+              (constraints.maxWidth * 0.5).clamp(300.0, double.infinity);
+
           return Row(
             children: [
               // Search box - 50% width
-              SizedBox(
-                width: searchWidth,
-                child: TextField(
-              onChanged: onSearchChanged,
-              decoration: InputDecoration(
-                hintText: "Search by name, URL, tags...",
-                prefixIcon: const Icon(Icons.search, size: 20),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: theme.dividerColor),
+              if (showSearch)
+                SizedBox(
+                  width: searchWidth,
+                  child: TextField(
+                    onChanged: onSearchChanged,
+                    decoration: InputDecoration(
+                      hintText: "Search by name, URL, tags...",
+                      prefixIcon: const Icon(Icons.search, size: 20),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: theme.dividerColor),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: theme.dividerColor),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide:
+                            BorderSide(color: theme.colorScheme.primary),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      isDense: true,
+                    ),
+                    style: const TextStyle(fontSize: 14),
+                  ),
                 ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: theme.dividerColor),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: theme.colorScheme.primary),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                isDense: true,
-              ),
-              style: const TextStyle(fontSize: 14),
-                ),
-              ),
 
-              const SizedBox(width: 12),
+              if (showSearch) const SizedBox(width: 12),
 
               // Filter dropdown with checkboxes
               _FilterDropdown(
@@ -131,24 +143,6 @@ class FolderToolbar extends StatelessWidget {
     );
   }
 
-  String _getFilterLabel() {
-    if (selectedTypes.length == 3) {
-      return "All Types";
-    } else if (selectedTypes.length == 1) {
-      final type = selectedTypes.first;
-      switch (type) {
-        case FolderItemType.link:
-          return "Links";
-        case FolderItemType.document:
-          return "Documents";
-        case FolderItemType.folder:
-          return "Folders";
-      }
-    } else {
-      return "${selectedTypes.length} Types";
-    }
-  }
-
   String _getSortLabel() {
     switch (sortMode) {
       case SortMode.nameAsc:
@@ -162,12 +156,12 @@ class FolderToolbar extends StatelessWidget {
     }
   }
 
-
   void _showSortMenu(BuildContext context) {
     final RenderBox button = context.findRenderObject() as RenderBox;
     final RenderBox overlay =
         Navigator.of(context).overlay!.context.findRenderObject() as RenderBox;
-    final Offset buttonPosition = button.localToGlobal(Offset.zero, ancestor: overlay);
+    final Offset buttonPosition =
+        button.localToGlobal(Offset.zero, ancestor: overlay);
     final RelativeRect position = RelativeRect.fromLTRB(
       buttonPosition.dx,
       buttonPosition.dy + button.size.height,
@@ -264,11 +258,8 @@ class _FilterDropdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    // Create a signal for local state management
-    final isExpanded = signal(false);
 
-    return Watch((context) {
-      return MenuAnchor(
+    return MenuAnchor(
         builder: (context, controller, child) {
           return OutlinedButton.icon(
             onPressed: () {
@@ -346,7 +337,6 @@ class _FilterDropdown extends StatelessWidget {
           ),
         ],
       );
-    });
   }
 }
 
@@ -382,7 +372,6 @@ class _FilterCheckbox extends StatelessWidget {
     );
   }
 }
-
 
 class _ViewToggleButton extends StatelessWidget {
   final IconData icon;

@@ -50,9 +50,31 @@ class ItemUtils {
   }
 
   static List<Widget> buildTags(FolderItem item) {
-    // Return empty list - type is shown as a badge, not a tag
-    // In the future, actual tags can be added here
-    return [];
+    return item.tags.map((tag) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: Colors.blue.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.blue.withOpacity(0.3)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.tag, size: 12, color: Colors.blue),
+            const SizedBox(width: 4),
+            Text(
+              tag.name,
+              style: const TextStyle(
+                fontSize: 11,
+                color: Colors.blue,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      );
+    }).toList();
   }
 }
 

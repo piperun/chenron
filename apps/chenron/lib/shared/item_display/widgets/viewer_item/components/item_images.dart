@@ -1,5 +1,6 @@
 import "package:flutter/material.dart";
 import "package:cache_manager/cache_manager.dart";
+import "package:chenron/components/metadata_factory.dart";
 
 // OG:image header for links
 class ItemImageHeader extends StatelessWidget {
@@ -17,7 +18,7 @@ class ItemImageHeader extends StatelessWidget {
     final theme = Theme.of(context);
 
     return FutureBuilder<Map<String, dynamic>?>(
-      future: MetadataCache.get(url),
+      future: MetadataFactory.getOrFetch(url),
       builder: (context, snapshot) {
         final imageUrl = snapshot.data?["image"] as String?;
         if (imageUrl != null && imageUrl.isNotEmpty) {
@@ -82,7 +83,7 @@ class ItemThumbnail extends StatelessWidget {
     final theme = Theme.of(context);
 
     return FutureBuilder<Map<String, dynamic>?>(
-      future: MetadataCache.get(url),
+      future: MetadataFactory.getOrFetch(url),
       builder: (context, snapshot) {
         final imageUrl = snapshot.data?["image"] as String?;
         if (imageUrl != null && imageUrl.isNotEmpty) {

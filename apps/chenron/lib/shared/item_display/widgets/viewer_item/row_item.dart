@@ -1,16 +1,18 @@
 import "package:flutter/material.dart";
 import "package:chenron/models/item.dart";
-import "package:chenron/components/item_card/item_utils.dart";
-import "package:chenron/components/item_card/item_content.dart";
+import "package:chenron/shared/item_display/widgets/viewer_item/item_utils.dart";
+import "package:chenron/shared/item_display/widgets/viewer_item/item_content.dart";
 
-class ItemCardView extends StatelessWidget {
+class RowItem extends StatelessWidget {
   final FolderItem item;
   final VoidCallback? onTap;
+  final bool showImage;
 
-  const ItemCardView({
+  const RowItem({
     super.key,
     required this.item,
     this.onTap,
+    this.showImage = true,
   });
 
   @override
@@ -33,46 +35,43 @@ class ItemCardView extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             color: theme.cardColor,
           ),
-          clipBehavior: Clip.antiAlias,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // OG:image header for links
-              if (item.type == FolderItemType.link && url.isNotEmpty)
-                ItemImageHeader(url: url),
+              // Thumbnail image (left side) for links
+              if (showImage &&
+                  item.type == FolderItemType.link &&
+                  url.isNotEmpty)
+                ItemThumbnail(url: url),
 
-              // Content section
+              // Content
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(12),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.max,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       // Meta row
                       ItemMetaRow(item: item, url: url),
                       const SizedBox(height: 6),
 
                       // Title
-                      ItemTitle(item: item, url: url),
+                      ItemTitle(item: item, url: url, maxLines: 2),
                       const SizedBox(height: 4),
 
-                      // Description (up to 3 lines in card view)
-                      ItemDescription(item: item, url: url, maxLines: 3),
-                      const SizedBox(height: 6),
+                      // Description (1 line in list mode)
+                      ItemDescription(item: item, url: url, maxLines: 1),
+                      const SizedBox(height: 8),
 
                       // URL bar with copy button (only for links)
                       if (item.type == FolderItemType.link &&
                           url.isNotEmpty) ...[
                         ItemUrlBar(url: url),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 8),
                       ],
 
-                      // Spacer to push tags to bottom
-                      const Spacer(),
-
-                      // Tags at bottom
+                      // Tags
                       Wrap(
                         spacing: 6,
                         runSpacing: 6,

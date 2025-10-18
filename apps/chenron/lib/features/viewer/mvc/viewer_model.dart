@@ -74,6 +74,7 @@ class ViewerModel {
               description: folder.data.description,
               type: FolderItemType.folder,
               tags: folder.tags,
+              createdAt: folder.data.createdAt,
             ),
           ),
         );
@@ -90,6 +91,7 @@ class ViewerModel {
               description: link.data.path,
               type: FolderItemType.link,
               tags: link.tags,
+              createdAt: link.data.createdAt,
             ),
           ),
         );

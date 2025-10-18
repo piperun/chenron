@@ -7,6 +7,7 @@ class ViewerItem {
   final String description;
   final FolderItemType type;
   final List<Tag> tags;
+  final DateTime createdAt;
 
   ViewerItem({
     required this.id,
@@ -14,5 +15,6 @@ class ViewerItem {
     required this.description,
     required this.type,
     required this.tags,
+    required this.createdAt,
   });
 }

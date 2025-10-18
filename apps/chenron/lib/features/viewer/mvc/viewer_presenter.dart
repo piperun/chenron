@@ -6,6 +6,7 @@ import "package:chenron/features/viewer/mvc/viewer_model.dart";
 import "package:chenron/features/viewer/ui/viewer_base_item.dart";
 import "package:chenron/models/db_result.dart" show FolderResult;
 import "package:chenron/models/item.dart";
+import "package:chenron/shared/item_display/item_toolbar.dart";
 import "package:flutter/material.dart";
 import "package:url_launcher/url_launcher.dart";
 
@@ -13,6 +14,8 @@ class ViewerPresenter extends ChangeNotifier {
   final Set<String> selectedItemIds = {};
   final Set<FolderItemType> selectedTypes = {FolderItemType.folder};
   final SearchController searchController = SearchController();
+  ViewMode viewMode = ViewMode.grid;
+  SortMode sortMode = SortMode.nameAsc;
 
   final _itemsController = StreamController<List<ViewerItem>>.broadcast();
   final ViewerModel _model = ViewerModel();
@@ -45,6 +48,17 @@ class ViewerPresenter extends ChangeNotifier {
       return !types.contains(item.type);
     });
 
+    _filterAndAddItems(_currentItems);
+    notifyListeners();
+  }
+
+  void onViewModeChanged(ViewMode mode) {
+    viewMode = mode;
+    notifyListeners();
+  }
+
+  void onSortChanged(SortMode mode) {
+    sortMode = mode;
     _filterAndAddItems(_currentItems);
     notifyListeners();
   }
@@ -88,12 +102,32 @@ class ViewerPresenter extends ChangeNotifier {
   }
 
   void _filterAndAddItems(List<ViewerItem> items) {
-    final filteredItems = filterItems(
+    var filteredItems = filterItems(
       items,
       selectedTypes,
       searchController.text,
     );
+    filteredItems = _sortItems(filteredItems);
     _itemsController.add(filteredItems);
+  }
+
+  List<ViewerItem> _sortItems(List<ViewerItem> items) {
+    final sorted = List<ViewerItem>.from(items);
+    sorted.sort((a, b) {
+      switch (sortMode) {
+        case SortMode.nameAsc:
+          return a.title.toLowerCase().compareTo(b.title.toLowerCase());
+        case SortMode.nameDesc:
+          return b.title.toLowerCase().compareTo(a.title.toLowerCase());
+        case SortMode.dateAsc:
+          // TODO: Implement when date fields are available
+          return 0;
+        case SortMode.dateDesc:
+          // TODO: Implement when date fields are available
+          return 0;
+      }
+    });
+    return sorted;
   }
 
   @override
