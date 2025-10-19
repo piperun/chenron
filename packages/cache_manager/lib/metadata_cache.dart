@@ -1,13 +1,14 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:logging/logging.dart';
+import 'dart:collection';
 
 final _logger = Logger('MetadataCache');
 
-/// Manages persistent caching of metadata using SharedPreferences
+/// Manages persistent caching of metadata using SharedPreferences with LRU eviction
 class MetadataCache {
   static SharedPreferences? _prefs;
-  static final Map<String, dynamic> _memoryCache = {};
+  static final _LRUCache<String, Map<String, dynamic>> _memoryCache = _LRUCache(maxSize: 100);
   static final Map<String, DateTime> _failedAttempts = {};
   static final Map<String, int> _failureCount = {};
   static final Set<String> _fetchingUrls = {};
@@ -19,14 +20,16 @@ class MetadataCache {
 
   /// Get metadata from cache (memory first, then persistent)
   static Future<Map<String, dynamic>?> get(String url) async {
-    // Check memory cache first
-    if (_memoryCache.containsKey(url)) {
-      final data = _memoryCache[url] as Map<String, dynamic>?;
-      if (data != null && _isFresh(data)) {
-        _logger.fine('Memory cache HIT (FRESH) for: $url | Title: ${data['title'] ?? 'N/A'}');
-        return data;
-      } else if (data != null) {
-        _logger.fine('Memory cache HIT (STALE) for: $url | Title: ${data['title'] ?? 'N/A'}');
+    // Check memory cache first (LRU automatically updates access order)
+    final cachedData = _memoryCache.get(url);
+    if (cachedData != null) {
+      if (_isFresh(cachedData)) {
+        _logger.fine('Memory cache HIT (FRESH) for: $url | Title: ${cachedData['title'] ?? 'N/A'}');
+        return cachedData;
+      } else {
+        _logger.fine('Memory cache HIT (STALE) for: $url | Title: ${cachedData['title'] ?? 'N/A'}');
+        // Remove stale entry from memory cache
+        _memoryCache.remove(url);
         return null; // Stale data, return null to trigger refetch
       }
     }
@@ -39,7 +42,8 @@ class MetadataCache {
       if (cached != null) {
         final json = jsonDecode(cached) as Map<String, dynamic>;
         if (_isFresh(json)) {
-          _memoryCache[url] = json;
+          // Load into LRU memory cache
+          _memoryCache.put(url, json);
           _logger.fine('Persistent cache HIT (FRESH) for: $url | Title: ${json['title'] ?? 'N/A'}');
           return json;
         } else {
@@ -63,7 +67,8 @@ class MetadataCache {
       'fetchedAt': DateTime.now().toIso8601String(),
     };
     
-    _memoryCache[url] = metadataWithTimestamp;
+    // Store in LRU memory cache (automatically handles eviction)
+    _memoryCache.put(url, metadataWithTimestamp);
     _logger.info('Cached metadata for: $url | Title: ${metadata['title'] ?? 'N/A'}');
     
     try {
@@ -169,5 +174,61 @@ class MetadataCache {
     } catch (e) {
       return 0;
     }
+  }
+  
+  /// Get memory cache statistics
+  static Map<String, int> getMemoryCacheStats() {
+    return {
+      'size': _memoryCache.length,
+      'maxSize': _memoryCache.maxSize,
+    };
+  }
+}
+
+/// Simple LRU (Least Recently Used) cache implementation
+class _LRUCache<K, V> {
+  final int maxSize;
+  final LinkedHashMap<K, V> _cache = LinkedHashMap();
+  
+  _LRUCache({required this.maxSize});
+  
+  /// Get value from cache and update access order
+  V? get(K key) {
+    if (!_cache.containsKey(key)) return null;
+    
+    // Move to end (most recently used)
+    final value = _cache.remove(key)!;
+    _cache[key] = value;
+    return value;
+  }
+  
+  /// Put value into cache, evicting LRU entry if necessary
+  void put(K key, V value) {
+    if (_cache.containsKey(key)) {
+      // Remove to update position
+      _cache.remove(key);
+    } else if (_cache.length >= maxSize) {
+      // Remove least recently used (first entry)
+      _cache.remove(_cache.keys.first);
+    }
+    _cache[key] = value;
+  }
+  
+  /// Remove entry from cache
+  void remove(K key) {
+    _cache.remove(key);
+  }
+  
+  /// Check if key exists in cache
+  bool containsKey(K key) {
+    return _cache.containsKey(key);
+  }
+  
+  /// Get current cache size
+  int get length => _cache.length;
+  
+  /// Clear all entries
+  void clear() {
+    _cache.clear();
   }
 }
