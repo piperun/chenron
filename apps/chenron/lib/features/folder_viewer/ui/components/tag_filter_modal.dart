@@ -49,6 +49,10 @@ class _TagFilterModalState extends State<TagFilterModal> {
     _excludedTags = Set.from(widget.initialExcludedTags);
     _searchController = TextEditingController();
     _searchController.addListener(_handleSearchChanged);
+    
+    // Debug: print available tags
+    print('TAG MODAL DEBUG: ${widget.availableTags.length} available tags');
+    print('  Tags: ${widget.availableTags.map((t) => t.name).join(", ")}');
   }
 
   void _handleSearchChanged() {

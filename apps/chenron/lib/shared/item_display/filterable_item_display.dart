@@ -152,7 +152,9 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
         byId[tag.id] = tag;
       }
     }
-    return byId.values.toList();
+    final result = byId.values.toList();
+    print('COLLECT TAGS DEBUG: ${items.length} items, ${result.length} unique tags');
+    return result;
   }
 
   @override
@@ -193,6 +195,7 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
                   includedTagNames: _includedTagNames,
                   excludedTagNames: _excludedTagNames,
                   onItemTap: widget.onItemTap,
+                  aspectRatio: widget.showImages ? 0.72 : 1.8,
                 )
               : ItemListView(
                   items: filtered,

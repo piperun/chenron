@@ -152,6 +152,12 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
             return const Center(child: Text("Folder not found"));
           }
 
+          // Debug: print item tags
+          print('FOLDER VIEWER DEBUG: ${result.items.length} items, ${result.tags.length} folder tags');
+          for (final item in result.items.take(3)) {
+            print('  Item ${item.id}: ${item.tags.length} tags - ${item.tags.map((t) => t.name).join(", ")}');
+          }
+
           return Column(
             children: [
               // Collapsible header

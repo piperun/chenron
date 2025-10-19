@@ -92,7 +92,7 @@ class Viewer extends HookWidget {
             items: folderItems,
             showImages: false,
             showTags: true,
-            enableTagFiltering: false,
+            enableTagFiltering: true,
             onItemTap: (item) => _handleItemTap(context, item),
           );
         },

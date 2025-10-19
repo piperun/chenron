@@ -6,12 +6,12 @@ import "package:drift/drift.dart";
 
 class ItemJoins implements RowJoins<Items, FolderItem> {
   final AppDatabase db;
-  late final $MetadataRecordsTable itemMetadataRecords;
-  late final $TagsTable itemTags;
+  late final $MetadataRecordsTable linkMetadata;
+  late final $TagsTable linkTags;
 
   ItemJoins(this.db) {
-    itemMetadataRecords = db.metadataRecords.createAlias('item_metadata_records');
-    itemTags = db.tags.createAlias('item_tags');
+    linkMetadata = db.metadataRecords.createAlias('link_metadata');
+    linkTags = db.tags.createAlias('link_tags');
   }
 
   @override
@@ -19,7 +19,8 @@ class ItemJoins implements RowJoins<Items, FolderItem> {
         leftOuterJoin(db.items, db.items.folderId.equalsExp(relationId)),
         leftOuterJoin(db.links, db.links.id.equalsExp(db.items.itemId)),
         leftOuterJoin(db.documents, db.documents.id.equalsExp(db.items.itemId)),
-        leftOuterJoin(itemMetadataRecords, itemMetadataRecords.itemId.equalsExp(db.items.id)),
-        leftOuterJoin(itemTags, itemTags.id.equalsExp(itemMetadataRecords.metadataId)),
+        // Load tags from the source link/document, not from item metadata
+        leftOuterJoin(linkMetadata, linkMetadata.itemId.equalsExp(db.items.itemId)),
+        leftOuterJoin(linkTags, linkTags.id.equalsExp(linkMetadata.metadataId)),
       ];
 }

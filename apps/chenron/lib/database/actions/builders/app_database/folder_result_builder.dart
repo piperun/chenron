@@ -13,12 +13,12 @@ class FolderResultBuilder implements ResultBuilder<FolderResult> {
   final Map<String, Link> _links = {};
   final Map<String, Document> _documents = {};
   final AppDatabase _db;
-  late final $MetadataRecordsTable _itemMetadataRecords;
-  late final $TagsTable _itemTagsTable;
+  late final $MetadataRecordsTable _linkMetadata;
+  late final $TagsTable _linkTags;
 
   FolderResultBuilder(this._folder, this._db) {
-    _itemMetadataRecords = _db.metadataRecords.createAlias('item_metadata_records');
-    _itemTagsTable = _db.tags.createAlias('item_tags');
+    _linkMetadata = _db.metadataRecords.createAlias('link_metadata');
+    _linkTags = _db.tags.createAlias('link_tags');
   }
 
   @override
@@ -54,13 +54,13 @@ class FolderResultBuilder implements ResultBuilder<FolderResult> {
           }
         }
 
-        // Collect tags for this item (using aliased tables)
-        final itemMetadataRecord = row.readTableOrNull(_itemMetadataRecords);
-        final itemTag = row.readTableOrNull(_itemTagsTable);
-        if (itemMetadataRecord != null && itemTag != null) {
+        // Collect tags from source link/document (using aliased tables)
+        final linkMetadata = row.readTableOrNull(_linkMetadata);
+        final linkTag = row.readTableOrNull(_linkTags);
+        if (linkMetadata != null && linkTag != null) {
           _itemTags.putIfAbsent(item.id, () => []);
-          if (!_itemTags[item.id]!.any((t) => t.id == itemTag.id)) {
-            _itemTags[item.id]!.add(itemTag);
+          if (!_itemTags[item.id]!.any((t) => t.id == linkTag.id)) {
+            _itemTags[item.id]!.add(linkTag);
           }
         }
       }
@@ -69,6 +69,10 @@ class FolderResultBuilder implements ResultBuilder<FolderResult> {
 
   @override
   FolderResult build() {
+    print('BUILDER DEBUG: Building folder with ${_items.length} items, ${_itemTags.length} items have tags');
+    for (final entry in _itemTags.entries) {
+      print('  Item ${entry.key}: ${entry.value.length} tags - ${entry.value.map((t) => t.name).join(", ")}');
+    }
     final folderItems = <FolderItem>[];
 
     for (final entry in _items.entries) {

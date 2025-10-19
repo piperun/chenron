@@ -54,40 +54,41 @@ class CardItem extends StatelessWidget {
 
               // Content section
               Padding(
-                padding: const EdgeInsets.all(12),
+                padding: EdgeInsets.all(showImage ? 12 : 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     // Info bar (Created + Items)
                     ItemMetaRow(item: item, url: url),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 4),
 
-                    // Title
-                    ItemTitle(item: item, url: url, maxLines: 2),
-                    const SizedBox(height: 6),
+                    // Title (1 line when no image)
+                    ItemTitle(item: item, url: url, maxLines: showImage ? 2 : 1),
+                    const SizedBox(height: 4),
 
-                    // Description (up to 3 lines)
-                    ItemDescription(item: item, url: url, maxLines: 3),
-                    const SizedBox(height: 6),
-
-                    // Link + copy bar (only for links)
-                    if (item.type == FolderItemType.link && url.isNotEmpty) ...[
+                    // Description (compact when no image)
+                    ItemDescription(item: item, url: url, maxLines: showImage ? 3 : 2),
+                    
+                    // Link + copy bar (only for links with image)
+                    if (showImage && item.type == FolderItemType.link && url.isNotEmpty) ...[
+                      const SizedBox(height: 4),
                       ItemUrlBar(url: url),
-                      const SizedBox(height: 6),
                     ],
 
                     // Tags at bottom
-                    if (ItemUtils.buildTags(item, maxTags: maxTags).isNotEmpty)
+                    if (ItemUtils.buildTags(item, maxTags: maxTags).isNotEmpty) ...[
+                      const SizedBox(height: 4),
                       Wrap(
-                        spacing: 6,
-                        runSpacing: 6,
+                        spacing: 4,
+                        runSpacing: 4,
                         children: ItemUtils.buildTags(
                           item,
                           maxTags: maxTags,
                           includedTagNames: includedTagNames,
                         ),
                       ),
+                    ],
                   ],
                 ),
               ),
