@@ -5,7 +5,10 @@ import "package:chenron/database/schema/items_schema.dart";
 import "package:chenron/database/extensions/intial_data/app_database.dart";
 import "package:chenron/database/extensions/intial_data/config_database.dart";
 import "package:basedir/directory.dart";
-import "dart:collection";
+
+// Export IncludeOptions from shared patterns for backward compatibility
+export "package:chenron/shared/patterns/include_options.dart" show IncludeOptions;
+
 part "database.g.dart";
 
 enum AppDataInclude { items, tags }
@@ -13,17 +16,6 @@ enum AppDataInclude { items, tags }
 enum ConfigIncludes { archiveSettings, backupSettings, userThemes, userConfig }
 
 enum ThemeType { custom, system }
-
-class IncludeOptions<T extends Enum> {
-  final Set<T> options;
-
-  const IncludeOptions(this.options);
-
-  IncludeOptions.unmodifiable(Set<T> options)
-      : options = UnmodifiableSetView(options);
-
-  const IncludeOptions.empty() : options = const {};
-}
 
 enum IdType { linkId, documentId, tagId, folderId }
 
