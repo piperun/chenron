@@ -13,6 +13,9 @@ class ViewerItem extends StatelessWidget {
   final PreviewMode mode;
   final VoidCallback? onTap;
   final bool showImage;
+  final int maxTags;
+  final Set<String> includedTagNames;
+  final Set<String> excludedTagNames;
 
   const ViewerItem({
     super.key,
@@ -20,12 +23,29 @@ class ViewerItem extends StatelessWidget {
     this.mode = PreviewMode.card,
     this.onTap,
     this.showImage = true,
+    this.maxTags = 5,
+    this.includedTagNames = const {},
+    this.excludedTagNames = const {},
   });
 
   @override
   Widget build(BuildContext context) {
     return mode == PreviewMode.card
-        ? CardItem(item: item, onTap: onTap, showImage: showImage)
-        : RowItem(item: item, onTap: onTap, showImage: showImage);
+        ? CardItem(
+            item: item,
+            onTap: onTap,
+            showImage: showImage,
+            maxTags: maxTags,
+            includedTagNames: includedTagNames,
+            excludedTagNames: excludedTagNames,
+          )
+        : RowItem(
+            item: item,
+            onTap: onTap,
+            showImage: showImage,
+            maxTags: maxTags,
+            includedTagNames: includedTagNames,
+            excludedTagNames: excludedTagNames,
+          );
   }
 }

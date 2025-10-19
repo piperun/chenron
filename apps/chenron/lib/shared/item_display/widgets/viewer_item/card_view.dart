@@ -7,12 +7,18 @@ class CardItem extends StatelessWidget {
   final FolderItem item;
   final VoidCallback? onTap;
   final bool showImage;
+  final int maxTags;
+  final Set<String> includedTagNames;
+  final Set<String> excludedTagNames;
 
   const CardItem({
     super.key,
     required this.item,
     this.onTap,
     this.showImage = true,
+    this.maxTags = 5,
+    this.includedTagNames = const {},
+    this.excludedTagNames = const {},
   });
 
   @override
@@ -47,14 +53,12 @@ class CardItem extends StatelessWidget {
                 ItemImageHeader(url: url),
 
               // Content section
-              Flexible(
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
                     // Info bar (Created + Items)
                     ItemMetaRow(item: item, url: url),
                     const SizedBox(height: 6),
@@ -74,15 +78,17 @@ class CardItem extends StatelessWidget {
                     ],
 
                     // Tags at bottom
-                    if (ItemUtils.buildTags(item).isNotEmpty)
+                    if (ItemUtils.buildTags(item, maxTags: maxTags).isNotEmpty)
                       Wrap(
                         spacing: 6,
                         runSpacing: 6,
-                        children: ItemUtils.buildTags(item),
+                        children: ItemUtils.buildTags(
+                          item,
+                          maxTags: maxTags,
+                          includedTagNames: includedTagNames,
+                        ),
                       ),
-                      ],
-                    ),
-                  ),
+                  ],
                 ),
               ),
             ],

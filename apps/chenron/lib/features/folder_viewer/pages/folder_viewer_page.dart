@@ -1,9 +1,6 @@
-import "package:flutter/material.dart";
+﻿import "package:flutter/material.dart";
 import "package:chenron/features/folder_viewer/ui/components/folder_header.dart";
-import "package:chenron/shared/item_display/item_toolbar.dart";
-import "package:chenron/shared/item_display/item_stats_bar.dart";
-import "package:chenron/shared/item_display/item_grid_view.dart";
-import "package:chenron/shared/item_display/item_list_view.dart";
+import "package:chenron/shared/item_display/filterable_item_display.dart";
 import "package:chenron/database/extensions/folder/read.dart";
 import "package:chenron/database/extensions/operations/database_file_handler.dart";
 import "package:chenron/locator.dart";
@@ -27,10 +24,6 @@ class FolderViewerPage extends StatefulWidget {
 }
 
 class _FolderViewerPageState extends State<FolderViewerPage> {
-  ViewMode _viewMode = ViewMode.grid;
-  SortMode _sortMode = SortMode.nameAsc;
-  Set<FolderItemType> _selectedTypes = {FolderItemType.link, FolderItemType.document, FolderItemType.folder};
-  String _searchQuery = "";
   late Future<FolderResult> _folderData;
   bool _isHeaderExpanded = true;
   bool _isHeaderLocked = false;
@@ -45,7 +38,8 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
         .then((db) => db.appDatabase
             .getFolder(
               folderId: widget.folderId,
-              includeOptions: const IncludeOptions({AppDataInclude.items, AppDataInclude.tags}),
+              includeOptions:
+                  const IncludeOptions({AppDataInclude.items, AppDataInclude.tags}),
             )
             .then((folder) => folder!));
   }
@@ -67,82 +61,6 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
     });
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('folder_viewer_header_locked', newLockState);
-  }
-
-  List<FolderItem> _getFilteredAndSortedItems(List<FolderItem> items) {
-    // Make a mutable copy of the list
-    var itemsList = List<FolderItem>.from(items);
-    // Apply filter - only show items whose type is in the selected types
-    itemsList = itemsList.where((item) => _selectedTypes.contains(item.type)).toList();
-
-    // Apply search
-    if (_searchQuery.isNotEmpty) {
-      itemsList = itemsList.where((item) {
-        final query = _searchQuery.toLowerCase();
-        // Search in path
-        if (item.path is StringContent) {
-          final pathStr = (item.path as StringContent).value.toLowerCase();
-          if (pathStr.contains(query)) return true;
-        }
-        // TODO: Search in tags when implemented
-        return false;
-      }).toList();
-    }
-
-    // Apply sort
-    itemsList.sort((a, b) {
-      switch (_sortMode) {
-        case SortMode.nameAsc:
-          return _getItemName(a).compareTo(_getItemName(b));
-        case SortMode.nameDesc:
-          return _getItemName(b).compareTo(_getItemName(a));
-        case SortMode.dateAsc:
-          // TODO: Implement when date fields are available
-          return 0;
-        case SortMode.dateDesc:
-          // TODO: Implement when date fields are available
-          return 0;
-      }
-    });
-
-    return itemsList;
-  }
-
-  String _getItemName(FolderItem item) {
-    if (item.path is StringContent) {
-      return (item.path as StringContent).value;
-    }
-    return "";
-  }
-
-  Map<FolderItemType, int> _getItemCounts(List<FolderItem> items) {
-    final counts = <FolderItemType, int>{
-      FolderItemType.link: 0,
-      FolderItemType.document: 0,
-      FolderItemType.folder: 0,
-    };
-
-    for (final item in items) {
-      counts[item.type] = (counts[item.type] ?? 0) + 1;
-    }
-
-    return counts;
-  }
-
-  void _onViewModeChanged(ViewMode mode) {
-    setState(() => _viewMode = mode);
-  }
-
-  void _onSortChanged(SortMode mode) {
-    setState(() => _sortMode = mode);
-  }
-
-  void _onFilterChanged(Set<FolderItemType> types) {
-    setState(() => _selectedTypes = types);
-  }
-
-  void _onSearchChanged(String query) {
-    setState(() => _searchQuery = query);
   }
 
   Widget _buildCollapsedHeader(Folder folder) {
@@ -234,14 +152,13 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
             return const Center(child: Text("Folder not found"));
           }
 
-          final filteredItems = _getFilteredAndSortedItems(result.items);
-          final itemCounts = _getItemCounts(result.items);
-
           return Column(
             children: [
               // Collapsible header
               GestureDetector(
-                onTap: _isHeaderLocked ? null : () => setState(() => _isHeaderExpanded = !_isHeaderExpanded),
+                onTap: _isHeaderLocked
+                    ? null
+                    : () => setState(() => _isHeaderExpanded = !_isHeaderExpanded),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeInOut,
@@ -253,38 +170,27 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
                           totalItems: result.items.length,
                           onBack: () => Navigator.pop(context),
                           isExpanded: _isHeaderExpanded,
-                          onToggle: () => setState(() => _isHeaderExpanded = !_isHeaderExpanded),
+                          onToggle: () => setState(
+                              () => _isHeaderExpanded = !_isHeaderExpanded),
                           isLocked: _isHeaderLocked,
                           onToggleLock: _toggleHeaderLock,
                           onTagTap: (tagName) {
                             Navigator.pop(context);
-                            viewerViewModelSignal.value.searchController.text = tagName;
+                            viewerViewModelSignal
+                                .value.searchController.text = tagName;
                           },
                         )
                       : _buildCollapsedHeader(result.data),
                 ),
               ),
-              ItemToolbar(
-                searchQuery: _searchQuery,
-                onSearchChanged: _onSearchChanged,
-                selectedTypes: _selectedTypes,
-                onFilterChanged: _onFilterChanged,
-                sortMode: _sortMode,
-                onSortChanged: _onSortChanged,
-                viewMode: _viewMode,
-                onViewModeChanged: _onViewModeChanged,
-              ),
-              ItemStatsBar(
-                linkCount: itemCounts[FolderItemType.link] ?? 0,
-                documentCount: itemCounts[FolderItemType.document] ?? 0,
-                folderCount: itemCounts[FolderItemType.folder] ?? 0,
-                selectedTypes: _selectedTypes,
-                onFilterChanged: _onFilterChanged,
-              ),
               Expanded(
-                child: _viewMode == ViewMode.grid
-                    ? ItemGridView(items: filteredItems)
-                    : ItemListView(items: filteredItems),
+                child: FilterableItemDisplay(
+                  items: result.items,
+                  showImages: true,
+                  showTags: true,
+                  enableTagFiltering: true,
+                  maxTags: 5,
+                ),
               ),
             ],
           );

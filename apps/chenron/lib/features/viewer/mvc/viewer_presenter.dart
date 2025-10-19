@@ -12,7 +12,11 @@ import "package:url_launcher/url_launcher.dart";
 
 class ViewerPresenter extends ChangeNotifier {
   final Set<String> selectedItemIds = {};
-  final Set<FolderItemType> selectedTypes = {FolderItemType.folder};
+  final Set<FolderItemType> selectedTypes = {
+    FolderItemType.folder,
+    FolderItemType.link,
+    FolderItemType.document,
+  };
   final SearchController searchController = SearchController();
   ViewMode viewMode = ViewMode.grid;
   SortMode sortMode = SortMode.nameAsc;

@@ -2,7 +2,7 @@ import "package:chenron/models/item.dart";
 import "package:chenron/database/database.dart";
 
 extension ConvertLinkToItem on Link {
-  FolderItem toFolderItem(String? itemId) {
+  FolderItem toFolderItem(String? itemId, {List<Tag> tags = const []}) {
     return FolderItem(
       id: id,
       itemId: itemId,
@@ -10,12 +10,13 @@ extension ConvertLinkToItem on Link {
       content: StringContent(
           value: path, archiveOrg: archiveOrgUrl, archiveIs: archiveIsUrl),
       type: FolderItemType.link,
+      tags: tags,
     );
   }
 }
 
 extension ConvertDocumentToItem on Document {
-  FolderItem toFolderItem(String? itemId) {
+  FolderItem toFolderItem(String? itemId, {List<Tag> tags = const []}) {
     return FolderItem(
       id: id,
       itemId: itemId,
@@ -25,6 +26,7 @@ extension ConvertDocumentToItem on Document {
         "body": path,
       }),
       type: FolderItemType.document,
+      tags: tags,
     );
   }
 }

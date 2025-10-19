@@ -1,8 +1,5 @@
 import "package:chenron/features/viewer/state/viewer_state.dart";
-import "package:chenron/shared/item_display/item_toolbar.dart";
-import "package:chenron/shared/item_display/item_stats_bar.dart";
-import "package:chenron/shared/item_display/item_grid_view.dart";
-import "package:chenron/shared/item_display/item_list_view.dart";
+import "package:chenron/shared/item_display/filterable_item_display.dart";
 import "package:chenron/features/folder_viewer/pages/folder_viewer_page.dart";
 import "package:chenron/models/item.dart";
 import "package:flutter/material.dart";
@@ -91,42 +88,12 @@ class Viewer extends HookWidget {
       body: ListenableBuilder(
         listenable: presenter,
         builder: (context, _) {
-          return Column(
-            children: [
-              ItemToolbar(
-                searchQuery: "",
-                onSearchChanged: (_) {},
-                selectedTypes: presenter.selectedTypes,
-                onFilterChanged: presenter.onTypesChanged,
-                sortMode: presenter.sortMode,
-                onSortChanged: presenter.onSortChanged,
-                viewMode: presenter.viewMode,
-                onViewModeChanged: presenter.onViewModeChanged,
-                showSearch: false,
-              ),
-              ItemStatsBar(
-                linkCount: itemCounts[FolderItemType.link] ?? 0,
-                documentCount: itemCounts[FolderItemType.document] ?? 0,
-                folderCount: itemCounts[FolderItemType.folder] ?? 0,
-                selectedTypes: presenter.selectedTypes,
-                onFilterChanged: presenter.onTypesChanged,
-              ),
-              Expanded(
-                child: presenter.viewMode == ViewMode.grid
-                    ? ItemGridView(
-                        items: folderItems,
-                        aspectRatio: 1.2,
-                        maxCrossAxisExtent: 280,
-                        showImages: false,
-                        onItemTap: (item) => _handleItemTap(context, item),
-                      )
-                    : ItemListView(
-                        items: folderItems,
-                        showImages: false,
-                        onItemTap: (item) => _handleItemTap(context, item),
-                      ),
-              ),
-            ],
+          return FilterableItemDisplay(
+            items: folderItems,
+            showImages: false,
+            showTags: true,
+            enableTagFiltering: false,
+            onItemTap: (item) => _handleItemTap(context, item),
           );
         },
       ),

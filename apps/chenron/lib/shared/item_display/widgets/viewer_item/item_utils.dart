@@ -49,32 +49,75 @@ class ItemUtils {
     Clipboard.setData(ClipboardData(text: url));
   }
 
-  static List<Widget> buildTags(FolderItem item) {
-    return item.tags.map((tag) {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: Colors.blue.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.blue.withOpacity(0.3)),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.tag, size: 12, color: Colors.blue),
-            const SizedBox(width: 4),
-            Text(
-              tag.name,
-              style: const TextStyle(
-                fontSize: 11,
-                color: Colors.blue,
-                fontWeight: FontWeight.w500,
+  static List<Widget> buildTags(
+    FolderItem item, {
+    int maxTags = 5,
+    Set<String> includedTagNames = const {},
+  }) {
+    final List<Widget> chips = [];
+    final tags = item.tags;
+    final int visibleCount = tags.length > maxTags ? maxTags : tags.length;
+
+    // Reorder: included tags first
+    final ordered = [
+      ...tags.where((t) => includedTagNames.contains(t.name)),
+      ...tags.where((t) => !includedTagNames.contains(t.name)),
+    ];
+
+    for (var i = 0; i < visibleCount; i++) {
+      final tag = ordered[i];
+      final bool isIncluded = includedTagNames.contains(tag.name);
+      final Color baseColor = isIncluded ? Colors.green : Colors.blue;
+      chips.add(
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: baseColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: baseColor.withOpacity(0.3)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.tag, size: 12, color: baseColor),
+              const SizedBox(width: 4),
+              Text(
+                tag.name,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: baseColor,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       );
-    }).toList();
+    }
+
+    final int remaining = tags.length - visibleCount;
+    if (remaining > 0) {
+      chips.add(
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.grey.withOpacity(0.12),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey.withOpacity(0.3)),
+          ),
+          child: Text(
+            "+$remaining more",
+            style: const TextStyle(
+              fontSize: 11,
+              color: Colors.grey,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return chips;
   }
 }
 

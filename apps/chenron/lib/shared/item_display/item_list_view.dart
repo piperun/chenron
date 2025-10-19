@@ -6,12 +6,18 @@ import "package:url_launcher/url_launcher.dart";
 class ItemListView extends StatelessWidget {
   final List<FolderItem> items;
   final bool showImages;
+  final int maxTags;
+  final Set<String> includedTagNames;
+  final Set<String> excludedTagNames;
   final void Function(FolderItem)? onItemTap;
 
   const ItemListView({
     super.key,
     required this.items,
     this.showImages = true,
+    this.maxTags = 5,
+    this.includedTagNames = const {},
+    this.excludedTagNames = const {},
     this.onItemTap,
   });
 
@@ -64,6 +70,9 @@ class ItemListView extends StatelessWidget {
               mode: PreviewMode.list,
               onTap: _getItemTapHandler(item),
               showImage: showImages,
+              maxTags: maxTags,
+              includedTagNames: includedTagNames,
+              excludedTagNames: excludedTagNames,
             );
           },
         ),

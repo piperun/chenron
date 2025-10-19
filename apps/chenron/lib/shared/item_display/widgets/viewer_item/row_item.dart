@@ -7,12 +7,18 @@ class RowItem extends StatelessWidget {
   final FolderItem item;
   final VoidCallback? onTap;
   final bool showImage;
+  final int maxTags;
+  final Set<String> includedTagNames;
+  final Set<String> excludedTagNames;
 
   const RowItem({
     super.key,
     required this.item,
     this.onTap,
     this.showImage = true,
+    this.maxTags = 5,
+    this.includedTagNames = const {},
+    this.excludedTagNames = const {},
   });
 
   @override
@@ -75,7 +81,11 @@ class RowItem extends StatelessWidget {
                       Wrap(
                         spacing: 6,
                         runSpacing: 6,
-                        children: ItemUtils.buildTags(item),
+                        children: ItemUtils.buildTags(
+                          item,
+                          maxTags: maxTags,
+                          includedTagNames: includedTagNames,
+                        ),
                       ),
                     ],
                   ),

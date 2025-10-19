@@ -8,6 +8,9 @@ class ItemGridView extends StatelessWidget {
   final double aspectRatio;
   final double maxCrossAxisExtent;
   final bool showImages;
+  final int maxTags;
+  final Set<String> includedTagNames;
+  final Set<String> excludedTagNames;
   final void Function(FolderItem)? onItemTap;
 
   const ItemGridView({
@@ -16,6 +19,9 @@ class ItemGridView extends StatelessWidget {
     this.aspectRatio = 0.72,
     this.maxCrossAxisExtent = 320,
     this.showImages = true,
+    this.maxTags = 5,
+    this.includedTagNames = const {},
+    this.excludedTagNames = const {},
     this.onItemTap,
   });
 
@@ -71,6 +77,9 @@ class ItemGridView extends StatelessWidget {
               mode: PreviewMode.card,
               onTap: _getItemTapHandler(item),
               showImage: showImages,
+              maxTags: maxTags,
+              includedTagNames: includedTagNames,
+              excludedTagNames: excludedTagNames,
             ),
           );
         },
