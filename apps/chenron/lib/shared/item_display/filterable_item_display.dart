@@ -15,6 +15,7 @@ class FilterableItemDisplay extends StatefulWidget {
   final SortMode initialSortMode;
   final Set<FolderItemType> initialSelectedTypes;
   final DisplayMode displayMode;
+  final String? displayModeContext;
 
   // Deprecated: Use displayMode instead (kept for backwards compatibility)
   @Deprecated('Use displayMode.showImage instead')
@@ -37,6 +38,7 @@ class FilterableItemDisplay extends StatefulWidget {
       FolderItemType.folder,
     },
     this.displayMode = DisplayMode.standard,
+    this.displayModeContext,
     @Deprecated('Use displayMode.showImage instead') this.showImages,
     this.showTags = true,
     this.enableTagFiltering = true,
@@ -69,7 +71,9 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
   }
 
   Future<void> _loadDisplayMode() async {
-    final savedMode = await DisplayModePreference.getDisplayMode();
+    final savedMode = await DisplayModePreference.getDisplayMode(
+      context: widget.displayModeContext,
+    );
     if (mounted) {
       setState(() {
         _displayMode = savedMode;
@@ -86,7 +90,10 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
 
   Future<void> _onDisplayModeChanged(DisplayMode mode) async {
     setState(() => _displayMode = mode);
-    await DisplayModePreference.setDisplayMode(mode);
+    await DisplayModePreference.setDisplayMode(
+      mode,
+      context: widget.displayModeContext,
+    );
   }
 
   Future<void> _openTagFilterModal() async {

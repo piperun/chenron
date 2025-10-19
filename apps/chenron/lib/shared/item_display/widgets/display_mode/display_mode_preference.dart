@@ -3,13 +3,23 @@ import "package:shared_preferences/shared_preferences.dart";
 
 /// Service for persisting user's preferred display mode
 class DisplayModePreference {
-  static const String _key = "display_mode_preference";
+  static const String _baseKey = "display_mode_preference";
+
+  /// Get the storage key for a specific context
+  static String _getKey(String? context) {
+    return context != null ? "${_baseKey}_$context" : _baseKey;
+  }
 
   /// Get the user's saved display mode preference
+  /// 
+  /// [context] allows different display modes for different screens.
+  /// Example: context: 'viewer' vs context: 'folder_viewer'
+  /// 
   /// Returns DisplayMode.standard if no preference is saved
-  static Future<DisplayMode> getDisplayMode() async {
+  static Future<DisplayMode> getDisplayMode({String? context}) async {
     final prefs = await SharedPreferences.getInstance();
-    final value = prefs.getString(_key);
+    final key = _getKey(context);
+    final value = prefs.getString(key);
 
     switch (value) {
       case "compact":
@@ -23,10 +33,14 @@ class DisplayModePreference {
   }
 
   /// Save the user's display mode preference
-  static Future<void> setDisplayMode(DisplayMode mode) async {
+  /// 
+  /// [context] allows different display modes for different screens.
+  /// Example: context: 'viewer' vs context: 'folder_viewer'
+  static Future<void> setDisplayMode(DisplayMode mode, {String? context}) async {
     final prefs = await SharedPreferences.getInstance();
+    final key = _getKey(context);
     final value = _displayModeToString(mode);
-    await prefs.setString(_key, value);
+    await prefs.setString(key, value);
   }
 
   /// Convert DisplayMode to string for storage

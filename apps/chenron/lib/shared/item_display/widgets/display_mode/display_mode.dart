@@ -58,7 +58,7 @@ enum DisplayMode {
   /// Best for: General use, balanced information density
   standard(
     titleLines: 2,
-    descriptionLines: 2,
+    descriptionLines: 3,
     maxTags: 3,
     showImage: true,
     showUrlBar: true,
