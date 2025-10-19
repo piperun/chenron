@@ -1,5 +1,6 @@
 import "package:chenron/shared/search/search_matcher.dart";
 import "package:chenron/shared/utils/text_highlighter.dart";
+import "package:chenron/shared/search/search_controller.dart";
 
 import "package:chenron/database/extensions/operations/database_file_handler.dart";
 import "package:chenron/features/folder_viewer/pages/folder_viewer_page.dart";
@@ -14,6 +15,7 @@ class GlobalSuggestionBuilder {
   final Signal<Future<AppDatabaseHandler>> db;
   final BuildContext context;
   final SearchController controller;
+  final SearchBarController? queryController;
   final Future<void> Function({
     required String type,
     required String id,
@@ -24,6 +26,7 @@ class GlobalSuggestionBuilder {
     required this.db,
     required this.context,
     required this.controller,
+    this.queryController,
     this.onItemSelected,
   });
 
