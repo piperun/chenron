@@ -90,8 +90,6 @@ class Viewer extends HookWidget {
         builder: (context, _) {
           return FilterableItemDisplay(
             items: folderItems,
-            showImages: false,
-            showTags: true,
             enableTagFiltering: true,
             onItemTap: (item) => _handleItemTap(context, item),
           );

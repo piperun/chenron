@@ -192,10 +192,7 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
               Expanded(
                 child: FilterableItemDisplay(
                   items: result.items,
-                  showImages: true,
-                  showTags: true,
                   enableTagFiltering: true,
-                  maxTags: 5,
                 ),
               ),
             ],

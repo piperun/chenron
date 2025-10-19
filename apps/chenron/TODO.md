@@ -358,3 +358,106 @@ CREATE TABLE url_security_scans (
 - [Phishing.Database GitHub](https://github.com/Phishing-Database/Phishing.Database)
 - [MISP API Documentation](https://www.misp-project.org/documentation/)
 - [OWASP Phishing Guide](https://owasp.org/www-community/attacks/Phishing)
+
+---
+
+# TODO: Responsive Mobile vs Desktop Grid Layout
+
+## Feature: Platform-Aware Grid Constraints
+
+### Overview
+Implement responsive grid layout system that adapts card sizing constraints based on platform (mobile vs desktop). Mobile layouts should optimize for vertical scrolling with height-focused cards, while desktop layouts should utilize horizontal space with width-constrained cards.
+
+### User Story
+**As a user**, I want the grid layout to adapt to my device type (mobile/desktop), so that cards are displayed optimally for my screen size and usage pattern.
+
+### Current Implementation
+- DisplayMode provides `maxCrossAxisExtent` and `aspectRatio` for card sizing
+- Same constraints applied regardless of platform/screen size
+- No differentiation between mobile and desktop usage patterns
+
+### Proposed Behavior
+
+#### Mobile Layout (< 600px width)
+- **Height-focused**: Cards optimized for vertical scrolling
+- **Narrower cards**: 1-2 columns typically
+- **Aspect ratio**: Taller cards (e.g., 0.7 - 0.8)
+- **Touch targets**: Larger, more prominent
+
+#### Desktop Layout (>= 600px width)
+- **Width-constrained**: Utilize horizontal space
+- **More columns**: 3-5 columns depending on mode
+- **Aspect ratio**: Wider cards (e.g., 1.2 - 1.5)
+- **Dense layout**: More information visible at once
+
+### Implementation Tasks
+
+- [ ] Add platform/screen size detection utility
+- [ ] Extend DisplayMode enum with platform-specific parameters:
+  ```dart
+  enum DisplayMode {
+    compact(
+      label: 'Compact',
+      icon: Icons.view_compact,
+      maxCrossAxisExtentMobile: 200,
+      maxCrossAxisExtentDesktop: 180,
+      aspectRatioMobile: 0.75,
+      aspectRatioDesktop: 1.3,
+    ),
+    // ...
+  }
+  ```
+- [ ] Update ItemGridView to use responsive parameters
+- [ ] Add breakpoint constants (mobile: < 600px, tablet: 600-900px, desktop: > 900px)
+- [ ] Update card layout components to respect platform constraints
+- [ ] Test on various screen sizes and orientations
+- [ ] Document responsive behavior in code comments
+
+### Responsive Breakpoints
+
+```dart
+class ResponsiveBreakpoints {
+  static const double mobile = 600.0;
+  static const double tablet = 900.0;
+  static const double desktop = 1200.0;
+}
+
+enum LayoutPlatform {
+  mobile,   // < 600px
+  tablet,   // 600-900px
+  desktop,  // > 900px
+}
+```
+
+### Example Parameters by Mode
+
+| Mode     | Mobile Cards | Desktop Cards | Mobile Ratio | Desktop Ratio |
+|----------|--------------|---------------|--------------|---------------|
+| Compact  | 200px        | 180px         | 0.75         | 1.3           |
+| Standard | 280px        | 240px         | 0.8          | 1.2           |
+| Extended | 350px        | 320px         | 0.85         | 1.0           |
+
+### Testing Scenarios
+
+- [ ] Test on phone (< 600px width)
+- [ ] Test on tablet portrait (600-900px)
+- [ ] Test on tablet landscape (> 900px)
+- [ ] Test on desktop (1920x1080)
+- [ ] Test on ultrawide desktop (2560x1440+)
+- [ ] Test window resizing (dynamic breakpoint switching)
+- [ ] Test orientation changes on mobile devices
+
+### Priority
+**Medium** - UI improvement that enhances usability across platforms. Not critical for MVP but important for production polish.
+
+### Related Components
+- `lib/shared/item_display/widgets/display_mode/display_mode.dart`
+- `lib/shared/item_display/item_grid_view.dart`
+- `lib/shared/item_display/widgets/viewer_item/card_view.dart`
+- `lib/shared/item_display/filterable_item_display.dart`
+
+### Notes
+- Consider adding user preference to override automatic responsive behavior
+- May want different grid constraints for list view vs grid view
+- Consider adaptive font sizes and spacing along with card dimensions
+- Test performance implications of responsive layout calculations

@@ -8,6 +8,9 @@ class CardItem extends StatelessWidget {
   final VoidCallback? onTap;
   final bool showImage;
   final int maxTags;
+  final int titleLines;
+  final int descriptionLines;
+  final bool showUrlBar;
   final Set<String> includedTagNames;
   final Set<String> excludedTagNames;
 
@@ -17,6 +20,9 @@ class CardItem extends StatelessWidget {
     this.onTap,
     this.showImage = true,
     this.maxTags = 5,
+    this.titleLines = 2,
+    this.descriptionLines = 2,
+    this.showUrlBar = true,
     this.includedTagNames = const {},
     this.excludedTagNames = const {},
   });
@@ -63,15 +69,15 @@ class CardItem extends StatelessWidget {
                     ItemMetaRow(item: item, url: url),
                     const SizedBox(height: 4),
 
-                    // Title (1 line when no image)
-                    ItemTitle(item: item, url: url, maxLines: showImage ? 2 : 1),
+                    // Title
+                    ItemTitle(item: item, url: url, maxLines: titleLines),
                     const SizedBox(height: 4),
 
-                    // Description (compact when no image)
-                    ItemDescription(item: item, url: url, maxLines: showImage ? 3 : 2),
+                    // Description
+                    ItemDescription(item: item, url: url, maxLines: descriptionLines),
                     
-                    // Link + copy bar (only for links with image)
-                    if (showImage && item.type == FolderItemType.link && url.isNotEmpty) ...[
+                    // Link + copy bar (only for links when enabled)
+                    if (showUrlBar && item.type == FolderItemType.link && url.isNotEmpty) ...[
                       const SizedBox(height: 4),
                       ItemUrlBar(url: url),
                     ],

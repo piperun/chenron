@@ -1,5 +1,6 @@
 import "package:flutter/material.dart";
 import "package:chenron/models/item.dart";
+import "package:chenron/shared/item_display/widgets/display_mode/display_mode.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/viewer_item.dart";
 import "package:url_launcher/url_launcher.dart";
 
@@ -7,8 +8,14 @@ class ItemGridView extends StatelessWidget {
   final List<FolderItem> items;
   final double aspectRatio;
   final double maxCrossAxisExtent;
-  final bool showImages;
-  final int maxTags;
+  final DisplayMode displayMode;
+
+  // Deprecated: Use displayMode instead (kept for backwards compatibility)
+  @Deprecated('Use displayMode.showImage instead')
+  final bool? showImages;
+  @Deprecated('Use displayMode.maxTags instead')
+  final int? maxTags;
+
   final Set<String> includedTagNames;
   final Set<String> excludedTagNames;
   final void Function(FolderItem)? onItemTap;
@@ -18,8 +25,9 @@ class ItemGridView extends StatelessWidget {
     required this.items,
     this.aspectRatio = 0.72,
     this.maxCrossAxisExtent = 320,
-    this.showImages = true,
-    this.maxTags = 5,
+    this.displayMode = DisplayMode.standard,
+    @Deprecated('Use displayMode.showImage instead') this.showImages,
+    @Deprecated('Use displayMode.maxTags instead') this.maxTags,
     this.includedTagNames = const {},
     this.excludedTagNames = const {},
     this.onItemTap,
@@ -76,6 +84,7 @@ class ItemGridView extends StatelessWidget {
               item: item,
               mode: PreviewMode.card,
               onTap: _getItemTapHandler(item),
+              displayMode: displayMode,
               showImage: showImages,
               maxTags: maxTags,
               includedTagNames: includedTagNames,

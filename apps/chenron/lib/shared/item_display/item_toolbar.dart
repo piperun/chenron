@@ -1,5 +1,7 @@
 import "package:flutter/material.dart";
 import "package:chenron/models/item.dart";
+import "package:chenron/shared/item_display/widgets/display_mode/display_mode.dart";
+import "package:chenron/shared/item_display/widgets/display_mode/display_mode_switcher.dart";
 
 enum ViewMode { grid, list }
 
@@ -19,6 +21,8 @@ class ItemToolbar extends StatelessWidget {
   final ValueChanged<SortMode> onSortChanged;
   final ViewMode viewMode;
   final ValueChanged<ViewMode> onViewModeChanged;
+  final DisplayMode displayMode;
+  final ValueChanged<DisplayMode> onDisplayModeChanged;
   final bool showSearch;
   final bool showTagFilterButton;
   final Set<String> includedTagNames;
@@ -35,6 +39,8 @@ class ItemToolbar extends StatelessWidget {
     required this.onSortChanged,
     required this.viewMode,
     required this.onViewModeChanged,
+    required this.displayMode,
+    required this.onDisplayModeChanged,
     this.showSearch = true,
     this.showTagFilterButton = true,
     this.includedTagNames = const {},
@@ -65,35 +71,41 @@ class ItemToolbar extends StatelessWidget {
 
           return Row(
             children: [
-              // Search box - 50% width
+              // Search box - adjusted for narrower screens
               if (showSearch)
-                SizedBox(
-                  width: searchWidth,
-                  child: TextField(
-                    onChanged: onSearchChanged,
-                    decoration: InputDecoration(
-                      hintText: "Search by name, URL, tags...",
-                      prefixIcon: const Icon(Icons.search, size: 20),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: theme.dividerColor),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: theme.dividerColor),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide:
-                            BorderSide(color: theme.colorScheme.primary),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      isDense: true,
+                Flexible(
+                  flex: 2,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      minWidth: 250,
+                      maxWidth: 400,
                     ),
-                    style: const TextStyle(fontSize: 14),
+                    child: TextField(
+                      onChanged: onSearchChanged,
+                      decoration: InputDecoration(
+                        hintText: "Search by name, URL, tags...",
+                        prefixIcon: const Icon(Icons.search, size: 20),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: theme.dividerColor),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: theme.dividerColor),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide:
+                              BorderSide(color: theme.colorScheme.primary),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        isDense: true,
+                      ),
+                      style: const TextStyle(fontSize: 14),
+                    ),
                   ),
                 ),
 
@@ -125,7 +137,16 @@ class ItemToolbar extends StatelessWidget {
                 ),
               ],
 
+              const SizedBox(width: 8),
               const Spacer(),
+
+              // Display mode switcher
+              DisplayModeSwitcher(
+                selectedMode: displayMode,
+                onModeChanged: onDisplayModeChanged,
+              ),
+
+              const SizedBox(width: 8),
 
               // View toggle
               Container(
@@ -277,83 +298,83 @@ class _FilterDropdown extends StatelessWidget {
     final theme = Theme.of(context);
 
     return MenuAnchor(
-        builder: (context, controller, child) {
-          return OutlinedButton.icon(
-            onPressed: () {
-              if (controller.isOpen) {
-                controller.close();
+      builder: (context, controller, child) {
+        return OutlinedButton.icon(
+          onPressed: () {
+            if (controller.isOpen) {
+              controller.close();
+            } else {
+              controller.open();
+            }
+          },
+          icon: const Icon(Icons.filter_alt, size: 16),
+          label: Text(_getLabel()),
+          style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            side: BorderSide(color: theme.dividerColor),
+          ),
+        );
+      },
+      menuChildren: [
+        MenuItemButton(
+          onPressed: null,
+          child: _FilterCheckbox(
+            label: "Links",
+            isSelected: selectedTypes.contains(FolderItemType.link),
+            onChanged: (value) {
+              final newTypes = Set<FolderItemType>.from(selectedTypes);
+              if (value) {
+                newTypes.add(FolderItemType.link);
               } else {
-                controller.open();
+                newTypes.remove(FolderItemType.link);
+              }
+              if (newTypes.isNotEmpty) {
+                onFilterChanged(newTypes);
               }
             },
-            icon: const Icon(Icons.filter_alt, size: 16),
-            label: Text(_getLabel()),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              side: BorderSide(color: theme.dividerColor),
-            ),
-          );
-        },
-        menuChildren: [
-          MenuItemButton(
-            onPressed: null,
-            child: _FilterCheckbox(
-              label: "Links",
-              isSelected: selectedTypes.contains(FolderItemType.link),
-              onChanged: (value) {
-                final newTypes = Set<FolderItemType>.from(selectedTypes);
-                if (value) {
-                  newTypes.add(FolderItemType.link);
-                } else {
-                  newTypes.remove(FolderItemType.link);
-                }
-                if (newTypes.isNotEmpty) {
-                  onFilterChanged(newTypes);
-                }
-              },
-            ),
           ),
-          MenuItemButton(
-            onPressed: null,
-            child: _FilterCheckbox(
-              label: "Documents",
-              isSelected: selectedTypes.contains(FolderItemType.document),
-              onChanged: (value) {
-                final newTypes = Set<FolderItemType>.from(selectedTypes);
-                if (value) {
-                  newTypes.add(FolderItemType.document);
-                } else {
-                  newTypes.remove(FolderItemType.document);
-                }
-                if (newTypes.isNotEmpty) {
-                  onFilterChanged(newTypes);
-                }
-              },
-            ),
+        ),
+        MenuItemButton(
+          onPressed: null,
+          child: _FilterCheckbox(
+            label: "Documents",
+            isSelected: selectedTypes.contains(FolderItemType.document),
+            onChanged: (value) {
+              final newTypes = Set<FolderItemType>.from(selectedTypes);
+              if (value) {
+                newTypes.add(FolderItemType.document);
+              } else {
+                newTypes.remove(FolderItemType.document);
+              }
+              if (newTypes.isNotEmpty) {
+                onFilterChanged(newTypes);
+              }
+            },
           ),
-          MenuItemButton(
-            onPressed: null,
-            child: _FilterCheckbox(
-              label: "Folders",
-              isSelected: selectedTypes.contains(FolderItemType.folder),
-              onChanged: (value) {
-                final newTypes = Set<FolderItemType>.from(selectedTypes);
-                if (value) {
-                  newTypes.add(FolderItemType.folder);
-                } else {
-                  newTypes.remove(FolderItemType.folder);
-                }
-                if (newTypes.isNotEmpty) {
-                  onFilterChanged(newTypes);
-                }
-              },
-            ),
+        ),
+        MenuItemButton(
+          onPressed: null,
+          child: _FilterCheckbox(
+            label: "Folders",
+            isSelected: selectedTypes.contains(FolderItemType.folder),
+            onChanged: (value) {
+              final newTypes = Set<FolderItemType>.from(selectedTypes);
+              if (value) {
+                newTypes.add(FolderItemType.folder);
+              } else {
+                newTypes.remove(FolderItemType.folder);
+              }
+              if (newTypes.isNotEmpty) {
+                onFilterChanged(newTypes);
+              }
+            },
           ),
-        ],
-      );
+        ),
+      ],
+    );
   }
 }
 
@@ -439,7 +460,8 @@ class _TagFilterButton extends StatelessWidget {
               children: [
                 if (includedCount > 0)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
                       color: Colors.green,
                       borderRadius: BorderRadius.circular(10),
@@ -457,7 +479,8 @@ class _TagFilterButton extends StatelessWidget {
                   const SizedBox(width: 4),
                 if (excludedCount > 0)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
                       color: Colors.red,
                       borderRadius: BorderRadius.circular(10),

@@ -1,5 +1,7 @@
 import "package:flutter/material.dart";
 import "package:chenron/models/item.dart";
+import "package:chenron/shared/item_display/widgets/display_mode/display_mode.dart";
+import "package:chenron/shared/item_display/widgets/display_mode/display_mode_preference.dart";
 import "package:chenron/shared/item_display/item_toolbar.dart";
 import "package:chenron/shared/item_display/item_stats_bar.dart";
 import "package:chenron/shared/item_display/item_grid_view.dart";
@@ -12,10 +14,16 @@ class FilterableItemDisplay extends StatefulWidget {
   final ViewMode initialViewMode;
   final SortMode initialSortMode;
   final Set<FolderItemType> initialSelectedTypes;
-  final bool showImages;
+  final DisplayMode displayMode;
+
+  // Deprecated: Use displayMode instead (kept for backwards compatibility)
+  @Deprecated('Use displayMode.showImage instead')
+  final bool? showImages;
+  @Deprecated('Use displayMode.maxTags instead')
+  final int? maxTags;
+
   final bool showTags;
   final bool enableTagFiltering;
-  final int maxTags;
   final void Function(FolderItem)? onItemTap;
 
   const FilterableItemDisplay({
@@ -28,10 +36,11 @@ class FilterableItemDisplay extends StatefulWidget {
       FolderItemType.document,
       FolderItemType.folder,
     },
-    this.showImages = true,
+    this.displayMode = DisplayMode.standard,
+    @Deprecated('Use displayMode.showImage instead') this.showImages,
     this.showTags = true,
     this.enableTagFiltering = true,
-    this.maxTags = 5,
+    @Deprecated('Use displayMode.maxTags instead') this.maxTags,
     this.onItemTap,
   });
 
@@ -43,9 +52,11 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
   late ViewMode _viewMode;
   late SortMode _sortMode;
   late Set<FolderItemType> _selectedTypes;
+  late DisplayMode _displayMode;
   String _searchQuery = "";
   Set<String> _includedTagNames = {};
   Set<String> _excludedTagNames = {};
+  bool _isLoadingDisplayMode = true;
 
   @override
   void initState() {
@@ -53,12 +64,30 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
     _viewMode = widget.initialViewMode;
     _sortMode = widget.initialSortMode;
     _selectedTypes = Set.of(widget.initialSelectedTypes);
+    _displayMode = widget.displayMode; // Use provided default initially
+    _loadDisplayMode();
+  }
+
+  Future<void> _loadDisplayMode() async {
+    final savedMode = await DisplayModePreference.getDisplayMode();
+    if (mounted) {
+      setState(() {
+        _displayMode = savedMode;
+        _isLoadingDisplayMode = false;
+      });
+    }
   }
 
   void _onSearchChanged(String query) => setState(() => _searchQuery = query);
   void _onViewModeChanged(ViewMode mode) => setState(() => _viewMode = mode);
   void _onSortChanged(SortMode mode) => setState(() => _sortMode = mode);
-  void _onFilterChanged(Set<FolderItemType> types) => setState(() => _selectedTypes = types);
+  void _onFilterChanged(Set<FolderItemType> types) =>
+      setState(() => _selectedTypes = types);
+
+  Future<void> _onDisplayModeChanged(DisplayMode mode) async {
+    setState(() => _displayMode = mode);
+    await DisplayModePreference.setDisplayMode(mode);
+  }
 
   Future<void> _openTagFilterModal() async {
     final allTags = _collectAllTags(widget.items);
@@ -80,7 +109,8 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
     var itemsList = List<FolderItem>.from(widget.items);
 
     // Type filter
-    itemsList = itemsList.where((item) => _selectedTypes.contains(item.type)).toList();
+    itemsList =
+        itemsList.where((item) => _selectedTypes.contains(item.type)).toList();
 
     // Tag filters
     if (widget.enableTagFiltering) {
@@ -153,12 +183,18 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
       }
     }
     final result = byId.values.toList();
-    print('COLLECT TAGS DEBUG: ${items.length} items, ${result.length} unique tags');
+    print(
+        'COLLECT TAGS DEBUG: ${items.length} items, ${result.length} unique tags');
     return result;
   }
 
   @override
   Widget build(BuildContext context) {
+    // Show loading indicator while loading display mode preference
+    if (_isLoadingDisplayMode) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     final filtered = _getFilteredAndSortedItems();
     final counts = _getItemCounts(widget.items);
 
@@ -173,11 +209,14 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
           onSortChanged: _onSortChanged,
           viewMode: _viewMode,
           onViewModeChanged: _onViewModeChanged,
+          displayMode: _displayMode,
+          onDisplayModeChanged: _onDisplayModeChanged,
           showSearch: true,
           showTagFilterButton: widget.enableTagFiltering,
           includedTagNames: _includedTagNames,
           excludedTagNames: _excludedTagNames,
-          onTagFilterPressed: widget.enableTagFiltering ? _openTagFilterModal : null,
+          onTagFilterPressed:
+              widget.enableTagFiltering ? _openTagFilterModal : null,
         ),
         ItemStatsBar(
           linkCount: counts[FolderItemType.link] ?? 0,
@@ -190,15 +229,18 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
           child: _viewMode == ViewMode.grid
               ? ItemGridView(
                   items: filtered,
+                  displayMode: _displayMode,
                   showImages: widget.showImages,
                   maxTags: widget.maxTags,
                   includedTagNames: _includedTagNames,
                   excludedTagNames: _excludedTagNames,
                   onItemTap: widget.onItemTap,
-                  aspectRatio: widget.showImages ? 0.72 : 1.8,
+                  aspectRatio: _displayMode.aspectRatio,
+                  maxCrossAxisExtent: _displayMode.maxCrossAxisExtent,
                 )
               : ItemListView(
                   items: filtered,
+                  displayMode: _displayMode,
                   showImages: widget.showImages,
                   maxTags: widget.maxTags,
                   includedTagNames: _includedTagNames,

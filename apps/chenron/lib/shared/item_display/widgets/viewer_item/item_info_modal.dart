@@ -321,35 +321,3 @@ class _InfoSection extends StatelessWidget {
     );
   }
 }
-
-// Info chip widget
-class _InfoChip extends StatelessWidget {
-  final String label;
-  final Color color;
-  final Color textColor;
-
-  const _InfoChip({
-    required this.label,
-    required this.color,
-    required this.textColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: textColor,
-        ),
-      ),
-    );
-  }
-}

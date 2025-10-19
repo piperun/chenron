@@ -8,6 +8,9 @@ class RowItem extends StatelessWidget {
   final VoidCallback? onTap;
   final bool showImage;
   final int maxTags;
+  final int titleLines;
+  final int descriptionLines;
+  final bool showUrlBar;
   final Set<String> includedTagNames;
   final Set<String> excludedTagNames;
 
@@ -17,6 +20,9 @@ class RowItem extends StatelessWidget {
     this.onTap,
     this.showImage = true,
     this.maxTags = 5,
+    this.titleLines = 2,
+    this.descriptionLines = 1,
+    this.showUrlBar = true,
     this.includedTagNames = const {},
     this.excludedTagNames = const {},
   });
@@ -63,15 +69,16 @@ class RowItem extends StatelessWidget {
                       const SizedBox(height: 6),
 
                       // Title
-                      ItemTitle(item: item, url: url, maxLines: 2),
+                      ItemTitle(item: item, url: url, maxLines: titleLines),
                       const SizedBox(height: 4),
 
-                      // Description (1 line in list mode)
-                      ItemDescription(item: item, url: url, maxLines: 1),
+                      // Description
+                      ItemDescription(item: item, url: url, maxLines: descriptionLines),
                       const SizedBox(height: 8),
 
-                      // URL bar with copy button (only for links)
-                      if (item.type == FolderItemType.link &&
+                      // URL bar with copy button (only for links when enabled)
+                      if (showUrlBar &&
+                          item.type == FolderItemType.link &&
                           url.isNotEmpty) ...[
                         ItemUrlBar(url: url),
                         const SizedBox(height: 8),

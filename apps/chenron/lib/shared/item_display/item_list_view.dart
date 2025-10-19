@@ -1,12 +1,19 @@
 import "package:flutter/material.dart";
 import "package:chenron/models/item.dart";
+import "package:chenron/shared/item_display/widgets/display_mode/display_mode.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/viewer_item.dart";
 import "package:url_launcher/url_launcher.dart";
 
 class ItemListView extends StatelessWidget {
   final List<FolderItem> items;
-  final bool showImages;
-  final int maxTags;
+  final DisplayMode displayMode;
+
+  // Deprecated: Use displayMode instead (kept for backwards compatibility)
+  @Deprecated('Use displayMode.showImage instead')
+  final bool? showImages;
+  @Deprecated('Use displayMode.maxTags instead')
+  final int? maxTags;
+
   final Set<String> includedTagNames;
   final Set<String> excludedTagNames;
   final void Function(FolderItem)? onItemTap;
@@ -14,8 +21,9 @@ class ItemListView extends StatelessWidget {
   const ItemListView({
     super.key,
     required this.items,
-    this.showImages = true,
-    this.maxTags = 5,
+    this.displayMode = DisplayMode.standard,
+    @Deprecated('Use displayMode.showImage instead') this.showImages,
+    @Deprecated('Use displayMode.maxTags instead') this.maxTags,
     this.includedTagNames = const {},
     this.excludedTagNames = const {},
     this.onItemTap,
@@ -69,6 +77,7 @@ class ItemListView extends StatelessWidget {
               item: item,
               mode: PreviewMode.list,
               onTap: _getItemTapHandler(item),
+              displayMode: displayMode,
               showImage: showImages,
               maxTags: maxTags,
               includedTagNames: includedTagNames,

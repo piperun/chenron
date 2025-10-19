@@ -1,5 +1,6 @@
 import "package:flutter/material.dart";
 import "package:chenron/models/item.dart";
+import "package:chenron/shared/item_display/widgets/display_mode/display_mode.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/card_view.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/row_item.dart";
 
@@ -12,8 +13,21 @@ class ViewerItem extends StatelessWidget {
   final FolderItem item;
   final PreviewMode mode;
   final VoidCallback? onTap;
-  final bool showImage;
-  final int maxTags;
+  final DisplayMode displayMode;
+
+  // Override parameters (take precedence over displayMode)
+  final int? titleLinesOverride;
+  final int? descriptionLinesOverride;
+  final int? maxTagsOverride;
+  final bool? showImageOverride;
+  final bool? showUrlBarOverride;
+
+  // Deprecated: Use displayMode instead (kept for backwards compatibility)
+  @Deprecated('Use displayMode.showImage or showImageOverride instead')
+  final bool? showImage;
+  @Deprecated('Use displayMode.maxTags or maxTagsOverride instead')
+  final int? maxTags;
+
   final Set<String> includedTagNames;
   final Set<String> excludedTagNames;
 
@@ -22,28 +36,51 @@ class ViewerItem extends StatelessWidget {
     required this.item,
     this.mode = PreviewMode.card,
     this.onTap,
-    this.showImage = true,
-    this.maxTags = 5,
+    this.displayMode = DisplayMode.standard,
+    this.titleLinesOverride,
+    this.descriptionLinesOverride,
+    this.maxTagsOverride,
+    this.showImageOverride,
+    this.showUrlBarOverride,
+    @Deprecated('Use displayMode.showImage or showImageOverride instead')
+    this.showImage,
+    @Deprecated('Use displayMode.maxTags or maxTagsOverride instead')
+    this.maxTags,
     this.includedTagNames = const {},
     this.excludedTagNames = const {},
   });
 
   @override
   Widget build(BuildContext context) {
+    // Resolve final values: override > deprecated param > displayMode default
+    final resolvedTitleLines = titleLinesOverride ?? displayMode.titleLines;
+    final resolvedDescriptionLines =
+        descriptionLinesOverride ?? displayMode.descriptionLines;
+    final resolvedMaxTags = maxTagsOverride ?? maxTags ?? displayMode.maxTags;
+    final resolvedShowImage =
+        showImageOverride ?? showImage ?? displayMode.showImage;
+    final resolvedShowUrlBar = showUrlBarOverride ?? displayMode.showUrlBar;
+
     return mode == PreviewMode.card
         ? CardItem(
             item: item,
             onTap: onTap,
-            showImage: showImage,
-            maxTags: maxTags,
+            showImage: resolvedShowImage,
+            maxTags: resolvedMaxTags,
+            titleLines: resolvedTitleLines,
+            descriptionLines: resolvedDescriptionLines,
+            showUrlBar: resolvedShowUrlBar,
             includedTagNames: includedTagNames,
             excludedTagNames: excludedTagNames,
           )
         : RowItem(
             item: item,
             onTap: onTap,
-            showImage: showImage,
-            maxTags: maxTags,
+            showImage: resolvedShowImage,
+            maxTags: resolvedMaxTags,
+            titleLines: resolvedTitleLines,
+            descriptionLines: resolvedDescriptionLines,
+            showUrlBar: resolvedShowUrlBar,
             includedTagNames: includedTagNames,
             excludedTagNames: excludedTagNames,
           );
