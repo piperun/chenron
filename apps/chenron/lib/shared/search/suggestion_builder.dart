@@ -2,7 +2,7 @@ import "package:chenron/shared/search/search_matcher.dart";
 import "package:chenron/shared/utils/text_highlighter.dart";
 
 import "package:chenron/database/extensions/operations/database_file_handler.dart";
-import "package:chenron/features/show_folder/pages/show_folder.dart";
+import "package:chenron/features/folder_viewer/pages/folder_viewer_page.dart";
 import "package:chenron/models/db_result.dart" show FolderResult, LinkResult;
 import "package:flutter/material.dart";
 import "package:chenron/database/extensions/folder/read.dart";
@@ -14,11 +14,17 @@ class GlobalSuggestionBuilder {
   final Signal<Future<AppDatabaseHandler>> db;
   final BuildContext context;
   final SearchController controller;
+  final Future<void> Function({
+    required String type,
+    required String id,
+    required String title,
+  })? onItemSelected;
 
   GlobalSuggestionBuilder({
     required this.db,
     required this.context,
     required this.controller,
+    this.onItemSelected,
   });
 
   Future<List<ListTile>> buildSuggestions() async {
@@ -31,7 +37,11 @@ class GlobalSuggestionBuilder {
     if (!context.mounted) return [];
 
     final searchMatcher = SearchMatcher(controller.text);
-    final suggestionFactory = SuggestionFactory(context, controller);
+    final suggestionFactory = SuggestionFactory(
+      context,
+      controller,
+      onItemSelected,
+    );
 
     final matchedFolders = searchMatcher.getTopContentMatches(
       folders,
@@ -55,15 +65,27 @@ class GlobalSuggestionBuilder {
 class SuggestionFactory {
   final BuildContext context;
   final SearchController controller;
+  final Future<void> Function({
+    required String type,
+    required String id,
+    required String title,
+  })? onItemSelected;
 
-  SuggestionFactory(this.context, this.controller);
+  SuggestionFactory(
+    this.context,
+    this.controller,
+    this.onItemSelected,
+  );
 
   ListTile createFolderSuggestion(FolderResult folder) {
     return SuggestionTile(
       icon: Icons.folder,
       title: folder.data.title,
       searchText: controller.text,
-      onTapAction: () => _handleFolderNavigation(folder.data.id),
+      onTapAction: () => _handleFolderNavigation(
+        folder.data.id,
+        folder.data.title,
+      ),
     ).build(context);
   }
 
@@ -72,23 +94,40 @@ class SuggestionFactory {
       icon: Icons.link,
       title: link.data.path,
       searchText: controller.text,
-      onTapAction: () => _handleUrlLaunch(link.data.path),
+      onTapAction: () => _handleUrlLaunch(
+        link.data.path,
+        link.data.path, // URL as title for links
+      ),
     ).build(context);
   }
 
-  void _handleFolderNavigation(String folderId) async {
+  void _handleFolderNavigation(String folderId, String title) async {
+    // Save to history
+    await onItemSelected?.call(
+      type: "folder",
+      id: folderId,
+      title: title,
+    );
+    
     controller.closeView(controller.text);
     if (context.mounted) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => ShowFolder(folderId: folderId),
+          builder: (context) => FolderViewerPage(folderId: folderId),
         ),
       );
     }
   }
 
-  void _handleUrlLaunch(String url) async {
+  void _handleUrlLaunch(String url, String title) async {
+    // Save to history
+    await onItemSelected?.call(
+      type: "link",
+      id: url,
+      title: title,
+    );
+    
     controller.closeView(controller.text);
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
