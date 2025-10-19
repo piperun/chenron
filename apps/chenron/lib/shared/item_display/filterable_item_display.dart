@@ -8,6 +8,8 @@ import "package:chenron/shared/item_display/item_grid_view.dart";
 import "package:chenron/shared/item_display/item_list_view.dart";
 import "package:chenron/features/folder_viewer/ui/components/tag_filter_modal.dart";
 import "package:chenron/database/database.dart" show Tag;
+import "package:chenron/shared/search/search_controller.dart";
+import "package:signals/signals_flutter.dart";
 
 class FilterableItemDisplay extends StatefulWidget {
   final List<FolderItem> items;
@@ -24,6 +26,7 @@ class FilterableItemDisplay extends StatefulWidget {
   final int? maxTags;
 
   final bool showTags;
+  final bool showSearch;
   final bool enableTagFiltering;
   final void Function(FolderItem)? onItemTap;
 
@@ -41,6 +44,7 @@ class FilterableItemDisplay extends StatefulWidget {
     this.displayModeContext,
     @Deprecated('Use displayMode.showImage instead') this.showImages,
     this.showTags = true,
+    this.showSearch = true,
     this.enableTagFiltering = true,
     @Deprecated('Use displayMode.maxTags instead') this.maxTags,
     this.onItemTap,
@@ -55,7 +59,7 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
   late SortMode _sortMode;
   late Set<FolderItemType> _selectedTypes;
   late DisplayMode _displayMode;
-  String _searchQuery = "";
+  final SearchBarController _searchController = SearchBarController();
   Set<String> _includedTagNames = {};
   Set<String> _excludedTagNames = {};
   bool _isLoadingDisplayMode = true;
@@ -82,7 +86,12 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
     }
   }
 
-  void _onSearchChanged(String query) => setState(() => _searchQuery = query);
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   void _onViewModeChanged(ViewMode mode) => setState(() => _viewMode = mode);
   void _onSortChanged(SortMode mode) => setState(() => _sortMode = mode);
   void _onFilterChanged(Set<FolderItemType> types) =>
@@ -112,7 +121,7 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
     }
   }
 
-  List<FolderItem> _getFilteredAndSortedItems() {
+  List<FolderItem> _getFilteredAndSortedItems(String searchQuery) {
     var itemsList = List<FolderItem>.from(widget.items);
 
     // Type filter
@@ -136,8 +145,8 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
     }
 
     // Search
-    if (_searchQuery.isNotEmpty) {
-      final q = _searchQuery.toLowerCase();
+    if (searchQuery.isNotEmpty) {
+      final q = searchQuery.toLowerCase();
       itemsList = itemsList.where((item) {
         if (item.path is StringContent) {
           final pathStr = (item.path as StringContent).value.toLowerCase();
@@ -202,14 +211,12 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    final filtered = _getFilteredAndSortedItems();
     final counts = _getItemCounts(widget.items);
 
     return Column(
       children: [
         ItemToolbar(
-          searchQuery: _searchQuery,
-          onSearchChanged: _onSearchChanged,
+          searchController: _searchController,
           selectedTypes: _selectedTypes,
           onFilterChanged: _onFilterChanged,
           sortMode: _sortMode,
@@ -218,7 +225,7 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
           onViewModeChanged: _onViewModeChanged,
           displayMode: _displayMode,
           onDisplayModeChanged: _onDisplayModeChanged,
-          showSearch: true,
+          showSearch: widget.showSearch,
           showTagFilterButton: widget.enableTagFiltering,
           includedTagNames: _includedTagNames,
           excludedTagNames: _excludedTagNames,
@@ -233,27 +240,32 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
           onFilterChanged: _onFilterChanged,
         ),
         Expanded(
-          child: _viewMode == ViewMode.grid
-              ? ItemGridView(
-                  items: filtered,
-                  displayMode: _displayMode,
-                  showImages: widget.showImages,
-                  maxTags: widget.maxTags,
-                  includedTagNames: _includedTagNames,
-                  excludedTagNames: _excludedTagNames,
-                  onItemTap: widget.onItemTap,
-                  aspectRatio: _displayMode.aspectRatio,
-                  maxCrossAxisExtent: _displayMode.maxCrossAxisExtent,
-                )
-              : ItemListView(
-                  items: filtered,
-                  displayMode: _displayMode,
-                  showImages: widget.showImages,
-                  maxTags: widget.maxTags,
-                  includedTagNames: _includedTagNames,
-                  excludedTagNames: _excludedTagNames,
-                  onItemTap: widget.onItemTap,
-                ),
+          child: Watch((context) {
+            final searchQuery = _searchController.query.value;
+            final filtered = _getFilteredAndSortedItems(searchQuery);
+            
+            return _viewMode == ViewMode.grid
+                ? ItemGridView(
+                    items: filtered,
+                    displayMode: _displayMode,
+                    showImages: widget.showImages,
+                    maxTags: widget.maxTags,
+                    includedTagNames: _includedTagNames,
+                    excludedTagNames: _excludedTagNames,
+                    onItemTap: widget.onItemTap,
+                    aspectRatio: _displayMode.aspectRatio,
+                    maxCrossAxisExtent: _displayMode.maxCrossAxisExtent,
+                  )
+                : ItemListView(
+                    items: filtered,
+                    displayMode: _displayMode,
+                    showImages: widget.showImages,
+                    maxTags: widget.maxTags,
+                    includedTagNames: _includedTagNames,
+                    excludedTagNames: _excludedTagNames,
+                    onItemTap: widget.onItemTap,
+                  );
+          }),
         ),
       ],
     );

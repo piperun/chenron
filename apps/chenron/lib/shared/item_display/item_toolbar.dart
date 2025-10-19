@@ -2,6 +2,8 @@ import "package:flutter/material.dart";
 import "package:chenron/models/item.dart";
 import "package:chenron/shared/item_display/widgets/display_mode/display_mode.dart";
 import "package:chenron/shared/item_display/widgets/display_mode/display_mode_switcher.dart";
+import "package:chenron/shared/search/search_controller.dart";
+import "package:chenron/shared/search/local_searchbar.dart";
 
 enum ViewMode { grid, list }
 
@@ -13,8 +15,7 @@ enum SortMode {
 }
 
 class ItemToolbar extends StatelessWidget {
-  final String searchQuery;
-  final ValueChanged<String> onSearchChanged;
+  final SearchBarController searchController;
   final Set<FolderItemType> selectedTypes;
   final ValueChanged<Set<FolderItemType>> onFilterChanged;
   final SortMode sortMode;
@@ -31,8 +32,7 @@ class ItemToolbar extends StatelessWidget {
 
   const ItemToolbar({
     super.key,
-    required this.searchQuery,
-    required this.onSearchChanged,
+    required this.searchController,
     required this.selectedTypes,
     required this.onFilterChanged,
     required this.sortMode,
@@ -71,42 +71,11 @@ class ItemToolbar extends StatelessWidget {
 
           return Row(
             children: [
-              // Search box - adjusted for narrower screens
+              // Search box
               if (showSearch)
-                Flexible(
-                  flex: 2,
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(
-                      minWidth: 250,
-                      maxWidth: 400,
-                    ),
-                    child: TextField(
-                      onChanged: onSearchChanged,
-                      decoration: InputDecoration(
-                        hintText: "Search by name, URL, tags...",
-                        prefixIcon: const Icon(Icons.search, size: 20),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: theme.dividerColor),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: theme.dividerColor),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide:
-                              BorderSide(color: theme.colorScheme.primary),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                        isDense: true,
-                      ),
-                      style: const TextStyle(fontSize: 14),
-                    ),
-                  ),
+                LocalSearchBar(
+                  controller: searchController,
+                  hintText: "Search by name, URL, tags...",
                 ),
 
               if (showSearch) const SizedBox(width: 12),
