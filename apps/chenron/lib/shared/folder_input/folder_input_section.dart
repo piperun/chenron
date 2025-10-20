@@ -33,8 +33,8 @@ class FolderInputSection extends StatelessWidget {
       children: [
         LabeledTextField(
           key: keyPrefix != null
-              ? Key('${keyPrefix}_title_input')
-              : const Key('folder_title_input'),
+              ? Key("${keyPrefix}_title_input")
+              : const Key("folder_title_input"),
           controller: titleController,
           labelText: "Title",
           hintText: "Enter folder title",
@@ -45,8 +45,8 @@ class FolderInputSection extends StatelessWidget {
         const SizedBox(height: 16),
         LabeledTextField(
           key: keyPrefix != null
-              ? Key('${keyPrefix}_description_input')
-              : const Key('folder_description_input'),
+              ? Key("${keyPrefix}_description_input")
+              : const Key("folder_description_input"),
           controller: descriptionController,
           labelText: "Description",
           hintText: "Enter folder description (optional)",

@@ -26,9 +26,9 @@ class FilterableItemDisplay extends StatefulWidget {
   final TagFilterState? tagFilterState;
 
   // Deprecated: Use displayMode instead (kept for backwards compatibility)
-  @Deprecated('Use displayMode.showImage instead')
+  @Deprecated("Use displayMode.showImage instead")
   final bool? showImages;
-  @Deprecated('Use displayMode.maxTags instead')
+  @Deprecated("Use displayMode.maxTags instead")
   final int? maxTags;
 
   final bool showTags;
@@ -51,11 +51,11 @@ class FilterableItemDisplay extends StatefulWidget {
     this.searchFeatures = const IncludeOptions.empty(),
     this.externalSearchFilter,
     this.tagFilterState,
-    @Deprecated('Use displayMode.showImage instead') this.showImages,
+    @Deprecated("Use displayMode.showImage instead") this.showImages,
     this.showTags = true,
     this.showSearch = true,
     this.enableTagFiltering = true,
-    @Deprecated('Use displayMode.maxTags instead') this.maxTags,
+    @Deprecated("Use displayMode.maxTags instead") this.maxTags,
     this.onItemTap,
   });
 
@@ -81,7 +81,7 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
     _sortMode = widget.initialSortMode;
     _selectedTypes = Set.of(widget.initialSelectedTypes);
     _displayMode = widget.displayMode; // Use provided default initially
-    
+
     // Use external search filter if provided, otherwise create our own
     if (widget.externalSearchFilter != null) {
       _searchFilter = widget.externalSearchFilter!;
@@ -91,7 +91,7 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
       _searchFilter.setup();
       _ownsSearchFilter = true;
     }
-    
+
     // Use external tag filter state if provided, otherwise create our own
     if (widget.tagFilterState != null) {
       _tagFilterState = widget.tagFilterState!;
@@ -100,7 +100,7 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
       _tagFilterState = TagFilterState();
       _ownsTagFilterState = true;
     }
-    
+
     _loadDisplayMode();
   }
 
@@ -159,13 +159,9 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
   }
 
   void _handleSearchSubmitted(String query) {
-    print('SEARCH SUBMITTED: "$query"');
     // Parse and add tags from query to state, get clean query back
     final cleanQuery = _tagFilterState.parseAndAddFromQuery(query);
-    print('CLEAN QUERY: "$cleanQuery"');
-    print('INCLUDED TAGS AFTER PARSE: ${_tagFilterState.includedTagNames}');
-    print('EXCLUDED TAGS AFTER PARSE: ${_tagFilterState.excludedTagNames}');
-    
+
     // Update the search query to remove tag patterns
     _searchFilter.controller.value = cleanQuery;
   }
@@ -176,8 +172,10 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
       items: widget.items,
       query: query,
       types: _selectedTypes,
-      includedTags: widget.enableTagFiltering ? _tagFilterState.includedTagNames : null,
-      excludedTags: widget.enableTagFiltering ? _tagFilterState.excludedTagNames : null,
+      includedTags:
+          widget.enableTagFiltering ? _tagFilterState.includedTagNames : null,
+      excludedTags:
+          widget.enableTagFiltering ? _tagFilterState.excludedTagNames : null,
       sortMode: _sortMode,
     );
   }
@@ -202,8 +200,6 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
       }
     }
     final result = byId.values.toList();
-    print(
-        'COLLECT TAGS DEBUG: ${items.length} items, ${result.length} unique tags');
     return result;
   }
 
@@ -222,7 +218,7 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
           // Rebuild when tag state changes
           final includedTags = _tagFilterState.includedTags.value;
           final excludedTags = _tagFilterState.excludedTags.value;
-          
+
           return ItemToolbar(
             searchFilter: _searchFilter,
             selectedTypes: _selectedTypes,
@@ -239,7 +235,8 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
             excludedTagNames: excludedTags,
             onTagFilterPressed:
                 widget.enableTagFiltering ? _openTagFilterModal : null,
-            onSearchSubmitted: widget.enableTagFiltering ? _handleSearchSubmitted : null,
+            onSearchSubmitted:
+                widget.enableTagFiltering ? _handleSearchSubmitted : null,
           );
         }),
         ItemStatsBar(
@@ -254,7 +251,7 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
             // Trigger rebuild when search query changes
             final currentQuery = _searchFilter.controller.query.value;
             final filtered = _getFilteredAndSortedItems(currentQuery);
-            
+
             return _viewMode == ViewMode.grid
                 ? ItemGridView(
                     items: filtered,
