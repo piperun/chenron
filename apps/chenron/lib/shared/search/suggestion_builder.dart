@@ -32,7 +32,7 @@ class GlobalSuggestionBuilder {
 
   Future<List<ListTile>> buildSuggestions() async {
     final handler = await db.value;
-    final query = queryController?.query.value ?? controller?.text ?? '';
+    final query = queryController?.query.value ?? controller?.text ?? "";
     final folders =
         await handler.appDatabase.searchFolders(query: query);
 
@@ -85,7 +85,7 @@ class SuggestionFactory {
     return SuggestionTile(
       icon: Icons.folder,
       title: folder.data.title,
-      searchText: controller?.text ?? '',
+      searchText: controller?.text ?? "",
       onTapAction: () => _handleFolderNavigation(
         folder.data.id,
         folder.data.title,
@@ -97,7 +97,7 @@ class SuggestionFactory {
     return SuggestionTile(
       icon: Icons.link,
       title: link.data.path,
-      searchText: controller?.text ?? '',
+      searchText: controller?.text ?? "",
       onTapAction: () => _handleUrlLaunch(
         link.data.path,
         link.data.path, // URL as title for links

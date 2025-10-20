@@ -89,7 +89,7 @@ class _TagSectionState extends State<TagSection> {
             Expanded(
               child: LabeledTextField(
                 key: widget.keyPrefix != null
-                    ? Key('${widget.keyPrefix}_tag_input')
+                    ? Key("${widget.keyPrefix}_tag_input")
                     : null,
                 controller: _controller,
                 labelText: "Add tag",
@@ -107,7 +107,7 @@ class _TagSectionState extends State<TagSection> {
             const SizedBox(width: 12),
             FilledButton.icon(
               key: widget.keyPrefix != null
-                  ? Key('${widget.keyPrefix}_tag_add_button')
+                  ? Key("${widget.keyPrefix}_tag_add_button")
                   : null,
               onPressed: _addTag,
               icon: const Icon(Icons.add, size: 18),
@@ -123,7 +123,7 @@ class _TagSectionState extends State<TagSection> {
             children: widget.tags.map((tag) {
               return InputChip(
                 key: widget.keyPrefix != null
-                    ? Key('${widget.keyPrefix}_tag_chip_$tag')
+                    ? Key("${widget.keyPrefix}_tag_chip_$tag")
                     : null,
                 label: Text("#$tag"),
                 onDeleted: () => widget.onTagRemoved(tag),

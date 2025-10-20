@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:chenron/shared/search/search_controller.dart';
-import 'package:chenron/shared/search/suggestion_builder.dart';
-import 'package:chenron/shared/utils/debouncer.dart';
-import 'package:chenron/database/extensions/operations/database_file_handler.dart';
-import 'package:signals/signals_flutter.dart';
+import "package:flutter/material.dart";
+import "package:chenron/shared/search/search_controller.dart";
+import "package:chenron/shared/search/suggestion_builder.dart";
+import "package:chenron/shared/utils/debouncer.dart";
+import "package:chenron/database/extensions/operations/database_file_handler.dart";
+import "package:signals/signals_flutter.dart";
 
 /// A custom overlay that shows search suggestions without interfering with typing.
 /// 
@@ -39,7 +39,7 @@ class _SuggestionsOverlayState extends State<SuggestionsOverlay> {
   late final Debouncer<List<ListTile>> _debouncer;
   List<ListTile> _suggestions = [];
   bool _isLoading = false;
-  String _lastQuery = '';
+  String _lastQuery = "";
 
   @override
   void initState() {

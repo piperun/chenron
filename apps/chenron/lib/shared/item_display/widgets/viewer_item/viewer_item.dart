@@ -23,9 +23,9 @@ class ViewerItem extends StatelessWidget {
   final bool? showUrlBarOverride;
 
   // Deprecated: Use displayMode instead (kept for backwards compatibility)
-  @Deprecated('Use displayMode.showImage or showImageOverride instead')
+  @Deprecated("Use displayMode.showImage or showImageOverride instead")
   final bool? showImage;
-  @Deprecated('Use displayMode.maxTags or maxTagsOverride instead')
+  @Deprecated("Use displayMode.maxTags or maxTagsOverride instead")
   final int? maxTags;
 
   final Set<String> includedTagNames;
@@ -42,9 +42,9 @@ class ViewerItem extends StatelessWidget {
     this.maxTagsOverride,
     this.showImageOverride,
     this.showUrlBarOverride,
-    @Deprecated('Use displayMode.showImage or showImageOverride instead')
+    @Deprecated("Use displayMode.showImage or showImageOverride instead")
     this.showImage,
-    @Deprecated('Use displayMode.maxTags or maxTagsOverride instead')
+    @Deprecated("Use displayMode.maxTags or maxTagsOverride instead")
     this.maxTags,
     this.includedTagNames = const {},
     this.excludedTagNames = const {},

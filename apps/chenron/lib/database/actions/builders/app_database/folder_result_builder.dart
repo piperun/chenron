@@ -17,8 +17,8 @@ class FolderResultBuilder implements ResultBuilder<FolderResult> {
   late final $TagsTable _linkTags;
 
   FolderResultBuilder(this._folder, this._db) {
-    _linkMetadata = _db.metadataRecords.createAlias('link_metadata');
-    _linkTags = _db.tags.createAlias('link_tags');
+    _linkMetadata = _db.metadataRecords.createAlias("link_metadata");
+    _linkTags = _db.tags.createAlias("link_tags");
   }
 
   @override

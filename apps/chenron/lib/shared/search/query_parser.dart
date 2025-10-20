@@ -35,19 +35,19 @@ class QueryParser {
     final quotePattern = RegExp(r'"([^"]*)"');
     
     workingQuery = workingQuery.replaceAllMapped(quotePattern, (match) {
-      final quotedText = match.group(1) ?? '';
+      final quotedText = match.group(1) ?? "";
       quotedStrings.add(quotedText);
-      return '___QUOTED_${quotedStrings.length - 1}___';
+      return "___QUOTED_${quotedStrings.length - 1}___";
     });
 
     // Now parse the working query for tags
-    final parts = workingQuery.split(RegExp(r'\s+'));
+    final parts = workingQuery.split(RegExp(r"\s+"));
 
     for (final part in parts) {
       if (part.isEmpty) continue;
 
       // Check if this is a quoted placeholder
-      if (part.startsWith('___QUOTED_') && part.endsWith('___')) {
+      if (part.startsWith("___QUOTED_") && part.endsWith("___")) {
         final indexStr = part.substring(10, part.length - 3);
         final index = int.tryParse(indexStr);
         if (index != null && index < quotedStrings.length) {
@@ -57,7 +57,7 @@ class QueryParser {
       }
 
       // Check for exclusion pattern: -#tag
-      if (part.startsWith('-#') && part.length > 2) {
+      if (part.startsWith("-#") && part.length > 2) {
         final tagName = part.substring(2).trim();
         if (tagName.isNotEmpty) {
           excludedTags.add(tagName);
@@ -66,7 +66,7 @@ class QueryParser {
       }
 
       // Check for inclusion pattern: #tag
-      if (part.startsWith('#') && part.length > 1) {
+      if (part.startsWith("#") && part.length > 1) {
         final tagName = part.substring(1).trim();
         if (tagName.isNotEmpty) {
           includedTags.add(tagName);
@@ -79,7 +79,7 @@ class QueryParser {
     }
 
     return (
-      cleanQuery: cleanParts.join(' ').trim(),
+      cleanQuery: cleanParts.join(" ").trim(),
       includedTags: includedTags,
       excludedTags: excludedTags,
     );

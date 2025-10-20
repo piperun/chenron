@@ -1,5 +1,5 @@
-import 'package:signals/signals.dart';
-import 'package:chenron/shared/search/query_parser.dart';
+import "package:signals/signals.dart";
+import "package:chenron/shared/search/query_parser.dart";
 
 /// State management for tag filters using signals
 ///

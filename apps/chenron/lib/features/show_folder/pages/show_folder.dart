@@ -12,9 +12,9 @@ import "package:signals/signals_flutter.dart";
 /// This widget is deprecated and will be removed in a future version.
 /// Migration: Replace ShowFolder(folderId: id) with FolderViewerPage(folderId: id)
 @Deprecated(
-  'Use FolderViewerPage instead. '
-  'This widget will be removed in a future version. '
-  'Import: package:chenron/features/folder_viewer/pages/folder_viewer_page.dart',
+  "Use FolderViewerPage instead. "
+  "This widget will be removed in a future version. "
+  "Import: package:chenron/features/folder_viewer/pages/folder_viewer_page.dart",
 )
 class ShowFolder extends StatelessWidget {
   final String folderId;

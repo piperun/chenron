@@ -23,10 +23,10 @@ class MetadataFactory {
       MetadataCache.startFetching(url);
       final fetched = await MetadataFetcher.fetch(url);
       final data = <String, dynamic>{
-        'title': fetched.title,
-        'description': fetched.description,
-        'image': fetched.image,
-        'url': fetched.url ?? url,
+        "title": fetched.title,
+        "description": fetched.description,
+        "image": fetched.image,
+        "url": fetched.url ?? url,
       };
       await MetadataCache.set(url, data);
       MetadataCache.clearFailure(url);

@@ -9,9 +9,9 @@ class ItemListView extends StatelessWidget {
   final DisplayMode displayMode;
 
   // Deprecated: Use displayMode instead (kept for backwards compatibility)
-  @Deprecated('Use displayMode.showImage instead')
+  @Deprecated("Use displayMode.showImage instead")
   final bool? showImages;
-  @Deprecated('Use displayMode.maxTags instead')
+  @Deprecated("Use displayMode.maxTags instead")
   final int? maxTags;
 
   final Set<String> includedTagNames;
@@ -22,8 +22,8 @@ class ItemListView extends StatelessWidget {
     super.key,
     required this.items,
     this.displayMode = DisplayMode.standard,
-    @Deprecated('Use displayMode.showImage instead') this.showImages,
-    @Deprecated('Use displayMode.maxTags instead') this.maxTags,
+    @Deprecated("Use displayMode.showImage instead") this.showImages,
+    @Deprecated("Use displayMode.maxTags instead") this.maxTags,
     this.includedTagNames = const {},
     this.excludedTagNames = const {},
     this.onItemTap,

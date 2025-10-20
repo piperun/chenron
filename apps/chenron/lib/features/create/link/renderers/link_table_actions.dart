@@ -20,14 +20,14 @@ class LinkTableActions extends StatelessWidget {
     return Row(
       children: [
         TextButton.icon(
-          key: const Key('delete_selected_button'),
+          key: const Key("delete_selected_button"),
           onPressed: hasSelectedRows ? onDeleteSelected : null,
           icon: const Icon(Icons.delete_outline, size: 18),
           label: const Text("Delete Selected"),
         ),
         const SizedBox(width: 8),
         TextButton.icon(
-          key: const Key('clear_all_button'),
+          key: const Key("clear_all_button"),
           onPressed: hasEntries ? onClearAll : null,
           icon: const Icon(Icons.clear_all, size: 18),
           label: const Text("Clear All"),

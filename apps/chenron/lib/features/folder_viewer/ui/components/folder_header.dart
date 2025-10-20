@@ -32,7 +32,7 @@ class FolderHeader extends StatelessWidget {
     // Use system locale for date formatting with 24-hour time
     // Get the system locale (e.g., 'sv_SE' for Swedish)
     final systemLocale = Intl.systemLocale;
-    final formatter = DateFormat('yyyy-MM-dd HH:mm', systemLocale);
+    final formatter = DateFormat("yyyy-MM-dd HH:mm", systemLocale);
     return formatter.format(date.toLocal());
   }
 

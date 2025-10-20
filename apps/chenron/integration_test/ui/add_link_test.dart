@@ -634,7 +634,7 @@ https://github.com/flutter | github, flutter #opensource""";
         await tester.enterText(urlInput, "https://münchen.de");
         await tester.pumpAndSettle();
 
-        final addButton = find.byKey(const Key('bulk_add_button'));
+        final addButton = find.byKey(const Key("bulk_add_button"));
         await tester.tap(addButton);
         await tester.pumpAndSettle();
         });
@@ -1426,7 +1426,7 @@ https://fixed2.dev""";
         await tester.enterText(tagInput, "global");
         await tester.pumpAndSettle();
 
-        await tester.tap(find.byKey(const Key('global_tags_tag_add_button')));
+        await tester.tap(find.byKey(const Key("global_tags_tag_add_button")));
         await tester.pumpAndSettle();
 
         // Switch to bulk mode
@@ -1439,7 +1439,7 @@ https://fixed2.dev""";
         await tester.enterText(urlInput, "https://example.dev | inline");
         await tester.pumpAndSettle();
 
-        await tester.tap(find.byKey(const Key('bulk_add_button')));
+        await tester.tap(find.byKey(const Key("bulk_add_button")));
         await tester.pumpAndSettle();
 
         // Both tags should appear in table
@@ -1478,7 +1478,7 @@ https://fixed2.dev""";
         await _navigateToAddLink(tester);
 
         // Enable archive mode
-        final archiveSwitch = find.byKey(const Key('archive_toggle_switch'));
+        final archiveSwitch = find.byKey(const Key("archive_toggle_switch"));
         await tester.tap(archiveSwitch);
         await tester.pumpAndSettle();
 
@@ -1492,7 +1492,7 @@ https://fixed2.dev""";
         await tester.enterText(urlInput, "https://archived.dev");
         await tester.pumpAndSettle();
 
-        await tester.tap(find.byKey(const Key('bulk_add_button')));
+        await tester.tap(find.byKey(const Key("bulk_add_button")));
         await tester.pumpAndSettle();
 
         // Verify "Yes" appears in Archived column

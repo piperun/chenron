@@ -89,7 +89,7 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
               title: const Text("Add Links"),
               actions: [
                 IconButton(
-                  key: const Key('create_link_save_button'),
+                  key: const Key("create_link_save_button"),
                   icon: const Icon(Icons.save),
                   onPressed: _saveLinks,
                 ),
@@ -145,7 +145,7 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
               child: Row(
                 children: [
                   IconButton(
-                    key: const Key('create_link_close_button'),
+                    key: const Key("create_link_close_button"),
                     icon: const Icon(Icons.close),
                     onPressed: widget.onClose,
                     tooltip: "Close",
@@ -159,7 +159,7 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
                   ),
                   const Spacer(),
                   FilledButton.icon(
-                    key: const Key('create_link_header_save_button'),
+                    key: const Key("create_link_header_save_button"),
                     onPressed: _notifier.hasEntries ? _saveLinks : null,
                     icon: const Icon(Icons.save, size: 18),
                     label: const Text("Save"),
@@ -187,7 +187,7 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
                       },
                     ),
                     LinkInputSection(
-                      keyPrefix: 'link_input',
+                      keyPrefix: "link_input",
                       mode: _notifier.inputMode,
                       onModeChanged: _notifier.setInputMode,
                       onAddSingle: _handleAddSingle,
@@ -202,7 +202,7 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
                           _notifier.setArchiveMode(value: value),
                     ),
                     TagSection(
-                      keyPrefix: 'global_tags',
+                      keyPrefix: "global_tags",
                       title: "Global Tags",
                       description:
                           "Add tags to all links created in this session",

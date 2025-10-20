@@ -10,7 +10,7 @@ import "package:flutter_test/flutter_test.dart";
 
 void main() {
   testWidgets("smoke test builds a minimal widget", (WidgetTester tester) async {
-    await tester.pumpWidget(const MaterialApp(home: Scaffold(body: Text('ok'))));
-    expect(find.text('ok'), findsOneWidget);
+    await tester.pumpWidget(const MaterialApp(home: Scaffold(body: Text("ok"))));
+    expect(find.text("ok"), findsOneWidget);
   });
 }

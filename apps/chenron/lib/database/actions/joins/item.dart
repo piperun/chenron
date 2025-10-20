@@ -10,8 +10,8 @@ class ItemJoins implements RowJoins<Items, FolderItem> {
   late final $TagsTable linkTags;
 
   ItemJoins(this.db) {
-    linkMetadata = db.metadataRecords.createAlias('link_metadata');
-    linkTags = db.tags.createAlias('link_tags');
+    linkMetadata = db.metadataRecords.createAlias("link_metadata");
+    linkTags = db.tags.createAlias("link_tags");
   }
 
   @override

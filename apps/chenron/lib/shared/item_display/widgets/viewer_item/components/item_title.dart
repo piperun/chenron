@@ -24,7 +24,7 @@ class ItemTitle extends StatelessWidget {
       return FutureBuilder<Map<String, dynamic>?>(
         future: MetadataFactory.getOrFetch(url!),
         builder: (context, snapshot) {
-          final title = snapshot.data?['title'] as String? ?? url!;
+          final title = snapshot.data?["title"] as String? ?? url!;
           return Tooltip(
             message: title,
             child: Text(
