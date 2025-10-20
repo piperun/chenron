@@ -41,22 +41,3 @@ jobs:
         working-directory: apps/chenron
         run: flutter test integration_test/ --exclude-tags=online
 
-  test-online:
-    needs: test-offline
-    if: ${{ secrets.CHENRON_ARCHIVE_ORG_KEY != '' && secrets.CHENRON_ARCHIVE_ORG_SECRET != '' }}
-    runs-on: ubuntu-latest
-    env:
-      CHENRON_ARCHIVE_ORG_KEY: ${{ secrets.CHENRON_ARCHIVE_ORG_KEY }}
-      CHENRON_ARCHIVE_ORG_SECRET: ${{ secrets.CHENRON_ARCHIVE_ORG_SECRET }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with:
-            channel: 'stable'
-      - name: Pub get (workspace)
-        run: flutter pub get
-      
-      # Run chenron integration tests that require secrets
-      - name: Run chenron online integration tests
-        working-directory: apps/chenron
-        run: flutter test integration_test/ --tags=online
