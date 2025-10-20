@@ -7,12 +7,12 @@ class SectionTile extends StatelessWidget {
   final bool expanded;
 
   const SectionTile({
-    Key? key,
+    super.key,
     required this.title,
     required this.children,
     this.padding = const EdgeInsets.symmetric(vertical: 8.0),
     this.expanded = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
