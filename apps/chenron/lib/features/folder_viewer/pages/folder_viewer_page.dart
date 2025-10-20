@@ -55,7 +55,7 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
 
   Future<void> _loadLockState() async {
     final prefs = await SharedPreferences.getInstance();
-    final isLocked = prefs.getBool('folder_viewer_header_locked') ?? false;
+    final isLocked = prefs.getBool("folder_viewer_header_locked") ?? false;
     if (mounted) {
       setState(() {
         _isHeaderLocked = isLocked;
@@ -69,7 +69,7 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
       _isHeaderLocked = newLockState;
     });
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('folder_viewer_header_locked', newLockState);
+    await prefs.setBool("folder_viewer_header_locked", newLockState);
   }
 
   Widget _buildCollapsedHeader(Folder folder) {
@@ -162,7 +162,7 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
           }
 
           // Debug: print item tags
-          print('FOLDER VIEWER DEBUG: ${result.items.length} items, ${result.tags.length} folder tags');
+          print("FOLDER VIEWER DEBUG: ${result.items.length} items, ${result.tags.length} folder tags");
           for (final item in result.items.take(3)) {
             print('  Item ${item.id}: ${item.tags.length} tags - ${item.tags.map((t) => t.name).join(", ")}');
           }
@@ -203,7 +203,7 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
                   items: result.items,
                   tagFilterState: _tagFilterState,
                   enableTagFiltering: true,
-                  displayModeContext: 'folder_viewer',
+                  displayModeContext: "folder_viewer",
                 ),
               ),
             ],

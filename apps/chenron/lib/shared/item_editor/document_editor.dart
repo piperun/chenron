@@ -1,5 +1,5 @@
 import "package:flutter/material.dart";
-import "base_item_editor.dart";
+import 'package:chenron/shared/item_editor/base_item_editor.dart';
 
 class DocumentEditor extends BaseItemEditor<String> {
   const DocumentEditor({super.key, required super.onAdd});

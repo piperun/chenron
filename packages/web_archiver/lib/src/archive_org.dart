@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
-import 'archive_org_options.dart';
+import 'package:web_archiver/src/archive_org_options.dart';
 
 typedef ArchiveOrgClientFactory = ArchiveOrgClient Function(String apiKey, String apiSecret);
 ArchiveOrgClientFactory archiveOrgClientFactory = (apiKey, apiSecret) => ArchiveOrgClient(apiKey, apiSecret);
