@@ -93,6 +93,10 @@ class _GlobalSearchBarState extends State<GlobalSearchBar> {
               controller: _queryController.textController,
               hintText: "Search across all items...",
               leading: const Icon(Icons.search),
+              onSubmitted: (value) {
+                // Call the external onSubmitted if provided
+                widget.externalController?.onSubmitted?.call(value);
+              },
               trailing: [
                 Watch(
                   (context) {
@@ -136,6 +140,10 @@ class _GlobalSearchBarState extends State<GlobalSearchBar> {
             controller: _queryController.textController,
             hintText: "Search across all items...",
             leading: const Icon(Icons.search),
+            onSubmitted: (value) {
+              // Call the external onSubmitted if provided
+              widget.externalController?.onSubmitted?.call(value);
+            },
             trailing: [
               Watch(
                 (context) {

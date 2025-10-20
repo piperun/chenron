@@ -25,6 +25,7 @@ class ItemToolbar extends StatelessWidget {
   final Set<String> includedTagNames;
   final Set<String> excludedTagNames;
   final VoidCallback? onTagFilterPressed;
+  final void Function(String)? onSearchSubmitted;
 
   const ItemToolbar({
     super.key,
@@ -42,6 +43,7 @@ class ItemToolbar extends StatelessWidget {
     this.includedTagNames = const {},
     this.excludedTagNames = const {},
     this.onTagFilterPressed,
+    this.onSearchSubmitted,
   });
 
   @override
@@ -66,6 +68,7 @@ class ItemToolbar extends StatelessWidget {
                 LocalSearchBar(
                   filter: searchFilter,
                   hintText: "Search by name, URL, tags...",
+                  onSubmitted: onSearchSubmitted,
                 ),
 
               if (showSearch) const SizedBox(width: 12),

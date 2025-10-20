@@ -10,6 +10,9 @@ import "package:signals/signals.dart";
 class SearchBarController {
   final TextEditingController _textController = TextEditingController();
   final Signal<String> _query = signal("");
+  
+  /// Callback for when search is submitted (Enter pressed)
+  void Function(String query)? onSubmitted;
 
   SearchBarController() {
     _textController.addListener(() {

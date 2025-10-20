@@ -1,4 +1,4 @@
-﻿import "package:flutter/material.dart";
+import "package:flutter/material.dart";
 import "package:chenron/features/folder_viewer/ui/components/folder_header.dart";
 import "package:chenron/shared/item_display/filterable_item_display.dart";
 import "package:chenron/database/extensions/folder/read.dart";
@@ -7,6 +7,7 @@ import "package:chenron/locator.dart";
 import "package:chenron/models/db_result.dart" show FolderResult;
 import "package:chenron/models/item.dart";
 import "package:chenron/database/database.dart" show IncludeOptions, AppDataInclude, Folder;
+import "package:chenron/shared/tag_filter/tag_filter_state.dart";
 import "package:signals/signals_flutter.dart";
 import "package:shared_preferences/shared_preferences.dart";
 import "package:chenron/features/viewer/state/viewer_state.dart";
@@ -25,12 +26,14 @@ class FolderViewerPage extends StatefulWidget {
 
 class _FolderViewerPageState extends State<FolderViewerPage> {
   late Future<FolderResult> _folderData;
+  late final TagFilterState _tagFilterState;
   bool _isHeaderExpanded = true;
   bool _isHeaderLocked = false;
 
   @override
   void initState() {
     super.initState();
+    _tagFilterState = TagFilterState();
     _loadLockState();
     _folderData = locator
         .get<Signal<Future<AppDatabaseHandler>>>()
@@ -42,6 +45,12 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
                   const IncludeOptions({AppDataInclude.items, AppDataInclude.tags}),
             )
             .then((folder) => folder!));
+  }
+
+  @override
+  void dispose() {
+    _tagFilterState.dispose();
+    super.dispose();
   }
 
   Future<void> _loadLockState() async {
@@ -192,6 +201,7 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
               Expanded(
                 child: FilterableItemDisplay(
                   items: result.items,
+                  tagFilterState: _tagFilterState,
                   enableTagFiltering: true,
                   displayModeContext: 'folder_viewer',
                 ),

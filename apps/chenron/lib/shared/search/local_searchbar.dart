@@ -17,11 +17,13 @@ import "package:chenron/shared/search/search_features.dart";
 class LocalSearchBar extends StatelessWidget {
   final SearchFilter filter;
   final String hintText;
+  final void Function(String)? onSubmitted;
 
   const LocalSearchBar({
     super.key,
     required this.filter,
     this.hintText = "Search by name, URL, tags...",
+    this.onSubmitted,
   });
 
   @override
@@ -38,6 +40,7 @@ class LocalSearchBar extends StatelessWidget {
         ),
         child: TextField(
           controller: filter.controller.textController,
+          onSubmitted: onSubmitted,
           decoration: InputDecoration(
             hintText: hintText,
             prefixIcon: const Icon(Icons.search, size: 20),

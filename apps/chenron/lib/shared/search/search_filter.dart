@@ -3,6 +3,7 @@ import "package:chenron/shared/patterns/include_options.dart";
 import "package:chenron/shared/search/search_features.dart";
 import "package:chenron/shared/search/search_controller.dart";
 import "package:chenron/shared/search/search_feature_manager.dart";
+import "package:chenron/shared/search/query_parser.dart";
 
 /// Unified search filter that handles features and filtering logic
 ///
@@ -71,6 +72,8 @@ class SearchFilter {
   /// Filter items by search query, type, and tags
   ///
   /// This is the core filtering logic extracted from FilterableItemDisplay.
+  /// The query is parsed for tag patterns (#tag, -#tag) which are combined
+  /// with persistent tags from includedTags/excludedTags parameters.
   List<FolderItem> filterItems({
     required List<FolderItem> items,
     String? query,
@@ -80,33 +83,47 @@ class SearchFilter {
   }) {
     var filtered = List<FolderItem>.from(items);
 
+    // Parse query for tag patterns (real-time filtering)
+    final searchQuery = query ?? this.query;
+    final parsed = QueryParser.parseTags(searchQuery);
+    
+    // Combine parsed tags with persistent tags
+    final allIncludedTags = <String>{
+      ...?includedTags,
+      ...parsed.includedTags,
+    };
+    final allExcludedTags = <String>{
+      ...?excludedTags,
+      ...parsed.excludedTags,
+    };
+
     // Type filter
     if (types != null && types.isNotEmpty) {
       filtered = filtered.where((item) => types.contains(item.type)).toList();
     }
 
     // Tag filters (inclusive - must have at least one of these tags)
-    if (includedTags != null && includedTags.isNotEmpty) {
+    if (allIncludedTags.isNotEmpty) {
       filtered = filtered.where((item) {
         final names = item.tags.map((t) => t.name.toLowerCase()).toSet();
-        final lowerTags = includedTags.map((t) => t.toLowerCase()).toSet();
+        final lowerTags = allIncludedTags.map((t) => t.toLowerCase()).toSet();
         return names.any(lowerTags.contains);
       }).toList();
     }
 
     // Tag filters (exclusive - must not have any of these tags)
-    if (excludedTags != null && excludedTags.isNotEmpty) {
+    if (allExcludedTags.isNotEmpty) {
       filtered = filtered.where((item) {
         final names = item.tags.map((t) => t.name.toLowerCase()).toSet();
-        final lowerTags = excludedTags.map((t) => t.toLowerCase()).toSet();
+        final lowerTags = allExcludedTags.map((t) => t.toLowerCase()).toSet();
         return !names.any(lowerTags.contains);
       }).toList();
     }
 
-    // Search by query
-    final searchQuery = query ?? this.query;
-    if (searchQuery.isNotEmpty) {
-      final q = searchQuery.toLowerCase();
+    // Search by clean query (without tag patterns)
+    final cleanQuery = parsed.cleanQuery;
+    if (cleanQuery.isNotEmpty) {
+      final q = cleanQuery.toLowerCase();
       filtered = filtered.where((item) {
         // Search in path/content
         if (item.path is StringContent) {

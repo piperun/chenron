@@ -10,7 +10,7 @@ import "package:chenron/features/folder_viewer/ui/components/tag_filter_modal.da
 import "package:chenron/database/database.dart" show Tag;
 import "package:chenron/shared/search/search_filter.dart";
 import "package:chenron/shared/search/search_features.dart";
-import "package:chenron/shared/search/query_parser.dart";
+import "package:chenron/shared/tag_filter/tag_filter_state.dart";
 import "package:chenron/shared/patterns/include_options.dart";
 import "package:signals/signals_flutter.dart";
 
@@ -23,6 +23,7 @@ class FilterableItemDisplay extends StatefulWidget {
   final String? displayModeContext;
   final IncludeOptions<SearchFeature> searchFeatures;
   final SearchFilter? externalSearchFilter;
+  final TagFilterState? tagFilterState;
 
   // Deprecated: Use displayMode instead (kept for backwards compatibility)
   @Deprecated('Use displayMode.showImage instead')
@@ -49,6 +50,7 @@ class FilterableItemDisplay extends StatefulWidget {
     this.displayModeContext,
     this.searchFeatures = const IncludeOptions.empty(),
     this.externalSearchFilter,
+    this.tagFilterState,
     @Deprecated('Use displayMode.showImage instead') this.showImages,
     this.showTags = true,
     this.showSearch = true,
@@ -68,8 +70,8 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
   late DisplayMode _displayMode;
   late final SearchFilter _searchFilter;
   late final bool _ownsSearchFilter;
-  Set<String> _includedTagNames = {};
-  Set<String> _excludedTagNames = {};
+  late final TagFilterState _tagFilterState;
+  late final bool _ownsTagFilterState;
   bool _isLoadingDisplayMode = true;
 
   @override
@@ -88,6 +90,15 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
       _searchFilter = SearchFilter(features: widget.searchFeatures);
       _searchFilter.setup();
       _ownsSearchFilter = true;
+    }
+    
+    // Use external tag filter state if provided, otherwise create our own
+    if (widget.tagFilterState != null) {
+      _tagFilterState = widget.tagFilterState!;
+      _ownsTagFilterState = false;
+    } else {
+      _tagFilterState = TagFilterState();
+      _ownsTagFilterState = true;
     }
     
     _loadDisplayMode();
@@ -111,6 +122,10 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
     if (_ownsSearchFilter) {
       _searchFilter.dispose();
     }
+    // Only dispose tag state if we own it
+    if (_ownsTagFilterState) {
+      _tagFilterState.dispose();
+    }
     super.dispose();
   }
 
@@ -132,37 +147,37 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
     final result = await TagFilterModal.show(
       context: context,
       availableTags: allTags,
-      initialIncludedTags: _includedTagNames,
-      initialExcludedTags: _excludedTagNames,
+      initialIncludedTags: _tagFilterState.includedTagNames,
+      initialExcludedTags: _tagFilterState.excludedTagNames,
     );
     if (result != null) {
-      setState(() {
-        _includedTagNames = result.included;
-        _excludedTagNames = result.excluded;
-      });
+      _tagFilterState.updateTags(
+        included: result.included,
+        excluded: result.excluded,
+      );
     }
   }
 
+  void _handleSearchSubmitted(String query) {
+    print('SEARCH SUBMITTED: "$query"');
+    // Parse and add tags from query to state, get clean query back
+    final cleanQuery = _tagFilterState.parseAndAddFromQuery(query);
+    print('CLEAN QUERY: "$cleanQuery"');
+    print('INCLUDED TAGS AFTER PARSE: ${_tagFilterState.includedTagNames}');
+    print('EXCLUDED TAGS AFTER PARSE: ${_tagFilterState.excludedTagNames}');
+    
+    // Update the search query to remove tag patterns
+    _searchFilter.controller.value = cleanQuery;
+  }
+
   List<FolderItem> _getFilteredAndSortedItems(String query) {
-    // Parse query to extract tag patterns (#tag and -#tag)
-    final parsed = QueryParser.parseTags(query);
-    
-    // Combine parsed tags with manually selected tags from the filter modal
-    final combinedIncluded = widget.enableTagFiltering
-        ? {..._includedTagNames, ...parsed.includedTags}
-        : parsed.includedTags;
-    final combinedExcluded = widget.enableTagFiltering
-        ? {..._excludedTagNames, ...parsed.excludedTags}
-        : parsed.excludedTags;
-    
     // Use SearchFilter for all filtering and sorting logic
-    // Pass the clean query (without tag patterns) and combined tags
     return _searchFilter.filterAndSort(
       items: widget.items,
-      query: parsed.cleanQuery,
+      query: query,
       types: _selectedTypes,
-      includedTags: combinedIncluded.isNotEmpty ? combinedIncluded : null,
-      excludedTags: combinedExcluded.isNotEmpty ? combinedExcluded : null,
+      includedTags: widget.enableTagFiltering ? _tagFilterState.includedTagNames : null,
+      excludedTags: widget.enableTagFiltering ? _tagFilterState.excludedTagNames : null,
       sortMode: _sortMode,
     );
   }
@@ -203,23 +218,30 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
 
     return Column(
       children: [
-        ItemToolbar(
-          searchFilter: _searchFilter,
-          selectedTypes: _selectedTypes,
-          onFilterChanged: _onFilterChanged,
-          sortMode: _sortMode,
-          onSortChanged: _onSortChanged,
-          viewMode: _viewMode,
-          onViewModeChanged: _onViewModeChanged,
-          displayMode: _displayMode,
-          onDisplayModeChanged: _onDisplayModeChanged,
-          showSearch: widget.showSearch,
-          showTagFilterButton: widget.enableTagFiltering,
-          includedTagNames: _includedTagNames,
-          excludedTagNames: _excludedTagNames,
-          onTagFilterPressed:
-              widget.enableTagFiltering ? _openTagFilterModal : null,
-        ),
+        Watch((context) {
+          // Rebuild when tag state changes
+          final includedTags = _tagFilterState.includedTags.value;
+          final excludedTags = _tagFilterState.excludedTags.value;
+          
+          return ItemToolbar(
+            searchFilter: _searchFilter,
+            selectedTypes: _selectedTypes,
+            onFilterChanged: _onFilterChanged,
+            sortMode: _sortMode,
+            onSortChanged: _onSortChanged,
+            viewMode: _viewMode,
+            onViewModeChanged: _onViewModeChanged,
+            displayMode: _displayMode,
+            onDisplayModeChanged: _onDisplayModeChanged,
+            showSearch: widget.showSearch,
+            showTagFilterButton: widget.enableTagFiltering,
+            includedTagNames: includedTags,
+            excludedTagNames: excludedTags,
+            onTagFilterPressed:
+                widget.enableTagFiltering ? _openTagFilterModal : null,
+            onSearchSubmitted: widget.enableTagFiltering ? _handleSearchSubmitted : null,
+          );
+        }),
         ItemStatsBar(
           linkCount: counts[FolderItemType.link] ?? 0,
           documentCount: counts[FolderItemType.document] ?? 0,
@@ -239,8 +261,8 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
                     displayMode: _displayMode,
                     showImages: widget.showImages,
                     maxTags: widget.maxTags,
-                    includedTagNames: _includedTagNames,
-                    excludedTagNames: _excludedTagNames,
+                    includedTagNames: _tagFilterState.includedTagNames,
+                    excludedTagNames: _tagFilterState.excludedTagNames,
                     onItemTap: widget.onItemTap,
                     aspectRatio: _displayMode.aspectRatio,
                     maxCrossAxisExtent: _displayMode.maxCrossAxisExtent,
@@ -250,8 +272,8 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
                     displayMode: _displayMode,
                     showImages: widget.showImages,
                     maxTags: widget.maxTags,
-                    includedTagNames: _includedTagNames,
-                    excludedTagNames: _excludedTagNames,
+                    includedTagNames: _tagFilterState.includedTagNames,
+                    excludedTagNames: _tagFilterState.excludedTagNames,
                     onItemTap: widget.onItemTap,
                   );
           }),
