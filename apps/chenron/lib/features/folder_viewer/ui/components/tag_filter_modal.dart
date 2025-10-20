@@ -1,7 +1,7 @@
 import "package:flutter/material.dart";
 import "package:chenron/database/database.dart";
 
-enum TagFilterTab { include, exclude }
+enum TagFilterTab { active, available }
 
 class TagFilterModal extends StatefulWidget {
   final List<Tag> availableTags;
@@ -38,7 +38,7 @@ class TagFilterModal extends StatefulWidget {
 class _TagFilterModalState extends State<TagFilterModal> {
   late Set<String> _includedTags;
   late Set<String> _excludedTags;
-  TagFilterTab _activeTab = TagFilterTab.include;
+  TagFilterTab _activeTab = TagFilterTab.active;
   String _searchQuery = "";
   late final TextEditingController _searchController;
 
@@ -120,36 +120,220 @@ class _TagFilterModalState extends State<TagFilterModal> {
     return tags;
   }
 
-  bool _isTagSelected(String tagName) {
-    if (_activeTab == TagFilterTab.include) {
-      return _includedTags.contains(tagName);
-    } else {
-      return _excludedTags.contains(tagName);
-    }
+  void _addToIncluded(String tagName) {
+    setState(() {
+      _includedTags.add(tagName);
+      _excludedTags.remove(tagName);
+    });
   }
 
-  void _toggleTag(String tagName) {
+  void _addToExcluded(String tagName) {
     setState(() {
-      if (_activeTab == TagFilterTab.include) {
-        if (_includedTags.contains(tagName)) {
-          _includedTags.remove(tagName);
-        } else {
-          _includedTags.add(tagName);
-          _excludedTags.remove(tagName);
-        }
-      } else {
-        if (_excludedTags.contains(tagName)) {
-          _excludedTags.remove(tagName);
-        } else {
-          _excludedTags.add(tagName);
-          _includedTags.remove(tagName);
-        }
-      }
+      _excludedTags.add(tagName);
+      _includedTags.remove(tagName);
+    });
+  }
+
+  void _removeFromIncluded(String tagName) {
+    setState(() => _includedTags.remove(tagName));
+  }
+
+  void _removeFromExcluded(String tagName) {
+    setState(() => _excludedTags.remove(tagName));
+  }
+
+  void _clearAll() {
+    setState(() {
+      _includedTags.clear();
+      _excludedTags.clear();
     });
   }
 
   void _applyFilters() {
     Navigator.of(context).pop((included: _includedTags, excluded: _excludedTags));
+  }
+
+  Widget _buildActiveFiltersTab(ThemeData theme) {
+    if (_includedTags.isEmpty && _excludedTags.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.filter_alt_outlined,
+              size: 64,
+              color: theme.textTheme.bodyMedium?.color?.withOpacity(0.3),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              "No active filters",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+                color: theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "Type #tag in search or use Available Tags",
+              style: TextStyle(
+                fontSize: 14,
+                color: theme.textTheme.bodyMedium?.color?.withOpacity(0.5),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        if (_includedTags.isNotEmpty) ...[
+          Row(
+            children: [
+              Icon(Icons.add_circle_outline, size: 20, color: Colors.green),
+              const SizedBox(width: 8),
+              Text(
+                "Included Tags (${_includedTags.length})",
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              ),
+              const Spacer(),
+              TextButton.icon(
+                onPressed: () => setState(() => _includedTags.clear()),
+                icon: Icon(Icons.clear_all, size: 16),
+                label: Text("Clear"),
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.symmetric(horizontal: 8),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _includedTags.map((tag) {
+              return _ActiveFilterChip(
+                tag: tag,
+                color: Colors.green,
+                onRemove: () => _removeFromIncluded(tag),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 24),
+        ],
+        if (_excludedTags.isNotEmpty) ...[
+          Row(
+            children: [
+              Icon(Icons.remove_circle_outline, size: 20, color: Colors.red),
+              const SizedBox(width: 8),
+              Text(
+                "Excluded Tags (${_excludedTags.length})",
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              ),
+              const Spacer(),
+              TextButton.icon(
+                onPressed: () => setState(() => _excludedTags.clear()),
+                icon: Icon(Icons.clear_all, size: 16),
+                label: Text("Clear"),
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.symmetric(horizontal: 8),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _excludedTags.map((tag) {
+              return _ActiveFilterChip(
+                tag: tag,
+                color: Colors.red,
+                onRemove: () => _removeFromExcluded(tag),
+              );
+            }).toList(),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildAvailableTagsTab(ThemeData theme) {
+    return Column(
+      children: [
+        // Search bar
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: TextField(
+            controller: _searchController,
+            decoration: InputDecoration(
+              hintText: "Search tags or type #tag to include, -#tag to exclude...",
+              prefixIcon: const Icon(Icons.search, size: 20),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: theme.dividerColor),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: theme.dividerColor),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: theme.colorScheme.primary),
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              isDense: true,
+            ),
+            style: const TextStyle(fontSize: 14),
+          ),
+        ),
+        // Tag list
+        Expanded(
+          child: _filteredTags.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.local_offer_outlined,
+                        size: 48,
+                        color: theme.textTheme.bodyMedium?.color?.withOpacity(0.3),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        _searchQuery.isEmpty ? "No tags available" : "No matching tags",
+                        style: TextStyle(
+                          color: theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: _filteredTags.length,
+                  itemBuilder: (context, index) {
+                    final tag = _filteredTags[index];
+                    final isIncluded = _includedTags.contains(tag.name);
+                    final isExcluded = _excludedTags.contains(tag.name);
+                    return _AvailableTagItem(
+                      tag: tag,
+                      isIncluded: isIncluded,
+                      isExcluded: isExcluded,
+                      onInclude: () => _addToIncluded(tag.name),
+                      onExclude: () => _addToExcluded(tag.name),
+                      onRemove: () {
+                        if (isIncluded) _removeFromIncluded(tag.name);
+                        if (isExcluded) _removeFromExcluded(tag.name);
+                      },
+                    );
+                  },
+                ),
+        ),
+      ],
+    );
   }
 
   @override
@@ -196,12 +380,12 @@ class _TagFilterModalState extends State<TagFilterModal> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Filter by Tags",
+                          "Tag Filters",
                           style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          "Select tags to include or exclude from results",
+                          "${_includedTags.length + _excludedTags.length} active filter${_includedTags.length + _excludedTags.length == 1 ? '' : 's'}",
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
                           ),
@@ -228,83 +412,26 @@ class _TagFilterModalState extends State<TagFilterModal> {
               child: Row(
                 children: [
                   _TabButton(
-                    label: "Include",
-                    count: _includedTags.length,
-                    isActive: _activeTab == TagFilterTab.include,
-                    onTap: () => setState(() => _activeTab = TagFilterTab.include),
+                    label: "Active Filters",
+                    count: _includedTags.length + _excludedTags.length,
+                    isActive: _activeTab == TagFilterTab.active,
+                    onTap: () => setState(() => _activeTab = TagFilterTab.active),
                   ),
                   _TabButton(
-                    label: "Exclude",
-                    count: _excludedTags.length,
-                    isActive: _activeTab == TagFilterTab.exclude,
-                    onTap: () => setState(() => _activeTab = TagFilterTab.exclude),
+                    label: "Available Tags",
+                    count: widget.availableTags.length,
+                    isActive: _activeTab == TagFilterTab.available,
+                    onTap: () => setState(() => _activeTab = TagFilterTab.available),
                   ),
                 ],
               ),
             ),
 
-            // Search bar
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: "Search tags or type #tag to include, -#tag to exclude...",
-                  prefixIcon: const Icon(Icons.search, size: 20),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: theme.dividerColor),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: theme.dividerColor),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: theme.colorScheme.primary),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  isDense: true,
-                ),
-                style: const TextStyle(fontSize: 14),
-              ),
-            ),
-
-            // Tag list
+            // Content based on active tab
             Expanded(
-              child: _filteredTags.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.local_offer_outlined,
-                            size: 48,
-                            color: theme.textTheme.bodyMedium?.color?.withOpacity(0.3),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            _searchQuery.isEmpty ? "No tags available" : "No matching tags",
-                            style: TextStyle(
-                              color: theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: _filteredTags.length,
-                      itemBuilder: (context, index) {
-                        final tag = _filteredTags[index];
-                        final isSelected = _isTagSelected(tag.name);
-                        return _TagListItem(
-                          tag: tag,
-                          isSelected: isSelected,
-                          onTap: () => _toggleTag(tag.name),
-                        );
-                      },
-                    ),
+              child: _activeTab == TagFilterTab.active
+                  ? _buildActiveFiltersTab(theme)
+                  : _buildAvailableTagsTab(theme),
             ),
 
             // Bottom button
@@ -404,29 +531,73 @@ class _TabButton extends StatelessWidget {
   }
 }
 
-class _TagListItem extends StatelessWidget {
-  final Tag tag;
-  final bool isSelected;
-  final VoidCallback onTap;
+class _ActiveFilterChip extends StatelessWidget {
+  final String tag;
+  final Color color;
+  final VoidCallback onRemove;
 
-  const _TagListItem({
+  const _ActiveFilterChip({
     required this.tag,
-    required this.isSelected,
-    required this.onTap,
+    required this.color,
+    required this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Chip(
+      label: Text(tag),
+      deleteIcon: Icon(Icons.close, size: 18),
+      onDeleted: onRemove,
+      backgroundColor: color.withOpacity(0.1),
+      side: BorderSide(color: color, width: 1),
+      labelStyle: TextStyle(
+        color: color.withOpacity(0.9),
+        fontWeight: FontWeight.w500,
+      ),
+      deleteIconColor: color,
+    );
+  }
+}
+
+class _AvailableTagItem extends StatelessWidget {
+  final Tag tag;
+  final bool isIncluded;
+  final bool isExcluded;
+  final VoidCallback onInclude;
+  final VoidCallback onExclude;
+  final VoidCallback onRemove;
+
+  const _AvailableTagItem({
+    required this.tag,
+    required this.isIncluded,
+    required this.isExcluded,
+    required this.onInclude,
+    required this.onExclude,
+    required this.onRemove,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final hasFilter = isIncluded || isExcluded;
+    
     return InkWell(
-      onTap: onTap,
+      onTap: hasFilter ? onRemove : onInclude,
       borderRadius: BorderRadius.circular(8),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         margin: const EdgeInsets.only(bottom: 4),
         decoration: BoxDecoration(
-          color: isSelected ? theme.colorScheme.primary.withOpacity(0.1) : Colors.transparent,
+          color: hasFilter
+              ? (isIncluded ? Colors.green : Colors.red).withOpacity(0.05)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
+          border: hasFilter
+              ? Border.all(
+                  color: (isIncluded ? Colors.green : Colors.red).withOpacity(0.3),
+                  width: 1,
+                )
+              : null,
         ),
         child: Row(
           children: [
@@ -437,20 +608,101 @@ class _TagListItem extends StatelessWidget {
                 color: theme.colorScheme.secondary.withOpacity(0.2),
                 shape: BoxShape.circle,
               ),
-              child: Icon(Icons.local_offer, size: 16, color: theme.colorScheme.secondary),
+              child: Icon(
+                Icons.local_offer,
+                size: 16,
+                color: theme.colorScheme.secondary,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 tag.name,
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: hasFilter ? FontWeight.w600 : FontWeight.w500,
+                ),
               ),
             ),
-            Checkbox(
-              value: isSelected,
-              onChanged: (_) => onTap(),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-            ),
+            if (isIncluded)
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.add_circle, size: 14, color: Colors.green),
+                    SizedBox(width: 4),
+                    Text(
+                      'Included',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            if (isExcluded)
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.remove_circle, size: 14, color: Colors.red),
+                    SizedBox(width: 4),
+                    Text(
+                      'Excluded',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.red,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            if (!hasFilter)
+              PopupMenuButton<String>(
+                icon: Icon(Icons.more_vert, size: 20),
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'include',
+                    child: Row(
+                      children: [
+                        Icon(Icons.add_circle_outline, size: 18, color: Colors.green),
+                        SizedBox(width: 8),
+                        Text('Include'),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'exclude',
+                    child: Row(
+                      children: [
+                        Icon(Icons.remove_circle_outline, size: 18, color: Colors.red),
+                        SizedBox(width: 8),
+                        Text('Exclude'),
+                      ],
+                    ),
+                  ),
+                ],
+                onSelected: (value) {
+                  if (value == 'include') {
+                    onInclude();
+                  } else if (value == 'exclude') {
+                    onExclude();
+                  }
+                },
+              ),
           ],
         ),
       ),
