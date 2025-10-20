@@ -41,3 +41,25 @@ jobs:
         working-directory: apps/chenron
         run: flutter test integration_test/ --exclude-tags=online
 
+  test-online:
+    needs: test-offline
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+            channel: 'stable'
+      - name: Pub get (workspace)
+        run: flutter pub get
+      
+      # Run chenron unit tests that require secrets (if any)
+      - name: Run chenron online unit tests
+        working-directory: apps/chenron
+        run: flutter test test/ --tags=online
+      
+      # Run chenron integration tests that require secrets
+      - name: Run chenron online integration tests
+        working-directory: apps/chenron
+        run: flutter test integration_test/ --tags=online
+
