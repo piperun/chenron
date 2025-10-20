@@ -30,41 +30,59 @@ class TagFilterState {
   /// Current excluded tag names
   Set<String> get excludedTagNames => _excludedTags.value;
 
-  /// Add a tag to the included set
+  /// Add a tag to the included set (and remove from excluded)
   void addIncluded(String tag) {
-    final updated = Set<String>.from(_includedTags.value);
-    updated.add(tag);
-    // Remove from excluded if present
-    final excludedUpdated = Set<String>.from(_excludedTags.value);
-    excludedUpdated.remove(tag);
-    
-    _includedTags.value = updated;
-    _excludedTags.value = excludedUpdated;
+    final updatedIncluded = Set<String>.from(_includedTags.value)..add(tag);
+    final updatedExcluded = Set<String>.from(_excludedTags.value)..remove(tag);
+    _includedTags.value = updatedIncluded;
+    _excludedTags.value = updatedExcluded;
   }
 
-  /// Add a tag to the excluded set
+  /// Add a tag to the excluded set (and remove from included)
   void addExcluded(String tag) {
-    final updated = Set<String>.from(_excludedTags.value);
-    updated.add(tag);
-    // Remove from included if present
-    final includedUpdated = Set<String>.from(_includedTags.value);
-    includedUpdated.remove(tag);
-    
-    _excludedTags.value = updated;
-    _includedTags.value = includedUpdated;
+    final updatedExcluded = Set<String>.from(_excludedTags.value)..add(tag);
+    final updatedIncluded = Set<String>.from(_includedTags.value)..remove(tag);
+    _excludedTags.value = updatedExcluded;
+    _includedTags.value = updatedIncluded;
+  }
+
+  /// Add many tags to the included set (and remove them from excluded)
+  void includeMany(Iterable<String> tags) {
+    final updatedIncluded = Set<String>.from(_includedTags.value)..addAll(tags);
+    final updatedExcluded = Set<String>.from(_excludedTags.value)..removeAll(tags);
+    _includedTags.value = updatedIncluded;
+    _excludedTags.value = updatedExcluded;
+  }
+
+  /// Add many tags to the excluded set (and remove them from included)
+  void excludeMany(Iterable<String> tags) {
+    final updatedExcluded = Set<String>.from(_excludedTags.value)..addAll(tags);
+    final updatedIncluded = Set<String>.from(_includedTags.value)..removeAll(tags);
+    _excludedTags.value = updatedExcluded;
+    _includedTags.value = updatedIncluded;
   }
 
   /// Remove a tag from the included set
   void removeIncluded(String tag) {
-    final updated = Set<String>.from(_includedTags.value);
-    updated.remove(tag);
+    final updated = Set<String>.from(_includedTags.value)..remove(tag);
     _includedTags.value = updated;
   }
 
   /// Remove a tag from the excluded set
   void removeExcluded(String tag) {
-    final updated = Set<String>.from(_excludedTags.value);
-    updated.remove(tag);
+    final updated = Set<String>.from(_excludedTags.value)..remove(tag);
+    _excludedTags.value = updated;
+  }
+
+  /// Remove many tags from the included set
+  void removeIncludedMany(Iterable<String> tags) {
+    final updated = Set<String>.from(_includedTags.value)..removeAll(tags);
+    _includedTags.value = updated;
+  }
+
+  /// Remove many tags from the excluded set
+  void removeExcludedMany(Iterable<String> tags) {
+    final updated = Set<String>.from(_excludedTags.value)..removeAll(tags);
     _excludedTags.value = updated;
   }
 
@@ -93,22 +111,13 @@ class TagFilterState {
   /// adds them to the state, and returns the clean query.
   String parseAndAddFromQuery(String query) {
     final parsed = QueryParser.parseTags(query);
-    print('PARSE TAGS DEBUG: includedTags=${parsed.includedTags}, excludedTags=${parsed.excludedTags}');
-    
-    // Add parsed tags to state
-    if (parsed.includedTags.isNotEmpty || parsed.excludedTags.isNotEmpty) {
-      final newIncluded = Set<String>.from(_includedTags.value);
-      final newExcluded = Set<String>.from(_excludedTags.value);
-      
-      newIncluded.addAll(parsed.includedTags);
-      newExcluded.addAll(parsed.excludedTags);
-      
-      print('UPDATING SIGNALS: newIncluded=$newIncluded, newExcluded=$newExcluded');
-      _includedTags.value = newIncluded;
-      _excludedTags.value = newExcluded;
-      print('SIGNALS UPDATED: included=${_includedTags.value}, excluded=${_excludedTags.value}');
+    // Add parsed tags to state; ensure conflicts are resolved
+    if (parsed.includedTags.isNotEmpty) {
+      includeMany(parsed.includedTags);
     }
-    
+    if (parsed.excludedTags.isNotEmpty) {
+      excludeMany(parsed.excludedTags);
+    }
     return parsed.cleanQuery;
   }
 

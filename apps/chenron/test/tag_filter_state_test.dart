@@ -154,6 +154,32 @@ void main() {
       state.dispose();
     });
 
+    test('includeMany/excludeMany handle conflicts and idempotency', () {
+      final state = TagFilterState();
+
+      state.includeMany({'a', 'b', 'c'});
+      expect(state.includedTagNames, {'a', 'b', 'c'});
+      expect(state.excludedTagNames, isEmpty);
+
+      // Exclude b and d (d new)
+      state.excludeMany({'b', 'd'});
+      expect(state.includedTagNames, {'a', 'c'});
+      expect(state.excludedTagNames, {'b', 'd'});
+
+      // Include b again should remove from excluded
+      state.includeMany({'b'});
+      expect(state.includedTagNames, {'a', 'b', 'c'});
+      expect(state.excludedTagNames, {'d'});
+
+      // Idempotent operations
+      state.includeMany({'a', 'b'});
+      state.excludeMany({'d'});
+      expect(state.includedTagNames, {'a', 'b', 'c'});
+      expect(state.excludedTagNames, {'d'});
+
+      state.dispose();
+    });
+
     test('parseAndAddFromQuery adds tags from query', () {
       final state = TagFilterState();
       
