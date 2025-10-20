@@ -1,4 +1,4 @@
-import "package:chenron/components/tables/link_table.dart";
+import "package:chenron/components/tables/item_table.dart";
 import "package:chenron/notifiers/item_table_notifier.dart";
 import "package:flutter/material.dart";
 import "package:trina_grid/trina_grid.dart";

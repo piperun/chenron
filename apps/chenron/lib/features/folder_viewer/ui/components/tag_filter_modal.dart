@@ -338,14 +338,16 @@ class _TagFilterModalState extends State<TagFilterModal> {
         // Controls row: bulk toggle and (when bulk) mode selector
         Padding(
           padding: const EdgeInsets.only(left: 16, right: 16, top: 16),
-          child: Row(
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               FilterChip(
                 label: const Text('Bulk mode'),
                 selected: _bulkEnabled,
                 onSelected: (_) => _toggleBulk(),
               ),
-              const SizedBox(width: 8),
               if (_bulkEnabled)
                 SegmentedButton<BulkMode>(
                   segments: const [
@@ -355,13 +357,12 @@ class _TagFilterModalState extends State<TagFilterModal> {
                   selected: <BulkMode>{_bulkMode},
                   onSelectionChanged: (set) => setState(() => _bulkMode = set.first),
                 ),
-              const Spacer(),
               if (_bulkEnabled)
                 TextButton(
                   onPressed: _selectedForBulk.isEmpty
                       ? null
                       : () => setState(() => _selectedForBulk.clear()),
-                  child: const Text('Clear selection'),
+                  child: const Text('Clear'),
                 ),
             ],
           ),

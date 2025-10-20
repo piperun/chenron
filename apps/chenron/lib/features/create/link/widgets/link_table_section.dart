@@ -1,7 +1,7 @@
 import "package:flutter/material.dart";
 import "package:chenron/features/create/link/models/link_entry.dart";
 import "package:chenron/notifiers/item_table_notifier.dart";
-import "package:chenron/components/tables/link_table.dart";
+import "package:chenron/components/tables/item_table.dart";
 import "package:chenron/features/create/link/renderers/link_column_builder.dart";
 import "package:chenron/features/create/link/renderers/link_row_builder.dart";
 import "package:chenron/features/create/link/renderers/link_empty_state.dart";

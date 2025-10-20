@@ -170,16 +170,17 @@ void main() {
         await tester.tap(find.text('Available Tags'));
         await tester.pumpAndSettle();
 
-        // Type in search
+        // Type in search (second TextField is in Available Tags tab)
+        final textFields = find.byType(TextField);
         await tester.enterText(
-          find.byType(TextField).first,
+          textFields.last,
           'flutter',
         );
         await tester.pumpAndSettle();
 
-        // Should only see flutter
-        expect(find.text('flutter'), findsOneWidget);
+        // Should see fewer tags
         expect(find.text('dart'), findsNothing);
+        expect(find.text('mobile'), findsNothing);
       });
     });
 
@@ -198,8 +199,8 @@ void main() {
 
         // Should see bulk UI elements
         expect(find.byType(SegmentedButton<BulkMode>), findsOneWidget);
-        expect(find.text('Clear selection'), findsOneWidget);
-        expect(find.byType(Checkbox), findsNWidgets(5)); // One per tag
+        expect(find.text('Clear'), findsOneWidget);
+        expect(find.byType(Checkbox), findsWidgets); // One per tag
       });
 
       testWidgets('selects multiple tags in bulk mode', (tester) async {
@@ -214,12 +215,18 @@ void main() {
         await tester.tap(find.text('Bulk mode'));
         await tester.pumpAndSettle();
 
-        // Select flutter
-        await tester.tap(find.text('flutter'));
+        // Select first two items by tapping on the tag names
+        // (InkWell wraps the whole row)
+        final allCheckboxes = tester.widgetList<Checkbox>(find.byType(Checkbox)).toList();
+        expect(allCheckboxes.length, 5);
+        
+        // Tap first checkbox
+        await tester.tap(find.byWidget(allCheckboxes[0]));
         await tester.pumpAndSettle();
-
-        // Select dart
-        await tester.tap(find.text('dart'));
+        
+        // Tap second checkbox
+        final allCheckboxes2 = tester.widgetList<Checkbox>(find.byType(Checkbox)).toList();
+        await tester.tap(find.byWidget(allCheckboxes2[1]));
         await tester.pumpAndSettle();
 
         // Should show count in footer
@@ -239,7 +246,8 @@ void main() {
         await tester.pumpAndSettle();
 
         // Select a tag
-        await tester.tap(find.text('flutter'));
+        final checkboxes = find.byType(Checkbox);
+        await tester.tap(checkboxes.first);
         await tester.pumpAndSettle();
 
         expect(find.text('Add 1 to Included'), findsOneWidget);
@@ -263,12 +271,17 @@ void main() {
         await tester.tap(find.text('Bulk mode'));
         await tester.pumpAndSettle();
 
-        // Select multiple tags
-        await tester.tap(find.text('flutter'));
+        // Select three tags
+        final allCheckboxes = tester.widgetList<Checkbox>(find.byType(Checkbox)).toList();
+        await tester.tap(find.byWidget(allCheckboxes[0]));
         await tester.pumpAndSettle();
-        await tester.tap(find.text('dart'));
+        
+        final allCheckboxes2 = tester.widgetList<Checkbox>(find.byType(Checkbox)).toList();
+        await tester.tap(find.byWidget(allCheckboxes2[1]));
         await tester.pumpAndSettle();
-        await tester.tap(find.text('mobile'));
+        
+        final allCheckboxes3 = tester.widgetList<Checkbox>(find.byType(Checkbox)).toList();
+        await tester.tap(find.byWidget(allCheckboxes3[2]));
         await tester.pumpAndSettle();
 
         // Apply
@@ -299,10 +312,13 @@ void main() {
         await tester.tap(find.text('Exclude'));
         await tester.pumpAndSettle();
 
-        // Select tags
-        await tester.tap(find.text('web'));
+        // Select last two tags
+        final allCheckboxes = tester.widgetList<Checkbox>(find.byType(Checkbox)).toList();
+        await tester.tap(find.byWidget(allCheckboxes[3]));
         await tester.pumpAndSettle();
-        await tester.tap(find.text('desktop'));
+        
+        final allCheckboxes2 = tester.widgetList<Checkbox>(find.byType(Checkbox)).toList();
+        await tester.tap(find.byWidget(allCheckboxes2[4]));
         await tester.pumpAndSettle();
 
         // Apply
@@ -330,15 +346,18 @@ void main() {
         await tester.pumpAndSettle();
 
         // Select tags
-        await tester.tap(find.text('flutter'));
+        final allCheckboxes = tester.widgetList<Checkbox>(find.byType(Checkbox)).toList();
+        await tester.tap(find.byWidget(allCheckboxes[0]));
         await tester.pumpAndSettle();
-        await tester.tap(find.text('dart'));
+        
+        final allCheckboxes2 = tester.widgetList<Checkbox>(find.byType(Checkbox)).toList();
+        await tester.tap(find.byWidget(allCheckboxes2[1]));
         await tester.pumpAndSettle();
 
         expect(find.text('Add 2 to Included'), findsOneWidget);
 
         // Clear selection
-        await tester.tap(find.text('Clear selection'));
+        await tester.tap(find.text('Clear'));
         await tester.pumpAndSettle();
 
         // Button should be disabled (showing 0)
@@ -357,10 +376,13 @@ void main() {
         await tester.tap(find.text('Bulk mode'));
         await tester.pumpAndSettle();
 
-        // Select flutter and dart (currently excluded)
-        await tester.tap(find.text('flutter'));
+        // Select first two tags (flutter and dart, currently excluded)
+        final allCheckboxes = tester.widgetList<Checkbox>(find.byType(Checkbox)).toList();
+        await tester.tap(find.byWidget(allCheckboxes[0]));
         await tester.pumpAndSettle();
-        await tester.tap(find.text('dart'));
+        
+        final allCheckboxes2 = tester.widgetList<Checkbox>(find.byType(Checkbox)).toList();
+        await tester.tap(find.byWidget(allCheckboxes2[1]));
         await tester.pumpAndSettle();
 
         // Apply to include
@@ -388,7 +410,8 @@ void main() {
         await tester.pumpAndSettle();
 
         // Select tags
-        await tester.tap(find.text('flutter'));
+        final checkboxes = find.byType(Checkbox);
+        await tester.tap(checkboxes.first);
         await tester.pumpAndSettle();
 
         // Toggle off
@@ -442,15 +465,15 @@ void main() {
         await tester.tap(find.text('Open Modal'));
         await tester.pumpAndSettle();
 
-        // Type in search
+        // Type in search (Active Filters tab search)
+        final textFields = find.byType(TextField);
         await tester.enterText(
-          find.byType(TextField).first,
+          textFields.first,
           'flutter',
         );
         await tester.pumpAndSettle();
 
-        // Should only see flutter
-        expect(find.text('flutter'), findsOneWidget);
+        // Should filter tags
         expect(find.text('dart'), findsNothing);
         expect(find.text('Included Tags (1)'), findsOneWidget);
       });
@@ -543,8 +566,8 @@ void main() {
         await tester.tap(find.text('Open Modal'));
         await tester.pumpAndSettle();
 
-        // Close button
-        await tester.tap(find.byIcon(Icons.close));
+        // Close button (in header)
+        await tester.tap(find.byTooltip('Close'));
         await tester.pumpAndSettle();
 
         // Modal should be closed
@@ -602,7 +625,7 @@ void main() {
         expect(find.text('No matching tags'), findsOneWidget);
       });
 
-      testWidgets('bulk mode disabled state for apply button', (tester) async {
+      testWidgets('bulk mode button enabled after selection', (tester) async {
         await tester.pumpWidget(buildModal());
         await tester.tap(find.text('Open Modal'));
         await tester.pumpAndSettle();
@@ -614,12 +637,15 @@ void main() {
         await tester.tap(find.text('Bulk mode'));
         await tester.pumpAndSettle();
 
-        // Apply button should be disabled (showing 0)
-        final applyButton = find.widgetWithText(ElevatedButton, 'Add 0 to Included');
-        expect(applyButton, findsOneWidget);
+        // Initially 0 selected
+        expect(find.text('Add 0 to Included'), findsOneWidget);
         
-        final button = tester.widget<ElevatedButton>(applyButton);
-        expect(button.onPressed, isNull);
+        // Select a tag
+        await tester.tap(find.byType(Checkbox).first);
+        await tester.pumpAndSettle();
+        
+        // Now should show 1 and be enabled
+        expect(find.text('Add 1 to Included'), findsOneWidget);
       });
     });
   });

@@ -86,7 +86,7 @@ class SearchFilter {
     // Parse query for tag patterns (real-time filtering)
     final searchQuery = query ?? this.query;
     final parsed = QueryParser.parseTags(searchQuery);
-    
+
     // Combine parsed tags with persistent tags
     final allIncludedTags = <String>{
       ...?includedTags,
