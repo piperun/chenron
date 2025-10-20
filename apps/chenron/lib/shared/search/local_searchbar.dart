@@ -1,71 +1,33 @@
 import "package:flutter/material.dart";
-import "package:chenron/shared/search/search_controller.dart";
+import "package:chenron/shared/search/search_filter.dart";
 import "package:chenron/shared/search/search_features.dart";
-import "package:chenron/shared/search/search_feature_manager.dart";
-import "package:chenron/shared/patterns/include_options.dart";
 
 /// A simple searchbar for local filtering (e.g., filtering items in a list)
 ///
-/// Supports optional features like debouncing and history through [features] parameter.
-/// Features are configured using the IncludeOptions pattern, similar to database queries.
+/// Now uses SearchFilter which manages features and filtering logic.
 ///
 /// Example:
 /// ```dart
-/// LocalSearchBar(
-///   controller: myController,
+/// final filter = SearchFilter(
 ///   features: const SearchFeatures({SearchFeature.debounce}),
-///   debounceDuration: Duration(milliseconds: 500),
-/// )
+/// );
+///
+/// LocalSearchBar(filter: filter)
 /// ```
-class LocalSearchBar extends StatefulWidget {
-  final SearchBarController controller;
-  final IncludeOptions<SearchFeature> features;
+class LocalSearchBar extends StatelessWidget {
+  final SearchFilter filter;
   final String hintText;
-
-  // Feature-specific configuration (only used if feature is enabled)
-  final Duration debounceDuration;
-  final String? historyKey;
-  final int maxHistoryItems;
 
   const LocalSearchBar({
     super.key,
-    required this.controller,
-    this.features = const IncludeOptions.empty(),
+    required this.filter,
     this.hintText = "Search by name, URL, tags...",
-    this.debounceDuration = const Duration(milliseconds: 300),
-    this.historyKey,
-    this.maxHistoryItems = 10,
   });
-
-  @override
-  State<LocalSearchBar> createState() => _LocalSearchBarState();
-}
-
-class _LocalSearchBarState extends State<LocalSearchBar> {
-  late final SearchFeatureManager _featureManager;
-
-  @override
-  void initState() {
-    super.initState();
-    _featureManager = SearchFeatureManager(
-      features: widget.features,
-      debounceDuration: widget.debounceDuration,
-      historyKey: widget.historyKey,
-      maxHistoryItems: widget.maxHistoryItems,
-    );
-    _featureManager.setup(widget.controller);
-  }
-
-  @override
-  void dispose() {
-    _featureManager.dispose(widget.controller);
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final hasHistory = _featureManager.has(SearchFeature.history);
+    final hasHistory = filter.hasFeature(SearchFeature.history);
 
     return Flexible(
       flex: 2,
@@ -75,9 +37,9 @@ class _LocalSearchBarState extends State<LocalSearchBar> {
           maxWidth: 400,
         ),
         child: TextField(
-          controller: widget.controller.textController,
+          controller: filter.controller.textController,
           decoration: InputDecoration(
-            hintText: widget.hintText,
+            hintText: hintText,
             prefixIcon: const Icon(Icons.search, size: 20),
             suffixIcon: hasHistory
                 ? IconButton(
@@ -110,10 +72,7 @@ class _LocalSearchBarState extends State<LocalSearchBar> {
     );
   }
 
-  void _showHistory() async {
-    final history = await _featureManager.loadHistory();
-    if (!mounted || history.isEmpty) return;
-
+  void _showHistory() {
     // TODO: Implement history UI (modal/dropdown)
     // For now, just a placeholder
   }

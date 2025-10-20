@@ -14,7 +14,7 @@ import "package:url_launcher/url_launcher.dart";
 class GlobalSuggestionBuilder {
   final Signal<Future<AppDatabaseHandler>> db;
   final BuildContext context;
-  final SearchController controller;
+  final SearchController? controller;
   final SearchBarController? queryController;
   final Future<void> Function({
     required String type,
@@ -25,21 +25,22 @@ class GlobalSuggestionBuilder {
   GlobalSuggestionBuilder({
     required this.db,
     required this.context,
-    required this.controller,
+    this.controller,
     this.queryController,
     this.onItemSelected,
   });
 
   Future<List<ListTile>> buildSuggestions() async {
     final handler = await db.value;
+    final query = queryController?.query.value ?? controller?.text ?? '';
     final folders =
-        await handler.appDatabase.searchFolders(query: controller.text);
+        await handler.appDatabase.searchFolders(query: query);
 
-    final links = await handler.appDatabase.searchLinks(query: controller.text);
+    final links = await handler.appDatabase.searchLinks(query: query);
 
     if (!context.mounted) return [];
 
-    final searchMatcher = SearchMatcher(controller.text);
+    final searchMatcher = SearchMatcher(query);
     final suggestionFactory = SuggestionFactory(
       context,
       controller,
@@ -67,7 +68,7 @@ class GlobalSuggestionBuilder {
 
 class SuggestionFactory {
   final BuildContext context;
-  final SearchController controller;
+  final SearchController? controller;
   final Future<void> Function({
     required String type,
     required String id,
@@ -84,7 +85,7 @@ class SuggestionFactory {
     return SuggestionTile(
       icon: Icons.folder,
       title: folder.data.title,
-      searchText: controller.text,
+      searchText: controller?.text ?? '',
       onTapAction: () => _handleFolderNavigation(
         folder.data.id,
         folder.data.title,
@@ -96,7 +97,7 @@ class SuggestionFactory {
     return SuggestionTile(
       icon: Icons.link,
       title: link.data.path,
-      searchText: controller.text,
+      searchText: controller?.text ?? '',
       onTapAction: () => _handleUrlLaunch(
         link.data.path,
         link.data.path, // URL as title for links
@@ -112,7 +113,7 @@ class SuggestionFactory {
       title: title,
     );
     
-    controller.closeView(controller.text);
+    // Overlay will be removed by SuggestionsOverlay after selection
     if (context.mounted) {
       Navigator.push(
         context,
@@ -131,7 +132,7 @@ class SuggestionFactory {
       title: title,
     );
     
-    controller.closeView(controller.text);
+    // Overlay will be removed by SuggestionsOverlay after selection
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);

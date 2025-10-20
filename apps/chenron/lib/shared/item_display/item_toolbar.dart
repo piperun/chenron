@@ -2,20 +2,16 @@ import "package:flutter/material.dart";
 import "package:chenron/models/item.dart";
 import "package:chenron/shared/item_display/widgets/display_mode/display_mode.dart";
 import "package:chenron/shared/item_display/widgets/display_mode/display_mode_switcher.dart";
-import "package:chenron/shared/search/search_controller.dart";
+import "package:chenron/shared/search/search_filter.dart";
 import "package:chenron/shared/search/local_searchbar.dart";
+
+// Re-export SortMode from SearchFilter for convenience
+export "package:chenron/shared/search/search_filter.dart" show SortMode;
 
 enum ViewMode { grid, list }
 
-enum SortMode {
-  nameAsc,
-  nameDesc,
-  dateAsc,
-  dateDesc,
-}
-
 class ItemToolbar extends StatelessWidget {
-  final SearchBarController searchController;
+  final SearchFilter searchFilter;
   final Set<FolderItemType> selectedTypes;
   final ValueChanged<Set<FolderItemType>> onFilterChanged;
   final SortMode sortMode;
@@ -32,7 +28,7 @@ class ItemToolbar extends StatelessWidget {
 
   const ItemToolbar({
     super.key,
-    required this.searchController,
+    required this.searchFilter,
     required this.selectedTypes,
     required this.onFilterChanged,
     required this.sortMode,
@@ -63,18 +59,12 @@ class ItemToolbar extends StatelessWidget {
           ),
         ),
       ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          // Calculate 50% width for search bar, minimum 300px
-          final searchWidth =
-              (constraints.maxWidth * 0.5).clamp(300.0, double.infinity);
-
-          return Row(
+      child: Row(
             children: [
               // Search box
               if (showSearch)
                 LocalSearchBar(
-                  controller: searchController,
+                  filter: searchFilter,
                   hintText: "Search by name, URL, tags...",
                 ),
 
@@ -144,9 +134,7 @@ class ItemToolbar extends StatelessWidget {
                 ),
               ),
             ],
-          );
-        },
-      ),
+          ),
     );
   }
 

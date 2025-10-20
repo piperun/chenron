@@ -8,7 +8,9 @@ import "package:chenron/shared/item_display/item_grid_view.dart";
 import "package:chenron/shared/item_display/item_list_view.dart";
 import "package:chenron/features/folder_viewer/ui/components/tag_filter_modal.dart";
 import "package:chenron/database/database.dart" show Tag;
-import "package:chenron/shared/search/search_controller.dart";
+import "package:chenron/shared/search/search_filter.dart";
+import "package:chenron/shared/search/search_features.dart";
+import "package:chenron/shared/patterns/include_options.dart";
 import "package:signals/signals_flutter.dart";
 
 class FilterableItemDisplay extends StatefulWidget {
@@ -18,6 +20,8 @@ class FilterableItemDisplay extends StatefulWidget {
   final Set<FolderItemType> initialSelectedTypes;
   final DisplayMode displayMode;
   final String? displayModeContext;
+  final IncludeOptions<SearchFeature> searchFeatures;
+  final SearchFilter? externalSearchFilter;
 
   // Deprecated: Use displayMode instead (kept for backwards compatibility)
   @Deprecated('Use displayMode.showImage instead')
@@ -42,6 +46,8 @@ class FilterableItemDisplay extends StatefulWidget {
     },
     this.displayMode = DisplayMode.standard,
     this.displayModeContext,
+    this.searchFeatures = const IncludeOptions.empty(),
+    this.externalSearchFilter,
     @Deprecated('Use displayMode.showImage instead') this.showImages,
     this.showTags = true,
     this.showSearch = true,
@@ -59,7 +65,8 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
   late SortMode _sortMode;
   late Set<FolderItemType> _selectedTypes;
   late DisplayMode _displayMode;
-  final SearchBarController _searchController = SearchBarController();
+  late final SearchFilter _searchFilter;
+  late final bool _ownsSearchFilter;
   Set<String> _includedTagNames = {};
   Set<String> _excludedTagNames = {};
   bool _isLoadingDisplayMode = true;
@@ -71,6 +78,17 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
     _sortMode = widget.initialSortMode;
     _selectedTypes = Set.of(widget.initialSelectedTypes);
     _displayMode = widget.displayMode; // Use provided default initially
+    
+    // Use external search filter if provided, otherwise create our own
+    if (widget.externalSearchFilter != null) {
+      _searchFilter = widget.externalSearchFilter!;
+      _ownsSearchFilter = false;
+    } else {
+      _searchFilter = SearchFilter(features: widget.searchFeatures);
+      _searchFilter.setup();
+      _ownsSearchFilter = true;
+    }
+    
     _loadDisplayMode();
   }
 
@@ -88,7 +106,10 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
 
   @override
   void dispose() {
-    _searchController.dispose();
+    // Only dispose filter if we own it
+    if (_ownsSearchFilter) {
+      _searchFilter.dispose();
+    }
     super.dispose();
   }
 
@@ -121,62 +142,16 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
     }
   }
 
-  List<FolderItem> _getFilteredAndSortedItems(String searchQuery) {
-    var itemsList = List<FolderItem>.from(widget.items);
-
-    // Type filter
-    itemsList =
-        itemsList.where((item) => _selectedTypes.contains(item.type)).toList();
-
-    // Tag filters
-    if (widget.enableTagFiltering) {
-      if (_includedTagNames.isNotEmpty) {
-        itemsList = itemsList.where((item) {
-          final names = item.tags.map((t) => t.name).toSet();
-          return names.any(_includedTagNames.contains);
-        }).toList();
-      }
-      if (_excludedTagNames.isNotEmpty) {
-        itemsList = itemsList.where((item) {
-          final names = item.tags.map((t) => t.name).toSet();
-          return !names.any(_excludedTagNames.contains);
-        }).toList();
-      }
-    }
-
-    // Search
-    if (searchQuery.isNotEmpty) {
-      final q = searchQuery.toLowerCase();
-      itemsList = itemsList.where((item) {
-        if (item.path is StringContent) {
-          final pathStr = (item.path as StringContent).value.toLowerCase();
-          if (pathStr.contains(q)) return true;
-        }
-        if (item.tags.any((t) => t.name.toLowerCase().contains(q))) return true;
-        return false;
-      }).toList();
-    }
-
-    // Sort
-    itemsList.sort((a, b) {
-      switch (_sortMode) {
-        case SortMode.nameAsc:
-          return _getItemName(a).compareTo(_getItemName(b));
-        case SortMode.nameDesc:
-          return _getItemName(b).compareTo(_getItemName(a));
-        case SortMode.dateAsc:
-          return 0;
-        case SortMode.dateDesc:
-          return 0;
-      }
-    });
-
-    return itemsList;
-  }
-
-  String _getItemName(FolderItem item) {
-    if (item.path is StringContent) return (item.path as StringContent).value;
-    return "";
+  List<FolderItem> _getFilteredAndSortedItems(String query) {
+    // Use SearchFilter for all filtering and sorting logic
+    return _searchFilter.filterAndSort(
+      items: widget.items,
+      query: query,
+      types: _selectedTypes,
+      includedTags: widget.enableTagFiltering ? _includedTagNames : null,
+      excludedTags: widget.enableTagFiltering ? _excludedTagNames : null,
+      sortMode: _sortMode,
+    );
   }
 
   Map<FolderItemType, int> _getItemCounts(List<FolderItem> items) {
@@ -216,7 +191,7 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
     return Column(
       children: [
         ItemToolbar(
-          searchController: _searchController,
+          searchFilter: _searchFilter,
           selectedTypes: _selectedTypes,
           onFilterChanged: _onFilterChanged,
           sortMode: _sortMode,
@@ -241,8 +216,9 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
         ),
         Expanded(
           child: Watch((context) {
-            final searchQuery = _searchController.query.value;
-            final filtered = _getFilteredAndSortedItems(searchQuery);
+            // Trigger rebuild when search query changes
+            final currentQuery = _searchFilter.controller.query.value;
+            final filtered = _getFilteredAndSortedItems(currentQuery);
             
             return _viewMode == ViewMode.grid
                 ? ItemGridView(

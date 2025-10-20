@@ -1,5 +1,8 @@
 import "package:flutter/material.dart";
 import "package:chenron/shared/search/searchbar.dart";
+import "package:chenron/shared/search/search_filter.dart";
+import "package:chenron/shared/search/search_features.dart";
+import "package:chenron/shared/patterns/include_options.dart";
 import "package:chenron/features/shell/widgets/add_item_modal.dart";
 import "package:chenron/features/shell/ui/sections/navigation_section.dart";
 import "package:chenron/features/shell/ui/sections/appbar_section.dart";
@@ -17,6 +20,24 @@ class _RootPageState extends State<RootPage> {
   AppPage _currentPage = AppPage.dashboard;
   AppPage? _previousPage;
   bool _isExtended = true;
+  late final SearchFilter _searchFilter;
+
+  @override
+  void initState() {
+    super.initState();
+    // Create search filter without debounce for instant local filtering
+    // GlobalSearchBar has its own debouncer for database suggestions
+    _searchFilter = SearchFilter(
+      features: const IncludeOptions.empty(),
+    );
+    _searchFilter.setup();
+  }
+
+  @override
+  void dispose() {
+    _searchFilter.dispose();
+    super.dispose();
+  }
 
   void _showCreateModal() {
     showDialog(
@@ -79,6 +100,7 @@ class _RootPageState extends State<RootPage> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: _AppBar(
         onSettingsPressed: _navigateToSettings,
+        searchFilter: _searchFilter,
       ),
       body: Row(
         children: [
@@ -100,6 +122,7 @@ class _RootPageState extends State<RootPage> {
                 child: _currentPage.getPage(
                   onClose: _returnToPreviousPage,
                   onSaved: _handleSaved,
+                  searchFilter: _searchFilter,
                 ),
               ),
             ),
@@ -132,8 +155,12 @@ class _RootPageState extends State<RootPage> {
 // AppBar Component
 class _AppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onSettingsPressed;
+  final SearchFilter searchFilter;
 
-  const _AppBar({required this.onSettingsPressed});
+  const _AppBar({
+    required this.onSettingsPressed,
+    required this.searchFilter,
+  });
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -141,10 +168,12 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      title: const Center(
+      title: Center(
         child: FractionallySizedBox(
           widthFactor: 0.8,
-          child: GlobalSearchBar(),
+          child: GlobalSearchBar(
+            externalController: searchFilter.controller,
+          ),
         ),
       ),
       actions: [

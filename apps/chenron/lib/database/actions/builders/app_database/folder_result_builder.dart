@@ -69,10 +69,6 @@ class FolderResultBuilder implements ResultBuilder<FolderResult> {
 
   @override
   FolderResult build() {
-    print('BUILDER DEBUG: Building folder with ${_items.length} items, ${_itemTags.length} items have tags');
-    for (final entry in _itemTags.entries) {
-      print('  Item ${entry.key}: ${entry.value.length} tags - ${entry.value.map((t) => t.name).join(", ")}');
-    }
     final folderItems = <FolderItem>[];
 
     for (final entry in _items.entries) {

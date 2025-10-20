@@ -2,12 +2,15 @@ import "package:chenron/features/viewer/state/viewer_state.dart";
 import "package:chenron/shared/item_display/filterable_item_display.dart";
 import "package:chenron/features/folder_viewer/pages/folder_viewer_page.dart";
 import "package:chenron/models/item.dart";
+import "package:chenron/shared/search/search_filter.dart";
 import "package:flutter/material.dart";
 import "package:flutter_hooks/flutter_hooks.dart";
 import "package:url_launcher/url_launcher.dart";
 
 class Viewer extends HookWidget {
-  const Viewer({super.key});
+  final SearchFilter? searchFilter;
+
+  const Viewer({super.key, this.searchFilter});
 
   FolderItem _viewerItemToFolderItem(dynamic viewerItem) {
     // For folders, use title as the main content
@@ -23,18 +26,6 @@ class Viewer extends HookWidget {
       createdAt: viewerItem.createdAt,
       tags: viewerItem.tags,
     );
-  }
-
-  Map<FolderItemType, int> _getItemCounts(List items) {
-    final counts = <FolderItemType, int>{
-      FolderItemType.link: 0,
-      FolderItemType.document: 0,
-      FolderItemType.folder: 0,
-    };
-    for (final item in items) {
-      counts[item.type] = (counts[item.type] ?? 0) + 1;
-    }
-    return counts;
   }
 
   void _handleItemTap(BuildContext context, FolderItem item) {
@@ -82,7 +73,6 @@ class Viewer extends HookWidget {
 
     final items = snapshot.data!;
     final folderItems = items.map(_viewerItemToFolderItem).toList();
-    final itemCounts = _getItemCounts(items);
 
     return Scaffold(
       body: ListenableBuilder(
@@ -90,8 +80,10 @@ class Viewer extends HookWidget {
         builder: (context, _) {
           return FilterableItemDisplay(
             items: folderItems,
+            externalSearchFilter: searchFilter,
             enableTagFiltering: true,
             displayModeContext: "viewer",
+            showSearch: false,
             onItemTap: (item) => _handleItemTap(context, item),
           );
         },

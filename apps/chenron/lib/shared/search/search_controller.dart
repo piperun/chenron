@@ -38,6 +38,12 @@ class SearchBarController {
     // Signal updates automatically via listener
   }
 
+  /// Update signal directly without affecting TextEditingController
+  /// Use this when syncing from an external source (e.g. SearchBar)
+  void updateSignal(String newValue) {
+    _query.value = newValue;
+  }
+
   void dispose() {
     _textController.dispose();
     _query.dispose();

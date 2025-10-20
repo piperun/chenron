@@ -6,6 +6,7 @@ import "package:chenron/features/shell/ui/sections/navigation_section.dart";
 import "package:chenron/features/viewer/pages/viewer.dart";
 import "package:chenron/features/create/link/pages/create_link.dart";
 import "package:chenron/features/create/folder/pages/create_folder.dart";
+import "package:chenron/shared/search/search_filter.dart";
 import "package:flutter/material.dart";
 
 enum AppPage {
@@ -23,12 +24,16 @@ enum AppPage {
     return this == AppPage.createLink || this == AppPage.createFolder;
   }
 
-  Widget getPage({VoidCallback? onClose, VoidCallback? onSaved}) {
+  Widget getPage({
+    VoidCallback? onClose,
+    VoidCallback? onSaved,
+    SearchFilter? searchFilter,
+  }) {
     switch (this) {
       case AppPage.dashboard:
         return const DashBoard(padding: 16);
       case AppPage.viewer:
-        return const Viewer();
+        return Viewer(searchFilter: searchFilter);
       case AppPage.createLink:
         return CreateLinkPage(
           hideAppBar: true,
