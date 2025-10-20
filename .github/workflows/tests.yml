@@ -16,12 +16,33 @@ jobs:
             channel: 'stable'
       - name: Pub get (workspace)
         run: flutter pub get
-      - name: Run basedir package tests
-        run: flutter test packages/basedir
-      - name: Run archive offline tests
-        run: flutter test apps/chenron/integration_test/web_archive/archive_org
+      
+      # Run all package tests
+      - name: Run all package tests
+        run: |
+          for dir in packages/*/; do
+            if [ -d "$dir/test" ]; then
+              echo "Testing $(basename $dir)..."
+              cd "$dir"
+              flutter pub get
+              flutter test
+              cd ../..
+            fi
+          done
+        shell: bash
+      
+      # Run chenron unit tests
+      - name: Run chenron unit tests
+        working-directory: apps/chenron
+        run: flutter test test/
+      
+      # Run chenron integration tests (excluding online tests)
+      - name: Run chenron offline integration tests
+        working-directory: apps/chenron
+        run: flutter test integration_test/ --exclude-tags=online
 
   test-online:
+    needs: test-offline
     if: ${{ secrets.CHENRON_ARCHIVE_ORG_KEY != '' && secrets.CHENRON_ARCHIVE_ORG_SECRET != '' }}
     runs-on: ubuntu-latest
     env:
@@ -34,5 +55,8 @@ jobs:
             channel: 'stable'
       - name: Pub get (workspace)
         run: flutter pub get
-      - name: Run archive online tests only
-        run: flutter test --name online apps/chenron/integration_test/web_archive/archive_org/archive_test.dart
+      
+      # Run chenron integration tests that require secrets
+      - name: Run chenron online integration tests
+        working-directory: apps/chenron
+        run: flutter test integration_test/ --tags=online
