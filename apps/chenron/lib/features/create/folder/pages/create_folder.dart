@@ -1,7 +1,12 @@
-import "package:chenron/shared/folder_input/folder_input_section.dart";
-import "package:chenron/shared/tag_section/tag_section.dart";
+import "package:chenron/components/forms/folder_form.dart";
 import "package:flutter/material.dart";
-import "package:chenron/database/database.dart";
+
+// TODO: FUTURE FOLDER EDITOR MIGRATION
+// When implementing the new folder editor:
+// 1. Create apps\chenron\lib\features\edit\folder\ structure
+// 2. Use FolderForm with existingFolder: folderToEdit and showItemsTable: true
+// 3. Deprecate the buggy apps\chenron\lib\features\folder_editor\ implementation
+// 4. This CreateFolderPage serves as the template for the new editor structure
 import "package:chenron/database/extensions/folder/create.dart";
 import "package:chenron/database/extensions/folder/update.dart";
 import "package:chenron/database/extensions/operations/database_file_handler.dart";
@@ -11,9 +16,6 @@ import "package:chenron/models/item.dart";
 import "package:chenron/models/metadata.dart";
 import "package:chenron/models/folder.dart";
 import "package:signals/signals.dart";
-import "package:chenron/features/create/folder/notifiers/create_folder_notifier.dart";
-import "package:chenron/features/create/folder/widgets/folder_parent_section.dart";
-import "package:chenron/utils/validation/folder_validator.dart";
 
 class CreateFolderPage extends StatefulWidget {
   final bool hideAppBar;
@@ -36,27 +38,15 @@ class CreateFolderPage extends StatefulWidget {
 }
 
 class _CreateFolderPageState extends State<CreateFolderPage> {
-  late CreateFolderNotifier _notifier;
-  final TextEditingController _titleController = TextEditingController();
-  final TextEditingController _descriptionController = TextEditingController();
-  List<Folder> _selectedParentFolders = [];
-  String? _titleError;
-  String? _descriptionError;
+  FolderFormData? _currentFormData;
+  bool _isFormValid = false;
 
   @override
   void initState() {
     super.initState();
-    _notifier = CreateFolderNotifier();
 
     // Provide save callback to parent if requested
     widget.onSaveCallbackReady?.call(_saveFolder);
-
-    // Listen to notifier for validation changes
-    _notifier.addListener(_onNotifierChanged);
-
-    // Listen to text controllers
-    _titleController.addListener(_onTitleChanged);
-    _descriptionController.addListener(_onDescriptionChanged);
 
     // Initially invalid (empty form)
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -64,40 +54,18 @@ class _CreateFolderPageState extends State<CreateFolderPage> {
     });
   }
 
-  void _onNotifierChanged() {
-    widget.onValidationChanged?.call(_notifier.isValid);
+  void _onFormDataChanged(FolderFormData formData) {
+    _currentFormData = formData;
+  }
+
+  void _onFormValidationChanged(bool isValid) {
+    _isFormValid = isValid;
+    widget.onValidationChanged?.call(isValid);
     setState(() {});
-  }
-
-  void _onTitleChanged() {
-    final title = _titleController.text;
-    _notifier.setTitle(title);
-
-    // Validate and show error inline
-    final error = FolderValidator.validateTitle(title);
-    if (_titleError != error) {
-      setState(() => _titleError = error);
-    }
-  }
-
-  void _onDescriptionChanged() {
-    final description = _descriptionController.text;
-    _notifier.setDescription(description);
-
-    final error = FolderValidator.validateDescription(description);
-    if (_descriptionError != error) {
-      setState(() => _descriptionError = error);
-    }
   }
 
   @override
   void dispose() {
-    _notifier.removeListener(_onNotifierChanged);
-    _titleController.removeListener(_onTitleChanged);
-    _descriptionController.removeListener(_onDescriptionChanged);
-    _titleController.dispose();
-    _descriptionController.dispose();
-    _notifier.dispose();
     super.dispose();
   }
 
@@ -112,9 +80,9 @@ class _CreateFolderPageState extends State<CreateFolderPage> {
               title: const Text("Create Folder"),
               actions: [
                 IconButton(
-                  key: const Key('create_folder_save_button'),
+                  key: const Key("create_folder_save_button"),
                   icon: const Icon(Icons.save),
-                  onPressed: _notifier.isValid ? _saveFolder : null,
+                  onPressed: _isFormValid ? _saveFolder : null,
                 ),
               ],
             ),
@@ -132,7 +100,7 @@ class _CreateFolderPageState extends State<CreateFolderPage> {
               child: Row(
                 children: [
                   IconButton(
-                    key: const Key('create_folder_close_button'),
+                    key: const Key("create_folder_close_button"),
                     icon: const Icon(Icons.close),
                     onPressed: widget.onClose,
                     tooltip: "Close",
@@ -146,8 +114,8 @@ class _CreateFolderPageState extends State<CreateFolderPage> {
                   ),
                   const Spacer(),
                   FilledButton.icon(
-                    key: const Key('create_folder_header_save_button'),
-                    onPressed: _notifier.isValid ? _saveFolder : null,
+                    key: const Key("create_folder_header_save_button"),
+                    onPressed: _isFormValid ? _saveFolder : null,
                     icon: const Icon(Icons.save, size: 18),
                     label: const Text("Save"),
                   ),
@@ -158,35 +126,13 @@ class _CreateFolderPageState extends State<CreateFolderPage> {
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    FolderInputSection(
-                      titleController: _titleController,
-                      descriptionController: _descriptionController,
-                      titleError: _titleError,
-                      descriptionError: _descriptionError,
-                    ),
-                    FolderParentSection(
-                      selectedFolders: _selectedParentFolders,
-                      onFoldersChanged: (folders) {
-                        setState(() {
-                          _selectedParentFolders = folders;
-                          _notifier.setParentFolders(
-                            folders.map((f) => f.id).toList(),
-                          );
-                        });
-                      },
-                    ),
-                    TagSection(
-                      keyPrefix: 'folder_tags',
-                      description: "Add tags to this folder",
-                      tags: _notifier.tags.value,
-                      onTagAdded: _notifier.addTag,
-                      onTagRemoved: _notifier.removeTag,
-                    ),
-                  ],
+                child: FolderForm(
+                  existingFolder: null, // Create mode
+                  showItemsTable: false, // Not needed for folder creation
+                  keyPrefix: "create_folder",
+                  onDataChanged: _onFormDataChanged,
+                  onValidationChanged: _onFormValidationChanged,
+                  titleOverride: "Add tags to this folder",
                 ),
               ),
             ),
@@ -197,27 +143,14 @@ class _CreateFolderPageState extends State<CreateFolderPage> {
   }
 
   Future<void> _saveFolder() async {
-    // Validate before saving
-    final titleError = FolderValidator.validateTitle(_titleController.text);
-    final descriptionError =
-        FolderValidator.validateDescription(_descriptionController.text);
-
-    if (titleError != null || descriptionError != null) {
-      setState(() {
-        _titleError = titleError;
-        _descriptionError = descriptionError;
-      });
-      return;
-    }
-
-    if (!_notifier.isValid) return;
+    if (!_isFormValid || _currentFormData == null) return;
 
     final db = await locator.get<Signal<Future<AppDatabaseHandler>>>().value;
     final appDb = db.appDatabase;
 
     // Convert tags to Metadata objects
-    final tags = _notifier.tags.value.isNotEmpty
-        ? _notifier.tags.value
+    final tags = _currentFormData!.tags.isNotEmpty
+        ? _currentFormData!.tags
             .map((tag) => Metadata(
                   value: tag,
                   type: MetadataTypeEnum.tag,
@@ -228,24 +161,24 @@ class _CreateFolderPageState extends State<CreateFolderPage> {
     // Create the folder
     final result = await appDb.createFolder(
       folderInfo: FolderDraft(
-        title: _notifier.title.value,
-        description: _notifier.description.value,
+        title: _currentFormData!.title,
+        description: _currentFormData!.description,
       ),
       tags: tags,
     );
 
     // Add the new folder to parent folders if any selected
-    if (_selectedParentFolders.isNotEmpty) {
-      for (final parentFolder in _selectedParentFolders) {
+    if (_currentFormData!.parentFolderIds.isNotEmpty) {
+      for (final parentFolderId in _currentFormData!.parentFolderIds) {
         await appDb.updateFolder(
-          parentFolder.id,
+          parentFolderId,
           itemUpdates: CUD(
             create: [],
             update: [
               FolderItem(
                 type: FolderItemType.folder,
                 itemId: result.folderId,
-                content: StringContent(value: _notifier.title.value),
+                content: StringContent(value: _currentFormData!.title),
               )
             ],
             remove: [],

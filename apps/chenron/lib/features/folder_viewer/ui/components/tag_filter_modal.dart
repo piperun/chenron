@@ -71,7 +71,7 @@ class _TagFilterModalState extends State<TagFilterModal> {
 
     // Debug: print available tags
     // ignore: avoid_print
-    print('TAG MODAL DEBUG: ${widget.availableTags.length} available tags');
+    print("TAG MODAL DEBUG: ${widget.availableTags.length} available tags");
     // ignore: avoid_print
     print('  Tags: ${widget.availableTags.map((t) => t.name).join(", ")}');
   }
@@ -82,12 +82,12 @@ class _TagFilterModalState extends State<TagFilterModal> {
     bool injected = false;
     for (final token in tokens.toList()) {
       // Handle exclusion pattern: -#tag
-      if (token.startsWith('-#') && token.length > 2) {
+      if (token.startsWith("-#") && token.length > 2) {
         final raw = token.substring(2).trim();
         if (raw.isEmpty) continue;
         final match = widget.availableTags.firstWhere(
           (t) => t.name.toLowerCase() == raw.toLowerCase(),
-          orElse: () => Tag(id: '', createdAt: DateTime.now(), name: ''),
+          orElse: () => Tag(id: "", createdAt: DateTime.now(), name: ""),
         );
         if (match.name.isNotEmpty) {
           if (!_excludedTags.contains(match.name)) {
@@ -100,12 +100,12 @@ class _TagFilterModalState extends State<TagFilterModal> {
         }
       }
       // Handle inclusion pattern: #tag
-      else if (token.startsWith('#') && token.length > 1) {
+      else if (token.startsWith("#") && token.length > 1) {
         final raw = token.substring(1).trim();
         if (raw.isEmpty) continue;
         final match = widget.availableTags.firstWhere(
           (t) => t.name.toLowerCase() == raw.toLowerCase(),
-          orElse: () => Tag(id: '', createdAt: DateTime.now(), name: ''),
+          orElse: () => Tag(id: "", createdAt: DateTime.now(), name: ""),
         );
         if (match.name.isNotEmpty) {
           if (!_includedTags.contains(match.name)) {
@@ -120,8 +120,8 @@ class _TagFilterModalState extends State<TagFilterModal> {
     }
     if (injected) {
       final remaining = tokens
-          .where((t) => !(t.startsWith('-#') && t.length > 2) && !(t.startsWith('#') && t.length > 1))
-          .join(' ');
+          .where((t) => !(t.startsWith("-#") && t.length > 2) && !(t.startsWith("#") && t.length > 1))
+          .join(" ");
       if (remaining != text) {
         _availableSearchController
           ..text = remaining
@@ -344,15 +344,15 @@ class _TagFilterModalState extends State<TagFilterModal> {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               FilterChip(
-                label: const Text('Bulk mode'),
+                label: const Text("Bulk mode"),
                 selected: _bulkEnabled,
                 onSelected: (_) => _toggleBulk(),
               ),
               if (_bulkEnabled)
                 SegmentedButton<BulkMode>(
                   segments: const [
-                    ButtonSegment(value: BulkMode.include, label: Text('Include'), icon: Icon(Icons.add_circle_outline)),
-                    ButtonSegment(value: BulkMode.exclude, label: Text('Exclude'), icon: Icon(Icons.remove_circle_outline)),
+                    ButtonSegment(value: BulkMode.include, label: Text("Include"), icon: Icon(Icons.add_circle_outline)),
+                    ButtonSegment(value: BulkMode.exclude, label: Text("Exclude"), icon: Icon(Icons.remove_circle_outline)),
                   ],
                   selected: <BulkMode>{_bulkMode},
                   onSelectionChanged: (set) => setState(() => _bulkMode = set.first),
@@ -362,7 +362,7 @@ class _TagFilterModalState extends State<TagFilterModal> {
                   onPressed: _selectedForBulk.isEmpty
                       ? null
                       : () => setState(() => _selectedForBulk.clear()),
-                  child: const Text('Clear'),
+                  child: const Text("Clear"),
                 ),
             ],
           ),
@@ -478,8 +478,8 @@ class _TagFilterModalState extends State<TagFilterModal> {
                     ),
                     label: Text(
                       _bulkMode == BulkMode.include
-                          ? 'Add ${_selectedForBulk.length} to Included'
-                          : 'Add ${_selectedForBulk.length} to Excluded',
+                          ? "Add ${_selectedForBulk.length} to Included"
+                          : "Add ${_selectedForBulk.length} to Excluded",
                     ),
                   ),
                 ),
@@ -719,7 +719,7 @@ class _SectionHeader extends StatelessWidget {
             ),
           ),
           IconButton(
-            tooltip: collapsed ? 'Expand' : 'Collapse',
+            tooltip: collapsed ? "Expand" : "Collapse",
             icon: Icon(collapsed ? Icons.expand_more : Icons.expand_less),
             onPressed: onToggle,
           ),
@@ -827,18 +827,18 @@ class _AvailableTagItem extends StatelessWidget {
           ),
           if (!hasFilter) ...[
             IconButton(
-              tooltip: 'Include',
+              tooltip: "Include",
               icon: const Icon(Icons.add_circle_outline, color: Colors.green),
               onPressed: onInclude,
             ),
             IconButton(
-              tooltip: 'Exclude',
+              tooltip: "Exclude",
               icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
               onPressed: onExclude,
             ),
           ] else ...[
             IconButton(
-              tooltip: 'Remove filter',
+              tooltip: "Remove filter",
               icon: const Icon(Icons.close),
               onPressed: onRemove,
             ),

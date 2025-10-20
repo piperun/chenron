@@ -12,6 +12,8 @@ class FolderHeader extends StatelessWidget {
   final bool isLocked;
   final VoidCallback onToggleLock;
   final ValueChanged<String>? onTagTap;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   const FolderHeader({
     super.key,
@@ -24,6 +26,8 @@ class FolderHeader extends StatelessWidget {
     this.isLocked = false,
     required this.onToggleLock,
     this.onTagTap,
+    this.onEdit,
+    this.onDelete,
   });
 
   String _formatDate(DateTime? date) {
@@ -108,6 +112,44 @@ class FolderHeader extends StatelessWidget {
                 ),
               ),
               const Spacer(),
+              // Edit button
+              if (onEdit != null)
+                Material(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(6),
+                  child: InkWell(
+                    onTap: onEdit,
+                    borderRadius: BorderRadius.circular(6),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Icon(
+                        Icons.edit,
+                        size: 20,
+                        color: Colors.white.withValues(alpha: 0.95),
+                      ),
+                    ),
+                  ),
+                ),
+              if (onEdit != null) const SizedBox(width: 8),
+              // Delete button
+              if (onDelete != null)
+                Material(
+                  color: Colors.red.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(6),
+                  child: InkWell(
+                    onTap: onDelete,
+                    borderRadius: BorderRadius.circular(6),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Icon(
+                        Icons.delete,
+                        size: 20,
+                        color: Colors.red.shade200,
+                      ),
+                    ),
+                  ),
+                ),
+              if (onDelete != null) const SizedBox(width: 8),
               // Lock button
               Material(
                 color: Colors.white.withOpacity(0.2),

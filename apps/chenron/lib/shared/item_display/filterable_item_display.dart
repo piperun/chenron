@@ -35,6 +35,8 @@ class FilterableItemDisplay extends StatefulWidget {
   final bool showSearch;
   final bool enableTagFiltering;
   final void Function(FolderItem)? onItemTap;
+  final void Function({required bool isDeleteMode, required int selectedCount})? onDeleteModeChanged;
+  final void Function(List<FolderItem> items)? onDeleteRequested;
 
   const FilterableItemDisplay({
     super.key,
@@ -57,6 +59,8 @@ class FilterableItemDisplay extends StatefulWidget {
     this.enableTagFiltering = true,
     @Deprecated("Use displayMode.maxTags instead") this.maxTags,
     this.onItemTap,
+    this.onDeleteModeChanged,
+    this.onDeleteRequested,
   });
 
   @override
@@ -73,6 +77,8 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
   late final TagFilterState _tagFilterState;
   late final bool _ownsTagFilterState;
   bool _isLoadingDisplayMode = true;
+  bool _isDeleteMode = false;
+  final Map<String, FolderItem> _selectedItems = {};
 
   @override
   void initState() {
@@ -133,6 +139,49 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
   void _onSortChanged(SortMode mode) => setState(() => _sortMode = mode);
   void _onFilterChanged(Set<FolderItemType> types) =>
       setState(() => _selectedTypes = types);
+
+  void _toggleDeleteMode() {
+    setState(() {
+      _isDeleteMode = !_isDeleteMode;
+      if (!_isDeleteMode) {
+        // Clear selections when exiting delete mode
+        _selectedItems.clear();
+      }
+    });
+    widget.onDeleteModeChanged?.call(
+      isDeleteMode: _isDeleteMode,
+      selectedCount: _selectedItems.length,
+    );
+  }
+
+  void _toggleItemSelection(FolderItem item) {
+    if (!_isDeleteMode || item.id == null) return;
+    
+    setState(() {
+      if (_selectedItems.containsKey(item.id)) {
+        _selectedItems.remove(item.id);
+      } else {
+        _selectedItems[item.id!] = item;
+      }
+    });
+    widget.onDeleteModeChanged?.call(
+      isDeleteMode: _isDeleteMode,
+      selectedCount: _selectedItems.length,
+    );
+  }
+
+  void _handleDeletePressed() {
+    if (_selectedItems.isEmpty) return;
+    widget.onDeleteRequested?.call(_selectedItems.values.toList());
+  }
+
+  void _handleItemTap(FolderItem item) {
+    if (_isDeleteMode) {
+      _toggleItemSelection(item);
+    } else {
+      widget.onItemTap?.call(item);
+    }
+  }
 
   Future<void> _onDisplayModeChanged(DisplayMode mode) async {
     setState(() => _displayMode = mode);
@@ -237,6 +286,10 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
                 widget.enableTagFiltering ? _openTagFilterModal : null,
             onSearchSubmitted:
                 widget.enableTagFiltering ? _handleSearchSubmitted : null,
+            isDeleteMode: _isDeleteMode,
+            selectedCount: _selectedItems.length,
+            onDeleteModeToggled: widget.onDeleteRequested != null ? _toggleDeleteMode : null,
+            onDeletePressed: _handleDeletePressed,
           );
         }),
         ItemStatsBar(
@@ -260,9 +313,11 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
                     maxTags: widget.maxTags,
                     includedTagNames: _tagFilterState.includedTagNames,
                     excludedTagNames: _tagFilterState.excludedTagNames,
-                    onItemTap: widget.onItemTap,
+                    onItemTap: _handleItemTap,
                     aspectRatio: _displayMode.aspectRatio,
                     maxCrossAxisExtent: _displayMode.maxCrossAxisExtent,
+                    isDeleteMode: _isDeleteMode,
+                    selectedItemIds: _selectedItems.keys.toSet(),
                   )
                 : ItemListView(
                     items: filtered,
@@ -271,7 +326,9 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
                     maxTags: widget.maxTags,
                     includedTagNames: _tagFilterState.includedTagNames,
                     excludedTagNames: _tagFilterState.excludedTagNames,
-                    onItemTap: widget.onItemTap,
+                    onItemTap: _handleItemTap,
+                    isDeleteMode: _isDeleteMode,
+                    selectedItemIds: _selectedItems.keys.toSet(),
                   );
           }),
         ),
