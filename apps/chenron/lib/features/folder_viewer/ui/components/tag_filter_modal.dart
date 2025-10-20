@@ -57,10 +57,29 @@ class _TagFilterModalState extends State<TagFilterModal> {
 
   void _handleSearchChanged() {
     final text = _searchController.text;
-    final tokens = text.split(RegExp(r"\s+"));
+    final tokens = text.split(RegExp(r"\\s+"));
     bool injected = false;
     for (final token in tokens.toList()) {
-      if (token.startsWith('#') && token.length > 1) {
+      // Handle exclusion pattern: -#tag
+      if (token.startsWith('-#') && token.length > 2) {
+        final raw = token.substring(2).trim();
+        if (raw.isEmpty) continue;
+        final match = widget.availableTags.firstWhere(
+          (t) => t.name.toLowerCase() == raw.toLowerCase(),
+          orElse: () => Tag(id: '', createdAt: DateTime.now(), name: ''),
+        );
+        if (match.name.isNotEmpty) {
+          if (!_excludedTags.contains(match.name)) {
+            setState(() {
+              _excludedTags.add(match.name);
+              _includedTags.remove(match.name);
+            });
+          }
+          injected = true;
+        }
+      }
+      // Handle inclusion pattern: #tag
+      else if (token.startsWith('#') && token.length > 1) {
         final raw = token.substring(1).trim();
         if (raw.isEmpty) continue;
         final match = widget.availableTags.firstWhere(
@@ -69,7 +88,10 @@ class _TagFilterModalState extends State<TagFilterModal> {
         );
         if (match.name.isNotEmpty) {
           if (!_includedTags.contains(match.name)) {
-            setState(() => _includedTags.add(match.name));
+            setState(() {
+              _includedTags.add(match.name);
+              _excludedTags.remove(match.name);
+            });
           }
           injected = true;
         }
@@ -77,7 +99,7 @@ class _TagFilterModalState extends State<TagFilterModal> {
     }
     if (injected) {
       final remaining = tokens
-          .where((t) => !(t.startsWith('#') && t.length > 1))
+          .where((t) => !(t.startsWith('-#') && t.length > 2) && !(t.startsWith('#') && t.length > 1))
           .join(' ');
       if (remaining != text) {
         _searchController
@@ -227,7 +249,7 @@ class _TagFilterModalState extends State<TagFilterModal> {
               child: TextField(
                 controller: _searchController,
                 decoration: InputDecoration(
-                  hintText: "Search tags or type #tag to include...",
+                  hintText: "Search tags or type #tag to include, -#tag to exclude...",
                   prefixIcon: const Icon(Icons.search, size: 20),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),

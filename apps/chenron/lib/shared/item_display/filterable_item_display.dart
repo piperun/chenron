@@ -10,6 +10,7 @@ import "package:chenron/features/folder_viewer/ui/components/tag_filter_modal.da
 import "package:chenron/database/database.dart" show Tag;
 import "package:chenron/shared/search/search_filter.dart";
 import "package:chenron/shared/search/search_features.dart";
+import "package:chenron/shared/search/query_parser.dart";
 import "package:chenron/shared/patterns/include_options.dart";
 import "package:signals/signals_flutter.dart";
 
@@ -143,13 +144,25 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
   }
 
   List<FolderItem> _getFilteredAndSortedItems(String query) {
+    // Parse query to extract tag patterns (#tag and -#tag)
+    final parsed = QueryParser.parseTags(query);
+    
+    // Combine parsed tags with manually selected tags from the filter modal
+    final combinedIncluded = widget.enableTagFiltering
+        ? {..._includedTagNames, ...parsed.includedTags}
+        : parsed.includedTags;
+    final combinedExcluded = widget.enableTagFiltering
+        ? {..._excludedTagNames, ...parsed.excludedTags}
+        : parsed.excludedTags;
+    
     // Use SearchFilter for all filtering and sorting logic
+    // Pass the clean query (without tag patterns) and combined tags
     return _searchFilter.filterAndSort(
       items: widget.items,
-      query: query,
+      query: parsed.cleanQuery,
       types: _selectedTypes,
-      includedTags: widget.enableTagFiltering ? _includedTagNames : null,
-      excludedTags: widget.enableTagFiltering ? _excludedTagNames : null,
+      includedTags: combinedIncluded.isNotEmpty ? combinedIncluded : null,
+      excludedTags: combinedExcluded.isNotEmpty ? combinedExcluded : null,
       sortMode: _sortMode,
     );
   }
