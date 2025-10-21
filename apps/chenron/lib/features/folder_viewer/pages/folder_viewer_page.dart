@@ -15,7 +15,7 @@ import "package:chenron/features/folder_editor/pages/folder_editor.dart";
 import "package:signals/signals_flutter.dart";
 import "package:chenron/utils/logger.dart";
 import "package:shared_preferences/shared_preferences.dart";
-import "package:chenron/features/viewer/state/viewer_state.dart";
+import "package:chenron/features/shell/pages/root.dart" show globalSearchFilterSignal;
 
 class FolderViewerPage extends StatefulWidget {
   final String folderId;
@@ -366,8 +366,14 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
                           onToggleLock: _toggleHeaderLock,
                           onTagTap: (tagName) {
                             Navigator.pop(context);
-                            viewerViewModelSignal
-                                .value.searchController.text = tagName;
+                            // Access the global search filter to add the tag
+                            final searchFilter = globalSearchFilterSignal.value;
+                            if (searchFilter != null) {
+                              // Format as tag pattern and trigger submission
+                              searchFilter.controller.value = '#$tagName';
+                              // Trigger onSubmitted to parse and add the tag to filter state
+                              searchFilter.controller.onSubmitted?.call('#$tagName');
+                            }
                           },
                           onEdit: _handleEdit,
                           onDelete: () => _handleDelete(result.data),

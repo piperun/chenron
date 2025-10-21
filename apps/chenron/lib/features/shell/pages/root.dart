@@ -1,13 +1,16 @@
 import "package:flutter/material.dart";
 import "package:chenron/shared/search/searchbar.dart";
 import "package:chenron/shared/search/search_filter.dart";
-import "package:chenron/shared/search/search_features.dart";
 import "package:chenron/shared/patterns/include_options.dart";
 import "package:chenron/features/shell/widgets/add_item_modal.dart";
 import "package:chenron/features/shell/ui/sections/navigation_section.dart";
 import "package:chenron/features/shell/ui/sections/appbar_section.dart";
 import "package:chenron/utils/logger.dart";
 import "package:chenron/shared/ui/dark_mode.dart";
+import "package:signals/signals.dart";
+
+/// Global signal for the main search filter, accessible from anywhere
+final globalSearchFilterSignal = signal<SearchFilter?>(null);
 
 class RootPage extends StatefulWidget {
   const RootPage({super.key});
@@ -31,10 +34,13 @@ class _RootPageState extends State<RootPage> {
       features: const IncludeOptions.empty(),
     );
     _searchFilter.setup();
+    // Store in global signal for external access
+    globalSearchFilterSignal.value = _searchFilter;
   }
 
   @override
   void dispose() {
+    globalSearchFilterSignal.value = null;
     _searchFilter.dispose();
     super.dispose();
   }
