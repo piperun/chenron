@@ -11,11 +11,11 @@ class ValidatingTextController extends TextEditingController {
   TextStyle? _normalStyle;
 
   ValidatingTextController({
-    String? text,
+    super.text,
     BulkValidationResult? validationResult,
     TextStyle? errorStyle,
     TextStyle? normalStyle,
-  }) : super(text: text) {
+  }) {
     _validationResult = validationResult;
     _errorStyle = errorStyle;
     _normalStyle = normalStyle;

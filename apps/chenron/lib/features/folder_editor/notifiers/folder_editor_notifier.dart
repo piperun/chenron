@@ -1,4 +1,3 @@
-import "package:flutter/foundation.dart";
 import "package:chenron/components/forms/folder_form.dart";
 import "package:chenron/database/extensions/folder/read.dart";
 import "package:chenron/database/extensions/folder/update.dart";
@@ -19,71 +18,106 @@ enum FolderEditorState {
   saving,
 }
 
-/// Manages state for the folder editor feature
-class FolderEditorNotifier extends ChangeNotifier {
+/// Manages state for the folder editor feature using Signals with CUD pattern
+class FolderEditorNotifier {
+  final Signal<FolderEditorState> state = signal(FolderEditorState.loading);
+  final Signal<String?> errorMessage = signal(null);
+  final Signal<FolderResult?> folder = signal(null);
+
+  // Items tracking with CUD pattern
+  final Signal<List<FolderItem>> originalItems = signal([]);
+  final Signal<CUD<FolderItem>> itemChanges = signal(CUD<FolderItem>(
+    create: [],
+    update: [],
+    remove: [],
+  ));
+
+  final Signal<FolderFormData?> formData = signal(null);
+
   FolderResult? _originalFolder;
-  FolderFormData? _currentFormData;
-  List<FolderItem> _currentItems = [];
-  FolderEditorState _state = FolderEditorState.loading;
-  String? _errorMessage;
 
-  FolderEditorState get state => _state;
-  String? get errorMessage => _errorMessage;
-  FolderResult? get folder => _originalFolder;
-  List<FolderItem> get items => _currentItems;
+  // Computed signal for current items (original + changes)
+  Computed<List<FolderItem>> get currentItems => computed(() {
+        final original = originalItems.value;
+        final changes = itemChanges.value;
 
-  bool get hasChanges {
-    if (_originalFolder == null || _currentFormData == null) {
-      return false;
-    }
+        // Start with original items
+        var items = List<FolderItem>.from(original);
 
-    final originalFolder = _originalFolder!.data;
-    final originalTags = _originalFolder!.tags.map((t) => t.name).toSet();
-    final currentTags = _currentFormData!.tags;
+        // Remove deleted items
+        items.removeWhere((item) =>
+            changes.remove.contains(item.id) ||
+            changes.remove.any((removedId) => item.id == removedId));
 
-    // Check title change
-    if (originalFolder.title != _currentFormData!.title) {
-      return true;
-    }
+        // Update modified items
+        for (final updatedItem in changes.update) {
+          final index = items.indexWhere((item) => item.id == updatedItem.id);
+          if (index != -1) {
+            items[index] = updatedItem;
+          }
+        }
 
-    // Check description change
-    if (originalFolder.description != _currentFormData!.description) {
-      return true;
-    }
+        // Add new items
+        items.addAll(changes.create);
 
-    // Check tags change
-    if (!const SetEquality().equals(originalTags, currentTags)) {
-      return true;
-    }
+        return items;
+      });
 
-    // Check parent folders change (comparing against empty list since we don't load original parent folders)
-    if (_currentFormData!.parentFolderIds.isNotEmpty) {
-      return true;
-    }
+  // Computed signal for filtered items (for search/display)
+  Computed<List<FolderItem>> get displayItems => computed(() {
+        return currentItems.value;
+      });
 
-    // Check items change
-    final originalItems = _originalFolder!.items;
-    if (originalItems.length != _currentItems.length) {
-      return true;
-    }
+  Computed<bool> get hasChanges => computed(() {
+        final FolderResult? original = _originalFolder;
+        final FolderFormData? current = formData.value;
+        final CUD<FolderItem> changes = itemChanges.value;
 
-    // Compare items by ID
-    final originalItemIds = originalItems.map((i) => i.id).toSet();
-    final currentItemIds = _currentItems.map((i) => i.id).toSet();
-    if (!const SetEquality().equals(originalItemIds, currentItemIds)) {
-      return true;
-    }
+        if (original == null || current == null) {
+          return false;
+        }
 
-    return false;
-  }
+        final originalFolder = original.data;
+        final originalTags = original.tags.map((t) => t.name).toSet();
+        final currentTags = current.tags;
+
+        // Check title change
+        if (originalFolder.title != current.title) {
+          return true;
+        }
+
+        // Check description change
+        if (originalFolder.description != current.description) {
+          return true;
+        }
+
+        // Check tags change
+        if (!const SetEquality().equals(originalTags, currentTags)) {
+          return true;
+        }
+
+        // Check parent folders change
+        if (current.parentFolderIds.isNotEmpty) {
+          return true;
+        }
+
+        // Check if there are any item changes
+        if (changes.create.isNotEmpty ||
+            changes.update.isNotEmpty ||
+            changes.remove.isNotEmpty) {
+          return true;
+        }
+
+        return false;
+      });
 
   Future<void> loadFolder(String folderId) async {
-    _state = FolderEditorState.loading;
-    _errorMessage = null;
-    notifyListeners();
+    state.value = FolderEditorState.loading;
+    errorMessage.value = null;
 
     try {
-      final dbHandler = await locator.get<Signal<Future<AppDatabaseHandler>>>().value;
+      final dbHandler =
+          await locator.get<Signal<Future<AppDatabaseHandler>>>().value;
       final folderResult = await dbHandler.appDatabase.getFolder(
         folderId: folderId,
         includeOptions: const IncludeOptions({
@@ -93,85 +127,280 @@ class FolderEditorNotifier extends ChangeNotifier {
       );
 
       if (folderResult == null) {
-        _state = FolderEditorState.error;
-        _errorMessage = "Folder not found";
-        notifyListeners();
+        state.value = FolderEditorState.error;
+        errorMessage.value = "Folder not found";
         return;
       }
 
       _originalFolder = folderResult;
-      _currentItems = List.from(folderResult.items);
+      folder.value = folderResult;
+      originalItems.value = List.from(folderResult.items);
+
+      // Reset item changes when loading
+      itemChanges.value = CUD<FolderItem>(
+        create: [],
+        update: [],
+        remove: [],
+      );
 
       // Initialize form data from loaded folder
-      _currentFormData = FolderFormData(
+      formData.value = FolderFormData(
         title: folderResult.data.title,
         description: folderResult.data.description,
         parentFolderIds: [],
         tags: folderResult.tags.map((t) => t.name).toSet(),
-        items: _currentItems,
+        items: currentItems.value,
       );
 
-      _state = FolderEditorState.loaded;
-      notifyListeners();
+      state.value = FolderEditorState.loaded;
     } catch (e) {
-      _state = FolderEditorState.error;
-      _errorMessage = e.toString();
-      notifyListeners();
+      state.value = FolderEditorState.error;
+      errorMessage.value = e.toString();
     }
   }
 
-  void updateFormData(FolderFormData formData) {
-    _currentFormData = formData;
-    notifyListeners();
+  void updateFormData(FolderFormData data) {
+    formData.value = data;
   }
 
-  void updateItems(List<FolderItem> items) {
-    _currentItems = items;
-    notifyListeners();
+  // Add a new item
+  void addItem(FolderItem item) {
+    final changes = itemChanges.value;
+    itemChanges.value = CUD<FolderItem>(
+      create: [...changes.create, item],
+      update: changes.update,
+      remove: changes.remove,
+    );
+
+    _updateFormDataItems();
+  }
+
+  // Update an existing item
+  void updateItem(FolderItem item) {
+    if (item.id == null) {
+      // If it doesn't have an ID, it should be in create
+      return;
+    }
+
+    final changes = itemChanges.value;
+
+    // Check if this item is in the create list (newly added)
+    final createIndex = changes.create.indexWhere((i) => i.id == item.id);
+    if (createIndex != -1) {
+      // Update the item in the create list
+      final newCreate = List<FolderItem>.from(changes.create);
+      newCreate[createIndex] = item;
+      itemChanges.value = CUD<FolderItem>(
+        create: newCreate,
+        update: changes.update,
+        remove: changes.remove,
+      );
+    } else {
+      // It's an original item being updated
+      final updateIndex = changes.update.indexWhere((i) => i.id == item.id);
+      final newUpdate = List<FolderItem>.from(changes.update);
+
+      if (updateIndex != -1) {
+        newUpdate[updateIndex] = item;
+      } else {
+        newUpdate.add(item);
+      }
+
+      itemChanges.value = CUD<FolderItem>(
+        create: changes.create,
+        update: newUpdate,
+        remove: changes.remove,
+      );
+    }
+
+    _updateFormDataItems();
+  }
+
+  // Remove an item
+  void removeItem(String itemId) {
+    final changes = itemChanges.value;
+
+    // Check if this item is in the create list
+    final createIndex = changes.create.indexWhere((i) => i.id == itemId);
+    if (createIndex != -1) {
+      // Just remove it from create list
+      final newCreate = List<FolderItem>.from(changes.create);
+      newCreate.removeAt(createIndex);
+      itemChanges.value = CUD<FolderItem>(
+        create: newCreate,
+        update: changes.update,
+        remove: changes.remove,
+      );
+    } else {
+      // Check if it's in update list
+      final newUpdate = changes.update.where((i) => i.id != itemId).toList();
+
+      // Add to remove list if it's an original item
+      if (originalItems.value.any((i) => i.id == itemId)) {
+        itemChanges.value = CUD<FolderItem>(
+          create: changes.create,
+          update: newUpdate,
+          remove: [...changes.remove, itemId],
+        );
+      }
+    }
+
+    _updateFormDataItems();
+  }
+
+  // Remove multiple items at once
+  void removeItems(Set<String> itemIds) {
+    final changes = itemChanges.value;
+
+    // Separate items into created vs original
+    final createdIds = changes.create.map((i) => i.id).toSet();
+    final idsToRemoveFromCreate = itemIds.intersection(createdIds);
+    final idsToAddToRemove = itemIds.difference(createdIds);
+
+    // Filter out removed items from create and update lists
+    final newCreate = changes.create
+        .where((i) => !idsToRemoveFromCreate.contains(i.id))
+        .toList();
+    final newUpdate =
+        changes.update.where((i) => !itemIds.contains(i.id)).toList();
+
+    // Add original items to remove list
+    final originalIds = originalItems.value
+        .where((i) => idsToAddToRemove.contains(i.id))
+        .map((i) => i.id)
+        .whereType<String>()
+        .toList();
+
+    itemChanges.value = CUD<FolderItem>(
+      create: newCreate,
+      update: newUpdate,
+      remove: [...changes.remove, ...originalIds],
+    );
+
+    _updateFormDataItems();
+  }
+
+  // Bulk update items (for reordering, etc.)
+  void setItems(List<FolderItem> newItems) {
+    final original = originalItems.value;
+    final originalIds = original.map((i) => i.id).toSet();
+    final newIds = newItems.map((i) => i.id).toSet();
+
+    // Items to create: in new but not in original
+    final itemsToCreate = newItems
+        .where((item) => item.id == null || !originalIds.contains(item.id))
+        .toList();
+
+    // Items to remove: in original but not in new
+    final itemsToRemove =
+        originalIds.difference(newIds).whereType<String>().toList();
+
+    // Items to update: in both but might have changed
+    final itemsToUpdate = newItems
+        .where((item) => item.id != null && originalIds.contains(item.id))
+        .where((item) {
+      // Only include if actually changed
+      final originalItem = original.firstWhere((o) => o.id == item.id);
+      return originalItem != item; // You might need a better comparison here
+    }).toList();
+
+    itemChanges.value = CUD<FolderItem>(
+      create: itemsToCreate,
+      update: itemsToUpdate,
+      remove: itemsToRemove,
+    );
+
+    _updateFormDataItems();
+  }
+
+  // Clear all changes
+  void resetChanges() {
+    itemChanges.value = CUD<FolderItem>(
+      create: [],
+      update: [],
+      remove: [],
+    );
+
+    if (_originalFolder != null) {
+      formData.value = FolderFormData(
+        title: _originalFolder!.data.title,
+        description: _originalFolder!.data.description,
+        parentFolderIds: [],
+        tags: _originalFolder!.tags.map((t) => t.name).toSet(),
+        items: originalItems.value,
+      );
+    }
+  }
+
+  void _updateFormDataItems() {
+    if (formData.value != null) {
+      formData.value = formData.value!.copyWith(items: currentItems.value);
+    }
   }
 
   Future<bool> saveChanges(String folderId) async {
-    if (_originalFolder == null || _currentFormData == null) {
+    final current = formData.value;
+    if (_originalFolder == null || current == null) {
       return false;
     }
 
-    _state = FolderEditorState.saving;
-    notifyListeners();
+    state.value = FolderEditorState.saving;
 
     try {
-      final dbHandler = await locator.get<Signal<Future<AppDatabaseHandler>>>().value;
+      final dbHandler =
+          await locator.get<Signal<Future<AppDatabaseHandler>>>().value;
       final appDb = dbHandler.appDatabase;
 
       final tagUpdates = _buildTagUpdates();
-      final itemUpdates = _buildItemUpdates();
+      final itemUpdates = itemChanges.value;
 
+      // Update folder metadata and items
       await appDb.updateFolder(
         folderId,
-        title: _currentFormData!.title,
-        description: _currentFormData!.description,
+        title: current.title,
+        description: current.description,
         tagUpdates: tagUpdates,
         itemUpdates: itemUpdates,
       );
 
-      // Reload folder to get updated data
+      // Handle parent folders
+      if (current.parentFolderIds.isNotEmpty) {
+        for (final parentFolderId in current.parentFolderIds) {
+          await appDb.updateFolder(
+            parentFolderId,
+            itemUpdates: CUD(
+              create: [],
+              update: [
+                FolderItem(
+                  type: FolderItemType.folder,
+                  itemId: folderId,
+                  content: StringContent(value: current.title),
+                )
+              ],
+              remove: [],
+            ),
+          );
+        }
+      }
+
       await loadFolder(folderId);
 
       return true;
     } catch (e) {
-      _state = FolderEditorState.error;
-      _errorMessage = "Failed to save changes: ${e.toString()}";
-      notifyListeners();
+      state.value = FolderEditorState.error;
+      errorMessage.value = "Failed to save changes: ${e.toString()}";
       return false;
     }
   }
 
   CUD<Metadata> _buildTagUpdates() {
-    if (_originalFolder == null || _currentFormData == null) {
+    final current = formData.value;
+    if (_originalFolder == null || current == null) {
       return CUD(create: [], update: [], remove: []);
     }
 
     final originalTags = _originalFolder!.tags;
-    final currentTags = _currentFormData!.tags;
+    final currentTags = current.tags;
 
     // Tags to create: in current but not in original
     final tagsToCreate = currentTags
@@ -192,31 +421,12 @@ class FolderEditorNotifier extends ChangeNotifier {
     );
   }
 
-  CUD<FolderItem> _buildItemUpdates() {
-    if (_originalFolder == null) {
-      return CUD(create: [], update: [], remove: []);
-    }
-
-    final originalItems = _originalFolder!.items;
-    final currentItems = _currentItems;
-
-    // Items to create: new items with null ID
-    final itemsToCreate = currentItems
-        .where((item) => item.id == null)
-        .toList();
-
-    // Items to remove: in original but not in current
-    final originalItemIds = originalItems.map((i) => i.id).toSet();
-    final currentItemIds = currentItems.map((i) => i.id).toSet();
-    final itemsToRemove = originalItemIds
-        .where((id) => !currentItemIds.contains(id))
-        .whereType<String>()
-        .toList();
-
-    return CUD(
-      create: itemsToCreate,
-      update: [],
-      remove: itemsToRemove,
-    );
+  void dispose() {
+    state.dispose();
+    errorMessage.dispose();
+    folder.dispose();
+    originalItems.dispose();
+    itemChanges.dispose();
+    formData.dispose();
   }
 }

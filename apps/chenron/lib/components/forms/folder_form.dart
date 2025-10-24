@@ -44,6 +44,7 @@ class FolderFormData {
 /// Reusable folder form component that handles both create and edit modes
 class FolderForm extends StatefulWidget {
   final Folder? existingFolder;
+  final Set<String>? existingTags;
   final bool showItemsTable;
   final String? keyPrefix;
   final ValueChanged<FolderFormData>? onDataChanged;
@@ -54,6 +55,7 @@ class FolderForm extends StatefulWidget {
   const FolderForm({
     super.key,
     this.existingFolder,
+    this.existingTags,
     this.showItemsTable = false,
     this.keyPrefix,
     this.onDataChanged,
@@ -97,7 +99,13 @@ class _FolderFormState extends State<FolderForm> {
     _title.value = initialTitle;
     _description.value = initialDescription;
     
-    // TODO: Load existing parent folders and tags when editing
+    // Initialize tags if provided
+    if (widget.existingTags != null) {
+      _tags = widget.existingTags!;
+      _tagsSignal.value = _tags;
+    }
+    
+    // TODO: Load existing parent folders when editing
     // This would require additional database queries to fetch relationships
     
     // Listen to text controllers

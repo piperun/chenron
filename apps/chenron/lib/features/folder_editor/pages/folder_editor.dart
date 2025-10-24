@@ -2,6 +2,7 @@ import "package:flutter/material.dart";
 import "package:chenron/components/forms/folder_form.dart";
 import "package:chenron/features/folder_editor/notifiers/folder_editor_notifier.dart";
 import "package:chenron/features/folder_editor/widgets/folder_items_section.dart";
+import "package:signals/signals_flutter.dart";
 
 /// Page for editing an existing folder
 class FolderEditor extends StatefulWidget {
@@ -24,53 +25,27 @@ class FolderEditor extends StatefulWidget {
 
 class _FolderEditorState extends State<FolderEditor> {
   late final FolderEditorNotifier _notifier;
-  bool _isFormValid = false;
-  bool _isSaving = false;
+  late final Signal<bool> _isFormValid;
 
   @override
   void initState() {
     super.initState();
     _notifier = FolderEditorNotifier();
-    _notifier.addListener(_onNotifierChanged);
+    _isFormValid = signal(false);
     _notifier.loadFolder(widget.folderId);
   }
 
   @override
   void dispose() {
-    _notifier.removeListener(_onNotifierChanged);
     _notifier.dispose();
+    _isFormValid.dispose();
     super.dispose();
   }
 
-  void _onNotifierChanged() {
-    if (mounted) {
-      setState(() {});
-    }
-  }
-
-  void _onFormValidationChanged(bool isValid) {
-    setState(() {
-      _isFormValid = isValid;
-    });
-  }
-
-  bool get _canSave =>
-      _isFormValid && _notifier.hasChanges && !_isSaving && _notifier.state != FolderEditorState.saving;
-
   Future<void> _handleSave() async {
-    if (!_canSave) return;
-
-    setState(() {
-      _isSaving = true;
-    });
-
     final success = await _notifier.saveChanges(widget.folderId);
 
     if (mounted) {
-      setState(() {
-        _isSaving = false;
-      });
-
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -87,7 +62,8 @@ class _FolderEditorState extends State<FolderEditor> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(_notifier.errorMessage ?? "Failed to save changes"),
+            content:
+                Text(_notifier.errorMessage.value ?? "Failed to save changes"),
             backgroundColor: Colors.red,
           ),
         );
@@ -99,118 +75,154 @@ class _FolderEditorState extends State<FolderEditor> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Scaffold(
-      appBar: widget.hideAppBar
-          ? null
-          : AppBar(
-              title: const Text("Edit Folder"),
-              actions: [
-                IconButton(
-                  icon: const Icon(Icons.save),
-                  onPressed: _canSave ? _handleSave : null,
+    return Watch((context) {
+      final canSave = _isFormValid.value &&
+          _notifier.hasChanges.value &&
+          _notifier.state.value != FolderEditorState.saving;
+
+      return Scaffold(
+        appBar: widget.hideAppBar
+            ? null
+            : AppBar(
+                title: const Text("Edit Folder"),
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.save),
+                    onPressed: canSave ? _handleSave : null,
+                  ),
+                ],
+              ),
+        body: Column(
+          children: [
+            if (widget.hideAppBar && widget.onClose != null)
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(color: theme.colorScheme.outlineVariant),
+                  ),
                 ),
-              ],
-            ),
-      body: Column(
-        children: [
-          // Custom header for main page mode
-          if (widget.hideAppBar && widget.onClose != null)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(color: theme.colorScheme.outlineVariant),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: widget.onClose,
+                      tooltip: "Close",
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      "Edit Folder",
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const Spacer(),
+                    FilledButton.icon(
+                      onPressed: canSave ? _handleSave : null,
+                      icon: const Icon(Icons.save, size: 18),
+                      label: const Text("Save"),
+                    ),
+                  ],
                 ),
               ),
-              child: Row(
+            Expanded(
+              child: SectionBody(
+                notifier: _notifier,
+                folderId: widget.folderId,
+                isFormValid: _isFormValid,
+              ),
+            ),
+          ],
+        ),
+      );
+    });
+  }
+}
+
+class SectionBody extends StatefulWidget {
+  final FolderEditorNotifier notifier;
+  final String folderId;
+  final Signal<bool> isFormValid;
+  const SectionBody({
+    super.key,
+    required this.notifier,
+    required this.folderId,
+    required this.isFormValid,
+  });
+
+  @override
+  State<SectionBody> createState() => _SectionBodyState();
+}
+
+class _SectionBodyState extends State<SectionBody> {
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Watch((context) {
+      switch (widget.notifier.state.value) {
+        case FolderEditorState.loading:
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+
+        case FolderEditorState.error:
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: widget.onClose,
-                    tooltip: "Close",
+                  Icon(
+                    Icons.error_outline,
+                    size: 48,
+                    color: theme.colorScheme.error,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(height: 16),
                   Text(
-                    "Edit Folder",
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const Spacer(),
-                  FilledButton.icon(
-                    onPressed: _canSave ? _handleSave : null,
-                    icon: const Icon(Icons.save, size: 18),
-                    label: const Text("Save"),
+                    widget.notifier.errorMessage.value ?? "Folder not found",
+                    style: theme.textTheme.bodyLarge,
+                    textAlign: TextAlign.center,
                   ),
                 ],
               ),
             ),
-          Expanded(
-            child: _buildBody(theme),
-          ),
-        ],
-      ),
-    );
-  }
+          );
 
-  Widget _buildBody(ThemeData theme) {
-    switch (_notifier.state) {
-      case FolderEditorState.loading:
-        return const Center(
-          child: CircularProgressIndicator(),
-        );
+        case FolderEditorState.loaded:
+        case FolderEditorState.saving:
+          final folder = widget.notifier.folder.value;
+          if (folder == null) {
+            return const Center(child: Text("Folder not found"));
+          }
 
-      case FolderEditorState.error:
-        return Center(
-          child: Padding(
+          return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  Icons.error_outline,
-                  size: 48,
-                  color: theme.colorScheme.error,
+                FolderForm(
+                  existingFolder: folder.data,
+                  existingTags: folder.tags.map((t) => t.name).toSet(),
+                  showItemsTable: false,
+                  keyPrefix: "folder_editor",
+                  onDataChanged: widget.notifier.updateFormData,
+                  onValidationChanged: _onFormValidationChanged,
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  _notifier.errorMessage ?? "Folder not found",
-                  style: theme.textTheme.bodyLarge,
-                  textAlign: TextAlign.center,
+                const SizedBox(height: 24),
+                FolderItemsSection(
+                  folderId: widget.folderId,
+                  items: widget.notifier.currentItems.value,
+                  notifier: widget.notifier,
                 ),
               ],
             ),
-          ),
-        );
+          );
+      }
+    });
+  }
 
-      case FolderEditorState.loaded:
-      case FolderEditorState.saving:
-        final folder = _notifier.folder;
-        if (folder == null) {
-          return const Center(child: Text("Folder not found"));
-        }
-
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              FolderForm(
-                existingFolder: folder.data,
-                showItemsTable: false,
-                keyPrefix: "folder_editor",
-                onDataChanged: _notifier.updateFormData,
-                onValidationChanged: _onFormValidationChanged,
-              ),
-              const SizedBox(height: 24),
-              FolderItemsSection(
-                folderId: widget.folderId,
-                items: _notifier.items,
-                onItemsChanged: _notifier.updateItems,
-              ),
-            ],
-          ),
-        );
-    }
+  void _onFormValidationChanged(bool isValid) {
+    widget.isFormValid.value = isValid;
   }
 }

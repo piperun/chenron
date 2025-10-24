@@ -1,27 +1,26 @@
 import "package:flutter/material.dart";
+import "package:trina_grid/trina_grid.dart";
 import "package:chenron/models/item.dart";
-import "package:chenron/components/tables/item_table.dart";
 import "package:chenron/notifiers/item_table_notifier.dart";
 import "package:chenron/features/create/link/pages/create_link.dart";
-import "package:chenron/database/extensions/folder/read.dart";
-import "package:chenron/database/extensions/operations/database_file_handler.dart";
-import "package:chenron/database/database.dart";
-import "package:chenron/locator.dart";
-import "package:signals/signals.dart";
-import "package:trina_grid/trina_grid.dart";
-import "package:chenron/components/tables/renderers/shared/actions_renderer.dart";
+import "package:chenron/features/folder_editor/widgets/item_section/item_section.dart";
+import "package:chenron/features/folder_editor/widgets/item_section/item_section_content.dart";
+import "package:chenron/features/folder_editor/widgets/item_section/item_section_controller.dart";
+import "package:chenron/features/folder_editor/widgets/cells/type_cell.dart";
+import "package:chenron/features/folder_editor/widgets/cells/delete_cell.dart";
+import "package:chenron/features/folder_editor/notifiers/folder_editor_notifier.dart";
 
 /// Widget for displaying and managing folder items in the editor
 class FolderItemsSection extends StatefulWidget {
   final String folderId;
   final List<FolderItem> items;
-  final ValueChanged<List<FolderItem>> onItemsChanged;
+  final FolderEditorNotifier notifier;
 
   const FolderItemsSection({
     super.key,
     required this.folderId,
     required this.items,
-    required this.onItemsChanged,
+    required this.notifier,
   });
 
   @override
@@ -30,31 +29,38 @@ class FolderItemsSection extends StatefulWidget {
 
 class _FolderItemsSectionState extends State<FolderItemsSection> {
   late final ItemTableNotifier _tableNotifier;
-  String _searchQuery = "";
+  late final ItemSectionController _controller;
+  late final List<TrinaColumn> _columns;
 
   @override
   void initState() {
     super.initState();
     _tableNotifier = ItemTableNotifier();
+    _controller = ItemSectionController();
+    _columns = _buildColumns();
+
+    // Initialize controller with current items
+    _controller.updateItems(widget.items);
+  }
+
+  @override
+  void didUpdateWidget(FolderItemsSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.items != oldWidget.items) {
+      _controller.updateItems(widget.items);
+    }
   }
 
   @override
   void dispose() {
     _tableNotifier.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
   Future<void> _refreshItems() async {
     try {
-      final dbHandler = await locator.get<Signal<Future<AppDatabaseHandler>>>().value;
-      final folderResult = await dbHandler.appDatabase.getFolder(
-        folderId: widget.folderId,
-        includeOptions: const IncludeOptions({AppDataInclude.items}),
-      );
-
-      if (folderResult != null && mounted) {
-        widget.onItemsChanged(folderResult.items);
-      }
+      await widget.notifier.loadFolder(widget.folderId);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -91,9 +97,9 @@ class _FolderItemsSectionState extends State<FolderItemsSection> {
     );
   }
 
-  void _handleDelete(Key key) {
-    final updatedItems = widget.items.where((i) => i.key != key).toList();
-    widget.onItemsChanged(updatedItems);
+  void _handleDelete(String itemId) {
+    if (itemId.isEmpty) return;
+    widget.notifier.removeItem(itemId);
   }
 
   void _handleDeleteSelected() {
@@ -102,22 +108,20 @@ class _FolderItemsSectionState extends State<FolderItemsSection> {
     final checkedRows = _tableNotifier.stateManager!.checkedRows;
     if (checkedRows.isEmpty) return;
 
-    // Get keys from checked rows
-    final keysToRemove = checkedRows
-        .map((row) => row.key)
-        .whereType<Key>()
+    // Extract item IDs from checked rows
+    final itemIdsToRemove = checkedRows
+        .map((row) => row.cells["item_id"]?.value as String?)
+        .whereType<String>()
+        .where((id) => id.isNotEmpty)
         .toSet();
 
-    // Remove items from the list
-    final updatedItems = widget.items
-        .where((item) => !keysToRemove.contains(item.key))
-        .toList();
-
-    widget.onItemsChanged(updatedItems);
-    _tableNotifier.removeSelectedRows();
+    if (itemIdsToRemove.isNotEmpty) {
+      widget.notifier.removeItems(itemIdsToRemove);
+      _tableNotifier.removeSelectedRows();
+    }
   }
 
-  List<TrinaColumn> _buildColumns(ThemeData theme) {
+  List<TrinaColumn> _buildColumns() {
     return [
       TrinaColumn(
         title: "Type",
@@ -125,10 +129,9 @@ class _FolderItemsSectionState extends State<FolderItemsSection> {
         type: TrinaColumnType.text(),
         width: 100,
         enableRowChecked: true,
-        renderer: (rendererContext) {
-          final typeValue = rendererContext.row.cells["type"]?.value as String?;
-          if (typeValue == null) return const SizedBox.shrink();
-          return _buildTypeIconFromString(typeValue, theme);
+        renderer: (ctx) {
+          final typeValue = (ctx.row.cells["type"]?.value as String?) ?? "";
+          return TypeCell(type: typeValue);
         },
       ),
       TrinaColumn(
@@ -141,78 +144,26 @@ class _FolderItemsSectionState extends State<FolderItemsSection> {
         field: "actions",
         type: TrinaColumnType.text(),
         width: 100,
-        renderer: (rendererContext) {
-          final itemId = rendererContext.row.cells["item_id"]?.value as String?;
+        renderer: (ctx) {
+          final itemId = ctx.row.cells["item_id"]?.value as String?;
           if (itemId == null) return const SizedBox.shrink();
-          
-          return IconButton(
-            icon: Icon(
-              Icons.delete,
-              size: 18,
-              color: theme.colorScheme.error,
-            ),
-            onPressed: () {
-              final item = widget.items.firstWhere((i) => i.id == itemId);
-              _handleDelete(item.key ?? ValueKey(itemId));
-            },
-            tooltip: "Delete",
+          return DeleteCell(
+            itemId: itemId,
+            onDelete: _handleDelete,
           );
         },
       ),
     ];
   }
 
-  Widget _buildTypeIconFromString(String typeValue, ThemeData theme) {
-    IconData icon;
-    Color color;
-    String label;
-
-    switch (typeValue) {
-      case "link":
-        icon = Icons.link;
-        color = Colors.blue;
-        label = "Link";
-        break;
-      case "document":
-        icon = Icons.description;
-        color = Colors.green;
-        label = "Doc";
-        break;
-      case "folder":
-        icon = Icons.folder;
-        color = Colors.orange;
-        label = "Folder";
-        break;
-      default:
-        icon = Icons.help_outline;
-        color = Colors.grey;
-        label = typeValue;
-    }
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 18, color: color),
-        const SizedBox(width: 8),
-        Text(label, style: TextStyle(color: color)),
-      ],
-    );
-  }
-
-
-  List<TrinaRow> _buildRows() {
-    final filteredItems = _searchQuery.isEmpty
-        ? widget.items
-        : widget.items.where((item) {
-            final title = _getTitleFromItem(item).toLowerCase();
-            return title.contains(_searchQuery.toLowerCase());
-          }).toList();
-
-    return filteredItems.map((item) {
-      final title = _getTitleFromItem(item);
+  List<TrinaRow> _buildRows(List<FolderItem> items) {
+    return items.asMap().entries.map((entry) {
+      final index = entry.key;
+      final item = entry.value;
+      final title = ItemSectionController.getTitleFromItem(item);
 
       return TrinaRow(
-        key: item.key ?? ValueKey(item.id ?? title),
+        key: ValueKey('item_row_$index'),
         cells: {
           "type": TrinaCell(value: item.type.name),
           "title": TrinaCell(value: title),
@@ -223,100 +174,25 @@ class _FolderItemsSectionState extends State<FolderItemsSection> {
     }).toList();
   }
 
-  String _getTitleFromItem(FolderItem item) {
-    if (item.path is StringContent) {
-      return (item.path as StringContent).value;
-    } else if (item.path is MapContent) {
-      final mapValue = (item.path as MapContent).value;
-      return mapValue["title"] ?? mapValue["body"] ?? "";
-    }
-    return "";
-  }
-
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return ListenableBuilder(
       listenable: _tableNotifier,
       builder: (context, _) {
-        final hasSelectedRows = _tableNotifier.stateManager?.checkedRows.isNotEmpty ?? false;
+        final hasSelectedRows =
+            _tableNotifier.stateManager?.checkedRows.isNotEmpty ?? false;
 
-        return Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      "Folder Items (${widget.items.length})",
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const Spacer(),
-                    IconButton(
-                      icon: const Icon(Icons.link),
-                      onPressed: _handleAddLink,
-                      tooltip: "Add Link",
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.note_add),
-                      onPressed: _handleAddDocument,
-                      tooltip: "Add Document",
-                    ),
-                    TextButton.icon(
-                      onPressed: hasSelectedRows ? _handleDeleteSelected : null,
-                      icon: const Icon(Icons.delete_outline, size: 18),
-                      label: const Text("Delete Selected"),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                if (widget.items.isNotEmpty)
-                  TextField(
-                    decoration: InputDecoration(
-                      hintText: "Search items...",
-                      prefixIcon: const Icon(Icons.search),
-                      suffixIcon: _searchQuery.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: () => setState(() => _searchQuery = ""),
-                            )
-                          : null,
-                      border: const OutlineInputBorder(),
-                      isDense: true,
-                    ),
-                    onChanged: (value) => setState(() => _searchQuery = value),
-                  ),
-                if (widget.items.isNotEmpty)
-                  const SizedBox(height: 12),
-                if (widget.items.isEmpty)
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(32),
-                      child: Text(
-                        "No items in this folder",
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
-                  )
-                else
-                  SizedBox(
-                    height: 300,
-                    child: DataGrid(
-                      key: ValueKey(widget.items.map((i) => i.id).join("|")),
-                      columns: _buildColumns(theme),
-                      rows: _buildRows(),
-                      notifier: _tableNotifier,
-                    ),
-                  ),
-              ],
-            ),
+        // Clean composition with separated concerns
+        return ItemSection(
+          child: ItemSectionContent(
+            controller: _controller,
+            onAddLink: _handleAddLink,
+            onAddDocument: _handleAddDocument,
+            onDeleteSelected: _handleDeleteSelected,
+            hasSelectedRows: hasSelectedRows,
+            columns: _columns,
+            buildRows: _buildRows,
+            tableNotifier: _tableNotifier,
           ),
         );
       },
