@@ -247,6 +247,7 @@ class _FolderFormState extends State<FolderForm> {
         FolderParentSection(
           selectedFolders: _selectedParentFolders,
           onFoldersChanged: _onParentFoldersChanged,
+          currentFolderId: widget.existingFolder?.id,
         ),
         TagSection(
           keyPrefix: widget.keyPrefix != null ? "${widget.keyPrefix}_tags" : "folder_tags",

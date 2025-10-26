@@ -8,11 +8,13 @@ import "package:signals/signals_flutter.dart";
 class FolderParentSection extends StatefulWidget {
   final List<Folder> selectedFolders;
   final ValueChanged<List<Folder>> onFoldersChanged;
+  final String? currentFolderId;
 
   const FolderParentSection({
     super.key,
     required this.selectedFolders,
     required this.onFoldersChanged,
+    this.currentFolderId,
   });
 
   @override
@@ -45,6 +47,7 @@ class _FolderParentSectionState extends State<FolderParentSection> {
         db: _db,
         selectedFolders: widget.selectedFolders,
         onSelect: widget.onFoldersChanged,
+        currentFolderId: widget.currentFolderId,
       ),
     );
   }
@@ -122,11 +125,13 @@ class _FolderSelectionDialog extends StatefulWidget {
   final AppDatabase db;
   final List<Folder> selectedFolders;
   final void Function(List<Folder>) onSelect;
+  final String? currentFolderId;
 
   const _FolderSelectionDialog({
     required this.db,
     required this.selectedFolders,
     required this.onSelect,
+    this.currentFolderId,
   });
 
   @override
@@ -159,7 +164,13 @@ class _FolderSelectionDialogState extends State<_FolderSelectionDialog> {
   }
 
   List<Folder> get _filteredFolders => _allFolders
-      .where((f) => f.title.toLowerCase().contains(_searchQuery.toLowerCase()))
+      .where((f) {
+        // Exclude current folder from selection
+        if (widget.currentFolderId != null && f.id == widget.currentFolderId) {
+          return false;
+        }
+        return f.title.toLowerCase().contains(_searchQuery.toLowerCase());
+      })
       .toList();
 
   @override
