@@ -4,8 +4,11 @@ import "package:chenron/features/create/folder/widgets/folder_parent_section.dar
 import "package:chenron/notifiers/item_table_notifier.dart";
 import "package:flutter/material.dart";
 import "package:chenron/database/database.dart";
+import "package:chenron/database/extensions/folder/read.dart";
+import "package:chenron/database/extensions/operations/database_file_handler.dart";
 import "package:chenron/models/item.dart";
 import "package:chenron/utils/validation/folder_validator.dart";
+import "package:chenron/locator.dart";
 import "package:signals/signals.dart";
 
 /// Form model that represents the folder data
@@ -45,6 +48,7 @@ class FolderFormData {
 class FolderForm extends StatefulWidget {
   final Folder? existingFolder;
   final Set<String>? existingTags;
+  final List<String>? existingParentFolderIds;
   final bool showItemsTable;
   final String? keyPrefix;
   final ValueChanged<FolderFormData>? onDataChanged;
@@ -56,6 +60,7 @@ class FolderForm extends StatefulWidget {
     super.key,
     this.existingFolder,
     this.existingTags,
+    this.existingParentFolderIds,
     this.showItemsTable = false,
     this.keyPrefix,
     this.onDataChanged,
@@ -105,8 +110,10 @@ class _FolderFormState extends State<FolderForm> {
       _tagsSignal.value = _tags;
     }
     
-    // TODO: Load existing parent folders when editing
-    // This would require additional database queries to fetch relationships
+    // Load existing parent folders if provided
+    if (widget.existingParentFolderIds != null && widget.existingParentFolderIds!.isNotEmpty) {
+      _loadParentFolders(widget.existingParentFolderIds!);
+    }
     
     // Listen to text controllers
     _titleController.addListener(_onTitleChanged);
@@ -116,6 +123,29 @@ class _FolderFormState extends State<FolderForm> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _validateAndNotify();
     });
+  }
+
+  Future<void> _loadParentFolders(List<String> folderIds) async {
+    try {
+      final dbHandler = await locator.get<Signal<Future<AppDatabaseHandler>>>().value;
+      final folders = <Folder>[];
+      
+      for (final folderId in folderIds) {
+        final result = await dbHandler.appDatabase.getFolder(folderId: folderId);
+        if (result != null) {
+          folders.add(result.data);
+        }
+      }
+      
+      if (mounted && folders.isNotEmpty) {
+        setState(() {
+          _selectedParentFolders = folders;
+        });
+        _validateAndNotify();
+      }
+    } catch (e) {
+      // Silently fail - parent folders are optional
+    }
   }
 
   void _onTitleChanged() {

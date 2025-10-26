@@ -35,6 +35,7 @@ class FolderEditorNotifier {
   final Signal<FolderFormData?> formData = signal(null);
 
   FolderResult? _originalFolder;
+  List<String> _originalParentFolderIds = [];
 
   // Computed signal for current items (original + changes)
   Computed<List<FolderItem>> get currentItems => computed(() {
@@ -97,7 +98,8 @@ class FolderEditorNotifier {
         }
 
         // Check parent folders change
-        if (current.parentFolderIds.isNotEmpty) {
+        if (!const ListEquality()
+            .equals(_originalParentFolderIds, current.parentFolderIds)) {
           return true;
         }
 
@@ -132,9 +134,14 @@ class FolderEditorNotifier {
         return;
       }
 
+      // Load parent folders
+      final parentFolderIds =
+          await _loadParentFolderIds(folderId, dbHandler.appDatabase);
+
       _originalFolder = folderResult;
       folder.value = folderResult;
       originalItems.value = List.from(folderResult.items);
+      _originalParentFolderIds = List.from(parentFolderIds);
 
       // Reset item changes when loading
       itemChanges.value = CUD<FolderItem>(
@@ -147,7 +154,7 @@ class FolderEditorNotifier {
       formData.value = FolderFormData(
         title: folderResult.data.title,
         description: folderResult.data.description,
-        parentFolderIds: [],
+        parentFolderIds: parentFolderIds,
         tags: folderResult.tags.map((t) => t.name).toSet(),
         items: currentItems.value,
       );
@@ -157,6 +164,17 @@ class FolderEditorNotifier {
       state.value = FolderEditorState.error;
       errorMessage.value = e.toString();
     }
+  }
+
+  // Load parent folder IDs for a given folder
+  Future<List<String>> _loadParentFolderIds(
+      String folderId, AppDatabase db) async {
+    // Query items table where itemId = folderId to find parent folders
+    final query = db.select(db.items)
+      ..where((item) => item.itemId.equals(folderId));
+
+    final results = await query.get();
+    return results.map((item) => item.folderId).toList();
   }
 
   void updateFormData(FolderFormData data) {
@@ -325,7 +343,7 @@ class FolderEditorNotifier {
       formData.value = FolderFormData(
         title: _originalFolder!.data.title,
         description: _originalFolder!.data.description,
-        parentFolderIds: [],
+        parentFolderIds: List.from(_originalParentFolderIds),
         tags: _originalFolder!.tags.map((t) => t.name).toSet(),
         items: originalItems.value,
       );
@@ -353,6 +371,8 @@ class FolderEditorNotifier {
 
       final tagUpdates = _buildTagUpdates();
       final itemUpdates = itemChanges.value;
+      final parentFolderUpdates =
+          _buildParentFolderUpdates(folderId, current.title);
 
       // Update folder metadata and items
       await appDb.updateFolder(
@@ -363,24 +383,12 @@ class FolderEditorNotifier {
         itemUpdates: itemUpdates,
       );
 
-      // Handle parent folders
-      if (current.parentFolderIds.isNotEmpty) {
-        for (final parentFolderId in current.parentFolderIds) {
-          await appDb.updateFolder(
-            parentFolderId,
-            itemUpdates: CUD(
-              create: [],
-              update: [
-                FolderItem(
-                  type: FolderItemType.folder,
-                  itemId: folderId,
-                  content: StringContent(value: current.title),
-                )
-              ],
-              remove: [],
-            ),
-          );
-        }
+      // Handle parent folder changes
+      for (final update in parentFolderUpdates) {
+        await appDb.updateFolder(
+          update.parentFolderId,
+          itemUpdates: update.changes,
+        );
       }
 
       await loadFolder(folderId);
@@ -419,6 +427,77 @@ class FolderEditorNotifier {
       update: [],
       remove: tagsToRemove,
     );
+  }
+
+  List<({String parentFolderId, CUD<FolderItem> changes})>
+      _buildParentFolderUpdates(String currentFolderId, String currentTitle) {
+    final current = formData.value;
+    if (current == null) {
+      return [];
+    }
+
+    // Clean up duplicates and convert to sets for comparison
+    final originalParents = _originalParentFolderIds.toSet();
+    final currentParents = current.parentFolderIds.toSet();
+
+    final updates = <({String parentFolderId, CUD<FolderItem> changes})>[];
+
+    // Handle parent folder changes
+    final parentsToAdd = currentParents.difference(originalParents);
+    final parentsToRemove = originalParents.difference(currentParents);
+    final parentsToKeep = currentParents.intersection(originalParents);
+
+    // Add new parent folders (simple create, no remove needed)
+    for (final parentId in parentsToAdd) {
+      updates.add((
+        parentFolderId: parentId,
+        changes: CUD<FolderItem>(
+          create: [
+            FolderItem(
+              type: FolderItemType.folder,
+              itemId: currentFolderId,
+              content: StringContent(value: currentTitle),
+            )
+          ],
+          update: [],
+          remove: [],
+        ),
+      ));
+    }
+
+    // Remove old parent folders
+    for (final parentId in parentsToRemove) {
+      updates.add((
+        parentFolderId: parentId,
+        changes: CUD<FolderItem>(
+          create: [],
+          update: [],
+          remove: [currentFolderId],
+        ),
+      ));
+    }
+
+    // For parents that exist in both, clean up duplicates
+    // (only needed if there were duplicates from previous bugs)
+    for (final parentId in parentsToKeep) {
+      // Remove all existing, then create exactly one to clean duplicates
+      updates.add((
+        parentFolderId: parentId,
+        changes: CUD<FolderItem>(
+          create: [
+            FolderItem(
+              type: FolderItemType.folder,
+              itemId: currentFolderId,
+              content: StringContent(value: currentTitle),
+            )
+          ],
+          update: [],
+          remove: [currentFolderId],
+        ),
+      ));
+    }
+
+    return updates;
   }
 
   void dispose() {

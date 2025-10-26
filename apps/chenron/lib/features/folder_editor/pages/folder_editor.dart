@@ -204,6 +204,7 @@ class _SectionBodyState extends State<SectionBody> {
                 FolderForm(
                   existingFolder: folder.data,
                   existingTags: folder.tags.map((t) => t.name).toSet(),
+                  existingParentFolderIds: widget.notifier.formData.value?.parentFolderIds,
                   showItemsTable: false,
                   keyPrefix: "folder_editor",
                   onDataChanged: widget.notifier.updateFormData,
