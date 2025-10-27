@@ -4,9 +4,9 @@ import "package:chenron/features/dashboard/pages/dashboard.dart";
 
 enum NavigationSection {
   dashboard(
-    icon: Icons.dashboard_outlined,
-    selectedIcon: Icons.dashboard,
-    label: "Dashboard",
+    icon: Icons.analytics_outlined,
+    selectedIcon: Icons.analytics,
+    label: "Statistics",
     page: DashBoard(padding: 16),
   ),
   viewer(

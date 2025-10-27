@@ -5,6 +5,9 @@ import "package:chenron/shared/patterns/include_options.dart";
 import "package:chenron/features/shell/widgets/add_item_modal.dart";
 import "package:chenron/features/shell/ui/sections/navigation_section.dart";
 import "package:chenron/features/shell/ui/sections/appbar_section.dart";
+import "package:chenron/features/shell/ui/folders_navigation_rail.dart";
+import "package:chenron/features/folder_viewer/pages/folder_viewer_page.dart";
+import "package:chenron/features/viewer/pages/viewer.dart";
 import "package:chenron/utils/logger.dart";
 import "package:chenron/shared/ui/dark_mode.dart";
 import "package:signals/signals.dart";
@@ -23,6 +26,8 @@ class _RootPageState extends State<RootPage> {
   AppPage _currentPage = AppPage.dashboard;
   AppPage? _previousPage;
   bool _isExtended = true;
+  String? _selectedFolderId;
+  NavigationSection _currentSection = NavigationSection.viewer;
   late final SearchFilter _searchFilter;
 
   @override
@@ -72,33 +77,40 @@ class _RootPageState extends State<RootPage> {
     });
   }
 
-  void _onDestinationSelected(int index) {
-    final newSection = NavigationSection.values[index];
-    final newPage = AppPage.values.firstWhere(
-      (page) => page.navSection == newSection,
-    );
-
-    if (_currentPage == newPage) {
+  void _onSectionSelected(NavigationSection section) {
+    if (_currentSection == section && _currentPage != AppPage.settings) {
       loggerGlobal.fine(
         "RootPage",
-        "Already on page: ${newSection.label}. Ignoring selection.",
+        "Already on section: ${section.label}. Ignoring selection.",
       );
       return;
     }
 
-    loggerGlobal.fine("RootPage", "Navigating to ${newSection.label}.");
-    setState(() => _currentPage = newPage);
+    loggerGlobal.fine("RootPage", "Navigating to ${section.label}.");
+    setState(() {
+      _currentSection = section;
+      // Reset to the default page for the section when navigating from settings
+      if (_currentPage == AppPage.settings || _currentPage.isCreateFlow) {
+        _currentPage = AppPage.dashboard; // Default page
+      }
+    });
+  }
+
+  void _onFolderSelected(String folderId) {
+    loggerGlobal.fine("RootPage", "Folder selected: $folderId");
+    
+    // Navigate to the FolderViewerPage to show folder contents
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => FolderViewerPage(folderId: folderId),
+      ),
+    );
   }
 
   void _navigateToSettings() {
     setState(() => _currentPage = AppPage.settings);
   }
 
-  int? get _selectedNavIndex {
-    final navSection = _currentPage.navSection;
-    if (navSection == null) return null;
-    return NavigationSection.values.indexOf(navSection);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -107,15 +119,20 @@ class _RootPageState extends State<RootPage> {
       appBar: _AppBar(
         onSettingsPressed: _navigateToSettings,
         searchFilter: _searchFilter,
+        currentSection: _currentSection,
+        onSectionSelected: _onSectionSelected,
       ),
       body: Row(
         children: [
-          _NavigationSidebar(
+          FoldersNavigationRail(
+            selectedFolderId: _selectedFolderId,
+            onFolderSelected: _onFolderSelected,
             isExtended: _isExtended,
-            selectedIndex: _selectedNavIndex,
-            onDestinationSelected: _onDestinationSelected,
             onToggleExtended: () => setState(() => _isExtended = !_isExtended),
             onAddPressed: _showCreateModal,
+            showSyncFeatures: false,
+            showPlanInfo: false,
+            showQuotaBar: false,
           ),
           const VerticalDivider(thickness: 1, width: 1),
           Expanded(
@@ -125,17 +142,40 @@ class _RootPageState extends State<RootPage> {
               switchOutCurve: Curves.easeInOut,
               child: KeyedSubtree(
                 key: ValueKey(_currentPage),
-                child: _currentPage.getPage(
-                  onClose: _returnToPreviousPage,
-                  onSaved: _handleSaved,
-                  searchFilter: _searchFilter,
-                ),
+                child: _buildCurrentPage(),
               ),
             ),
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildCurrentPage() {
+    // If in a create flow, show that page
+    if (_currentPage.isCreateFlow) {
+      return _currentPage.getPage(
+        onClose: _returnToPreviousPage,
+        onSaved: _handleSaved,
+        searchFilter: _searchFilter,
+      );
+    }
+
+    // If on settings page, show settings
+    if (_currentPage == AppPage.settings) {
+      return _currentPage.getPage(
+        onClose: _returnToPreviousPage,
+        onSaved: _handleSaved,
+        searchFilter: _searchFilter,
+      );
+    }
+
+    // Otherwise, show the current section's page
+    if (_currentSection == NavigationSection.viewer) {
+      return Viewer(searchFilter: _searchFilter);
+    }
+
+    return _currentSection.page;
   }
 
   void _handleSaved() {
@@ -162,10 +202,14 @@ class _RootPageState extends State<RootPage> {
 class _AppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onSettingsPressed;
   final SearchFilter searchFilter;
+  final NavigationSection currentSection;
+  final Function(NavigationSection) onSectionSelected;
 
   const _AppBar({
     required this.onSettingsPressed,
     required this.searchFilter,
+    required this.currentSection,
+    required this.onSectionSelected,
   });
 
   @override
@@ -173,16 +217,43 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    
     return AppBar(
-      title: Center(
-        child: FractionallySizedBox(
-          widthFactor: 0.8,
-          child: GlobalSearchBar(
-            externalController: searchFilter.controller,
+      title: Row(
+        children: [
+          Expanded(
+            child: Center(
+              child: FractionallySizedBox(
+                widthFactor: 0.8,
+                child: GlobalSearchBar(
+                  externalController: searchFilter.controller,
+                ),
+              ),
+            ),
           ),
-        ),
+          // Visual separator after search
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 12),
+            width: 1,
+            height: 32,
+            color: colorScheme.outline.withValues(alpha: 0.3),
+          ),
+          // Custom styled button group
+          _SectionToggle(
+            currentSection: currentSection,
+            onSectionSelected: onSectionSelected,
+          ),
+        ],
       ),
       actions: [
+        // Visual separator before actions
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          width: 1,
+          height: 32,
+          color: colorScheme.outline.withValues(alpha: 0.3),
+        ),
         const DarkModeToggle(),
         IconButton(
           tooltip: "Settings",
@@ -194,83 +265,98 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 }
 
-// Navigation Sidebar Component
-class _NavigationSidebar extends StatelessWidget {
-  final bool isExtended;
-  final int? selectedIndex;
-  final ValueChanged<int> onDestinationSelected;
-  final VoidCallback onToggleExtended;
-  final VoidCallback onAddPressed;
+// Custom Section Toggle Widget
+class _SectionToggle extends StatelessWidget {
+  final NavigationSection currentSection;
+  final Function(NavigationSection) onSectionSelected;
 
-  const _NavigationSidebar({
-    required this.isExtended,
-    required this.selectedIndex,
-    required this.onDestinationSelected,
-    required this.onToggleExtended,
-    required this.onAddPressed,
+  const _SectionToggle({
+    required this.currentSection,
+    required this.onSectionSelected,
   });
 
   @override
   Widget build(BuildContext context) {
-    return NavigationRail(
-      extended: isExtended,
-      minExtendedWidth: 180,
-      selectedIndex: selectedIndex,
-      onDestinationSelected: onDestinationSelected,
-      leading: IconButton(
-        tooltip: isExtended ? "Collapse Navigation" : "Expand Navigation",
-        icon: Icon(isExtended ? Icons.menu_open : Icons.menu),
-        onPressed: onToggleExtended,
-      ),
-      destinations: NavigationSection.values
-          .map((section) => section.toDestination())
-          .toList(),
-      trailing: Expanded(
-        child: Align(
-          alignment: Alignment.bottomCenter,
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 16.0),
-            child: _AddButton(
-              isExtended: isExtended,
-              onPressed: onAddPressed,
-            ),
-          ),
+    final colorScheme = Theme.of(context).colorScheme;
+    
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: colorScheme.outline.withValues(alpha: 0.2),
+          width: 1,
         ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: NavigationSection.values.map((section) {
+          final isSelected = section == currentSection;
+          return _SectionButton(
+            section: section,
+            isSelected: isSelected,
+            onPressed: () => onSectionSelected(section),
+          );
+        }).toList(),
       ),
     );
   }
 }
 
-// Add Button Component
-class _AddButton extends StatelessWidget {
-  final bool isExtended;
+class _SectionButton extends StatelessWidget {
+  final NavigationSection section;
+  final bool isSelected;
   final VoidCallback onPressed;
 
-  const _AddButton({
-    required this.isExtended,
+  const _SectionButton({
+    required this.section,
+    required this.isSelected,
     required this.onPressed,
   });
 
   @override
   Widget build(BuildContext context) {
-    if (isExtended) {
-      return FilledButton.icon(
-        onPressed: onPressed,
-        icon: const Icon(Icons.add),
-        label: const Text("Add New"),
-        style: FilledButton.styleFrom(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 24,
-            vertical: 12,
+    final colorScheme = Theme.of(context).colorScheme;
+    
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(7),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected 
+                ? colorScheme.primaryContainer
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(7),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                isSelected ? section.selectedIcon : section.icon,
+                size: 18,
+                color: isSelected 
+                    ? colorScheme.onPrimaryContainer
+                    : colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                section.label,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: isSelected 
+                      ? colorScheme.onPrimaryContainer
+                      : colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
           ),
         ),
-      );
-    }
-
-    return FloatingActionButton(
-      onPressed: onPressed,
-      tooltip: "Add New",
-      child: const Icon(Icons.add),
+      ),
     );
   }
 }
+
