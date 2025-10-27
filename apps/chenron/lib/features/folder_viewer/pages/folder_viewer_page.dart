@@ -40,16 +40,70 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
     super.initState();
     _tagFilterState = TagFilterState();
     _loadLockState();
-    _folderData = locator
-        .get<Signal<Future<AppDatabaseHandler>>>()
-        .value
-        .then((db) => db.appDatabase
-            .getFolder(
-              folderId: widget.folderId,
-              includeOptions:
-                  const IncludeOptions({AppDataInclude.items, AppDataInclude.tags}),
-            )
-            .then((folder) => folder!));
+    _folderData = _loadFolderWithParents();
+  }
+
+  Future<FolderResult> _loadFolderWithParents() async {
+    final db = await locator.get<Signal<Future<AppDatabaseHandler>>>().value;
+    
+    // Load the folder with its child items
+    final folder = await db.appDatabase.getFolder(
+      folderId: widget.folderId,
+      includeOptions: const IncludeOptions({AppDataInclude.items, AppDataInclude.tags}),
+    );
+    
+    if (folder == null) {
+      throw Exception("Folder not found");
+    }
+    
+    // Load parent folders
+    final parentFolders = await _loadParentFolders(db.appDatabase);
+    
+    // Convert parent folders to FolderItem and combine with existing items
+    final parentItems = parentFolders.map((parentFolder) => FolderItem(
+      id: parentFolder.id,
+      type: FolderItemType.folder,
+      content: StringContent(value: parentFolder.title),
+      createdAt: parentFolder.createdAt,
+      tags: [], // Parent folders won't have tags in this context
+    )).toList();
+    
+    // Combine parent items with child items
+    final allItems = [...parentItems, ...folder.items];
+    
+    return FolderResult(
+      data: folder.data,
+      tags: folder.tags,
+      items: allItems,
+    );
+  }
+
+  Future<List<Folder>> _loadParentFolders(AppDatabase db) async {
+    try {
+      // Query Items table to find folders that contain this folder
+      final query = db.select(db.items)
+        ..where((item) => item.itemId.equals(widget.folderId));
+      final results = await query.get();
+      final parentFolderIds = results.map((item) => item.folderId).toList();
+      
+      if (parentFolderIds.isEmpty) return [];
+      
+      // Fetch the actual folder data for each parent ID
+      final List<Folder> parentFolders = [];
+      for (final parentId in parentFolderIds) {
+        final folderQuery = db.select(db.folders)
+          ..where((folder) => folder.id.equals(parentId));
+        final folderResults = await folderQuery.get();
+        if (folderResults.isNotEmpty) {
+          parentFolders.add(folderResults.first);
+        }
+      }
+      
+      return parentFolders;
+    } catch (e) {
+      loggerGlobal.warning("FOLDER_VIEWER", "Error loading parent folders: $e");
+      return [];
+    }
   }
 
   @override
@@ -90,16 +144,7 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
       // Refresh folder data after returning from editor
       if (mounted) {
         setState(() {
-          _folderData = locator
-              .get<Signal<Future<AppDatabaseHandler>>>()
-              .value
-              .then((db) => db.appDatabase
-                  .getFolder(
-                    folderId: widget.folderId,
-                    includeOptions: const IncludeOptions(
-                        {AppDataInclude.items, AppDataInclude.tags}),
-                  )
-                  .then((folder) => folder!));
+          _folderData = _loadFolderWithParents();
         });
       }
     });
@@ -211,16 +256,7 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
 
         // Refresh the folder data
         setState(() {
-          _folderData = locator
-              .get<Signal<Future<AppDatabaseHandler>>>()
-              .value
-              .then((db) => db.appDatabase
-                  .getFolder(
-                    folderId: widget.folderId,
-                    includeOptions: const IncludeOptions(
-                        {AppDataInclude.items, AppDataInclude.tags}),
-                  )
-                  .then((folder) => folder!));
+          _folderData = _loadFolderWithParents();
         });
       }
     } catch (e) {
