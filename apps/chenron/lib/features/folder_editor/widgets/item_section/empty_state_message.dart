@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import "package:flutter/material.dart";
 
 /// Reusable empty state message widget for displaying when no items are present
 class EmptyStateMessage extends StatelessWidget {

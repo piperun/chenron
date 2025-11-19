@@ -214,11 +214,11 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
       items: itemsToDelete
           .map((item) {
             // Extract title from item content
-            String title = '';
+            String title = "";
             if (item.path is StringContent) {
               title = (item.path as StringContent).value;
             } else if (item.path is MapContent) {
-              title = (item.path as MapContent).value['title'] ?? '';
+              title = (item.path as MapContent).value["title"] ?? "";
             }
             
             return DeletableItem(
@@ -406,9 +406,9 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
                             final searchFilter = globalSearchFilterSignal.value;
                             if (searchFilter != null) {
                               // Format as tag pattern and trigger submission
-                              searchFilter.controller.value = '#$tagName';
+                              searchFilter.controller.value = "#$tagName";
                               // Trigger onSubmitted to parse and add the tag to filter state
-                              searchFilter.controller.onSubmitted?.call('#$tagName');
+                              searchFilter.controller.onSubmitted?.call("#$tagName");
                             }
                           },
                           onEdit: _handleEdit,

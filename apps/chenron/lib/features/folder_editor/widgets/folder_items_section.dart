@@ -163,7 +163,7 @@ class _FolderItemsSectionState extends State<FolderItemsSection> {
       final title = ItemSectionController.getTitleFromItem(item);
 
       return TrinaRow(
-        key: ValueKey('item_row_$index'),
+        key: ValueKey("item_row_$index"),
         cells: {
           "type": TrinaCell(value: item.type.name),
           "title": TrinaCell(value: title),

@@ -70,11 +70,11 @@ class Viewer extends HookWidget {
       items: itemsToDelete
           .map((item) {
             // Extract title from item content
-            String title = '';
+            String title = "";
             if (item.path is StringContent) {
               title = (item.path as StringContent).value;
             } else if (item.path is MapContent) {
-              title = (item.path as MapContent).value['title'] ?? '';
+              title = (item.path as MapContent).value["title"] ?? "";
             }
             
             return DeletableItem(

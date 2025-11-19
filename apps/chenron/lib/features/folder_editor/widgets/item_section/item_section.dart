@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import "package:flutter/material.dart";
 
 /// Container widget that provides the Card layout for the item section
 class ItemSection extends StatelessWidget {

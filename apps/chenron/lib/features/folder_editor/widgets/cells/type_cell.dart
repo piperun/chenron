@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:chenron/features/folder_editor/models/item_kind.dart';
+import "package:flutter/material.dart";
+import "package:chenron/features/folder_editor/models/item_kind.dart";
 
 class TypeCell extends StatelessWidget {
   final String type;
