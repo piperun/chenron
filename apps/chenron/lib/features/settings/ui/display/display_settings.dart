@@ -32,44 +32,41 @@ class DisplaySettings extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Watch(
-              (context) => Column(
-                children: [
-                  RadioListTile<int>(
-                    title:
-                        const Text("Relative (e.g., \"2h ago\", \"5d ago\")"),
-                    subtitle: Text(
-                      "Example: ${TimeFormatter.formatRelative(DateTime.now().subtract(const Duration(hours: 2)))}",
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.textTheme.bodySmall?.color
-                            ?.withValues(alpha: 0.7),
+              (context) => RadioGroup<int>(
+                groupValue: controller.timeDisplayFormat.value,
+                onChanged: (value) {
+                  if (value != null) {
+                    controller.updateTimeDisplayFormat(value);
+                  }
+                },
+                child: Column(
+                  children: [
+                    RadioListTile<int>(
+                      title:
+                          const Text("Relative (e.g., \"2h ago\", \"5d ago\")"),
+                      subtitle: Text(
+                        "Example: ${TimeFormatter.formatRelative(DateTime.now().subtract(const Duration(hours: 2)))}",
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.textTheme.bodySmall?.color
+                              ?.withValues(alpha: 0.7),
+                        ),
                       ),
+                      value: 0,
                     ),
-                    value: 0,
-                    groupValue: controller.timeDisplayFormat.value,
-                    onChanged: (value) {
-                      if (value != null) {
-                        controller.updateTimeDisplayFormat(value);
-                      }
-                    },
-                  ),
-                  RadioListTile<int>(
-                    title: const Text("Absolute (e.g., \"2025-01-01 14:30\")"),
-                    subtitle: Text(
-                      "Example: ${TimeFormatter.formatAbsolute(DateTime.now())}",
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.textTheme.bodySmall?.color
-                            ?.withValues(alpha: 0.7),
+                    RadioListTile<int>(
+                      title:
+                          const Text("Absolute (e.g., \"2025-01-01 14:30\")"),
+                      subtitle: Text(
+                        "Example: ${TimeFormatter.formatAbsolute(DateTime.now())}",
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.textTheme.bodySmall?.color
+                              ?.withValues(alpha: 0.7),
+                        ),
                       ),
+                      value: 1,
                     ),
-                    value: 1,
-                    groupValue: controller.timeDisplayFormat.value,
-                    onChanged: (value) {
-                      if (value != null) {
-                        controller.updateTimeDisplayFormat(value);
-                      }
-                    },
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 8),
