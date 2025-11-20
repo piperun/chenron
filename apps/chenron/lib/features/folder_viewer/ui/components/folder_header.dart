@@ -32,7 +32,7 @@ class FolderHeader extends StatelessWidget {
 
   String _formatDate(DateTime? date) {
     if (date == null) return "Unknown";
-    
+
     // Use system locale for date formatting with 24-hour time
     // Get the system locale (e.g., 'sv_SE' for Swedish)
     final systemLocale = Intl.systemLocale;
@@ -44,18 +44,16 @@ class FolderHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
+
     // Use theme colors for gradient
     final primaryColor = theme.colorScheme.primary;
     final secondaryColor = theme.colorScheme.secondary;
-    
+
     // Create gradient colors based on theme
-    final gradientStart = isDark
-        ? primaryColor.withOpacity(0.9)
-        : primaryColor;
-    final gradientEnd = isDark
-        ? secondaryColor.withOpacity(0.8)
-        : secondaryColor;
+    final gradientStart =
+        isDark ? primaryColor.withValues(alpha: 0.9) : primaryColor;
+    final gradientEnd =
+        isDark ? secondaryColor.withValues(alpha: 0.8) : secondaryColor;
 
     return Container(
       decoration: BoxDecoration(
@@ -66,7 +64,7 @@ class FolderHeader extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -80,7 +78,7 @@ class FolderHeader extends StatelessWidget {
           Row(
             children: [
               Material(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(6),
                 child: InkWell(
                   onTap: onBack,
@@ -96,14 +94,14 @@ class FolderHeader extends StatelessWidget {
                         Icon(
                           Icons.arrow_back,
                           size: 16,
-                          color: Colors.white.withOpacity(0.95),
+                          color: Colors.white.withValues(alpha: 0.95),
                         ),
                         const SizedBox(width: 6),
                         Text(
                           "Back to Viewer",
                           style: TextStyle(
                             fontSize: 14,
-                            color: Colors.white.withOpacity(0.95),
+                            color: Colors.white.withValues(alpha: 0.95),
                           ),
                         ),
                       ],
@@ -152,7 +150,7 @@ class FolderHeader extends StatelessWidget {
               if (onDelete != null) const SizedBox(width: 8),
               // Lock button
               Material(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(6),
                 child: InkWell(
                   onTap: onToggleLock,
@@ -174,7 +172,7 @@ class FolderHeader extends StatelessWidget {
                         isLocked ? Icons.lock : Icons.lock_open,
                         key: ValueKey<bool>(isLocked),
                         size: 20,
-                        color: Colors.white.withOpacity(0.95),
+                        color: Colors.white.withValues(alpha: 0.95),
                       ),
                     ),
                   ),
@@ -183,7 +181,7 @@ class FolderHeader extends StatelessWidget {
               const SizedBox(width: 8),
               // Expand/collapse button
               Material(
-                color: Colors.white.withOpacity(isLocked ? 0.1 : 0.2),
+                color: Colors.white.withValues(alpha: isLocked ? 0.1 : 0.2),
                 borderRadius: BorderRadius.circular(6),
                 child: InkWell(
                   onTap: isLocked ? null : onToggle,
@@ -193,16 +191,17 @@ class FolderHeader extends StatelessWidget {
                     child: Icon(
                       isExpanded ? Icons.expand_less : Icons.expand_more,
                       size: 20,
-                      color: Colors.white.withOpacity(isLocked ? 0.4 : 0.95),
+                      color:
+                          Colors.white.withValues(alpha: isLocked ? 0.4 : 0.95),
                     ),
                   ),
                 ),
               ),
             ],
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Folder title
           Text(
             folder.title,
@@ -212,9 +211,9 @@ class FolderHeader extends StatelessWidget {
               color: Colors.white,
             ),
           ),
-          
+
           const SizedBox(height: 8),
-          
+
           // Metadata row
           Wrap(
             spacing: 24,
@@ -230,7 +229,7 @@ class FolderHeader extends StatelessWidget {
               ),
             ],
           ),
-          
+
           // Tags as interactive chips
           if (tags.isNotEmpty) ...[
             const SizedBox(height: 12),
@@ -240,12 +239,13 @@ class FolderHeader extends StatelessWidget {
               children: tags
                   .map((tag) => _TagChip(
                         tag: tag,
-                        onTap: onTagTap != null ? () => onTagTap!(tag.name) : null,
+                        onTap:
+                            onTagTap != null ? () => onTagTap!(tag.name) : null,
                       ))
                   .toList(),
             ),
           ],
-          
+
           // Description (if exists)
           if (folder.description.isNotEmpty) ...[
             const SizedBox(height: 12),
@@ -253,7 +253,7 @@ class FolderHeader extends StatelessWidget {
               folder.description,
               style: TextStyle(
                 fontSize: 15,
-                color: Colors.white.withOpacity(0.95),
+                color: Colors.white.withValues(alpha: 0.95),
                 height: 1.5,
               ),
             ),
@@ -295,7 +295,8 @@ class _TagChipState extends State<_TagChip> {
             color: _hovering ? hoverColor : baseColor.withOpacity(0.25),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: theme.colorScheme.secondary.withOpacity(_hovering ? 0.9 : 0.6),
+              color: theme.colorScheme.secondary
+                  .withOpacity(_hovering ? 0.9 : 0.6),
             ),
           ),
           child: Row(
@@ -334,14 +335,14 @@ class _MetaItem extends StatelessWidget {
         Icon(
           icon,
           size: 16,
-          color: Colors.white.withOpacity(0.9),
+          color: Colors.white.withValues(alpha: 0.9),
         ),
         const SizedBox(width: 6),
         Text(
           text,
           style: TextStyle(
             fontSize: 14,
-            color: Colors.white.withOpacity(0.9),
+            color: Colors.white.withValues(alpha: 0.9),
           ),
         ),
       ],
