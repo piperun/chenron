@@ -68,7 +68,7 @@ void main() {
     );
   });
 
-  tearDown() async {
+  Future<void> tearDown() async {
     await mockDb.dispose();
     if (GetIt.I.isRegistered<Signal<Future<AppDatabaseHandler>>>()) {
       await GetIt.I.reset();
