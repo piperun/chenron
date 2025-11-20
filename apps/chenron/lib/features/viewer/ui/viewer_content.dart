@@ -6,65 +6,71 @@ import "package:chenron/features/viewer/ui/viewer_list_item.dart";
 import "package:chenron/models/item.dart";
 import "package:chenron/utils/logger.dart";
 import "package:flutter/material.dart";
-import "package:flutter_hooks/flutter_hooks.dart";
+import "package:signals/signals_flutter.dart";
 
-class ViewerContent extends HookWidget {
+class ViewerContent extends StatelessWidget {
   const ViewerContent({super.key});
 
   @override
   Widget build(BuildContext context) {
     final viewModel = viewerViewModelSignal.value;
-    final snapshot = useStream(viewModel.itemsStream);
-
-    if (snapshot.hasError) {
-      loggerGlobal.warning("ViewerUiItemStream", snapshot.error);
-      return Center(child: Text("Error: ${snapshot.error}"));
-    }
-
-    if (!snapshot.hasData) {
-      return const Center(child: CircularProgressIndicator());
-    }
 
     return Column(
       children: [
         Expanded(
-          child: ListenableBuilder(
-            listenable: viewModel,
-            builder: (context, _) {
-              return ItemList<ViewerItem>(
-                items: snapshot.data!,
-                listItemBuilder: (context, item) => ViewerListItem(
-                    item: item,
-                    checkbox: true,
-                    extraTrailingWidgets: switch (item.type) {
-                      FolderItemType.folder => [
-                          IconButton(
-                            icon: const Icon(Icons.edit),
-                            onPressed: () =>
-                                viewModel.onEditTap(context, item.id),
+          child: Watch.builder(
+            builder: (context) {
+              final snapshot = viewModel.itemsSignal.value;
+
+              return snapshot.map(
+                data: (data) {
+                  return ListenableBuilder(
+                    listenable: viewModel,
+                    builder: (context, _) {
+                      return ItemList<ViewerItem>(
+                        items: data,
+                        listItemBuilder: (context, item) => ViewerListItem(
+                            item: item,
+                            checkbox: true,
+                            extraTrailingWidgets: switch (item.type) {
+                              FolderItemType.folder => [
+                                  IconButton(
+                                    icon: const Icon(Icons.edit),
+                                    onPressed: () =>
+                                        viewModel.onEditTap(context, item.id),
+                                  ),
+                                ],
+                              FolderItemType.link => [
+                                  IconButton(
+                                    icon: const Icon(Icons.open_in_new),
+                                    onPressed: () =>
+                                        viewModel.onOpenUrl(item.description),
+                                  ),
+                                ],
+                              _ => [],
+                            }),
+                        gridItemBuilder: (context, item) =>
+                            ViewerGridItem(item: item),
+                        isItemSelected: (item) =>
+                            viewModel.selectedItemIds.contains(item.id),
+                        extraButtons: [
+                          TextButton.icon(
+                            onPressed: viewModel.selectedItemIds.isEmpty
+                                ? null
+                                : viewModel.onDeleteSelected,
+                            icon: const Icon(Icons.delete),
+                            label: const Text("Delete"),
                           ),
                         ],
-                      FolderItemType.link => [
-                          IconButton(
-                            icon: const Icon(Icons.open_in_new),
-                            onPressed: () =>
-                                viewModel.onOpenUrl(item.description),
-                          ),
-                        ],
-                      _ => [],
-                    }),
-                gridItemBuilder: (context, item) => ViewerGridItem(item: item),
-                isItemSelected: (item) =>
-                    viewModel.selectedItemIds.contains(item.id),
-                extraButtons: [
-                  TextButton.icon(
-                    onPressed: viewModel.selectedItemIds.isEmpty
-                        ? null
-                        : viewModel.onDeleteSelected,
-                    icon: const Icon(Icons.delete),
-                    label: const Text("Delete"),
-                  ),
-                ],
+                      );
+                    },
+                  );
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, stackTrace) {
+                  loggerGlobal.warning("ViewerUiItemStream", error);
+                  return Center(child: Text("Error: $error"));
+                },
               );
             },
           ),

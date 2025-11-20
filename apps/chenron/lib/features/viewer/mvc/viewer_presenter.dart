@@ -9,6 +9,7 @@ import "package:chenron/models/item.dart";
 import "package:chenron/shared/item_display/item_toolbar.dart";
 import "package:flutter/material.dart";
 import "package:url_launcher/url_launcher.dart";
+import "package:signals/signals_flutter.dart";
 
 class ViewerPresenter extends ChangeNotifier {
   final Set<String> selectedItemIds = {};
@@ -27,6 +28,8 @@ class ViewerPresenter extends ChangeNotifier {
   List<ViewerItem> _currentItems = [];
 
   Stream<List<ViewerItem>> get itemsStream => _itemsController.stream;
+  late final StreamSignal<List<ViewerItem>> itemsSignal =
+      StreamSignal(() => _itemsController.stream);
 
   ViewerPresenter() {
     searchController.addListener(_onSearchChanged);

@@ -11,15 +11,21 @@ import "package:chenron/database/extensions/link/remove.dart";
 import "package:chenron/database/extensions/operations/database_file_handler.dart";
 import "package:chenron/locator.dart";
 import "package:flutter/material.dart";
-import "package:flutter_hooks/flutter_hooks.dart";
-import "package:signals/signals.dart";
+import "package:signals/signals_flutter.dart";
 import "package:url_launcher/url_launcher.dart";
 import "package:chenron/utils/logger.dart";
 
-class Viewer extends HookWidget {
+class Viewer extends StatefulWidget {
   final SearchFilter? searchFilter;
 
   const Viewer({super.key, this.searchFilter});
+
+  @override
+  State<Viewer> createState() => _ViewerState();
+}
+
+class _ViewerState extends State<Viewer> {
+  late final TagFilterState _tagFilterState;
 
   FolderItem _viewerItemToFolderItem(dynamic viewerItem) {
     // For folders, use title as the main content
@@ -67,23 +73,21 @@ class Viewer extends HookWidget {
     // Show confirmation dialog
     final confirmed = await showDeleteConfirmationDialog(
       context: context,
-      items: itemsToDelete
-          .map((item) {
-            // Extract title from item content
-            String title = "";
-            if (item.path is StringContent) {
-              title = (item.path as StringContent).value;
-            } else if (item.path is MapContent) {
-              title = (item.path as MapContent).value["title"] ?? "";
-            }
-            
-            return DeletableItem(
-              id: item.id!,
-              title: title,
-              subtitle: item.type.name,
-            );
-          })
-          .toList(),
+      items: itemsToDelete.map((item) {
+        // Extract title from item content
+        String title = "";
+        if (item.path is StringContent) {
+          title = (item.path as StringContent).value;
+        } else if (item.path is MapContent) {
+          title = (item.path as MapContent).value["title"] ?? "";
+        }
+
+        return DeletableItem(
+          id: item.id!,
+          title: title,
+          subtitle: item.type.name,
+        );
+      }).toList(),
     );
 
     if (!confirmed || !context.mounted) return;
@@ -139,70 +143,78 @@ class Viewer extends HookWidget {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _tagFilterState = TagFilterState();
+    final presenter = viewerViewModelSignal.value;
+    presenter.init();
+
+    // Set up search submission handler for tag parsing
+    if (widget.searchFilter != null) {
+      widget.searchFilter!.controller.onSubmitted = (query) {
+        loggerGlobal.fine("VIEWER", 'Search submitted with query: "$query"');
+        if (query.contains("#")) {
+          final cleanQuery = _tagFilterState.parseAndAddFromQuery(query);
+          loggerGlobal.fine(
+              "VIEWER", 'Clean query after tag parse: "$cleanQuery"');
+          loggerGlobal.fine("VIEWER",
+              "Tags - included: ${_tagFilterState.includedTagNames}, excluded: ${_tagFilterState.excludedTagNames}");
+          // Update the search filter to remove tag patterns
+          widget.searchFilter!.controller.value = cleanQuery;
+        }
+      };
+    }
+  }
+
+  @override
+  void dispose() {
+    // Clear the submission handler when page is disposed
+    if (widget.searchFilter != null) {
+      widget.searchFilter!.controller.onSubmitted = null;
+    }
+    _tagFilterState.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final presenter = viewerViewModelSignal.value;
-    final snapshot = useStream(presenter.itemsStream);
-    
-    // Create tag filter state that persists for the lifetime of this widget
-    final tagFilterState = useMemoized(() => TagFilterState());
-
-    useEffect(() {
-      presenter.init();
-      
-      // Set up search submission handler for tag parsing
-      if (searchFilter != null) {
-        searchFilter!.controller.onSubmitted = (query) {
-          loggerGlobal.fine("VIEWER", 'Search submitted with query: "$query"');
-          if (query.contains("#")) {
-            final cleanQuery = tagFilterState.parseAndAddFromQuery(query);
-            loggerGlobal.fine("VIEWER", 'Clean query after tag parse: "$cleanQuery"');
-            loggerGlobal.fine("VIEWER", "Tags - included: ${tagFilterState.includedTagNames}, excluded: ${tagFilterState.excludedTagNames}");
-            // Update the search filter to remove tag patterns
-            searchFilter!.controller.value = cleanQuery;
-          }
-        };
-      }
-      
-      return () {
-        // Clear the submission handler when page is disposed
-        if (searchFilter != null) {
-          searchFilter!.controller.onSubmitted = null;
-        }
-        tagFilterState.dispose();
-      };
-    }, []);
-
-    if (snapshot.hasError) {
-      return Scaffold(
-        body: Center(child: Text("Error: ${snapshot.error}")),
-      );
-    }
-
-    if (!snapshot.hasData) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    final items = snapshot.data!;
-    final folderItems = items.map(_viewerItemToFolderItem).toList();
 
     return Scaffold(
-      body: ListenableBuilder(
-        listenable: presenter,
-        builder: (context, _) {
-          return FilterableItemDisplay(
-            items: folderItems,
-            externalSearchFilter: searchFilter,
-            tagFilterState: tagFilterState,
-            enableTagFiltering: true,
-            displayModeContext: "viewer",
-            showSearch: false,
-            onItemTap: (item) => _handleItemTap(context, item),
-            onDeleteModeChanged: ({required bool isDeleteMode, required int selectedCount}) {
-              // Optional: Track delete mode state if needed
+      body: Watch.builder(
+        builder: (context) {
+          final snapshot = presenter.itemsSignal.value;
+
+          return snapshot.map(
+            data: (data) {
+              final folderItems = data.map(_viewerItemToFolderItem).toList();
+
+              return ListenableBuilder(
+                listenable: presenter,
+                builder: (context, _) {
+                  return FilterableItemDisplay(
+                    items: folderItems,
+                    externalSearchFilter: widget.searchFilter,
+                    tagFilterState: _tagFilterState,
+                    enableTagFiltering: true,
+                    displayModeContext: "viewer",
+                    showSearch: false,
+                    onItemTap: (item) => _handleItemTap(context, item),
+                    onDeleteModeChanged: (
+                        {required bool isDeleteMode,
+                        required int selectedCount}) {
+                      // Optional: Track delete mode state if needed
+                    },
+                    onDeleteRequested: (items) =>
+                        _handleDeleteRequested(context, items),
+                  );
+                },
+              );
             },
-            onDeleteRequested: (items) => _handleDeleteRequested(context, items),
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, stackTrace) {
+              return Center(child: Text("Error: $error"));
+            },
           );
         },
       ),
