@@ -104,7 +104,7 @@ class CreateLinkNotifier extends ChangeNotifier {
     loggerGlobal.info("CreateLinkNotifier",
         "Starting validation for ${entriesData.length} entries");
     // Validate all at once (non-blocking)
-    _validateAllEntries();
+    validateAllEntries(parallel: true);
   }
 
   /// Updates an existing entry
@@ -207,6 +207,15 @@ class CreateLinkNotifier extends ChangeNotifier {
     }
   }
 
+  /// Validates all entries with a configurable strategy
+  Future<void> validateAllEntries({bool parallel = true}) async {
+    if (parallel) {
+      await _validateAllEntriesParallel();
+    } else {
+      await _validateAllEntriesSequential();
+    }
+  }
+
   /// Validates all entries in parallel (non-blocking)
   Future<void> _validateAllEntriesParallel() async {
     loggerGlobal.info("CreateLinkNotifier",
@@ -224,12 +233,15 @@ class CreateLinkNotifier extends ChangeNotifier {
         "Parallel validation completed in ${duration.inMilliseconds}ms");
   }
 
-  /// Validates all entries sequentially (kept for compatibility)
-  Future<void> _validateAllEntries() async {
+  /// Validates all entries sequentially
+  Future<void> _validateAllEntriesSequential() async {
+    loggerGlobal.info("CreateLinkNotifier",
+        "Starting sequential validation for ${_entries.length} entries");
     final keys = _entries.map((e) => e.key).toList(growable: false);
     for (final key in keys) {
       await _validateEntry(key);
     }
+    loggerGlobal.info("CreateLinkNotifier", "Sequential validation completed");
   }
 
   /// Revalidates a specific entry
