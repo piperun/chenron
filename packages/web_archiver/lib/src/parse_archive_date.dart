@@ -1,3 +1,8 @@
+/// Parses the timestamp from an Archive.org Wayback Machine URL.
+///
+/// [url] is the archived URL (e.g., `https://web.archive.org/web/20231027120000/https://example.com`).
+///
+/// Returns a [DateTime] object representing the capture time, or `null` if the URL format is invalid.
 DateTime? parseArchiveDate(String url) {
   final regex = RegExp(r"/web/(\d{14})/");
   final match = regex.firstMatch(url);
