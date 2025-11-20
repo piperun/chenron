@@ -18,9 +18,11 @@ class ReadDbHandler<T extends DbResult> {
     required Expression<String> joinExp,
     required IncludeOptions<Enum> includeOptions,
   }) async {
-    List<Join<HasResultSet, dynamic>> joinsList =
-        relationBuilder.createQueryJoins(includeOptions, joinExp);
-    final query = db.select(table).join(joinsList)..where(predicate);
+    final query = _buildQuery(
+      includeOptions: includeOptions,
+      joinExp: joinExp,
+      predicate: predicate,
+    );
     final rows = await query.get();
     if (rows.isEmpty) {
       return null;
@@ -36,9 +38,10 @@ class ReadDbHandler<T extends DbResult> {
     required IncludeOptions<Enum> includeOptions,
     required Expression<String> joinExp,
   }) async {
-    List<Join<HasResultSet, dynamic>> joinsList =
-        relationBuilder.createQueryJoins(includeOptions, joinExp);
-    final query = db.select(table).join(joinsList);
+    final query = _buildQuery(
+      includeOptions: includeOptions,
+      joinExp: joinExp,
+    );
     final rows = await query.get();
 
     final List<T> results = relationBuilder.processQueryResults(
@@ -51,9 +54,11 @@ class ReadDbHandler<T extends DbResult> {
     required Expression<String> joinExp,
     required IncludeOptions<Enum> includeOptions,
   }) {
-    List<Join<HasResultSet, dynamic>> joinsList =
-        relationBuilder.createQueryJoins(includeOptions, joinExp);
-    final query = db.select(table).join(joinsList)..where(predicate);
+    final query = _buildQuery(
+      includeOptions: includeOptions,
+      joinExp: joinExp,
+      predicate: predicate,
+    );
 
     return query.watch().map((rows) {
       final List<T> results = relationBuilder.processQueryResults(
@@ -67,9 +72,10 @@ class ReadDbHandler<T extends DbResult> {
     required IncludeOptions<Enum> includeOptions,
     required Expression<String> joinExp,
   }) {
-    List<Join<HasResultSet, dynamic>> joinsList =
-        relationBuilder.createQueryJoins(includeOptions, joinExp);
-    final query = db.select(table).join(joinsList);
+    final query = _buildQuery(
+      includeOptions: includeOptions,
+      joinExp: joinExp,
+    );
 
     return query.watch().map((rows) => relationBuilder.processQueryResults(
         includeOptions: includeOptions, mainTable: table, rows: rows));
@@ -85,10 +91,11 @@ class ReadDbHandler<T extends DbResult> {
       throw Exception("Search column cannot be null");
     }
 
-    List<Join<HasResultSet, dynamic>> joinsList =
-        relationBuilder.createQueryJoins(includeOptions, joinExp);
-    final folders = (db.select(table).join(joinsList))
-      ..where(searchColumn.like("%$query%"));
+    final folders = _buildQuery(
+      includeOptions: includeOptions,
+      joinExp: joinExp,
+      predicate: searchColumn.like("%$query%"),
+    );
 
     final rows = await folders.get();
     return relationBuilder.processQueryResults(
@@ -96,16 +103,15 @@ class ReadDbHandler<T extends DbResult> {
   }
 
   // Utility method that builds a query with common options
-  Selectable<TypedResult> _buildQuery({
+  JoinedSelectStatement<HasResultSet, dynamic> _buildQuery({
     required IncludeOptions<Enum> includeOptions,
     required Expression<String> joinExp,
-    required Expression<bool> predicate,
-    String? folderId,
+    Expression<bool>? predicate,
   }) {
     List<Join<HasResultSet, dynamic>> joinsList =
         relationBuilder.createQueryJoins(includeOptions, joinExp);
     final query = db.select(table).join(joinsList);
-    if (folderId != null) {
+    if (predicate != null) {
       query.where(predicate);
     }
     return query;
