@@ -209,39 +209,23 @@ class CreateLinkNotifier extends ChangeNotifier {
 
   /// Validates all entries with a configurable strategy
   Future<void> validateAllEntries({bool parallel = true}) async {
-    if (parallel) {
-      await _validateAllEntriesParallel();
-    } else {
-      await _validateAllEntriesSequential();
-    }
-  }
-
-  /// Validates all entries in parallel (non-blocking)
-  Future<void> _validateAllEntriesParallel() async {
     loggerGlobal.info("CreateLinkNotifier",
-        "Starting parallel validation for ${_entries.length} entries");
+        "Starting ${parallel ? 'parallel' : 'sequential'} validation for ${_entries.length} entries");
     final startTime = DateTime.now();
 
-    // Validate all entries in parallel using Future.wait
     final keys = _entries.map((e) => e.key).toList(growable: false);
-    await Future.wait(
-      keys.map((key) => _validateEntry(key)),
-    );
+
+    if (parallel) {
+      await Future.wait(keys.map((key) => _validateEntry(key)));
+    } else {
+      for (final key in keys) {
+        await _validateEntry(key);
+      }
+    }
 
     final duration = DateTime.now().difference(startTime);
     loggerGlobal.info("CreateLinkNotifier",
-        "Parallel validation completed in ${duration.inMilliseconds}ms");
-  }
-
-  /// Validates all entries sequentially
-  Future<void> _validateAllEntriesSequential() async {
-    loggerGlobal.info("CreateLinkNotifier",
-        "Starting sequential validation for ${_entries.length} entries");
-    final keys = _entries.map((e) => e.key).toList(growable: false);
-    for (final key in keys) {
-      await _validateEntry(key);
-    }
-    loggerGlobal.info("CreateLinkNotifier", "Sequential validation completed");
+        "${parallel ? 'Parallel' : 'Sequential'} validation completed in ${duration.inMilliseconds}ms");
   }
 
   /// Revalidates a specific entry
