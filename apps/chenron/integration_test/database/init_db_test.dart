@@ -47,14 +47,14 @@ void main() {
 
   test("AppDatabase constructor with setupOnInit initializes item types",
       () async {
-    final setupDatabase =
-        AppDatabase(databaseName: "test_db", setupOnInit: true, debugMode: true);
+    final setupDatabase = AppDatabase(
+        databaseName: "test_db", setupOnInit: true, debugMode: true);
     await setupDatabase.setup();
 
     final itemTypes = await setupDatabase.select(setupDatabase.itemTypes).get();
     final metadataTypes =
         await setupDatabase.select(setupDatabase.metadataTypes).get();
-    print("item: $itemTypes\n metadata: $metadataTypes");
+    // Debug output: item: $itemTypes\n metadata: $metadataTypes
     expect(itemTypes.length, equals(FolderItemType.values.length),
         reason: "Number of item types should match the enum values");
     expect(metadataTypes.length, equals(MetadataTypeEnum.values.length),

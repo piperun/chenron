@@ -51,7 +51,7 @@ void main() {
                   items: testItems,
                   query: query,
                 );
-                
+
                 return Column(
                   children: [
                     Text("Query: $query"),
@@ -90,8 +90,8 @@ void main() {
       // Type 'd'
       await tester.enterText(searchBar, "d");
       await tester.pumpAndSettle();
-      
-      print('After typing "d", query: ${searchFilter.controller.query.value}');
+
+      // Debug: print('After typing "d", query: ${searchFilter.controller.query.value}');
       expect(searchFilter.controller.query.value, equals("d"));
       expect(find.text("Query: d"), findsOneWidget);
       expect(find.text("Count: 1"), findsOneWidget);
@@ -100,8 +100,8 @@ void main() {
       // Type 'de'
       await tester.enterText(searchBar, "de");
       await tester.pumpAndSettle();
-      
-      print('After typing "de", query: ${searchFilter.controller.query.value}');
+
+      // Debug: print('After typing "de", query: ${searchFilter.controller.query.value}');
       expect(searchFilter.controller.query.value, equals("de"));
       expect(find.text("Query: de"), findsOneWidget);
       expect(find.text("Count: 1"), findsOneWidget);
@@ -109,8 +109,8 @@ void main() {
       // Type 'def'
       await tester.enterText(searchBar, "def");
       await tester.pumpAndSettle();
-      
-      print('After typing "def", query: ${searchFilter.controller.query.value}');
+
+      // Debug: print('After typing "def", query: ${searchFilter.controller.query.value}');
       expect(searchFilter.controller.query.value, equals("def"));
       expect(find.text("Query: def"), findsOneWidget);
       expect(find.text("Count: 1"), findsOneWidget);
@@ -118,8 +118,8 @@ void main() {
       // Type 'default'
       await tester.enterText(searchBar, "default");
       await tester.pumpAndSettle();
-      
-      print('After typing "default", query: ${searchFilter.controller.query.value}');
+
+      // Debug: print('After typing "default", query: ${searchFilter.controller.query.value}');
       expect(searchFilter.controller.query.value, equals("default"));
       expect(find.text("Query: default"), findsOneWidget);
       expect(find.text("Count: 1"), findsOneWidget);
@@ -164,7 +164,7 @@ void main() {
                   items: testItems,
                   query: query,
                 );
-                
+
                 return Column(
                   children: [
                     Text("Count: ${filtered.length}"),
@@ -196,34 +196,42 @@ void main() {
       final searchBar = find.byType(SearchBar);
       await tester.enterText(searchBar, "item 1");
       await tester.pumpAndSettle();
-      
+
       expect(find.text("Count: 1"), findsOneWidget);
       // Find ListTile with 'item 1' text
-      expect(find.descendant(
-        of: find.byType(ListTile),
-        matching: find.text("item 1"),
-      ), findsOneWidget);
-      expect(find.descendant(
-        of: find.byType(ListTile),
-        matching: find.text("item 2"),
-      ), findsNothing);
+      expect(
+          find.descendant(
+            of: find.byType(ListTile),
+            matching: find.text("item 1"),
+          ),
+          findsOneWidget);
+      expect(
+          find.descendant(
+            of: find.byType(ListTile),
+            matching: find.text("item 2"),
+          ),
+          findsNothing);
 
       // Clear the search
       await tester.enterText(searchBar, "");
       await tester.pumpAndSettle();
-      
-      print('After clearing, query: "${searchFilter.controller.query.value}"');
+
+      // Debug: print('After clearing, query: "${searchFilter.controller.query.value}"');
       expect(searchFilter.controller.query.value, equals(""));
       expect(find.text("Count: 2"), findsOneWidget);
       // Both items should be visible in the ListView after clearing
-      expect(find.descendant(
-        of: find.byType(ListTile),
-        matching: find.text("item 1"),
-      ), findsOneWidget);
-      expect(find.descendant(
-        of: find.byType(ListTile),
-        matching: find.text("item 2"),
-      ), findsOneWidget);
+      expect(
+          find.descendant(
+            of: find.byType(ListTile),
+            matching: find.text("item 1"),
+          ),
+          findsOneWidget);
+      expect(
+          find.descendant(
+            of: find.byType(ListTile),
+            matching: find.text("item 2"),
+          ),
+          findsOneWidget);
 
       searchFilter.dispose();
     });
@@ -246,9 +254,9 @@ void main() {
       filter.setup();
 
       final result = filter.filterItems(items: items, query: "");
-      
+
       expect(result.length, equals(2));
-      
+
       filter.dispose();
     });
 
@@ -268,10 +276,11 @@ void main() {
       filter.setup();
 
       final result = filter.filterItems(items: items, query: "default");
-      
+
       expect(result.length, equals(1));
-      expect((result.first.path as StringContent).value, equals("default item"));
-      
+      expect(
+          (result.first.path as StringContent).value, equals("default item"));
+
       filter.dispose();
     });
   });
