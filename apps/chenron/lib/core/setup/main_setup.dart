@@ -1,4 +1,6 @@
 // lib/initialization/app_setupr.dart
+// ignore_for_file: avoid_print
+
 import "package:chenron/database/extensions/operations/database_file_handler.dart";
 import "package:chenron/locator.dart";
 import "package:basedir/directory.dart";
@@ -34,14 +36,14 @@ class MainSetup {
 
   static Future<void> setup() async {
     // Check if GetIt was reset (indicates test scenario requiring re-init)
-    final getItWasReset = _setupDone && !locator.isRegistered<Signal<Future<AppDatabaseHandler>>>();
-    
+    final getItWasReset = _setupDone &&
+        !locator.isRegistered<Signal<Future<AppDatabaseHandler>>>();
+
     if (_setupDone && !getItWasReset) {
-      // ignore: avoid_print
       print("Warning: MainSetup.setup() called more than once.");
       return;
     }
-    
+
     if (getItWasReset) {
       // GetIt was reset, allow re-initialization
       _setupDone = false;
@@ -58,7 +60,8 @@ class MainSetup {
       _setupLocator();
 
       // 2. Resolve Base Directories (Critical for subsequent steps)
-      final BaseDirectories<ChenronDir> baseDirs = await _resolveBaseDirectory();
+      final BaseDirectories<ChenronDir> baseDirs =
+          await _resolveBaseDirectory();
       // 4. Setup Logging (Now that config might be ready and dirs are known)
       await _setupLogging(baseDirs);
       // Logger should be fully functional now (including file logging if enabled)
@@ -77,7 +80,7 @@ class MainSetup {
       // Catch any error bubbling up from the setup steps
       final errorMsg = "Core application initialization failed.";
       // Use print as a fallback in case logger itself failed during setup
-      // ignore: avoid_print
+
       print(
           "!!! FATAL INITIALIZATION ERROR: $errorMsg\nError: $error\nStackTrace: $stackTrace");
       // Attempt to log using the logger as well, it might partially work
@@ -94,7 +97,7 @@ class MainSetup {
       locatorSetup();
     } catch (e, s) {
       // Failure here is likely fatal and happens before logger is ready
-      // ignore: avoid_print
+
       print(
           "!!! FATAL ERROR: Locator setup failed.\nError: $e\nStackTrace: $s");
       throw InitializationException("Locator setup failed",
@@ -104,7 +107,8 @@ class MainSetup {
 
   static Future<BaseDirectories<ChenronDir>> _resolveBaseDirectory() async {
     try {
-      final baseDirsFuture = locator.get<Signal<Future<BaseDirectories<ChenronDir>?>>>();
+      final baseDirsFuture =
+          locator.get<Signal<Future<BaseDirectories<ChenronDir>?>>>();
       final baseDirs = await baseDirsFuture.value;
 
       if (baseDirs == null) {
@@ -113,7 +117,7 @@ class MainSetup {
       return baseDirs;
     } catch (e, s) {
       const errorMsg = "Failed to resolve base directories.";
-      // ignore: avoid_print
+
       print("!!! FATAL ERROR: $errorMsg\nError: $e\nStackTrace: $s");
       throw InitializationException(errorMsg, cause: e, stackTrace: s);
     }
@@ -130,20 +134,19 @@ class MainSetup {
       configHandler.value.createDatabase(setupOnInit: true);
     } catch (e, s) {
       const errorMsg = "Configuration database setup failed.";
-      loggerGlobal.severe(
-          "MainSetup", errorMsg, e, s); // Logger might be partially ready
-      throw InitializationException(errorMsg,
-          cause: e, stackTrace: s); // Re-throw as fatal
+      loggerGlobal.severe("MainSetup", errorMsg, e, s);
+      throw InitializationException(errorMsg, cause: e, stackTrace: s);
     }
   }
 
-  static Future<void> _setupLogging(BaseDirectories<ChenronDir> baseDirs) async {
+  static Future<void> _setupLogging(
+      BaseDirectories<ChenronDir> baseDirs) async {
     try {
       final logDir = Directory(baseDirs.dir(ChenronDir.log).path);
 
       // Ensure the directory exists *before* setting up the logger
       // (setupLogging might assume it exists)
-      if (!await logDir.exists()) {
+      if (!logDir.existsSync()) {
         loggerGlobal.warning("MainSetup",
             "Log directory does not exist, attempting to create: ${logDir.path}");
         await logDir.create(recursive: true);
@@ -151,15 +154,9 @@ class MainSetup {
 
       // Call the actual logger setup
       loggerGlobal.setupLogging(logDir: logDir, logToFileInDebug: false);
-      // Note: setupLogging itself has internal error handling for file writes,
-      // but the initial setup (like listener attachment) could fail.
     } catch (e, s) {
       const errorMsg = "Logging setup failed.";
-      // Use print as logger setup itself failed.
-      // ignore: avoid_print
       print("!!! ERROR: $errorMsg\nError: $e\nStackTrace: $s");
-      // Don't use loggerGlobal here as it's the thing that failed.
-      // Decide if this is fatal. Usually yes, as logging is crucial.
       throw InitializationException(errorMsg, cause: e, stackTrace: s);
     }
   }
