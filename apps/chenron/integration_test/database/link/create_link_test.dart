@@ -41,6 +41,10 @@ void main() {
         link: linkData.link.path,
       );
 
+      // Verify linkData was created correctly
+      expect(linkData.link.path, equals("https://example.com"));
+      expect(linkData.tags, isEmpty);
+
       // Verify link was created
       expect(result.linkId, isNotEmpty);
 
@@ -72,6 +76,11 @@ void main() {
         link: linkData.link.path,
         tags: linkData.tags,
       );
+
+      // Verify linkData was created correctly
+      expect(linkData.link.path, equals("https://flutter.dev"));
+      expect(linkData.tags.length, equals(1));
+      expect(linkData.tags.first.value, equals("flutter"));
 
       // Verify link was created
       expect(result.linkId, isNotEmpty);
@@ -110,6 +119,12 @@ void main() {
         link: linkData.link.path,
         tags: linkData.tags,
       );
+
+      // Verify linkData was created correctly
+      expect(linkData.link.path, equals("https://dart.dev"));
+      expect(linkData.tags.length, equals(3));
+      final linkDataTagValues = linkData.tags.map((t) => t.value).toSet();
+      expect(linkDataTagValues, equals({"dart", "programming", "language"}));
 
       // Verify link was created
       expect(result.linkId, isNotEmpty);
@@ -312,7 +327,27 @@ void main() {
           (t) => allTags.firstWhere((tag) => tag.id == t.tagId).name == "tech");
 
       expect(tech1.tagId, equals(tech2.tagId),
-          reason: "'tech' tag should be reused");
+          reason: "'tech' tag should be reused between result1 and result2");
+
+      // Verify programming tag is reused between result1 and result3
+      final programming1 = result1.tagIds!.firstWhere((t) =>
+          allTags.firstWhere((tag) => tag.id == t.tagId).name == "programming");
+      final programming3 = result3.tagIds!.firstWhere((t) =>
+          allTags.firstWhere((tag) => tag.id == t.tagId).name == "programming");
+
+      expect(programming1.tagId, equals(programming3.tagId),
+          reason:
+              "'programming' tag should be reused between result1 and result3");
+
+      // Verify tutorial tag is reused between result2 and result3
+      final tutorial2 = result2.tagIds!.firstWhere((t) =>
+          allTags.firstWhere((tag) => tag.id == t.tagId).name == "tutorial");
+      final tutorial3 = result3.tagIds!.firstWhere((t) =>
+          allTags.firstWhere((tag) => tag.id == t.tagId).name == "tutorial");
+
+      expect(tutorial2.tagId, equals(tutorial3.tagId),
+          reason:
+              "'tutorial' tag should be reused between result2 and result3");
     });
   });
 
