@@ -32,6 +32,6 @@ abstract class VEPROperation<DB extends GeneratedDatabase, Input, ExecResult,
 
   /// Helper method to log steps (optional, but good practice)
   void logStep(String step, String message) {
-    loggerGlobal.fine("VEPROperation.${runtimeType}.$step", message);
+    loggerGlobal.fine("VEPROperation.$runtimeType.$step", message);
   }
 }

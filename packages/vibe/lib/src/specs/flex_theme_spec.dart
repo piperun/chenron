@@ -5,11 +5,6 @@ import 'package:vibe_core/vibe_core.dart';
 
 /// Configuration for building FlexColorScheme themes
 class FlexThemeBuildConfig {
-  final FlexSurfaceMode surfaceMode;
-  final int lightBlendLevel;
-  final int darkBlendLevel;
-  final bool useMaterial3;
-  final VisualDensity? visualDensity;
 
   const FlexThemeBuildConfig({
     this.surfaceMode = FlexSurfaceMode.level,
@@ -18,6 +13,11 @@ class FlexThemeBuildConfig {
     this.useMaterial3 = true,
     this.visualDensity,
   });
+  final FlexSurfaceMode surfaceMode;
+  final int lightBlendLevel;
+  final int darkBlendLevel;
+  final bool useMaterial3;
+  final VisualDensity? visualDensity;
 }
 
 /// Base implementation for FlexColorScheme-based themes

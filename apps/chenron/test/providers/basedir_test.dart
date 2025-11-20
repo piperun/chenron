@@ -35,7 +35,7 @@ void main() {
     test("initializeBaseDirs creates expected layout", () async {
       final base = await initializeBaseDirs();
       expect(base, isNotNull);
-      final norm = (String s) => s.replaceAll("\\", "/");
+      String norm(String s) => s.replaceAll("\\", "/");
 
       expect(norm(base!.databaseDir.path).endsWith("chenron/debug/database") || norm(base.databaseDir.path).endsWith("chenron/database"), isTrue);
       expect(norm(base.backupAppDir.path).endsWith("chenron/debug/backup/app") || norm(base.backupAppDir.path).endsWith("chenron/backup/app"), isTrue);
