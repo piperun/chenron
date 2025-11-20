@@ -1,3 +1,3 @@
-library basedir;
+library;
 
 export 'directory.dart';

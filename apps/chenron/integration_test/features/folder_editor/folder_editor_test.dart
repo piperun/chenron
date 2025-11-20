@@ -5,7 +5,6 @@ import "package:chenron/features/folder_editor/pages/folder_editor.dart";
 import "package:chenron/test_support/mock_database.dart";
 import "package:chenron/test_support/path_provider_fake.dart";
 import "package:chenron/test_support/logger_setup.dart";
-import "package:chenron/locator.dart";
 import "package:chenron/database/extensions/operations/database_file_handler.dart";
 import "package:chenron/database/database.dart";
 import "package:signals/signals.dart";

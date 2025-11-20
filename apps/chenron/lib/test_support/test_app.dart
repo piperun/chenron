@@ -3,11 +3,9 @@ import "package:chenron/core/setup/main_setup.dart";
 import "package:chenron/main.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/utils/logger.dart";
-import "package:chenron/features/theme/state/theme_manager.dart";
 import "package:get_it/get_it.dart";
 import "package:signals/signals_flutter.dart";
 import "package:chenron/database/extensions/operations/database_file_handler.dart";
-import "package:flutter/foundation.dart";
 
 /// Creates and initializes the app for testing purposes
 /// This returns the MyApp widget directly instead of calling runApp,
