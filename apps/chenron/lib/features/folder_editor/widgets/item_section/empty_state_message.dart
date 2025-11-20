@@ -30,13 +30,15 @@ class EmptyStateMessage extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceVariant.withOpacity(0.5),
+                  color:
+                      theme.colorScheme.surfaceVariant.withValues(alpha: 0.5),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   icon,
                   size: 48,
-                  color: theme.colorScheme.onSurfaceVariant.withOpacity(0.6),
+                  color:
+                      theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
                 ),
               ),
               const SizedBox(height: 16),

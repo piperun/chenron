@@ -38,7 +38,8 @@ class ItemMetaRow extends StatelessWidget {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
-                color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+                color:
+                    theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
               ),
               overflow: TextOverflow.ellipsis,
             ),
@@ -47,7 +48,7 @@ class ItemMetaRow extends StatelessWidget {
             " • ",
             style: TextStyle(
               fontSize: 10,
-              color: theme.textTheme.bodySmall?.color?.withOpacity(0.5),
+              color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5),
             ),
           ),
           _TimeDisplay(item: item),
@@ -61,7 +62,7 @@ class ItemMetaRow extends StatelessWidget {
               child: Icon(
                 Icons.info_outline,
                 size: 16,
-                color: theme.colorScheme.primary.withOpacity(0.7),
+                color: theme.colorScheme.primary.withValues(alpha: 0.7),
               ),
             ),
           ),
@@ -85,7 +86,7 @@ class ItemMetaRow extends StatelessWidget {
             child: Icon(
               Icons.info_outline,
               size: 16,
-              color: theme.colorScheme.primary.withOpacity(0.7),
+              color: theme.colorScheme.primary.withValues(alpha: 0.7),
             ),
           ),
         ),
@@ -118,7 +119,7 @@ class _TimeDisplay extends StatelessWidget {
             displayText,
             style: TextStyle(
               fontSize: 12,
-              color: theme.textTheme.bodySmall?.color?.withOpacity(0.5),
+              color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5),
             ),
           ),
         );

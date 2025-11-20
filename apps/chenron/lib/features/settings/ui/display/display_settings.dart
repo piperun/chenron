@@ -40,8 +40,8 @@ class DisplaySettings extends StatelessWidget {
                     subtitle: Text(
                       "Example: ${TimeFormatter.formatRelative(DateTime.now().subtract(const Duration(hours: 2)))}",
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color:
-                            theme.textTheme.bodySmall?.color?.withOpacity(0.7),
+                        color: theme.textTheme.bodySmall?.color
+                            ?.withValues(alpha: 0.7),
                       ),
                     ),
                     value: 0,
@@ -57,8 +57,8 @@ class DisplaySettings extends StatelessWidget {
                     subtitle: Text(
                       "Example: ${TimeFormatter.formatAbsolute(DateTime.now())}",
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color:
-                            theme.textTheme.bodySmall?.color?.withOpacity(0.7),
+                        color: theme.textTheme.bodySmall?.color
+                            ?.withValues(alpha: 0.7),
                       ),
                     ),
                     value: 1,
@@ -76,7 +76,7 @@ class DisplaySettings extends StatelessWidget {
             Text(
               "You can hover over or click the info icon on any item to see the full timestamp.",
               style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.textTheme.bodySmall?.color?.withOpacity(0.6),
+                color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6),
                 fontStyle: FontStyle.italic,
               ),
             ),

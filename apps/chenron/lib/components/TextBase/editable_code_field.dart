@@ -172,7 +172,7 @@ class _LineNumbers extends StatelessWidget {
             for (int i = 1; i <= numLines; i++)
               Container(
                 color: errorLines.contains(i)
-                    ? theme.colorScheme.errorContainer.withOpacity(0.5)
+                    ? theme.colorScheme.errorContainer.withValues(alpha: 0.5)
                     : theme.colorScheme.surfaceContainerHighest,
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: Text(
@@ -264,8 +264,8 @@ class _EditableTextAreaState extends State<_EditableTextArea>
                       text: widget.controller.text,
                       textStyle: widget.textStyle,
                       validationResult: widget.validationResult!,
-                      backgroundColor:
-                          theme.colorScheme.errorContainer.withOpacity(0.6),
+                      backgroundColor: theme.colorScheme.errorContainer
+                          .withValues(alpha: 0.6),
                     ),
                   ),
                 ),

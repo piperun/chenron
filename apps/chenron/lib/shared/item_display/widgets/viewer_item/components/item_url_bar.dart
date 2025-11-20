@@ -44,7 +44,7 @@ class _ItemUrlBarState extends State<ItemUrlBar> {
           Icon(
             Icons.link,
             size: 12,
-            color: theme.textTheme.bodySmall?.color?.withOpacity(0.5),
+            color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5),
           ),
           const SizedBox(width: 6),
           Expanded(
@@ -52,7 +52,7 @@ class _ItemUrlBarState extends State<ItemUrlBar> {
               widget.url,
               style: TextStyle(
                 fontSize: 11,
-                color: theme.textTheme.bodySmall?.color?.withOpacity(0.6),
+                color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6),
                 fontFamily: "monospace",
               ),
               overflow: TextOverflow.ellipsis,
@@ -92,7 +92,8 @@ class _ItemUrlBarState extends State<ItemUrlBar> {
                       fontSize: 10,
                       color: _copied
                           ? theme.colorScheme.primary
-                          : theme.textTheme.bodySmall?.color?.withOpacity(0.7),
+                          : theme.textTheme.bodySmall?.color
+                              ?.withValues(alpha: 0.7),
                       fontWeight: _copied ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),

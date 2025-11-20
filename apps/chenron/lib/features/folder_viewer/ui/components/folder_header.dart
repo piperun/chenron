@@ -281,7 +281,7 @@ class _TagChipState extends State<_TagChip> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final baseColor = theme.colorScheme.secondaryContainer;
-    final hoverColor = theme.colorScheme.secondary.withOpacity(0.2);
+    final hoverColor = theme.colorScheme.secondary.withValues(alpha: 0.2);
 
     return MouseRegion(
       onEnter: (_) => setState(() => _hovering = true),
@@ -292,11 +292,11 @@ class _TagChipState extends State<_TagChip> {
           duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
-            color: _hovering ? hoverColor : baseColor.withOpacity(0.25),
+            color: _hovering ? hoverColor : baseColor.withValues(alpha: 0.25),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: theme.colorScheme.secondary
-                  .withOpacity(_hovering ? 0.9 : 0.6),
+                  .withValues(alpha: _hovering ? 0.9 : 0.6),
             ),
           ),
           child: Row(

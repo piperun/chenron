@@ -120,7 +120,9 @@ class _TagFilterModalState extends State<TagFilterModal> {
     }
     if (injected) {
       final remaining = tokens
-          .where((t) => !(t.startsWith("-#") && t.length > 2) && !(t.startsWith("#") && t.length > 1))
+          .where((t) =>
+              !(t.startsWith("-#") && t.length > 2) &&
+              !(t.startsWith("#") && t.length > 1))
           .join(" ");
       if (remaining != text) {
         _availableSearchController
@@ -128,14 +130,16 @@ class _TagFilterModalState extends State<TagFilterModal> {
           ..selection = TextSelection.collapsed(offset: remaining.length);
       }
     }
-    setState(() => _availableSearchQuery = _availableSearchController.text.trim());
+    setState(
+        () => _availableSearchQuery = _availableSearchController.text.trim());
   }
 
   List<Tag> get _filteredAvailableTags {
     var tags = widget.availableTags;
     if (_availableSearchQuery.isNotEmpty) {
       final query = _availableSearchQuery.toLowerCase();
-      tags = tags.where((tag) => tag.name.toLowerCase().contains(query)).toList();
+      tags =
+          tags.where((tag) => tag.name.toLowerCase().contains(query)).toList();
     }
     tags.sort((a, b) => a.name.compareTo(b.name));
     return tags;
@@ -143,14 +147,16 @@ class _TagFilterModalState extends State<TagFilterModal> {
 
   Iterable<String> get _filteredIncludedNames {
     final list = _includedTags.where((t) =>
-        _activeSearchQuery.isEmpty || t.toLowerCase().contains(_activeSearchQuery.toLowerCase()));
+        _activeSearchQuery.isEmpty ||
+        t.toLowerCase().contains(_activeSearchQuery.toLowerCase()));
     final sorted = list.toList()..sort((a, b) => a.compareTo(b));
     return sorted;
   }
 
   Iterable<String> get _filteredExcludedNames {
     final list = _excludedTags.where((t) =>
-        _activeSearchQuery.isEmpty || t.toLowerCase().contains(_activeSearchQuery.toLowerCase()));
+        _activeSearchQuery.isEmpty ||
+        t.toLowerCase().contains(_activeSearchQuery.toLowerCase()));
     final sorted = list.toList()..sort((a, b) => a.compareTo(b));
     return sorted;
   }
@@ -185,7 +191,8 @@ class _TagFilterModalState extends State<TagFilterModal> {
   }
 
   void _applyFilters() {
-    Navigator.of(context).pop((included: _includedTags, excluded: _excludedTags));
+    Navigator.of(context)
+        .pop((included: _includedTags, excluded: _excludedTags));
   }
 
   void _toggleBulk() {
@@ -232,7 +239,8 @@ class _TagFilterModalState extends State<TagFilterModal> {
                 borderRadius: BorderRadius.circular(8),
                 borderSide: BorderSide(color: theme.colorScheme.primary),
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               isDense: true,
             ),
             style: const TextStyle(fontSize: 14),
@@ -247,7 +255,8 @@ class _TagFilterModalState extends State<TagFilterModal> {
                       Icon(
                         Icons.filter_alt_outlined,
                         size: 64,
-                        color: theme.textTheme.bodyMedium?.color?.withOpacity(0.3),
+                        color: theme.textTheme.bodyMedium?.color
+                            ?.withValues(alpha: 0.3),
                       ),
                       const SizedBox(height: 16),
                       Text(
@@ -255,7 +264,8 @@ class _TagFilterModalState extends State<TagFilterModal> {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w500,
-                          color: theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
+                          color: theme.textTheme.bodyMedium?.color
+                              ?.withValues(alpha: 0.6),
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -263,7 +273,8 @@ class _TagFilterModalState extends State<TagFilterModal> {
                         "Use Available Tags or search input",
                         style: TextStyle(
                           fontSize: 14,
-                          color: theme.textTheme.bodyMedium?.color?.withOpacity(0.5),
+                          color: theme.textTheme.bodyMedium?.color
+                              ?.withValues(alpha: 0.5),
                         ),
                       ),
                     ],
@@ -278,7 +289,8 @@ class _TagFilterModalState extends State<TagFilterModal> {
                       leadingColor: Colors.green,
                       title: "Included Tags (${_filteredIncludedNames.length})",
                       collapsed: _includedCollapsed,
-                      onToggle: () => setState(() => _includedCollapsed = !_includedCollapsed),
+                      onToggle: () => setState(
+                          () => _includedCollapsed = !_includedCollapsed),
                       onClear: _filteredIncludedNames.isEmpty
                           ? null
                           : () => setState(() => _includedTags.clear()),
@@ -305,7 +317,8 @@ class _TagFilterModalState extends State<TagFilterModal> {
                       leadingColor: Colors.red,
                       title: "Excluded Tags (${_filteredExcludedNames.length})",
                       collapsed: _excludedCollapsed,
-                      onToggle: () => setState(() => _excludedCollapsed = !_excludedCollapsed),
+                      onToggle: () => setState(
+                          () => _excludedCollapsed = !_excludedCollapsed),
                       onClear: _filteredExcludedNames.isEmpty
                           ? null
                           : () => setState(() => _excludedTags.clear()),
@@ -351,11 +364,18 @@ class _TagFilterModalState extends State<TagFilterModal> {
               if (_bulkEnabled)
                 SegmentedButton<BulkMode>(
                   segments: const [
-                    ButtonSegment(value: BulkMode.include, label: Text("Include"), icon: Icon(Icons.add_circle_outline)),
-                    ButtonSegment(value: BulkMode.exclude, label: Text("Exclude"), icon: Icon(Icons.remove_circle_outline)),
+                    ButtonSegment(
+                        value: BulkMode.include,
+                        label: Text("Include"),
+                        icon: Icon(Icons.add_circle_outline)),
+                    ButtonSegment(
+                        value: BulkMode.exclude,
+                        label: Text("Exclude"),
+                        icon: Icon(Icons.remove_circle_outline)),
                   ],
                   selected: <BulkMode>{_bulkMode},
-                  onSelectionChanged: (set) => setState(() => _bulkMode = set.first),
+                  onSelectionChanged: (set) =>
+                      setState(() => _bulkMode = set.first),
                 ),
               if (_bulkEnabled)
                 TextButton(
@@ -390,7 +410,8 @@ class _TagFilterModalState extends State<TagFilterModal> {
                 borderRadius: BorderRadius.circular(8),
                 borderSide: BorderSide(color: theme.colorScheme.primary),
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               isDense: true,
             ),
             style: const TextStyle(fontSize: 14),
@@ -407,13 +428,17 @@ class _TagFilterModalState extends State<TagFilterModal> {
                       Icon(
                         Icons.local_offer_outlined,
                         size: 48,
-                        color: theme.textTheme.bodyMedium?.color?.withOpacity(0.3),
+                        color: theme.textTheme.bodyMedium?.color
+                            ?.withValues(alpha: 0.3),
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        _availableSearchQuery.isEmpty ? "No tags available" : "No matching tags",
+                        _availableSearchQuery.isEmpty
+                            ? "No tags available"
+                            : "No matching tags",
                         style: TextStyle(
-                          color: theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
+                          color: theme.textTheme.bodyMedium?.color
+                              ?.withValues(alpha: 0.6),
                         ),
                       ),
                     ],
@@ -474,7 +499,9 @@ class _TagFilterModalState extends State<TagFilterModal> {
                   child: ElevatedButton.icon(
                     onPressed: _selectedForBulk.isEmpty ? null : _applyBulk,
                     icon: Icon(
-                      _bulkMode == BulkMode.include ? Icons.add_circle : Icons.remove_circle,
+                      _bulkMode == BulkMode.include
+                          ? Icons.add_circle
+                          : Icons.remove_circle,
                     ),
                     label: Text(
                       _bulkMode == BulkMode.include
@@ -511,7 +538,7 @@ class _TagFilterModalState extends State<TagFilterModal> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.3),
+              color: Colors.black.withValues(alpha: 0.3),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -536,13 +563,15 @@ class _TagFilterModalState extends State<TagFilterModal> {
                       children: [
                         Text(
                           "Tag Filters",
-                          style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                          style: theme.textTheme.titleLarge
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           "${_includedTags.length + _excludedTags.length} active filter${_includedTags.length + _excludedTags.length == 1 ? '' : 's'}",
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
+                            color: theme.textTheme.bodySmall?.color
+                                ?.withValues(alpha: 0.7),
                           ),
                         ),
                       ],
@@ -570,13 +599,15 @@ class _TagFilterModalState extends State<TagFilterModal> {
                     label: "Active Filters",
                     count: _includedTags.length + _excludedTags.length,
                     isActive: _activeTab == TagFilterTab.active,
-                    onTap: () => setState(() => _activeTab = TagFilterTab.active),
+                    onTap: () =>
+                        setState(() => _activeTab = TagFilterTab.active),
                   ),
                   _TabButton(
                     label: "Available Tags",
                     count: widget.availableTags.length,
                     isActive: _activeTab == TagFilterTab.available,
-                    onTap: () => setState(() => _activeTab = TagFilterTab.available),
+                    onTap: () =>
+                        setState(() => _activeTab = TagFilterTab.available),
                   ),
                 ],
               ),
@@ -603,7 +634,8 @@ class _TagFilterModalState extends State<TagFilterModal> {
                   backgroundColor: theme.colorScheme.primary,
                   foregroundColor: theme.colorScheme.onPrimary,
                   padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
                 ),
                 child: const Text(
                   "Apply Filters",
@@ -642,7 +674,8 @@ class _TabButton extends StatelessWidget {
           decoration: BoxDecoration(
             border: Border(
               bottom: BorderSide(
-                color: isActive ? theme.colorScheme.primary : Colors.transparent,
+                color:
+                    isActive ? theme.colorScheme.primary : Colors.transparent,
                 width: 2,
               ),
             ),
@@ -657,15 +690,17 @@ class _TabButton extends StatelessWidget {
                   fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
                   color: isActive
                       ? theme.colorScheme.primary
-                      : theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+                      : theme.textTheme.bodyMedium?.color
+                          ?.withValues(alpha: 0.7),
                 ),
               ),
               if (count > 0) ...[
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withOpacity(0.2),
+                    color: theme.colorScheme.primary.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
@@ -752,10 +787,10 @@ class _ActiveFilterChip extends StatelessWidget {
       label: Text(tag),
       deleteIcon: const Icon(Icons.close, size: 18),
       onDeleted: onRemove,
-      backgroundColor: color.withOpacity(0.1),
+      backgroundColor: color.withValues(alpha: 0.1),
       side: BorderSide(color: color, width: 1),
       labelStyle: TextStyle(
-        color: color.withOpacity(0.9),
+        color: color.withValues(alpha: 0.9),
         fontWeight: FontWeight.w500,
       ),
       deleteIconColor: color,
@@ -790,12 +825,13 @@ class _AvailableTagItem extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 4),
       decoration: BoxDecoration(
         color: hasFilter
-            ? (isIncluded ? Colors.green : Colors.red).withOpacity(0.05)
+            ? (isIncluded ? Colors.green : Colors.red).withValues(alpha: 0.05)
             : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
         border: hasFilter
             ? Border.all(
-                color: (isIncluded ? Colors.green : Colors.red).withOpacity(0.3),
+                color: (isIncluded ? Colors.green : Colors.red)
+                    .withValues(alpha: 0.3),
                 width: 1,
               )
             : null,
@@ -806,7 +842,7 @@ class _AvailableTagItem extends StatelessWidget {
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: theme.colorScheme.secondary.withOpacity(0.2),
+              color: theme.colorScheme.secondary.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
             child: Icon(

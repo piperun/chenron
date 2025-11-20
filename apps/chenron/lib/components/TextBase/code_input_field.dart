@@ -58,7 +58,7 @@ class _CodeInputFieldState extends State<CodeInputField> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     // Define text style - MUST be same for both TextField and line numbers
     final textStyle = widget.textStyle ??
         const TextStyle(
@@ -130,7 +130,6 @@ class _LineNumbers extends StatefulWidget {
 }
 
 class _LineNumbersState extends State<_LineNumbers> {
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -159,7 +158,7 @@ class _LineNumbersState extends State<_LineNumbers> {
             return TableRow(
               decoration: BoxDecoration(
                 color: hasError
-                    ? theme.colorScheme.errorContainer.withOpacity(0.5)
+                    ? theme.colorScheme.errorContainer.withValues(alpha: 0.5)
                     : theme.colorScheme.surfaceContainerHighest,
               ),
               children: [

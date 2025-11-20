@@ -56,7 +56,8 @@ class ValidatingTextController extends TextEditingController {
     final theme = Theme.of(context);
     final errorStyle = _errorStyle ??
         TextStyle(
-          backgroundColor: theme.colorScheme.errorContainer.withOpacity(0.3),
+          backgroundColor:
+              theme.colorScheme.errorContainer.withValues(alpha: 0.3),
           color: theme.colorScheme.error,
           decoration: TextDecoration.underline,
           decorationColor: theme.colorScheme.error,

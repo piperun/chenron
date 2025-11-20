@@ -58,9 +58,11 @@ class _TagFieldState extends State<TagField> {
                 onDeleted: () {
                   setState(() => folderDraft.removeTag(tag.value));
                 },
-                deleteIconColor: Colors.red.withOpacity(0.66),
-                backgroundColor:
-                    Theme.of(context).colorScheme.secondary.withOpacity(0.15),
+                deleteIconColor: Colors.red.withValues(alpha: 0.66),
+                backgroundColor: Theme.of(context)
+                    .colorScheme
+                    .secondary
+                    .withValues(alpha: 0.15),
                 labelStyle:
                     TextStyle(color: Theme.of(context).colorScheme.primary),
                 shape: RoundedRectangleBorder(

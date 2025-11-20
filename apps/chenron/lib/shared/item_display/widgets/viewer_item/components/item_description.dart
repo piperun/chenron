@@ -32,7 +32,7 @@ class ItemDescription extends StatelessWidget {
       style: TextStyle(
         fontSize: 13,
         height: 1.4,
-        color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+        color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
       ),
       maxLines: maxLines,
       overflow: TextOverflow.ellipsis,

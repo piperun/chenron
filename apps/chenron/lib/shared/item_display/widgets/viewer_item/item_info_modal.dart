@@ -41,7 +41,7 @@ class ItemInfoModal extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
+              color: Colors.black.withValues(alpha: 0.2),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -54,7 +54,8 @@ class ItemInfoModal extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: theme.colorScheme.primaryContainer.withOpacity(0.3),
+                color:
+                    theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(16),
                   topRight: Radius.circular(16),
@@ -166,7 +167,7 @@ class ItemInfoModal extends StatelessWidget {
                                       fontSize: 14,
                                       height: 1.5,
                                       color: theme.colorScheme.onSurface
-                                          .withOpacity(0.8),
+                                          .withValues(alpha: 0.8),
                                     ),
                                   ),
                                 ),
@@ -231,7 +232,7 @@ class ItemInfoModal extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 13,
                                 color: theme.colorScheme.onSurface
-                                    .withOpacity(0.6),
+                                    .withValues(alpha: 0.6),
                               ),
                             ),
                           ],
@@ -274,7 +275,7 @@ class ItemInfoModal extends StatelessWidget {
         "No tags",
         style: TextStyle(
           fontSize: 13,
-          color: theme.colorScheme.onSurface.withOpacity(0.5),
+          color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
           fontStyle: FontStyle.italic,
         ),
       );
@@ -310,7 +311,7 @@ class _InfoSection extends StatelessWidget {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: theme.colorScheme.onSurface.withOpacity(0.6),
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
             letterSpacing: 0.5,
           ),
         ),

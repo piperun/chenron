@@ -16,7 +16,8 @@ class TextHighlighter {
 
     final highlightStyle = baseStyle.copyWith(
       fontWeight: FontWeight.bold,
-      backgroundColor: theme.colorScheme.primaryContainer.withOpacity(0.3),
+      backgroundColor:
+          theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
       color: theme.colorScheme.primary,
       decoration: TextDecoration.underline,
       decorationColor: theme.colorScheme.primary,

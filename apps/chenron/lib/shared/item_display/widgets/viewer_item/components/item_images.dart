@@ -53,12 +53,12 @@ class ItemImageHeader extends StatelessWidget {
     return Container(
       height: height,
       width: double.infinity,
-      color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+      color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
       child: Center(
         child: Icon(
           Icons.image_outlined,
           size: 40,
-          color: theme.colorScheme.onSurface.withOpacity(0.2),
+          color: theme.colorScheme.onSurface.withValues(alpha: 0.2),
         ),
       ),
     );
@@ -99,7 +99,8 @@ class ItemThumbnail extends StatelessWidget {
                 imageUrl: imageUrl,
                 cacheManager: ImageCacheManager.instance,
                 fit: BoxFit.cover,
-                errorWidget: (context, url, error) => _buildThumbnailPlaceholder(theme),
+                errorWidget: (context, url, error) =>
+                    _buildThumbnailPlaceholder(theme),
               ),
             ),
           );
@@ -119,12 +120,12 @@ class ItemThumbnail extends StatelessWidget {
       child: Container(
         width: width,
         height: height,
-        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         child: Center(
           child: Icon(
             Icons.image_outlined,
             size: 32,
-            color: theme.colorScheme.onSurface.withOpacity(0.2),
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.2),
           ),
         ),
       ),

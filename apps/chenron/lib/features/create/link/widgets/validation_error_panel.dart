@@ -30,7 +30,7 @@ class _ValidationErrorPanelState extends State<ValidationErrorPanel> {
 
     return Card(
       margin: const EdgeInsets.only(top: 12),
-      color: theme.colorScheme.errorContainer.withOpacity(0.1),
+      color: theme.colorScheme.errorContainer.withValues(alpha: 0.1),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -81,7 +81,7 @@ class _ValidationErrorPanelState extends State<ValidationErrorPanel> {
                   children: [
                     Divider(
                       height: 1,
-                      color: theme.colorScheme.outline.withOpacity(0.3),
+                      color: theme.colorScheme.outline.withValues(alpha: 0.3),
                     ),
                     ...errorLines.map((line) => _ErrorLineItem(line: line)),
                   ],
@@ -109,7 +109,7 @@ class _ErrorLineItem extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(
-            color: theme.colorScheme.outlineVariant.withOpacity(0.5),
+            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
             width: 1,
           ),
         ),

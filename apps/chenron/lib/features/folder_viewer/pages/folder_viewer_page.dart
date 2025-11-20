@@ -9,13 +9,15 @@ import "package:chenron/database/extensions/operations/database_file_handler.dar
 import "package:chenron/locator.dart";
 import "package:chenron/models/db_result.dart" show FolderResult;
 import "package:chenron/models/item.dart";
-import "package:chenron/database/database.dart" show IncludeOptions, AppDataInclude, Folder, AppDatabase;
+import "package:chenron/database/database.dart"
+    show IncludeOptions, AppDataInclude, Folder, AppDatabase;
 import "package:chenron/shared/tag_filter/tag_filter_state.dart";
 import "package:chenron/features/folder_editor/pages/folder_editor.dart";
 import "package:signals/signals_flutter.dart";
 import "package:chenron/utils/logger.dart";
 import "package:shared_preferences/shared_preferences.dart";
-import "package:chenron/features/shell/pages/root.dart" show globalSearchFilterSignal;
+import "package:chenron/features/shell/pages/root.dart"
+    show globalSearchFilterSignal;
 
 class FolderViewerPage extends StatefulWidget {
   final String folderId;
@@ -45,32 +47,35 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
 
   Future<FolderResult> _loadFolderWithParents() async {
     final db = await locator.get<Signal<Future<AppDatabaseHandler>>>().value;
-    
+
     // Load the folder with its child items
     final folder = await db.appDatabase.getFolder(
       folderId: widget.folderId,
-      includeOptions: const IncludeOptions({AppDataInclude.items, AppDataInclude.tags}),
+      includeOptions:
+          const IncludeOptions({AppDataInclude.items, AppDataInclude.tags}),
     );
-    
+
     if (folder == null) {
       throw Exception("Folder not found");
     }
-    
+
     // Load parent folders
     final parentFolders = await _loadParentFolders(db.appDatabase);
-    
+
     // Convert parent folders to FolderItem and combine with existing items
-    final parentItems = parentFolders.map((parentFolder) => FolderItem(
-      id: parentFolder.id,
-      type: FolderItemType.folder,
-      content: StringContent(value: parentFolder.title),
-      createdAt: parentFolder.createdAt,
-      tags: [], // Parent folders won't have tags in this context
-    )).toList();
-    
+    final parentItems = parentFolders
+        .map((parentFolder) => FolderItem(
+              id: parentFolder.id,
+              type: FolderItemType.folder,
+              content: StringContent(value: parentFolder.title),
+              createdAt: parentFolder.createdAt,
+              tags: [], // Parent folders won't have tags in this context
+            ))
+        .toList();
+
     // Combine parent items with child items
     final allItems = [...parentItems, ...folder.items];
-    
+
     return FolderResult(
       data: folder.data,
       tags: folder.tags,
@@ -85,9 +90,9 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
         ..where((item) => item.itemId.equals(widget.folderId));
       final results = await query.get();
       final parentFolderIds = results.map((item) => item.folderId).toList();
-      
+
       if (parentFolderIds.isEmpty) return [];
-      
+
       // Fetch the actual folder data for each parent ID
       final List<Folder> parentFolders = [];
       for (final parentId in parentFolderIds) {
@@ -98,7 +103,7 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
           parentFolders.add(folderResults.first);
         }
       }
-      
+
       return parentFolders;
     } catch (e) {
       loggerGlobal.warning("FOLDER_VIEWER", "Error loading parent folders: $e");
@@ -158,9 +163,8 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
         DeletableItem(
           id: folder.id,
           title: folder.title,
-          subtitle: folder.description.isNotEmpty
-              ? folder.description
-              : "Folder",
+          subtitle:
+              folder.description.isNotEmpty ? folder.description : "Folder",
         ),
       ],
     );
@@ -176,7 +180,7 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
         if (success) {
           // Navigate back to viewer
           Navigator.pop(context);
-          
+
           // Show success message on the viewer page
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -211,23 +215,21 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
     // Show confirmation dialog
     final confirmed = await showDeleteConfirmationDialog(
       context: context,
-      items: itemsToDelete
-          .map((item) {
-            // Extract title from item content
-            String title = "";
-            if (item.path is StringContent) {
-              title = (item.path as StringContent).value;
-            } else if (item.path is MapContent) {
-              title = (item.path as MapContent).value["title"] ?? "";
-            }
-            
-            return DeletableItem(
-              id: item.id!,
-              title: title,
-              subtitle: item.type.name,
-            );
-          })
-          .toList(),
+      items: itemsToDelete.map((item) {
+        // Extract title from item content
+        String title = "";
+        if (item.path is StringContent) {
+          title = (item.path as StringContent).value;
+        } else if (item.path is MapContent) {
+          title = (item.path as MapContent).value["title"] ?? "";
+        }
+
+        return DeletableItem(
+          id: item.id!,
+          title: title,
+          subtitle: item.type.name,
+        );
+      }).toList(),
     );
 
     if (!confirmed || !mounted) return;
@@ -293,13 +295,13 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            theme.colorScheme.primary.withOpacity(0.9),
-            theme.colorScheme.secondary.withOpacity(0.8),
+            theme.colorScheme.primary.withValues(alpha: 0.9),
+            theme.colorScheme.secondary.withValues(alpha: 0.8),
           ],
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -346,7 +348,7 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
           ),
           Icon(
             _isHeaderExpanded ? Icons.expand_less : Icons.expand_more,
-            color: Colors.white.withOpacity(_isHeaderLocked ? 0.4 : 1.0),
+            color: Colors.white.withValues(alpha: _isHeaderLocked ? 0.4 : 1.0),
           ),
         ],
       ),
@@ -373,9 +375,11 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
           }
 
           // Debug: log item tags
-          loggerGlobal.fine("FOLDER_VIEWER", "${result.items.length} items, ${result.tags.length} folder tags");
+          loggerGlobal.fine("FOLDER_VIEWER",
+              "${result.items.length} items, ${result.tags.length} folder tags");
           for (final item in result.items.take(3)) {
-            loggerGlobal.fine("FOLDER_VIEWER", '  Item ${item.id}: ${item.tags.length} tags - ${item.tags.map((t) => t.name).join(", ")}');
+            loggerGlobal.fine("FOLDER_VIEWER",
+                '  Item ${item.id}: ${item.tags.length} tags - ${item.tags.map((t) => t.name).join(", ")}');
           }
 
           return Column(
@@ -384,7 +388,8 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
               GestureDetector(
                 onTap: _isHeaderLocked
                     ? null
-                    : () => setState(() => _isHeaderExpanded = !_isHeaderExpanded),
+                    : () =>
+                        setState(() => _isHeaderExpanded = !_isHeaderExpanded),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeInOut,
@@ -408,7 +413,8 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
                               // Format as tag pattern and trigger submission
                               searchFilter.controller.value = "#$tagName";
                               // Trigger onSubmitted to parse and add the tag to filter state
-                              searchFilter.controller.onSubmitted?.call("#$tagName");
+                              searchFilter.controller.onSubmitted
+                                  ?.call("#$tagName");
                             }
                           },
                           onEdit: _handleEdit,

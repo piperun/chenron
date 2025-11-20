@@ -125,13 +125,9 @@ class _StatItem extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: isActive
-              ? color.withOpacity(0.15)
-              : Colors.transparent,
+          color: isActive ? color.withValues(alpha: 0.15) : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
-          border: isActive
-              ? Border.all(color: color, width: 1.5)
-              : null,
+          border: isActive ? Border.all(color: color, width: 1.5) : null,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -139,7 +135,7 @@ class _StatItem extends StatelessWidget {
             Icon(
               icon,
               size: 16,
-              color: isActive ? color : color.withOpacity(0.7),
+              color: isActive ? color : color.withValues(alpha: 0.7),
             ),
             const SizedBox(width: 6),
             Text(
@@ -149,7 +145,7 @@ class _StatItem extends StatelessWidget {
                 fontSize: 13,
                 color: isActive
                     ? theme.textTheme.bodyLarge?.color
-                    : theme.textTheme.bodyLarge?.color?.withOpacity(0.8),
+                    : theme.textTheme.bodyLarge?.color?.withValues(alpha: 0.8),
               ),
             ),
             const SizedBox(width: 4),
@@ -160,7 +156,7 @@ class _StatItem extends StatelessWidget {
                 fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
                 color: isActive
                     ? theme.textTheme.bodyMedium?.color
-                    : theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+                    : theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
               ),
             ),
           ],

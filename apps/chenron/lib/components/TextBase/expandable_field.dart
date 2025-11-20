@@ -57,15 +57,15 @@ class _ExpandableFieldState extends State<ExpandableField> {
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
                             colors: [
-                              Colors.white.withOpacity(0),
+                              Colors.white.withValues(alpha: 0),
                               Theme.of(context)
                                   .colorScheme
                                   .surface
-                                  .withOpacity(0.5),
+                                  .withValues(alpha: 0.5),
                               Theme.of(context)
                                   .colorScheme
                                   .surface
-                                  .withOpacity(0.7),
+                                  .withValues(alpha: 0.7),
                             ],
                             stops: const [
                               0.0,

@@ -72,9 +72,9 @@ class ItemUtils {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: baseColor.withOpacity(0.1),
+            color: baseColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: baseColor.withOpacity(0.3)),
+            border: Border.all(color: baseColor.withValues(alpha: 0.3)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -101,9 +101,9 @@ class ItemUtils {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: Colors.grey.withOpacity(0.12),
+            color: Colors.grey.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.withOpacity(0.3)),
+            border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
           ),
           child: Text(
             "+$remaining more",
@@ -139,17 +139,17 @@ class ItemIcon extends StatelessWidget {
 
     switch (type) {
       case FolderItemType.link:
-        backgroundColor = Colors.blue.withOpacity(0.1);
+        backgroundColor = Colors.blue.withValues(alpha: 0.1);
         iconColor = Colors.blue;
         icon = Icons.link;
         break;
       case FolderItemType.document:
-        backgroundColor = Colors.purple.withOpacity(0.1);
+        backgroundColor = Colors.purple.withValues(alpha: 0.1);
         iconColor = Colors.purple;
         icon = Icons.description;
         break;
       case FolderItemType.folder:
-        backgroundColor = Colors.orange.withOpacity(0.1);
+        backgroundColor = Colors.orange.withValues(alpha: 0.1);
         iconColor = Colors.orange;
         icon = Icons.folder;
         break;
