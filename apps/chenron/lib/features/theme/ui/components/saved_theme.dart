@@ -90,7 +90,7 @@ class SavedThemeSelector extends StatelessWidget {
                 ? Theme.of(context).disabledColor.withValues(alpha: 0.1)
                 : null,
           ),
-          value: selectedTheme?.data.id,
+          initialValue: selectedTheme?.data.id,
           items: themes
               .map((theme) => DropdownMenuItem(
                     value: theme.data.id,

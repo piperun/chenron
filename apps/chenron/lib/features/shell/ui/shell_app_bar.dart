@@ -149,10 +149,10 @@ class _ActionsSection extends StatelessWidget {
           onSelected: (String value) {
             switch (value) {
               case "folder":
-                onNavigateToCreate(context, CreateFolderPage(), "Add Folder");
+                onNavigateToCreate(context, const CreateFolderPage(), "Add Folder");
                 break;
               case "link":
-                onNavigateToCreate(context, CreateLinkPage(), "Add Link");
+                onNavigateToCreate(context, const CreateLinkPage(), "Add Link");
                 break;
               case "document":
                 ScaffoldMessenger.of(context).showSnackBar(

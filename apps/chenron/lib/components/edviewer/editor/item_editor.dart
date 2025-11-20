@@ -55,7 +55,7 @@ class _ItemEditorState extends State<ItemEditor> {
                         FolderItem? item = folderItems.create.firstWhereOrNull(
                           (item) => item.path == url,
                         );
-                        if (item != null && item?.id != null) {
+                        if (item != null && item.id != null) {
                           folderItems.create.remove(item);
                         } else if (item == null) {
                           folderItems.remove.add(row.cells["id"]!.value);

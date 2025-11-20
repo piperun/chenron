@@ -37,7 +37,7 @@ void main() {
     testWidgets("should allow mouse text selection",
         (WidgetTester tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: EditableCodeField(
               initialText: "Hello World",
@@ -92,7 +92,7 @@ void main() {
     testWidgets("should display error highlights", (WidgetTester tester) async {
       final validationResult = BulkValidationResult(
         lines: [
-          LineValidationResult(
+          const LineValidationResult(
             lineNumber: 1,
             rawLine: "invalid url",
             isValid: false,

@@ -84,12 +84,12 @@ class _CreateExpansionTile extends StatelessWidget {
             ListTile(
               leading: const Icon(Icons.create_new_folder_outlined),
               title: const Text("Folder"),
-              onTap: () => onNavigateToCreate(context, CreateFolderPage(), "Add Folder"),
+              onTap: () => onNavigateToCreate(context, const CreateFolderPage(), "Add Folder"),
             ),
             ListTile(
               leading: const Icon(Icons.add_link),
               title: const Text("Link"),
-              onTap: () => onNavigateToCreate(context, CreateLinkPage(), "Add Link"),
+              onTap: () => onNavigateToCreate(context, const CreateLinkPage(), "Add Link"),
             ),
             ListTile(
               leading: const Icon(Icons.article_outlined),

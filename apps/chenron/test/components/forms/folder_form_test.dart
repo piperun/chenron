@@ -75,7 +75,7 @@ void main() {
 
   group("FolderFormData", () {
     test("creates instance with all fields", () {
-      final data = FolderFormData(
+      final data = const FolderFormData(
         title: "Test Folder",
         description: "Test Description",
         parentFolderIds: ["parent1", "parent2"],
@@ -91,7 +91,7 @@ void main() {
     });
 
     test("copyWith updates only specified fields", () {
-      final original = FolderFormData(
+      final original = const FolderFormData(
         title: "Original",
         description: "Description",
         parentFolderIds: [],
@@ -110,7 +110,7 @@ void main() {
     });
 
     test("copyWith with no changes returns same values", () {
-      final original = FolderFormData(
+      final original = const FolderFormData(
         title: "Test",
         description: "Desc",
         parentFolderIds: ["p1"],

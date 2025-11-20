@@ -89,7 +89,7 @@ class _ArchiveOrgCredentialsWidgetState
     const String serviceName = "archive.org";
 
     return ExpansionTile(
-      title: Text("$serviceName Configuration (S3 API)"),
+      title: const Text("$serviceName Configuration (S3 API)"),
       maintainState: true,
       children: [
         Padding(
