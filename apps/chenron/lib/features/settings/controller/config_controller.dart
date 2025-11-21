@@ -46,6 +46,7 @@ class ConfigController {
   final archiveOrgS3SecretKey = signal<String?>(null);
   final timeDisplayFormat = signal<int>(0); // 0 = relative, 1 = absolute
   final itemClickAction = signal<int>(0); // 0 = Open URL, 1 = Show Details
+  final cacheDirectory = signal<String?>(null); // null = use default temp dir
 
   Future<void> initialize() async {
     isLoading.value = true;
@@ -62,6 +63,7 @@ class ConfigController {
         archiveOrgS3SecretKey.value = config.archiveOrgS3SecretKey;
         timeDisplayFormat.value = config.timeDisplayFormat;
         itemClickAction.value = config.itemClickAction;
+        cacheDirectory.value = config.cacheDirectory;
 
         await _loadAvailableThemes();
         final initialChoice = availableThemes.peek().firstWhere(
@@ -80,6 +82,7 @@ class ConfigController {
         archiveOrgS3SecretKey.value = null;
         timeDisplayFormat.value = 0;
         itemClickAction.value = 0;
+        cacheDirectory.value = null;
         await _loadAvailableThemes();
         selectedThemeChoice.value = availableThemes.peek().isNotEmpty
             ? availableThemes.peek().first
@@ -96,6 +99,7 @@ class ConfigController {
       archiveOrgS3SecretKey.value = null;
       timeDisplayFormat.value = 0;
       itemClickAction.value = 0;
+      cacheDirectory.value = null;
       availableThemes.value = [];
       selectedThemeChoice.value = null;
     } finally {
@@ -161,6 +165,10 @@ class ConfigController {
     itemClickAction.value = value;
   }
 
+  void updateCacheDirectory(String? value) {
+    cacheDirectory.value = value;
+  }
+
   // --- Saving ---
   Future<bool> saveSettings() async {
     final config = userConfig.peek();
@@ -191,6 +199,7 @@ class ConfigController {
         selectedThemeType: selectedTheme.type,
         timeDisplayFormat: timeDisplayFormat.peek(),
         itemClickAction: itemClickAction.peek(),
+        cacheDirectory: cacheDirectory.peek(),
       );
 
       await _themeController.changeTheme(selectedTheme.key, selectedTheme.type);
@@ -230,6 +239,7 @@ class ConfigController {
         currentSelected?.key != originalConfig.selectedThemeKey ||
         currentSelected?.type.index != originalConfig.selectedThemeType ||
         timeDisplayFormat.peek() != originalConfig.timeDisplayFormat ||
-        itemClickAction.peek() != originalConfig.itemClickAction;
+        itemClickAction.peek() != originalConfig.itemClickAction ||
+        cacheDirectory.peek() != originalConfig.cacheDirectory;
   }
 }

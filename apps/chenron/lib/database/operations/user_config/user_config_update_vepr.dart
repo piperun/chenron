@@ -20,6 +20,7 @@ typedef UserConfigUpdateInput = ({
   String? archiveOrgS3SecretKey,
   int? timeDisplayFormat,
   int? itemClickAction,
+  String? cacheDirectory,
   CUD<UserTheme>? themeUpdates,
 });
 
@@ -134,6 +135,9 @@ class UserConfigUpdateVEPR extends VEPROperation<
           : const Value.absent(),
       itemClickAction: input.itemClickAction != null
           ? Value(input.itemClickAction!)
+          : const Value.absent(),
+      cacheDirectory: input.cacheDirectory != null
+          ? Value(input.cacheDirectory)
           : const Value.absent(),
     );
 

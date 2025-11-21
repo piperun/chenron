@@ -1,5 +1,6 @@
 import "package:flutter/material.dart";
 import "package:cache_manager/cache_manager.dart";
+import "package:flutter_cache_manager/flutter_cache_manager.dart" as fcm;
 import "package:chenron/components/metadata_factory.dart";
 
 // OG:image header for links
@@ -17,17 +18,25 @@ class ItemImageHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return FutureBuilder<Map<String, dynamic>?>(
-      future: MetadataFactory.getOrFetch(url),
+    return FutureBuilder<List<dynamic>>(
+      future: Future.wait([
+        MetadataFactory.getOrFetch(url),
+        ImageCacheManager.instance,
+      ]),
       builder: (context, snapshot) {
-        final imageUrl = snapshot.data?["image"] as String?;
+        if (!snapshot.hasData) return _buildPlaceholder(theme);
+
+        final metadata = snapshot.data![0] as Map<String, dynamic>?;
+        final cacheManager = snapshot.data![1] as fcm.BaseCacheManager;
+        final imageUrl = metadata?["image"] as String?;
+
         if (imageUrl != null && imageUrl.isNotEmpty) {
           return SizedBox(
             height: height,
             width: double.infinity,
             child: CachedNetworkImage(
               imageUrl: imageUrl,
-              cacheManager: ImageCacheManager.instance,
+              cacheManager: cacheManager,
               fit: BoxFit.cover,
               placeholder: (context, url) => Container(
                 color: theme.colorScheme.surfaceContainerHighest,
@@ -82,10 +91,18 @@ class ItemThumbnail extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return FutureBuilder<Map<String, dynamic>?>(
-      future: MetadataFactory.getOrFetch(url),
+    return FutureBuilder<List<dynamic>>(
+      future: Future.wait([
+        MetadataFactory.getOrFetch(url),
+        ImageCacheManager.instance,
+      ]),
       builder: (context, snapshot) {
-        final imageUrl = snapshot.data?["image"] as String?;
+        if (!snapshot.hasData) return _buildThumbnailPlaceholder(theme);
+
+        final metadata = snapshot.data![0] as Map<String, dynamic>?;
+        final cacheManager = snapshot.data![1] as fcm.BaseCacheManager;
+        final imageUrl = metadata?["image"] as String?;
+
         if (imageUrl != null && imageUrl.isNotEmpty) {
           return ClipRRect(
             borderRadius: const BorderRadius.only(
@@ -97,7 +114,7 @@ class ItemThumbnail extends StatelessWidget {
               height: height,
               child: CachedNetworkImage(
                 imageUrl: imageUrl,
-                cacheManager: ImageCacheManager.instance,
+                cacheManager: cacheManager,
                 fit: BoxFit.cover,
                 errorWidget: (context, url, error) =>
                     _buildThumbnailPlaceholder(theme),

@@ -15,6 +15,7 @@ extension UserConfigUpdateExtensions on ConfigDatabase {
     String? archiveOrgS3SecretKey,
     int? timeDisplayFormat,
     int? itemClickAction,
+    String? cacheDirectory,
     CUD<UserTheme>? themeUpdates,
   }) async {
     final operation = UserConfigUpdateVEPR(this);
@@ -30,6 +31,7 @@ extension UserConfigUpdateExtensions on ConfigDatabase {
       archiveOrgS3SecretKey: archiveOrgS3SecretKey,
       timeDisplayFormat: timeDisplayFormat,
       itemClickAction: itemClickAction,
+      cacheDirectory: cacheDirectory,
       themeUpdates: themeUpdates,
     );
 

@@ -2,6 +2,7 @@ import "dart:convert";
 import "dart:io";
 import "package:http/http.dart" as http;
 import "package:path_provider/path_provider.dart";
+import "package:platform_provider/platform_provider.dart";
 
 class MonolithDownloader {
   static Future<String> downloadLatestRelease() async {
@@ -13,16 +14,11 @@ class MonolithDownloader {
       final releaseData = json.decode(response.body);
       final assets = releaseData["assets"] as List;
 
-      String assetName;
-      if (Platform.isWindows) {
-        assetName = "monolith.exe";
-      } else if (Platform.isMacOS) {
-        assetName = "monolith-mac";
-      } else if (Platform.isLinux) {
-        assetName = "monolith-gnu-linux";
-      } else {
+      if (!OperatingSystem.current.isDesktop) {
         throw UnsupportedError("Unsupported platform");
       }
+      final assetName =
+          OperatingSystem.current.resources.monolithExecutableName;
 
       final asset = assets.firstWhere((a) => a["name"] == assetName);
       final downloadUrl = asset["browser_download_url"] as String;

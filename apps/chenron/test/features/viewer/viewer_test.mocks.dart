@@ -146,6 +146,15 @@ class MockConfigController extends _i1.Mock implements _i3.ConfigController {
       ) as _i2.FlutterSignal<int>);
 
   @override
+  _i2.FlutterSignal<String?> get cacheDirectory => (super.noSuchMethod(
+        Invocation.getter(#cacheDirectory),
+        returnValue: _FakeFlutterSignal_0<String?>(
+          this,
+          Invocation.getter(#cacheDirectory),
+        ),
+      ) as _i2.FlutterSignal<String?>);
+
+  @override
   _i5.Future<void> initialize() => (super.noSuchMethod(
         Invocation.method(
           #initialize,
@@ -215,6 +224,15 @@ class MockConfigController extends _i1.Mock implements _i3.ConfigController {
   void updateItemClickAction(int? value) => super.noSuchMethod(
         Invocation.method(
           #updateItemClickAction,
+          [value],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void updateCacheDirectory(String? value) => super.noSuchMethod(
+        Invocation.method(
+          #updateCacheDirectory,
           [value],
         ),
         returnValueForMissingStub: null,

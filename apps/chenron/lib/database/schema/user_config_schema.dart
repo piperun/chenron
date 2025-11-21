@@ -21,6 +21,9 @@ class UserConfigs extends Table {
   // 0 = Open URL / Open Folder, 1 = Show Details
   IntColumn get itemClickAction => integer().withDefault(const Constant(0))();
 
+  // Path to cache directory for images (null = use system temp directory)
+  TextColumn get cacheDirectory => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }

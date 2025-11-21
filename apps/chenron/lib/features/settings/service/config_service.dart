@@ -51,6 +51,7 @@ class ConfigService {
     required ThemeType selectedThemeType,
     required int timeDisplayFormat,
     required int itemClickAction,
+    String? cacheDirectory,
     // Add other config fields as needed
   }) async {
     try {
@@ -66,6 +67,7 @@ class ConfigService {
         selectedThemeType: selectedThemeType,
         timeDisplayFormat: timeDisplayFormat,
         itemClickAction: itemClickAction,
+        cacheDirectory: cacheDirectory,
         // Note: Theme CUD operations removed as draft logic is gone
       );
       loggerGlobal.info("ConfigService", "User config updated successfully.");

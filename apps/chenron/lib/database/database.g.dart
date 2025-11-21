@@ -4087,6 +4087,12 @@ class $UserConfigsTable extends UserConfigs
       type: DriftSqlType.int,
       requiredDuringInsert: false,
       defaultValue: const Constant(0));
+  static const VerificationMeta _cacheDirectoryMeta =
+      const VerificationMeta('cacheDirectory');
+  @override
+  late final GeneratedColumn<String> cacheDirectory = GeneratedColumn<String>(
+      'cache_directory', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -4099,7 +4105,8 @@ class $UserConfigsTable extends UserConfigs
         selectedThemeKey,
         selectedThemeType,
         timeDisplayFormat,
-        itemClickAction
+        itemClickAction,
+        cacheDirectory
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -4174,6 +4181,12 @@ class $UserConfigsTable extends UserConfigs
           itemClickAction.isAcceptableOrUnknown(
               data['item_click_action']!, _itemClickActionMeta));
     }
+    if (data.containsKey('cache_directory')) {
+      context.handle(
+          _cacheDirectoryMeta,
+          cacheDirectory.isAcceptableOrUnknown(
+              data['cache_directory']!, _cacheDirectoryMeta));
+    }
     return context;
   }
 
@@ -4207,6 +4220,8 @@ class $UserConfigsTable extends UserConfigs
           DriftSqlType.int, data['${effectivePrefix}time_display_format'])!,
       itemClickAction: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}item_click_action'])!,
+      cacheDirectory: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}cache_directory']),
     );
   }
 
@@ -4228,6 +4243,7 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
   final int selectedThemeType;
   final int timeDisplayFormat;
   final int itemClickAction;
+  final String? cacheDirectory;
   const UserConfig(
       {required this.id,
       required this.darkMode,
@@ -4239,7 +4255,8 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
       this.selectedThemeKey,
       required this.selectedThemeType,
       required this.timeDisplayFormat,
-      required this.itemClickAction});
+      required this.itemClickAction,
+      this.cacheDirectory});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -4262,6 +4279,9 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
     map['selected_theme_type'] = Variable<int>(selectedThemeType);
     map['time_display_format'] = Variable<int>(timeDisplayFormat);
     map['item_click_action'] = Variable<int>(itemClickAction);
+    if (!nullToAbsent || cacheDirectory != null) {
+      map['cache_directory'] = Variable<String>(cacheDirectory);
+    }
     return map;
   }
 
@@ -4284,6 +4304,9 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
       selectedThemeType: Value(selectedThemeType),
       timeDisplayFormat: Value(timeDisplayFormat),
       itemClickAction: Value(itemClickAction),
+      cacheDirectory: cacheDirectory == null && nullToAbsent
+          ? const Value.absent()
+          : Value(cacheDirectory),
     );
   }
 
@@ -4304,6 +4327,7 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
       selectedThemeType: serializer.fromJson<int>(json['selectedThemeType']),
       timeDisplayFormat: serializer.fromJson<int>(json['timeDisplayFormat']),
       itemClickAction: serializer.fromJson<int>(json['itemClickAction']),
+      cacheDirectory: serializer.fromJson<String?>(json['cacheDirectory']),
     );
   }
   @override
@@ -4323,6 +4347,7 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
       'selectedThemeType': serializer.toJson<int>(selectedThemeType),
       'timeDisplayFormat': serializer.toJson<int>(timeDisplayFormat),
       'itemClickAction': serializer.toJson<int>(itemClickAction),
+      'cacheDirectory': serializer.toJson<String?>(cacheDirectory),
     };
   }
 
@@ -4337,7 +4362,8 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
           Value<String?> selectedThemeKey = const Value.absent(),
           int? selectedThemeType,
           int? timeDisplayFormat,
-          int? itemClickAction}) =>
+          int? itemClickAction,
+          Value<String?> cacheDirectory = const Value.absent()}) =>
       UserConfig(
         id: id ?? this.id,
         darkMode: darkMode ?? this.darkMode,
@@ -4356,6 +4382,8 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
         selectedThemeType: selectedThemeType ?? this.selectedThemeType,
         timeDisplayFormat: timeDisplayFormat ?? this.timeDisplayFormat,
         itemClickAction: itemClickAction ?? this.itemClickAction,
+        cacheDirectory:
+            cacheDirectory.present ? cacheDirectory.value : this.cacheDirectory,
       );
   UserConfig copyWithCompanion(UserConfigsCompanion data) {
     return UserConfig(
@@ -4388,6 +4416,9 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
       itemClickAction: data.itemClickAction.present
           ? data.itemClickAction.value
           : this.itemClickAction,
+      cacheDirectory: data.cacheDirectory.present
+          ? data.cacheDirectory.value
+          : this.cacheDirectory,
     );
   }
 
@@ -4404,7 +4435,8 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
           ..write('selectedThemeKey: $selectedThemeKey, ')
           ..write('selectedThemeType: $selectedThemeType, ')
           ..write('timeDisplayFormat: $timeDisplayFormat, ')
-          ..write('itemClickAction: $itemClickAction')
+          ..write('itemClickAction: $itemClickAction, ')
+          ..write('cacheDirectory: $cacheDirectory')
           ..write(')'))
         .toString();
   }
@@ -4421,7 +4453,8 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
       selectedThemeKey,
       selectedThemeType,
       timeDisplayFormat,
-      itemClickAction);
+      itemClickAction,
+      cacheDirectory);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -4436,7 +4469,8 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
           other.selectedThemeKey == this.selectedThemeKey &&
           other.selectedThemeType == this.selectedThemeType &&
           other.timeDisplayFormat == this.timeDisplayFormat &&
-          other.itemClickAction == this.itemClickAction);
+          other.itemClickAction == this.itemClickAction &&
+          other.cacheDirectory == this.cacheDirectory);
 }
 
 class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
@@ -4451,6 +4485,7 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
   final Value<int> selectedThemeType;
   final Value<int> timeDisplayFormat;
   final Value<int> itemClickAction;
+  final Value<String?> cacheDirectory;
   final Value<int> rowid;
   const UserConfigsCompanion({
     this.id = const Value.absent(),
@@ -4464,6 +4499,7 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
     this.selectedThemeType = const Value.absent(),
     this.timeDisplayFormat = const Value.absent(),
     this.itemClickAction = const Value.absent(),
+    this.cacheDirectory = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   UserConfigsCompanion.insert({
@@ -4478,6 +4514,7 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
     this.selectedThemeType = const Value.absent(),
     this.timeDisplayFormat = const Value.absent(),
     this.itemClickAction = const Value.absent(),
+    this.cacheDirectory = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id);
   static Insertable<UserConfig> custom({
@@ -4492,6 +4529,7 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
     Expression<int>? selectedThemeType,
     Expression<int>? timeDisplayFormat,
     Expression<int>? itemClickAction,
+    Expression<String>? cacheDirectory,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -4508,6 +4546,7 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
       if (selectedThemeType != null) 'selected_theme_type': selectedThemeType,
       if (timeDisplayFormat != null) 'time_display_format': timeDisplayFormat,
       if (itemClickAction != null) 'item_click_action': itemClickAction,
+      if (cacheDirectory != null) 'cache_directory': cacheDirectory,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -4524,6 +4563,7 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
       Value<int>? selectedThemeType,
       Value<int>? timeDisplayFormat,
       Value<int>? itemClickAction,
+      Value<String?>? cacheDirectory,
       Value<int>? rowid}) {
     return UserConfigsCompanion(
       id: id ?? this.id,
@@ -4539,6 +4579,7 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
       selectedThemeType: selectedThemeType ?? this.selectedThemeType,
       timeDisplayFormat: timeDisplayFormat ?? this.timeDisplayFormat,
       itemClickAction: itemClickAction ?? this.itemClickAction,
+      cacheDirectory: cacheDirectory ?? this.cacheDirectory,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -4581,6 +4622,9 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
     if (itemClickAction.present) {
       map['item_click_action'] = Variable<int>(itemClickAction.value);
     }
+    if (cacheDirectory.present) {
+      map['cache_directory'] = Variable<String>(cacheDirectory.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -4601,6 +4645,7 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
           ..write('selectedThemeType: $selectedThemeType, ')
           ..write('timeDisplayFormat: $timeDisplayFormat, ')
           ..write('itemClickAction: $itemClickAction, ')
+          ..write('cacheDirectory: $cacheDirectory, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -5454,6 +5499,7 @@ typedef $$UserConfigsTableCreateCompanionBuilder = UserConfigsCompanion
   Value<int> selectedThemeType,
   Value<int> timeDisplayFormat,
   Value<int> itemClickAction,
+  Value<String?> cacheDirectory,
   Value<int> rowid,
 });
 typedef $$UserConfigsTableUpdateCompanionBuilder = UserConfigsCompanion
@@ -5469,6 +5515,7 @@ typedef $$UserConfigsTableUpdateCompanionBuilder = UserConfigsCompanion
   Value<int> selectedThemeType,
   Value<int> timeDisplayFormat,
   Value<int> itemClickAction,
+  Value<String?> cacheDirectory,
   Value<int> rowid,
 });
 
@@ -5556,6 +5603,10 @@ class $$UserConfigsTableFilterComposer
 
   ColumnFilters<int> get itemClickAction => $composableBuilder(
       column: $table.itemClickAction,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get cacheDirectory => $composableBuilder(
+      column: $table.cacheDirectory,
       builder: (column) => ColumnFilters(column));
 
   Expression<bool> userThemesRefs(
@@ -5651,6 +5702,10 @@ class $$UserConfigsTableOrderingComposer
   ColumnOrderings<int> get itemClickAction => $composableBuilder(
       column: $table.itemClickAction,
       builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get cacheDirectory => $composableBuilder(
+      column: $table.cacheDirectory,
+      builder: (column) => ColumnOrderings(column));
 }
 
 class $$UserConfigsTableAnnotationComposer
@@ -5694,6 +5749,9 @@ class $$UserConfigsTableAnnotationComposer
 
   GeneratedColumn<int> get itemClickAction => $composableBuilder(
       column: $table.itemClickAction, builder: (column) => column);
+
+  GeneratedColumn<String> get cacheDirectory => $composableBuilder(
+      column: $table.cacheDirectory, builder: (column) => column);
 
   Expression<T> userThemesRefs<T extends Object>(
       Expression<T> Function($$UserThemesTableAnnotationComposer a) f) {
@@ -5772,6 +5830,7 @@ class $$UserConfigsTableTableManager extends RootTableManager<
             Value<int> selectedThemeType = const Value.absent(),
             Value<int> timeDisplayFormat = const Value.absent(),
             Value<int> itemClickAction = const Value.absent(),
+            Value<String?> cacheDirectory = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               UserConfigsCompanion(
@@ -5786,6 +5845,7 @@ class $$UserConfigsTableTableManager extends RootTableManager<
             selectedThemeType: selectedThemeType,
             timeDisplayFormat: timeDisplayFormat,
             itemClickAction: itemClickAction,
+            cacheDirectory: cacheDirectory,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -5800,6 +5860,7 @@ class $$UserConfigsTableTableManager extends RootTableManager<
             Value<int> selectedThemeType = const Value.absent(),
             Value<int> timeDisplayFormat = const Value.absent(),
             Value<int> itemClickAction = const Value.absent(),
+            Value<String?> cacheDirectory = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               UserConfigsCompanion.insert(
@@ -5814,6 +5875,7 @@ class $$UserConfigsTableTableManager extends RootTableManager<
             selectedThemeType: selectedThemeType,
             timeDisplayFormat: timeDisplayFormat,
             itemClickAction: itemClickAction,
+            cacheDirectory: cacheDirectory,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0

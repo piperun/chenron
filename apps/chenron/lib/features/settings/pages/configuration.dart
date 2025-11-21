@@ -4,6 +4,7 @@ import "package:signals/signals_flutter.dart";
 
 import "package:chenron/features/settings/controller/config_controller.dart";
 import "package:chenron/features/settings/ui/archive/archive_settings.dart";
+import "package:chenron/features/settings/ui/cache/cache_settings.dart";
 import "package:chenron/features/settings/ui/display/display_settings.dart";
 import "package:chenron/features/theme/pages/theme_settings.dart";
 import "package:chenron/locator.dart";
@@ -174,6 +175,7 @@ class SettingsBody extends StatelessWidget {
               children: [
                 ThemeSettings(controller: controller),
                 DisplaySettings(controller: controller),
+                CacheSettings(controller: controller),
                 ArchiveSettings(controller: controller),
               ],
             ),
