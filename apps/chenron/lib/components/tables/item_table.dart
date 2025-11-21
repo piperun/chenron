@@ -2,7 +2,7 @@ import "package:flutter/material.dart";
 import "package:trina_grid/trina_grid.dart";
 import "package:chenron/notifiers/item_table_notifier.dart";
 
-class DataGrid extends StatefulWidget {
+class DataGrid extends StatelessWidget {
   final List<TrinaColumn> columns;
   final List<TrinaRow> rows;
   final ItemTableNotifier notifier;
@@ -15,19 +15,14 @@ class DataGrid extends StatefulWidget {
   });
 
   @override
-  State<DataGrid> createState() => _DataGridState();
-}
-
-class _DataGridState extends State<DataGrid> {
-  @override
   Widget build(BuildContext context) {
     return TrinaGrid(
-      columns: widget.columns,
-      rows: widget.rows,
+      columns: columns,
+      rows: rows,
       onLoaded: (TrinaGridOnLoadedEvent event) {
-        widget.notifier.setStateManager(event.stateManager);
+        notifier.setStateManager(event.stateManager);
       },
-      onRowChecked: widget.notifier.onRowChecked,
+      onRowChecked: notifier.onRowChecked,
       configuration: const TrinaGridConfiguration(
         columnSize: TrinaGridColumnSizeConfig(
           autoSizeMode: TrinaAutoSizeMode.scale,
