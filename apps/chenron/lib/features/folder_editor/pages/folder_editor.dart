@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import "dart:async" show unawaited;
 import "package:chenron/components/forms/folder_form.dart";
 import "package:chenron/features/folder_editor/notifiers/folder_editor_notifier.dart";
 import "package:chenron/features/folder_editor/widgets/folder_items_section.dart";
@@ -32,7 +33,7 @@ class _FolderEditorState extends State<FolderEditor> {
     super.initState();
     _notifier = FolderEditorNotifier();
     _isFormValid = signal(false);
-    _notifier.loadFolder(widget.folderId);
+    unawaited(_notifier.loadFolder(widget.folderId));
   }
 
   @override
@@ -204,7 +205,8 @@ class _SectionBodyState extends State<SectionBody> {
                 FolderForm(
                   existingFolder: folder.data,
                   existingTags: folder.tags.map((t) => t.name).toSet(),
-                  existingParentFolderIds: widget.notifier.formData.value?.parentFolderIds,
+                  existingParentFolderIds:
+                      widget.notifier.formData.value?.parentFolderIds,
                   showItemsTable: false,
                   keyPrefix: "folder_editor",
                   onDataChanged: widget.notifier.updateFormData,

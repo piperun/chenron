@@ -1,4 +1,5 @@
 import "package:flutter/foundation.dart";
+import "dart:async" show unawaited;
 import "package:chenron/features/create/link/models/link_entry.dart";
 import "package:chenron/features/create/link/services/url_validator_service.dart";
 import "package:chenron/utils/logger.dart";
@@ -84,7 +85,7 @@ class CreateLinkNotifier extends ChangeNotifier {
     notifyListeners();
 
     if (validateAsync) {
-      _validateEntry(entry.key);
+      unawaited(_validateEntry(entry.key));
     }
   }
 
@@ -104,7 +105,7 @@ class CreateLinkNotifier extends ChangeNotifier {
     loggerGlobal.info("CreateLinkNotifier",
         "Starting validation for ${entriesData.length} entries");
     // Validate all at once (non-blocking)
-    validateAllEntries(parallel: true);
+    unawaited(validateAllEntries(parallel: true));
   }
 
   /// Updates an existing entry

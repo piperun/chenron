@@ -1,10 +1,11 @@
 import "package:flutter/material.dart";
+import "dart:async" show unawaited;
 import "package:chenron/features/create/link/models/link_entry.dart";
 
 /// Dialog for displaying link validation status details
 class LinkValidationDialog {
   static void show(BuildContext context, LinkEntry entry, ThemeData theme) {
-    showDialog(
+    unawaited(showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Row(
@@ -49,7 +50,7 @@ class LinkValidationDialog {
           ),
         ],
       ),
-    );
+    ));
   }
 
   static IconData _getStatusIcon(LinkValidationStatus status) {
@@ -79,7 +80,8 @@ class LinkValidationDialog {
         color: theme.colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: _getStatusColor(entry.validationStatus, theme).withValues(alpha: 0.3),
+          color: _getStatusColor(entry.validationStatus, theme)
+              .withValues(alpha: 0.3),
         ),
       ),
       child: Column(

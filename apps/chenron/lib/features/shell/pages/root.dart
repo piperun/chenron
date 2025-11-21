@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import "dart:async" show unawaited;
 import "package:chenron/shared/search/searchbar.dart";
 import "package:chenron/shared/search/search_filter.dart";
 import "package:chenron/shared/patterns/include_options.dart";
@@ -51,12 +52,12 @@ class _RootPageState extends State<RootPage> {
   }
 
   void _showCreateModal() {
-    showDialog(
+    unawaited(showDialog(
       context: context,
       builder: (context) => AddItemModal(
         onTypeSelected: _navigateToCreatePage,
       ),
-    );
+    ));
   }
 
   void _navigateToCreatePage(ItemType type) {
@@ -65,7 +66,8 @@ class _RootPageState extends State<RootPage> {
       _currentPage = switch (type) {
         ItemType.link => AppPage.createLink,
         ItemType.folder => AppPage.createFolder,
-        ItemType.document => AppPage.createFolder, // TODO: Update when document page exists
+        ItemType.document =>
+          AppPage.createFolder, // TODO: Update when document page exists
       };
     });
   }
@@ -98,19 +100,18 @@ class _RootPageState extends State<RootPage> {
 
   void _onFolderSelected(String folderId) {
     loggerGlobal.fine("RootPage", "Folder selected: $folderId");
-    
+
     // Navigate to the FolderViewerPage to show folder contents
-    Navigator.of(context).push(
+    unawaited(Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => FolderViewerPage(folderId: folderId),
       ),
-    );
+    ));
   }
 
   void _navigateToSettings() {
     setState(() => _currentPage = AppPage.settings);
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -181,7 +182,7 @@ class _RootPageState extends State<RootPage> {
   void _handleSaved() {
     // Return to previous page
     _returnToPreviousPage();
-    
+
     // Show success snackbar with "Add Another" action
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -218,7 +219,7 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return AppBar(
       title: Row(
         children: [
@@ -278,7 +279,7 @@ class _SectionToggle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return Container(
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHighest,
@@ -317,7 +318,7 @@ class _SectionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -326,9 +327,8 @@ class _SectionButton extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: isSelected 
-                ? colorScheme.primaryContainer
-                : Colors.transparent,
+            color:
+                isSelected ? colorScheme.primaryContainer : Colors.transparent,
             borderRadius: BorderRadius.circular(7),
           ),
           child: Row(
@@ -337,7 +337,7 @@ class _SectionButton extends StatelessWidget {
               Icon(
                 isSelected ? section.selectedIcon : section.icon,
                 size: 18,
-                color: isSelected 
+                color: isSelected
                     ? colorScheme.onPrimaryContainer
                     : colorScheme.onSurfaceVariant,
               ),
@@ -347,7 +347,7 @@ class _SectionButton extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                  color: isSelected 
+                  color: isSelected
                       ? colorScheme.onPrimaryContainer
                       : colorScheme.onSurfaceVariant,
                 ),
@@ -359,4 +359,3 @@ class _SectionButton extends StatelessWidget {
     );
   }
 }
-

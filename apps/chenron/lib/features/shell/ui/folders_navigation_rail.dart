@@ -50,12 +50,12 @@ class _FoldersNavigationRailState extends State<FoldersNavigationRail> {
   @override
   void initState() {
     super.initState();
-    _watchFolders();
+    unawaited(_watchFolders());
   }
 
   @override
   void dispose() {
-    _foldersSubscription?.cancel();
+    unawaited(_foldersSubscription?.cancel());
     super.dispose();
   }
 
@@ -63,12 +63,13 @@ class _FoldersNavigationRailState extends State<FoldersNavigationRail> {
     try {
       final db = await locator.get<Signal<Future<AppDatabaseHandler>>>().value;
       final appDb = db.appDatabase;
-      
+
       // Watch for folder changes with items included
       _foldersSubscription = appDb
           .watchAllFolders(
-            includeOptions: const IncludeOptions<AppDataInclude>({AppDataInclude.items}),
-          )
+        includeOptions:
+            const IncludeOptions<AppDataInclude>({AppDataInclude.items}),
+      )
           .listen((folders) {
         if (mounted) {
           setState(() {
@@ -217,10 +218,9 @@ class _FoldersNavigationRailState extends State<FoldersNavigationRail> {
     final filteredFolders = _filterTerm.isEmpty
         ? _folders
         : _folders
-            .where((folder) =>
-                folder.data.title
-                    .toLowerCase()
-                    .contains(_filterTerm.toLowerCase()))
+            .where((folder) => folder.data.title
+                .toLowerCase()
+                .contains(_filterTerm.toLowerCase()))
             .toList();
 
     if (filteredFolders.isEmpty) {
@@ -249,7 +249,7 @@ class _FoldersNavigationRailState extends State<FoldersNavigationRail> {
 
   Widget _buildFolderRow(FolderResult folder) {
     final isSelected = folder.data.id == widget.selectedFolderId;
-    final isSynced = true; // TODO: Add synced field to Folder model
+    // final isSynced = true; // TODO: Add synced field to Folder model
 
     return InkWell(
       onTap: () => widget.onFolderSelected(folder.data.id),
@@ -299,10 +299,11 @@ class _FoldersNavigationRailState extends State<FoldersNavigationRail> {
                 ),
               ),
               // Not synced badge (only if sync features enabled)
-              if (!isSynced && widget.showSyncFeatures) ...[
+              /* if (!isSynced && widget.showSyncFeatures) ...[
                 const SizedBox(width: 4),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
                     color: Colors.red.shade900,
                     border: Border.all(color: Colors.red.shade700),
@@ -313,7 +314,7 @@ class _FoldersNavigationRailState extends State<FoldersNavigationRail> {
                     style: TextStyle(fontSize: 11, color: Colors.white),
                   ),
                 ),
-              ],
+              ], */
             ],
           ],
         ),
@@ -342,11 +343,13 @@ class _FoldersNavigationRailState extends State<FoldersNavigationRail> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  if (widget.isExtended) const Text("Free", style: TextStyle(fontSize: 12)),
+                  if (widget.isExtended)
+                    const Text("Free", style: TextStyle(fontSize: 12)),
                   TextButton(
                     onPressed: _showUpgradeDialog,
                     style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 8),
                       backgroundColor: Colors.transparent,
                       side: BorderSide(
                         color: Colors.blue.shade700,
@@ -398,7 +401,7 @@ class _FoldersNavigationRailState extends State<FoldersNavigationRail> {
   }
 
   void _showUpgradeDialog() {
-    showDialog(
+    unawaited(showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text("Upgrade Plan"),
@@ -412,6 +415,6 @@ class _FoldersNavigationRailState extends State<FoldersNavigationRail> {
           ),
         ],
       ),
-    );
+    ));
   }
 }

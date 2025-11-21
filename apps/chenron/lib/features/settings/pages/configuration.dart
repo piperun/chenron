@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import "dart:async" show unawaited;
 import "package:signals/signals_flutter.dart";
 
 import "package:chenron/features/settings/controller/config_controller.dart";
@@ -24,7 +25,7 @@ class _ConfigPageState extends State<ConfigPage> {
     super.initState();
     // Initialize the controller when the page loads
     // This fetches the config, themes, and sets initial state signals
-    _controller.initialize();
+    unawaited(_controller.initialize());
     loggerGlobal.info("ConfigPage", "Initialized ConfigController.");
   }
 
