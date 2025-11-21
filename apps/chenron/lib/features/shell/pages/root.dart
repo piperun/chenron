@@ -143,40 +143,19 @@ class _RootPageState extends State<RootPage> {
               switchOutCurve: Curves.easeInOut,
               child: KeyedSubtree(
                 key: ValueKey(_currentPage),
-                child: _buildCurrentPage(),
+                child: _CurrentPageBuilder(
+                  currentPage: _currentPage,
+                  currentSection: _currentSection,
+                  searchFilter: _searchFilter,
+                  onClose: _returnToPreviousPage,
+                  onSaved: _handleSaved,
+                ),
               ),
             ),
           ),
         ],
       ),
     );
-  }
-
-  Widget _buildCurrentPage() {
-    // If in a create flow, show that page
-    if (_currentPage.isCreateFlow) {
-      return _currentPage.getPage(
-        onClose: _returnToPreviousPage,
-        onSaved: _handleSaved,
-        searchFilter: _searchFilter,
-      );
-    }
-
-    // If on settings page, show settings
-    if (_currentPage == AppPage.settings) {
-      return _currentPage.getPage(
-        onClose: _returnToPreviousPage,
-        onSaved: _handleSaved,
-        searchFilter: _searchFilter,
-      );
-    }
-
-    // Otherwise, show the current section's page
-    if (_currentSection == NavigationSection.viewer) {
-      return Viewer(searchFilter: _searchFilter);
-    }
-
-    return _currentSection.page;
   }
 
   void _handleSaved() {
@@ -196,6 +175,50 @@ class _RootPageState extends State<RootPage> {
         ),
       );
     }
+  }
+}
+
+class _CurrentPageBuilder extends StatelessWidget {
+  final AppPage currentPage;
+  final NavigationSection currentSection;
+  final SearchFilter searchFilter;
+  final VoidCallback onClose;
+  final VoidCallback onSaved;
+
+  const _CurrentPageBuilder({
+    required this.currentPage,
+    required this.currentSection,
+    required this.searchFilter,
+    required this.onClose,
+    required this.onSaved,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // If in a create flow, show that page
+    if (currentPage.isCreateFlow) {
+      return currentPage.getPage(
+        onClose: onClose,
+        onSaved: onSaved,
+        searchFilter: searchFilter,
+      );
+    }
+
+    // If on settings page, show settings
+    if (currentPage == AppPage.settings) {
+      return currentPage.getPage(
+        onClose: onClose,
+        onSaved: onSaved,
+        searchFilter: searchFilter,
+      );
+    }
+
+    // Otherwise, show the current section's page
+    if (currentSection == NavigationSection.viewer) {
+      return Viewer(searchFilter: searchFilter);
+    }
+
+    return currentSection.page;
   }
 }
 
