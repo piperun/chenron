@@ -1,6 +1,5 @@
 import "package:chenron/features/viewer/state/viewer_state.dart";
 import "package:chenron/shared/item_display/filterable_item_display.dart";
-import "package:chenron/features/folder_viewer/pages/folder_viewer_page.dart";
 import "package:chenron/models/item.dart";
 import "package:chenron/shared/search/search_filter.dart";
 import "package:chenron/shared/tag_filter/tag_filter_state.dart";
@@ -12,7 +11,6 @@ import "package:chenron/database/extensions/operations/database_file_handler.dar
 import "package:chenron/locator.dart";
 import "package:flutter/material.dart";
 import "package:signals/signals_flutter.dart";
-import "package:url_launcher/url_launcher.dart";
 import "package:chenron/utils/logger.dart";
 import "package:chenron/features/viewer/ui/viewer_base_item.dart";
 
@@ -49,14 +47,14 @@ class _ViewerState extends State<Viewer> {
 
     // Convert FolderItem to ViewerItem format for presenter
     final viewerItem = ViewerItem(
-      id: item.id ?? '',
+      id: item.id ?? "",
       type: item.type,
       title: item.type == FolderItemType.folder
           ? (item.path as StringContent).value
-          : '',
+          : "",
       description: item.type != FolderItemType.folder
           ? (item.path as StringContent).value
-          : '',
+          : "",
       url: item.type == FolderItemType.link
           ? (item.path as StringContent).value
           : null,
