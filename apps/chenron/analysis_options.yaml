@@ -28,6 +28,15 @@ analyzer:
     avoid_void_async: error
     cast_nullable_to_non_nullable: error
     discarded_futures: error
+    use_enums: warning
+    
+dcm:
+  rules:
+    - avoid-returning-widgets
+    - prefer-correct-test-file-name
+    - always-remove-listener
+    - avoid-unnecessary-stateful-widgets
+    - avoid-empty-spread
 
 custom_lint:
   rules:
@@ -78,6 +87,7 @@ linter:
     - throw_in_finally
     - valid_regexps
     - void_checks
+    - use_enums
     # avoid_print: false  # Uncomment to disable the `avoid_print` rule
     # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
 
