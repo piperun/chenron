@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import "dart:async" show unawaited;
 import "package:chenron/features/folder_viewer/ui/components/folder_header.dart";
 import "package:chenron/shared/item_display/filterable_item_display.dart";
 import "package:chenron/shared/dialogs/delete_confirmation_dialog.dart";
@@ -41,7 +42,7 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
   void initState() {
     super.initState();
     _tagFilterState = TagFilterState();
-    _loadLockState();
+    unawaited(_loadLockState());
     _folderData = _loadFolderWithParents();
   }
 
@@ -118,12 +119,19 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
   }
 
   Future<void> _loadLockState() async {
-    final prefs = await SharedPreferences.getInstance();
-    final isLocked = prefs.getBool("folder_viewer_header_locked") ?? false;
-    if (mounted) {
-      setState(() {
-        _isHeaderLocked = isLocked;
-      });
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final isLocked = prefs.getBool("folder_viewer_header_locked") ?? false;
+      if (mounted) {
+        setState(() {
+          _isHeaderLocked = isLocked;
+        });
+      }
+    } catch (e, stackTrace) {
+      loggerGlobal.warning(
+          "FolderViewer", "Failed to load lock state", e, stackTrace);
+      // Use default value (already initialized as false)
+      // No user-facing error needed - non-critical feature
     }
   }
 
@@ -136,23 +144,36 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
     await prefs.setBool("folder_viewer_header_locked", newLockState);
   }
 
-  void _handleEdit() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => FolderEditor(
-          folderId: widget.folderId,
-          hideAppBar: false,
+  Future<void> _handleEdit() async {
+    try {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => FolderEditor(
+            folderId: widget.folderId,
+            hideAppBar: false,
+          ),
         ),
-      ),
-    ).then((_) {
+      );
+
       // Refresh folder data after returning from editor
       if (mounted) {
         setState(() {
           _folderData = _loadFolderWithParents();
         });
       }
-    });
+    } catch (e, stackTrace) {
+      loggerGlobal.severe(
+          "FolderViewer", "Error in folder editor", e, stackTrace);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error opening editor: $e"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _handleDelete(Folder folder) async {

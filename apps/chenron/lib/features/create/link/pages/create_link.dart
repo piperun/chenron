@@ -21,6 +21,7 @@ import "package:chenron/utils/validation/link_validator.dart";
 import "package:chenron/utils/validation/tag_validator.dart";
 import "package:chenron/notifiers/item_table_notifier.dart";
 import "package:chenron/models/metadata.dart";
+import "package:chenron/utils/logger.dart";
 
 class CreateLinkPage extends StatefulWidget {
   final bool hideAppBar;
@@ -310,24 +311,37 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
     // For bulk mode, inline errors are already shown in the ValidationErrorPanel
   }
 
-  void _handleEdit(Key key) {
+  Future<void> _handleEdit(Key key) async {
     final entry = _notifier.getEntry(key);
     if (entry == null) return;
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => LinkEditBottomSheet(
-        entry: entry,
-        availableFolders: _selectedFolders.isEmpty ? null : _selectedFolders,
-        onSave: (updatedEntry) {
-          _notifier.updateEntry(key, updatedEntry);
-          Navigator.pop(context);
-        },
-        onCancel: () => Navigator.pop(context),
-      ),
-    );
+    try {
+      await showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) => LinkEditBottomSheet(
+          entry: entry,
+          availableFolders: _selectedFolders.isEmpty ? null : _selectedFolders,
+          onSave: (updatedEntry) {
+            _notifier.updateEntry(key, updatedEntry);
+            Navigator.pop(context);
+          },
+          onCancel: () => Navigator.pop(context),
+        ),
+      );
+      // Modal dismissed - could add post-edit logic here if needed
+    } catch (e, stackTrace) {
+      loggerGlobal.severe("CreateLink", "Error editing link", e, stackTrace);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error editing link: $e"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   void _handleDelete(Key key) {

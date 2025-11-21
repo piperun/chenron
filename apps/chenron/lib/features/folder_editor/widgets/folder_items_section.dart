@@ -9,6 +9,7 @@ import "package:chenron/features/folder_editor/widgets/item_section/item_section
 import "package:chenron/features/folder_editor/widgets/cells/type_cell.dart";
 import "package:chenron/features/folder_editor/widgets/cells/delete_cell.dart";
 import "package:chenron/features/folder_editor/notifiers/folder_editor_notifier.dart";
+import "package:chenron/utils/logger.dart";
 
 /// Widget for displaying and managing folder items in the editor
 class FolderItemsSection extends StatefulWidget {
@@ -73,20 +74,35 @@ class _FolderItemsSectionState extends State<FolderItemsSection> {
     }
   }
 
-  void _handleAddLink() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => CreateLinkPage(
-          hideAppBar: true,
-          onClose: () => Navigator.pop(context),
-          onSaved: () async {
-            Navigator.pop(context);
-            await _refreshItems();
-          },
+  Future<void> _handleAddLink() async {
+    try {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CreateLinkPage(
+            hideAppBar: true,
+            onClose: () => Navigator.pop(context),
+            onSaved: () {
+              Navigator.pop(context);
+            },
+          ),
         ),
-      ),
-    );
+      );
+
+      // Refresh after navigation completes
+      await _refreshItems();
+    } catch (e, stackTrace) {
+      loggerGlobal.severe(
+          "FolderItemsSection", "Error adding link", e, stackTrace);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error adding link: $e"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   void _handleAddDocument() {
