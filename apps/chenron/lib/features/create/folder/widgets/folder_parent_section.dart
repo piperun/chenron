@@ -1,3 +1,4 @@
+import "dart:async";
 import "package:flutter/material.dart";
 import "package:chenron/database/database.dart";
 import "package:chenron/database/extensions/operations/database_file_handler.dart";
@@ -26,9 +27,9 @@ class _FolderParentSectionState extends State<FolderParentSection> {
   bool _isLoading = true;
 
   @override
-  Future<void> initState() async {
+  void initState() {
     super.initState();
-    await _initializeDatabase();
+    unawaited(_initializeDatabase());
   }
 
   Future<void> _initializeDatabase() async {
@@ -145,10 +146,10 @@ class _FolderSelectionDialogState extends State<_FolderSelectionDialog> {
   bool _isLoading = true;
 
   @override
-  Future<void> initState() async {
+  void initState() {
     super.initState();
     _selectedFolders = Set.from(widget.selectedFolders);
-    await _loadFolders();
+    unawaited(_loadFolders());
   }
 
   Future<void> _loadFolders() async {

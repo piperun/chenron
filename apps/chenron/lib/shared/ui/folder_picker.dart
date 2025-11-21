@@ -24,16 +24,16 @@ class _FolderPickerState extends State<FolderPicker> {
   bool _isLoading = true;
 
   @override
-  Future<void> initState() async {
+  void initState() {
     super.initState();
-    await _initializeDatabase();
+    unawaited(_initializeDatabase());
   }
 
   Future<void> _initializeDatabase() async {
     final dbHandler =
         await locator.get<Signal<Future<AppDatabaseHandler>>>().value;
     _db = dbHandler.appDatabase;
-    await _loadInitialFolder();
+    unawaited(_loadInitialFolder());
   }
 
   Future<void> _loadInitialFolder() async {
@@ -137,10 +137,10 @@ class _FolderSelectionDialogState extends State<FolderSelectionDialog> {
   bool _isLoading = true;
 
   @override
-  Future<void> initState() async {
+  void initState() {
     super.initState();
     _selectedFolders = Set.from(widget.selectedFolders);
-    await _loadFolders();
+    unawaited(_loadFolders());
   }
 
   Future<void> _loadFolders() async {

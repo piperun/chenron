@@ -1,3 +1,4 @@
+import "dart:async";
 import "package:chenron/shared/folder_input/folder_input_section.dart";
 import "package:chenron/shared/tag_section/tag_section.dart";
 import "package:chenron/features/create/folder/widgets/folder_parent_section.dart";
@@ -90,7 +91,7 @@ class _FolderFormState extends State<FolderForm> {
   final Signal<Set<String>> _tagsSignal = signal({});
 
   @override
-  Future<void> initState() async {
+  void initState() {
     super.initState();
 
     // Initialize controllers with existing data if editing
@@ -113,7 +114,7 @@ class _FolderFormState extends State<FolderForm> {
     // Load existing parent folders if provided
     if (widget.existingParentFolderIds != null &&
         widget.existingParentFolderIds!.isNotEmpty) {
-      await _loadParentFolders(widget.existingParentFolderIds!);
+      unawaited(_loadParentFolders(widget.existingParentFolderIds!));
     }
 
     // Listen to text controllers

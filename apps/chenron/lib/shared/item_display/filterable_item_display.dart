@@ -1,3 +1,4 @@
+import "dart:async";
 import "package:flutter/material.dart";
 import "package:chenron/models/item.dart";
 import "package:chenron/shared/item_display/widgets/display_mode/display_mode.dart";
@@ -82,7 +83,7 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
   final Map<String, FolderItem> _selectedItems = {};
 
   @override
-  Future<void> initState() async {
+  void initState() {
     super.initState();
     _viewMode = widget.initialViewMode;
     _sortMode = widget.initialSortMode;
@@ -108,7 +109,7 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
       _ownsTagFilterState = true;
     }
 
-    await _loadDisplayMode();
+    unawaited(_loadDisplayMode());
   }
 
   Future<void> _loadDisplayMode() async {
