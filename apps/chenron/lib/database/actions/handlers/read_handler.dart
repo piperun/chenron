@@ -108,7 +108,7 @@ class ReadDbHandler<T extends DbResult> {
     required Expression<String> joinExp,
     Expression<bool>? predicate,
   }) {
-    List<Join<HasResultSet, dynamic>> joinsList =
+    final List<Join<HasResultSet, dynamic>> joinsList =
         relationBuilder.createQueryJoins(includeOptions, joinExp);
     final query = db.select(table).join(joinsList);
     if (predicate != null) {

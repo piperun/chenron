@@ -8,7 +8,7 @@ extension UserConfigExtensions on ConfigDatabase {
   Future<UserConfigResultIds> createUserConfig(UserConfig userConfig) async {
     return transaction(() async {
       try {
-        String id = generateId();
+        final String id = generateId();
         final insertConfig = UserConfigsCompanion.insert(
           id: id,
           darkMode: Value(userConfig.darkMode),

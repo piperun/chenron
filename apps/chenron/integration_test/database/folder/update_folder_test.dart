@@ -116,7 +116,7 @@ void main() {
               "Updated Description, this folder is only for testing updateFolder"));
     });
     test("should update folder with two additional existing Tags", () async {
-      Map<String, String> ids = {};
+      final Map<String, String> ids = {};
       List<Metadata> connectTags = [];
       for (int i = 0; i < testNewTags.length; i++) {
         ids[testNewTags[i].value] = testNewTagIds[i];

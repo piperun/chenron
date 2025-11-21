@@ -22,7 +22,7 @@ class GridLayout<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     return ResponsiveBuilder(
       builder: (context, constraints) {
-        int gridColumns = responsiveValue(
+        final int gridColumns = responsiveValue(
           context: context,
           xs: 1,
           sm: 2,

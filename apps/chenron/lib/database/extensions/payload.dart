@@ -19,7 +19,7 @@ extension PayloadExtensions on AppDatabase {
     ArchiveOrgOptions? archiveOptions,
   }) async {
     final configDatabase = ConfigDatabase();
-    FolderResultIds results = await createFolder(
+    final FolderResultIds results = await createFolder(
       folderInfo: folderInfo,
       tags: tags,
       items: items,
@@ -52,9 +52,9 @@ extension PayloadExtensions on AppDatabase {
     final UserConfigResult? userConfig = await configDatabase.getUserConfig();
     if (userConfig == null || items == null) return;
 
-    List<String> archiveCreateLinks =
+    final List<String> archiveCreateLinks =
         items.create.map((item) => item.id!).toList();
-    List<String> archiveUpdateLinks =
+    final List<String> archiveUpdateLinks =
         items.update.map((item) => item.id!).toList();
     for (final archiveList in [archiveCreateLinks, archiveUpdateLinks]) {
       if (archiveList.isEmpty) continue;

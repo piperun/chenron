@@ -18,7 +18,7 @@ class CredentialTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget textField = Padding(
+    final Widget textField = Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextField(
         controller: controller,

@@ -46,7 +46,7 @@ class LinkCreateVEPR extends VEPROperation<
     logStep("Execute", "Starting link record creation for: ${input.url}");
     
     // Check if link already exists
-    Link? linkExists = await (db.select(db.links)
+    final Link? linkExists = await (db.select(db.links)
           ..where((tbl) => tbl.path.equals(input.url)))
         .getSingleOrNull();
     

@@ -49,7 +49,7 @@ class FolderCreateVEPR extends VEPROperation<
   Future<String> execute(FolderCreateInput input) async {
     logStep("Execute",
         "Starting folder record creation for '${input.folderInfo.title}'");
-    String id = db.generateId();
+    final String id = db.generateId();
     final newFolder = FoldersCompanion.insert(
       id: id,
       title: input.folderInfo.title,

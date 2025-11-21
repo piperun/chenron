@@ -10,7 +10,7 @@ class ResponsiveExample extends StatelessWidget {
     return ResponsiveBuilder(
       builder: (context, constraints) {
         // Example: Responsive grid columns
-        int gridColumns = responsiveValue(
+        final int gridColumns = responsiveValue(
           context: context,
           xs: 2,
           sm: 3,
@@ -20,7 +20,7 @@ class ResponsiveExample extends StatelessWidget {
         );
 
         // Example: Responsive background color
-        Color backgroundColor = responsiveValue(
+        final Color backgroundColor = responsiveValue(
           context: context,
           xs: Colors.red,
           sm: Colors.orange,

@@ -41,7 +41,7 @@ class Breakpoints {
       double ratioMd = 0.875,
       double ratioLg = 0.75,
       double ratioXl = 0.625}) {
-    var screenWidth = MediaQuery.of(context).size.width;
+    final screenWidth = MediaQuery.of(context).size.width;
     if (screenWidth <= sm) {
       return screenWidth * ratioSm;
     } else if (screenWidth <= md) {
@@ -60,7 +60,7 @@ class Breakpoints {
       double ratioMd = 0.875,
       double ratioLg = 0.75,
       double ratioXl = 0.625}) {
-    var screenHeight = MediaQuery.of(context).size.height;
+    final screenHeight = MediaQuery.of(context).size.height;
     if (screenHeight <= sm) {
       return screenHeight * ratioSm;
     } else if (screenHeight <= md) {

@@ -108,7 +108,7 @@ extension InsertionExtensions on AppDatabase {
     required String folderId,
     required FolderItemType type,
   }) {
-    String id = generateId();
+    final String id = generateId();
 
     batch.insert(
       items,
@@ -136,7 +136,7 @@ extension InsertionExtensions on AppDatabase {
     required MetadataTypeEnum type,
     String? value,
   }) {
-    String id = generateId();
+    final String id = generateId();
 
     batch.insert(
       metadataRecords,

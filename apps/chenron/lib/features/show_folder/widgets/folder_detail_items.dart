@@ -38,16 +38,16 @@ class ItemTile extends StatelessWidget {
 
   static String _getTileContent(ItemContent content) {
     switch (content) {
-      case StringContent stringContent:
+      case final StringContent stringContent:
         return stringContent.value;
-      case MapContent mapContent:
+      case final MapContent mapContent:
         return mapContent.value["title"] ?? "";
     }
   }
 
   static Function() _getLaunchFunc(ItemContent content) {
     switch (content) {
-      case StringContent stringContent:
+      case final StringContent stringContent:
         return () => _launchURL(Uri.parse(stringContent.value));
       default:
         return () {};

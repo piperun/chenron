@@ -211,7 +211,7 @@ class UserConfigUpdateVEPR extends VEPROperation<
         if (updates.remove.isNotEmpty) {
           logStep("Process (Batch)",
               "Scheduling ${updates.remove.length} theme removals.");
-          bool removingSelected = (input.selectedThemeKey != null &&
+          final bool removingSelected = (input.selectedThemeKey != null &&
                   input.selectedThemeType == ThemeType.custom) &&
               updates.remove.contains(input.selectedThemeKey);
           if (removingSelected) {

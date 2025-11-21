@@ -41,7 +41,7 @@ void main() {
         title: "Test Folder",
         description: "Test Description",
       );
-      FolderResultIds createdIds =
+      final FolderResultIds createdIds =
           await database.createFolder(folderInfo: folderInfo);
 
       expect(createdIds.folderId, isNotNull);
@@ -66,7 +66,7 @@ void main() {
         Metadata(value: "tag1", type: MetadataTypeEnum.tag),
         Metadata(value: "tag2", type: MetadataTypeEnum.tag),
       ];
-      FolderResultIds createdIds =
+      final FolderResultIds createdIds =
           await database.createFolder(folderInfo: folderInfo, tags: tags);
 
       expect(createdIds.folderId, isNotNull);
@@ -101,7 +101,7 @@ void main() {
           content: MapContent(
               value: {"title": "Test Document", "body": "Test Content"}));
 
-      FolderResultIds createdIds = await database
+      final FolderResultIds createdIds = await database
           .createFolder(folderInfo: folderInfo, items: [link, document]);
 
       expect(createdIds.folderId, isNotNull);

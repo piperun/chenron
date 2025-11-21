@@ -22,7 +22,7 @@ class LinkFactory {
 class MetadataFactory {
   static List<Metadata> createTags(List<String> tagValues,
       {Map<String, String>? ids, Map<String, String>? metadataIds}) {
-    List<Metadata> tags = [];
+    final List<Metadata> tags = [];
     for (String value in tagValues) {
       if (ids != null) {
         tags.add(

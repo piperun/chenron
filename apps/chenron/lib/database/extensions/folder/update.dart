@@ -59,7 +59,7 @@ extension FolderExtensions on AppDatabase {
 
   Future<Map<String, List<MetadataResultIds>>> _updateFolderTags(
       String folderId, CUD<Metadata> tagUpdates) async {
-    Map<String, List<MetadataResultIds>> tagUpdateResults = {
+    final Map<String, List<MetadataResultIds>> tagUpdateResults = {
       "create": [],
       "update": [],
       "remove": []
@@ -120,7 +120,7 @@ extension FolderExtensions on AppDatabase {
 
   Future<Map<String, List<ItemResultIds>>> _updateFolderContent(
       String folderId, CUD<FolderItem> itemUpdates) async {
-    Map<String, List<ItemResultIds>> itemUpdateResults = {
+    final Map<String, List<ItemResultIds>> itemUpdateResults = {
       "create": [],
       "update": [],
       "remove": []

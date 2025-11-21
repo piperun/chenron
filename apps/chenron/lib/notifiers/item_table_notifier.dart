@@ -25,10 +25,10 @@ class ItemTableNotifier<T> extends ChangeNotifier {
 
   void appendRow(TrinaRow row, {String? key}) {
     if (_stateManager != null) {
-      String? newUrl = row.cells[key]?.value;
+      final String? newUrl = row.cells[key]?.value;
 
-      bool isDuplicate = _stateManager!.rows.any((existingRow) {
-        String? existingUrl = existingRow.cells[key]?.value;
+      final bool isDuplicate = _stateManager!.rows.any((existingRow) {
+        final String? existingUrl = existingRow.cells[key]?.value;
         return existingUrl == newUrl;
       });
 

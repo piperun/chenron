@@ -136,7 +136,7 @@ void main() {
 
       for (final item in folderData.items) {
         switch (item) {
-          case StringContent content:
+          case final StringContent content:
             final linkResult = await (database.select(database.links)
                   ..where(
                     (tbl) => tbl.path.equals(content.value),
@@ -145,7 +145,7 @@ void main() {
             expect(linkResult.first.id, item.itemId);
             expect(linkResult.length, 1);
             break;
-          case MapContent content:
+          case final MapContent content:
             final documentResult = await (database.select(database.documents)
                   ..where(
                     (tbl) => tbl.path.equals(content.value["body"]!),

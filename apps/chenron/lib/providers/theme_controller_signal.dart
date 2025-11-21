@@ -5,7 +5,7 @@ final Signal<ThemeController> themeControllerSignal =
     signal(initializeThemeController());
 
 ThemeController initializeThemeController() {
-  ThemeController controller = ThemeController();
+  final ThemeController controller = ThemeController();
   controller.initialize();
   return controller;
 }

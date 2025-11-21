@@ -39,7 +39,7 @@ class FolderValidator {
     if (value == null || value.isEmpty) {
       return null;
     }
-    List<String> tags = value.split(",").map((tag) => tag.trim()).toList();
+    final List<String> tags = value.split(",").map((tag) => tag.trim()).toList();
     if (!tags.every((tag) => Validator.isAlpha(tag))) {
       return "Tags can only contain latin alphabetic characters";
     }

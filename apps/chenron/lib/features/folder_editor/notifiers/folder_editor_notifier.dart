@@ -43,7 +43,7 @@ class FolderEditorNotifier {
         final changes = itemChanges.value;
 
         // Start with original items
-        var items = List<FolderItem>.from(original);
+        final items = List<FolderItem>.from(original);
 
         // Remove deleted items
         items.removeWhere((item) =>
