@@ -75,23 +75,23 @@ class ViewerPresenter extends ChangeNotifier {
   }
 
   void onFolderTap(BuildContext context, FolderResult folder) {
-    Navigator.push(
+    unawaited(Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => FolderViewerPage(folderId: folder.data.id),
       ),
-    );
+    ));
   }
 
   void onEditTap(BuildContext context, String folderId) {
-    Navigator.push(
+    unawaited(Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => FolderEditor(
           folderId: folderId,
         ),
       ),
-    );
+    ));
   }
 
   void toggleItemSelection(String itemId) {
@@ -145,7 +145,7 @@ class ViewerPresenter extends ChangeNotifier {
   void dispose() {
     searchController.removeListener(_onSearchChanged);
     searchController.dispose();
-    _itemsController.close();
+    unawaited(_itemsController.close());
     super.dispose();
   }
 
@@ -178,25 +178,25 @@ class ViewerPresenter extends ChangeNotifier {
         createdAt: item.createdAt,
       );
 
-      showDialog(
+      unawaited(showDialog(
         context: context,
         builder: (context) => ItemInfoModal(item: folderItem),
-      );
+      ));
       return;
     }
 
     // Default: Open Item
     switch (item.type) {
       case FolderItemType.folder:
-        Navigator.push(
+        unawaited(Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => FolderViewerPage(folderId: item.id),
           ),
-        );
+        ));
       case FolderItemType.link:
         if (item.url != null) {
-          onOpenUrl(item.url!);
+          unawaited(onOpenUrl(item.url!));
         }
         break;
       case FolderItemType.document:

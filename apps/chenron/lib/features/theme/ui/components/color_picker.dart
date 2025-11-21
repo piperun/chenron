@@ -1,3 +1,4 @@
+import "dart:async";
 import "package:flutter/material.dart";
 import "package:flutter_colorpicker/flutter_colorpicker.dart";
 
@@ -28,7 +29,7 @@ class ColorPickerTile extends StatelessWidget {
   void _showColorPicker(BuildContext context) {
     Color tempColor = pickerColor;
 
-    showDialog(
+    unawaited(showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
@@ -39,16 +40,17 @@ class ColorPickerTile extends StatelessWidget {
               onColorChanged: (color) {
                 tempColor = color;
               },
-              pickerAreaHeightPercent: 0.8,
             ),
           ),
           actions: <Widget>[
             TextButton(
               child: const Text("Cancel"),
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
             ),
             TextButton(
-              child: const Text("Done"),
+              child: const Text("Select"),
               onPressed: () {
                 onColorChanged(tempColor);
                 Navigator.of(context).pop();
@@ -57,6 +59,6 @@ class ColorPickerTile extends StatelessWidget {
           ],
         );
       },
-    );
+    ));
   }
 }

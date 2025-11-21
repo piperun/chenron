@@ -25,7 +25,7 @@ class MonolithDownloader {
       }
 
       final asset = assets.firstWhere((a) => a["name"] == assetName);
-      final downloadUrl = asset["browser_download_url"];
+      final downloadUrl = asset["browser_download_url"] as String;
 
       final appDir = await getApplicationDocumentsDirectory();
       final savePath = "${appDir.path}/chenron/$assetName";

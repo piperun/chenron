@@ -1,3 +1,4 @@
+import "dart:async";
 import "package:flutter/material.dart";
 import "package:chenron/shared/search/search_controller.dart";
 import "package:chenron/shared/search/suggestion_builder.dart";
@@ -6,7 +7,7 @@ import "package:chenron/database/extensions/operations/database_file_handler.dar
 import "package:signals/signals_flutter.dart";
 
 /// A custom overlay that shows search suggestions without interfering with typing.
-/// 
+///
 /// This widget listens to a SearchBarController with debouncing and displays
 /// suggestions in an overlay positioned below the search bar.
 class SuggestionsOverlay extends StatefulWidget {
@@ -45,7 +46,7 @@ class _SuggestionsOverlayState extends State<SuggestionsOverlay> {
   void initState() {
     super.initState();
     _debouncer = Debouncer(duration: widget.debounceDuration);
-    
+
     // Listen to query changes with debounce
     effect(() {
       final query = widget.controller.query.value;
@@ -72,14 +73,14 @@ class _SuggestionsOverlayState extends State<SuggestionsOverlay> {
     setState(() => _isLoading = true);
 
     // Debounce the database query
-    _debouncer.call(() async {
+    unawaited(_debouncer.call(() async {
       final suggestions = await _fetchSuggestions(query);
       if (mounted && _lastQuery == query) {
         setState(() {
           _suggestions = suggestions;
           _isLoading = false;
         });
-        
+
         if (suggestions.isNotEmpty) {
           _showOverlay();
         } else {
@@ -87,12 +88,12 @@ class _SuggestionsOverlayState extends State<SuggestionsOverlay> {
         }
       }
       return suggestions;
-    });
+    }));
   }
 
   Future<List<ListTile>> _fetchSuggestions(String query) async {
     if (!mounted) return [];
-    
+
     final suggestionBuilder = GlobalSuggestionBuilder(
       db: widget.db,
       context: context,
@@ -107,16 +108,16 @@ class _SuggestionsOverlayState extends State<SuggestionsOverlay> {
         );
       },
     );
-    
+
     return suggestionBuilder.buildSuggestions();
   }
 
   void _showOverlay() {
     _removeOverlay();
-    
+
     final RenderBox? renderBox = context.findRenderObject() as RenderBox?;
     final size = renderBox?.size;
-    
+
     _overlayEntry = OverlayEntry(
       builder: (context) => Positioned(
         width: size?.width ?? 600,
@@ -135,7 +136,10 @@ class _SuggestionsOverlayState extends State<SuggestionsOverlay> {
                 color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .outline
+                      .withValues(alpha: 0.2),
                 ),
               ),
               child: _isLoading

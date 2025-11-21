@@ -31,6 +31,6 @@ class MonolithRunner {
       throw Exception("Monolith failed: ${result.stderr}");
     }
 
-    return result.stdout;
+    return result.stdout as String;
   }
 }

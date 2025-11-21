@@ -26,16 +26,22 @@ class _MockAppDatabaseHandler implements AppDatabaseHandler {
   Future<void> closeDatabase() async {}
 
   @override
-  void createDatabase({String? databaseName, File? databasePath, bool setupOnInit = false}) {}
+  Future<void> createDatabase(
+      {String? databaseName,
+      File? databasePath,
+      bool setupOnInit = false}) async {}
 
   @override
-  Future<File?> exportDatabase(Directory exportPath) => throw UnimplementedError();
+  Future<File?> exportDatabase(Directory exportPath) =>
+      throw UnimplementedError();
 
   @override
-  Future<File?> importDatabase(File dbFile, {required bool copyImport, bool setupOnInit = true}) => throw UnimplementedError();
+  Future<File?> importDatabase(File dbFile,
+          {required bool copyImport, bool setupOnInit = true}) =>
+      throw UnimplementedError();
 
   @override
-  void initDatabase() {}
+  Future<void> initDatabase() async {}
 
   @override
   Future<void> reloadDatabase() async {}
@@ -66,12 +72,12 @@ void main() {
     );
   });
 
-  Future<void> tearDown() async {
+  tearDown(() async {
     await mockDb.dispose();
     if (GetIt.I.isRegistered<Signal<Future<AppDatabaseHandler>>>()) {
       await GetIt.I.reset();
     }
-  }
+  });
 
   group("FolderFormData", () {
     test("creates instance with all fields", () {
@@ -156,7 +162,7 @@ void main() {
 
         // Should find title and description inputs
         expect(find.byType(TextField), findsWidgets);
-        
+
         // Should not show items table by default
         expect(find.text("Folder Items"), findsNothing);
       });
@@ -176,7 +182,8 @@ void main() {
         expect(find.text("Existing Description"), findsOneWidget);
       });
 
-      testWidgets("shows items table when showItemsTable is true", (tester) async {
+      testWidgets("shows items table when showItemsTable is true",
+          (tester) async {
         await tester.pumpWidget(buildForm(showItemsTable: true));
         await tester.pumpAndSettle();
 
@@ -204,7 +211,7 @@ void main() {
         final titleField = find.byType(TextField).first;
         await tester.enterText(titleField, "Text");
         await tester.pumpAndSettle();
-        
+
         await tester.enterText(titleField, "");
         await tester.pumpAndSettle();
 
@@ -218,7 +225,7 @@ void main() {
 
         final titleField = find.byType(TextField).first;
         final longTitle = "A" * 200;
-        
+
         await tester.enterText(titleField, longTitle);
         await tester.pumpAndSettle();
 
@@ -256,7 +263,7 @@ void main() {
 
         final descriptionField = find.byType(TextField).at(1);
         final longDesc = "B" * 500;
-        
+
         await tester.enterText(descriptionField, longDesc);
         await tester.pumpAndSettle();
 
@@ -265,9 +272,10 @@ void main() {
     });
 
     group("Callback Triggers", () {
-      testWidgets("onDataChanged callback triggered on title change", (tester) async {
+      testWidgets("onDataChanged callback triggered on title change",
+          (tester) async {
         FolderFormData? capturedData;
-        
+
         await tester.pumpWidget(buildForm(
           onDataChanged: (data) => capturedData = data,
         ));
@@ -281,9 +289,10 @@ void main() {
         expect(capturedData!.title, "New Title");
       });
 
-      testWidgets("onDataChanged callback triggered on description change", (tester) async {
+      testWidgets("onDataChanged callback triggered on description change",
+          (tester) async {
         FolderFormData? capturedData;
-        
+
         await tester.pumpWidget(buildForm(
           onDataChanged: (data) => capturedData = data,
         ));
@@ -299,7 +308,7 @@ void main() {
 
       testWidgets("onValidationChanged callback triggered", (tester) async {
         bool? validationState;
-        
+
         await tester.pumpWidget(buildForm(
           onValidationChanged: (isValid) => validationState = isValid,
         ));
@@ -314,11 +323,11 @@ void main() {
 
       testWidgets("multiple callbacks triggered in sequence", (tester) async {
         FolderFormData? capturedData;
-        bool? validationState;
-        
+        // bool? validationState; // Unused
+
         await tester.pumpWidget(buildForm(
           onDataChanged: (data) => capturedData = data,
-          onValidationChanged: (isValid) => validationState = isValid,
+          // onValidationChanged: (isValid) => validationState = isValid,
         ));
         await tester.pumpAndSettle();
 
@@ -362,7 +371,7 @@ void main() {
     group("Form Validation State", () {
       testWidgets("form is invalid initially", (tester) async {
         bool? validationState;
-        
+
         await tester.pumpWidget(buildForm(
           onValidationChanged: (isValid) => validationState = isValid,
         ));
@@ -377,7 +386,7 @@ void main() {
 
       testWidgets("form becomes valid with title input", (tester) async {
         bool? validationState;
-        
+
         await tester.pumpWidget(buildForm(
           onValidationChanged: (isValid) => validationState = isValid,
         ));
@@ -395,19 +404,19 @@ void main() {
     group("Edge Cases", () {
       testWidgets("handles rapid text input changes", (tester) async {
         FolderFormData? capturedData;
-        
+
         await tester.pumpWidget(buildForm(
           onDataChanged: (data) => capturedData = data,
         ));
         await tester.pumpAndSettle();
 
         final titleField = find.byType(TextField).first;
-        
+
         for (int i = 0; i < 10; i++) {
           await tester.enterText(titleField, "Title $i");
           await tester.pump(const Duration(milliseconds: 10));
         }
-        
+
         await tester.pumpAndSettle();
 
         // Should handle rapid changes without crashing
@@ -461,7 +470,8 @@ void main() {
     });
 
     group("Items Table Display", () {
-      testWidgets("shows placeholder when showItemsTable is true", (tester) async {
+      testWidgets("shows placeholder when showItemsTable is true",
+          (tester) async {
         await tester.pumpWidget(buildForm(showItemsTable: true));
         await tester.pumpAndSettle();
 
@@ -510,14 +520,14 @@ void main() {
     group("Integration with Signals", () {
       testWidgets("signals update on value changes", (tester) async {
         FolderFormData? capturedData;
-        
+
         await tester.pumpWidget(buildForm(
           onDataChanged: (data) => capturedData = data,
         ));
         await tester.pumpAndSettle();
 
         final titleField = find.byType(TextField).first;
-        
+
         await tester.enterText(titleField, "First Title");
         await tester.pumpAndSettle();
         expect(capturedData!.title, "First Title");
@@ -529,7 +539,7 @@ void main() {
 
       testWidgets("description signal updates independently", (tester) async {
         FolderFormData? capturedData;
-        
+
         await tester.pumpWidget(buildForm(
           onDataChanged: (data) => capturedData = data,
         ));
@@ -537,7 +547,7 @@ void main() {
 
         final titleField = find.byType(TextField).first;
         final descriptionField = find.byType(TextField).at(1);
-        
+
         await tester.enterText(titleField, "Title");
         await tester.pumpAndSettle();
 

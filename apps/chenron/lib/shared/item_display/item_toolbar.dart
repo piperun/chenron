@@ -1,3 +1,4 @@
+import "dart:async";
 import "package:flutter/material.dart";
 import "package:chenron/models/item.dart";
 import "package:chenron/shared/item_display/widgets/display_mode/display_mode.dart";
@@ -70,93 +71,93 @@ class ItemToolbar extends StatelessWidget {
         ),
       ),
       child: Row(
-            children: [
-              // Search box
-              if (showSearch)
-                LocalSearchBar(
-                  filter: searchFilter,
-                  hintText: "Search by name, URL, tags...",
-                  onSubmitted: onSearchSubmitted,
-                ),
+        children: [
+          // Search box
+          if (showSearch)
+            LocalSearchBar(
+              filter: searchFilter,
+              hintText: "Search by name, URL, tags...",
+              onSubmitted: onSearchSubmitted,
+            ),
 
-              if (showSearch) const SizedBox(width: 12),
+          if (showSearch) const SizedBox(width: 12),
 
-              // Filter dropdown with checkboxes
-              _FilterDropdown(
-                selectedTypes: selectedTypes,
-                onFilterChanged: onFilterChanged,
-              ),
-
-              const SizedBox(width: 8),
-
-              // Sort button
-              Builder(
-                builder: (context) => _ToolbarButton(
-                  label: _getSortLabel(),
-                  icon: Icons.sort,
-                  onPressed: () => _showSortMenu(context),
-                ),
-              ),
-
-              if (showTagFilterButton) ...[
-                const SizedBox(width: 8),
-                _TagFilterButton(
-                  includedCount: includedTagNames.length,
-                  excludedCount: excludedTagNames.length,
-                  onPressed: onTagFilterPressed,
-                ),
-              ],
-
-              // Delete mode button
-              if (onDeleteModeToggled != null) ...[
-                const SizedBox(width: 8),
-                _DeleteModeButton(
-                  isDeleteMode: isDeleteMode,
-                  selectedCount: selectedCount,
-                  onToggle: onDeleteModeToggled,
-                  onDelete: onDeletePressed,
-                ),
-              ],
-
-              const SizedBox(width: 8),
-              const Spacer(),
-
-              // Display mode switcher
-              DisplayModeSwitcher(
-                selectedMode: displayMode,
-                onModeChanged: onDisplayModeChanged,
-              ),
-
-              const SizedBox(width: 8),
-
-              // View toggle
-              Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: theme.dividerColor),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                padding: const EdgeInsets.all(4),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _ViewToggleButton(
-                      icon: Icons.grid_view,
-                      label: "Grid",
-                      isSelected: viewMode == ViewMode.grid,
-                      onPressed: () => onViewModeChanged(ViewMode.grid),
-                    ),
-                    const SizedBox(width: 4),
-                    _ViewToggleButton(
-                      icon: Icons.list,
-                      label: "List",
-                      isSelected: viewMode == ViewMode.list,
-                      onPressed: () => onViewModeChanged(ViewMode.list),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          // Filter dropdown with checkboxes
+          _FilterDropdown(
+            selectedTypes: selectedTypes,
+            onFilterChanged: onFilterChanged,
           ),
+
+          const SizedBox(width: 8),
+
+          // Sort button
+          Builder(
+            builder: (context) => _ToolbarButton(
+              label: _getSortLabel(),
+              icon: Icons.sort,
+              onPressed: () => _showSortMenu(context),
+            ),
+          ),
+
+          if (showTagFilterButton) ...[
+            const SizedBox(width: 8),
+            _TagFilterButton(
+              includedCount: includedTagNames.length,
+              excludedCount: excludedTagNames.length,
+              onPressed: onTagFilterPressed,
+            ),
+          ],
+
+          // Delete mode button
+          if (onDeleteModeToggled != null) ...[
+            const SizedBox(width: 8),
+            _DeleteModeButton(
+              isDeleteMode: isDeleteMode,
+              selectedCount: selectedCount,
+              onToggle: onDeleteModeToggled,
+              onDelete: onDeletePressed,
+            ),
+          ],
+
+          const SizedBox(width: 8),
+          const Spacer(),
+
+          // Display mode switcher
+          DisplayModeSwitcher(
+            selectedMode: displayMode,
+            onModeChanged: onDisplayModeChanged,
+          ),
+
+          const SizedBox(width: 8),
+
+          // View toggle
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: theme.dividerColor),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            padding: const EdgeInsets.all(4),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _ViewToggleButton(
+                  icon: Icons.grid_view,
+                  label: "Grid",
+                  isSelected: viewMode == ViewMode.grid,
+                  onPressed: () => onViewModeChanged(ViewMode.grid),
+                ),
+                const SizedBox(width: 4),
+                _ViewToggleButton(
+                  icon: Icons.list,
+                  label: "List",
+                  isSelected: viewMode == ViewMode.list,
+                  onPressed: () => onViewModeChanged(ViewMode.list),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -187,7 +188,7 @@ class ItemToolbar extends StatelessWidget {
       0,
     );
 
-    showMenu<SortMode>(
+    unawaited(showMenu<SortMode>(
       context: context,
       position: position,
       items: [
@@ -212,7 +213,7 @@ class ItemToolbar extends StatelessWidget {
       if (value != null) {
         onSortChanged(value);
       }
-    });
+    }));
   }
 }
 

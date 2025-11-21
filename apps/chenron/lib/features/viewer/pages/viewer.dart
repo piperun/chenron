@@ -1,3 +1,4 @@
+import "dart:async";
 import "package:chenron/features/viewer/state/viewer_state.dart";
 import "package:chenron/shared/item_display/filterable_item_display.dart";
 import "package:chenron/models/item.dart";
@@ -38,11 +39,11 @@ class _ViewerState extends State<Viewer> {
   }
 
   @override
-  Future<void> initState() async {
+  void initState() {
     super.initState();
     _tagFilterState = TagFilterState();
     final presenter = viewerViewModelSignal.value;
-    await presenter.init();
+    unawaited(presenter.init());
 
     // Set up search submission handler for tag parsing
     if (widget.searchFilter != null) {

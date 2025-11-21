@@ -1,3 +1,4 @@
+import "dart:async";
 import "package:chenron/shared/patterns/include_options.dart";
 import "package:chenron/shared/search/search_features.dart";
 import "package:chenron/shared/search/search_controller.dart";
@@ -53,9 +54,9 @@ class SearchFeatureManager {
 
       if (onDebouncedChange != null) {
         _debouncedListener = () {
-          _debouncer!.call(() async {
+          unawaited(_debouncer!.call(() async {
             onDebouncedChange();
-          });
+          }));
         };
         controller.textController.addListener(_debouncedListener!);
       }

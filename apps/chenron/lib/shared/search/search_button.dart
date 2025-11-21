@@ -1,3 +1,4 @@
+import "dart:async";
 import "package:flutter/material.dart";
 import "package:chenron/shared/search/search_view.dart";
 
@@ -13,10 +14,10 @@ class SearchButton extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(8),
           onTap: () {
-            showDialog(
+            unawaited(showDialog(
               context: context,
               builder: (context) => SearchView(),
-            );
+            ));
           },
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),

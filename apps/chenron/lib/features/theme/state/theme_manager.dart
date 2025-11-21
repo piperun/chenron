@@ -31,7 +31,7 @@ class ThemeManager {
   /// the database upon creation (asynchronously).
   ThemeManager(this._db) {
     // Start loading immediately, but don't block the constructor.
-    _loadInitialThemeMode();
+    unawaited(_loadInitialThemeMode());
   }
 
   /// Asynchronously loads the theme mode from the UserConfig in the database.

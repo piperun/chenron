@@ -1,3 +1,4 @@
+import "dart:async";
 import "package:flutter/material.dart";
 import "package:flutter_test/flutter_test.dart";
 import "package:chenron/database/database.dart";
@@ -27,12 +28,12 @@ void main() {
             builder: (context) {
               return ElevatedButton(
                 onPressed: () {
-                  TagFilterModal.show(
+                  unawaited(TagFilterModal.show(
                     context: context,
                     availableTags: mockTags,
                     initialIncludedTags: initialIncluded ?? {},
                     initialExcludedTags: initialExcluded ?? {},
-                  );
+                  ));
                 },
                 child: const Text("Open Modal"),
               );
@@ -342,12 +343,12 @@ void main() {
                 builder: (context) {
                   return ElevatedButton(
                     onPressed: () {
-                      TagFilterModal.show(
+                      unawaited(TagFilterModal.show(
                         context: context,
                         availableTags: [],
                         initialIncludedTags: {},
                         initialExcludedTags: {},
-                      );
+                      ));
                     },
                     child: const Text("Open Modal"),
                   );

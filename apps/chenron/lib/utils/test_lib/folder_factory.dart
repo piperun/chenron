@@ -55,10 +55,10 @@ class FolderItemFactory {
   static List<FolderItem> createItems(List<Map<String, dynamic>> itemsData) {
     return itemsData.map((item) {
       if (item["type"] == "link") {
-        return createLink(item["content"]);
+        return createLink(item["content"] as String);
       } else if (item["type"] == "document") {
-        return createDocument(
-            item["content"]["title"], item["content"]["body"]);
+        return createDocument(item["content"]["title"] as String,
+            item["content"]["body"] as String);
       }
       throw ArgumentError("Invalid item type");
     }).toList();

@@ -1,3 +1,4 @@
+import "dart:async";
 import "package:flutter/material.dart";
 import "package:chenron/models/item.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/item_utils.dart";
@@ -8,10 +9,10 @@ import "package:chenron/components/metadata_factory.dart";
 void showItemInfoModal(BuildContext context, FolderItem item) {
   final url = ItemUtils.getUrl(item);
 
-  showDialog(
+  unawaited(showDialog(
     context: context,
     builder: (context) => ItemInfoModal(item: item, url: url),
-  );
+  ));
 }
 
 class ItemInfoModal extends StatelessWidget {

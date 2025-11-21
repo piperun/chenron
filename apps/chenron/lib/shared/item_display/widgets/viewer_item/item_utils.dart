@@ -1,5 +1,6 @@
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
+import "dart:async";
 import "package:chenron/models/item.dart";
 import "package:url_launcher/url_launcher.dart" as url_launcher;
 
@@ -46,7 +47,7 @@ class ItemUtils {
   }
 
   static void copyUrl(String url) {
-    Clipboard.setData(ClipboardData(text: url));
+    unawaited(Clipboard.setData(ClipboardData(text: url)));
   }
 
   static List<Widget> buildTags(

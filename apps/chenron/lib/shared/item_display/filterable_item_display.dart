@@ -35,7 +35,8 @@ class FilterableItemDisplay extends StatefulWidget {
   final bool showSearch;
   final bool enableTagFiltering;
   final void Function(FolderItem)? onItemTap;
-  final void Function({required bool isDeleteMode, required int selectedCount})? onDeleteModeChanged;
+  final void Function({required bool isDeleteMode, required int selectedCount})?
+      onDeleteModeChanged;
   final void Function(List<FolderItem> items)? onDeleteRequested;
 
   const FilterableItemDisplay({
@@ -156,7 +157,7 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
 
   void _toggleItemSelection(FolderItem item) {
     if (!_isDeleteMode || item.id == null) return;
-    
+
     setState(() {
       if (_selectedItems.containsKey(item.id)) {
         _selectedItems.remove(item.id);
@@ -288,7 +289,8 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
                 widget.enableTagFiltering ? _handleSearchSubmitted : null,
             isDeleteMode: _isDeleteMode,
             selectedCount: _selectedItems.length,
-            onDeleteModeToggled: widget.onDeleteRequested != null ? _toggleDeleteMode : null,
+            onDeleteModeToggled:
+                widget.onDeleteRequested != null ? _toggleDeleteMode : null,
             onDeletePressed: _handleDeletePressed,
           );
         }),
@@ -309,8 +311,8 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
                 ? ItemGridView(
                     items: filtered,
                     displayMode: _displayMode,
-                    showImages: widget.showImages,
-                    maxTags: widget.maxTags,
+                    showImageOverride: widget.showImages,
+                    maxTagsOverride: widget.maxTags,
                     includedTagNames: _tagFilterState.includedTagNames,
                     excludedTagNames: _tagFilterState.excludedTagNames,
                     onItemTap: _handleItemTap,
@@ -322,8 +324,8 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
                 : ItemListView(
                     items: filtered,
                     displayMode: _displayMode,
-                    showImages: widget.showImages,
-                    maxTags: widget.maxTags,
+                    showImageOverride: widget.showImages,
+                    maxTagsOverride: widget.maxTags,
                     includedTagNames: _tagFilterState.includedTagNames,
                     excludedTagNames: _tagFilterState.excludedTagNames,
                     onItemTap: _handleItemTap,

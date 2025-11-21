@@ -22,8 +22,9 @@ class DarkModeToggle extends StatelessWidget {
         icon: Icon(
           isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
         ),
-        onPressed: () {
-          themeManager.setDarkMode(isDark: !isDark);
+        onPressed: () async {
+          // see if this is "fast" enough if not we change to unawait
+          await themeManager.setDarkMode(isDark: !isDark);
         },
       );
     });

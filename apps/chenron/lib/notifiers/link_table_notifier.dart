@@ -21,10 +21,10 @@ class DataGridNotifier extends ChangeNotifier {
 
   void appendRow(TrinaRow row, {String? key}) {
     if (_stateManager != null) {
-      final String? newUrl = row.cells[key]?.value;
+      final String? newUrl = row.cells[key]?.value as String?;
 
       final bool isDuplicate = _stateManager!.rows.any((existingRow) {
-        final String? existingUrl = existingRow.cells[key]?.value;
+        final String? existingUrl = existingRow.cells[key]?.value as String?;
         return existingUrl == newUrl;
       });
 

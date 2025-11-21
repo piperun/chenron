@@ -41,7 +41,7 @@ class SearchHistoryManager {
 
     if (historyJson == null) return [];
 
-    final List<dynamic> decoded = jsonDecode(historyJson);
+    final List<dynamic> decoded = jsonDecode(historyJson) as List<dynamic>;
     return decoded
         .map((item) => SearchHistoryItem.fromJson(item as Map<String, dynamic>))
         .toList();
