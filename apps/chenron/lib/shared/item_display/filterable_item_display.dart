@@ -82,7 +82,7 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
   final Map<String, FolderItem> _selectedItems = {};
 
   @override
-  void initState() {
+  Future<void> initState() async {
     super.initState();
     _viewMode = widget.initialViewMode;
     _sortMode = widget.initialSortMode;
@@ -108,7 +108,7 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
       _ownsTagFilterState = true;
     }
 
-    _loadDisplayMode();
+    await _loadDisplayMode();
   }
 
   Future<void> _loadDisplayMode() async {
@@ -311,8 +311,8 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
                 ? ItemGridView(
                     items: filtered,
                     displayMode: _displayMode,
-                    showImageOverride: widget.showImages,
-                    maxTagsOverride: widget.maxTags,
+                    showImages: widget.showImages,
+                    maxTags: widget.maxTags,
                     includedTagNames: _tagFilterState.includedTagNames,
                     excludedTagNames: _tagFilterState.excludedTagNames,
                     onItemTap: _handleItemTap,
@@ -324,8 +324,8 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
                 : ItemListView(
                     items: filtered,
                     displayMode: _displayMode,
-                    showImageOverride: widget.showImages,
-                    maxTagsOverride: widget.maxTags,
+                    showImages: widget.showImages,
+                    maxTags: widget.maxTags,
                     includedTagNames: _tagFilterState.includedTagNames,
                     excludedTagNames: _tagFilterState.excludedTagNames,
                     onItemTap: _handleItemTap,
