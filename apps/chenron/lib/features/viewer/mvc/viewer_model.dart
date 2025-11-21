@@ -92,6 +92,7 @@ class ViewerModel {
               type: FolderItemType.link,
               tags: link.tags,
               createdAt: link.data.createdAt,
+              url: link.data.path,
             ),
           ),
         );

@@ -14,6 +14,7 @@ import "package:flutter/material.dart";
 import "package:signals/signals_flutter.dart";
 import "package:url_launcher/url_launcher.dart";
 import "package:chenron/utils/logger.dart";
+import "package:chenron/features/viewer/ui/viewer_base_item.dart";
 
 class Viewer extends StatefulWidget {
   final SearchFilter? searchFilter;
@@ -43,25 +44,27 @@ class _ViewerState extends State<Viewer> {
     );
   }
 
-  void _handleItemTap(BuildContext context, FolderItem item) {
-    switch (item.type) {
-      case FolderItemType.folder:
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => FolderViewerPage(folderId: item.id!),
-          ),
-        );
-      case FolderItemType.link:
-        final url = (item.path as StringContent).value;
-        if (url.isNotEmpty) {
-          final uri = Uri.parse(url);
-          launchUrl(uri);
-        }
-      case FolderItemType.document:
-        // TODO: Handle document tap
-        break;
-    }
+  void _handleItemTapWithPresenter(BuildContext context, FolderItem item) {
+    final presenter = viewerViewModelSignal.value;
+
+    // Convert FolderItem to ViewerItem format for presenter
+    final viewerItem = ViewerItem(
+      id: item.id ?? '',
+      type: item.type,
+      title: item.type == FolderItemType.folder
+          ? (item.path as StringContent).value
+          : '',
+      description: item.type != FolderItemType.folder
+          ? (item.path as StringContent).value
+          : '',
+      url: item.type == FolderItemType.link
+          ? (item.path as StringContent).value
+          : null,
+      tags: item.tags,
+      createdAt: item.createdAt ?? DateTime.now(),
+    );
+
+    presenter.onItemTap(context, viewerItem);
   }
 
   Future<void> _handleDeleteRequested(
@@ -199,7 +202,8 @@ class _ViewerState extends State<Viewer> {
                     enableTagFiltering: true,
                     displayModeContext: "viewer",
                     showSearch: false,
-                    onItemTap: (item) => _handleItemTap(context, item),
+                    onItemTap: (item) =>
+                        _handleItemTapWithPresenter(context, item),
                     onDeleteModeChanged: (
                         {required bool isDeleteMode,
                         required int selectedCount}) {

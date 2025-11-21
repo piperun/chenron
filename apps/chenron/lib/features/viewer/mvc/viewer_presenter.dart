@@ -10,6 +10,9 @@ import "package:chenron/shared/item_display/item_toolbar.dart";
 import "package:flutter/material.dart";
 import "package:url_launcher/url_launcher.dart";
 import "package:signals/signals_flutter.dart";
+import "package:chenron/features/settings/controller/config_controller.dart";
+import "package:chenron/locator.dart";
+import "package:chenron/shared/item_display/widgets/viewer_item/item_info_modal.dart";
 
 class ViewerPresenter extends ChangeNotifier {
   final Set<String> selectedItemIds = {};
@@ -23,7 +26,8 @@ class ViewerPresenter extends ChangeNotifier {
   SortMode sortMode = SortMode.nameAsc;
 
   final _itemsController = StreamController<List<ViewerItem>>.broadcast();
-  final ViewerModel _model = ViewerModel();
+  final ViewerModel _model;
+  final ConfigController _configController = locator.get<ConfigController>();
   Stream<List<ViewerItem>>? _allItemsStream;
   List<ViewerItem> _currentItems = [];
 
@@ -31,7 +35,7 @@ class ViewerPresenter extends ChangeNotifier {
   late final StreamSignal<List<ViewerItem>> itemsSignal =
       StreamSignal(() => _itemsController.stream);
 
-  ViewerPresenter() {
+  ViewerPresenter({ViewerModel? model}) : _model = model ?? ViewerModel() {
     searchController.addListener(_onSearchChanged);
   }
 
@@ -159,6 +163,29 @@ class ViewerPresenter extends ChangeNotifier {
   }
 
   void onItemTap(BuildContext context, ViewerItem item) {
+    final action = _configController.itemClickAction.peek();
+
+    if (action == 1) {
+      // Show Details
+      // Convert ViewerItem to FolderItem for the modal
+      final folderItem = FolderItem(
+        id: item.id,
+        type: item.type,
+        content: item.type == FolderItemType.link
+            ? StringContent(value: item.url ?? "")
+            : StringContent(value: ""), // Handle other types if needed
+        tags: item.tags,
+        createdAt: item.createdAt,
+      );
+
+      showDialog(
+        context: context,
+        builder: (context) => ItemInfoModal(item: folderItem),
+      );
+      return;
+    }
+
+    // Default: Open Item
     switch (item.type) {
       case FolderItemType.folder:
         Navigator.push(
@@ -168,8 +195,12 @@ class ViewerPresenter extends ChangeNotifier {
           ),
         );
       case FolderItemType.link:
+        if (item.url != null) {
+          onOpenUrl(item.url!);
+        }
         break;
       case FolderItemType.document:
+        // Future implementation
         break;
     }
   }

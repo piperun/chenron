@@ -8,6 +8,7 @@ class ViewerItem {
   final FolderItemType type;
   final List<Tag> tags;
   final DateTime createdAt;
+  final String? url;
 
   ViewerItem({
     required this.id,
@@ -16,5 +17,6 @@ class ViewerItem {
     required this.type,
     required this.tags,
     required this.createdAt,
+    this.url,
   });
 }
