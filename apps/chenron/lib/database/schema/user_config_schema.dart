@@ -18,6 +18,9 @@ class UserConfigs extends Table {
   // 0 = relative (e.g., "2h ago"), 1 = absolute (e.g., "2025-01-01 14:30")
   IntColumn get timeDisplayFormat => integer().withDefault(const Constant(0))();
 
+  // 0 = Open URL / Open Folder, 1 = Show Details
+  IntColumn get itemClickAction => integer().withDefault(const Constant(0))();
+
   @override
   Set<Column> get primaryKey => {id};
 }

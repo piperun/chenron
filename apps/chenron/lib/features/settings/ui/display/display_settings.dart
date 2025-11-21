@@ -69,6 +69,40 @@ class DisplaySettings extends StatelessWidget {
                 ),
               ),
             ),
+            const SizedBox(height: 24),
+            Text(
+              "Item Click Action",
+              style: theme.textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            Watch(
+              (context) => SegmentedButton<int>(
+                segments: const [
+                  ButtonSegment<int>(
+                    value: 0,
+                    label: Text("Open Item"),
+                    icon: Icon(Icons.open_in_new),
+                  ),
+                  ButtonSegment<int>(
+                    value: 1,
+                    label: Text("Show Details"),
+                    icon: Icon(Icons.info_outline),
+                  ),
+                ],
+                selected: {controller.itemClickAction.value},
+                onSelectionChanged: (Set<int> newSelection) {
+                  controller.updateItemClickAction(newSelection.first);
+                },
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "Choose what happens when you click an item in the viewer.",
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6),
+                fontStyle: FontStyle.italic,
+              ),
+            ),
             const SizedBox(height: 8),
             Text(
               "You can hover over or click the info icon on any item to see the full timestamp.",

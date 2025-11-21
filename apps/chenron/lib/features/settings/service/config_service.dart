@@ -50,6 +50,7 @@ class ConfigService {
     required String? selectedThemeKey,
     required ThemeType selectedThemeType,
     required int timeDisplayFormat,
+    required int itemClickAction,
     // Add other config fields as needed
   }) async {
     try {
@@ -64,6 +65,7 @@ class ConfigService {
         selectedThemeKey: selectedThemeKey,
         selectedThemeType: selectedThemeType,
         timeDisplayFormat: timeDisplayFormat,
+        itemClickAction: itemClickAction,
         // Note: Theme CUD operations removed as draft logic is gone
       );
       loggerGlobal.info("ConfigService", "User config updated successfully.");

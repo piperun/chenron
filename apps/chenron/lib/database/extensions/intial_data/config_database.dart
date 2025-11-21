@@ -35,6 +35,24 @@ extension ConfigDatabaseInit on ConfigDatabase {
 
       // Return existing config ID
       return UserConfigResultIds(userConfigId: existingConfig.id);
+    } on FormatException catch (e) {
+      // Schema mismatch detected - likely missing column from old schema
+      loggerGlobal.warning(
+          "ConfigDB", "Schema mismatch detected, recreating config: $e");
+
+      // Delete corrupted config and create a fresh one
+      await delete(userConfigs).go();
+      final configId = generateId();
+
+      await into(userConfigs).insert(UserConfigsCompanion.insert(
+        id: configId,
+        darkMode: const Value(false),
+        copyOnImport: const Value(true),
+        archiveOrgS3AccessKey: const Value(null),
+        archiveOrgS3SecretKey: const Value(null),
+      ));
+
+      return UserConfigResultIds(userConfigId: configId);
     } catch (e) {
       loggerGlobal.severe(
           "SetupUpserConfigEntry", "Error in _setupUserConfigEntry: $e");

@@ -7,7 +7,8 @@ import "package:chenron/database/extensions/intial_data/config_database.dart";
 import "package:basedir/directory.dart";
 
 // Export IncludeOptions from shared patterns for backward compatibility
-export "package:chenron/shared/patterns/include_options.dart" show IncludeOptions;
+export "package:chenron/shared/patterns/include_options.dart"
+    show IncludeOptions;
 
 part "database.g.dart";
 
@@ -41,10 +42,11 @@ class AppDatabase extends _$AppDatabase {
     this.setupOnInit = false,
     String? customPath,
     this.debugMode = false,
-  }) : super(queryExecutor ?? _openConnection(
-            databaseName: databaseName ?? "chenron",
-            customPath: customPath,
-            debugMode: debugMode));
+  }) : super(queryExecutor ??
+            _openConnection(
+                databaseName: databaseName ?? "chenron",
+                customPath: customPath,
+                debugMode: debugMode));
 
   Future<void> setup() async {
     if (setupOnInit) {
@@ -93,7 +95,19 @@ class ConfigDatabase extends _$ConfigDatabase {
   }) : super(queryExecutor ?? _openConnection(customPath: customPath));
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration {
+    return MigrationStrategy(
+      onUpgrade: (migrator, from, to) async {
+        if (from < 2) {
+          // Add itemClickAction column with default value 0 (Open Item)
+          await migrator.addColumn(userConfigs, userConfigs.itemClickAction);
+        }
+      },
+    );
+  }
 
   static QueryExecutor _openConnection(
       {String databaseName = "config", String? customPath}) {
