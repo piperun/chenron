@@ -1,10 +1,14 @@
 import "dart:io";
 
+/// Runs the Monolith CLI tool.
 class MonolithRunner {
+  /// Path to the Monolith executable.
   String? executablePath = "monolith";
 
+  /// Creates a new [MonolithRunner].
   MonolithRunner({this.executablePath});
 
+  /// Runs Monolith to archive the given [url].
   Future<String> run(
     String url, {
     bool noAudio = false,

@@ -33,7 +33,8 @@ dependencies:
     sdk: flutter
   basedir: ^0.1.0
   cache_manager: ^1.0.0
-  web_archiver: ^0.1.0
+  web_archiver:
+    path: ../../packages/web_archiver
   vibe: ^0.1.0
   platform_provider: ^0.0.1
 

@@ -4,7 +4,9 @@ import "package:http/http.dart" as http;
 import "package:path_provider/path_provider.dart";
 import "package:platform_provider/platform_provider.dart";
 
+/// Downloads the Monolith executable.
 class MonolithDownloader {
+  /// Downloads the latest release of Monolith from GitHub.
   static Future<String> downloadLatestRelease() async {
     const githubApiUrl =
         "https://api.github.com/repos/Y2Z/monolith/releases/latest";
