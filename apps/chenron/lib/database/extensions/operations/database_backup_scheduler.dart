@@ -27,8 +27,8 @@ class DatabaseBackupScheduler {
     });
   }
 
-  void stop() {
-    _cron?.close();
+  Future<void> stop() async {
+    await _cron?.close();
     _cron = null;
   }
 }

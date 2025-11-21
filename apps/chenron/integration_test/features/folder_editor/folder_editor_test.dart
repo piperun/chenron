@@ -28,16 +28,22 @@ class _MockAppDatabaseHandler implements AppDatabaseHandler {
   Future<void> closeDatabase() async {}
 
   @override
-  void createDatabase({String? databaseName, File? databasePath, bool setupOnInit = false}) {}
+  Future<void> createDatabase(
+      {String? databaseName,
+      File? databasePath,
+      bool setupOnInit = false}) async {}
 
   @override
-  Future<File?> exportDatabase(Directory exportPath) => throw UnimplementedError();
+  Future<File?> exportDatabase(Directory exportPath) =>
+      throw UnimplementedError();
 
   @override
-  Future<File?> importDatabase(File dbFile, {required bool copyImport, bool setupOnInit = true}) => throw UnimplementedError();
+  Future<File?> importDatabase(File dbFile,
+          {required bool copyImport, bool setupOnInit = true}) =>
+      throw UnimplementedError();
 
   @override
-  void initDatabase() {}
+  Future<void> initDatabase() async {}
 
   @override
   Future<void> reloadDatabase() async {}
@@ -66,7 +72,7 @@ void main() {
 
       // Create a mock handler that returns our mock database
       final mockHandler = _MockAppDatabaseHandler(mockDb.database);
-      
+
       GetIt.I.registerSingleton<Signal<Future<AppDatabaseHandler>>>(
         signal(Future.value(mockHandler)),
       );
@@ -367,7 +373,8 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(await mockDb.getFolderTitle(testFolderId), "DB Title");
-        expect(await mockDb.getFolderDescription(testFolderId), "DB Description");
+        expect(
+            await mockDb.getFolderDescription(testFolderId), "DB Description");
       });
 
       testWidgets("folder tags loaded correctly", (tester) async {

@@ -60,7 +60,7 @@ class AppDatabaseHandler {
     return _appDatabase!;
   }
 
-  void initDatabase() {
+  Future<void> initDatabase() async {
     if (_appDatabase != null) {
       return;
     }
@@ -69,19 +69,19 @@ class AppDatabaseHandler {
       customPath: databaseLocation.databaseFilePath.path,
       setupOnInit: true,
     );
-    _appDatabase?.setup();
+    await _appDatabase?.setup();
   }
 
-  void createDatabase({
+  Future<void> createDatabase({
     String? databaseName,
     File? databasePath,
     bool setupOnInit = false,
-  }) {
+  }) async {
     final String dbName = databaseName ?? databaseLocation.databaseFilename;
     final String path =
         databasePath?.path ?? databaseLocation.databaseFilePath.path;
 
-    _appDatabase?.close();
+    await _appDatabase?.close();
     _appDatabase = AppDatabase(
       databaseName: dbName,
       customPath: path,
@@ -102,10 +102,10 @@ class AppDatabaseHandler {
     if (_checkDatabaseFile(dbFile)) {
       await _appDatabase?.close();
 
-      final baseDirsFutureSignal = locator
-          .get<Signal<Future<BaseDirectories<ChenronDir>?>>>();
+      final baseDirsFutureSignal =
+          locator.get<Signal<Future<BaseDirectories<ChenronDir>?>>>();
       final baseDirs = await baseDirsFutureSignal.value ??
-(throw StateError("Base directories not resolved"));
+          (throw StateError("Base directories not resolved"));
       if (copyImport) {
         result = await _fileOperations.importByCopy(
             dbFile: dbFile, importDirectory: baseDirs.databaseDir);
@@ -128,7 +128,7 @@ class AppDatabaseHandler {
     final baseDirsFutureSignal =
         locator.get<Signal<Future<BaseDirectories<ChenronDir>?>>>();
     final baseDirs = await baseDirsFutureSignal.value ??
-(throw StateError("Base directories not resolved"));
+        (throw StateError("Base directories not resolved"));
     try {
       result = await _fileOperations.backupDatabase(
         dbFile: databaseLocation.databaseFilePath,

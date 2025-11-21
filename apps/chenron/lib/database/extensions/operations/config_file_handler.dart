@@ -18,11 +18,11 @@ class ConfigDatabaseFileHandler {
     return _configDatabase!;
   }
 
-  void createDatabase({
+  Future<void> createDatabase({
     String? databaseName,
     File? databasePath,
     bool setupOnInit = false,
-  }) {
+  }) async {
     if (databaseLocation == null) {
       throw StateError(
           "DatabaseLocation is null. Please provide a valid DatabaseLocation.");
@@ -31,7 +31,7 @@ class ConfigDatabaseFileHandler {
     final String path =
         databasePath?.path ?? databaseLocation!.databaseFilePath.path;
 
-    _configDatabase?.close();
+    await _configDatabase?.close();
     _configDatabase = ConfigDatabase(
       databaseName: dbName,
       customPath: path,

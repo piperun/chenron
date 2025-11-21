@@ -26,9 +26,9 @@ class _FolderParentSectionState extends State<FolderParentSection> {
   bool _isLoading = true;
 
   @override
-  void initState() {
+  Future<void> initState() async {
     super.initState();
-    _initializeDatabase();
+    await _initializeDatabase();
   }
 
   Future<void> _initializeDatabase() async {
@@ -38,10 +38,10 @@ class _FolderParentSectionState extends State<FolderParentSection> {
     setState(() => _isLoading = false);
   }
 
-  void _showFolderSelectionDialog() {
+  Future<void> _showFolderSelectionDialog() async {
     if (_isLoading) return;
 
-    showDialog(
+    await showDialog(
       context: context,
       builder: (context) => _FolderSelectionDialog(
         db: _db,
@@ -145,10 +145,10 @@ class _FolderSelectionDialogState extends State<_FolderSelectionDialog> {
   bool _isLoading = true;
 
   @override
-  void initState() {
+  Future<void> initState() async {
     super.initState();
     _selectedFolders = Set.from(widget.selectedFolders);
-    _loadFolders();
+    await _loadFolders();
   }
 
   Future<void> _loadFolders() async {
@@ -163,15 +163,13 @@ class _FolderSelectionDialogState extends State<_FolderSelectionDialog> {
     }
   }
 
-  List<Folder> get _filteredFolders => _allFolders
-      .where((f) {
+  List<Folder> get _filteredFolders => _allFolders.where((f) {
         // Exclude current folder from selection
         if (widget.currentFolderId != null && f.id == widget.currentFolderId) {
           return false;
         }
         return f.title.toLowerCase().contains(_searchQuery.toLowerCase());
-      })
-      .toList();
+      }).toList();
 
   @override
   Widget build(BuildContext context) {

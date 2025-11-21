@@ -38,11 +38,11 @@ class _ViewerState extends State<Viewer> {
   }
 
   @override
-  void initState() {
+  Future<void> initState() async {
     super.initState();
     _tagFilterState = TagFilterState();
     final presenter = viewerViewModelSignal.value;
-    presenter.init();
+    await presenter.init();
 
     // Set up search submission handler for tag parsing
     if (widget.searchFilter != null) {
