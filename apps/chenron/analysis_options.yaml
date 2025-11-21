@@ -18,10 +18,14 @@ analyzer:
     strict-casts: true
   errors: 
     prefer_final_locals: error
+    prefer_final_fields: error
+    avoid_equals_and_hash_code_on_mutable_classes: error
+    always_declare_return_types: error
     prefer_const_constructors: error
     prefer_double_quotes: error
     prefer_void_to_null: error
     avoid_slow_async_io: error
+    avoid_void_async: error
 
 custom_lint:
   rules:
