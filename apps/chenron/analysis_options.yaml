@@ -21,7 +21,7 @@ analyzer:
     prefer_const_constructors: error
     prefer_double_quotes: error
     prefer_void_to_null: error
-
+    avoid_slow_async_io: error
 
 custom_lint:
   rules:
