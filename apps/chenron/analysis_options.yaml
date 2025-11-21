@@ -14,6 +14,14 @@ analyzer:
     - custom_lint
   exclude:
     - archived/**
+  language:
+    strict-casts: true
+  errors: 
+    prefer_final_locals: error
+    prefer_const_constructors: error
+    prefer_double_quotes: error
+    prefer_void_to_null: error
+
 
 custom_lint:
   rules:
