@@ -77,7 +77,7 @@ class _FolderFormState extends State<FolderForm> {
   late final TextEditingController _titleController;
   late final TextEditingController _descriptionController;
   final ItemTableNotifier _tableNotifier = ItemTableNotifier();
-  
+
   List<Folder> _selectedParentFolders = [];
   Set<String> _tags = {};
   final List<FolderItem> _items = [];
@@ -90,35 +90,36 @@ class _FolderFormState extends State<FolderForm> {
   final Signal<Set<String>> _tagsSignal = signal({});
 
   @override
-  void initState() {
+  Future<void> initState() async {
     super.initState();
-    
+
     // Initialize controllers with existing data if editing
     final initialTitle = widget.existingFolder?.title ?? "";
     final initialDescription = widget.existingFolder?.description ?? "";
-    
+
     _titleController = TextEditingController(text: initialTitle);
     _descriptionController = TextEditingController(text: initialDescription);
-    
+
     // Initialize state
     _title.value = initialTitle;
     _description.value = initialDescription;
-    
+
     // Initialize tags if provided
     if (widget.existingTags != null) {
       _tags = widget.existingTags!;
       _tagsSignal.value = _tags;
     }
-    
+
     // Load existing parent folders if provided
-    if (widget.existingParentFolderIds != null && widget.existingParentFolderIds!.isNotEmpty) {
-      _loadParentFolders(widget.existingParentFolderIds!);
+    if (widget.existingParentFolderIds != null &&
+        widget.existingParentFolderIds!.isNotEmpty) {
+      await _loadParentFolders(widget.existingParentFolderIds!);
     }
-    
+
     // Listen to text controllers
     _titleController.addListener(_onTitleChanged);
     _descriptionController.addListener(_onDescriptionChanged);
-    
+
     // Initial validation
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _validateAndNotify();
@@ -127,16 +128,18 @@ class _FolderFormState extends State<FolderForm> {
 
   Future<void> _loadParentFolders(List<String> folderIds) async {
     try {
-      final dbHandler = await locator.get<Signal<Future<AppDatabaseHandler>>>().value;
+      final dbHandler =
+          await locator.get<Signal<Future<AppDatabaseHandler>>>().value;
       final folders = <Folder>[];
-      
+
       for (final folderId in folderIds) {
-        final result = await dbHandler.appDatabase.getFolder(folderId: folderId);
+        final result =
+            await dbHandler.appDatabase.getFolder(folderId: folderId);
         if (result != null) {
           folders.add(result.data);
         }
       }
-      
+
       if (mounted && folders.isNotEmpty) {
         setState(() {
           _selectedParentFolders = folders;
@@ -151,25 +154,25 @@ class _FolderFormState extends State<FolderForm> {
   void _onTitleChanged() {
     final title = _titleController.text;
     _title.value = title;
-    
+
     // Validate and show error inline
     final error = FolderValidator.validateTitle(title);
     if (_titleError != error) {
       setState(() => _titleError = error);
     }
-    
+
     _validateAndNotify();
   }
 
   void _onDescriptionChanged() {
     final description = _descriptionController.text;
     _description.value = description;
-    
+
     final error = FolderValidator.validateDescription(description);
     if (_descriptionError != error) {
       setState(() => _descriptionError = error);
     }
-    
+
     _validateAndNotify();
   }
 
@@ -201,9 +204,10 @@ class _FolderFormState extends State<FolderForm> {
     }
   }
 
-  bool get _isValid => _title.value.trim().isNotEmpty && 
-                       _titleError == null && 
-                       _descriptionError == null;
+  bool get _isValid =>
+      _title.value.trim().isNotEmpty &&
+      _titleError == null &&
+      _descriptionError == null;
 
   void _validateAndNotify() {
     final formData = FolderFormData(
@@ -250,7 +254,9 @@ class _FolderFormState extends State<FolderForm> {
           currentFolderId: widget.existingFolder?.id,
         ),
         TagSection(
-          keyPrefix: widget.keyPrefix != null ? "${widget.keyPrefix}_tags" : "folder_tags",
+          keyPrefix: widget.keyPrefix != null
+              ? "${widget.keyPrefix}_tags"
+              : "folder_tags",
           description: widget.titleOverride ?? "Add tags to this folder",
           tags: _tags,
           onTagAdded: _onTagAdded,
@@ -274,8 +280,8 @@ class _FolderFormState extends State<FolderForm> {
                   Text(
                     "Folder Items",
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                          fontWeight: FontWeight.w600,
+                        ),
                   ),
                   const SizedBox(height: 16),
                   // TODO: Implement DataGrid here
