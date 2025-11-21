@@ -7,7 +7,7 @@ import "package:chenron/features/create/link/renderers/link_row_builder.dart";
 import "package:chenron/features/create/link/renderers/link_empty_state.dart";
 import "package:chenron/features/create/link/renderers/link_table_actions.dart";
 
-class LinkTableSection extends StatefulWidget {
+class LinkTableSection extends StatelessWidget {
   final List<LinkEntry> entries;
   final ItemTableNotifier notifier;
   final ValueChanged<Key> onEdit;
@@ -27,20 +27,15 @@ class LinkTableSection extends StatefulWidget {
     required this.folderNames,
   });
 
-  @override
-  State<LinkTableSection> createState() => _LinkTableSectionState();
-}
-
-class _LinkTableSectionState extends State<LinkTableSection> {
   bool get hasSelectedRows =>
-      widget.notifier.stateManager?.checkedRows.isNotEmpty ?? false;
+      notifier.stateManager?.checkedRows.isNotEmpty ?? false;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return ListenableBuilder(
-      listenable: widget.notifier,
+      listenable: notifier,
       builder: (context, _) => Card(
         margin: const EdgeInsets.only(bottom: 16),
         child: Padding(
@@ -52,38 +47,38 @@ class _LinkTableSectionState extends State<LinkTableSection> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "Prepared Links (${widget.entries.length})",
+                    "Prepared Links (${entries.length})",
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   LinkTableActions(
                     hasSelectedRows: hasSelectedRows,
-                    hasEntries: widget.entries.isNotEmpty,
-                    onDeleteSelected: widget.onDeleteSelected,
-                    onClearAll: widget.onClearAll,
+                    hasEntries: entries.isNotEmpty,
+                    onDeleteSelected: onDeleteSelected,
+                    onClearAll: onClearAll,
                   ),
                 ],
               ),
               const SizedBox(height: 12),
               Expanded(
-                child: widget.entries.isEmpty
+                child: entries.isEmpty
                     ? LinkEmptyState.build(theme)
                     : DataGrid(
-                        key: ValueKey(widget.entries
+                        key: ValueKey(entries
                             .map((e) =>
                                 "${e.key}_${e.validationStatus}_${e.validationStatusCode ?? 0}_${e.tags.join(',')}_${e.folderIds.join(',')}_${e.isArchived}")
                             .join("|")),
                         columns: LinkColumnBuilder.build(
-                          entries: widget.entries,
+                          entries: entries,
                           theme: theme,
                           context: context,
-                          folderNames: widget.folderNames,
-                          onEdit: widget.onEdit,
-                          onDelete: widget.onDelete,
+                          folderNames: folderNames,
+                          onEdit: onEdit,
+                          onDelete: onDelete,
                         ),
-                        rows: LinkRowBuilder.build(widget.entries),
-                        notifier: widget.notifier,
+                        rows: LinkRowBuilder.build(entries),
+                        notifier: notifier,
                       ),
               ),
             ],

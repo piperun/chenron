@@ -141,7 +141,7 @@ class _FolderEditorState extends State<FolderEditor> {
   }
 }
 
-class SectionBody extends StatefulWidget {
+class SectionBody extends StatelessWidget {
   final FolderEditorNotifier notifier;
   final String folderId;
   final Signal<bool> isFormValid;
@@ -153,15 +153,10 @@ class SectionBody extends StatefulWidget {
   });
 
   @override
-  State<SectionBody> createState() => _SectionBodyState();
-}
-
-class _SectionBodyState extends State<SectionBody> {
-  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Watch((context) {
-      switch (widget.notifier.state.value) {
+      switch (notifier.state.value) {
         case FolderEditorState.loading:
           return const Center(
             child: CircularProgressIndicator(),
@@ -181,7 +176,7 @@ class _SectionBodyState extends State<SectionBody> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    widget.notifier.errorMessage.value ?? "Folder not found",
+                    notifier.errorMessage.value ?? "Folder not found",
                     style: theme.textTheme.bodyLarge,
                     textAlign: TextAlign.center,
                   ),
@@ -192,7 +187,7 @@ class _SectionBodyState extends State<SectionBody> {
 
         case FolderEditorState.loaded:
         case FolderEditorState.saving:
-          final folder = widget.notifier.folder.value;
+          final folder = notifier.folder.value;
           if (folder == null) {
             return const Center(child: Text("Folder not found"));
           }
@@ -206,17 +201,17 @@ class _SectionBodyState extends State<SectionBody> {
                   existingFolder: folder.data,
                   existingTags: folder.tags.map((t) => t.name).toSet(),
                   existingParentFolderIds:
-                      widget.notifier.formData.value?.parentFolderIds,
+                      notifier.formData.value?.parentFolderIds,
                   showItemsTable: false,
                   keyPrefix: "folder_editor",
-                  onDataChanged: widget.notifier.updateFormData,
+                  onDataChanged: notifier.updateFormData,
                   onValidationChanged: _onFormValidationChanged,
                 ),
                 const SizedBox(height: 24),
                 FolderItemsSection(
-                  folderId: widget.folderId,
-                  items: widget.notifier.currentItems.value,
-                  notifier: widget.notifier,
+                  folderId: folderId,
+                  items: notifier.currentItems.value,
+                  notifier: notifier,
                 ),
               ],
             ),
@@ -226,6 +221,6 @@ class _SectionBodyState extends State<SectionBody> {
   }
 
   void _onFormValidationChanged(bool isValid) {
-    widget.isFormValid.value = isValid;
+    isFormValid.value = isValid;
   }
 }

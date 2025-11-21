@@ -112,7 +112,7 @@ class _CodeInputFieldState extends State<CodeInputField> {
 }
 
 /// Widget that displays line numbers with error highlighting
-class _LineNumbers extends StatefulWidget {
+class _LineNumbers extends StatelessWidget {
   final ValidatingTextController controller;
   final BulkValidationResult? validationResult;
   final ScrollController scrollController;
@@ -126,24 +126,19 @@ class _LineNumbers extends StatefulWidget {
   });
 
   @override
-  State<_LineNumbers> createState() => _LineNumbersState();
-}
-
-class _LineNumbersState extends State<_LineNumbers> {
-  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return ValueListenableBuilder<TextEditingValue>(
-      valueListenable: widget.controller,
+      valueListenable: controller,
       builder: (context, value, child) {
         final lines = value.text.split("\n");
         final lineCount = lines.length;
 
         // Build a set of error line numbers for quick lookup
         final errorLines = <int>{};
-        if (widget.validationResult != null) {
-          for (final line in widget.validationResult!.errorLines) {
+        if (validationResult != null) {
+          for (final line in validationResult!.errorLines) {
             errorLines.add(line.lineNumber);
           }
         }
@@ -166,7 +161,7 @@ class _LineNumbersState extends State<_LineNumbers> {
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   child: Text(
                     lineNumber.toString(),
-                    style: widget.textStyle.copyWith(
+                    style: textStyle.copyWith(
                       color: hasError
                           ? theme.colorScheme.error
                           : theme.colorScheme.onSurfaceVariant,
@@ -185,7 +180,7 @@ class _LineNumbersState extends State<_LineNumbers> {
           width: 48,
           padding: const EdgeInsets.symmetric(vertical: 16), // Match TextField!
           child: SingleChildScrollView(
-            controller: widget.scrollController,
+            controller: scrollController,
             physics: const NeverScrollableScrollPhysics(),
             child: Table(
               // Use Table widget like flutter-code-editor
