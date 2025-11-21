@@ -67,7 +67,8 @@ void main() {
         throw Exception("Base directories are null");
       }
 
-      createdFilePath = File(p.join(baseDirs!.databaseDir.path, createdFilename));
+      createdFilePath =
+          File(p.join(baseDirs!.databaseDir.path, createdFilename));
       databaseLocation = DatabaseLocation(
           databaseDirectory: baseDirs!.databaseDir,
           databaseFilename: createdFilename);
@@ -84,13 +85,13 @@ void main() {
     test("importDatabase creates a new database file", () async {
       importedFilePath = await databaseHandler.importDatabase(createdFilePath,
           setupOnInit: false, copyImport: true);
-      expect(await importedFilePath?.exists(), true,
+      expect(importedFilePath?.existsSync(), true,
           reason: "File at $createdFilePath does not exist");
     });
     test("importDatabase imports database file", () async {
       importedFilePath = await databaseHandler.importDatabase(createdFilePath,
           setupOnInit: false, copyImport: false);
-      expect(await importedFilePath?.exists(), true,
+      expect(importedFilePath?.existsSync(), true,
           reason: "File at $createdFilePath does not exist");
     });
     test("importDatabase throws when given invalid path", () async {
@@ -112,7 +113,7 @@ void main() {
       exportedFilePath =
           await databaseHandler.exportDatabase(Directory.systemTemp);
 
-      expect(await exportedFilePath?.exists(), true,
+      expect(exportedFilePath?.existsSync(), true,
           reason: "File at $createdFilePath does not exist");
     });
     test("exportDatabase throws when source database file does not exist",
@@ -128,9 +129,9 @@ void main() {
   });
   group("Backup Database Tests", () {
     test("backupDatabase creates a backup of the database file", () async {
-      File? backupResult = await databaseHandler.backupDatabase();
+      final File? backupResult = await databaseHandler.backupDatabase();
       expect(backupResult, isNotNull);
-      expect(await backupResult?.exists(), true,
+      expect(backupResult?.existsSync(), true,
           reason: "File at $createdFilePath does not exist");
     });
   });
