@@ -26,7 +26,7 @@ class ThemeModel {
   }) : _themeData = themeData;
 
   String get type {
-    return _themeData["type"];
+    return _themeData["type"] as String;
   }
 
   String toJson() => json.encode({
@@ -36,11 +36,11 @@ class ThemeModel {
       });
 
   factory ThemeModel.fromJson(String jsonString) {
-    final data = json.decode(jsonString);
+    final data = json.decode(jsonString) as Map<String, dynamic>;
 
     return ThemeModel(
-      name: data["name"],
-      description: data["description"],
+      name: data["name"] as String,
+      description: data["description"] as String?,
       themeData: {
         for (final entry in data.entries)
           if (!["name", "description", "isDefault", "createdAt"]
@@ -131,8 +131,8 @@ class ThemeModel {
 
   // Convert a seed-based theme to ColorScheme
   ColorScheme _toSeedColorScheme() {
-    final seedColor =
-        Color(int.parse(_themeData["seedColor"].substring(1), radix: 16));
+    final seedColor = Color(
+        int.parse((_themeData["seedColor"] as String).substring(1), radix: 16));
     final brightness =
         _themeData["brightness"] == "dark" ? Brightness.dark : Brightness.light;
 
@@ -144,7 +144,8 @@ class ThemeModel {
     );
 
     // Parse contrast level
-    final contrastLevel = _themeData["contrastLevel"] ?? 0.0;
+    final contrastLevel =
+        (_themeData["contrastLevel"] as num?)?.toDouble() ?? 0.0;
 
     // Parse color overrides
     final colorOverrides = <String, Color>{};
@@ -152,7 +153,7 @@ class ThemeModel {
       final overrides = _themeData["colorOverrides"] as Map;
       for (final entry in overrides.entries) {
         final colorStr = entry.value as String;
-        colorOverrides[entry.key] =
+        colorOverrides[entry.key as String] =
             Color(int.parse(colorStr.substring(1), radix: 16));
       }
     }
@@ -176,8 +177,9 @@ class ThemeModel {
   ColorScheme _toSwatchColorScheme() {
     // For swatch, we need to handle it differently as MaterialColor
     // needs special handling
-    final swatchValue =
-        int.parse(_themeData["primarySwatch"].substring(1), radix: 16);
+    final swatchValue = int.parse(
+        (_themeData["primarySwatch"] as String).substring(1),
+        radix: 16);
 
     // This is a simplification - in a real app you'd need to map the value
     // to an actual MaterialColor or create a custom one
@@ -193,23 +195,27 @@ class ThemeModel {
     Color? accentColor, cardColor, backgroundColor, errorColor;
 
     if (_themeData.containsKey("accentColor")) {
-      accentColor =
-          Color(int.parse(_themeData["accentColor"].substring(1), radix: 16));
+      accentColor = Color(int.parse(
+          (_themeData["accentColor"] as String).substring(1),
+          radix: 16));
     }
 
     if (_themeData.containsKey("cardColor")) {
-      cardColor =
-          Color(int.parse(_themeData["cardColor"].substring(1), radix: 16));
+      cardColor = Color(int.parse(
+          (_themeData["cardColor"] as String).substring(1),
+          radix: 16));
     }
 
     if (_themeData.containsKey("backgroundColor")) {
-      backgroundColor = Color(
-          int.parse(_themeData["backgroundColor"].substring(1), radix: 16));
+      backgroundColor = Color(int.parse(
+          (_themeData["backgroundColor"] as String).substring(1),
+          radix: 16));
     }
 
     if (_themeData.containsKey("errorColor")) {
-      errorColor =
-          Color(int.parse(_themeData["errorColor"].substring(1), radix: 16));
+      errorColor = Color(int.parse(
+          (_themeData["errorColor"] as String).substring(1),
+          radix: 16));
     }
 
     return ColorScheme.fromSwatch(
