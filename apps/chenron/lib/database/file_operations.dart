@@ -20,7 +20,7 @@ class DatabaseFileOperations {
     required File dbFile,
     required Directory backupDirectory,
   }) async {
-    if (!await backupDirectory.exists()) {
+    if (!backupDirectory.existsSync()) {
       throw ArgumentError("The backup directory does not exist.");
     }
     File result;
@@ -57,7 +57,7 @@ class DatabaseFileOperations {
     required File dbFile,
     required Directory importDirectory,
   }) async {
-    if (!await importDirectory.exists()) {
+    if (!importDirectory.existsSync()) {
       throw ArgumentError("The import directory does not exist.");
     }
 

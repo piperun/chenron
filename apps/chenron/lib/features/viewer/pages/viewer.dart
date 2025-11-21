@@ -3,15 +3,10 @@ import "package:chenron/shared/item_display/filterable_item_display.dart";
 import "package:chenron/models/item.dart";
 import "package:chenron/shared/search/search_filter.dart";
 import "package:chenron/shared/tag_filter/tag_filter_state.dart";
-import "package:chenron/shared/dialogs/delete_confirmation_dialog.dart";
-import "package:chenron/database/database.dart" show AppDatabase;
-import "package:chenron/database/extensions/folder/remove.dart";
-import "package:chenron/database/extensions/link/remove.dart";
-import "package:chenron/database/extensions/operations/database_file_handler.dart";
-import "package:chenron/locator.dart";
 import "package:flutter/material.dart";
 import "package:signals/signals_flutter.dart";
 import "package:chenron/utils/logger.dart";
+import "package:chenron/shared/viewer/item_handler.dart";
 import "package:chenron/features/viewer/ui/viewer_base_item.dart";
 
 class Viewer extends StatefulWidget {
@@ -26,7 +21,7 @@ class Viewer extends StatefulWidget {
 class _ViewerState extends State<Viewer> {
   late final TagFilterState _tagFilterState;
 
-  FolderItem _viewerItemToFolderItem(dynamic viewerItem) {
+  FolderItem _viewerItemToFolderItem(ViewerItem viewerItem) {
     // For folders, use title as the main content
     // For links, description contains the URL
     final contentValue = viewerItem.type == FolderItemType.folder
@@ -40,107 +35,6 @@ class _ViewerState extends State<Viewer> {
       createdAt: viewerItem.createdAt,
       tags: viewerItem.tags,
     );
-  }
-
-  void _handleItemTapWithPresenter(BuildContext context, FolderItem item) {
-    final presenter = viewerViewModelSignal.value;
-
-    // Convert FolderItem to ViewerItem format for presenter
-    final viewerItem = ViewerItem(
-      id: item.id ?? "",
-      type: item.type,
-      title: item.type == FolderItemType.folder
-          ? (item.path as StringContent).value
-          : "",
-      description: item.type != FolderItemType.folder
-          ? (item.path as StringContent).value
-          : "",
-      url: item.type == FolderItemType.link
-          ? (item.path as StringContent).value
-          : null,
-      tags: item.tags,
-      createdAt: item.createdAt ?? DateTime.now(),
-    );
-
-    presenter.onItemTap(context, viewerItem);
-  }
-
-  Future<void> _handleDeleteRequested(
-    BuildContext context,
-    List<FolderItem> itemsToDelete,
-  ) async {
-    if (itemsToDelete.isEmpty) return;
-
-    // Show confirmation dialog
-    final confirmed = await showDeleteConfirmationDialog(
-      context: context,
-      items: itemsToDelete.map((item) {
-        // Extract title from item content
-        String title = "";
-        if (item.path is StringContent) {
-          title = (item.path as StringContent).value;
-        } else if (item.path is MapContent) {
-          title = (item.path as MapContent).value["title"] ?? "";
-        }
-
-        return DeletableItem(
-          id: item.id!,
-          title: title,
-          subtitle: item.type.name,
-        );
-      }).toList(),
-    );
-
-    if (!confirmed || !context.mounted) return;
-
-    // Delete items from database
-    try {
-      final db = await locator.get<Signal<Future<AppDatabaseHandler>>>().value;
-      final appDb = db.appDatabase;
-
-      int deletedCount = 0;
-      for (final item in itemsToDelete) {
-        if (item.id == null) continue;
-        final success = await _deleteItem(appDb, item);
-        if (success) deletedCount++;
-      }
-
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              "Successfully deleted $deletedCount ${deletedCount == 1 ? 'item' : 'items'}",
-            ),
-            backgroundColor: Colors.green,
-          ),
-        );
-
-        // Refresh the view
-        final presenter = viewerViewModelSignal.value;
-        presenter.init();
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Failed to delete items: ${e.toString()}"),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
-
-  Future<bool> _deleteItem(AppDatabase db, FolderItem item) async {
-    switch (item.type) {
-      case FolderItemType.folder:
-        return await db.removeFolder(item.id!);
-      case FolderItemType.link:
-        return await db.removeLink(item.id!);
-      case FolderItemType.document:
-        // TODO: Implement document deletion
-        return false;
-    }
   }
 
   @override
@@ -200,15 +94,17 @@ class _ViewerState extends State<Viewer> {
                     enableTagFiltering: true,
                     displayModeContext: "viewer",
                     showSearch: false,
-                    onItemTap: (item) =>
-                        _handleItemTapWithPresenter(context, item),
+                    onItemTap: (item) => handleItemTap(context, item),
                     onDeleteModeChanged: (
                         {required bool isDeleteMode,
                         required int selectedCount}) {
                       // Optional: Track delete mode state if needed
                     },
-                    onDeleteRequested: (items) =>
-                        _handleDeleteRequested(context, items),
+                    onDeleteRequested: (items) => handleItemDeletion(
+                      context,
+                      items,
+                      () => viewerViewModelSignal.value.init(),
+                    ),
                   );
                 },
               );
