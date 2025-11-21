@@ -40,7 +40,7 @@ void main() {
   Future<void> removeDatabaseFile(String databaseName) async {
     final databasePath = await getApplicationDocumentsDirectory();
     final file = File(databasePath.path + databaseName);
-    if (await file.exists()) {
+    if (await file.existsSync()) {
       await file.delete();
     }
   }

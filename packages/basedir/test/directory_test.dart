@@ -24,7 +24,7 @@ void main() {
     });
 
     tearDown(() async {
-      if (await platformBase.exists()) {
+      if (await platformBase.existsSync()) {
         await platformBase.delete(recursive: true);
       }
     });
@@ -82,11 +82,11 @@ void main() {
             Directory(p.join(appRoot.path, "backup", "config"));
         final Directory logDir = Directory(p.join(appRoot.path, "log"));
 
-        expect(await appRoot.exists(), isTrue);
-        expect(await databaseDir.exists(), isTrue);
-        expect(await backupAppDbDir.exists(), isTrue);
-        expect(await backupConfigDbDir.exists(), isTrue);
-        expect(await logDir.exists(), isTrue);
+        expect(await appRoot.existsSync(), isTrue);
+        expect(await databaseDir.existsSync(), isTrue);
+        expect(await backupAppDbDir.existsSync(), isTrue);
+        expect(await backupConfigDbDir.existsSync(), isTrue);
+        expect(await logDir.existsSync(), isTrue);
       });
 
       test("does nothing when include is empty", () async {
@@ -99,7 +99,7 @@ void main() {
         await base.create();
         final Directory appRoot =
             Directory(p.join(platformBase.path, "test_app", "debug"));
-        expect(await appRoot.exists(), isFalse);
+        expect(await appRoot.existsSync(), isFalse);
       });
     });
   });
