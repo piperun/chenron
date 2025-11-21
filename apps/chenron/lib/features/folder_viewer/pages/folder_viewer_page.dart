@@ -18,6 +18,8 @@ import "package:chenron/utils/logger.dart";
 import "package:shared_preferences/shared_preferences.dart";
 import "package:chenron/features/shell/pages/root.dart"
     show globalSearchFilterSignal;
+import "package:chenron/features/viewer/state/viewer_state.dart";
+import "package:chenron/features/viewer/ui/viewer_base_item.dart";
 
 class FolderViewerPage extends StatefulWidget {
   final String folderId;
@@ -36,6 +38,29 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
   late final TagFilterState _tagFilterState;
   bool _isHeaderExpanded = true;
   bool _isHeaderLocked = false;
+
+  void _handleItemTapWithPresenter(BuildContext context, FolderItem item) {
+    final presenter = viewerViewModelSignal.value;
+
+    // Convert FolderItem to ViewerItem format for presenter
+    final viewerItem = ViewerItem(
+      id: item.id ?? "",
+      type: item.type,
+      title: item.type == FolderItemType.folder
+          ? (item.path as StringContent).value
+          : "",
+      description: item.type != FolderItemType.folder
+          ? (item.path as StringContent).value
+          : "",
+      url: item.type == FolderItemType.link
+          ? (item.path as StringContent).value
+          : null,
+      tags: item.tags,
+      createdAt: item.createdAt ?? DateTime.now(),
+    );
+
+    presenter.onItemTap(context, viewerItem);
+  }
 
   @override
   void initState() {
@@ -429,6 +454,8 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
                   tagFilterState: _tagFilterState,
                   enableTagFiltering: true,
                   displayModeContext: "folder_viewer",
+                  onItemTap: (item) =>
+                      _handleItemTapWithPresenter(context, item),
                   onDeleteRequested: _handleDeleteItems,
                 ),
               ),
