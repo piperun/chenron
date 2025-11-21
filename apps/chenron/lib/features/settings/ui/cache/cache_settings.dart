@@ -1,93 +1,40 @@
 import "dart:async";
 import "dart:io";
 import "package:flutter/material.dart";
-import "package:platform_provider/platform_provider.dart";
+import "package:file_picker/file_picker.dart";
 import "package:signals/signals_flutter.dart";
 import "package:chenron/features/settings/controller/config_controller.dart";
 import "package:path_provider/path_provider.dart";
 
-class CacheSettings extends StatelessWidget {
+enum CacheDirectoryMode { defaultMode, custom }
+
+class CacheSettings extends StatefulWidget {
   final ConfigController controller;
 
   const CacheSettings({super.key, required this.controller});
 
-  Future<void> _pickCacheDirectory(BuildContext context) async {
-    // Get current value to pre-populate
-    final currentPath =
-        controller.cacheDirectory.peek() ?? await _getDefaultCachePath();
+  @override
+  State<CacheSettings> createState() => _CacheSettingsState();
+}
 
-    // Check if widget is still mounted after async gap
-    if (!context.mounted) return;
+class _CacheSettingsState extends State<CacheSettings> {
+  late TextEditingController _pathController;
+  CacheDirectoryMode _mode = CacheDirectoryMode.defaultMode;
 
-    final textController = TextEditingController(text: currentPath);
-
-    // Get platform-specific hint
-    String getHintText() {
-      return OperatingSystem.current.resources.cacheDirectoryHint;
-    }
-
-    final result = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Set Cache Directory"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              "Enter the full path where you want to store cached images:",
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: textController,
-              decoration: InputDecoration(
-                labelText: "Directory Path",
-                hintText: getHintText(),
-                border: const OutlineInputBorder(),
-              ),
-              maxLines: 2,
-              minLines: 1,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "The directory will be created if it doesn't exist.",
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context)
-                        .textTheme
-                        .bodySmall
-                        ?.color
-                        ?.withValues(alpha: 0.6),
-                    fontStyle: FontStyle.italic,
-                  ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
-          ),
-          FilledButton(
-            onPressed: () {
-              final path = textController.text.trim();
-              if (path.isNotEmpty) {
-                Navigator.pop(context, path);
-              }
-            },
-            child: const Text("Set"),
-          ),
-        ],
-      ),
-    );
-
-    if (result != null && result.isNotEmpty) {
-      controller.updateCacheDirectory(result);
-    }
+  @override
+  void initState() {
+    super.initState();
+    final customPath = widget.controller.cacheDirectory.peek();
+    _mode = customPath == null
+        ? CacheDirectoryMode.defaultMode
+        : CacheDirectoryMode.custom;
+    _pathController = TextEditingController(text: customPath ?? "");
   }
 
-  Future<void> _useDefaultDirectory() async {
-    // Clear custom path to use default temp directory
-    controller.updateCacheDirectory(null);
+  @override
+  void dispose() {
+    _pathController.dispose();
+    super.dispose();
   }
 
   Future<String> _getDefaultCachePath() async {
@@ -95,9 +42,44 @@ class CacheSettings extends StatelessWidget {
     return "${tempDir.path}/chenron_images";
   }
 
+  Future<void> _pickFolder() async {
+    final result = await FilePicker.platform.getDirectoryPath();
+    if (result != null) {
+      setState(() {
+        _pathController.text = result;
+      });
+      widget.controller.updateCacheDirectory(result);
+    }
+  }
+
+  void _onModeChanged(CacheDirectoryMode? mode) {
+    if (mode == null) return;
+
+    setState(() {
+      _mode = mode;
+    });
+
+    if (mode == CacheDirectoryMode.defaultMode) {
+      widget.controller.updateCacheDirectory(null);
+      _pathController.clear();
+    } else {
+      // When switching to custom, if path is empty, keep it empty
+      // User can type or pick
+      if (_pathController.text.isNotEmpty) {
+        widget.controller.updateCacheDirectory(_pathController.text);
+      }
+    }
+  }
+
+  void _onPathChanged(String value) {
+    if (_mode == CacheDirectoryMode.custom && value.trim().isNotEmpty) {
+      widget.controller.updateCacheDirectory(value.trim());
+    }
+  }
+
   Future<int> _getCacheSize() async {
     try {
-      final customPath = controller.cacheDirectory.peek();
+      final customPath = widget.controller.cacheDirectory.peek();
       final cacheDir = Directory(
         customPath ?? await _getDefaultCachePath(),
       );
@@ -127,7 +109,7 @@ class CacheSettings extends StatelessWidget {
 
   Future<void> _clearCache(BuildContext context) async {
     try {
-      final customPath = controller.cacheDirectory.peek();
+      final customPath = widget.controller.cacheDirectory.peek();
       final cacheDir = Directory(
         customPath ?? await _getDefaultCachePath(),
       );
@@ -169,174 +151,196 @@ class CacheSettings extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16.0),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Cache Settings",
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
+    return Watch((context) {
+      // Subscribe to cacheDirectory changes to trigger rebuilds
+      // and update local state if needed (optional, but good for reactivity)
+      // ignore: unused_local_variable
+      final _ = widget.controller.cacheDirectory.value;
+
+      return Card(
+        margin: const EdgeInsets.only(bottom: 16.0),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Cache Settings",
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-            // Cache Directory Section
-            Text(
-              "Cache Directory",
-              style: theme.textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "Location where cached images are stored. Default uses system temp directory.",
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+              // Cache Directory Section
+              Text(
+                "Cache Directory",
+                style: theme.textTheme.titleMedium,
               ),
-            ),
-            const SizedBox(height: 12),
+              const SizedBox(height: 8),
+              Text(
+                "Location where cached images are stored.",
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color:
+                      theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+                ),
+              ),
+              const SizedBox(height: 16),
 
-            // Current Path Display
-            Watch(
-              (context) {
-                final customPath = controller.cacheDirectory.value;
-                return FutureBuilder<String>(
-                  future: customPath == null
-                      ? _getDefaultCachePath()
-                      : Future.value(customPath),
-                  builder: (context, snapshot) {
-                    final displayPath = snapshot.data ?? "Loading...";
-                    final isDefault = customPath == null;
-
-                    return Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(8),
+              // Radio Group for Mode
+              RadioGroup<CacheDirectoryMode>(
+                groupValue: _mode,
+                onChanged: _onModeChanged,
+                child: Column(
+                  children: [
+                    // Radio: Default
+                    RadioListTile<CacheDirectoryMode>(
+                      title: const Text("Default"),
+                      value: CacheDirectoryMode.defaultMode,
+                      contentPadding: EdgeInsets.zero,
+                      subtitle: FutureBuilder<String>(
+                        future: _getDefaultCachePath(),
+                        builder: (context, snapshot) {
+                          return Text(
+                            snapshot.data ?? "Loading...",
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.textTheme.bodySmall?.color
+                                  ?.withValues(alpha: 0.6),
+                            ),
+                          );
+                        },
                       ),
-                      child: Row(
+                    ),
+
+                    // Radio: Custom
+                    const RadioListTile<CacheDirectoryMode>(
+                      title: Text("Custom"),
+                      value: CacheDirectoryMode.custom,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ],
+                ),
+              ),
+
+              // Custom path input (shown when custom is selected)
+              if (_mode == CacheDirectoryMode.custom)
+                Padding(
+                  padding: const EdgeInsets.only(left: 32.0, top: 8.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _pathController,
+                          decoration: const InputDecoration(
+                            labelText: "Cache Path",
+                            border: OutlineInputBorder(),
+                            isDense: true,
+                          ),
+                          onChanged: _onPathChanged,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton.filled(
+                        onPressed: _pickFolder,
+                        icon: const Icon(Icons.folder_open),
+                        tooltip: "Browse for folder",
+                      ),
+                    ],
+                  ),
+                ),
+
+              const Divider(height: 32),
+
+              // Cache Management Section
+              Text(
+                "Cache Management",
+                style: theme.textTheme.titleMedium,
+              ),
+              const SizedBox(height: 12),
+
+              // Responsive Wrap for Cache Size and Clear Button
+              Wrap(
+                spacing: 16,
+                runSpacing: 12,
+                alignment: WrapAlignment.spaceBetween,
+                children: [
+                  // Cache Size Display
+                  FutureBuilder<int>(
+                    future: _getCacheSize(),
+                    builder: (context, snapshot) {
+                      final size = snapshot.data ?? 0;
+                      return Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            Icons.folder_outlined,
+                            Icons.storage_outlined,
                             size: 20,
-                            color: theme.colorScheme.onSurfaceVariant,
+                            color: theme.colorScheme.primary,
                           ),
                           const SizedBox(width: 8),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  displayPath,
-                                  style: theme.textTheme.bodyMedium,
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                "Cache Size",
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.textTheme.bodySmall?.color
+                                      ?.withValues(alpha: 0.7),
                                 ),
-                                if (isDefault)
-                                  Text(
-                                    "Default",
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      color: theme.colorScheme.primary,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                              ],
-                            ),
+                              ),
+                              Text(
+                                _formatBytes(size),
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-            const SizedBox(height: 12),
-
-            Row(
-              children: [
-                ElevatedButton.icon(
-                  onPressed: () => _pickCacheDirectory(context),
-                  icon: const Icon(Icons.folder_open, size: 18),
-                  label: const Text("Choose Custom Path"),
-                ),
-                const SizedBox(width: 12),
-                Watch(
-                  (context) => TextButton.icon(
-                    onPressed: controller.cacheDirectory.value == null
-                        ? null
-                        : _useDefaultDirectory,
-                    icon: const Icon(Icons.restart_alt, size: 18),
-                    label: const Text("Reset to Default"),
+                      );
+                    },
                   ),
-                ),
-              ],
-            ),
 
-            const Divider(height: 32),
-
-            // Cache Management Section
-            Text(
-              "Cache Management",
-              style: theme.textTheme.titleMedium,
-            ),
-            const SizedBox(height: 12),
-
-            // Cache Size Display
-            FutureBuilder<int>(
-              future: _getCacheSize(),
-              builder: (context, snapshot) {
-                final size = snapshot.data ?? 0;
-                return ListTile(
-                  leading: Icon(
-                    Icons.storage_outlined,
-                    color: theme.colorScheme.primary,
-                  ),
-                  title: const Text("Cache Size"),
-                  subtitle: Text(_formatBytes(size)),
-                  contentPadding: EdgeInsets.zero,
-                );
-              },
-            ),
-            const SizedBox(height: 8),
-
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () {
-                  unawaited(showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text("Clear Cache"),
-                      content: const Text(
-                        "Are you sure you want to clear all cached images? "
-                        "This will free up space but images will need to be downloaded again.",
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text("Cancel"),
+                  // Clear Cache Button
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      unawaited(showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text("Clear Cache"),
+                          content: const Text(
+                            "Are you sure you want to clear all cached images? "
+                            "This will free up space but images will need to be downloaded again.",
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text("Cancel"),
+                            ),
+                            FilledButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                                unawaited(_clearCache(context));
+                              },
+                              child: const Text("Clear"),
+                            ),
+                          ],
                         ),
-                        FilledButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            unawaited(_clearCache(context));
-                          },
-                          child: const Text("Clear"),
-                        ),
-                      ],
+                      ));
+                    },
+                    icon: const Icon(Icons.delete_outline, size: 18),
+                    label: const Text("Clear Cache"),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: theme.colorScheme.error,
                     ),
-                  ));
-                },
-                icon: const Icon(Icons.delete_outline),
-                label: const Text("Clear Cache"),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: theme.colorScheme.error,
-                ),
+                  ),
+                ],
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-    );
+      );
+    });
   }
 }
