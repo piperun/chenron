@@ -4,6 +4,7 @@ import "package:chenron/database/database.dart";
 import "package:cuid2/cuid2.dart";
 import "package:drift/drift.dart";
 
+@immutable
 sealed class ItemContent<T> {
   @override
   bool operator ==(Object other);
@@ -11,14 +12,14 @@ sealed class ItemContent<T> {
   @override
   int get hashCode;
   final T value;
-  ItemContent({required this.value});
+  const ItemContent({required this.value});
 }
 
 class StringContent extends ItemContent<String> {
   final String? archiveOrg;
   final String? archiveIs;
 
-  StringContent({required super.value, this.archiveOrg, this.archiveIs});
+  const StringContent({required super.value, this.archiveOrg, this.archiveIs});
 
   @override
   bool operator ==(Object other) {
@@ -35,7 +36,7 @@ class StringContent extends ItemContent<String> {
 }
 
 class MapContent extends ItemContent<Map<String, String>> {
-  MapContent({required super.value});
+  const MapContent({required super.value});
 
   @override
   bool operator ==(Object other) {
@@ -49,6 +50,7 @@ class MapContent extends ItemContent<Map<String, String>> {
   int get hashCode => const MapEquality<String, String>().hash(value);
 }
 
+@immutable
 class FolderItem {
   final Key? key;
   final int? _listId;
@@ -63,7 +65,7 @@ class FolderItem {
   final FolderItemType type;
   final List<Tag> tags;
 
-  FolderItem._internal(this.key, this._listId, this._id, this._itemId,
+  const FolderItem._internal(this.key, this._listId, this._id, this._itemId,
       this.path, this.createdAt, this.type, this.tags);
 
   factory FolderItem({
@@ -124,7 +126,8 @@ class FolderItem {
   }
 
   @override
-  int get hashCode => Object.hash(id, itemId, listId, path, createdAt, type, const ListEquality().hash(tags));
+  int get hashCode => Object.hash(id, itemId, listId, path, createdAt, type,
+      const ListEquality().hash(tags));
 }
 
 enum FolderItemType {

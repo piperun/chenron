@@ -95,10 +95,10 @@ void main() {
       );
       final link = FolderItem(
           type: FolderItemType.link,
-          content: StringContent(value: "https://example.com"));
+          content: const StringContent(value: "https://example.com"));
       final document = FolderItem(
           type: FolderItemType.document,
-          content: MapContent(
+          content: const MapContent(
               value: {"title": "Test Document", "body": "Test Content"}));
 
       final FolderResultIds createdIds = await database

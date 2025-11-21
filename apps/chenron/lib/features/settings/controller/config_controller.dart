@@ -1,4 +1,5 @@
 import "package:flex_color_scheme/flex_color_scheme.dart";
+import "package:meta/meta.dart";
 import "package:signals/signals_flutter.dart";
 import "package:chenron/database/database.dart";
 import "package:chenron/features/settings/service/config_service.dart";
@@ -7,12 +8,14 @@ import "package:chenron/providers/theme_controller_signal.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/utils/logger.dart";
 
+@immutable
 class ThemeChoice {
   final String key;
   final String name;
   final ThemeType type;
 
-  ThemeChoice({required this.key, required this.name, required this.type});
+  const ThemeChoice(
+      {required this.key, required this.name, required this.type});
 
   @override
   bool operator ==(Object other) =>
@@ -103,7 +106,7 @@ class ConfigController {
   Future<void> _loadAvailableThemes() async {
     final List<ThemeChoice> choices = [];
 
-    choices.add(ThemeChoice(
+    choices.add(const ThemeChoice(
         key: "nier", name: "Nier Automata", type: ThemeType.system));
 
     // Example: Add standard FlexScheme themes

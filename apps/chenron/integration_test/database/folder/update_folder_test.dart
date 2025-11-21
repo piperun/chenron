@@ -150,7 +150,7 @@ void main() {
       final itemUpdates = CUD<FolderItem>(update: [
         FolderItem(
             type: FolderItemType.link,
-            content: StringContent(value: "https://example.com"),
+            content: const StringContent(value: "https://example.com"),
             itemId: "nayscsy4hk75zwg83qxhddtct04ut8")
       ]);
 
@@ -217,7 +217,7 @@ void main() {
       final itemUpdates = CUD<FolderItem>(create: [
         FolderItem(
             type: FolderItemType.link,
-            content: StringContent(value: "https://example.com"))
+            content: const StringContent(value: "https://example.com"))
       ]);
 
       // Add the item to the folder and get the result

@@ -173,7 +173,7 @@ class ViewerPresenter extends ChangeNotifier {
         type: item.type,
         content: item.type == FolderItemType.link
             ? StringContent(value: item.url ?? "")
-            : StringContent(value: ""), // Handle other types if needed
+            : const StringContent(value: ""), // Handle other types if needed
         tags: item.tags,
         createdAt: item.createdAt,
       );

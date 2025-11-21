@@ -14,15 +14,15 @@ void main() {
       // Create test data
       final testItems = [
         FolderItem(
-          content: StringContent(value: "default item"),
+          content: const StringContent(value: "default item"),
           type: FolderItemType.link,
         ),
         FolderItem(
-          content: StringContent(value: "another item"),
+          content: const StringContent(value: "another item"),
           type: FolderItemType.link,
         ),
         FolderItem(
-          content: StringContent(value: "test"),
+          content: const StringContent(value: "test"),
           type: FolderItemType.link,
         ),
       ];
@@ -133,11 +133,11 @@ void main() {
         (WidgetTester tester) async {
       final testItems = [
         FolderItem(
-          content: StringContent(value: "item 1"),
+          content: const StringContent(value: "item 1"),
           type: FolderItemType.link,
         ),
         FolderItem(
-          content: StringContent(value: "item 2"),
+          content: const StringContent(value: "item 2"),
           type: FolderItemType.link,
         ),
       ];
@@ -241,11 +241,11 @@ void main() {
     test("filterItems with empty query returns all items", () {
       final items = [
         FolderItem(
-          content: StringContent(value: "test 1"),
+          content: const StringContent(value: "test 1"),
           type: FolderItemType.link,
         ),
         FolderItem(
-          content: StringContent(value: "test 2"),
+          content: const StringContent(value: "test 2"),
           type: FolderItemType.link,
         ),
       ];
@@ -263,11 +263,11 @@ void main() {
     test("filterItems with query filters correctly", () {
       final items = [
         FolderItem(
-          content: StringContent(value: "default item"),
+          content: const StringContent(value: "default item"),
           type: FolderItemType.link,
         ),
         FolderItem(
-          content: StringContent(value: "another item"),
+          content: const StringContent(value: "another item"),
           type: FolderItemType.link,
         ),
       ];

@@ -9,6 +9,7 @@ enum LinkValidationStatus {
 }
 
 /// Represents a link entry that is being prepared for creation
+@immutable
 class LinkEntry {
   final Key key;
   final String url;
@@ -20,7 +21,7 @@ class LinkEntry {
   final String? validationMessage;
   final int? validationStatusCode;
 
-  LinkEntry({
+  const LinkEntry({
     required this.key,
     required this.url,
     this.tags = const [],
