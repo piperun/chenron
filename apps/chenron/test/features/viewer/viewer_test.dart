@@ -20,12 +20,12 @@ void main() {
   late FakeViewerModel fakeViewerModel;
   late ViewerPresenter presenter;
 
-  setUp(() {
+  setUp(() async {
     mockConfigController = MockConfigController();
     fakeViewerModel = FakeViewerModel();
 
     // Reset locator
-    locator.reset();
+    await locator.reset();
 
     // Register ConfigController
     locator.registerSingleton<ConfigController>(mockConfigController);
