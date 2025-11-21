@@ -44,9 +44,14 @@ void main() {
   // Online tests: require credentials in environment variables.
   final key = Platform.environment["CHENRON_ARCHIVE_ORG_KEY"];
   final secret = Platform.environment["CHENRON_ARCHIVE_ORG_SECRET"];
-  final haveCreds = (key != null && key.isNotEmpty && secret != null && secret.isNotEmpty);
+  final haveCreds =
+      (key != null && key.isNotEmpty && secret != null && secret.isNotEmpty);
 
-  group("[online] ArchiveOrgClient", skip: haveCreds ? false : "Set CHENRON_ARCHIVE_ORG_KEY and CHENRON_ARCHIVE_ORG_SECRET to run online tests", () {
+  group("[online] ArchiveOrgClient",
+      skip: haveCreds
+          ? false
+          : "Set CHENRON_ARCHIVE_ORG_KEY and CHENRON_ARCHIVE_ORG_SECRET to run online tests",
+      () {
     setUpAll(() {
       archiveOrgClientFactory = (k, s) => ArchiveOrgClient(k, s);
       archiveClient = archiveOrgClientFactory(key!, secret!);
