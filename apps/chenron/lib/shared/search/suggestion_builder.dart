@@ -33,8 +33,7 @@ class GlobalSuggestionBuilder {
   Future<List<ListTile>> buildSuggestions() async {
     final handler = await db.value;
     final query = queryController?.query.value ?? controller?.text ?? "";
-    final folders =
-        await handler.appDatabase.searchFolders(query: query);
+    final folders = await handler.appDatabase.searchFolders(query: query);
 
     final links = await handler.appDatabase.searchLinks(query: query);
 
@@ -105,14 +104,14 @@ class SuggestionFactory {
     ).build(context);
   }
 
-  void _handleFolderNavigation(String folderId, String title) async {
+  Future<void> _handleFolderNavigation(String folderId, String title) async {
     // Save to history
     await onItemSelected?.call(
       type: "folder",
       id: folderId,
       title: title,
     );
-    
+
     // Overlay will be removed by SuggestionsOverlay after selection
     if (context.mounted) {
       Navigator.push(
@@ -124,14 +123,14 @@ class SuggestionFactory {
     }
   }
 
-  void _handleUrlLaunch(String url, String title) async {
+  Future<void> _handleUrlLaunch(String url, String title) async {
     // Save to history
     await onItemSelected?.call(
       type: "link",
       id: url,
       title: title,
     );
-    
+
     // Overlay will be removed by SuggestionsOverlay after selection
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {

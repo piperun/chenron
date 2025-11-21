@@ -16,7 +16,7 @@ Function() getLaunchFunc(ItemContent content) {
   };
 }
 
-void _launchURL(Uri url) async {
+Future<void> _launchURL(Uri url) async {
   if (await canLaunchUrl(url)) {
     await launchUrl(url);
   } else {
