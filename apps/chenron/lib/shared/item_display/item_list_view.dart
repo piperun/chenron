@@ -8,12 +8,6 @@ class ItemListView extends StatelessWidget {
   final List<FolderItem> items;
   final DisplayMode displayMode;
 
-  // Deprecated: Use displayMode instead (kept for backwards compatibility)
-  @Deprecated("Use displayMode.showImage instead")
-  final bool? showImages;
-  @Deprecated("Use displayMode.maxTags instead")
-  final int? maxTags;
-
   final Set<String> includedTagNames;
   final Set<String> excludedTagNames;
   final void Function(FolderItem)? onItemTap;
@@ -24,8 +18,6 @@ class ItemListView extends StatelessWidget {
     super.key,
     required this.items,
     this.displayMode = DisplayMode.standard,
-    @Deprecated("Use displayMode.showImage instead") this.showImages,
-    @Deprecated("Use displayMode.maxTags instead") this.maxTags,
     this.includedTagNames = const {},
     this.excludedTagNames = const {},
     this.onItemTap,
@@ -77,10 +69,10 @@ class ItemListView extends StatelessWidget {
           separatorBuilder: (context, index) => const SizedBox(height: 8),
           itemBuilder: (context, index) {
             final item = items[index];
-            final isSelected = isDeleteMode && 
-                               item.id != null && 
-                               selectedItemIds.contains(item.id);
-            
+            final isSelected = isDeleteMode &&
+                item.id != null &&
+                selectedItemIds.contains(item.id);
+
             return _SelectableItemWrapper(
               isDeleteMode: isDeleteMode,
               isSelected: isSelected,
@@ -90,8 +82,6 @@ class ItemListView extends StatelessWidget {
                 mode: PreviewMode.list,
                 onTap: _getItemTapHandler(item),
                 displayMode: displayMode,
-                showImage: showImages,
-                maxTags: maxTags,
                 includedTagNames: includedTagNames,
                 excludedTagNames: excludedTagNames,
               ),

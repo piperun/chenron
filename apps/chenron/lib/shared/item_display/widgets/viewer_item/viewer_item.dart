@@ -22,12 +22,6 @@ class ViewerItem extends StatelessWidget {
   final bool? showImageOverride;
   final bool? showUrlBarOverride;
 
-  // Deprecated: Use displayMode instead (kept for backwards compatibility)
-  @Deprecated("Use displayMode.showImage or showImageOverride instead")
-  final bool? showImage;
-  @Deprecated("Use displayMode.maxTags or maxTagsOverride instead")
-  final int? maxTags;
-
   final Set<String> includedTagNames;
   final Set<String> excludedTagNames;
 
@@ -42,23 +36,18 @@ class ViewerItem extends StatelessWidget {
     this.maxTagsOverride,
     this.showImageOverride,
     this.showUrlBarOverride,
-    @Deprecated("Use displayMode.showImage or showImageOverride instead")
-    this.showImage,
-    @Deprecated("Use displayMode.maxTags or maxTagsOverride instead")
-    this.maxTags,
     this.includedTagNames = const {},
     this.excludedTagNames = const {},
   });
 
   @override
   Widget build(BuildContext context) {
-    // Resolve final values: override > deprecated param > displayMode default
+    // Resolve final values: override > displayMode default
     final resolvedTitleLines = titleLinesOverride ?? displayMode.titleLines;
     final resolvedDescriptionLines =
         descriptionLinesOverride ?? displayMode.descriptionLines;
-    final resolvedMaxTags = maxTagsOverride ?? maxTags ?? displayMode.maxTags;
-    final resolvedShowImage =
-        showImageOverride ?? showImage ?? displayMode.showImage;
+    final resolvedMaxTags = maxTagsOverride ?? displayMode.maxTags;
+    final resolvedShowImage = showImageOverride ?? displayMode.showImage;
     final resolvedShowUrlBar = showUrlBarOverride ?? displayMode.showUrlBar;
 
     return mode == PreviewMode.card

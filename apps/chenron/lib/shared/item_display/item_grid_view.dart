@@ -10,12 +10,6 @@ class ItemGridView extends StatelessWidget {
   final double maxCrossAxisExtent;
   final DisplayMode displayMode;
 
-  // Deprecated: Use displayMode instead (kept for backwards compatibility)
-  @Deprecated("Use displayMode.showImage instead")
-  final bool? showImages;
-  @Deprecated("Use displayMode.maxTags instead")
-  final int? maxTags;
-
   final Set<String> includedTagNames;
   final Set<String> excludedTagNames;
   final void Function(FolderItem)? onItemTap;
@@ -28,8 +22,6 @@ class ItemGridView extends StatelessWidget {
     this.aspectRatio = 0.72,
     this.maxCrossAxisExtent = 320,
     this.displayMode = DisplayMode.standard,
-    @Deprecated("Use displayMode.showImage instead") this.showImages,
-    @Deprecated("Use displayMode.maxTags instead") this.maxTags,
     this.includedTagNames = const {},
     this.excludedTagNames = const {},
     this.onItemTap,
@@ -83,10 +75,10 @@ class ItemGridView extends StatelessWidget {
         itemCount: items.length,
         itemBuilder: (context, index) {
           final item = items[index];
-          final isSelected = isDeleteMode && 
-                             item.id != null && 
-                             selectedItemIds.contains(item.id);
-          
+          final isSelected = isDeleteMode &&
+              item.id != null &&
+              selectedItemIds.contains(item.id);
+
           return RepaintBoundary(
             child: _SelectableItemWrapper(
               isDeleteMode: isDeleteMode,
@@ -97,8 +89,6 @@ class ItemGridView extends StatelessWidget {
                 mode: PreviewMode.card,
                 onTap: _getItemTapHandler(item),
                 displayMode: displayMode,
-                showImage: showImages,
-                maxTags: maxTags,
                 includedTagNames: includedTagNames,
                 excludedTagNames: excludedTagNames,
               ),

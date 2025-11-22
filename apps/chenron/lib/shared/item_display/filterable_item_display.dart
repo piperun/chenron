@@ -26,12 +26,6 @@ class FilterableItemDisplay extends StatefulWidget {
   final SearchFilter? externalSearchFilter;
   final TagFilterState? tagFilterState;
 
-  // Deprecated: Use displayMode instead (kept for backwards compatibility)
-  @Deprecated("Use displayMode.showImage instead")
-  final bool? showImages;
-  @Deprecated("Use displayMode.maxTags instead")
-  final int? maxTags;
-
   final bool showTags;
   final bool showSearch;
   final bool enableTagFiltering;
@@ -55,11 +49,9 @@ class FilterableItemDisplay extends StatefulWidget {
     this.searchFeatures = const IncludeOptions.empty(),
     this.externalSearchFilter,
     this.tagFilterState,
-    @Deprecated("Use displayMode.showImage instead") this.showImages,
     this.showTags = true,
     this.showSearch = true,
     this.enableTagFiltering = true,
-    @Deprecated("Use displayMode.maxTags instead") this.maxTags,
     this.onItemTap,
     this.onDeleteModeChanged,
     this.onDeleteRequested,
@@ -312,8 +304,6 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
                 ? ItemGridView(
                     items: filtered,
                     displayMode: _displayMode,
-                    showImages: widget.showImages,
-                    maxTags: widget.maxTags,
                     includedTagNames: _tagFilterState.includedTagNames,
                     excludedTagNames: _tagFilterState.excludedTagNames,
                     onItemTap: _handleItemTap,
@@ -325,8 +315,6 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
                 : ItemListView(
                     items: filtered,
                     displayMode: _displayMode,
-                    showImages: widget.showImages,
-                    maxTags: widget.maxTags,
                     includedTagNames: _tagFilterState.includedTagNames,
                     excludedTagNames: _tagFilterState.excludedTagNames,
                     onItemTap: _handleItemTap,
