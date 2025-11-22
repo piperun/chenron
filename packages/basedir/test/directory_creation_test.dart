@@ -58,7 +58,7 @@ void main() {
         debugMode: true,
       );
 
-      await base.create(include: {TestDir.root});
+      await base.create(include: <TestDir>{TestDir.root});
 
       final Directory appRoot =
           Directory(p.join(platformBase.path, "test_app", "debug"));
@@ -79,7 +79,7 @@ void main() {
         debugMode: true,
       );
 
-      await base.create(include: {});
+      await base.create(include: <TestDir>{});
 
       // App root might not exist if no subdirs are created,
       // but BaseDirectories constructor doesn't create anything.
