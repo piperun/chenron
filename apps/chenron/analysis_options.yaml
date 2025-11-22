@@ -28,6 +28,7 @@ analyzer:
     avoid_void_async: error
     cast_nullable_to_non_nullable: error
     discarded_futures: error
+    deprecated_member_use: error
     use_enums: warning
     
 dcm:

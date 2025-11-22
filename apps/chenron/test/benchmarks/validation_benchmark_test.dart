@@ -221,7 +221,8 @@ void main() {
     });
   });
 
-  group("Memory Usage Test", () {
+  group("Memory Usage Test",
+      skip: "Benchmark test - run explicitly when needed", () {
     test("Large dataset memory efficiency", () async {
       const size = 500;
       final urls = _generateTestUrls(size);
@@ -253,7 +254,8 @@ void main() {
     });
   });
 
-  group("Error Handling Performance", () {
+  group("Error Handling Performance",
+      skip: "Benchmark test - run explicitly when needed", () {
     test("Mixed valid and invalid URLs", () async {
       final mixedUrls = [
         ...List.generate(25, (i) => "https://example$i.com"), // Valid
@@ -277,7 +279,8 @@ void main() {
     });
   });
 
-  group("Timeout Behavior", () {
+  group("Timeout Behavior", skip: "Benchmark test - run explicitly when needed",
+      () {
     test("Handling unreachable URLs", () async {
       // These should timeout quickly
       final unreachableUrls = [
