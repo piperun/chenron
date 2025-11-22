@@ -10,7 +10,6 @@ extension InsertionExtensions on AppDatabase {
   Future<List<LinkResultIds>> insertLinks({
     required Batch batch,
     required List<String> urls,
-    List<String>? tags,
   }) async {
     final List<LinkResultIds> results = <LinkResultIds>[];
     if (urls.isEmpty) return results;
