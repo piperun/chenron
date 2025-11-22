@@ -52,12 +52,18 @@ void main() {
   });
 
   tearDown(() async {
-    await database.delete(database.folders).go();
-    await database.delete(database.items).go();
-    await database.delete(database.metadataRecords).go();
-    await database.delete(database.tags).go();
-    await database.delete(database.links).go();
-    await database.delete(database.documents).go();
+    final folders = database.folders;
+    await database.delete(folders).go();
+    final items = database.items;
+    await database.delete(items).go();
+    final metadataRecords = database.metadataRecords;
+    await database.delete(metadataRecords).go();
+    final tags = database.tags;
+    await database.delete(tags).go();
+    final links = database.links;
+    await database.delete(links).go();
+    final documents = database.documents;
+    await database.delete(documents).go();
     await database.close();
   });
 

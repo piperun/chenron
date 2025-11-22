@@ -8,6 +8,7 @@ import "package:chenron/utils/test_lib/folder_factory.dart";
 
 import "package:chenron/test_support/path_provider_fake.dart";
 import "package:chenron/test_support/logger_setup.dart";
+import "package:drift/drift.dart";
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -34,33 +35,37 @@ void main() {
       );
       final result = await database.createFolder(folderInfo: folderData.folder);
 
-      final folderResult = await (database.select(database.folders)
+      final folders = database.folders;
+      final folderResult = await (database.select(folders)
             ..where((tbl) => tbl.id.equals(result.folderId)))
           .get();
       expect(folderResult.length, 1);
       expect(folderResult.first.title, "Empty Folder");
 
-      final tagResult = await (database.select(database.metadataRecords)
+      final metadataRecords = database.metadataRecords;
+      final tagResult = await (database.select(metadataRecords)
             ..where(
               (tbl) => tbl.itemId.equals(folderResult.first.id),
             ))
           .get();
       expect(tagResult.length, 0);
 
-      final linkResult = await (database.select(database.items)
+      final items = database.items;
+      final linkResult = await (database.select(items)
             ..where(
               (tbl) => tbl.folderId.equals(folderResult.first.id),
             ))
           .get();
       expect(linkResult.length, 0);
 
-      final docResult = await (database.select(database.items)
+      final docResult = await (database.select(items)
             ..where(
               (tbl) => tbl.folderId.equals(folderResult.first.id),
             ))
           .get();
       expect(docResult.length, 0);
     });
+
     test("create folder with tags only", () async {
       final folderData = FolderTestDataFactory.create(
         title: "Tagged Folder",
@@ -72,13 +77,15 @@ void main() {
       final createdFolderResult = await database.createFolder(
           folderInfo: folderData.folder, tags: folderData.tags);
 
-      final folderResult = await (database.select(database.folders)
+      final folders = database.folders;
+      final folderResult = await (database.select(folders)
             ..where((tbl) => tbl.id.equals(createdFolderResult.folderId)))
           .get();
       expect(folderResult.length, 1);
       expect(folderResult.first.title, "Tagged Folder");
 
-      final metadataResults = await (database.select(database.metadataRecords)
+      final metadataRecords = database.metadataRecords;
+      final metadataResults = await (database.select(metadataRecords)
             ..where((tbl) => tbl.itemId.equals(createdFolderResult.folderId)))
           .get();
 
@@ -97,7 +104,8 @@ void main() {
         expect(tagIds.contains(tagId.tagId), isTrue);
       }
 
-      final itemResult = await (database.select(database.items)
+      final items = database.items;
+      final itemResult = await (database.select(items)
             ..where((tbl) => tbl.folderId.equals(createdFolderResult.folderId)))
           .get();
       expect(itemResult.length, 0);
@@ -122,14 +130,16 @@ void main() {
           tags: folderData.tags,
           items: folderData.items);
 
-      final folderResult = await (database.select(database.folders)
+      final folders = database.folders;
+      final folderResult = await (database.select(folders)
             ..where((tbl) => tbl.id.equals(result.folderId)))
           .getSingleOrNull();
 
       expect(folderResult?.title, folderData.folder.title);
       expect(folderResult?.description, folderData.folder.description);
 
-      final tagResult = await (database.select(database.metadataRecords)
+      final metadataRecords = database.metadataRecords;
+      final tagResult = await (database.select(metadataRecords)
             ..where((tbl) => tbl.itemId.equals(result.folderId)))
           .get();
       expect(tagResult.length, 2);
@@ -137,7 +147,8 @@ void main() {
       for (final item in folderData.items) {
         switch (item) {
           case final StringContent content:
-            final linkResult = await (database.select(database.links)
+            final links = database.links;
+            final linkResult = await (database.select(links)
                   ..where(
                     (tbl) => tbl.path.equals(content.value),
                   ))
@@ -146,7 +157,8 @@ void main() {
             expect(linkResult.length, 1);
             break;
           case final MapContent content:
-            final documentResult = await (database.select(database.documents)
+            final documents = database.documents;
+            final documentResult = await (database.select(documents)
                   ..where(
                     (tbl) => tbl.path.equals(content.value["body"]!),
                   ))
@@ -157,7 +169,8 @@ void main() {
         }
       }
 
-      final itemResults = await (database.select(database.items)
+      final items = database.items;
+      final itemResults = await (database.select(items)
             ..where((tbl) => tbl.folderId.equals(result.folderId)))
           .get();
       expect(itemResults.length, 2);
@@ -202,14 +215,3 @@ void _verifyItemIds(
             'Actual: ${fetchedIds[idType]!.join(", ")}');
   }
 }
-
-
-/*
-void _verifyListContains(List<String> fetchedIds, List<String> expectedIds) {
-  for (final id in expectedIds) {
-    expect(fetchedIds.contains(id), isTrue,
-        reason:
-            'Expected ID: $id not found in fetched IDs: ${fetchedIds.join(", ")}');
-  }
-}
-*/

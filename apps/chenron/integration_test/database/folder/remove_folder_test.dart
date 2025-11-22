@@ -26,9 +26,12 @@ void main() {
       database = AppDatabase(
           databaseName: "test_db", setupOnInit: true, debugMode: true);
 
-      await database.delete(database.folders).go();
-      await database.delete(database.items).go();
-      await database.delete(database.metadataRecords).go();
+      final folders = database.folders;
+      await database.delete(folders).go();
+      final items = database.items;
+      await database.delete(items).go();
+      final metadataRecords = database.metadataRecords;
+      await database.delete(metadataRecords).go();
     });
 
     tearDown(() async {
@@ -81,7 +84,8 @@ void main() {
       expect(folderResult, isNull);
 
       // Check if folder tags are removed
-      final tagResult = await (database.select(database.metadataRecords)
+      final metadataRecords = database.metadataRecords;
+      final tagResult = await (database.select(metadataRecords)
             ..where((tbl) => tbl.itemId.equals(createdIds.folderId)))
           .get();
       expect(tagResult, isEmpty);
@@ -116,13 +120,15 @@ void main() {
       expect(folderResult, isNull);
 
       // Check if folder links are removed
-      final linkResult = await (database.select(database.items)
+      final items = database.items;
+      final linkResult = await (database.select(items)
             ..where((tbl) => tbl.folderId.equals(createdIds.folderId)))
           .get();
       expect(linkResult, isEmpty);
 
       // Check if folder documents are removed
-      final documentResult = await (database.select(database.items)
+      final items2 = database.items;
+      final documentResult = await (database.select(items2)
             ..where((tbl) => tbl.folderId.equals(createdIds.folderId)))
           .get();
       expect(documentResult, isEmpty);

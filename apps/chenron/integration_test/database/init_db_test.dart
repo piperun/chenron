@@ -51,9 +51,10 @@ void main() {
         databaseName: "test_db", setupOnInit: true, debugMode: true);
     await setupDatabase.setup();
 
-    final itemTypes = await setupDatabase.select(setupDatabase.itemTypes).get();
-    final metadataTypes =
-        await setupDatabase.select(setupDatabase.metadataTypes).get();
+    final itemTypesTable = setupDatabase.itemTypes;
+    final itemTypes = await setupDatabase.select(itemTypesTable).get();
+    final metadataTypesTable = setupDatabase.metadataTypes;
+    final metadataTypes = await setupDatabase.select(metadataTypesTable).get();
     // Debug output: item: $itemTypes\n metadata: $metadataTypes
     expect(itemTypes.length, equals(FolderItemType.values.length),
         reason: "Number of item types should match the enum values");

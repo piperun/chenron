@@ -26,10 +26,14 @@ void main() {
   });
 
   tearDown(() async {
-    await database.delete(database.links).go();
-    await database.delete(database.metadataRecords).go();
-    await database.delete(database.tags).go();
-    await database.delete(database.items).go();
+    final links = database.links;
+    await database.delete(links).go();
+    final metadataRecords = database.metadataRecords;
+    await database.delete(metadataRecords).go();
+    final tags = database.tags;
+    await database.delete(tags).go();
+    final items = database.items;
+    await database.delete(items).go();
     await database.close();
   });
 
@@ -68,13 +72,15 @@ void main() {
       expect(linkResult, isNull);
 
       // Verify metadata records are deleted
-      final metadataResult = await (database.select(database.metadataRecords)
+      final metadataRecords = database.metadataRecords;
+      final metadataResult = await (database.select(metadataRecords)
             ..where((tbl) => tbl.itemId.equals(result.linkId)))
           .get();
       expect(metadataResult, isEmpty);
 
       // Tags should still exist (they might be used by other links)
-      final tagResults = await database.select(database.tags).get();
+      final tags = database.tags;
+      final tagResults = await database.select(tags).get();
       expect(tagResults.length, equals(2));
     });
 
@@ -110,7 +116,8 @@ void main() {
       );
 
       // Verify metadata records exist
-      final metadataBefore = await (database.select(database.metadataRecords)
+      final metadataRecords = database.metadataRecords;
+      final metadataBefore = await (database.select(metadataRecords)
             ..where((tbl) => tbl.itemId.equals(result.linkId)))
           .get();
       expect(metadataBefore.length, equals(2));
@@ -119,7 +126,7 @@ void main() {
       await database.removeLink(result.linkId);
 
       // Verify metadata records are deleted
-      final metadataAfter = await (database.select(database.metadataRecords)
+      final metadataAfter = await (database.select(metadataRecords)
             ..where((tbl) => tbl.itemId.equals(result.linkId)))
           .get();
       expect(metadataAfter, isEmpty);
@@ -140,7 +147,8 @@ void main() {
           );
 
       // Verify item exists
-      final itemsBefore = await (database.select(database.items)
+      final items = database.items;
+      final itemsBefore = await (database.select(items)
             ..where((tbl) => tbl.itemId.equals(result.linkId)))
           .get();
       expect(itemsBefore.length, equals(1));
@@ -149,7 +157,7 @@ void main() {
       await database.removeLink(result.linkId);
 
       // Verify item association is deleted
-      final itemsAfter = await (database.select(database.items)
+      final itemsAfter = await (database.select(items)
             ..where((tbl) => tbl.itemId.equals(result.linkId)))
           .get();
       expect(itemsAfter, isEmpty);
@@ -236,16 +244,15 @@ void main() {
       );
 
       // Verify metadata exists
-      final metadataBefore =
-          await database.select(database.metadataRecords).get();
+      final metadataRecords = database.metadataRecords;
+      final metadataBefore = await database.select(metadataRecords).get();
       expect(metadataBefore.length, equals(2));
 
       // Batch delete links
       await database.removeLinksBatch([result1.linkId, result2.linkId]);
 
       // Verify metadata is deleted
-      final metadataAfter =
-          await database.select(database.metadataRecords).get();
+      final metadataAfter = await database.select(metadataRecords).get();
       expect(metadataAfter, isEmpty);
     });
 
@@ -281,17 +288,20 @@ void main() {
       expect(deleted, isTrue);
 
       // Check all related data is deleted
-      final linkExists = await (database.select(database.links)
+      final links = database.links;
+      final linkExists = await (database.select(links)
             ..where((tbl) => tbl.id.equals(result.linkId)))
           .getSingleOrNull();
       expect(linkExists, isNull);
 
-      final metadataExists = await (database.select(database.metadataRecords)
+      final metadataRecords = database.metadataRecords;
+      final metadataExists = await (database.select(metadataRecords)
             ..where((tbl) => tbl.itemId.equals(result.linkId)))
           .get();
       expect(metadataExists, isEmpty);
 
-      final itemsExist = await (database.select(database.items)
+      final items = database.items;
+      final itemsExist = await (database.select(items)
             ..where((tbl) => tbl.itemId.equals(result.linkId)))
           .get();
       expect(itemsExist, isEmpty);
@@ -347,24 +357,26 @@ void main() {
       );
 
       // Get tag count before deletion
-      final tagsBefore = await database.select(database.tags).get();
+      final tags = database.tags;
+      final tagsBefore = await database.select(tags).get();
       expect(tagsBefore.length, equals(3)); // shared, unique1, unique2
 
       // Delete first link
       await database.removeLink(result1.linkId);
 
       // Tags should still exist (not auto-deleted)
-      final tagsAfter = await database.select(database.tags).get();
+      final tagsAfter = await database.select(tags).get();
       expect(tagsAfter.length, equals(3)); // Tags remain
 
       // But metadata records for link1 should be gone
-      final metadataLink1 = await (database.select(database.metadataRecords)
+      final metadataRecords = database.metadataRecords;
+      final metadataLink1 = await (database.select(metadataRecords)
             ..where((tbl) => tbl.itemId.equals(result1.linkId)))
           .get();
       expect(metadataLink1, isEmpty);
 
       // Metadata records for link2 should remain
-      final metadataLink2 = await (database.select(database.metadataRecords)
+      final metadataLink2 = await (database.select(metadataRecords)
             ..where((tbl) => tbl.itemId.equals(result2.linkId)))
           .get();
       expect(metadataLink2.length, equals(2));

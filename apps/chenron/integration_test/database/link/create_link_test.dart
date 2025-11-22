@@ -23,9 +23,12 @@ void main() {
   });
 
   tearDown(() async {
-    await database.delete(database.links).go();
-    await database.delete(database.metadataRecords).go();
-    await database.delete(database.tags).go();
+    final links = database.links;
+    await database.delete(links).go();
+    final metadataRecords = database.metadataRecords;
+    await database.delete(metadataRecords).go();
+    final tags = database.tags;
+    await database.delete(tags).go();
     await database.close();
   });
 
@@ -49,7 +52,8 @@ void main() {
       expect(result.linkId, isNotEmpty);
 
       // Verify link exists in database
-      final linkResult = await (database.select(database.links)
+      final links = database.links;
+      final linkResult = await (database.select(links)
             ..where((tbl) => tbl.id.equals(result.linkId)))
           .getSingleOrNull();
 
@@ -91,7 +95,8 @@ void main() {
       expect(result.tagIds!.first.tagId, isNotEmpty);
 
       // Verify tag exists in database
-      final tagResult = await (database.select(database.tags)
+      final tags = database.tags;
+      final tagResult = await (database.select(tags)
             ..where((tbl) => tbl.id.equals(result.tagIds!.first.tagId)))
           .getSingleOrNull();
 
@@ -99,7 +104,8 @@ void main() {
       expect(tagResult!.name, equals("flutter"));
 
       // Verify metadata relation exists
-      final metadataResult = await (database.select(database.metadataRecords)
+      final metadataRecords = database.metadataRecords;
+      final metadataResult = await (database.select(metadataRecords)
             ..where((tbl) => tbl.itemId.equals(result.linkId)))
           .get();
 
@@ -134,7 +140,8 @@ void main() {
       expect(result.tagIds!.length, equals(3));
 
       // Verify all tags exist in database
-      final tagResults = await (database.select(database.tags)).get();
+      final tags = database.tags;
+      final tagResults = await (database.select(tags)).get();
       final tagNames = tagResults.map((t) => t.name).toSet();
 
       expect(tagNames.contains("dart"), isTrue);
@@ -142,7 +149,8 @@ void main() {
       expect(tagNames.contains("language"), isTrue);
 
       // Verify all metadata relations exist
-      final metadataResults = await (database.select(database.metadataRecords)
+      final metadataRecords = database.metadataRecords;
+      final metadataResults = await (database.select(metadataRecords)
             ..where((tbl) => tbl.itemId.equals(result.linkId)))
           .get();
 
@@ -174,7 +182,8 @@ void main() {
       expect(result1.linkId, equals(result2.linkId));
 
       // Verify only one link exists
-      final linkResults = await (database.select(database.links)
+      final links = database.links;
+      final linkResults = await (database.select(links)
             ..where((tbl) => tbl.path.equals(url)))
           .get();
 
@@ -182,7 +191,8 @@ void main() {
 
       // Verify both sets of tags were created (tags are unique per link)
       // Since we're using getOrCreate for tags, duplicate tag names will reuse the same tag
-      final metadataResults = await (database.select(database.metadataRecords)
+      final metadataRecords = database.metadataRecords;
+      final metadataResults = await (database.select(metadataRecords)
             ..where((tbl) => tbl.itemId.equals(result1.linkId)))
           .get();
 
@@ -211,18 +221,20 @@ void main() {
       expect(result1.tagIds![0].tagId, equals(result2.tagIds![0].tagId));
 
       // Verify only one "flutter" tag exists in database
-      final tagResults = await (database.select(database.tags)
+      final tags = database.tags;
+      final tagResults = await (database.select(tags)
             ..where((tbl) => tbl.name.equals("flutter")))
           .get();
 
       expect(tagResults.length, equals(1));
 
       // Verify both links have metadata records pointing to same tag
-      final metadata1 = await (database.select(database.metadataRecords)
+      final metadataRecords = database.metadataRecords;
+      final metadata1 = await (database.select(metadataRecords)
             ..where((tbl) => tbl.itemId.equals(result1.linkId)))
           .get();
 
-      final metadata2 = await (database.select(database.metadataRecords)
+      final metadata2 = await (database.select(metadataRecords)
             ..where((tbl) => tbl.itemId.equals(result2.linkId)))
           .get();
 
@@ -314,7 +326,8 @@ void main() {
       );
 
       // Verify only 3 unique tags exist
-      final allTags = await database.select(database.tags).get();
+      final tags = database.tags;
+      final allTags = await database.select(tags).get();
       expect(allTags.length, equals(3));
 
       final tagNames = allTags.map((t) => t.name).toSet();

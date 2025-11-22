@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
+
 import 'package:basedir/directory.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:platform_provider/platform_provider.dart';
@@ -24,7 +26,7 @@ void main() {
         try {
           await platformBase.delete(recursive: true);
         } catch (e) {
-          print("Failed to cleanup temp dir: $e");
+          debugPrint("Failed to cleanup temp dir: $e");
         }
       }
     });

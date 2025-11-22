@@ -26,9 +26,12 @@ void main() {
   });
 
   tearDown(() async {
-    await database.delete(database.links).go();
-    await database.delete(database.metadataRecords).go();
-    await database.delete(database.tags).go();
+    final links = database.links;
+    await database.delete(links).go();
+    final metadataRecords = database.metadataRecords;
+    await database.delete(metadataRecords).go();
+    final tags = database.tags;
+    await database.delete(tags).go();
     await database.close();
   });
 
@@ -238,7 +241,8 @@ void main() {
       expect(link2Result.tags.first.name, equals("shared"));
 
       // Verify only one tag exists in tags table
-      final allTags = await database.select(database.tags).get();
+      final tags = database.tags;
+      final allTags = await database.select(tags).get();
       final sharedTags = allTags.where((t) => t.name == "shared").toList();
       expect(sharedTags.length, equals(1));
     });
@@ -393,7 +397,8 @@ void main() {
       expect(updated, isTrue);
 
       // Verify update
-      final linkData = await (database.select(database.links)
+      final links = database.links;
+      final linkData = await (database.select(links)
             ..where((tbl) => tbl.id.equals(result.linkId)))
           .getSingle();
 
@@ -416,7 +421,8 @@ void main() {
       expect(updated, isTrue);
 
       // Verify all updates
-      final linkData = await (database.select(database.links)
+      final links = database.links;
+      final linkData = await (database.select(links)
             ..where((tbl) => tbl.id.equals(result.linkId)))
           .getSingle();
 

@@ -97,7 +97,7 @@ void main() {
         debugMode: true,
       );
 
-      final rootDir = base[TestDir.root];
+      final Directory rootDir = base[TestDir.root];
       expect(rootDir.path, endsWith(p.join('test_app', 'debug', 'root')));
     });
   });
