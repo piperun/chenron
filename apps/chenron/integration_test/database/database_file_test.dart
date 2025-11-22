@@ -74,7 +74,7 @@ void main() {
           databaseFilename: createdFilename);
 
       databaseHandler = AppDatabaseHandler(databaseLocation: databaseLocation);
-      databaseHandler.createDatabase(
+      await databaseHandler.createDatabase(
           databaseName: createdFilename, setupOnInit: true);
       await setUpFakeData(databaseHandler.appDatabase);
     },

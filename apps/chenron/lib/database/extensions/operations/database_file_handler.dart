@@ -89,7 +89,7 @@ class AppDatabaseHandler {
     );
 
     if (setupOnInit) {
-      _appDatabase?.setup();
+      await _appDatabase?.setup();
     }
   }
 
