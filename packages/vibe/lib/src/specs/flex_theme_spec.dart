@@ -5,7 +5,6 @@ import 'package:vibe_core/vibe_core.dart';
 
 /// Configuration for building FlexColorScheme themes
 class FlexThemeBuildConfig {
-
   const FlexThemeBuildConfig({
     this.surfaceMode = FlexSurfaceMode.level,
     this.lightBlendLevel = 8,
@@ -13,10 +12,20 @@ class FlexThemeBuildConfig {
     this.useMaterial3 = true,
     this.visualDensity,
   });
+
+  /// The surface mode to use.
   final FlexSurfaceMode surfaceMode;
+
+  /// The blend level for light mode.
   final int lightBlendLevel;
+
+  /// The blend level for dark mode.
   final int darkBlendLevel;
+
+  /// Whether to use Material 3.
   final bool useMaterial3;
+
+  /// The visual density.
   final VisualDensity? visualDensity;
 }
 
@@ -40,8 +49,8 @@ abstract class FlexThemeSpec implements ThemeSpec {
       surfaceMode: config.surfaceMode,
       blendLevel: config.lightBlendLevel,
       subThemesData: subThemes,
-      visualDensity: config.visualDensity ??
-          FlexColorScheme.comfortablePlatformDensity,
+      visualDensity:
+          config.visualDensity ?? FlexColorScheme.comfortablePlatformDensity,
       useMaterial3: config.useMaterial3,
       cupertinoOverrideTheme: const CupertinoThemeData(applyThemeToAll: true),
     );
@@ -51,8 +60,8 @@ abstract class FlexThemeSpec implements ThemeSpec {
       surfaceMode: config.surfaceMode,
       blendLevel: config.darkBlendLevel,
       subThemesData: subThemes,
-      visualDensity: config.visualDensity ??
-          FlexColorScheme.comfortablePlatformDensity,
+      visualDensity:
+          config.visualDensity ?? FlexColorScheme.comfortablePlatformDensity,
       useMaterial3: config.useMaterial3,
       cupertinoOverrideTheme: const CupertinoThemeData(applyThemeToAll: true),
     );

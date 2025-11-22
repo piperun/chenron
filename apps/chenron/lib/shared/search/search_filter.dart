@@ -158,11 +158,15 @@ class SearchFilter {
         case SortMode.nameDesc:
           return _getItemName(b).compareTo(_getItemName(a));
         case SortMode.dateAsc:
-          // TODO: Implement date sorting when createdAt is available
-          return 0;
+          if (a.createdAt == null && b.createdAt == null) return 0;
+          if (a.createdAt == null) return 1;
+          if (b.createdAt == null) return -1;
+          return a.createdAt!.compareTo(b.createdAt!);
         case SortMode.dateDesc:
-          // TODO: Implement date sorting when createdAt is available
-          return 0;
+          if (a.createdAt == null && b.createdAt == null) return 0;
+          if (a.createdAt == null) return 1;
+          if (b.createdAt == null) return -1;
+          return b.createdAt!.compareTo(a.createdAt!);
       }
     });
 
