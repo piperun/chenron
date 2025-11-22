@@ -27,16 +27,12 @@ typedef LinkUpdatePathProcessResult = ({
 /// This operation violates the immutability principle of links.
 /// See [LinkUpdateExtensions.updateLinkPath] for usage warnings.
 @visibleForTesting
-class LinkUpdatePathVEPR extends VEPROperation<
-    AppDatabase,
-    LinkUpdatePathInput,
-    LinkUpdatePathExecuteResult,
-    LinkUpdatePathProcessResult,
-    bool> {
+class LinkUpdatePathVEPR extends VEPROperation<AppDatabase, LinkUpdatePathInput,
+    LinkUpdatePathExecuteResult, LinkUpdatePathProcessResult, bool> {
   LinkUpdatePathVEPR(super.db);
 
   @override
-  void validate(LinkUpdatePathInput input) {
+  void onValidate() {
     logStep("Validate", "Starting validation for link ID: ${input.linkId}");
 
     if (input.linkId.trim().isEmpty) {
@@ -57,8 +53,7 @@ class LinkUpdatePathVEPR extends VEPROperation<
   }
 
   @override
-  Future<LinkUpdatePathExecuteResult> execute(
-      LinkUpdatePathInput input) async {
+  Future<LinkUpdatePathExecuteResult> onExecute() async {
     logStep("Execute", "Checking link existence and path conflicts");
 
     // Check if link exists
@@ -81,19 +76,17 @@ class LinkUpdatePathVEPR extends VEPROperation<
     final hasConflict = pathConflict != null;
 
     if (hasConflict) {
-      logStep("Execute",
-          "Path conflicts with existing link: ${pathConflict.id}");
+      logStep(
+          "Execute", "Path conflicts with existing link: ${pathConflict.id}");
     }
 
-    logStep("Execute",
-        "Link exists: true, Path conflicts: $hasConflict");
+    logStep("Execute", "Link exists: true, Path conflicts: $hasConflict");
 
     return (linkExists: true, pathConflicts: hasConflict);
   }
 
   @override
-  Future<LinkUpdatePathProcessResult> process(
-      LinkUpdatePathInput input, LinkUpdatePathExecuteResult execResult) async {
+  Future<LinkUpdatePathProcessResult> onProcess() async {
     logStep("Process", "Starting link path update");
 
     if (!execResult.linkExists) {
@@ -120,11 +113,10 @@ class LinkUpdatePathVEPR extends VEPROperation<
   }
 
   @override
-  bool buildResult(LinkUpdatePathExecuteResult execResult,
-      LinkUpdatePathProcessResult processResult) {
+  bool onBuildResult() {
     logStep("BuildResult", "Building final result");
 
-    final success = processResult.updateCount > 0;
+    final success = procResult.updateCount > 0;
 
     logStep("BuildResult", "Update success: $success");
     return success;

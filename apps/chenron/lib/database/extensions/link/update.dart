@@ -1,6 +1,7 @@
 import "package:chenron/database/database.dart";
 import "package:chenron/database/operations/link/link_update_vepr.dart";
 import "package:chenron/database/extensions/id.dart";
+import "package:chenron/database/extensions/tags/create.dart";
 import "package:chenron/models/metadata.dart";
 import "package:chenron/utils/logger.dart";
 import "package:drift/drift.dart";
@@ -37,21 +38,7 @@ extension LinkUpdateExtensions on AppDatabase {
 
     final input = (linkId: linkId, newPath: newPath);
 
-    return transaction(() async {
-      try {
-        operation.logStep("Runner", "Starting updateLinkPath operation");
-        operation.validate(input);
-        final execResult = await operation.execute(input);
-        final procResult = await operation.process(input, execResult);
-        final finalResult = operation.buildResult(execResult, procResult);
-        operation.logStep("Runner", "Operation completed successfully");
-        return finalResult;
-      } catch (e) {
-        loggerGlobal.severe("LinkUpdatePathRunner",
-            "Error during updateLinkPath operation: $e");
-        rethrow;
-      }
-    });
+    return operation.run(input);
   }
 
   /// Adds tags to an existing link
@@ -75,20 +62,7 @@ extension LinkUpdateExtensions on AppDatabase {
               .get();
 
           // Get or create the tag
-          String tagId;
-          final existingTag = await (select(this.tags)
-                ..where((tbl) => tbl.name.equals(tag.value)))
-              .getSingleOrNull();
-
-          if (existingTag != null) {
-            tagId = existingTag.id;
-          } else {
-            tagId = generateId();
-            await into(this.tags).insert(TagsCompanion.insert(
-              id: tagId,
-              name: tag.value,
-            ));
-          }
+          final tagId = await addTag(tag.value);
 
           // Check if already associated
           final alreadyLinked =

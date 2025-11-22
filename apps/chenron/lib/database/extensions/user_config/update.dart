@@ -1,6 +1,5 @@
 import "package:chenron/database/database.dart";
 import "package:chenron/database/operations/user_config/user_config_update_vepr.dart";
-import "package:chenron/utils/logger.dart";
 import "package:chenron/models/cud.dart";
 
 extension UserConfigUpdateExtensions on ConfigDatabase {
@@ -35,34 +34,6 @@ extension UserConfigUpdateExtensions on ConfigDatabase {
       themeUpdates: themeUpdates,
     );
 
-    return transaction(() async {
-      UserThemeCUDResults finalResult;
-      try {
-        operation.logStep(
-            "Runner", "Starting updateUserConfig operation for ID: $id");
-
-        operation.validate(input);
-
-        await operation.execute(input);
-
-        final UserThemeCUDResults processResult =
-            await operation.process(input, null);
-
-        finalResult = operation.buildResult(null, processResult);
-
-        operation.logStep(
-            "Runner", "Operation completed successfully for ID: $id");
-
-        loggerGlobal.info("UserConfigUpdateRunner",
-            "User config and themes updated successfully for ID: $id. Results: $finalResult");
-
-        return finalResult;
-      } catch (e, s) {
-        loggerGlobal.severe("UserConfigUpdateRunner",
-            "Error updating user config/themes for ID $id: $e\nStackTrace: $s");
-
-        rethrow;
-      }
-    });
+    return operation.run(input);
   }
 }
