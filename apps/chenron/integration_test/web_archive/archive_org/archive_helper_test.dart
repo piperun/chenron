@@ -43,7 +43,8 @@ void main() {
     );
     await configDatabase.setup();
     // Ensure archive.org credentials are present to enable archiving paths in tests
-    await (configDatabase.update(configDatabase.userConfigs)).write(
+    final userConfigs = configDatabase.userConfigs;
+    await (configDatabase.update(userConfigs)).write(
       const UserConfigsCompanion(
         archiveOrgS3AccessKey: drift.Value("test_key"),
         archiveOrgS3SecretKey: drift.Value("test_secret"),

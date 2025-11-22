@@ -137,7 +137,8 @@ void main() {
       final result = await database.createLink(link: "https://example.com");
 
       // Manually create an item association (simulating folder containment)
-      await database.into(database.items).insert(
+      final items = database.items;
+      await database.into(items).insert(
             ItemsCompanion.insert(
               id: database.generateId(),
               folderId: "test_folder_id",
@@ -147,7 +148,6 @@ void main() {
           );
 
       // Verify item exists
-      final items = database.items;
       final itemsBefore = await (database.select(items)
             ..where((tbl) => tbl.itemId.equals(result.linkId)))
           .get();

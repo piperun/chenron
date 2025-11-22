@@ -63,7 +63,8 @@ void main() {
       // Verify no tags were created
       expect(result.tagIds, isNull);
 
-      final metadataResult = await (database.select(database.metadataRecords)
+      final metadataRecords = database.metadataRecords;
+      final metadataResult = await (database.select(metadataRecords)
             ..where((tbl) => tbl.itemId.equals(result.linkId)))
           .get();
       expect(metadataResult.length, equals(0));
@@ -273,7 +274,8 @@ void main() {
 
       expect(result.linkId, isNotEmpty);
 
-      final linkResult = await (database.select(database.links)
+      final links = database.links;
+      final linkResult = await (database.select(links)
             ..where((tbl) => tbl.id.equals(result.linkId)))
           .getSingleOrNull();
 
@@ -289,7 +291,8 @@ void main() {
 
       expect(result.linkId, isNotEmpty);
 
-      final linkResult = await (database.select(database.links)
+      final links = database.links;
+      final linkResult = await (database.select(links)
             ..where((tbl) => tbl.id.equals(result.linkId)))
           .getSingleOrNull();
 

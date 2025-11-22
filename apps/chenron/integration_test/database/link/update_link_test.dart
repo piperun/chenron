@@ -455,7 +455,8 @@ void main() {
         archiveIsUrl: "https://archive.is/example",
       );
 
-      final linkData = await (database.select(database.links)
+      final links = database.links;
+      final linkData = await (database.select(links)
             ..where((tbl) => tbl.id.equals(result.linkId)))
           .getSingle();
 
