@@ -87,7 +87,8 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
   Future<List<Folder>> _loadParentFolders(AppDatabase db) async {
     try {
       // Query Items table to find folders that contain this folder
-      final query = db.select(db.items)
+      final items = db.items;
+      final query = db.select(items)
         ..where((item) => item.itemId.equals(widget.folderId));
       final results = await query.get();
       final parentFolderIds = results.map((item) => item.folderId).toList();
@@ -97,7 +98,8 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
       // Fetch the actual folder data for each parent ID
       final List<Folder> parentFolders = [];
       for (final parentId in parentFolderIds) {
-        final folderQuery = db.select(db.folders)
+        final folders = db.folders;
+        final folderQuery = db.select(folders)
           ..where((folder) => folder.id.equals(parentId));
         final folderResults = await folderQuery.get();
         if (folderResults.isNotEmpty) {

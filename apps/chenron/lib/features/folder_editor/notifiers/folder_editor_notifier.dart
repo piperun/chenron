@@ -170,7 +170,8 @@ class FolderEditorNotifier {
   Future<List<String>> _loadParentFolderIds(
       String folderId, AppDatabase db) async {
     // Query items table where itemId = folderId to find parent folders
-    final query = db.select(db.items)
+    final items = db.items;
+    final query = db.select(items)
       ..where((item) => item.itemId.equals(folderId));
 
     final results = await query.get();
