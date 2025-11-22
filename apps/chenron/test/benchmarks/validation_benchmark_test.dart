@@ -9,8 +9,11 @@ import "package:chenron/features/create/link/services/bulk_validator_service.dar
 /// 1. Sequential: Validate URLs one by one in sequence
 /// 2. Future.wait: Validate all URLs in parallel using Future.wait
 /// 3. Isolate/Compute: Validate URLs using Flutter's compute function (separate isolate)
+///
+/// To run this benchmark: flutter test test/benchmarks/validation_benchmark_test.dart
 void main() {
-  group("Validation Performance Benchmark", () {
+  group("Validation Performance Benchmark",
+      skip: "Benchmark test - run explicitly when needed", () {
     // Test with different dataset sizes
     final testSizes = [10, 50, 100, 200];
 
