@@ -13,7 +13,10 @@ extension ArchiveLinkExtensions on AppDatabase {
         final link = await (select(links)..where((l) => l.id.equals(linkId)))
             .getSingle();
         final archiveClient = archiveOrgClientFactory(accessKey, secretKey);
-        final archivedUrl = await archiveClient.archiveAndWait(link.path);
+        final archivedUrl = await archiveClient.archiveAndWait(
+          link.path,
+          options: options,
+        );
 
         await (update(links)..where((l) => l.id.equals(linkId))).write(
           LinksCompanion(
