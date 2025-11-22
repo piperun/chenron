@@ -5,6 +5,8 @@ import "package:chenron/models/db_result.dart";
 abstract class ThemeService {
   Future<void> changeThemeMode({required bool isDark});
 
+  Future<void> changeTheme(String newThemeKey, ThemeType themeType);
+
   /// Fetches the UserTheme object for the currently selected theme.
   /// Returns null if no theme is selected or config is missing.
   Future<UserThemeResult?> getCurrentTheme();
