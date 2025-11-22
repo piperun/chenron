@@ -48,6 +48,8 @@ dcm:
     - avoid-passing-self-as-argument
     - avoid-self-compare
     - avoid-throw-in-catch-block
+    - avoid-unnecessary-type-casts
+    - avoid-unused-parameters
 custom_lint:
   rules:
   - avoid_ref_inside_state_dispose
