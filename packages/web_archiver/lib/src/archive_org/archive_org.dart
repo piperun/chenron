@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
-import 'package:web_archiver/src/archive_org_options.dart';
+import 'package:web_archiver/src/archive_org/archive_org_options.dart';
 
 /// Factory definition for creating an [ArchiveOrgClient].
 typedef ArchiveOrgClientFactory = ArchiveOrgClient Function(
