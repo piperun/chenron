@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:basedir/directory.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
+import 'package:platform_provider/platform_provider.dart';
 
 // Local test enum keys for schema
 enum TestDir { database, backupApp, backupConfig, log }
@@ -37,7 +38,9 @@ void main() {
 
       test("returns false for a non-writable directory", () async {
         // Make the directory read-only (platform-dependent)
-        if (!Platform.isWindows) {
+        // Make the directory read-only (platform-dependent)
+        // Use platform_provider to check OS
+        if (OperatingSystem.current.name != 'Windows') {
           final ProcessResult result =
               await Process.run("chmod", <String>["-w", platformBase.path]);
           expect(result.exitCode, equals(0));
