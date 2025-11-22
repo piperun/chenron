@@ -37,7 +37,12 @@ dcm:
     - always-remove-listener
     - avoid-unnecessary-stateful-widgets
     - avoid-empty-spread
-
+    - avoid-cascade-after-if-null
+    - avoid-casting-to-extension-type
+    - avoid-collection-methods-with-unrelated-types:
+        strict: true
+    - avoid-nullable-tostring
+    - avoid-missed-calls
 custom_lint:
   rules:
   - avoid_ref_inside_state_dispose
