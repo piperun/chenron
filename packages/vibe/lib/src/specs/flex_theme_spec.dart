@@ -5,6 +5,7 @@ import 'package:vibe_core/vibe_core.dart';
 
 /// Configuration for building FlexColorScheme themes
 class FlexThemeBuildConfig {
+  /// Creates a FlexThemeBuildConfig with the given parameters.
   const FlexThemeBuildConfig({
     this.surfaceMode = FlexSurfaceMode.level,
     this.lightBlendLevel = 8,

@@ -69,7 +69,6 @@ class MockDatabaseHelper {
   /// Create a test link in the database
   Future<String> createTestLink({
     required String url,
-    String title = "",
     List<String> tags = const [],
   }) async {
     _ensureSetup();
