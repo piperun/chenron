@@ -57,7 +57,9 @@ class LinkUpdatePathVEPR extends VEPROperation<AppDatabase, LinkUpdatePathInput,
     logStep("Execute", "Checking link existence and path conflicts");
 
     // Check if link exists
-    final linkExists = await (db.select(db.links)
+    // Check if link exists
+    final links = db.links;
+    final linkExists = await (db.select(links)
           ..where((tbl) => tbl.id.equals(input.linkId)))
         .getSingleOrNull();
 
@@ -67,7 +69,12 @@ class LinkUpdatePathVEPR extends VEPROperation<AppDatabase, LinkUpdatePathInput,
     }
 
     // Check if new path conflicts with another link
-    final pathConflict = await (db.select(db.links)
+    // Check if new path conflicts with another link
+    // Note: 'links' variable is already defined above if we are in the same scope,
+    // but let's redefine or reuse. Since it's local to the previous block? No, it's in onExecute.
+    // I'll reuse 'links' if it's in scope, or define it if not.
+    // Wait, I defined 'links' in the previous chunk. It is in scope of onExecute.
+    final pathConflict = await (db.select(links)
           ..where((tbl) =>
               tbl.path.equals(input.newPath) &
               tbl.id.equals(input.linkId).not()))
@@ -99,7 +106,9 @@ class LinkUpdatePathVEPR extends VEPROperation<AppDatabase, LinkUpdatePathInput,
     }
 
     // Perform the update
-    final updateCount = await (db.update(db.links)
+    // Perform the update
+    final links = db.links;
+    final updateCount = await (db.update(links)
           ..where((tbl) => tbl.id.equals(input.linkId)))
         .write(
       LinksCompanion(

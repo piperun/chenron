@@ -34,7 +34,9 @@ class TagCreateVEPR extends VEPROperation<AppDatabase, TagCreateInput,
     logStep("Execute", "Starting tag creation/retrieval for: ${input.tagName}");
 
     // Check if tag already exists
-    final existingTag = await (db.select(db.tags)
+    // Check if tag already exists
+    final tags = db.tags;
+    final existingTag = await (db.select(tags)
           ..where((t) => t.name.equals(input.tagName)))
         .getSingleOrNull();
 

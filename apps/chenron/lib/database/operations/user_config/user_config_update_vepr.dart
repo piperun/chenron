@@ -133,7 +133,8 @@ class UserConfigUpdateVEPR extends VEPROperation<
 
     // Only perform update if there are fields to update
     if (userConfigCompanion != const UserConfigsCompanion()) {
-      await (db.update(db.userConfigs)..where((tbl) => tbl.id.equals(input.id)))
+      final userConfigs = db.userConfigs;
+      await (db.update(userConfigs)..where((tbl) => tbl.id.equals(input.id)))
           .write(userConfigCompanion);
       logStep("Execute", "UserConfig update executed for ID: ${input.id}.");
     } else {
