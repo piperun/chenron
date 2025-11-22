@@ -92,7 +92,8 @@ class _FakeArchiveOrgClient extends ArchiveOrgClient {
   Future<bool> checkAuthentication() async => true;
 
   @override
-  Future<String> archiveAndWait(String targetUrl) async {
+  Future<String> archiveAndWait(String targetUrl,
+      {ArchiveOrgOptions? options}) async {
     return "https://web.archive.org/web/20990101000000/$targetUrl";
   }
 }

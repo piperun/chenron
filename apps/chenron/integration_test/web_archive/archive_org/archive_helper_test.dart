@@ -118,7 +118,8 @@ class _FakeArchiveOrgClient extends ArchiveOrgClient {
   _FakeArchiveOrgClient() : super("", "");
 
   @override
-  Future<String> archiveAndWait(String targetUrl) async {
+  Future<String> archiveAndWait(String targetUrl,
+      {ArchiveOrgOptions? options}) async {
     // Return a deterministic archived URL differing from older timestamps
     return "https://web.archive.org/web/20990101000000/$targetUrl";
   }

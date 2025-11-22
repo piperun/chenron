@@ -150,11 +150,13 @@ class ArchiveOrgClient {
   /// This is a convenience method that combines [archiveUrl] and [waitForCompletion].
   ///
   /// [targetUrl] is the URL to archive.
+  /// [options] are optional parameters for the archiving request.
   ///
   /// Returns the URL of the archived snapshot.
-  Future<String> archiveAndWait(String targetUrl) async {
+  Future<String> archiveAndWait(String targetUrl,
+      {ArchiveOrgOptions? options}) async {
     try {
-      final jobId = await archiveUrl(targetUrl);
+      final jobId = await archiveUrl(targetUrl, options: options);
       _logger.info("Capture started, job id: $jobId");
       return await waitForCompletion(jobId);
     } catch (e) {
