@@ -10,7 +10,7 @@ typedef UserThemeCreateInput = ({
 });
 
 // Define Process Result type (None needed for this operation)
-typedef UserThemeCreateProcessResult = void; // Or Null, or ()
+typedef UserThemeCreateProcessResult = bool;
 
 // Define Final Result type
 typedef UserThemeCreateFinalResult = List<UserThemeResultIds>;
@@ -27,7 +27,7 @@ class UserThemeCreateVEPR extends VEPROperation<
   UserThemeCreateVEPR(super.db);
 
   @override
-  void validate(UserThemeCreateInput input) {
+  void onValidate() {
     logStep("Validate", "Validating user theme creation input.");
     // Original code allowed empty list, so validation passes even if empty.
     // We could add validation for userConfigId if needed, e.g., check format.
@@ -38,7 +38,7 @@ class UserThemeCreateVEPR extends VEPROperation<
   }
 
   @override
-  Future<List<UserThemeResultIds>> execute(UserThemeCreateInput input) async {
+  Future<List<UserThemeResultIds>> onExecute() async {
     logStep("Execute",
         "Executing user theme creation for userConfigId: ${input.userConfigId}");
 
@@ -61,16 +61,14 @@ class UserThemeCreateVEPR extends VEPROperation<
   }
 
   @override
-  Future<UserThemeCreateProcessResult> process(
-      UserThemeCreateInput input, List<UserThemeResultIds> execResult) async {
+  Future<UserThemeCreateProcessResult> onProcess() async {
     // No secondary processing (like linking tags, etc.) is needed after theme creation.
     logStep("Process", "No additional processing required for user themes.");
-    // Since return type is Future<void>, just complete.
+    return true;
   }
 
   @override
-  UserThemeCreateFinalResult buildResult(List<UserThemeResultIds> execResult,
-      UserThemeCreateProcessResult processResult) {
+  UserThemeCreateFinalResult onBuildResult() {
     // The final result is simply the list of IDs returned by the execute step.
     logStep("BuildResult",
         "Building final result (returning execution result directly).");

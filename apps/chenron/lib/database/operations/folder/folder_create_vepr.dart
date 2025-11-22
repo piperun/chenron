@@ -36,7 +36,7 @@ class FolderCreateVEPR extends VEPROperation<
   FolderCreateVEPR(super.db);
 
   @override
-  void validate(FolderCreateInput input) {
+  void onValidate() {
     logStep("Validate", "Starting validation for '${input.folderInfo.title}'");
     if (input.folderInfo.title.trim().isEmpty) {
       throw ArgumentError("Folder title cannot be empty.");
@@ -46,7 +46,7 @@ class FolderCreateVEPR extends VEPROperation<
   }
 
   @override
-  Future<String> execute(FolderCreateInput input) async {
+  Future<String> onExecute() async {
     logStep("Execute",
         "Starting folder record creation for '${input.folderInfo.title}'");
     final String id = db.generateId();
@@ -61,11 +61,8 @@ class FolderCreateVEPR extends VEPROperation<
   }
 
   @override
-  Future<FolderCreateProcessResult> process(
-      // Return type is correct
-      FolderCreateInput input,
-      String folderId) async {
-    // Method is async
+  Future<FolderCreateProcessResult> onProcess() async {
+    final folderId = execResult;
     logStep("Process", "Starting relation processing for folder ID: $folderId");
     List<TagResultIds>? createdTagIdsResult; // Use different local var names
     List<ItemResultIds>? createdItemIdsResult; // Use different local var names
@@ -113,14 +110,14 @@ class FolderCreateVEPR extends VEPROperation<
   }
 
   @override
-  FolderResultIds buildResult(
-      String folderId, FolderCreateProcessResult processResult) {
+  FolderResultIds onBuildResult() {
+    final folderId = execResult;
     logStep("BuildResult", "Building final result for folder ID: $folderId");
     // Access the fields using the names defined in the typedef
     final result = FolderResultIds(
       folderId: folderId,
-      tagIds: processResult.createdTagIds, // Access using .createdTagIds
-      itemIds: processResult.createdItemIds, // Access using .createdItemIds
+      tagIds: procResult.createdTagIds, // Access using .createdTagIds
+      itemIds: procResult.createdItemIds, // Access using .createdItemIds
     );
     logStep("BuildResult", "Result built successfully");
     return result;

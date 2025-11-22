@@ -4,7 +4,6 @@ import "package:chenron/models/folder.dart";
 import "package:chenron/models/created_ids.dart";
 import "package:chenron/models/item.dart";
 import "package:chenron/models/metadata.dart";
-import "package:chenron/utils/logger.dart";
 
 extension FolderExtensions on AppDatabase {
   /// Creates a new folder along with its optional tags and items using the VEPR pattern.
@@ -24,23 +23,7 @@ extension FolderExtensions on AppDatabase {
       items: items,
     );
 
-    return transaction(() async {
-      try {
-        // Call the VEPR steps sequentially
-        operation.logStep("Runner", "Starting createFolder operation");
-        operation.validate(input);
-        final execResult = await operation.execute(input);
-        final procResult = await operation.process(input, execResult);
-        final finalResult = operation.buildResult(execResult, procResult);
-        operation.logStep("Runner", "Operation completed successfully");
-        return finalResult;
-      } catch (e) {
-        // Log the error before rethrowing
-        loggerGlobal.severe(
-            "FolderCreateRunner", "Error during createFolder operation: $e");
-        // Transaction will handle rollback
-        rethrow;
-      }
-    });
+    // 2. Use the run macro
+    return operation.run(input);
   }
 }
