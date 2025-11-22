@@ -3,6 +3,7 @@ import "package:flutter/services.dart";
 import "package:flutter_test/flutter_test.dart";
 import "package:integration_test/integration_test.dart";
 import "package:chenron/test_support/test_app.dart";
+import "package:chenron/main.dart";
 import "package:chenron/test_support/path_provider_fake.dart";
 import "package:chenron/test_support/logger_setup.dart";
 import "package:flutter/gestures.dart";
@@ -20,7 +21,7 @@ void main() {
     group("Add Link - Navigation", () {
       testWidgets("should navigate to add link screen from home",
           (tester) async {
-        await tester.pumpWidget(await createTestApp());
+        await initTestApp(); await tester.pumpWidget(const MyApp());
 
         // Find and tap the "Add New Item" button or navigation
         // Adjust the finder based on your actual UI
@@ -53,7 +54,7 @@ void main() {
       group("Single URL Input", () {
         const addKey = Key("single");
         testWidgets("should accept valid single URL", (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           // Navigate to add link screen
           await _navigateToAddLink(tester);
@@ -80,7 +81,7 @@ void main() {
         });
 
         testWidgets("should reject invalid single URL", (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -107,7 +108,7 @@ void main() {
         testWidgets(
             "should show inline error highlighting for invalid URL parts",
             (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -130,7 +131,7 @@ void main() {
     group("Bulk Mode", () {
       group("Bulk URL Input", () {
         testWidgets("should accept multiple valid URLs", (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -157,7 +158,7 @@ https://github.com/flutter""";
 
         testWidgets("should handle mix of valid and invalid URLs",
             (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -191,7 +192,7 @@ https://github.com/flutter""";
         testWidgets(
             "should auto-remove valid URLs after adding, leaving errors",
             (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -219,7 +220,7 @@ https://dart.dev""";
         });
 
         testWidgets("should handle empty lines and whitespace", (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -239,7 +240,7 @@ https://dart.dev""";
         });
 
         testWidgets("should handle very long URL list", (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -266,7 +267,7 @@ https://dart.dev""";
       group("Text Selection and Editing", () {
         testWidgets("should allow keyboard text selection with Shift+Arrow",
             (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -299,7 +300,7 @@ https://dart.dev""";
 
         testWidgets("should allow mouse text selection (integration test)",
             (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -331,7 +332,7 @@ https://dart.dev""";
         });
 
         testWidgets("should allow copy and paste", (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -372,7 +373,7 @@ https://dart.dev""";
         testWidgets(
             "line numbers should stay aligned with text during scrolling",
             (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -394,7 +395,7 @@ https://dart.dev""";
 
         testWidgets("line numbers should highlight errors correctly",
             (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -415,7 +416,7 @@ https://dart.dev""";
       group("Clear Button", () {
         testWidgets("should clear all input when clear button is pressed",
             (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -443,7 +444,7 @@ https://dart.dev""";
       group("Tag Parsing", () {
         testWidgets("should parse inline tags with pipe syntax",
             (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -466,7 +467,7 @@ https://dart.dev""";
 
         testWidgets("should parse inline tags with hashtag syntax",
             (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -488,7 +489,7 @@ https://dart.dev""";
 
         testWidgets("should handle mixed tag syntax in bulk mode",
             (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -512,7 +513,7 @@ https://github.com/flutter | github, flutter #opensource""";
 
         testWidgets("should reject lines with invalid tag characters",
             (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -541,7 +542,7 @@ https://github.com/flutter | github, flutter #opensource""";
         });
 
         testWidgets("should reject tags that are too short", (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -569,7 +570,7 @@ https://github.com/flutter | github, flutter #opensource""";
       group("Edge Cases", () {
         testWidgets("should handle URLs with special characters",
             (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -590,7 +591,7 @@ https://github.com/flutter | github, flutter #opensource""";
         });
 
         testWidgets("should handle URLs with authentication", (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -612,7 +613,7 @@ https://github.com/flutter | github, flutter #opensource""";
 
         testWidgets("should handle URLs with non-standard ports",
             (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -632,7 +633,7 @@ https://github.com/flutter | github, flutter #opensource""";
 
         testWidgets("should handle URLs with international domain names",
             (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -652,7 +653,7 @@ https://github.com/flutter | github, flutter #opensource""";
         });
 
         testWidgets("should reject URLs without protocol", (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -677,7 +678,7 @@ https://github.com/flutter | github, flutter #opensource""";
 
         testWidgets("should reject URLs with invalid protocols",
             (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -697,7 +698,7 @@ https://github.com/flutter | github, flutter #opensource""";
         });
 
         testWidgets("should handle extremely long URLs", (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -724,7 +725,7 @@ https://github.com/flutter | github, flutter #opensource""";
 
         testWidgets("should handle URLs with encoded characters",
             (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -747,7 +748,7 @@ https://github.com/flutter | github, flutter #opensource""";
       group("Comments and Formatting", () {
         testWidgets("should ignore comment lines starting with #",
             (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -771,7 +772,7 @@ https://dart.dev""";
         });
 
         testWidgets("should handle trailing whitespace", (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -795,7 +796,7 @@ https://github.com/flutter     """;
         });
 
         testWidgets("should handle tabs and mixed whitespace", (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -819,7 +820,7 @@ https://github.com/flutter     """;
       group("Duplicate Detection", () {
         testWidgets("should detect duplicate URLs in bulk input",
             (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -848,7 +849,7 @@ https://dart.dev""";
       group("Mode Switching", () {
         testWidgets("should preserve input when switching modes",
             (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -874,7 +875,7 @@ https://dart.dev""";
 
         testWidgets("should clear validation when switching modes",
             (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -902,7 +903,7 @@ https://dart.dev""";
 
       group("Performance", () {
         testWidgets("should handle 100+ URLs without freezing", (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -936,7 +937,7 @@ https://dart.dev""";
       group("Validation Status Display", () {
         testWidgets("should show validation status for each URL",
             (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -960,7 +961,7 @@ https://dart.dev""";
 
       group("Undo/Redo", () {
         testWidgets("should support undo with Ctrl+Z", (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -988,7 +989,7 @@ https://dart.dev""";
       group("Accessibility", () {
         testWidgets("should have proper semantics for screen readers",
             (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -1009,7 +1010,7 @@ https://dart.dev""";
       group("Bulk Submission with Table Verification", () {
         testWidgets("should add valid bulk URLs to table after Parse & Add",
             (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -1045,7 +1046,7 @@ https://github.com/flutter""";
         testWidgets(
             "should add only valid URLs to table when mix of valid/invalid submitted",
             (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -1080,7 +1081,7 @@ https://dart.dev""";
 
         testWidgets("should show error when all URLs are invalid",
             (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -1111,7 +1112,7 @@ bad input""";
 
         testWidgets("should parse and add URLs with inline tags",
             (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -1146,7 +1147,7 @@ https://dart.dev #dart #programming""";
         testWidgets(
             "should remove valid URLs and keep invalid ones with tags preserved",
             (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -1182,7 +1183,7 @@ https://dart.dev #dart""";
 
         testWidgets("should allow correction and resubmission of invalid URLs",
             (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -1237,7 +1238,7 @@ https://dart.dev #dart""";
         testWidgets(
             "should handle multiple correction iterations until all valid",
             (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -1297,7 +1298,7 @@ https://fixed2.dev""";
       group("Global Tags", () {
         testWidgets("should add global tag and apply to new bulk entries",
             (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -1348,7 +1349,7 @@ https://fixed2.dev""";
 
         testWidgets("should remove global tag when delete icon clicked",
             (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -1391,7 +1392,7 @@ https://fixed2.dev""";
 
         testWidgets("should validate global tag and show error for invalid tag",
             (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -1415,7 +1416,7 @@ https://fixed2.dev""";
         });
 
         testWidgets("should prevent duplicate global tags", (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -1446,7 +1447,7 @@ https://fixed2.dev""";
 
         testWidgets("should combine global tags with inline tags",
             (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -1479,7 +1480,7 @@ https://fixed2.dev""";
 
       group("Archive Mode", () {
         testWidgets("should toggle archive mode switch", (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -1502,7 +1503,7 @@ https://fixed2.dev""";
 
         testWidgets("should mark new links as archived when archive mode is on",
             (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -1531,7 +1532,7 @@ https://fixed2.dev""";
         testWidgets(
             "should mark new links as not archived when archive mode is off",
             (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 
@@ -1555,7 +1556,7 @@ https://fixed2.dev""";
 
         testWidgets("should apply archive mode to bulk submissions",
             (tester) async {
-          await tester.pumpWidget(await createTestApp());
+          await initTestApp(); await tester.pumpWidget(const MyApp());
 
           await _navigateToAddLink(tester);
 

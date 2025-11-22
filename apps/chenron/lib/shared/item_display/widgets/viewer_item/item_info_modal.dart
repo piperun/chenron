@@ -245,7 +245,7 @@ class ItemInfoModal extends StatelessWidget {
                     // Tags section
                     _InfoSection(
                       title: "Tags",
-                      child: _buildTagsSection(theme),
+                      child: _TagsSection(item: item),
                     ),
                   ],
                 ),
@@ -267,8 +267,16 @@ class ItemInfoModal extends StatelessWidget {
         return Icons.folder;
     }
   }
+}
 
-  Widget _buildTagsSection(ThemeData theme) {
+class _TagsSection extends StatelessWidget {
+  final FolderItem item;
+
+  const _TagsSection({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final tags = ItemUtils.buildTags(item);
 
     if (tags.isEmpty) {

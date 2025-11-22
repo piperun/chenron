@@ -14,7 +14,7 @@ enum ItemType {
 /// When used with callback, just shows type selector and calls callback.
 class AddItemModal extends StatefulWidget {
   final ValueChanged<ItemType>? onTypeSelected;
-  
+
   const AddItemModal({
     super.key,
     this.onTypeSelected,
@@ -34,7 +34,7 @@ class _AddItemModalState extends State<AddItemModal> {
       Navigator.pop(context);
       return;
     }
-    
+
     // Otherwise, show form in modal (legacy behavior)
     setState(() => _selectedType = type);
   }
@@ -48,11 +48,11 @@ class _AddItemModalState extends State<AddItemModal> {
     final screenSize = MediaQuery.of(context).size;
     final isSmallScreen = screenSize.width < 700;
     final isMediumScreen = screenSize.width >= 700 && screenSize.width < 1200;
-    
+
     // Responsive sizing based on screen width
     double modalWidth;
     double modalHeight;
-    
+
     if (isSmallScreen) {
       // Small screens: use most of the screen
       modalWidth = screenSize.width * 0.95;
@@ -62,17 +62,13 @@ class _AddItemModalState extends State<AddItemModal> {
     } else if (isMediumScreen) {
       // Medium screens: balanced sizing
       modalWidth = _selectedType == null ? 500.0 : 700.0;
-      modalHeight = _selectedType == null
-          ? 480.0
-          : screenSize.height * 0.85;
+      modalHeight = _selectedType == null ? 480.0 : screenSize.height * 0.85;
     } else {
       // Large screens: generous sizing
       modalWidth = _selectedType == null ? 500.0 : 900.0;
-      modalHeight = _selectedType == null
-          ? 480.0
-          : screenSize.height * 0.85;
+      modalHeight = _selectedType == null ? 480.0 : screenSize.height * 0.85;
     }
-    
+
     return Dialog(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
@@ -325,7 +321,11 @@ class _FormWrapperViewState extends State<_FormWrapperView> {
         // Form content - takes remaining space
         Expanded(
           child: ClipRect(
-            child: _getFormContent(),
+            child: _FormContent(
+              type: widget.type,
+              onSaveCallbackReady: _setSaveCallback,
+              onValidationChanged: _setValidationState,
+            ),
           ),
         ),
       ],
@@ -342,20 +342,33 @@ class _FormWrapperViewState extends State<_FormWrapperView> {
         return "Add Document";
     }
   }
+}
 
-  Widget _getFormContent() {
-    switch (widget.type) {
+class _FormContent extends StatelessWidget {
+  final ItemType type;
+  final ValueChanged<VoidCallback> onSaveCallbackReady;
+  final ValueChanged<bool> onValidationChanged;
+
+  const _FormContent({
+    required this.type,
+    required this.onSaveCallbackReady,
+    required this.onValidationChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    switch (type) {
       case ItemType.link:
         return CreateLinkPage(
           hideAppBar: true,
-          onSaveCallbackReady: _setSaveCallback,
-          onValidationChanged: _setValidationState,
+          onSaveCallbackReady: onSaveCallbackReady,
+          onValidationChanged: onValidationChanged,
         );
       case ItemType.folder:
         return CreateFolderPage(
           hideAppBar: true,
-          onSaveCallbackReady: _setSaveCallback,
-          onValidationChanged: _setValidationState,
+          onSaveCallbackReady: onSaveCallbackReady,
+          onValidationChanged: onValidationChanged,
         );
       case ItemType.document:
         return const _DocumentPlaceholder();

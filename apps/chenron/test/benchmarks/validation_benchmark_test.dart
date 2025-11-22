@@ -77,6 +77,24 @@ void main() {
           expect(results.length, equals(size));
         }, timeout: const Timeout(Duration(minutes: 3)));
 
+        test("Compute/Isolate validation (Chunked)", () async {
+          final stopwatch = Stopwatch()..start();
+
+          // Use compute to run chunked validation in a separate isolate
+          final results =
+              await compute(_validateUrlsInIsolateChunked, testUrls);
+
+          stopwatch.stop();
+
+          debugPrint(
+              "Compute/Isolate Chunked ($size URLs): ${stopwatch.elapsedMilliseconds}ms");
+          debugPrint("  - Results: ${results.length} URLs validated");
+          debugPrint(
+              "  - Average: ${stopwatch.elapsedMilliseconds / size}ms per URL");
+
+          expect(results.length, equals(size));
+        }, timeout: const Timeout(Duration(minutes: 3)));
+
         test("Batch validation with chunking", () async {
           final stopwatch = Stopwatch()..start();
 
@@ -131,12 +149,20 @@ void main() {
       sw3.stop();
       final isolateTime = sw3.elapsedMilliseconds;
 
+      // Compute (Chunked)
+      final sw4 = Stopwatch()..start();
+      await compute(_validateUrlsInIsolateChunked, urls);
+      sw4.stop();
+      final isolateChunkedTime = sw4.elapsedMilliseconds;
+
       debugPrint("\n=== BENCHMARK SUMMARY ($testSize URLs) ===");
       debugPrint("Sequential:     ${sequentialTime}ms (baseline)");
       debugPrint(
           "Future.wait:    ${parallelTime}ms (${(sequentialTime / parallelTime).toStringAsFixed(2)}x faster)");
       debugPrint(
           "Compute/Isolate: ${isolateTime}ms (${(sequentialTime / isolateTime).toStringAsFixed(2)}x faster)");
+      debugPrint(
+          "Compute (Chunked): ${isolateChunkedTime}ms (${(sequentialTime / isolateChunkedTime).toStringAsFixed(2)}x faster)");
       debugPrint("\nRecommendation:");
 
       if (parallelTime < isolateTime) {
