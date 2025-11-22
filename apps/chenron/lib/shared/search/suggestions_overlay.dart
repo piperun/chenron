@@ -74,7 +74,7 @@ class _SuggestionsOverlayState extends State<SuggestionsOverlay> {
 
     // Debounce the database query
     unawaited(_debouncer.call(() async {
-      final suggestions = await _fetchSuggestions(query);
+      final suggestions = await _fetchSuggestions();
       if (mounted && _lastQuery == query) {
         setState(() {
           _suggestions = suggestions;
@@ -91,13 +91,12 @@ class _SuggestionsOverlayState extends State<SuggestionsOverlay> {
     }));
   }
 
-  Future<List<ListTile>> _fetchSuggestions(String query) async {
+  Future<List<ListTile>> _fetchSuggestions() async {
     if (!mounted) return [];
 
     final suggestionBuilder = GlobalSuggestionBuilder(
       db: widget.db,
       context: context,
-      controller: null, // Not needed - using queryController instead
       queryController: widget.controller,
       onItemSelected: ({required type, required id, required title}) async {
         _removeOverlay();
