@@ -131,11 +131,9 @@ class ViewerPresenter extends ChangeNotifier {
         case SortMode.nameDesc:
           return b.title.toLowerCase().compareTo(a.title.toLowerCase());
         case SortMode.dateAsc:
-          // TODO: Implement when date fields are available
-          return 0;
+          return a.createdAt.compareTo(b.createdAt);
         case SortMode.dateDesc:
-          // TODO: Implement when date fields are available
-          return 0;
+          return b.createdAt.compareTo(a.createdAt);
       }
     });
     return sorted;
