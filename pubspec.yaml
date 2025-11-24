@@ -12,3 +12,4 @@ workspace:
   - packages/vibe
   - packages/web_archiver
   - packages/platform_provider
+  - packages/chenron_mockups

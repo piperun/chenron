@@ -2,8 +2,7 @@ import "dart:io";
 import "package:flutter_test/flutter_test.dart";
 import "package:integration_test/integration_test.dart";
 import "package:web_archiver/web_archiver.dart";
-import "package:chenron/test_support/path_provider_fake.dart";
-import "package:chenron/test_support/logger_setup.dart";
+import "package:chenron_mockups/chenron_mockups.dart";
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();

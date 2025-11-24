@@ -5,7 +5,7 @@ import "package:chenron/database/extensions/link/create.dart";
 import "package:chenron/models/db_result.dart";
 import "package:chenron/models/item.dart";
 import "package:chenron/models/metadata.dart";
-import "package:chenron/utils/test_lib/folder_factory.dart";
+import "folder_factory.dart";
 import "package:drift/native.dart";
 
 /// Mock database helper for testing

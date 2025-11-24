@@ -4,10 +4,8 @@ import "package:flutter_test/flutter_test.dart";
 import "package:integration_test/integration_test.dart";
 import "package:chenron/database/database.dart";
 import "package:chenron/database/extensions/folder/create.dart";
-import "package:chenron/utils/test_lib/folder_factory.dart";
+import "package:chenron_mockups/chenron_mockups.dart";
 
-import "package:chenron/test_support/path_provider_fake.dart";
-import "package:chenron/test_support/logger_setup.dart";
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();

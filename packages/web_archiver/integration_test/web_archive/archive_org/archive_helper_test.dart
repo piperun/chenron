@@ -8,8 +8,7 @@ import "package:integration_test/integration_test.dart";
 import "package:chenron/database/database.dart";
 import "package:chenron/database/extensions/archive_helper.dart";
 import "package:chenron/database/extensions/link/create.dart";
-import "package:chenron/test_support/path_provider_fake.dart";
-import "package:chenron/test_support/logger_setup.dart";
+import "package:chenron_mockups/chenron_mockups.dart";
 import "package:web_archiver/web_archiver.dart";
 
 void main() {

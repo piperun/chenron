@@ -8,8 +8,7 @@ import "package:chenron/database/database.dart";
 import "package:integration_test/integration_test.dart";
 import "package:path_provider/path_provider.dart";
 
-import "package:chenron/test_support/path_provider_fake.dart";
-import "package:chenron/test_support/logger_setup.dart";
+import "package:chenron_mockups/chenron_mockups.dart";
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();

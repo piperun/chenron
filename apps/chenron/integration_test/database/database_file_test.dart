@@ -10,8 +10,7 @@ import "dart:io";
 
 import "package:signals/signals.dart";
 
-import "package:chenron/test_support/path_provider_fake.dart";
-import "package:chenron/test_support/logger_setup.dart";
+import "package:chenron_mockups/chenron_mockups.dart";
 import "package:chenron/base_dirs/schema.dart";
 
 Future<void> setUpFakeData(AppDatabase database, {int len = 5}) async {
