@@ -3,6 +3,7 @@ import "package:chenron/shared/patterns/include_options.dart";
 import "package:chenron/shared/search/search_features.dart";
 import "package:chenron/shared/search/search_controller.dart";
 import "package:chenron/shared/search/search_feature_manager.dart";
+import "package:chenron/shared/search/search_history.dart";
 import "package:chenron/shared/search/query_parser.dart";
 
 /// Unified search filter that handles features and filtering logic
@@ -67,6 +68,18 @@ class SearchFilter {
   void dispose() {
     _featureManager.dispose(_controller);
     _controller.dispose();
+  }
+
+  /// Load search history (if history feature is enabled)
+  Future<List<SearchHistoryItem>> loadHistory() async {
+    return await _featureManager.loadHistory();
+  }
+
+  /// Clear search history (if history feature is enabled)
+  Future<void> clearHistory() async {
+    if (_featureManager.historyManager != null) {
+      await _featureManager.historyManager!.clearHistory();
+    }
   }
 
   /// Filter items by search query, type, and tags
