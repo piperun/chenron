@@ -1,6 +1,6 @@
-import "package:chenron/database/extensions/operations/database_file_handler.dart";
+import "package:database/extensions/operations/database_file_handler.dart";
 import "package:chenron/locator.dart";
-import "package:chenron/utils/logger.dart";
+import "package:logger/logger.dart";
 import "package:cron/cron.dart";
 import "package:signals/signals_flutter.dart";
 
@@ -30,3 +30,4 @@ Future<void> backupDatabase() async {
         "An error occurred during database backup: $e");
   }
 }
+

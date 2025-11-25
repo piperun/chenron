@@ -1,6 +1,6 @@
 import "dart:async";
 import "package:flutter/material.dart";
-import "package:chenron/models/item.dart";
+import "package:database/models/item.dart";
 import "package:chenron/shared/item_display/widgets/display_mode/display_mode.dart";
 import "package:chenron/shared/item_display/widgets/display_mode/display_mode_switcher.dart";
 import "package:chenron/shared/search/search_filter.dart";
@@ -609,3 +609,4 @@ class _ViewToggleButton extends StatelessWidget {
     );
   }
 }
+

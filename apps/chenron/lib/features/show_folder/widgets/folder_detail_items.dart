@@ -1,8 +1,8 @@
 import "package:chenron/components/metadata_factory.dart";
 import "package:chenron/components/favicon_display/favicon.dart";
 
-import "package:chenron/models/db_result.dart";
-import "package:chenron/models/item.dart";
+import "package:database/models/db_result.dart";
+import "package:database/models/item.dart";
 import "package:flutter/material.dart";
 import "package:url_launcher/url_launcher.dart";
 
@@ -74,3 +74,4 @@ Future<void> _launchURL(Uri url) async {
     throw ("Could not launch $url");
   }
 }
+

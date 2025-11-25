@@ -1,5 +1,5 @@
 import "package:flutter/material.dart";
-import "package:chenron/database/database.dart";
+import "package:database/database.dart";
 import "package:chenron/shared/ui/folder_picker.dart";
 
 class LinkFolderSection extends StatelessWidget {
@@ -54,3 +54,4 @@ class LinkFolderSection extends StatelessWidget {
     );
   }
 }
+

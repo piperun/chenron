@@ -28,3 +28,4 @@ class LinkArchiveToggle extends StatelessWidget {
     );
   }
 }
+

@@ -102,3 +102,4 @@ final class NierTheme extends BaseAppTheme {
   static ThemeData get staticLightTheme => NierTheme().lightTheme;
   static ThemeData get staticDarkTheme => NierTheme().darkTheme;
 }
+

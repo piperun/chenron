@@ -124,3 +124,4 @@ class UrlValidatorService {
     return results;
   }
 }
+

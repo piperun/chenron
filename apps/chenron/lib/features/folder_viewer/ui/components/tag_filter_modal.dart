@@ -1,4 +1,4 @@
-import "package:chenron/database/database.dart";
+import "package:database/database.dart";
 import "package:chenron/features/folder_viewer/ui/components/tag_filter/active_filters_tab.dart";
 import "package:chenron/features/folder_viewer/ui/components/tag_filter/available_tags_tab.dart";
 import "package:flutter/material.dart";
@@ -379,3 +379,4 @@ class _TabButton extends StatelessWidget {
     );
   }
 }
+

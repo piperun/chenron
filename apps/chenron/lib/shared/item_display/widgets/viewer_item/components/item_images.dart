@@ -149,3 +149,4 @@ class ItemThumbnail extends StatelessWidget {
     );
   }
 }
+

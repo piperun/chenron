@@ -8,7 +8,7 @@ import "package:chenron/providers/theme_controller_signal.dart";
 import "package:flutter/material.dart";
 import "package:signals/signals_flutter.dart";
 
-import "package:chenron/utils/logger.dart";
+import "package:logger/logger.dart";
 
 void main() async {
   try {
@@ -54,3 +54,4 @@ class MyApp extends StatelessWidget {
     });
   }
 }
+

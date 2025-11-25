@@ -1,6 +1,6 @@
 import "package:flutter/material.dart";
 import "package:chenron/features/create/link/models/link_entry.dart";
-import "package:chenron/database/database.dart";
+import "package:database/database.dart";
 import "package:chenron/utils/validation/tag_validator.dart";
 
 class LinkEditBottomSheet extends StatefulWidget {
@@ -368,3 +368,4 @@ class _LinkEditBottomSheetState extends State<LinkEditBottomSheet> {
     );
   }
 }
+

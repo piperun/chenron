@@ -84,3 +84,4 @@ class SearchHistoryManager {
     await prefs.remove(_key);
   }
 }
+

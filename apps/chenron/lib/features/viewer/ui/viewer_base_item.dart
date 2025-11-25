@@ -1,5 +1,5 @@
-import "package:chenron/database/database.dart";
-import "package:chenron/models/item.dart";
+import "package:database/database.dart";
+import "package:database/models/item.dart";
 
 class ViewerItem {
   final String id;
@@ -20,3 +20,4 @@ class ViewerItem {
     this.url,
   });
 }
+

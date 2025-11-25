@@ -1,4 +1,4 @@
-import "package:chenron/database/extensions/operations/database_file_handler.dart";
+import "package:database/extensions/operations/database_file_handler.dart";
 import "package:chenron/providers/basedir.dart";
 
 import "package:signals/signals.dart";
@@ -33,3 +33,4 @@ Future<AppDatabaseHandler> initializeAppDatabaseAccessor() async {
   }();
 }
 */
+

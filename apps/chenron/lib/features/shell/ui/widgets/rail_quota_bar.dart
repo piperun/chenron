@@ -32,3 +32,4 @@ class RailQuotaBar extends StatelessWidget {
     );
   }
 }
+

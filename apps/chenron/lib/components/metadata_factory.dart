@@ -1,4 +1,4 @@
-import "package:chenron/utils/logger.dart";
+import "package:logger/logger.dart";
 import "package:chenron/utils/str_sanitizer.dart";
 import "package:chenron/utils/metadata.dart";
 import "package:flutter/material.dart";
@@ -222,3 +222,4 @@ class MetadataUrl extends StatelessWidget {
     );
   }
 }
+

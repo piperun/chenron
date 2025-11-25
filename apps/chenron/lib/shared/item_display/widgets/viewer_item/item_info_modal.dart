@@ -1,6 +1,6 @@
 import "dart:async";
 import "package:flutter/material.dart";
-import "package:chenron/models/item.dart";
+import "package:database/models/item.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/item_utils.dart";
 import "package:chenron/shared/utils/time_formatter.dart";
 import "package:chenron/components/metadata_factory.dart";
@@ -330,3 +330,4 @@ class _InfoSection extends StatelessWidget {
     );
   }
 }
+

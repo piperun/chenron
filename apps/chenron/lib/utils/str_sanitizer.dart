@@ -5,3 +5,4 @@ String removeDupSpaces(String input) {
 String removeTrailingSlash(String input) {
   return input.endsWith("/") ? input.substring(0, input.length - 1) : input;
 }
+

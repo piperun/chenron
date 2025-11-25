@@ -5,7 +5,7 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i5;
 
-import 'package:chenron/database/database.dart' as _i4;
+import 'package:database/database.dart' as _i4;
 import 'package:chenron/features/settings/controller/config_controller.dart'
     as _i3;
 import 'package:mockito/mockito.dart' as _i1;
@@ -256,3 +256,4 @@ class MockConfigController extends _i1.Mock implements _i3.ConfigController {
         returnValue: false,
       ) as bool);
 }
+

@@ -1,9 +1,9 @@
 import "package:flutter/material.dart";
 import "package:flutter_test/flutter_test.dart";
 import "package:chenron/components/forms/folder_form.dart";
-import "package:chenron/database/database.dart";
+import "package:database/database.dart";
 import "package:chenron_mockups/chenron_mockups.dart";
-import "package:chenron/database/extensions/operations/database_file_handler.dart";
+import "package:database/extensions/operations/database_file_handler.dart";
 import "package:signals/signals.dart";
 import "package:get_it/get_it.dart";
 import "dart:io";
@@ -570,3 +570,4 @@ void main() {
     });
   });
 }
+

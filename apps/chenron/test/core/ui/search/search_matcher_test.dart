@@ -1,8 +1,8 @@
-import "package:chenron/models/db_result.dart";
+import "package:database/models/db_result.dart";
 
 import "package:flutter_test/flutter_test.dart";
 import "package:chenron/shared/search/search_matcher.dart";
-import "package:chenron/database/database.dart";
+import "package:database/database.dart";
 
 void main() {
   group("SearchMatcher URL Tests", () {
@@ -125,3 +125,4 @@ FolderResult _createMockFolder(String title) {
     items: [],
   );
 }
+

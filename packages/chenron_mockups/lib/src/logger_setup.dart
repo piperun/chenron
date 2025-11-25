@@ -1,6 +1,6 @@
 import "dart:io";
 
-import "package:chenron/utils/logger.dart";
+import "package:logger/logger.dart";
 
 void installTestLogger() {
   final dir = Directory.systemTemp.createTempSync("chenron_test_logs");

@@ -1,6 +1,6 @@
 import "package:flutter/material.dart";
 import "package:trina_grid/trina_grid.dart";
-import "package:chenron/models/item.dart";
+import "package:database/models/item.dart";
 import "package:chenron/notifiers/item_table_notifier.dart";
 import "package:chenron/features/create/link/pages/create_link.dart";
 import "package:chenron/features/folder_editor/widgets/item_section/item_section.dart";
@@ -9,7 +9,7 @@ import "package:chenron/features/folder_editor/widgets/item_section/item_section
 import "package:chenron/features/folder_editor/widgets/cells/type_cell.dart";
 import "package:chenron/features/folder_editor/widgets/cells/delete_cell.dart";
 import "package:chenron/features/folder_editor/notifiers/folder_editor_notifier.dart";
-import "package:chenron/utils/logger.dart";
+import "package:logger/logger.dart";
 
 /// Widget for displaying and managing folder items in the editor
 class FolderItemsSection extends StatefulWidget {
@@ -215,3 +215,4 @@ class _FolderItemsSectionState extends State<FolderItemsSection> {
     );
   }
 }
+

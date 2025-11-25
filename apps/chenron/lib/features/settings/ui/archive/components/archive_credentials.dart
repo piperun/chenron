@@ -1,6 +1,6 @@
 import "package:flutter/material.dart";
 import "package:chenron/features/settings/ui/credential_field.dart";
-import "package:chenron/utils/logger.dart";
+import "package:logger/logger.dart";
 
 class ArchiveCredentials extends StatelessWidget {
   // Flags and callbacks for default archiving behavior
@@ -90,3 +90,4 @@ class ArchiveCredentials extends StatelessWidget {
     );
   }
 }
+

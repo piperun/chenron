@@ -1,12 +1,12 @@
 import "dart:async";
 import "package:chenron/features/viewer/state/viewer_state.dart";
 import "package:chenron/shared/item_display/filterable_item_display.dart";
-import "package:chenron/models/item.dart";
+import "package:database/models/item.dart";
 import "package:chenron/shared/search/search_filter.dart";
 import "package:chenron/shared/tag_filter/tag_filter_state.dart";
 import "package:flutter/material.dart";
 import "package:signals/signals_flutter.dart";
-import "package:chenron/utils/logger.dart";
+import "package:logger/logger.dart";
 import "package:chenron/shared/viewer/item_handler.dart";
 import "package:chenron/features/viewer/ui/viewer_base_item.dart";
 
@@ -120,3 +120,4 @@ class _ViewerState extends State<Viewer> {
     );
   }
 }
+

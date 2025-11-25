@@ -42,3 +42,4 @@ class TextHighlighter {
     return spans;
   }
 }
+

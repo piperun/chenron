@@ -2,12 +2,12 @@ import "package:chenron/shared/search/search_matcher.dart";
 import "package:chenron/shared/utils/text_highlighter.dart";
 import "package:chenron/shared/search/search_controller.dart";
 
-import "package:chenron/database/extensions/operations/database_file_handler.dart";
+import "package:database/extensions/operations/database_file_handler.dart";
 import "package:chenron/features/folder_viewer/pages/folder_viewer_page.dart";
-import "package:chenron/models/db_result.dart" show FolderResult, LinkResult;
+import "package:database/models/db_result.dart" show FolderResult, LinkResult;
 import "package:flutter/material.dart";
-import "package:chenron/database/extensions/folder/read.dart";
-import "package:chenron/database/extensions/link/read.dart";
+import "package:database/extensions/folder/read.dart";
+import "package:database/extensions/link/read.dart";
 import "package:signals/signals_flutter.dart";
 import "package:url_launcher/url_launcher.dart";
 
@@ -164,3 +164,4 @@ class SuggestionTile {
     );
   }
 }
+

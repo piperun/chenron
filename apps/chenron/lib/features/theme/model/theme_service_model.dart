@@ -1,6 +1,6 @@
-import "package:chenron/database/database.dart";
-import "package:chenron/models/cud.dart";
-import "package:chenron/models/db_result.dart";
+import "package:database/database.dart";
+import "package:database/models/cud.dart";
+import "package:database/models/db_result.dart";
 
 abstract class ThemeService {
   Future<void> changeThemeMode({required bool isDark});
@@ -32,3 +32,4 @@ abstract class ThemeService {
   // Future<void> updateTheme(UserTheme themeData);
   // Future<void> deleteTheme(String themeId);
 }
+

@@ -1,5 +1,5 @@
 import "package:chenron/features/settings/controller/config_controller.dart";
-import "package:chenron/models/db_result.dart";
+import "package:database/models/db_result.dart";
 import "package:chenron/features/viewer/ui/viewer_base_item.dart";
 import "package:chenron/features/viewer/mvc/viewer_model.dart";
 import "package:chenron/features/viewer/mvc/viewer_presenter.dart";
@@ -67,3 +67,4 @@ class FakeViewerModel extends Fake implements ViewerModel {
     return Stream.value([]);
   }
 }
+

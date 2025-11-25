@@ -10,3 +10,4 @@ ThemeController initializeThemeController() {
   unawaited(controller.initialize());
   return controller;
 }
+

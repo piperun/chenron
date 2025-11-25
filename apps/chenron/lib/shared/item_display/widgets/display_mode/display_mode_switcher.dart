@@ -153,3 +153,4 @@ class DisplayModeSwitcher extends StatelessWidget {
     );
   }
 }
+

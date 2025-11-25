@@ -1,11 +1,11 @@
 import "dart:async";
 
-import "package:chenron/database/database.dart";
-import "package:chenron/database/extensions/user_config/read.dart";
-import "package:chenron/database/extensions/user_config/update.dart";
+import "package:database/database.dart";
+import "package:database/extensions/user_config/read.dart";
+import "package:database/extensions/user_config/update.dart";
 import "package:flutter/material.dart";
 import "package:signals/signals_flutter.dart";
-import "package:chenron/utils/logger.dart";
+import "package:logger/logger.dart";
 
 /// Manages the application's theme mode (light/dark).
 ///
@@ -135,3 +135,4 @@ class ThemeManager {
     await _loadInitialThemeMode();
   }
 }
+

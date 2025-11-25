@@ -1,6 +1,6 @@
 import "package:chenron/components/TextBase/info_field.dart";
 import "package:chenron/locator.dart";
-import "package:chenron/models/metadata.dart";
+import "package:database/models/metadata.dart";
 import "package:chenron/providers/folder_provider.dart";
 import "package:chenron/utils/validation/folder_validator.dart";
 import "package:flutter/material.dart";
@@ -78,3 +78,4 @@ class _TagFieldState extends State<TagField> {
     );
   }
 }
+

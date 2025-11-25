@@ -1,14 +1,14 @@
-import "package:chenron/database/extensions/user_theme/create.dart";
-import "package:chenron/database/extensions/user_theme/remove.dart";
+import "package:database/extensions/user_theme/create.dart";
+import "package:database/extensions/user_theme/remove.dart";
 import "package:chenron/features/theme/model/theme_service_model.dart";
-import "package:chenron/models/created_ids.dart";
+import "package:database/models/created_ids.dart";
 
-import "package:chenron/database/database.dart";
-import "package:chenron/database/extensions/user_config/read.dart";
-import "package:chenron/database/extensions/user_config/update.dart";
-import "package:chenron/models/cud.dart";
-import "package:chenron/models/db_result.dart";
-import "package:chenron/utils/logger.dart";
+import "package:database/database.dart";
+import "package:database/extensions/user_config/read.dart";
+import "package:database/extensions/user_config/update.dart";
+import "package:database/models/cud.dart";
+import "package:database/models/db_result.dart";
+import "package:logger/logger.dart";
 
 class ThemeServiceDB implements ThemeService {
   final ConfigDatabase _db;
@@ -135,3 +135,4 @@ class ThemeServiceDB implements ThemeService {
     return _db.getUserTheme(themeKey: themeKey);
   }
 }
+

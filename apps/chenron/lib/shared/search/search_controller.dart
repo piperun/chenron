@@ -52,3 +52,4 @@ class SearchBarController {
     _query.dispose();
   }
 }
+

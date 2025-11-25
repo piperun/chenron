@@ -1,5 +1,5 @@
 import "package:flutter/material.dart";
-import "package:chenron/models/item.dart";
+import "package:database/models/item.dart";
 import "package:chenron/components/metadata_factory.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/item_utils.dart";
 
@@ -64,3 +64,4 @@ class ItemTitle extends StatelessWidget {
     );
   }
 }
+

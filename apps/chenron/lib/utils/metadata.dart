@@ -1,5 +1,5 @@
 import "package:metadata_fetch/metadata_fetch.dart";
-import "package:chenron/utils/logger.dart";
+import "package:logger/logger.dart";
 
 class MetadataFetcher {
   final String? title;
@@ -32,3 +32,4 @@ class MetadataFetcher {
     }
   }
 }
+

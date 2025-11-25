@@ -344,3 +344,4 @@ class _CacheSettingsState extends State<CacheSettings> {
     });
   }
 }
+

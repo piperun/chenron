@@ -1,6 +1,6 @@
 import "dart:async";
 import "package:flutter/material.dart";
-import "package:chenron/models/item.dart";
+import "package:database/models/item.dart";
 import "package:chenron/shared/item_display/widgets/display_mode/display_mode.dart";
 import "package:chenron/shared/item_display/widgets/display_mode/display_mode_preference.dart";
 import "package:chenron/shared/item_display/item_toolbar.dart";
@@ -8,11 +8,11 @@ import "package:chenron/shared/item_display/item_stats_bar.dart";
 import "package:chenron/shared/item_display/item_grid_view.dart";
 import "package:chenron/shared/item_display/item_list_view.dart";
 import "package:chenron/features/folder_viewer/ui/components/tag_filter_modal.dart";
-import "package:chenron/database/database.dart" show Tag;
+import "package:database/database.dart" show Tag;
 import "package:chenron/shared/search/search_filter.dart";
 import "package:chenron/shared/search/search_features.dart";
 import "package:chenron/shared/tag_filter/tag_filter_state.dart";
-import "package:chenron/shared/patterns/include_options.dart";
+import "package:core/patterns/include_options.dart";
 import "package:signals/signals_flutter.dart";
 
 class FilterableItemDisplay extends StatefulWidget {
@@ -327,3 +327,4 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
     );
   }
 }
+

@@ -278,3 +278,4 @@ class _DeleteConfirmationDialogState extends State<DeleteConfirmationDialog> {
     );
   }
 }
+

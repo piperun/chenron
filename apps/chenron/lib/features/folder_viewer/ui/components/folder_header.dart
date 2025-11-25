@@ -1,5 +1,5 @@
 import "package:flutter/material.dart";
-import "package:chenron/database/database.dart";
+import "package:database/database.dart";
 import "package:intl/intl.dart";
 
 class FolderHeader extends StatelessWidget {
@@ -349,3 +349,4 @@ class _MetaItem extends StatelessWidget {
     );
   }
 }
+

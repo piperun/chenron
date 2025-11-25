@@ -1,6 +1,6 @@
 import "package:flutter/material.dart";
 import "package:chenron/components/tables/item_table.dart";
-import "package:chenron/models/item.dart";
+import "package:database/models/item.dart";
 import "package:chenron/notifiers/item_table_notifier.dart";
 import "package:trina_grid/trina_grid.dart";
 import "package:chenron/features/folder_editor/widgets/item_section/empty_state_message.dart";
@@ -53,3 +53,4 @@ class ItemTableView extends StatelessWidget {
     );
   }
 }
+

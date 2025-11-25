@@ -11,3 +11,4 @@ class SchemaRules {
   static const url = LengthRule(min: 11, max: 2048);
   static const tag = LengthRule(min: 3, max: 12);
 }
+

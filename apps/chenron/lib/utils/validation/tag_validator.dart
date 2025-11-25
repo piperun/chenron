@@ -53,3 +53,4 @@ class TagValidator {
     return validateTags(tags);
   }
 }
+

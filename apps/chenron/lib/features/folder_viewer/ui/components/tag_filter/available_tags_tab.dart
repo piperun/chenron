@@ -1,4 +1,4 @@
-import "package:chenron/database/database.dart";
+import "package:database/database.dart";
 import "package:flutter/material.dart";
 
 class AvailableTagsTab extends StatelessWidget {
@@ -211,3 +211,4 @@ class _AvailableTagItem extends StatelessWidget {
     );
   }
 }
+

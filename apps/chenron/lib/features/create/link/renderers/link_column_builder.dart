@@ -91,3 +91,4 @@ class LinkColumnBuilder {
     return entries.firstWhere((e) => e.key == key);
   }
 }
+

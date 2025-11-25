@@ -1,5 +1,5 @@
 import "package:flutter/material.dart";
-import "package:chenron/models/item.dart";
+import "package:database/models/item.dart";
 import "package:chenron/shared/item_display/widgets/display_mode/display_mode.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/card_view.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/row_item.dart";
@@ -75,3 +75,4 @@ class ViewerItem extends StatelessWidget {
           );
   }
 }
+

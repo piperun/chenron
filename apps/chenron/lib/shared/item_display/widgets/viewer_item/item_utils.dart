@@ -1,7 +1,7 @@
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "dart:async";
-import "package:chenron/models/item.dart";
+import "package:database/models/item.dart";
 import "package:url_launcher/url_launcher.dart" as url_launcher;
 
 class ItemUtils {
@@ -167,3 +167,4 @@ class ItemIcon extends StatelessWidget {
     );
   }
 }
+

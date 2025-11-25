@@ -1,5 +1,5 @@
 import "package:flutter/material.dart";
-import "package:chenron/models/item.dart";
+import "package:database/models/item.dart";
 import "package:chenron/components/favicon_display/favicon.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/item_utils.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/item_info_modal.dart";
@@ -127,3 +127,4 @@ class _TimeDisplay extends StatelessWidget {
     );
   }
 }
+

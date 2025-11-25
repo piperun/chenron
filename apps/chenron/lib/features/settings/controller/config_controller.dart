@@ -1,12 +1,12 @@
 import "package:flex_color_scheme/flex_color_scheme.dart";
 import "package:meta/meta.dart";
 import "package:signals/signals_flutter.dart";
-import "package:chenron/database/database.dart";
+import "package:database/database.dart";
 import "package:chenron/features/settings/service/config_service.dart";
 import "package:chenron/features/theme/state/theme_controller.dart";
 import "package:chenron/providers/theme_controller_signal.dart";
 import "package:chenron/locator.dart";
-import "package:chenron/utils/logger.dart";
+import "package:logger/logger.dart";
 
 @immutable
 class ThemeChoice {
@@ -243,3 +243,4 @@ class ConfigController {
         cacheDirectory.peek() != originalConfig.cacheDirectory;
   }
 }
+

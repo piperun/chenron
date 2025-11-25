@@ -1,9 +1,9 @@
 import "dart:async";
-import "package:chenron/database/extensions/operations/database_file_handler.dart";
+import "package:database/extensions/operations/database_file_handler.dart";
 import "package:flutter/material.dart";
-import "package:chenron/database/database.dart";
+import "package:database/database.dart";
 import "package:chenron/locator.dart";
-import "package:chenron/database/extensions/folder/read.dart";
+import "package:database/extensions/folder/read.dart";
 import "package:signals/signals_flutter.dart";
 
 class FolderPicker extends StatefulWidget {
@@ -222,3 +222,4 @@ class _FolderSelectionDialogState extends State<FolderSelectionDialog> {
     );
   }
 }
+

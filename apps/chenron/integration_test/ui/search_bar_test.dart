@@ -2,7 +2,7 @@ import "package:flutter/material.dart";
 import "package:flutter_test/flutter_test.dart";
 import "package:integration_test/integration_test.dart";
 import "package:chenron/shared/search/search_filter.dart";
-import "package:chenron/models/item.dart";
+import "package:database/models/item.dart";
 import "package:signals/signals_flutter.dart";
 
 void main() {
@@ -285,3 +285,4 @@ void main() {
     });
   });
 }
+

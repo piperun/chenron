@@ -1,5 +1,5 @@
 import "package:flutter/material.dart";
-import "package:chenron/models/item.dart";
+import "package:database/models/item.dart";
 
 class ItemStatsBar extends StatelessWidget {
   final int linkCount;
@@ -165,3 +165,4 @@ class _StatItem extends StatelessWidget {
     );
   }
 }
+

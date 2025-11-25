@@ -106,3 +106,4 @@ class RailBottomSection extends StatelessWidget {
     ));
   }
 }
+

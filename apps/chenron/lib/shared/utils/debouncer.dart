@@ -37,3 +37,4 @@ class Debouncer<T> {
 class CancelException implements Exception {
   const CancelException();
 }
+

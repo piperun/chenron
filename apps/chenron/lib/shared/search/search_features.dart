@@ -1,4 +1,4 @@
-import "package:chenron/shared/patterns/include_options.dart";
+import "package:core/patterns/include_options.dart";
 
 /// Available search features that can be enabled
 enum SearchFeature {
@@ -29,3 +29,4 @@ enum SearchFeature {
 /// })
 /// ```
 typedef SearchFeatures = IncludeOptions<SearchFeature>;
+

@@ -106,3 +106,4 @@ class _ItemUrlBarState extends State<ItemUrlBar> {
     );
   }
 }
+

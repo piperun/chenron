@@ -1,5 +1,5 @@
 import "package:flutter/material.dart";
-import "package:chenron/models/item.dart";
+import "package:database/models/item.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/item_utils.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/item_content.dart";
 
@@ -105,3 +105,4 @@ class RowItem extends StatelessWidget {
     );
   }
 }
+

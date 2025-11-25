@@ -117,3 +117,4 @@ enum DisplayMode {
     required this.aspectRatio,
   });
 }
+

@@ -1,5 +1,5 @@
 import "package:signals/signals.dart";
-import "package:chenron/models/item.dart";
+import "package:database/models/item.dart";
 
 class ItemSectionController {
   final searchQuery = signal("");
@@ -50,3 +50,4 @@ class ItemSectionController {
     allItems.dispose();
   }
 }
+

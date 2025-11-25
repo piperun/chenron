@@ -3,3 +3,4 @@ import "package:signals/signals_flutter.dart";
 
 final Signal<ViewerPresenter> viewerViewModelSignal =
     Signal(ViewerPresenter(), autoDispose: true);
+

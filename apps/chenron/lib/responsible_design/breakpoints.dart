@@ -85,3 +85,4 @@ class Breakpoints {
   static bool isExtraLarge(BuildContext context) =>
       MediaQuery.of(context).size.width > xl;
 }
+

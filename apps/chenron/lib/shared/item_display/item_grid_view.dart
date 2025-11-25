@@ -1,5 +1,5 @@
 import "package:flutter/material.dart";
-import "package:chenron/models/item.dart";
+import "package:database/models/item.dart";
 import "package:chenron/shared/item_display/widgets/display_mode/display_mode.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/viewer_item.dart";
 import "package:url_launcher/url_launcher.dart";
@@ -232,3 +232,4 @@ class _EmptyState extends StatelessWidget {
     );
   }
 }
+

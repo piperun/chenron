@@ -1,4 +1,4 @@
-import "package:chenron/utils/logger.dart";
+import "package:logger/logger.dart";
 import "package:favicon/favicon.dart";
 import "package:flutter/material.dart";
 import "package:flutter_svg/flutter_svg.dart";
@@ -77,3 +77,4 @@ class Favicon extends StatelessWidget {
     );
   }
 }
+

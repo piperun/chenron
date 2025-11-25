@@ -2,7 +2,7 @@ import "package:flutter/foundation.dart";
 import "dart:async" show unawaited;
 import "package:chenron/features/create/link/models/link_entry.dart";
 import "package:chenron/features/create/link/services/url_validator_service.dart";
-import "package:chenron/utils/logger.dart";
+import "package:logger/logger.dart";
 
 enum InputMode { single, bulk }
 
@@ -251,3 +251,4 @@ class CreateLinkNotifier extends ChangeNotifier {
     super.dispose();
   }
 }
+

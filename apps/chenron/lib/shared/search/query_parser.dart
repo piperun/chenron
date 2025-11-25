@@ -85,3 +85,4 @@ class QueryParser {
     );
   }
 }
+

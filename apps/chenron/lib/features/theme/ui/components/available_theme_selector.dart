@@ -1,7 +1,7 @@
 import "package:flutter/material.dart";
 import "package:signals/signals_flutter.dart";
 import "package:chenron/features/settings/controller/config_controller.dart";
-import "package:chenron/utils/logger.dart";
+import "package:logger/logger.dart";
 
 class AvailableThemeSelector extends StatelessWidget {
   final ConfigController controller;
@@ -89,3 +89,4 @@ class AvailableThemeSelector extends StatelessWidget {
     );
   }
 }
+

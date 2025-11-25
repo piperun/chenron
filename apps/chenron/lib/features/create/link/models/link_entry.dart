@@ -92,3 +92,4 @@ class LinkEntry {
     return "LinkEntry(url: $url, tags: $tags, folders: $folderIds, archived: $isArchived, status: $validationStatus)";
   }
 }
+

@@ -1,7 +1,7 @@
 import "package:chenron/components/TextBase/expandable_field.dart";
 import "package:chenron/components/TextBase/text_view.dart";
 import "package:chenron/components/tags/tag_body.dart";
-import "package:chenron/models/db_result.dart" show FolderResult;
+import "package:database/models/db_result.dart" show FolderResult;
 import "package:flutter/material.dart";
 import "package:intl/intl.dart";
 
@@ -54,3 +54,4 @@ class FolderCreationDate extends StatelessWidget {
     );
   }
 }
+

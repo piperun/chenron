@@ -81,3 +81,4 @@ class BulkValidationResult {
     return "BulkValidation: $totalLines total, $validLines valid, $invalidLines invalid";
   }
 }
+

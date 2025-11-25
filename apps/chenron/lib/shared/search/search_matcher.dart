@@ -1,7 +1,7 @@
 import "dart:math";
 
 import "package:fuzzywuzzy/fuzzywuzzy.dart";
-import "package:chenron/database/database.dart";
+import "package:database/database.dart";
 
 class SearchMatcher {
   final String searchText;
@@ -93,3 +93,4 @@ class SearchMatcher {
     }
   }
 }
+

@@ -67,3 +67,4 @@ class EmptyStateMessage extends StatelessWidget {
     );
   }
 }
+

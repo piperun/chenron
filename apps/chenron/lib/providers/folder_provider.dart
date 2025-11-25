@@ -1,6 +1,6 @@
-import "package:chenron/models/folder.dart";
-import "package:chenron/models/item.dart";
-import "package:chenron/models/metadata.dart";
+import "package:database/models/folder.dart";
+import "package:database/models/item.dart";
+import "package:database/models/metadata.dart";
 import "package:signals/signals.dart";
 
 enum FolderType { folder, link, document }
@@ -43,3 +43,4 @@ class FolderSignal {
     folder.items.removeWhere((element) => element.listId == id);
   }
 }
+

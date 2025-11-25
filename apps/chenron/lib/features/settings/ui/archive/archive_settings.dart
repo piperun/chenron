@@ -3,7 +3,7 @@ import "package:signals/signals_flutter.dart"; // Import signals
 import "package:chenron/features/settings/controller/config_controller.dart"; // Import controller
 // Import the specific widget (assuming it's adapted or we adapt it here)
 import "package:chenron/features/settings/ui/archive/components/archive_org_credentials.dart";
-import "package:chenron/utils/logger.dart";
+import "package:logger/logger.dart";
 
 class ArchiveSettings extends StatelessWidget {
   // Changed to StatelessWidget
@@ -97,3 +97,4 @@ class ArchiveSettings extends StatelessWidget {
     );
   }
 }
+

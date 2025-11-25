@@ -47,3 +47,4 @@ class TypeIcon extends StatelessWidget {
     );
   }
 }
+

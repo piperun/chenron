@@ -385,3 +385,4 @@ class _ErrorHighlightPainter extends CustomPainter {
         oldDelegate.validationResult != validationResult;
   }
 }
+

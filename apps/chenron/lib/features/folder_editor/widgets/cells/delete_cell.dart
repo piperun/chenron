@@ -20,3 +20,4 @@ class DeleteCell extends StatelessWidget {
     );
   }
 }
+

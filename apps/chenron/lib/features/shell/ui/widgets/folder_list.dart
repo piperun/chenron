@@ -1,5 +1,5 @@
 import "package:flutter/material.dart";
-import "package:chenron/models/db_result.dart";
+import "package:database/models/db_result.dart";
 
 class FolderList extends StatelessWidget {
   final bool isLoading;
@@ -135,3 +135,4 @@ class _FolderRow extends StatelessWidget {
     );
   }
 }
+

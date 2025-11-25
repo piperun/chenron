@@ -356,3 +356,4 @@ Future<Map<String, UrlValidationResult>> _validateUrlsInIsolateChunked(
 
   return results;
 }
+

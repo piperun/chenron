@@ -20,3 +20,4 @@ extension ChenronDirs on BaseDirectories<ChenronDir> {
   Directory get backupConfigDir => this[ChenronDir.backupConfig];
   Directory get logDir => this[ChenronDir.log];
 }
+

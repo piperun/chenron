@@ -1,12 +1,12 @@
 import "package:flutter/material.dart";
-import "package:chenron/models/item.dart";
+import "package:database/models/item.dart";
 import "package:chenron/features/viewer/state/viewer_state.dart";
 import "package:chenron/features/viewer/ui/viewer_base_item.dart";
 import "package:chenron/shared/dialogs/delete_confirmation_dialog.dart";
-import "package:chenron/database/database.dart" show AppDatabase;
-import "package:chenron/database/extensions/folder/remove.dart";
-import "package:chenron/database/extensions/link/remove.dart";
-import "package:chenron/database/extensions/operations/database_file_handler.dart";
+import "package:database/database.dart" show AppDatabase;
+import "package:database/extensions/folder/remove.dart";
+import "package:database/extensions/link/remove.dart";
+import "package:database/extensions/operations/database_file_handler.dart";
 import "package:chenron/locator.dart";
 import "package:signals/signals_flutter.dart";
 
@@ -123,3 +123,4 @@ Future<bool> deleteItem(AppDatabase db, FolderItem item) async {
       return false;
   }
 }
+

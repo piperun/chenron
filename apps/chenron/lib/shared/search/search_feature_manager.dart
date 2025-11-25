@@ -1,5 +1,5 @@
 import "dart:async";
-import "package:chenron/shared/patterns/include_options.dart";
+import "package:core/patterns/include_options.dart";
 import "package:chenron/shared/search/search_features.dart";
 import "package:chenron/shared/search/search_controller.dart";
 import "package:chenron/shared/search/search_history.dart";
@@ -113,3 +113,4 @@ class SearchFeatureManager {
     return [];
   }
 }
+

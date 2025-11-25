@@ -1,10 +1,10 @@
 import "package:chenron/shared/search/search_button.dart";
-import "package:chenron/database/extensions/folder/read.dart";
-import "package:chenron/database/extensions/operations/database_file_handler.dart";
+import "package:database/extensions/folder/read.dart";
+import "package:database/extensions/operations/database_file_handler.dart";
 import "package:chenron/features/show_folder/widgets/folder_detail_info.dart";
 import "package:chenron/features/show_folder/widgets/folder_detail_items.dart";
 import "package:chenron/locator.dart";
-import "package:chenron/models/db_result.dart" show FolderResult;
+import "package:database/models/db_result.dart" show FolderResult;
 import "package:flutter/material.dart";
 import "package:signals/signals_flutter.dart";
 
@@ -68,3 +68,4 @@ class ShowFolder extends StatelessWidget {
     );
   }
 }
+

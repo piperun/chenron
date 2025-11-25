@@ -240,3 +240,4 @@ class _HistoryModal extends StatelessWidget {
     }
   }
 }
+

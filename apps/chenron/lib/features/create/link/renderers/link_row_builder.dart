@@ -19,3 +19,4 @@ class LinkRowBuilder {
     }).toList();
   }
 }
+

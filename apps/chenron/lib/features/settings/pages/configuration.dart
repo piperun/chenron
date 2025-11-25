@@ -8,7 +8,7 @@ import "package:chenron/features/settings/ui/cache/cache_settings.dart";
 import "package:chenron/features/settings/ui/display/display_settings.dart";
 import "package:chenron/features/theme/pages/theme_settings.dart";
 import "package:chenron/locator.dart";
-import "package:chenron/utils/logger.dart";
+import "package:logger/logger.dart";
 
 class ConfigPage extends StatefulWidget {
   const ConfigPage({super.key});
@@ -213,3 +213,4 @@ class SaveSettingsButton extends StatelessWidget {
     );
   }
 }
+

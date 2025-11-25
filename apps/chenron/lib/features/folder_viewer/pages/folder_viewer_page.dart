@@ -3,18 +3,18 @@ import "dart:async" show unawaited;
 import "package:chenron/features/folder_viewer/ui/components/folder_header.dart";
 import "package:chenron/shared/item_display/filterable_item_display.dart";
 import "package:chenron/shared/dialogs/delete_confirmation_dialog.dart";
-import "package:chenron/database/extensions/folder/read.dart";
-import "package:chenron/database/extensions/folder/remove.dart";
-import "package:chenron/database/extensions/operations/database_file_handler.dart";
+import "package:database/extensions/folder/read.dart";
+import "package:database/extensions/folder/remove.dart";
+import "package:database/extensions/operations/database_file_handler.dart";
 import "package:chenron/locator.dart";
-import "package:chenron/models/db_result.dart" show FolderResult;
-import "package:chenron/models/item.dart";
-import "package:chenron/database/database.dart"
+import "package:database/models/db_result.dart" show FolderResult;
+import "package:database/models/item.dart";
+import "package:database/database.dart"
     show IncludeOptions, AppDataInclude, Folder, AppDatabase;
 import "package:chenron/shared/tag_filter/tag_filter_state.dart";
 import "package:chenron/features/folder_editor/pages/folder_editor.dart";
 import "package:signals/signals_flutter.dart";
-import "package:chenron/utils/logger.dart";
+import "package:logger/logger.dart";
 import "package:shared_preferences/shared_preferences.dart";
 import "package:chenron/features/shell/pages/root.dart"
     show globalSearchFilterSignal;
@@ -392,3 +392,4 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
     );
   }
 }
+

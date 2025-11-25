@@ -1,10 +1,10 @@
-import "package:chenron/database/database.dart";
-import "package:chenron/database/extensions/folder/create.dart";
-import "package:chenron/database/extensions/folder/read.dart";
-import "package:chenron/database/extensions/link/create.dart";
-import "package:chenron/models/db_result.dart";
-import "package:chenron/models/item.dart";
-import "package:chenron/models/metadata.dart";
+import "package:database/database.dart";
+import "package:database/extensions/folder/create.dart";
+import "package:database/extensions/folder/read.dart";
+import "package:database/extensions/link/create.dart";
+import "package:database/models/db_result.dart";
+import "package:database/models/item.dart";
+import "package:database/models/metadata.dart";
 import "folder_factory.dart";
 import "package:drift/native.dart";
 
