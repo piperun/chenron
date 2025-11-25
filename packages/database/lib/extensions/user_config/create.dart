@@ -15,6 +15,13 @@ extension UserConfigExtensions on ConfigDatabase {
           archiveOrgS3AccessKey: Value(userConfig.archiveOrgS3AccessKey),
           archiveOrgS3SecretKey: Value(userConfig.archiveOrgS3SecretKey),
           copyOnImport: Value(userConfig.copyOnImport),
+          defaultArchiveIs: Value(userConfig.defaultArchiveIs),
+          defaultArchiveOrg: Value(userConfig.defaultArchiveOrg),
+          selectedThemeType: Value(userConfig.selectedThemeType),
+          timeDisplayFormat: Value(userConfig.timeDisplayFormat),
+          itemClickAction: Value(userConfig.itemClickAction),
+          selectedThemeKey: Value(userConfig.selectedThemeKey),
+          cacheDirectory: Value(userConfig.cacheDirectory),
         );
 
         final userId = await _createUserConfigEntry(insertConfig);
@@ -82,5 +89,3 @@ extension BackupSettingsExtensions on ConfigDatabase {
     return id;
   }
 }
-
-

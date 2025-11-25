@@ -116,9 +116,7 @@ class _TagReadRepository extends BaseRepository<IncludeOptions>
       query: query,
       includeOptions: includeOptions,
       joinExp: db.tags.id,
-      searchColumn: null,
+      searchColumn: db.tags.name,
     );
   }
 }
-
-

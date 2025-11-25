@@ -7,8 +7,7 @@ import "package:database/extensions/intial_data/config_database.dart";
 import "package:basedir/directory.dart";
 
 // Export IncludeOptions from shared patterns for backward compatibility
-export "package:core/patterns/include_options.dart"
-    show IncludeOptions;
+export "package:core/patterns/include_options.dart" show IncludeOptions;
 
 part "database.g.dart";
 
@@ -86,13 +85,19 @@ class AppDatabase extends _$AppDatabase {
 class ConfigDatabase extends _$ConfigDatabase {
   static const int idLength = 30;
   bool setupOnInit;
+  final bool debugMode;
 
   ConfigDatabase({
     QueryExecutor? queryExecutor,
     String? databaseName,
     this.setupOnInit = false,
     String? customPath,
-  }) : super(queryExecutor ?? _openConnection(customPath: customPath));
+    this.debugMode = false,
+  }) : super(queryExecutor ??
+            _openConnection(
+                databaseName: databaseName ?? "config",
+                customPath: customPath,
+                debugMode: debugMode));
 
   @override
   int get schemaVersion => 2;
@@ -110,11 +115,15 @@ class ConfigDatabase extends _$ConfigDatabase {
   }
 
   static QueryExecutor _openConnection(
-      {String databaseName = "config", String? customPath}) {
+      {String databaseName = "config",
+      String? customPath,
+      bool debugMode = false}) {
     // `driftDatabase` from `package:drift_flutter` stores the database in
     // `getApplicationDocumentsDirectory()`.
     Future<String> Function()? path;
-    if (customPath != null) {
+    if (debugMode) {
+      path = null;
+    } else if (customPath != null) {
       path = () async => customPath;
     } else {
       path = () async => (await getDefaultApplicationDirectory()).path;
@@ -175,5 +184,3 @@ extension FindExtensions<Table extends HasResultSet, Row>
       });
   }
 }
-
-
