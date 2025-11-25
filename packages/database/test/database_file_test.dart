@@ -1,10 +1,10 @@
-import "package:database/database.dart";
+﻿import "package:database/database.dart";
 import "package:database/extensions/operations/database_file_handler.dart";
 import "package:database/extensions/tags/create.dart";
 import "package:database/test_support/locator.dart";
 import "package:basedir/directory.dart";
 import "package:flutter_test/flutter_test.dart";
-import "package:integration_test/integration_test.dart";
+
 import "package:path/path.dart" as p;
 import "dart:io";
 
@@ -18,7 +18,7 @@ Future<void> setUpFakeData(AppDatabase database, {int len = 5}) async {
 }
 
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  
 
   // Install fake path_provider and configure DI before any signals resolve
   setUpAll(() async {

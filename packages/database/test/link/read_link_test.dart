@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print
+﻿// ignore_for_file: avoid_print
 
 import "dart:io";
 import "package:database/models/db_result.dart" show LinkResult;

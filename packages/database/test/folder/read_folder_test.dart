@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print
+﻿// ignore_for_file: avoid_print
 
 import "package:database/models/created_ids.dart";
 import "package:database/models/db_result.dart";

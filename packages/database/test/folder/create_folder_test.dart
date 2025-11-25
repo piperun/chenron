@@ -1,13 +1,13 @@
-import "package:database/models/created_ids.dart";
+﻿import "package:database/models/created_ids.dart";
 import "package:database/models/item.dart";
 import "package:flutter_test/flutter_test.dart";
-import "package:integration_test/integration_test.dart";
+
 import "package:database/database.dart";
 import "package:database/extensions/folder/create.dart";
 import "package:chenron_mockups/chenron_mockups.dart";
 
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  
   setUpAll(() {
     installFakePathProvider();
     installTestLogger();
