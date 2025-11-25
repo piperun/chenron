@@ -59,6 +59,7 @@ class _TagFilterModalState extends State<TagFilterModal> {
     _availableSearchController.addListener(_handleAvailableSearchChanged);
 
     _activeSearchController = TextEditingController();
+    _activeSearchController.addListener(() => setState(() {}));
   }
 
   void _handleAvailableSearchChanged() {
@@ -379,4 +380,3 @@ class _TabButton extends StatelessWidget {
     );
   }
 }
-
