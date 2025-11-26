@@ -19,7 +19,7 @@ abstract class DbResult with _$DbResult {
 
   const factory DbResult.document({
     required String title,
-    required String path,
+    required String filePath,
     List<Tag>? tags,
   }) = DocumentResult;
 
@@ -43,5 +43,3 @@ abstract class DbResult with _$DbResult {
     List<String>? sharedUserIds,
   }) = UserThemeResult;
 }
-
-

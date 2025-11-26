@@ -11,7 +11,6 @@ import "package:path_provider/path_provider.dart";
 import "package:chenron_mockups/chenron_mockups.dart";
 
 void main() {
-  
   setUpAll(() {
     installFakePathProvider();
     installTestLogger();
@@ -27,12 +26,12 @@ void main() {
 
   test("AppDatabase constructor initializes with no setup memory database", () {
     final db = AppDatabase(queryExecutor: NativeDatabase.memory());
-    expect(db.schemaVersion, equals(1));
+    expect(db.schemaVersion, equals(3));
   });
 
   test("AppDatabase constructor initializes with no setup file database", () {
     final db = AppDatabase(databaseName: "test_db", debugMode: true);
-    expect(db.schemaVersion, equals(1));
+    expect(db.schemaVersion, equals(3));
   });
 
   // Helper function to remove the database
@@ -64,7 +63,3 @@ void main() {
     await removeDatabaseFile("test_database_setup");
   });
 }
-
-
-
-
