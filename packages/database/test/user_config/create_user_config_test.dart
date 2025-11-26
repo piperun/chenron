@@ -36,6 +36,8 @@ void main() {
         selectedThemeType: 0,
         timeDisplayFormat: 0,
         itemClickAction: 0,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
 
       final result = await database.createUserConfig(userConfig);
@@ -64,6 +66,8 @@ void main() {
         selectedThemeType: 1,
         timeDisplayFormat: 24,
         itemClickAction: 1,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
 
       final result = await database.createUserConfig(userConfig);
@@ -92,6 +96,8 @@ void main() {
         selectedThemeType: 0,
         timeDisplayFormat: 0,
         itemClickAction: 0,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
 
       final result = await database.createUserConfig(userConfig);
@@ -117,6 +123,8 @@ void main() {
         selectedThemeType: 0,
         timeDisplayFormat: 0,
         itemClickAction: 0,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
       final configResult = await database.createUserConfig(userConfig);
 
@@ -158,6 +166,8 @@ void main() {
         selectedThemeType: 0,
         timeDisplayFormat: 0,
         itemClickAction: 0,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
       final configResult = await database.createUserConfig(userConfig);
 
@@ -192,6 +202,8 @@ void main() {
         selectedThemeType: 0,
         timeDisplayFormat: 0,
         itemClickAction: 0,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
       final configResult = await database.createUserConfig(userConfig);
 

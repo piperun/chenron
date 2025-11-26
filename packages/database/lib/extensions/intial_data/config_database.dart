@@ -5,6 +5,50 @@ import "package:logger/logger.dart";
 import "package:drift/drift.dart";
 
 extension ConfigDatabaseInit on ConfigDatabase {
+  Future<void> setupConfigEnums() async {
+    await _setupTypes<ThemeType>(themeTypes, ThemeType.values);
+    await _setupTypes<TimeDisplayFormat>(
+        timeDisplayFormats, TimeDisplayFormat.values);
+    await _setupTypes<ItemClickAction>(
+        itemClickActions, ItemClickAction.values);
+    await _setupTypes<SeedType>(seedTypes, SeedType.values);
+  }
+
+  Future<void> _setupTypes<T extends Enum>(
+      TableInfo table, List<T> enumValues) async {
+    for (var type in enumValues) {
+      final companion = _factoryCompanion(table, type);
+      await into(table).insertOnConflictUpdate(companion);
+    }
+  }
+
+  Insertable _factoryCompanion(TableInfo table, Enum type) {
+    switch (table.actualTableName) {
+      case "theme_types":
+        return ThemeTypesCompanion.insert(
+          id: Value(type.index),
+          name: type.name,
+        );
+      case "time_display_formats":
+        return TimeDisplayFormatsCompanion.insert(
+          id: Value(type.index),
+          name: type.name,
+        );
+      case "item_click_actions":
+        return ItemClickActionsCompanion.insert(
+          id: Value(type.index),
+          name: type.name,
+        );
+      case "seed_types":
+        return SeedTypesCompanion.insert(
+          id: Value(type.index),
+          name: type.name,
+        );
+      default:
+        throw ArgumentError("Unsupported table: ${table.actualTableName}");
+    }
+  }
+
   Future<UserConfigResultIds> setupUserConfig() async {
     final userConfigCreatedId = await _setupUserConfigEntry();
 
@@ -93,5 +137,3 @@ extension ConfigDatabaseInit on ConfigDatabase {
     }
   }
 }
-
-

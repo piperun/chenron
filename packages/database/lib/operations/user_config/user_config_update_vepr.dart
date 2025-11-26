@@ -109,13 +109,19 @@ class UserConfigUpdateVEPR extends VEPROperation<
           ? Value(input.defaultArchiveOrg!)
           : const Value.absent(),
       archiveOrgS3AccessKey: input.archiveOrgS3AccessKey != null
-          ? Value(input.archiveOrgS3AccessKey) // Allow setting to null/empty
+          ? (input.archiveOrgS3AccessKey!.isEmpty
+              ? const Value(null)
+              : Value(input.archiveOrgS3AccessKey))
           : const Value.absent(),
       archiveOrgS3SecretKey: input.archiveOrgS3SecretKey != null
-          ? Value(input.archiveOrgS3SecretKey) // Allow setting to null/empty
+          ? (input.archiveOrgS3SecretKey!.isEmpty
+              ? const Value(null)
+              : Value(input.archiveOrgS3SecretKey))
           : const Value.absent(),
       selectedThemeKey: input.selectedThemeKey != null
-          ? Value(input.selectedThemeKey)
+          ? (input.selectedThemeKey!.isEmpty
+              ? const Value(null)
+              : Value(input.selectedThemeKey))
           : const Value.absent(),
       selectedThemeType: input.selectedThemeType != null
           ? Value(input.selectedThemeType!.index)
@@ -127,7 +133,9 @@ class UserConfigUpdateVEPR extends VEPROperation<
           ? Value(input.itemClickAction!)
           : const Value.absent(),
       cacheDirectory: input.cacheDirectory != null
-          ? Value(input.cacheDirectory)
+          ? (input.cacheDirectory!.isEmpty
+              ? const Value(null)
+              : Value(input.cacheDirectory))
           : const Value.absent(),
     );
 
@@ -186,8 +194,8 @@ class UserConfigUpdateVEPR extends VEPROperation<
               primaryColor: Value(themeToUpdate.primaryColor),
               secondaryColor: Value(themeToUpdate.secondaryColor),
               tertiaryColor: Value(themeToUpdate.tertiaryColor),
-              // REMOVE old 'theme' field
-              // theme: Value(themeToUpdate.theme),
+              seedType: Value(themeToUpdate.seedType),
+              updatedAt: Value(DateTime.now()),
             );
             // --- End Companion Update ---
 
@@ -244,5 +252,3 @@ class UserConfigUpdateVEPR extends VEPROperation<
     return procResult;
   }
 }
-
-

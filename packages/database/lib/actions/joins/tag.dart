@@ -1,6 +1,6 @@
 import "package:database/database.dart";
 import "package:database/extensions/base_query_builder.dart";
-import "package:database/schema/items_schema.dart";
+import "package:database/schema/app_schema.dart";
 import "package:drift/drift.dart";
 
 class TagJoins implements RowJoins<Tags, Tag> {
@@ -15,5 +15,3 @@ class TagJoins implements RowJoins<Tags, Tag> {
             db.tags, db.tags.id.equalsExp(db.metadataRecords.metadataId)),
       ];
 }
-
-

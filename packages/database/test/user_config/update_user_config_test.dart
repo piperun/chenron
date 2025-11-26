@@ -34,6 +34,8 @@ void main() {
       selectedThemeType: 0,
       timeDisplayFormat: 0,
       itemClickAction: 0,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
     );
     final result = await database.createUserConfig(userConfig);
     userConfigId = result.userConfigId;
@@ -99,7 +101,7 @@ void main() {
       );
 
       final config = await database.getUserConfig();
-      expect(config!.data.selectedThemeType, equals(ThemeType.system));
+      expect(config!.data.selectedThemeType, equals(ThemeType.system.index));
     });
 
     test('updates timeDisplayFormat', () async {
@@ -139,7 +141,10 @@ void main() {
         name: 'New Theme',
         primaryColor: 0xFFFF0000,
         secondaryColor: 0xFF00FF00,
+        tertiaryColor: null,
         seedType: 0,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
 
       final result = await database.updateUserConfig(
@@ -211,7 +216,7 @@ void main() {
       // Then clear it by setting to null
       await database.updateUserConfig(
         id: userConfigId,
-        cacheDirectory: null,
+        cacheDirectory: '',
       );
 
       final config = await database.getUserConfig();

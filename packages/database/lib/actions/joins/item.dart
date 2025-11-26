@@ -1,6 +1,6 @@
 import "package:database/database.dart";
 import "package:database/extensions/base_query_builder.dart";
-import "package:database/schema/items_schema.dart";
+import "package:database/schema/app_schema.dart";
 import "package:database/models/item.dart";
 import "package:drift/drift.dart";
 
@@ -20,9 +20,8 @@ class ItemJoins implements RowJoins<Items, FolderItem> {
         leftOuterJoin(db.links, db.links.id.equalsExp(db.items.itemId)),
         leftOuterJoin(db.documents, db.documents.id.equalsExp(db.items.itemId)),
         // Load tags from the source link/document, not from item metadata
-        leftOuterJoin(linkMetadata, linkMetadata.itemId.equalsExp(db.items.itemId)),
+        leftOuterJoin(
+            linkMetadata, linkMetadata.itemId.equalsExp(db.items.itemId)),
         leftOuterJoin(linkTags, linkTags.id.equalsExp(linkMetadata.metadataId)),
       ];
 }
-
-

@@ -1,7 +1,7 @@
 import "package:database/schema/user_config_schema.dart";
 import "package:drift/drift.dart";
 import "package:drift_flutter/drift_flutter.dart";
-import "package:database/schema/items_schema.dart";
+import "package:database/schema/app_schema.dart";
 import "package:database/extensions/intial_data/app_database.dart";
 import "package:database/extensions/intial_data/config_database.dart";
 import "package:basedir/directory.dart";
@@ -16,6 +16,12 @@ enum AppDataInclude { items, tags }
 enum ConfigIncludes { archiveSettings, backupSettings, userThemes, userConfig }
 
 enum ThemeType { custom, system }
+
+enum TimeDisplayFormat { relative, absolute }
+
+enum ItemClickAction { openItem, showDetails }
+
+enum SeedType { none, primary, primaryAndSecondary, all }
 
 enum IdType { linkId, documentId, tagId, folderId }
 
@@ -81,6 +87,10 @@ class AppDatabase extends _$AppDatabase {
   UserConfigs,
   UserThemes,
   BackupSettings,
+  ThemeTypes,
+  TimeDisplayFormats,
+  ItemClickActions,
+  SeedTypes,
 ])
 class ConfigDatabase extends _$ConfigDatabase {
   static const int idLength = 30;
@@ -100,15 +110,37 @@ class ConfigDatabase extends _$ConfigDatabase {
                 debugMode: debugMode));
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration {
     return MigrationStrategy(
+      onCreate: (migrator) async {
+        await migrator.createAll();
+        if (setupOnInit) {
+          await setupConfigEnums();
+        }
+      },
       onUpgrade: (migrator, from, to) async {
         if (from < 2) {
           // Add itemClickAction column with default value 0 (Open Item)
           await migrator.addColumn(userConfigs, userConfigs.itemClickAction);
+        }
+        if (from < 3) {
+          // Schema v3: Add timestamps and enum tables
+          await migrator.addColumn(userConfigs, userConfigs.createdAt);
+          await migrator.addColumn(userConfigs, userConfigs.updatedAt);
+          await migrator.addColumn(userThemes, userThemes.createdAt);
+          await migrator.addColumn(userThemes, userThemes.updatedAt);
+
+          // Create enum tables
+          await migrator.createTable(themeTypes);
+          await migrator.createTable(timeDisplayFormats);
+          await migrator.createTable(itemClickActions);
+          await migrator.createTable(seedTypes);
+
+          // Populate enum tables
+          await setupConfigEnums();
         }
       },
     );
@@ -137,6 +169,7 @@ class ConfigDatabase extends _$ConfigDatabase {
 
   Future<void> setup() async {
     if (setupOnInit) {
+      await setupConfigEnums();
       await setupUserConfig();
     }
   }

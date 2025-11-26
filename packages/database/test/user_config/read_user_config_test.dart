@@ -40,6 +40,8 @@ void main() {
         selectedThemeType: 0,
         timeDisplayFormat: 0,
         itemClickAction: 0,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
       await database.createUserConfig(userConfig);
 
@@ -68,6 +70,8 @@ void main() {
         selectedThemeType: 0,
         timeDisplayFormat: 0,
         itemClickAction: 0,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
       final config2 = UserConfig(
         id: '',
@@ -78,6 +82,8 @@ void main() {
         selectedThemeType: 0,
         timeDisplayFormat: 0,
         itemClickAction: 0,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
       await database.createUserConfig(config1);
       await database.createUserConfig(config2);
@@ -101,6 +107,8 @@ void main() {
         selectedThemeType: 0,
         timeDisplayFormat: 0,
         itemClickAction: 0,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
       await database.createUserConfig(userConfig);
 
@@ -136,6 +144,8 @@ void main() {
         selectedThemeType: 0,
         timeDisplayFormat: 0,
         itemClickAction: 0,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
       await database.createUserConfig(userConfig);
 
@@ -161,10 +171,12 @@ void main() {
         selectedThemeType: 0,
         timeDisplayFormat: 0,
         itemClickAction: 0,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
       final configResult = await database.createUserConfig(userConfig);
       // Create a theme manually
-      final themeId = 'test-theme-id-12345678901234';
+      final themeId = 'test-theme-id-1234567890123456';
       await database.into(database.userThemes).insert(
             UserThemesCompanion.insert(
               id: themeId,
@@ -201,6 +213,8 @@ void main() {
         selectedThemeType: 0,
         timeDisplayFormat: 0,
         itemClickAction: 0,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
       final configResult = await database.createUserConfig(userConfig);
 
@@ -244,6 +258,8 @@ void main() {
         selectedThemeType: 0,
         timeDisplayFormat: 0,
         itemClickAction: 0,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
       final configResult = await database.createUserConfig(userConfig);
 
@@ -289,6 +305,8 @@ void main() {
         selectedThemeType: 0,
         timeDisplayFormat: 0,
         itemClickAction: 0,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
       final configResult = await database.createUserConfig(userConfig);
 

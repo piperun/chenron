@@ -32,6 +32,8 @@ void main() {
       selectedThemeType: 0,
       timeDisplayFormat: 0,
       itemClickAction: 0,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
     );
     final result = await database.createUserConfig(userConfig);
     userConfigId = result.userConfigId;
@@ -52,6 +54,8 @@ void main() {
         primaryColor: 0xFF0077BE,
         secondaryColor: 0xFF00A8E8,
         seedType: 0,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
 
       final results = await database.createUserTheme(
@@ -79,6 +83,8 @@ void main() {
           primaryColor: 0xFFFF0000,
           secondaryColor: 0xFFFF5555,
           seedType: 0,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
         ),
         UserTheme(
           id: '',
@@ -87,6 +93,8 @@ void main() {
           primaryColor: 0xFF00FF00,
           secondaryColor: 0xFF55FF55,
           seedType: 0,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
         ),
         UserTheme(
           id: '',
@@ -95,6 +103,8 @@ void main() {
           primaryColor: 0xFF0000FF,
           secondaryColor: 0xFF5555FF,
           seedType: 0,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
         ),
       ];
 
@@ -123,6 +133,8 @@ void main() {
         secondaryColor: 0xFF654321,
         tertiaryColor: 0xFFABCDEF,
         seedType: 1,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
 
       final results = await database.createUserTheme(
@@ -149,6 +161,8 @@ void main() {
         primaryColor: 0xFF000000,
         secondaryColor: 0xFFFFFFFF,
         seedType: 0,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
 
       final results = await database.createUserTheme(
@@ -187,6 +201,8 @@ void main() {
           primaryColor: 0xFF111111,
           secondaryColor: 0xFF222222,
           seedType: 0,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
         ),
         UserTheme(
           id: '',
@@ -195,6 +211,8 @@ void main() {
           primaryColor: 0xFF333333,
           secondaryColor: 0xFF444444,
           seedType: 0,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
         ),
       ];
 
@@ -219,6 +237,8 @@ void main() {
         primaryColor: 0xFFAAAAAA,
         secondaryColor: 0xFFBBBBBB,
         seedType: 0,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
 
       final results = await database.createUserTheme(
@@ -243,6 +263,8 @@ void main() {
         primaryColor: 0xFF123ABC,
         secondaryColor: 0xFFDEF456,
         seedType: 0,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
 
       final results = await database.createUserTheme(
@@ -266,6 +288,8 @@ void main() {
           primaryColor: 0xFFFFFFFF,
           secondaryColor: 0xFF000000,
           seedType: 0,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
         ),
         UserTheme(
           id: '',
@@ -274,6 +298,8 @@ void main() {
           primaryColor: 0xFFFFFFFF,
           secondaryColor: 0xFF000000,
           seedType: 0,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
         ),
         UserTheme(
           id: '',
@@ -282,6 +308,8 @@ void main() {
           primaryColor: 0x00FFFFFF,
           secondaryColor: 0xFF000000,
           seedType: 0,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
         ),
       ];
 

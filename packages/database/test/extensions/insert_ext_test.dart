@@ -6,7 +6,6 @@ import 'package:database/models/metadata.dart';
 import 'package:database/models/item.dart';
 import 'package:database/models/created_ids.dart';
 import 'package:chenron_mockups/chenron_mockups.dart';
-import 'package:drift/drift.dart' hide isNotNull, isNull;
 
 void main() {
   setUpAll(() {
@@ -183,9 +182,9 @@ void main() {
         results = database.insertDocuments(
           batch: batch,
           docs: [
-            {'title': 'Doc 1', 'body': 'Body 1'},
-            {'title': 'Doc 2', 'body': 'Body 2'},
-            {'title': 'Doc 3', 'body': 'Body 3'},
+            {'title': 'Document 1', 'body': 'Body 1'},
+            {'title': 'Document 2', 'body': 'Body 2'},
+            {'title': 'Document 3', 'body': 'Body 3'},
           ],
         );
       });
@@ -208,15 +207,15 @@ void main() {
       expect(results, isEmpty);
     });
 
-    test('handles missing title or body', () async {
+    test('handles empty body with valid titles', () async {
       late List<DocumentResultIds> results;
-      await database.batch((batch) async {
+      await database.batch((batch) {
         results = database.insertDocuments(
           batch: batch,
           docs: [
-            {}, // No title or body
-            {'title': 'Only Title'},
-            {'body': 'Only Body'},
+            {'title': 'EmptyBody', 'body': ''}, // Min length title (6 chars)
+            {'title': 'Valid1', 'body': 'body-2'}, // Valid title
+            {'title': 'Valid2', 'body': 'body-3'}, // Both present and valid
           ],
         );
       });
@@ -224,12 +223,16 @@ void main() {
       expect(results.length, equals(3));
 
       final docs = await database.select(database.documents).get();
-      expect(docs[0].title, equals(''));
+
+      // Verify all three documents were inserted
+      expect(docs[0].title, equals('EmptyBody'));
       expect(docs[0].path, equals(''));
-      expect(docs[1].title, equals('Only Title'));
-      expect(docs[1].path, equals(''));
-      expect(docs[2].title, equals(''));
-      expect(docs[2].path, equals('Only Body'));
+
+      expect(docs[1].title, equals('Valid1'));
+      expect(docs[1].path, equals('body-2'));
+
+      expect(docs[2].title, equals('Valid2'));
+      expect(docs[2].path, equals('body-3'));
     });
   });
 
@@ -479,117 +482,117 @@ void main() {
   });
 
   group('ConfigDatabaseInserts.insertUserThemes()', () {
-    test('inserts single user theme', () async {
-      final configDb = ConfigDatabase(
+    late ConfigDatabase configDb;
+
+    setUpAll(() {
+      configDb = ConfigDatabase(
         databaseName: "test_config_db",
+        debugMode: true,
       );
+    });
 
-      try {
-        final userConfigId = configDb.generateId();
+    tearDown(() async {
+      await configDb.delete(configDb.userThemes).go();
+      await configDb.delete(configDb.userConfigs).go();
+    });
 
-        // Create user config first
-        await configDb.into(configDb.userConfigs).insert(
-              UserConfigsCompanion.insert(id: userConfigId),
-            );
+    tearDownAll(() async {
+      await configDb.close();
+    });
 
-        late List<UserThemeResultIds> results;
-        await configDb.batch((batch) async {
-          results = await configDb.insertUserThemes(
-            batch: batch,
-            themes: [
-              UserTheme(
-                id: '',
-                userConfigId: userConfigId,
-                name: 'Test Theme',
-                primaryColor: 0xFFFF0000,
-                secondaryColor: 0xFF00FF00,
-                seedType: 0,
-              ),
-            ],
-            userConfigId: userConfigId,
+    test('inserts single user theme', () async {
+      final userConfigId = configDb.generateId();
+
+      // Create user config first
+      await configDb.into(configDb.userConfigs).insert(
+            UserConfigsCompanion.insert(id: userConfigId),
           );
-        });
 
-        expect(results.length, equals(1));
-        expect(results.first.userThemeId, isNotEmpty);
-        expect(results.first.userConfigId, equals(userConfigId));
+      late List<UserThemeResultIds> results;
+      await configDb.batch((batch) async {
+        results = await configDb.insertUserThemes(
+          batch: batch,
+          themes: [
+            UserTheme(
+              id: '',
+              userConfigId: userConfigId,
+              name: 'Test Theme',
+              primaryColor: 0xFFFF0000,
+              secondaryColor: 0xFF00FF00,
+              seedType: 0,
+              createdAt: DateTime.now(),
+              updatedAt: DateTime.now(),
+            ),
+          ],
+          userConfigId: userConfigId,
+        );
+      });
 
-        final themes = await configDb.select(configDb.userThemes).get();
-        expect(themes.length, equals(1));
-        expect(themes.first.name, equals('Test Theme'));
-      } finally {
-        await configDb.close();
-      }
+      expect(results.length, equals(1));
+      expect(results.first.userThemeId, isNotEmpty);
+      expect(results.first.userConfigId, equals(userConfigId));
+
+      final themes = await configDb.select(configDb.userThemes).get();
+      expect(themes.length, equals(1));
+      expect(themes.first.name, equals('Test Theme'));
     });
 
     test('inserts multiple user themes', () async {
-      final configDb = ConfigDatabase(
-        databaseName: "test_config_db",
-      );
+      final userConfigId = configDb.generateId();
 
-      try {
-        final userConfigId = configDb.generateId();
-
-        await configDb.into(configDb.userConfigs).insert(
-              UserConfigsCompanion.insert(id: userConfigId),
-            );
-
-        late List<UserThemeResultIds> results;
-        await configDb.batch((batch) async {
-          results = await configDb.insertUserThemes(
-            batch: batch,
-            themes: [
-              UserTheme(
-                id: '',
-                userConfigId: userConfigId,
-                name: 'Theme 1',
-                primaryColor: 0xFF111111,
-                secondaryColor: 0xFF222222,
-                seedType: 0,
-              ),
-              UserTheme(
-                id: '',
-                userConfigId: userConfigId,
-                name: 'Theme 2',
-                primaryColor: 0xFF333333,
-                secondaryColor: 0xFF444444,
-                seedType: 0,
-              ),
-            ],
-            userConfigId: userConfigId,
+      await configDb.into(configDb.userConfigs).insert(
+            UserConfigsCompanion.insert(id: userConfigId),
           );
-        });
 
-        expect(results.length, equals(2));
+      late List<UserThemeResultIds> results;
+      await configDb.batch((batch) async {
+        results = await configDb.insertUserThemes(
+          batch: batch,
+          themes: [
+            UserTheme(
+              id: '',
+              userConfigId: userConfigId,
+              name: 'Theme 1',
+              primaryColor: 0xFF111111,
+              secondaryColor: 0xFF222222,
+              seedType: 0,
+              createdAt: DateTime.now(),
+              updatedAt: DateTime.now(),
+            ),
+            UserTheme(
+              id: '',
+              userConfigId: userConfigId,
+              name: 'Theme 2',
+              primaryColor: 0xFF333333,
+              secondaryColor: 0xFF444444,
+              seedType: 0,
+              createdAt: DateTime.now(),
+              updatedAt: DateTime.now(),
+            ),
+          ],
+          userConfigId: userConfigId,
+        );
+      });
 
-        final themes = await configDb.select(configDb.userThemes).get();
-        expect(themes.length, equals(2));
-      } finally {
-        await configDb.close();
-      }
+      expect(results.length, equals(2));
+
+      final themes = await configDb.select(configDb.userThemes).get();
+      expect(themes.length, equals(2));
     });
 
     test('handles empty theme list', () async {
-      final configDb = ConfigDatabase(
-        databaseName: "test_config_db",
-      );
+      final userConfigId = configDb.generateId();
 
-      try {
-        final userConfigId = configDb.generateId();
+      late List<UserThemeResultIds> results;
+      await configDb.batch((batch) async {
+        results = await configDb.insertUserThemes(
+          batch: batch,
+          themes: [],
+          userConfigId: userConfigId,
+        );
+      });
 
-        late List<UserThemeResultIds> results;
-        await configDb.batch((batch) async {
-          results = await configDb.insertUserThemes(
-            batch: batch,
-            themes: [],
-            userConfigId: userConfigId,
-          );
-        });
-
-        expect(results, isEmpty);
-      } finally {
-        await configDb.close();
-      }
+      expect(results, isEmpty);
     });
   });
 }
