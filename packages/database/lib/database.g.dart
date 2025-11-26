@@ -24,6 +24,14 @@ class $FoldersTable extends Folders with TableInfo<$FoldersTable, Folder> {
       type: DriftSqlType.dateTime,
       requiredDuringInsert: false,
       defaultValue: currentDateAndTime);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+      'updated_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
   static const VerificationMeta _titleMeta = const VerificationMeta('title');
   @override
   late final GeneratedColumn<String> title = GeneratedColumn<String>(
@@ -42,7 +50,8 @@ class $FoldersTable extends Folders with TableInfo<$FoldersTable, Folder> {
       type: DriftSqlType.string,
       requiredDuringInsert: true);
   @override
-  List<GeneratedColumn> get $columns => [id, createdAt, title, description];
+  List<GeneratedColumn> get $columns =>
+      [id, createdAt, updatedAt, title, description];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -61,6 +70,10 @@ class $FoldersTable extends Folders with TableInfo<$FoldersTable, Folder> {
     if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
     }
     if (data.containsKey('title')) {
       context.handle(
@@ -89,6 +102,8 @@ class $FoldersTable extends Folders with TableInfo<$FoldersTable, Folder> {
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
       createdAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
       title: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
       description: attachedDatabase.typeMapping
@@ -105,11 +120,13 @@ class $FoldersTable extends Folders with TableInfo<$FoldersTable, Folder> {
 class Folder extends DataClass implements Insertable<Folder> {
   final String id;
   final DateTime createdAt;
+  final DateTime updatedAt;
   final String title;
   final String description;
   const Folder(
       {required this.id,
       required this.createdAt,
+      required this.updatedAt,
       required this.title,
       required this.description});
   @override
@@ -117,6 +134,7 @@ class Folder extends DataClass implements Insertable<Folder> {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
     map['title'] = Variable<String>(title);
     map['description'] = Variable<String>(description);
     return map;
@@ -126,6 +144,7 @@ class Folder extends DataClass implements Insertable<Folder> {
     return FoldersCompanion(
       id: Value(id),
       createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
       title: Value(title),
       description: Value(description),
     );
@@ -137,6 +156,7 @@ class Folder extends DataClass implements Insertable<Folder> {
     return Folder(
       id: serializer.fromJson<String>(json['id']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       title: serializer.fromJson<String>(json['title']),
       description: serializer.fromJson<String>(json['description']),
     );
@@ -147,6 +167,7 @@ class Folder extends DataClass implements Insertable<Folder> {
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
       'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'title': serializer.toJson<String>(title),
       'description': serializer.toJson<String>(description),
     };
@@ -155,11 +176,13 @@ class Folder extends DataClass implements Insertable<Folder> {
   Folder copyWith(
           {String? id,
           DateTime? createdAt,
+          DateTime? updatedAt,
           String? title,
           String? description}) =>
       Folder(
         id: id ?? this.id,
         createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
         title: title ?? this.title,
         description: description ?? this.description,
       );
@@ -167,6 +190,7 @@ class Folder extends DataClass implements Insertable<Folder> {
     return Folder(
       id: data.id.present ? data.id.value : this.id,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       title: data.title.present ? data.title.value : this.title,
       description:
           data.description.present ? data.description.value : this.description,
@@ -178,6 +202,7 @@ class Folder extends DataClass implements Insertable<Folder> {
     return (StringBuffer('Folder(')
           ..write('id: $id, ')
           ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('title: $title, ')
           ..write('description: $description')
           ..write(')'))
@@ -185,13 +210,14 @@ class Folder extends DataClass implements Insertable<Folder> {
   }
 
   @override
-  int get hashCode => Object.hash(id, createdAt, title, description);
+  int get hashCode => Object.hash(id, createdAt, updatedAt, title, description);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Folder &&
           other.id == this.id &&
           other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
           other.title == this.title &&
           other.description == this.description);
 }
@@ -199,12 +225,14 @@ class Folder extends DataClass implements Insertable<Folder> {
 class FoldersCompanion extends UpdateCompanion<Folder> {
   final Value<String> id;
   final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
   final Value<String> title;
   final Value<String> description;
   final Value<int> rowid;
   const FoldersCompanion({
     this.id = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.title = const Value.absent(),
     this.description = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -212,6 +240,7 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
   FoldersCompanion.insert({
     required String id,
     this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     required String title,
     required String description,
     this.rowid = const Value.absent(),
@@ -221,6 +250,7 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
   static Insertable<Folder> custom({
     Expression<String>? id,
     Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
     Expression<String>? title,
     Expression<String>? description,
     Expression<int>? rowid,
@@ -228,6 +258,7 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
       if (title != null) 'title': title,
       if (description != null) 'description': description,
       if (rowid != null) 'rowid': rowid,
@@ -237,12 +268,14 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
   FoldersCompanion copyWith(
       {Value<String>? id,
       Value<DateTime>? createdAt,
+      Value<DateTime>? updatedAt,
       Value<String>? title,
       Value<String>? description,
       Value<int>? rowid}) {
     return FoldersCompanion(
       id: id ?? this.id,
       createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
       title: title ?? this.title,
       description: description ?? this.description,
       rowid: rowid ?? this.rowid,
@@ -257,6 +290,9 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
     }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
     if (title.present) {
       map['title'] = Variable<String>(title.value);
@@ -275,6 +311,7 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
     return (StringBuffer('FoldersCompanion(')
           ..write('id: $id, ')
           ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('title: $title, ')
           ..write('description: $description, ')
           ..write('rowid: $rowid')
@@ -684,23 +721,51 @@ class $DocumentsTable extends Documents
       type: DriftSqlType.dateTime,
       requiredDuringInsert: false,
       defaultValue: currentDateAndTime);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+      'updated_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
   static const VerificationMeta _titleMeta = const VerificationMeta('title');
   @override
   late final GeneratedColumn<String> title = GeneratedColumn<String>(
       'title', aliasedName, false,
       additionalChecks:
-          GeneratedColumn.checkTextLength(minTextLength: 6, maxTextLength: 30),
+          GeneratedColumn.checkTextLength(minTextLength: 6, maxTextLength: 100),
       type: DriftSqlType.string,
       requiredDuringInsert: true);
-  static const VerificationMeta _pathMeta = const VerificationMeta('path');
+  static const VerificationMeta _filePathMeta =
+      const VerificationMeta('filePath');
   @override
-  late final GeneratedColumn<String> path = GeneratedColumn<String>(
-      'path', aliasedName, false,
+  late final GeneratedColumn<String> filePath = GeneratedColumn<String>(
+      'file_path', aliasedName, false,
       type: DriftSqlType.string,
       requiredDuringInsert: true,
       defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'));
+  static const VerificationMeta _mimeTypeMeta =
+      const VerificationMeta('mimeType');
   @override
-  List<GeneratedColumn> get $columns => [id, createdAt, title, path];
+  late final GeneratedColumn<String> mimeType = GeneratedColumn<String>(
+      'mime_type', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _fileSizeMeta =
+      const VerificationMeta('fileSize');
+  @override
+  late final GeneratedColumn<int> fileSize = GeneratedColumn<int>(
+      'file_size', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _checksumMeta =
+      const VerificationMeta('checksum');
+  @override
+  late final GeneratedColumn<String> checksum = GeneratedColumn<String>(
+      'checksum', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, createdAt, updatedAt, title, filePath, mimeType, fileSize, checksum];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -720,17 +785,35 @@ class $DocumentsTable extends Documents
       context.handle(_createdAtMeta,
           createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
     }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    }
     if (data.containsKey('title')) {
       context.handle(
           _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
     } else if (isInserting) {
       context.missing(_titleMeta);
     }
-    if (data.containsKey('path')) {
-      context.handle(
-          _pathMeta, path.isAcceptableOrUnknown(data['path']!, _pathMeta));
+    if (data.containsKey('file_path')) {
+      context.handle(_filePathMeta,
+          filePath.isAcceptableOrUnknown(data['file_path']!, _filePathMeta));
     } else if (isInserting) {
-      context.missing(_pathMeta);
+      context.missing(_filePathMeta);
+    }
+    if (data.containsKey('mime_type')) {
+      context.handle(_mimeTypeMeta,
+          mimeType.isAcceptableOrUnknown(data['mime_type']!, _mimeTypeMeta));
+    } else if (isInserting) {
+      context.missing(_mimeTypeMeta);
+    }
+    if (data.containsKey('file_size')) {
+      context.handle(_fileSizeMeta,
+          fileSize.isAcceptableOrUnknown(data['file_size']!, _fileSizeMeta));
+    }
+    if (data.containsKey('checksum')) {
+      context.handle(_checksumMeta,
+          checksum.isAcceptableOrUnknown(data['checksum']!, _checksumMeta));
     }
     return context;
   }
@@ -745,10 +828,18 @@ class $DocumentsTable extends Documents
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
       createdAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
       title: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
-      path: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}path'])!,
+      filePath: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}file_path'])!,
+      mimeType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}mime_type'])!,
+      fileSize: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}file_size']),
+      checksum: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}checksum']),
     );
   }
 
@@ -761,20 +852,36 @@ class $DocumentsTable extends Documents
 class Document extends DataClass implements Insertable<Document> {
   final String id;
   final DateTime createdAt;
+  final DateTime updatedAt;
   final String title;
-  final String path;
+  final String filePath;
+  final String mimeType;
+  final int? fileSize;
+  final String? checksum;
   const Document(
       {required this.id,
       required this.createdAt,
+      required this.updatedAt,
       required this.title,
-      required this.path});
+      required this.filePath,
+      required this.mimeType,
+      this.fileSize,
+      this.checksum});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
     map['title'] = Variable<String>(title);
-    map['path'] = Variable<String>(path);
+    map['file_path'] = Variable<String>(filePath);
+    map['mime_type'] = Variable<String>(mimeType);
+    if (!nullToAbsent || fileSize != null) {
+      map['file_size'] = Variable<int>(fileSize);
+    }
+    if (!nullToAbsent || checksum != null) {
+      map['checksum'] = Variable<String>(checksum);
+    }
     return map;
   }
 
@@ -782,8 +889,16 @@ class Document extends DataClass implements Insertable<Document> {
     return DocumentsCompanion(
       id: Value(id),
       createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
       title: Value(title),
-      path: Value(path),
+      filePath: Value(filePath),
+      mimeType: Value(mimeType),
+      fileSize: fileSize == null && nullToAbsent
+          ? const Value.absent()
+          : Value(fileSize),
+      checksum: checksum == null && nullToAbsent
+          ? const Value.absent()
+          : Value(checksum),
     );
   }
 
@@ -793,8 +908,12 @@ class Document extends DataClass implements Insertable<Document> {
     return Document(
       id: serializer.fromJson<String>(json['id']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       title: serializer.fromJson<String>(json['title']),
-      path: serializer.fromJson<String>(json['path']),
+      filePath: serializer.fromJson<String>(json['filePath']),
+      mimeType: serializer.fromJson<String>(json['mimeType']),
+      fileSize: serializer.fromJson<int?>(json['fileSize']),
+      checksum: serializer.fromJson<String?>(json['checksum']),
     );
   }
   @override
@@ -803,25 +922,44 @@ class Document extends DataClass implements Insertable<Document> {
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
       'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'title': serializer.toJson<String>(title),
-      'path': serializer.toJson<String>(path),
+      'filePath': serializer.toJson<String>(filePath),
+      'mimeType': serializer.toJson<String>(mimeType),
+      'fileSize': serializer.toJson<int?>(fileSize),
+      'checksum': serializer.toJson<String?>(checksum),
     };
   }
 
   Document copyWith(
-          {String? id, DateTime? createdAt, String? title, String? path}) =>
+          {String? id,
+          DateTime? createdAt,
+          DateTime? updatedAt,
+          String? title,
+          String? filePath,
+          String? mimeType,
+          Value<int?> fileSize = const Value.absent(),
+          Value<String?> checksum = const Value.absent()}) =>
       Document(
         id: id ?? this.id,
         createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
         title: title ?? this.title,
-        path: path ?? this.path,
+        filePath: filePath ?? this.filePath,
+        mimeType: mimeType ?? this.mimeType,
+        fileSize: fileSize.present ? fileSize.value : this.fileSize,
+        checksum: checksum.present ? checksum.value : this.checksum,
       );
   Document copyWithCompanion(DocumentsCompanion data) {
     return Document(
       id: data.id.present ? data.id.value : this.id,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       title: data.title.present ? data.title.value : this.title,
-      path: data.path.present ? data.path.value : this.path,
+      filePath: data.filePath.present ? data.filePath.value : this.filePath,
+      mimeType: data.mimeType.present ? data.mimeType.value : this.mimeType,
+      fileSize: data.fileSize.present ? data.fileSize.value : this.fileSize,
+      checksum: data.checksum.present ? data.checksum.value : this.checksum,
     );
   }
 
@@ -830,58 +968,88 @@ class Document extends DataClass implements Insertable<Document> {
     return (StringBuffer('Document(')
           ..write('id: $id, ')
           ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('title: $title, ')
-          ..write('path: $path')
+          ..write('filePath: $filePath, ')
+          ..write('mimeType: $mimeType, ')
+          ..write('fileSize: $fileSize, ')
+          ..write('checksum: $checksum')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, createdAt, title, path);
+  int get hashCode => Object.hash(
+      id, createdAt, updatedAt, title, filePath, mimeType, fileSize, checksum);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Document &&
           other.id == this.id &&
           other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
           other.title == this.title &&
-          other.path == this.path);
+          other.filePath == this.filePath &&
+          other.mimeType == this.mimeType &&
+          other.fileSize == this.fileSize &&
+          other.checksum == this.checksum);
 }
 
 class DocumentsCompanion extends UpdateCompanion<Document> {
   final Value<String> id;
   final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
   final Value<String> title;
-  final Value<String> path;
+  final Value<String> filePath;
+  final Value<String> mimeType;
+  final Value<int?> fileSize;
+  final Value<String?> checksum;
   final Value<int> rowid;
   const DocumentsCompanion({
     this.id = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.title = const Value.absent(),
-    this.path = const Value.absent(),
+    this.filePath = const Value.absent(),
+    this.mimeType = const Value.absent(),
+    this.fileSize = const Value.absent(),
+    this.checksum = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   DocumentsCompanion.insert({
     required String id,
     this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     required String title,
-    required String path,
+    required String filePath,
+    required String mimeType,
+    this.fileSize = const Value.absent(),
+    this.checksum = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         title = Value(title),
-        path = Value(path);
+        filePath = Value(filePath),
+        mimeType = Value(mimeType);
   static Insertable<Document> custom({
     Expression<String>? id,
     Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
     Expression<String>? title,
-    Expression<String>? path,
+    Expression<String>? filePath,
+    Expression<String>? mimeType,
+    Expression<int>? fileSize,
+    Expression<String>? checksum,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
       if (title != null) 'title': title,
-      if (path != null) 'path': path,
+      if (filePath != null) 'file_path': filePath,
+      if (mimeType != null) 'mime_type': mimeType,
+      if (fileSize != null) 'file_size': fileSize,
+      if (checksum != null) 'checksum': checksum,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -889,14 +1057,22 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
   DocumentsCompanion copyWith(
       {Value<String>? id,
       Value<DateTime>? createdAt,
+      Value<DateTime>? updatedAt,
       Value<String>? title,
-      Value<String>? path,
+      Value<String>? filePath,
+      Value<String>? mimeType,
+      Value<int?>? fileSize,
+      Value<String?>? checksum,
       Value<int>? rowid}) {
     return DocumentsCompanion(
       id: id ?? this.id,
       createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
       title: title ?? this.title,
-      path: path ?? this.path,
+      filePath: filePath ?? this.filePath,
+      mimeType: mimeType ?? this.mimeType,
+      fileSize: fileSize ?? this.fileSize,
+      checksum: checksum ?? this.checksum,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -910,11 +1086,23 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
     if (title.present) {
       map['title'] = Variable<String>(title.value);
     }
-    if (path.present) {
-      map['path'] = Variable<String>(path.value);
+    if (filePath.present) {
+      map['file_path'] = Variable<String>(filePath.value);
+    }
+    if (mimeType.present) {
+      map['mime_type'] = Variable<String>(mimeType.value);
+    }
+    if (fileSize.present) {
+      map['file_size'] = Variable<int>(fileSize.value);
+    }
+    if (checksum.present) {
+      map['checksum'] = Variable<String>(checksum.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -927,8 +1115,12 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
     return (StringBuffer('DocumentsCompanion(')
           ..write('id: $id, ')
           ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('title: $title, ')
-          ..write('path: $path, ')
+          ..write('filePath: $filePath, ')
+          ..write('mimeType: $mimeType, ')
+          ..write('fileSize: $fileSize, ')
+          ..write('checksum: $checksum, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -2190,6 +2382,365 @@ class MetadataRecordsCompanion extends UpdateCompanion<MetadataRecord> {
   }
 }
 
+class $StatisticsTable extends Statistics
+    with TableInfo<$StatisticsTable, Statistic> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $StatisticsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 30, maxTextLength: 60),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _recordedAtMeta =
+      const VerificationMeta('recordedAt');
+  @override
+  late final GeneratedColumn<DateTime> recordedAt = GeneratedColumn<DateTime>(
+      'recorded_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _totalLinksMeta =
+      const VerificationMeta('totalLinks');
+  @override
+  late final GeneratedColumn<int> totalLinks = GeneratedColumn<int>(
+      'total_links', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _totalDocumentsMeta =
+      const VerificationMeta('totalDocuments');
+  @override
+  late final GeneratedColumn<int> totalDocuments = GeneratedColumn<int>(
+      'total_documents', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _totalTagsMeta =
+      const VerificationMeta('totalTags');
+  @override
+  late final GeneratedColumn<int> totalTags = GeneratedColumn<int>(
+      'total_tags', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _totalFoldersMeta =
+      const VerificationMeta('totalFolders');
+  @override
+  late final GeneratedColumn<int> totalFolders = GeneratedColumn<int>(
+      'total_folders', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, recordedAt, totalLinks, totalDocuments, totalTags, totalFolders];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'statistics';
+  @override
+  VerificationContext validateIntegrity(Insertable<Statistic> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('recorded_at')) {
+      context.handle(
+          _recordedAtMeta,
+          recordedAt.isAcceptableOrUnknown(
+              data['recorded_at']!, _recordedAtMeta));
+    }
+    if (data.containsKey('total_links')) {
+      context.handle(
+          _totalLinksMeta,
+          totalLinks.isAcceptableOrUnknown(
+              data['total_links']!, _totalLinksMeta));
+    }
+    if (data.containsKey('total_documents')) {
+      context.handle(
+          _totalDocumentsMeta,
+          totalDocuments.isAcceptableOrUnknown(
+              data['total_documents']!, _totalDocumentsMeta));
+    }
+    if (data.containsKey('total_tags')) {
+      context.handle(_totalTagsMeta,
+          totalTags.isAcceptableOrUnknown(data['total_tags']!, _totalTagsMeta));
+    }
+    if (data.containsKey('total_folders')) {
+      context.handle(
+          _totalFoldersMeta,
+          totalFolders.isAcceptableOrUnknown(
+              data['total_folders']!, _totalFoldersMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Statistic map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Statistic(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      recordedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}recorded_at'])!,
+      totalLinks: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}total_links'])!,
+      totalDocuments: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}total_documents'])!,
+      totalTags: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}total_tags'])!,
+      totalFolders: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}total_folders'])!,
+    );
+  }
+
+  @override
+  $StatisticsTable createAlias(String alias) {
+    return $StatisticsTable(attachedDatabase, alias);
+  }
+}
+
+class Statistic extends DataClass implements Insertable<Statistic> {
+  final String id;
+  final DateTime recordedAt;
+  final int totalLinks;
+  final int totalDocuments;
+  final int totalTags;
+  final int totalFolders;
+  const Statistic(
+      {required this.id,
+      required this.recordedAt,
+      required this.totalLinks,
+      required this.totalDocuments,
+      required this.totalTags,
+      required this.totalFolders});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['recorded_at'] = Variable<DateTime>(recordedAt);
+    map['total_links'] = Variable<int>(totalLinks);
+    map['total_documents'] = Variable<int>(totalDocuments);
+    map['total_tags'] = Variable<int>(totalTags);
+    map['total_folders'] = Variable<int>(totalFolders);
+    return map;
+  }
+
+  StatisticsCompanion toCompanion(bool nullToAbsent) {
+    return StatisticsCompanion(
+      id: Value(id),
+      recordedAt: Value(recordedAt),
+      totalLinks: Value(totalLinks),
+      totalDocuments: Value(totalDocuments),
+      totalTags: Value(totalTags),
+      totalFolders: Value(totalFolders),
+    );
+  }
+
+  factory Statistic.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Statistic(
+      id: serializer.fromJson<String>(json['id']),
+      recordedAt: serializer.fromJson<DateTime>(json['recordedAt']),
+      totalLinks: serializer.fromJson<int>(json['totalLinks']),
+      totalDocuments: serializer.fromJson<int>(json['totalDocuments']),
+      totalTags: serializer.fromJson<int>(json['totalTags']),
+      totalFolders: serializer.fromJson<int>(json['totalFolders']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'recordedAt': serializer.toJson<DateTime>(recordedAt),
+      'totalLinks': serializer.toJson<int>(totalLinks),
+      'totalDocuments': serializer.toJson<int>(totalDocuments),
+      'totalTags': serializer.toJson<int>(totalTags),
+      'totalFolders': serializer.toJson<int>(totalFolders),
+    };
+  }
+
+  Statistic copyWith(
+          {String? id,
+          DateTime? recordedAt,
+          int? totalLinks,
+          int? totalDocuments,
+          int? totalTags,
+          int? totalFolders}) =>
+      Statistic(
+        id: id ?? this.id,
+        recordedAt: recordedAt ?? this.recordedAt,
+        totalLinks: totalLinks ?? this.totalLinks,
+        totalDocuments: totalDocuments ?? this.totalDocuments,
+        totalTags: totalTags ?? this.totalTags,
+        totalFolders: totalFolders ?? this.totalFolders,
+      );
+  Statistic copyWithCompanion(StatisticsCompanion data) {
+    return Statistic(
+      id: data.id.present ? data.id.value : this.id,
+      recordedAt:
+          data.recordedAt.present ? data.recordedAt.value : this.recordedAt,
+      totalLinks:
+          data.totalLinks.present ? data.totalLinks.value : this.totalLinks,
+      totalDocuments: data.totalDocuments.present
+          ? data.totalDocuments.value
+          : this.totalDocuments,
+      totalTags: data.totalTags.present ? data.totalTags.value : this.totalTags,
+      totalFolders: data.totalFolders.present
+          ? data.totalFolders.value
+          : this.totalFolders,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Statistic(')
+          ..write('id: $id, ')
+          ..write('recordedAt: $recordedAt, ')
+          ..write('totalLinks: $totalLinks, ')
+          ..write('totalDocuments: $totalDocuments, ')
+          ..write('totalTags: $totalTags, ')
+          ..write('totalFolders: $totalFolders')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      id, recordedAt, totalLinks, totalDocuments, totalTags, totalFolders);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Statistic &&
+          other.id == this.id &&
+          other.recordedAt == this.recordedAt &&
+          other.totalLinks == this.totalLinks &&
+          other.totalDocuments == this.totalDocuments &&
+          other.totalTags == this.totalTags &&
+          other.totalFolders == this.totalFolders);
+}
+
+class StatisticsCompanion extends UpdateCompanion<Statistic> {
+  final Value<String> id;
+  final Value<DateTime> recordedAt;
+  final Value<int> totalLinks;
+  final Value<int> totalDocuments;
+  final Value<int> totalTags;
+  final Value<int> totalFolders;
+  final Value<int> rowid;
+  const StatisticsCompanion({
+    this.id = const Value.absent(),
+    this.recordedAt = const Value.absent(),
+    this.totalLinks = const Value.absent(),
+    this.totalDocuments = const Value.absent(),
+    this.totalTags = const Value.absent(),
+    this.totalFolders = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  StatisticsCompanion.insert({
+    required String id,
+    this.recordedAt = const Value.absent(),
+    this.totalLinks = const Value.absent(),
+    this.totalDocuments = const Value.absent(),
+    this.totalTags = const Value.absent(),
+    this.totalFolders = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id);
+  static Insertable<Statistic> custom({
+    Expression<String>? id,
+    Expression<DateTime>? recordedAt,
+    Expression<int>? totalLinks,
+    Expression<int>? totalDocuments,
+    Expression<int>? totalTags,
+    Expression<int>? totalFolders,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (recordedAt != null) 'recorded_at': recordedAt,
+      if (totalLinks != null) 'total_links': totalLinks,
+      if (totalDocuments != null) 'total_documents': totalDocuments,
+      if (totalTags != null) 'total_tags': totalTags,
+      if (totalFolders != null) 'total_folders': totalFolders,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  StatisticsCompanion copyWith(
+      {Value<String>? id,
+      Value<DateTime>? recordedAt,
+      Value<int>? totalLinks,
+      Value<int>? totalDocuments,
+      Value<int>? totalTags,
+      Value<int>? totalFolders,
+      Value<int>? rowid}) {
+    return StatisticsCompanion(
+      id: id ?? this.id,
+      recordedAt: recordedAt ?? this.recordedAt,
+      totalLinks: totalLinks ?? this.totalLinks,
+      totalDocuments: totalDocuments ?? this.totalDocuments,
+      totalTags: totalTags ?? this.totalTags,
+      totalFolders: totalFolders ?? this.totalFolders,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (recordedAt.present) {
+      map['recorded_at'] = Variable<DateTime>(recordedAt.value);
+    }
+    if (totalLinks.present) {
+      map['total_links'] = Variable<int>(totalLinks.value);
+    }
+    if (totalDocuments.present) {
+      map['total_documents'] = Variable<int>(totalDocuments.value);
+    }
+    if (totalTags.present) {
+      map['total_tags'] = Variable<int>(totalTags.value);
+    }
+    if (totalFolders.present) {
+      map['total_folders'] = Variable<int>(totalFolders.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StatisticsCompanion(')
+          ..write('id: $id, ')
+          ..write('recordedAt: $recordedAt, ')
+          ..write('totalLinks: $totalLinks, ')
+          ..write('totalDocuments: $totalDocuments, ')
+          ..write('totalTags: $totalTags, ')
+          ..write('totalFolders: $totalFolders, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2202,6 +2753,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $MetadataTypesTable metadataTypes = $MetadataTypesTable(this);
   late final $MetadataRecordsTable metadataRecords =
       $MetadataRecordsTable(this);
+  late final $StatisticsTable statistics = $StatisticsTable(this);
   late final Index folderTitle =
       Index('folder_title', 'CREATE INDEX folder_title ON folders (title)');
   late final Index documentTitle = Index(
@@ -2221,6 +2773,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         items,
         metadataTypes,
         metadataRecords,
+        statistics,
         folderTitle,
         documentTitle,
         itemsFolderItemIdx
@@ -2233,6 +2786,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
 typedef $$FoldersTableCreateCompanionBuilder = FoldersCompanion Function({
   required String id,
   Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
   required String title,
   required String description,
   Value<int> rowid,
@@ -2240,6 +2794,7 @@ typedef $$FoldersTableCreateCompanionBuilder = FoldersCompanion Function({
 typedef $$FoldersTableUpdateCompanionBuilder = FoldersCompanion Function({
   Value<String> id,
   Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
   Value<String> title,
   Value<String> description,
   Value<int> rowid,
@@ -2278,6 +2833,9 @@ class $$FoldersTableFilterComposer
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get title => $composableBuilder(
       column: $table.title, builder: (column) => ColumnFilters(column));
@@ -2322,6 +2880,9 @@ class $$FoldersTableOrderingComposer
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get title => $composableBuilder(
       column: $table.title, builder: (column) => ColumnOrderings(column));
 
@@ -2343,6 +2904,9 @@ class $$FoldersTableAnnotationComposer
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
   GeneratedColumn<String> get title =>
       $composableBuilder(column: $table.title, builder: (column) => column);
@@ -2397,6 +2961,7 @@ class $$FoldersTableTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
             Value<String> title = const Value.absent(),
             Value<String> description = const Value.absent(),
             Value<int> rowid = const Value.absent(),
@@ -2404,6 +2969,7 @@ class $$FoldersTableTableManager extends RootTableManager<
               FoldersCompanion(
             id: id,
             createdAt: createdAt,
+            updatedAt: updatedAt,
             title: title,
             description: description,
             rowid: rowid,
@@ -2411,6 +2977,7 @@ class $$FoldersTableTableManager extends RootTableManager<
           createCompanionCallback: ({
             required String id,
             Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
             required String title,
             required String description,
             Value<int> rowid = const Value.absent(),
@@ -2418,6 +2985,7 @@ class $$FoldersTableTableManager extends RootTableManager<
               FoldersCompanion.insert(
             id: id,
             createdAt: createdAt,
+            updatedAt: updatedAt,
             title: title,
             description: description,
             rowid: rowid,
@@ -2649,15 +3217,23 @@ typedef $$LinksTableProcessedTableManager = ProcessedTableManager<
 typedef $$DocumentsTableCreateCompanionBuilder = DocumentsCompanion Function({
   required String id,
   Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
   required String title,
-  required String path,
+  required String filePath,
+  required String mimeType,
+  Value<int?> fileSize,
+  Value<String?> checksum,
   Value<int> rowid,
 });
 typedef $$DocumentsTableUpdateCompanionBuilder = DocumentsCompanion Function({
   Value<String> id,
   Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
   Value<String> title,
-  Value<String> path,
+  Value<String> filePath,
+  Value<String> mimeType,
+  Value<int?> fileSize,
+  Value<String?> checksum,
   Value<int> rowid,
 });
 
@@ -2676,11 +3252,23 @@ class $$DocumentsTableFilterComposer
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+
   ColumnFilters<String> get title => $composableBuilder(
       column: $table.title, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get path => $composableBuilder(
-      column: $table.path, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get filePath => $composableBuilder(
+      column: $table.filePath, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get mimeType => $composableBuilder(
+      column: $table.mimeType, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get fileSize => $composableBuilder(
+      column: $table.fileSize, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get checksum => $composableBuilder(
+      column: $table.checksum, builder: (column) => ColumnFilters(column));
 }
 
 class $$DocumentsTableOrderingComposer
@@ -2698,11 +3286,23 @@ class $$DocumentsTableOrderingComposer
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get title => $composableBuilder(
       column: $table.title, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get path => $composableBuilder(
-      column: $table.path, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get filePath => $composableBuilder(
+      column: $table.filePath, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get mimeType => $composableBuilder(
+      column: $table.mimeType, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get fileSize => $composableBuilder(
+      column: $table.fileSize, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get checksum => $composableBuilder(
+      column: $table.checksum, builder: (column) => ColumnOrderings(column));
 }
 
 class $$DocumentsTableAnnotationComposer
@@ -2720,11 +3320,23 @@ class $$DocumentsTableAnnotationComposer
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
   GeneratedColumn<String> get title =>
       $composableBuilder(column: $table.title, builder: (column) => column);
 
-  GeneratedColumn<String> get path =>
-      $composableBuilder(column: $table.path, builder: (column) => column);
+  GeneratedColumn<String> get filePath =>
+      $composableBuilder(column: $table.filePath, builder: (column) => column);
+
+  GeneratedColumn<String> get mimeType =>
+      $composableBuilder(column: $table.mimeType, builder: (column) => column);
+
+  GeneratedColumn<int> get fileSize =>
+      $composableBuilder(column: $table.fileSize, builder: (column) => column);
+
+  GeneratedColumn<String> get checksum =>
+      $composableBuilder(column: $table.checksum, builder: (column) => column);
 }
 
 class $$DocumentsTableTableManager extends RootTableManager<
@@ -2752,29 +3364,45 @@ class $$DocumentsTableTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
             Value<String> title = const Value.absent(),
-            Value<String> path = const Value.absent(),
+            Value<String> filePath = const Value.absent(),
+            Value<String> mimeType = const Value.absent(),
+            Value<int?> fileSize = const Value.absent(),
+            Value<String?> checksum = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               DocumentsCompanion(
             id: id,
             createdAt: createdAt,
+            updatedAt: updatedAt,
             title: title,
-            path: path,
+            filePath: filePath,
+            mimeType: mimeType,
+            fileSize: fileSize,
+            checksum: checksum,
             rowid: rowid,
           ),
           createCompanionCallback: ({
             required String id,
             Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
             required String title,
-            required String path,
+            required String filePath,
+            required String mimeType,
+            Value<int?> fileSize = const Value.absent(),
+            Value<String?> checksum = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               DocumentsCompanion.insert(
             id: id,
             createdAt: createdAt,
+            updatedAt: updatedAt,
             title: title,
-            path: path,
+            filePath: filePath,
+            mimeType: mimeType,
+            fileSize: fileSize,
+            checksum: checksum,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
@@ -3970,6 +4598,189 @@ typedef $$MetadataRecordsTableProcessedTableManager = ProcessedTableManager<
     (MetadataRecord, $$MetadataRecordsTableReferences),
     MetadataRecord,
     PrefetchHooks Function({bool typeId})>;
+typedef $$StatisticsTableCreateCompanionBuilder = StatisticsCompanion Function({
+  required String id,
+  Value<DateTime> recordedAt,
+  Value<int> totalLinks,
+  Value<int> totalDocuments,
+  Value<int> totalTags,
+  Value<int> totalFolders,
+  Value<int> rowid,
+});
+typedef $$StatisticsTableUpdateCompanionBuilder = StatisticsCompanion Function({
+  Value<String> id,
+  Value<DateTime> recordedAt,
+  Value<int> totalLinks,
+  Value<int> totalDocuments,
+  Value<int> totalTags,
+  Value<int> totalFolders,
+  Value<int> rowid,
+});
+
+class $$StatisticsTableFilterComposer
+    extends Composer<_$AppDatabase, $StatisticsTable> {
+  $$StatisticsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get recordedAt => $composableBuilder(
+      column: $table.recordedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get totalLinks => $composableBuilder(
+      column: $table.totalLinks, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get totalDocuments => $composableBuilder(
+      column: $table.totalDocuments,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get totalTags => $composableBuilder(
+      column: $table.totalTags, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get totalFolders => $composableBuilder(
+      column: $table.totalFolders, builder: (column) => ColumnFilters(column));
+}
+
+class $$StatisticsTableOrderingComposer
+    extends Composer<_$AppDatabase, $StatisticsTable> {
+  $$StatisticsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get recordedAt => $composableBuilder(
+      column: $table.recordedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get totalLinks => $composableBuilder(
+      column: $table.totalLinks, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get totalDocuments => $composableBuilder(
+      column: $table.totalDocuments,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get totalTags => $composableBuilder(
+      column: $table.totalTags, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get totalFolders => $composableBuilder(
+      column: $table.totalFolders,
+      builder: (column) => ColumnOrderings(column));
+}
+
+class $$StatisticsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $StatisticsTable> {
+  $$StatisticsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get recordedAt => $composableBuilder(
+      column: $table.recordedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get totalLinks => $composableBuilder(
+      column: $table.totalLinks, builder: (column) => column);
+
+  GeneratedColumn<int> get totalDocuments => $composableBuilder(
+      column: $table.totalDocuments, builder: (column) => column);
+
+  GeneratedColumn<int> get totalTags =>
+      $composableBuilder(column: $table.totalTags, builder: (column) => column);
+
+  GeneratedColumn<int> get totalFolders => $composableBuilder(
+      column: $table.totalFolders, builder: (column) => column);
+}
+
+class $$StatisticsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $StatisticsTable,
+    Statistic,
+    $$StatisticsTableFilterComposer,
+    $$StatisticsTableOrderingComposer,
+    $$StatisticsTableAnnotationComposer,
+    $$StatisticsTableCreateCompanionBuilder,
+    $$StatisticsTableUpdateCompanionBuilder,
+    (Statistic, BaseReferences<_$AppDatabase, $StatisticsTable, Statistic>),
+    Statistic,
+    PrefetchHooks Function()> {
+  $$StatisticsTableTableManager(_$AppDatabase db, $StatisticsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$StatisticsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$StatisticsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$StatisticsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<DateTime> recordedAt = const Value.absent(),
+            Value<int> totalLinks = const Value.absent(),
+            Value<int> totalDocuments = const Value.absent(),
+            Value<int> totalTags = const Value.absent(),
+            Value<int> totalFolders = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              StatisticsCompanion(
+            id: id,
+            recordedAt: recordedAt,
+            totalLinks: totalLinks,
+            totalDocuments: totalDocuments,
+            totalTags: totalTags,
+            totalFolders: totalFolders,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            Value<DateTime> recordedAt = const Value.absent(),
+            Value<int> totalLinks = const Value.absent(),
+            Value<int> totalDocuments = const Value.absent(),
+            Value<int> totalTags = const Value.absent(),
+            Value<int> totalFolders = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              StatisticsCompanion.insert(
+            id: id,
+            recordedAt: recordedAt,
+            totalLinks: totalLinks,
+            totalDocuments: totalDocuments,
+            totalTags: totalTags,
+            totalFolders: totalFolders,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$StatisticsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $StatisticsTable,
+    Statistic,
+    $$StatisticsTableFilterComposer,
+    $$StatisticsTableOrderingComposer,
+    $$StatisticsTableAnnotationComposer,
+    $$StatisticsTableCreateCompanionBuilder,
+    $$StatisticsTableUpdateCompanionBuilder,
+    (Statistic, BaseReferences<_$AppDatabase, $StatisticsTable, Statistic>),
+    Statistic,
+    PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -3989,6 +4800,8 @@ class $AppDatabaseManager {
       $$MetadataTypesTableTableManager(_db, _db.metadataTypes);
   $$MetadataRecordsTableTableManager get metadataRecords =>
       $$MetadataRecordsTableTableManager(_db, _db.metadataRecords);
+  $$StatisticsTableTableManager get statistics =>
+      $$StatisticsTableTableManager(_db, _db.statistics);
 }
 
 class $ThemeTypesTable extends ThemeTypes

@@ -4,6 +4,7 @@ import "package:drift/drift.dart";
 class Folders extends Table {
   TextColumn get id => text().withLength(min: 30, max: 60)();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
   TextColumn get title => text().withLength(min: 6, max: 30)();
   TextColumn get description => text().withLength(min: 0, max: 1000)();
 
@@ -30,8 +31,13 @@ class Links extends Table {
 class Documents extends Table {
   TextColumn get id => text().withLength(min: 30, max: 60)();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
-  TextColumn get title => text().withLength(min: 6, max: 30)();
-  TextColumn get path => text().unique()();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  TextColumn get title => text().withLength(min: 6, max: 100)();
+  TextColumn get filePath =>
+      text().unique()(); // Relative path to document file
+  TextColumn get mimeType => text()(); // 'text/markdown' or 'text/typst'
+  IntColumn get fileSize => integer().nullable()(); // File size in bytes
+  TextColumn get checksum => text().nullable()(); // SHA-256 hash for integrity
 
   @override
   Set<Column> get primaryKey => {id};
@@ -80,4 +86,16 @@ class MetadataTypes extends Table {
   TextColumn get name => text().unique()();
 }
 
+class Statistics extends Table {
+  TextColumn get id => text().withLength(min: 30, max: 60)();
+  DateTimeColumn get recordedAt => dateTime().withDefault(currentDateAndTime)();
 
+  // Item counts
+  IntColumn get totalLinks => integer().withDefault(const Constant(0))();
+  IntColumn get totalDocuments => integer().withDefault(const Constant(0))();
+  IntColumn get totalTags => integer().withDefault(const Constant(0))();
+  IntColumn get totalFolders => integer().withDefault(const Constant(0))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
