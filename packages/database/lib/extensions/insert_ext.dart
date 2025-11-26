@@ -46,19 +46,22 @@ extension InsertionExtensions on AppDatabase {
 
   List<DocumentResultIds> insertDocuments({
     required Batch batch,
-    required List<Map<String, String>> docs,
+    required List<Document> docs,
   }) {
     final List<DocumentResultIds> results = <DocumentResultIds>[];
     if (docs.isEmpty) return results;
 
-    for (final Map<String, String> doc in docs) {
+    for (final Document doc in docs) {
       final String documentId = generateId();
       batch.insert(
         documents,
         DocumentsCompanion.insert(
           id: documentId,
-          title: doc["title"] ?? "",
-          path: doc["body"] ?? "",
+          title: doc.title,
+          filePath: doc.filePath,
+          mimeType: doc.mimeType,
+          fileSize: Value(doc.fileSize),
+          checksum: Value(doc.checksum),
         ),
         mode: InsertMode.insertOrIgnore,
       );
@@ -225,5 +228,3 @@ extension ConfigDatabaseInserts on ConfigDatabase {
     return results;
   }
 }
-
-

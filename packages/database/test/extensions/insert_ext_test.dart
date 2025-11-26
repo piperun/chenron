@@ -167,7 +167,14 @@ void main() {
         results = database.insertDocuments(
           batch: batch,
           docs: [
-            {'title': 'Test Doc', 'body': 'Content here'}
+            Document(
+              id: 'temp1',
+              title: 'Test Doc',
+              filePath: 'documents/temp1.md',
+              mimeType: 'text/markdown',
+              createdAt: DateTime.now(),
+              updatedAt: DateTime.now(),
+            )
           ],
         );
       });
@@ -182,9 +189,30 @@ void main() {
         results = database.insertDocuments(
           batch: batch,
           docs: [
-            {'title': 'Document 1', 'body': 'Body 1'},
-            {'title': 'Document 2', 'body': 'Body 2'},
-            {'title': 'Document 3', 'body': 'Body 3'},
+            Document(
+              id: 'temp1',
+              title: 'Document 1',
+              filePath: 'documents/doc1.md',
+              mimeType: 'text/markdown',
+              createdAt: DateTime.now(),
+              updatedAt: DateTime.now(),
+            ),
+            Document(
+              id: 'temp2',
+              title: 'Document 2',
+              filePath: 'documents/doc2.md',
+              mimeType: 'text/markdown',
+              createdAt: DateTime.now(),
+              updatedAt: DateTime.now(),
+            ),
+            Document(
+              id: 'temp3',
+              title: 'Document 3',
+              filePath: 'documents/doc3.md',
+              mimeType: 'text/markdown',
+              createdAt: DateTime.now(),
+              updatedAt: DateTime.now(),
+            ),
           ],
         );
       });
@@ -213,9 +241,30 @@ void main() {
         results = database.insertDocuments(
           batch: batch,
           docs: [
-            {'title': 'EmptyBody', 'body': ''}, // Min length title (6 chars)
-            {'title': 'Valid1', 'body': 'body-2'}, // Valid title
-            {'title': 'Valid2', 'body': 'body-3'}, // Both present and valid
+            Document(
+              id: 'temp1',
+              title: 'EmptyBody',
+              filePath: '',
+              mimeType: 'text/markdown',
+              createdAt: DateTime.now(),
+              updatedAt: DateTime.now(),
+            ),
+            Document(
+              id: 'temp2',
+              title: 'Valid1',
+              filePath: 'body-2',
+              mimeType: 'text/markdown',
+              createdAt: DateTime.now(),
+              updatedAt: DateTime.now(),
+            ),
+            Document(
+              id: 'temp3',
+              title: 'Valid2',
+              filePath: 'body-3',
+              mimeType: 'text/markdown',
+              createdAt: DateTime.now(),
+              updatedAt: DateTime.now(),
+            ),
           ],
         );
       });
@@ -226,13 +275,13 @@ void main() {
 
       // Verify all three documents were inserted
       expect(docs[0].title, equals('EmptyBody'));
-      expect(docs[0].path, equals(''));
+      expect(docs[0].filePath, equals(''));
 
       expect(docs[1].title, equals('Valid1'));
-      expect(docs[1].path, equals('body-2'));
+      expect(docs[1].filePath, equals('body-2'));
 
       expect(docs[2].title, equals('Valid2'));
-      expect(docs[2].path, equals('body-3'));
+      expect(docs[2].filePath, equals('body-3'));
     });
   });
 
@@ -394,7 +443,8 @@ void main() {
           DocumentsCompanion.insert(
             id: docId,
             title: 'Test Doc',
-            path: 'Content',
+            filePath: 'documents/$docId.md',
+            mimeType: 'text/markdown',
           ),
         );
       });
