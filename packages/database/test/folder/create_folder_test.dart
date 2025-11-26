@@ -7,7 +7,6 @@ import "package:database/extensions/folder/create.dart";
 import "package:chenron_mockups/chenron_mockups.dart";
 
 void main() {
-  
   setUpAll(() {
     installFakePathProvider();
     installTestLogger();
@@ -142,30 +141,31 @@ void main() {
 
       // Verify items were created in database
       for (final folderItem in folderData.items) {
-        switch (folderItem.path) {
-          case final StringContent content:
+        await folderItem.map(
+          link: (linkItem) async {
             final links = database.links;
             final linkResult = await (database.select(links)
                   ..where(
-                    (tbl) => tbl.path.equals(content.value),
+                    (tbl) => tbl.path.equals(linkItem.url),
                   ))
                 .get();
             expect(linkResult.length, 1);
             expect(linkResult.first.id, isNotNull);
             expect(linkResult.first.id, isNotEmpty);
-            break;
-          case final MapContent content:
+          },
+          document: (docItem) async {
             final documents = database.documents;
             final documentResult = await (database.select(documents)
                   ..where(
-                    (tbl) => tbl.path.equals(content.value["body"]!),
+                    (tbl) => tbl.filePath.equals(docItem.filePath),
                   ))
                 .get();
             expect(documentResult.length, 1);
             expect(documentResult.first.id, isNotNull);
             expect(documentResult.first.id, isNotEmpty);
-            break;
-        }
+          },
+          folder: (_) async {},
+        );
       }
 
       final items = database.items;

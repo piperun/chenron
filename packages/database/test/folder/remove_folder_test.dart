@@ -11,8 +11,6 @@ import "package:database/database.dart";
 import "package:chenron_mockups/chenron_mockups.dart";
 
 void main() {
-  
-
   setUpAll(() {
     installFakePathProvider();
     installTestLogger();
@@ -96,13 +94,15 @@ void main() {
         title: "Test Folder with Items",
         description: "Test Description",
       );
-      final link = FolderItem(
-          type: FolderItemType.link,
-          content: const StringContent(value: "https://example.com"));
-      final document = FolderItem(
-          type: FolderItemType.document,
-          content: const MapContent(
-              value: {"title": "Test Document", "body": "Test Content"}));
+      final link = FolderItem.link(url: "https://example.com");
+      final document = FolderItem.document(
+        id: 'doc1',
+        title: 'Test Document',
+        filePath: 'documents/doc1.md',
+        mimeType: 'text/markdown',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
 
       final FolderResultIds createdIds = await database
           .createFolder(folderInfo: folderInfo, items: [link, document]);
@@ -142,7 +142,3 @@ void main() {
     });
   });
 }
-
-
-
-

@@ -38,12 +38,10 @@ void main() {
       expect(folderItem.itemId, equals('item456'));
       expect(folderItem.type, equals(FolderItemType.link));
       expect(folderItem.tags, isEmpty);
-      expect(folderItem.createdAt, equals(DateTime(2024, 1, 1)));
-
-      // Verify path is StringContent
-      expect(folderItem.path, isA<StringContent>());
-      final path = folderItem.path as StringContent;
-      expect(path.value, equals('https://example.com'));
+      expect(folderItem, isA<LinkItem>());
+      final linkItem = folderItem as LinkItem;
+      expect(linkItem.createdAt, equals(DateTime(2024, 1, 1)));
+      expect(linkItem.url, equals('https://example.com'));
     });
 
     test('toFolderItem() converts Link with tags', () {
@@ -79,10 +77,11 @@ void main() {
 
       final folderItem = link.toFolderItem(null);
 
-      final path = folderItem.path as StringContent;
-      expect(path.value, equals('https://example.com'));
-      expect(path.archiveOrg, equals('https://web.archive.org/example'));
-      expect(path.archiveIs, equals('https://archive.is/example'));
+      expect(folderItem, isA<LinkItem>());
+      final linkItem = folderItem as LinkItem;
+      expect(linkItem.url, equals('https://example.com'));
+      expect(linkItem.archiveOrg, equals('https://web.archive.org/example'));
+      expect(linkItem.archiveIs, equals('https://archive.is/example'));
     });
 
     test('toFolderItem() handles null itemId', () {
@@ -103,8 +102,10 @@ void main() {
       final document = Document(
         id: 'doc123',
         title: 'Test Document',
-        path: 'This is the body content',
+        filePath: 'documents/doc123.md',
+        mimeType: 'text/markdown',
         createdAt: DateTime(2024, 3, 1),
+        updatedAt: DateTime(2024, 3, 1),
       );
 
       final folderItem = document.toFolderItem('item456');
@@ -113,21 +114,22 @@ void main() {
       expect(folderItem.itemId, equals('item456'));
       expect(folderItem.type, equals(FolderItemType.document));
       expect(folderItem.tags, isEmpty);
-      expect(folderItem.createdAt, equals(DateTime(2024, 3, 1)));
-
-      // Verify path is MapContent
-      expect(folderItem.path, isA<MapContent>());
-      final path = folderItem.path as MapContent;
-      expect(path.value['title'], equals('Test Document'));
-      expect(path.value['body'], equals('This is the body content'));
+      // Verify it's a document item
+      expect(folderItem, isA<DocumentItem>());
+      final docItem = folderItem as DocumentItem;
+      expect(docItem.createdAt, equals(DateTime(2024, 3, 1)));
+      expect(docItem.title, equals('Test Document'));
+      expect(docItem.filePath, equals('documents/doc123.md'));
     });
 
     test('toFolderItem() converts Document with tags', () {
       final document = Document(
         id: 'doc123',
         title: 'Tagged Document',
-        path: 'Content here',
+        filePath: 'documents/doc123.md',
+        mimeType: 'text/markdown',
         createdAt: DateTime(2024, 4, 1),
+        updatedAt: DateTime(2024, 4, 1),
       );
 
       final tags = [
@@ -150,8 +152,10 @@ void main() {
       final document = Document(
         id: 'doc123',
         title: 'Test',
-        path: 'Content',
+        filePath: 'documents/doc123.md',
+        mimeType: 'text/markdown',
         createdAt: DateTime(2024, 1, 1),
+        updatedAt: DateTime(2024, 1, 1),
       );
 
       final folderItem = document.toFolderItem(null);
@@ -163,21 +167,19 @@ void main() {
       final document = Document(
         id: 'doc456',
         title: 'Complex Title',
-        path: 'Complex body with\nmultiple lines\nand special chars: @#\$%',
+        filePath: 'documents/doc456.md',
+        mimeType: 'text/markdown',
         createdAt: DateTime(2024, 5, 1),
+        updatedAt: DateTime(2024, 5, 1),
       );
 
       final folderItem = document.toFolderItem('item123');
 
-      final path = folderItem.path as MapContent;
-      expect(path.value.keys.length, equals(2));
-      expect(path.value.containsKey('title'), isTrue);
-      expect(path.value.containsKey('body'), isTrue);
-      expect(path.value['title'], equals('Complex Title'));
-      expect(
-          path.value['body'],
-          equals(
-              'Complex body with\nmultiple lines\nand special chars: @#\$%'));
+      // Verify it's a document item
+      expect(folderItem, isA<DocumentItem>());
+      final docItem = folderItem as DocumentItem;
+      expect(docItem.title, equals('Complex Title'));
+      expect(docItem.filePath, equals('documents/doc456.md'));
     });
   });
 }
