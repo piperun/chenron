@@ -3,13 +3,13 @@ import "package:database/database.dart";
 
 extension ConvertLinkToItem on Link {
   FolderItem toFolderItem(String? itemId, {List<Tag> tags = const []}) {
-    return FolderItem(
+    return FolderItem.link(
       id: id,
       itemId: itemId,
+      url: path,
+      archiveOrg: archiveOrgUrl,
+      archiveIs: archiveIsUrl,
       createdAt: createdAt,
-      content: StringContent(
-          value: path, archiveOrg: archiveOrgUrl, archiveIs: archiveIsUrl),
-      type: FolderItemType.link,
       tags: tags,
     );
   }
@@ -17,18 +17,17 @@ extension ConvertLinkToItem on Link {
 
 extension ConvertDocumentToItem on Document {
   FolderItem toFolderItem(String? itemId, {List<Tag> tags = const []}) {
-    return FolderItem(
+    return FolderItem.document(
       id: id,
       itemId: itemId,
+      title: title,
+      filePath: filePath,
+      mimeType: mimeType,
+      fileSize: fileSize,
+      checksum: checksum,
       createdAt: createdAt,
-      content: MapContent(value: {
-        "title": title,
-        "body": path,
-      }),
-      type: FolderItemType.document,
+      updatedAt: updatedAt,
       tags: tags,
     );
   }
 }
-
-

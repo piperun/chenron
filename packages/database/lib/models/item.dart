@@ -1,133 +1,92 @@
-import "package:collection/collection.dart";
-import "package:flutter/material.dart";
-import "package:database/database.dart";
-import "package:cuid2/cuid2.dart";
-import "package:drift/drift.dart";
+import 'package:database/database.dart';
+import 'package:cuid2/cuid2.dart';
+import 'package:drift/drift.dart' hide JsonKey;
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-@immutable
-sealed class ItemContent<T> {
-  @override
-  bool operator ==(Object other);
+part 'item.freezed.dart';
 
-  @override
-  int get hashCode;
-  final T value;
-  const ItemContent({required this.value});
-}
+@freezed
+sealed class FolderItem with _$FolderItem {
+  const FolderItem._();
 
-class StringContent extends ItemContent<String> {
-  final String? archiveOrg;
-  final String? archiveIs;
-
-  const StringContent({required super.value, this.archiveOrg, this.archiveIs});
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-
-    return other is StringContent &&
-        other.value == value &&
-        other.archiveOrg == archiveOrg &&
-        other.archiveIs == archiveIs;
-  }
-
-  @override
-  int get hashCode => Object.hash(value, archiveOrg, archiveIs);
-}
-
-class MapContent extends ItemContent<Map<String, String>> {
-  const MapContent({required super.value});
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-
-    return other is MapContent &&
-        const MapEquality<String, String>().equals(other.value, value);
-  }
-
-  @override
-  int get hashCode => const MapEquality<String, String>().hash(value);
-}
-
-@immutable
-class FolderItem {
-  final Key? key;
-  final int? _listId;
-  final String? _id;
-  final String? _itemId;
-  String? get id => _id;
-  String? get itemId => _itemId;
-  int? get listId => _listId;
-
-  final ItemContent path;
-  final DateTime? createdAt;
-  final FolderItemType type;
-  final List<Tag> tags;
-
-  const FolderItem._internal(this.key, this._listId, this._id, this._itemId,
-      this.path, this.createdAt, this.type, this.tags);
-
-  factory FolderItem({
-    Key? key,
-    int? listId,
+  const factory FolderItem.link({
     String? id,
     String? itemId,
-    required ItemContent content,
+    required String url,
+    String? archiveOrg,
+    String? archiveIs,
     DateTime? createdAt,
-    required FolderItemType type,
-    List<Tag> tags = const [],
-  }) {
-    return FolderItem._internal(
-        key, listId, id, itemId, content, createdAt, type, tags);
-  }
+    @Default([]) List<Tag> tags,
+  }) = LinkItem;
 
+  const factory FolderItem.document({
+    String? id,
+    String? itemId,
+    required String title,
+    required String filePath,
+    @Default('text/markdown') String mimeType,
+    int? fileSize,
+    String? checksum,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    @Default([]) List<Tag> tags,
+  }) = DocumentItem;
+
+  const factory FolderItem.folder({
+    String? id,
+    String? itemId,
+    required String folderId,
+    @Default([]) List<Tag> tags,
+  }) = FolderItemNested;
+
+  /// Get the type of this folder item
+  FolderItemType get type => map(
+        link: (_) => FolderItemType.link,
+        document: (_) => FolderItemType.document,
+        folder: (_) => FolderItemType.folder,
+      );
+
+  /// Get the id (if set)
+  String? get entityId => map(
+        link: (item) => item.id,
+        document: (item) => item.id,
+        folder: (item) => item.id,
+      );
+
+  /// Create a companion for the Items table (many-to-many relation)
   Insertable toCompanion(String folderId) {
     return ItemsCompanion.insert(
-      id: _id ?? "",
+      id: entityId ?? "",
       folderId: folderId,
-      itemId: _itemId ?? "",
+      itemId: itemId ?? "",
       typeId: type.index,
     );
   }
 
-  Insertable toFolderItem(String id) {
-    if (isCuid(id)) {
-      switch (path) {
-        case StringContent():
-          return LinksCompanion.insert(
-            id: id,
-            path: (path as StringContent).value,
-          );
-        case MapContent():
-          final doc = (path as MapContent).value;
-          return DocumentsCompanion.insert(
-            id: id,
-            title: doc["title"] ?? "",
-            path: doc["body"] ?? "",
-          );
-      }
+  /// Create the actual entity (Link, Document, or reference to Folder)
+  Insertable? toEntityCompanion(String generatedId) {
+    if (!isCuid(generatedId)) {
+      throw Exception("Invalid id: not a CUID");
     }
-    throw Exception("Invalid id: not a CUID");
+
+    return map(
+      link: (item) => LinksCompanion.insert(
+        id: generatedId,
+        path: item.url,
+        archiveOrgUrl: Value(item.archiveOrg),
+        archiveIsUrl: Value(item.archiveIs),
+      ),
+      document: (item) => DocumentsCompanion.insert(
+        id: generatedId,
+        title: item.title,
+        filePath: item.filePath,
+        mimeType: item.mimeType,
+        fileSize: Value(item.fileSize),
+        checksum: Value(item.checksum),
+      ),
+      folder: (_) => null, // Folder already exists, no need to create
+    );
   }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-
-    return other is FolderItem &&
-        other.id == id &&
-        other.itemId == itemId &&
-        other.listId == listId &&
-        other.path == path &&
-        other.createdAt == createdAt &&
-        other.type == type &&
-        const ListEquality().equals(other.tags, tags);
-  }
-
-  @override
-  int get hashCode => Object.hash(id, itemId, listId, path, createdAt, type,
-      const ListEquality().hash(tags));
 }
 
 enum FolderItemType {
@@ -135,5 +94,3 @@ enum FolderItemType {
   document,
   folder,
 }
-
-

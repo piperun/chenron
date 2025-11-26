@@ -1,8 +1,7 @@
-import "package:database/database.dart" show AppDatabase;
+import "package:database/database.dart" show AppDatabase, Document;
 import "package:database/extensions/insert_ext.dart";
 import "package:database/models/created_ids.dart" show ItemResultIds;
-import "package:database/models/item.dart"
-    show FolderItem, FolderItemType, MapContent, StringContent;
+import "package:database/models/item.dart";
 import "package:drift/drift.dart" show Batch;
 
 extension InsertionExtensions on AppDatabase {
@@ -12,22 +11,28 @@ extension InsertionExtensions on AppDatabase {
     required List<FolderItem> itemInserts,
   }) async {
     final List<String> linkUrls = [];
-    final List<Map<String, String>> docList = [];
+    final List<Document> docList = [];
     final List<FolderItem> folderItems = [];
 
     for (final item in itemInserts) {
-      // Handle folder items separately
-      if (item.type == FolderItemType.folder && item.itemId != null) {
-        folderItems.add(item);
-        continue;
-      }
-
-      switch (item.path) {
-        case StringContent(value: final url):
-          linkUrls.add(url);
-        case MapContent(value: final doc):
+      item.map(
+        link: (linkItem) => linkUrls.add(linkItem.url),
+        document: (docItem) {
+          // Create a Document object for insertion
+          final doc = Document(
+            id: docItem.id ?? '',
+            title: docItem.title,
+            filePath: docItem.filePath,
+            mimeType: docItem.mimeType,
+            fileSize: docItem.fileSize,
+            checksum: docItem.checksum,
+            createdAt: docItem.createdAt ?? DateTime.now(),
+            updatedAt: docItem.updatedAt ?? DateTime.now(),
+          );
           docList.add(doc);
-      }
+        },
+        folder: (folderItem) => folderItems.add(item),
+      );
     }
 
     final List<ItemResultIds> relations = <ItemResultIds>[];
@@ -74,5 +79,3 @@ extension InsertionExtensions on AppDatabase {
     return relations;
   }
 }
-
-
