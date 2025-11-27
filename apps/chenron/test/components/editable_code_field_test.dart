@@ -55,40 +55,27 @@ void main() {
       // Get the EditableText widget
       final EditableText widget = tester.widget(editableText);
 
-      // Tap to focus first
-      await tester.tap(editableText);
-      await tester.pump();
-
-      print("Controller text: ${widget.controller.text}");
-      print("Has focus: ${widget.focusNode.hasFocus}");
-
-      // Try to drag to select text
+      // Long press at start position to begin selection
       final topLeft = tester.getTopLeft(editableText);
       final startPoint = topLeft + const Offset(10, 5);
       final endPoint = topLeft + const Offset(50, 5);
 
-      print("Start point: $startPoint, End point: $endPoint");
-
-      // Simulate mouse drag
+      // Use longPress and drag to select text (this is how text selection works in Flutter)
       final TestGesture gesture = await tester.startGesture(startPoint);
-      await tester.pump();
+      await tester
+          .pump(const Duration(milliseconds: 500)); // Long press duration
 
       await gesture.moveTo(endPoint);
-      await tester.pump();
+      await tester.pumpAndSettle();
 
       await gesture.up();
-      await tester.pump();
+      await tester.pumpAndSettle();
 
       // Check if text is selected
-      print("Selection: ${widget.controller.selection}");
-      print("Selection is valid: ${widget.controller.selection.isValid}");
-      print("Selection base: ${widget.controller.selection.baseOffset}");
-      print("Selection extent: ${widget.controller.selection.extentOffset}");
-
-      // Should have some selection
+      // After long press and drag, we should have a selection
       expect(widget.controller.selection.isValid, isTrue);
-      expect(widget.controller.selection.baseOffset,
-          isNot(equals(widget.controller.selection.extentOffset)));
+      // The selection should not be collapsed (base != extent)
+      expect(widget.controller.selection.isCollapsed, isFalse);
     });
 
     testWidgets("should display error highlights", (WidgetTester tester) async {
@@ -156,4 +143,3 @@ void main() {
     });
   });
 }
-
