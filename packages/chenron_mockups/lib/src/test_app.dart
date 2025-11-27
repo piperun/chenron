@@ -9,8 +9,7 @@ import "package:database/extensions/operations/database_file_handler.dart";
 Future<void> initTestApp() async {
   try {
     // Check if GetIt already has registrations by checking for a known type
-    final alreadySetup =
-        GetIt.I.isRegistered<Signal<Future<AppDatabaseHandler>>>();
+    final alreadySetup = GetIt.I.isRegistered<Signal<AppDatabaseHandler>>();
 
     if (alreadySetup) {
       // Reset GetIt for fresh state between tests
@@ -29,7 +28,7 @@ Future<void> initTestApp() async {
 /// Resets the app state for the next test
 /// Call this between tests if needed
 Future<void> resetTestApp() async {
-  if (GetIt.I.isRegistered<Signal<Future<AppDatabaseHandler>>>()) {
+  if (GetIt.I.isRegistered<Signal<AppDatabaseHandler>>()) {
     await GetIt.I.reset();
   }
 }

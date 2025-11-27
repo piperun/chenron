@@ -24,7 +24,7 @@ class ShowFolder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Future<FolderResult> folderData = locator
-        .get<Signal<Future<AppDatabaseHandler>>>()
+        .get<Signal<AppDatabaseHandler>>()
         .value
         .then((db) => db.appDatabase
             .getFolder(folderId: folderId)
@@ -68,4 +68,3 @@ class ShowFolder extends StatelessWidget {
     );
   }
 }
-

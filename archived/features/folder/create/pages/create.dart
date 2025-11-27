@@ -33,9 +33,7 @@ class _CreateFolderState extends State<CreateFolder> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Signal Stepper"),
-      ),
+      appBar: AppBar(title: const Text("Signal Stepper")),
       body: Watch.builder(
         builder: (context) {
           return Stepper(
@@ -106,16 +104,12 @@ class _CreateFolderState extends State<CreateFolder> {
       Step(
         title: const Text("Step 1"),
         isActive: currentStepSignal.value == StepperStep.info,
-        content: InfoStep(
-          formKey: formKeys[StepperStep.info]!,
-        ),
+        content: InfoStep(formKey: formKeys[StepperStep.info]!),
       ),
       Step(
         title: const Text("Step 2"),
         isActive: currentStepSignal.value == StepperStep.data,
-        content: DataStep(
-          formKey: formKeys[StepperStep.data]!,
-        ),
+        content: DataStep(formKey: formKeys[StepperStep.data]!),
       ),
       Step(
         title: const Text("Step 3"),
@@ -131,13 +125,15 @@ class _CreateFolderState extends State<CreateFolder> {
     required List<Metadata> tags,
     required List<FolderItem> items,
   }) async {
-    final database = await locator
-        .get<Signal<Future<AppDatabaseHandler>>>()
-        .value
-        .then((db) => db.appDatabase);
+    final database = await locator.get<Signal<AppDatabaseHandler>>().value.then(
+      (db) => db.appDatabase,
+    );
 
     database.createFolderExtended(
-        folderInfo: folderInfo, tags: tags, items: items);
+      folderInfo: folderInfo,
+      tags: tags,
+      items: items,
+    );
 
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(

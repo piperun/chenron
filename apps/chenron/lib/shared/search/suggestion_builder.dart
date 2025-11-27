@@ -12,7 +12,7 @@ import "package:signals/signals_flutter.dart";
 import "package:url_launcher/url_launcher.dart";
 
 class GlobalSuggestionBuilder {
-  final Signal<Future<AppDatabaseHandler>> db;
+  final Signal<AppDatabaseHandler> db;
   final BuildContext context;
   final SearchController? controller;
   final SearchBarController? queryController;
@@ -164,4 +164,3 @@ class SuggestionTile {
     );
   }
 }
-

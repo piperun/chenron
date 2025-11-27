@@ -12,7 +12,7 @@ import "package:signals/signals_flutter.dart";
 /// suggestions in an overlay positioned below the search bar.
 class SuggestionsOverlay extends StatefulWidget {
   final SearchBarController controller;
-  final Signal<Future<AppDatabaseHandler>> db;
+  final Signal<AppDatabaseHandler> db;
   final Duration debounceDuration;
   final Future<void> Function({
     required String type,
@@ -176,4 +176,3 @@ class _SuggestionsOverlayState extends State<SuggestionsOverlay> {
     );
   }
 }
-

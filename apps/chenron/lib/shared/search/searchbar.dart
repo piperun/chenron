@@ -67,7 +67,6 @@ class _GlobalSearchBarState extends State<GlobalSearchBar> {
     _featureManager.setup(_queryController);
   }
 
-
   @override
   void dispose() {
     _featureManager.dispose(_queryController);
@@ -81,7 +80,7 @@ class _GlobalSearchBarState extends State<GlobalSearchBar> {
   @override
   Widget build(BuildContext context) {
     final hasSuggestions = _featureManager.has(SearchFeature.suggestions);
-    final db = locator.get<Signal<Future<AppDatabaseHandler>>>();
+    final db = locator.get<Signal<AppDatabaseHandler>>();
 
     return hasSuggestions
         ? SuggestionsOverlay(
@@ -198,4 +197,3 @@ class _GlobalSearchBarState extends State<GlobalSearchBar> {
     }
   }
 }
-
