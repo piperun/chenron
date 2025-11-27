@@ -41,6 +41,7 @@ class TagResultBuilder implements ResultBuilder<TagResult> {
   TagResult build() {
     return TagResult(
       name: _tag.name,
+      color: _tag.color,
       relatedFolderIds:
           _relatedFolderIds.isEmpty ? null : _relatedFolderIds.toList(),
       relatedLinkIds: _relatedLinkIds.isEmpty ? null : _relatedLinkIds.toList(),
@@ -49,5 +50,3 @@ class TagResultBuilder implements ResultBuilder<TagResult> {
     );
   }
 }
-
-

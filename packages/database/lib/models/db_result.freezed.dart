@@ -176,7 +176,7 @@ extension DbResultPatterns on DbResult {
         folder,
     TResult Function(Link data, List<Tag> tags)? link,
     TResult Function(String title, String filePath, List<Tag>? tags)? document,
-    TResult Function(String name, List<String>? relatedFolderIds,
+    TResult Function(String name, int? color, List<String>? relatedFolderIds,
             List<String>? relatedLinkIds, List<String>? relatedDocumentIds)?
         tag,
     TResult Function(UserConfig data, List<UserTheme>? userThemes,
@@ -196,8 +196,8 @@ extension DbResultPatterns on DbResult {
       case DocumentResult() when document != null:
         return document(_that.title, _that.filePath, _that.tags);
       case TagResult() when tag != null:
-        return tag(_that.name, _that.relatedFolderIds, _that.relatedLinkIds,
-            _that.relatedDocumentIds);
+        return tag(_that.name, _that.color, _that.relatedFolderIds,
+            _that.relatedLinkIds, _that.relatedDocumentIds);
       case UserConfigResult() when userConfig != null:
         return userConfig(_that.data, _that.userThemes, _that.backupSettings);
       case UserThemeResult() when userTheme != null:
@@ -228,8 +228,12 @@ extension DbResultPatterns on DbResult {
     required TResult Function(Link data, List<Tag> tags) link,
     required TResult Function(String title, String filePath, List<Tag>? tags)
         document,
-    required TResult Function(String name, List<String>? relatedFolderIds,
-            List<String>? relatedLinkIds, List<String>? relatedDocumentIds)
+    required TResult Function(
+            String name,
+            int? color,
+            List<String>? relatedFolderIds,
+            List<String>? relatedLinkIds,
+            List<String>? relatedDocumentIds)
         tag,
     required TResult Function(UserConfig data, List<UserTheme>? userThemes,
             BackupSetting? backupSettings)
@@ -247,8 +251,8 @@ extension DbResultPatterns on DbResult {
       case DocumentResult():
         return document(_that.title, _that.filePath, _that.tags);
       case TagResult():
-        return tag(_that.name, _that.relatedFolderIds, _that.relatedLinkIds,
-            _that.relatedDocumentIds);
+        return tag(_that.name, _that.color, _that.relatedFolderIds,
+            _that.relatedLinkIds, _that.relatedDocumentIds);
       case UserConfigResult():
         return userConfig(_that.data, _that.userThemes, _that.backupSettings);
       case UserThemeResult():
@@ -276,7 +280,7 @@ extension DbResultPatterns on DbResult {
         folder,
     TResult? Function(Link data, List<Tag> tags)? link,
     TResult? Function(String title, String filePath, List<Tag>? tags)? document,
-    TResult? Function(String name, List<String>? relatedFolderIds,
+    TResult? Function(String name, int? color, List<String>? relatedFolderIds,
             List<String>? relatedLinkIds, List<String>? relatedDocumentIds)?
         tag,
     TResult? Function(UserConfig data, List<UserTheme>? userThemes,
@@ -295,8 +299,8 @@ extension DbResultPatterns on DbResult {
       case DocumentResult() when document != null:
         return document(_that.title, _that.filePath, _that.tags);
       case TagResult() when tag != null:
-        return tag(_that.name, _that.relatedFolderIds, _that.relatedLinkIds,
-            _that.relatedDocumentIds);
+        return tag(_that.name, _that.color, _that.relatedFolderIds,
+            _that.relatedLinkIds, _that.relatedDocumentIds);
       case UserConfigResult() when userConfig != null:
         return userConfig(_that.data, _that.userThemes, _that.backupSettings);
       case UserThemeResult() when userTheme != null:
@@ -575,6 +579,7 @@ class _$DocumentResultCopyWithImpl<$Res>
 class TagResult implements DbResult {
   const TagResult(
       {required this.name,
+      this.color,
       final List<String>? relatedFolderIds,
       final List<String>? relatedLinkIds,
       final List<String>? relatedDocumentIds})
@@ -583,6 +588,7 @@ class TagResult implements DbResult {
         _relatedDocumentIds = relatedDocumentIds;
 
   final String name;
+  final int? color;
   final List<String>? _relatedFolderIds;
   List<String>? get relatedFolderIds {
     final value = _relatedFolderIds;
@@ -625,6 +631,7 @@ class TagResult implements DbResult {
         (other.runtimeType == runtimeType &&
             other is TagResult &&
             (identical(other.name, name) || other.name == name) &&
+            (identical(other.color, color) || other.color == color) &&
             const DeepCollectionEquality()
                 .equals(other._relatedFolderIds, _relatedFolderIds) &&
             const DeepCollectionEquality()
@@ -637,13 +644,14 @@ class TagResult implements DbResult {
   int get hashCode => Object.hash(
       runtimeType,
       name,
+      color,
       const DeepCollectionEquality().hash(_relatedFolderIds),
       const DeepCollectionEquality().hash(_relatedLinkIds),
       const DeepCollectionEquality().hash(_relatedDocumentIds));
 
   @override
   String toString() {
-    return 'DbResult.tag(name: $name, relatedFolderIds: $relatedFolderIds, relatedLinkIds: $relatedLinkIds, relatedDocumentIds: $relatedDocumentIds)';
+    return 'DbResult.tag(name: $name, color: $color, relatedFolderIds: $relatedFolderIds, relatedLinkIds: $relatedLinkIds, relatedDocumentIds: $relatedDocumentIds)';
   }
 }
 
@@ -655,6 +663,7 @@ abstract mixin class $TagResultCopyWith<$Res>
   @useResult
   $Res call(
       {String name,
+      int? color,
       List<String>? relatedFolderIds,
       List<String>? relatedLinkIds,
       List<String>? relatedDocumentIds});
@@ -672,6 +681,7 @@ class _$TagResultCopyWithImpl<$Res> implements $TagResultCopyWith<$Res> {
   @pragma('vm:prefer-inline')
   $Res call({
     Object? name = null,
+    Object? color = freezed,
     Object? relatedFolderIds = freezed,
     Object? relatedLinkIds = freezed,
     Object? relatedDocumentIds = freezed,
@@ -681,6 +691,10 @@ class _$TagResultCopyWithImpl<$Res> implements $TagResultCopyWith<$Res> {
           ? _self.name
           : name // ignore: cast_nullable_to_non_nullable
               as String,
+      color: freezed == color
+          ? _self.color
+          : color // ignore: cast_nullable_to_non_nullable
+              as int?,
       relatedFolderIds: freezed == relatedFolderIds
           ? _self._relatedFolderIds
           : relatedFolderIds // ignore: cast_nullable_to_non_nullable

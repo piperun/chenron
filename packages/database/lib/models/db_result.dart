@@ -25,6 +25,7 @@ abstract class DbResult with _$DbResult {
 
   const factory DbResult.tag({
     required String name,
+    int? color,
     List<String>? relatedFolderIds,
     List<String>? relatedLinkIds,
     List<String>? relatedDocumentIds,
