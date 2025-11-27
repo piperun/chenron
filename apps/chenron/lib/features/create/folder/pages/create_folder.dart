@@ -175,10 +175,11 @@ class _CreateFolderPageState extends State<CreateFolderPage> {
           itemUpdates: CUD(
             create: [],
             update: [
-              FolderItem(
-                type: FolderItemType.folder,
+              FolderItem.folder(
+                id: null,
                 itemId: result.folderId,
-                content: StringContent(value: _currentFormData!.title),
+                folderId: result.folderId,
+                title: _currentFormData!.title,
               )
             ],
             remove: [],
@@ -198,4 +199,3 @@ class _CreateFolderPageState extends State<CreateFolderPage> {
     }
   }
 }
-

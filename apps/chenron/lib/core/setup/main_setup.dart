@@ -36,8 +36,8 @@ class MainSetup {
 
   static Future<void> setup() async {
     // Check if GetIt was reset (indicates test scenario requiring re-init)
-    final getItWasReset = _setupDone &&
-        !locator.isRegistered<Signal<Future<AppDatabaseHandler>>>();
+    final getItWasReset =
+        _setupDone && !locator.isRegistered<Signal<AppDatabaseHandler>>();
 
     if (_setupDone && !getItWasReset) {
       print("Warning: MainSetup.setup() called more than once.");
@@ -132,6 +132,15 @@ class MainSetup {
       );
       configHandler.value.databaseLocation = databaseLocation;
       configHandler.value.createDatabase(setupOnInit: true);
+
+      // Initialize AppDatabase similarly
+      final appDbHandler = locator.get<Signal<AppDatabaseHandler>>();
+      final appDatabaseLocation = DatabaseLocation(
+        databaseDirectory: baseDirs.dir(ChenronDir.database),
+        databaseFilename: "app.sqlite",
+      );
+      appDbHandler.value.databaseLocation = appDatabaseLocation;
+      await appDbHandler.value.createDatabase(setupOnInit: true);
     } catch (e, s) {
       const errorMsg = "Configuration database setup failed.";
       loggerGlobal.severe("MainSetup", errorMsg, e, s);
@@ -161,4 +170,3 @@ class MainSetup {
     }
   }
 }
-

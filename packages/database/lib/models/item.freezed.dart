@@ -16,6 +16,7 @@ T _$identity<T>(T value) => value;
 mixin _$FolderItem {
   String? get id;
   String? get itemId;
+  DateTime? get createdAt;
   List<Tag> get tags;
 
   /// Create a copy of FolderItem
@@ -32,16 +33,18 @@ mixin _$FolderItem {
             other is FolderItem &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.itemId, itemId) || other.itemId == itemId) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
             const DeepCollectionEquality().equals(other.tags, tags));
   }
 
   @override
-  int get hashCode => Object.hash(
-      runtimeType, id, itemId, const DeepCollectionEquality().hash(tags));
+  int get hashCode => Object.hash(runtimeType, id, itemId, createdAt,
+      const DeepCollectionEquality().hash(tags));
 
   @override
   String toString() {
-    return 'FolderItem(id: $id, itemId: $itemId, tags: $tags)';
+    return 'FolderItem(id: $id, itemId: $itemId, createdAt: $createdAt, tags: $tags)';
   }
 }
 
@@ -51,7 +54,7 @@ abstract mixin class $FolderItemCopyWith<$Res> {
           FolderItem value, $Res Function(FolderItem) _then) =
       _$FolderItemCopyWithImpl;
   @useResult
-  $Res call({String? id, String? itemId, List<Tag> tags});
+  $Res call({String? id, String? itemId, DateTime? createdAt, List<Tag> tags});
 }
 
 /// @nodoc
@@ -68,6 +71,7 @@ class _$FolderItemCopyWithImpl<$Res> implements $FolderItemCopyWith<$Res> {
   $Res call({
     Object? id = freezed,
     Object? itemId = freezed,
+    Object? createdAt = freezed,
     Object? tags = null,
   }) {
     return _then(_self.copyWith(
@@ -79,6 +83,10 @@ class _$FolderItemCopyWithImpl<$Res> implements $FolderItemCopyWith<$Res> {
           ? _self.itemId
           : itemId // ignore: cast_nullable_to_non_nullable
               as String?,
+      createdAt: freezed == createdAt
+          ? _self.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
       tags: null == tags
           ? _self.tags
           : tags // ignore: cast_nullable_to_non_nullable
@@ -212,7 +220,14 @@ extension FolderItemPatterns on FolderItem {
             List<Tag> tags)?
         document,
     TResult Function(
-            String? id, String? itemId, String folderId, List<Tag> tags)?
+            String? id,
+            String? itemId,
+            String folderId,
+            String title,
+            String? description,
+            DateTime? createdAt,
+            DateTime? updatedAt,
+            List<Tag> tags)?
         folder,
     required TResult orElse(),
   }) {
@@ -234,7 +249,8 @@ extension FolderItemPatterns on FolderItem {
             _that.updatedAt,
             _that.tags);
       case FolderItemNested() when folder != null:
-        return folder(_that.id, _that.itemId, _that.folderId, _that.tags);
+        return folder(_that.id, _that.itemId, _that.folderId, _that.title,
+            _that.description, _that.createdAt, _that.updatedAt, _that.tags);
       case _:
         return orElse();
     }
@@ -277,7 +293,14 @@ extension FolderItemPatterns on FolderItem {
             List<Tag> tags)
         document,
     required TResult Function(
-            String? id, String? itemId, String folderId, List<Tag> tags)
+            String? id,
+            String? itemId,
+            String folderId,
+            String title,
+            String? description,
+            DateTime? createdAt,
+            DateTime? updatedAt,
+            List<Tag> tags)
         folder,
   }) {
     final _that = this;
@@ -298,7 +321,8 @@ extension FolderItemPatterns on FolderItem {
             _that.updatedAt,
             _that.tags);
       case FolderItemNested():
-        return folder(_that.id, _that.itemId, _that.folderId, _that.tags);
+        return folder(_that.id, _that.itemId, _that.folderId, _that.title,
+            _that.description, _that.createdAt, _that.updatedAt, _that.tags);
     }
   }
 
@@ -338,7 +362,14 @@ extension FolderItemPatterns on FolderItem {
             List<Tag> tags)?
         document,
     TResult? Function(
-            String? id, String? itemId, String folderId, List<Tag> tags)?
+            String? id,
+            String? itemId,
+            String folderId,
+            String title,
+            String? description,
+            DateTime? createdAt,
+            DateTime? updatedAt,
+            List<Tag> tags)?
         folder,
   }) {
     final _that = this;
@@ -359,7 +390,8 @@ extension FolderItemPatterns on FolderItem {
             _that.updatedAt,
             _that.tags);
       case FolderItemNested() when folder != null:
-        return folder(_that.id, _that.itemId, _that.folderId, _that.tags);
+        return folder(_that.id, _that.itemId, _that.folderId, _that.title,
+            _that.description, _that.createdAt, _that.updatedAt, _that.tags);
       case _:
         return null;
     }
@@ -387,6 +419,7 @@ class LinkItem extends FolderItem {
   final String url;
   final String? archiveOrg;
   final String? archiveIs;
+  @override
   final DateTime? createdAt;
   final List<Tag> _tags;
   @override
@@ -529,6 +562,7 @@ class DocumentItem extends FolderItem {
   final String mimeType;
   final int? fileSize;
   final String? checksum;
+  @override
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final List<Tag> _tags;
@@ -687,6 +721,10 @@ class FolderItemNested extends FolderItem {
       {this.id,
       this.itemId,
       required this.folderId,
+      required this.title,
+      this.description,
+      this.createdAt,
+      this.updatedAt,
       final List<Tag> tags = const []})
       : _tags = tags,
         super._();
@@ -696,6 +734,11 @@ class FolderItemNested extends FolderItem {
   @override
   final String? itemId;
   final String folderId;
+  final String title;
+  final String? description;
+  @override
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
   final List<Tag> _tags;
   @override
   @JsonKey()
@@ -722,16 +765,31 @@ class FolderItemNested extends FolderItem {
             (identical(other.itemId, itemId) || other.itemId == itemId) &&
             (identical(other.folderId, folderId) ||
                 other.folderId == folderId) &&
+            (identical(other.title, title) || other.title == title) &&
+            (identical(other.description, description) ||
+                other.description == description) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.updatedAt, updatedAt) ||
+                other.updatedAt == updatedAt) &&
             const DeepCollectionEquality().equals(other._tags, _tags));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, id, itemId, folderId,
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      itemId,
+      folderId,
+      title,
+      description,
+      createdAt,
+      updatedAt,
       const DeepCollectionEquality().hash(_tags));
 
   @override
   String toString() {
-    return 'FolderItem.folder(id: $id, itemId: $itemId, folderId: $folderId, tags: $tags)';
+    return 'FolderItem.folder(id: $id, itemId: $itemId, folderId: $folderId, title: $title, description: $description, createdAt: $createdAt, updatedAt: $updatedAt, tags: $tags)';
   }
 }
 
@@ -743,7 +801,15 @@ abstract mixin class $FolderItemNestedCopyWith<$Res>
       _$FolderItemNestedCopyWithImpl;
   @override
   @useResult
-  $Res call({String? id, String? itemId, String folderId, List<Tag> tags});
+  $Res call(
+      {String? id,
+      String? itemId,
+      String folderId,
+      String title,
+      String? description,
+      DateTime? createdAt,
+      DateTime? updatedAt,
+      List<Tag> tags});
 }
 
 /// @nodoc
@@ -762,6 +828,10 @@ class _$FolderItemNestedCopyWithImpl<$Res>
     Object? id = freezed,
     Object? itemId = freezed,
     Object? folderId = null,
+    Object? title = null,
+    Object? description = freezed,
+    Object? createdAt = freezed,
+    Object? updatedAt = freezed,
     Object? tags = null,
   }) {
     return _then(FolderItemNested(
@@ -777,6 +847,22 @@ class _$FolderItemNestedCopyWithImpl<$Res>
           ? _self.folderId
           : folderId // ignore: cast_nullable_to_non_nullable
               as String,
+      title: null == title
+          ? _self.title
+          : title // ignore: cast_nullable_to_non_nullable
+              as String,
+      description: freezed == description
+          ? _self.description
+          : description // ignore: cast_nullable_to_non_nullable
+              as String?,
+      createdAt: freezed == createdAt
+          ? _self.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      updatedAt: freezed == updatedAt
+          ? _self.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
       tags: null == tags
           ? _self._tags
           : tags // ignore: cast_nullable_to_non_nullable

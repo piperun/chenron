@@ -120,9 +120,12 @@ LinkResult _createMockLink(String url) {
 FolderResult _createMockFolder(String title) {
   return FolderResult(
     data: Folder(
-        id: "1", title: title, createdAt: DateTime.now(), description: ""),
+        id: "1",
+        title: title,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        description: ""),
     tags: [],
     items: [],
   );
 }
-

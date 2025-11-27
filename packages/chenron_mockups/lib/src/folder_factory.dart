@@ -42,14 +42,14 @@ class MetadataFactory {
 
 class FolderItemFactory {
   static FolderItem createLink(String url) {
-    return FolderItem(
-        type: FolderItemType.link, content: StringContent(value: url));
+    return FolderItem.link(url: url);
   }
 
   static FolderItem createDocument(String title, String body) {
-    return FolderItem(
-        type: FolderItemType.document,
-        content: MapContent(value: {"title": title, "body": body}));
+    return FolderItem.document(
+      title: title,
+      filePath: body,
+    );
   }
 
   static List<FolderItem> createItems(List<Map<String, dynamic>> itemsData) {

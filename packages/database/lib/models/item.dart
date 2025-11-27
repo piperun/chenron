@@ -36,6 +36,10 @@ sealed class FolderItem with _$FolderItem {
     String? id,
     String? itemId,
     required String folderId,
+    required String title,
+    String? description,
+    DateTime? createdAt,
+    DateTime? updatedAt,
     @Default([]) List<Tag> tags,
   }) = FolderItemNested;
 

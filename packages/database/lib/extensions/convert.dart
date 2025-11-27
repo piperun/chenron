@@ -31,3 +31,18 @@ extension ConvertDocumentToItem on Document {
     );
   }
 }
+
+extension ConvertFolderToItem on Folder {
+  FolderItem toFolderItem(String? itemId, {List<Tag> tags = const []}) {
+    return FolderItem.folder(
+      id: id,
+      itemId: itemId,
+      folderId: id,
+      title: title,
+      description: description,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      tags: tags,
+    );
+  }
+}

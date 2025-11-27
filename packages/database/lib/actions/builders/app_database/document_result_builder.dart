@@ -27,10 +27,8 @@ class DocumentResultBuilder implements ResultBuilder<DocumentResult> {
   DocumentResult build() {
     return DocumentResult(
       title: _document.title,
-      path: _document.path,
+      filePath: _document.filePath,
       tags: _tags.isEmpty ? null : _tags,
     );
   }
 }
-
-

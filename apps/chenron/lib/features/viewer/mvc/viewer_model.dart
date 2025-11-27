@@ -16,8 +16,7 @@ import "package:signals/signals.dart";
 
 class ViewerModel {
   Future<AppDatabase> loadDatabase() async {
-    final database =
-        await locator.get<Signal<Future<AppDatabaseHandler>>>().value;
+    final database = locator.get<Signal<AppDatabaseHandler>>().value;
     return database.appDatabase;
   }
 
@@ -101,4 +100,3 @@ class ViewerModel {
         .map((lists) => lists.expand((list) => list).toList());
   }
 }
-

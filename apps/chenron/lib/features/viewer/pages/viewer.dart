@@ -23,19 +23,30 @@ class _ViewerState extends State<Viewer> {
   late final TagFilterState _tagFilterState;
 
   FolderItem _viewerItemToFolderItem(ViewerItem viewerItem) {
-    // For folders, use title as the main content
-    // For links, description contains the URL
-    final contentValue = viewerItem.type == FolderItemType.folder
-        ? viewerItem.title
-        : viewerItem.description;
-
-    return FolderItem(
-      id: viewerItem.id,
-      type: viewerItem.type,
-      content: StringContent(value: contentValue),
-      createdAt: viewerItem.createdAt,
-      tags: viewerItem.tags,
-    );
+    return switch (viewerItem.type) {
+      FolderItemType.folder => FolderItem.folder(
+          id: viewerItem.id,
+          itemId: null,
+          folderId: viewerItem.id,
+          title: viewerItem.title,
+          tags: viewerItem.tags,
+        ),
+      FolderItemType.link => FolderItem.link(
+          id: viewerItem.id,
+          itemId: null,
+          url: viewerItem.description, // URL stored in description
+          tags: viewerItem.tags,
+          createdAt: viewerItem.createdAt,
+        ),
+      FolderItemType.document => FolderItem.document(
+          id: viewerItem.id,
+          itemId: null,
+          title: viewerItem.title,
+          filePath: "", // This needs to be provided from the viewer item
+          tags: viewerItem.tags,
+          createdAt: viewerItem.createdAt,
+        ),
+    };
   }
 
   @override
@@ -120,4 +131,3 @@ class _ViewerState extends State<Viewer> {
     );
   }
 }
-

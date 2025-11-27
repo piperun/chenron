@@ -39,8 +39,7 @@ class FolderSignal {
     folder.items.add(item);
   }
 
-  void removeItem(int id) {
-    folder.items.removeWhere((element) => element.listId == id);
+  void removeItem(String itemId) {
+    folder.items.removeWhere((element) => element.id == itemId);
   }
 }
-

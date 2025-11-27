@@ -42,15 +42,14 @@ class DatabaseLocation {
 }
 
 class AppDatabaseHandler {
-  final DatabaseLocation databaseLocation;
+  DatabaseLocation? databaseLocation;
   final DatabaseFileOperations _fileOperations;
   AppDatabase? _appDatabase;
 
   static final Map<String, AppDatabaseHandler> _instances = {};
 
-  AppDatabaseHandler({
-    required this.databaseLocation,
-  }) : _fileOperations = DatabaseFileOperations();
+  AppDatabaseHandler({this.databaseLocation})
+      : _fileOperations = DatabaseFileOperations();
 
   AppDatabase get appDatabase {
     if (_appDatabase == null) {
@@ -60,26 +59,18 @@ class AppDatabaseHandler {
     return _appDatabase!;
   }
 
-  Future<void> initDatabase() async {
-    if (_appDatabase != null) {
-      return;
-    }
-    _appDatabase = AppDatabase(
-      databaseName: databaseLocation.databaseFilename,
-      customPath: databaseLocation.databaseFilePath.path,
-      setupOnInit: true,
-    );
-    await _appDatabase?.setup();
-  }
-
   Future<void> createDatabase({
     String? databaseName,
     File? databasePath,
     bool setupOnInit = false,
   }) async {
-    final String dbName = databaseName ?? databaseLocation.databaseFilename;
+    if (databaseLocation == null) {
+      throw StateError(
+          "DatabaseLocation is null. Please provide a valid DatabaseLocation.");
+    }
+    final String dbName = databaseName ?? databaseLocation!.databaseFilename;
     final String path =
-        databasePath?.path ?? databaseLocation.databaseFilePath.path;
+        databasePath?.path ?? databaseLocation!.databaseFilePath.path;
 
     await _appDatabase?.close();
     _appDatabase = AppDatabase(
@@ -111,13 +102,13 @@ class AppDatabaseHandler {
             dbFile: dbFile, importDirectory: baseDirs.databaseDir);
       } else {
         // Directly use the provided database file
-        databaseLocation.databaseFilename = p.basename(dbFile.path);
-        result = databaseLocation.databaseFilePath;
+        databaseLocation!.databaseFilename = p.basename(dbFile.path);
+        result = databaseLocation!.databaseFilePath;
       }
       createDatabase(setupOnInit: setupOnInit, databasePath: result);
 
       // Update the cache key if necessary
-      final String key = databaseLocation.databaseFilePath.path;
+      final String key = databaseLocation!.databaseFilePath.path;
       _instances[key] = this;
     }
     return result;
@@ -130,7 +121,7 @@ class AppDatabaseHandler {
         (throw StateError("Base directories not resolved"));
     try {
       result = await _fileOperations.backupDatabase(
-        dbFile: databaseLocation.databaseFilePath,
+        dbFile: databaseLocation!.databaseFilePath,
         backupDirectory: baseDirs.backupAppDir,
       );
     } catch (e) {
@@ -147,9 +138,9 @@ class AppDatabaseHandler {
     File? result;
     try {
       result = await _fileOperations.exportDatabase(
-        sourceDbFile: databaseLocation.databaseFilePath,
+        sourceDbFile: databaseLocation!.databaseFilePath,
         exportFilePath:
-            File(p.join(exportPath.path, databaseLocation.databaseFilename)),
+            File(p.join(exportPath.path, databaseLocation!.databaseFilename)),
       );
     } catch (e) {
       loggerGlobal.warning(
@@ -167,7 +158,7 @@ class AppDatabaseHandler {
   Future<void> closeDatabase() async {
     await _appDatabase?.close();
     _appDatabase = null;
-    final String key = databaseLocation.databaseFilePath.path;
+    final String key = databaseLocation!.databaseFilePath.path;
     _instances.remove(key);
   }
 

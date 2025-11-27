@@ -16,8 +16,8 @@ import "package:chenron/base_dirs/schema.dart";
 final locator = GetIt.I;
 
 void locatorSetup() {
-  locator.registerSingleton<Signal<Future<AppDatabaseHandler>>>(
-      signal(initializeAppDatabaseAccessor()));
+  locator
+      .registerSingleton<Signal<AppDatabaseHandler>>(appDatabaseAccessorSignal);
   locator.registerSingleton<Signal<ConfigDatabaseFileHandler>>(
       signal(initializeConfigDatabaseFileHandler()));
 
@@ -39,4 +39,3 @@ void locatorSetup() {
   // Register ConfigController
   locator.registerLazySingleton<ConfigController>(() => ConfigController());
 }
-

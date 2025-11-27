@@ -24,13 +24,12 @@ class ItemSectionController {
   }
 
   static String getTitleFromItem(FolderItem item) {
-    if (item.path is StringContent) {
-      return (item.path as StringContent).value;
-    } else if (item.path is MapContent) {
-      final mapValue = (item.path as MapContent).value;
-      return mapValue["title"] ?? mapValue["body"] ?? "";
-    }
-    return "";
+    return item.map(
+      link: (linkItem) => linkItem.url,
+      document: (docItem) => docItem.title,
+      folder: (folderItem) =>
+          folderItem.folderId, // Will need to resolve folder name elsewhere
+    );
   }
 
   void updateItems(List<FolderItem> items) {
@@ -50,4 +49,3 @@ class ItemSectionController {
     allItems.dispose();
   }
 }
-

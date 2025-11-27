@@ -20,7 +20,7 @@ class FolderDetailItems extends StatelessWidget {
         return Card(
           elevation: 2,
           margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
-          child: ItemTile(itemContent: item.path),
+          child: ItemTile(item: item),
         );
       },
     );
@@ -28,30 +28,28 @@ class FolderDetailItems extends StatelessWidget {
 }
 
 class ItemTile extends StatelessWidget {
-  final ItemContent itemContent;
+  final FolderItem item;
   final String tileContent;
   final Function() launchFunc;
 
-  ItemTile({super.key, required this.itemContent})
-      : tileContent = _getTileContent(itemContent),
-        launchFunc = _getLaunchFunc(itemContent);
+  ItemTile({super.key, required this.item})
+      : tileContent = _getTileContent(item),
+        launchFunc = _getLaunchFunc(item);
 
-  static String _getTileContent(ItemContent content) {
-    switch (content) {
-      case final StringContent stringContent:
-        return stringContent.value;
-      case final MapContent mapContent:
-        return mapContent.value["title"] ?? "";
-    }
+  static String _getTileContent(FolderItem item) {
+    return item.map(
+      link: (link) => link.url,
+      document: (doc) => doc.title,
+      folder: (folder) => folder.folderId,
+    );
   }
 
-  static Function() _getLaunchFunc(ItemContent content) {
-    switch (content) {
-      case final StringContent stringContent:
-        return () => _launchURL(Uri.parse(stringContent.value));
-      default:
-        return () {};
-    }
+  static Function() _getLaunchFunc(FolderItem item) {
+    return item.map(
+      link: (link) => () => _launchURL(Uri.parse(link.url)),
+      document: (_) => () {},
+      folder: (_) => () {},
+    );
   }
 
   @override
@@ -74,4 +72,3 @@ Future<void> _launchURL(Uri url) async {
     throw ("Could not launch $url");
   }
 }
-

@@ -42,18 +42,20 @@ class MockDatabaseHelper {
       description: description,
       tagValues: tags,
       itemsData: items.map<Map<String, dynamic>>((item) {
-        if (item.path is StringContent) {
-          return {
-            "type": item.type.name,
-            "content": (item.path as StringContent).value,
-          };
-        } else if (item.path is MapContent) {
-          return {
-            "type": item.type.name,
-            "content": (item.path as MapContent).value,
-          };
-        }
-        return {};
+        return item.map(
+          link: (link) => {
+            "type": "link",
+            "content": link.url,
+          },
+          document: (doc) => {
+            "type": "document",
+            "content": {
+              "title": doc.title,
+              "body": doc.filePath,
+            },
+          },
+          folder: (_) => {},
+        );
       }).toList(),
     );
 

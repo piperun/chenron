@@ -6,10 +6,11 @@ import "package:url_launcher/url_launcher.dart" as url_launcher;
 
 class ItemUtils {
   static String getUrl(FolderItem item) {
-    if (item.path is StringContent) {
-      return (item.path as StringContent).value;
-    }
-    return "";
+    return item.map(
+      link: (linkItem) => linkItem.url,
+      document: (docItem) => docItem.filePath,
+      folder: (folderItem) => "", // Folders don't have URLs
+    );
   }
 
   static Future<void> launchUrl(FolderItem item) async {
@@ -32,18 +33,19 @@ class ItemUtils {
   }
 
   static String getItemTitle(FolderItem item) {
-    if (item.path is StringContent) {
-      final url = (item.path as StringContent).value;
-      return getDomain(url);
-    }
-    return "Unknown Item";
+    return item.map(
+      link: (linkItem) => getDomain(linkItem.url),
+      document: (docItem) => docItem.title,
+      folder: (folderItem) => folderItem.title,
+    );
   }
 
   static String getItemSubtitle(FolderItem item) {
-    if (item.path is StringContent) {
-      return (item.path as StringContent).value;
-    }
-    return "";
+    return item.map(
+      link: (linkItem) => linkItem.url,
+      document: (docItem) => docItem.filePath,
+      folder: (folderItem) => "",
+    );
   }
 
   static void copyUrl(String url) {
@@ -167,4 +169,3 @@ class ItemIcon extends StatelessWidget {
     );
   }
 }
-

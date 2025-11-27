@@ -16,20 +16,34 @@ void handleItemTap(BuildContext context, FolderItem item) {
   final presenter = viewerViewModelSignal.value;
 
   // Convert FolderItem to ViewerItem format for presenter
-  final viewerItem = ViewerItem(
-    id: item.id ?? "",
-    type: item.type,
-    title: item.type == FolderItemType.folder
-        ? (item.path as StringContent).value
-        : "",
-    description: item.type != FolderItemType.folder
-        ? (item.path as StringContent).value
-        : "",
-    url: item.type == FolderItemType.link
-        ? (item.path as StringContent).value
-        : null,
-    tags: item.tags,
-    createdAt: item.createdAt ?? DateTime.now(),
+  final viewerItem = item.map(
+    link: (linkItem) => ViewerItem(
+      id: linkItem.id ?? "",
+      type: FolderItemType.link,
+      title: "",
+      description: linkItem.url,
+      url: linkItem.url,
+      tags: linkItem.tags,
+      createdAt: linkItem.createdAt ?? DateTime.now(),
+    ),
+    document: (docItem) => ViewerItem(
+      id: docItem.id ?? "",
+      type: FolderItemType.document,
+      title: docItem.title,
+      description: docItem.filePath,
+      url: null,
+      tags: docItem.tags,
+      createdAt: docItem.createdAt ?? DateTime.now(),
+    ),
+    folder: (folderItem) => ViewerItem(
+      id: folderItem.id ?? "",
+      type: FolderItemType.folder,
+      title: folderItem.folderId,
+      description: "",
+      url: null,
+      tags: folderItem.tags,
+      createdAt: DateTime.now(), // Folders don't have createdAt
+    ),
   );
 
   presenter.onItemTap(context, viewerItem);
@@ -54,13 +68,12 @@ Future<void> handleItemDeletion(
   final confirmed = await showDeleteConfirmationDialog(
     context: context,
     items: itemsToDelete.map((item) {
-      // Extract title from item content
-      String title = "";
-      if (item.path is StringContent) {
-        title = (item.path as StringContent).value;
-      } else if (item.path is MapContent) {
-        title = (item.path as MapContent).value["title"] ?? "";
-      }
+      // Extract title from item
+      final title = item.map(
+        link: (linkItem) => linkItem.url,
+        document: (docItem) => docItem.title,
+        folder: (folderItem) => folderItem.folderId,
+      );
 
       return DeletableItem(
         id: item.id!,
@@ -123,4 +136,3 @@ Future<bool> deleteItem(AppDatabase db, FolderItem item) async {
       return false;
   }
 }
-

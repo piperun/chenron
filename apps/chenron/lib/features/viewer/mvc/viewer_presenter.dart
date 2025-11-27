@@ -166,15 +166,30 @@ class ViewerPresenter extends ChangeNotifier {
     if (action == 1) {
       // Show Details
       // Convert ViewerItem to FolderItem for the modal
-      final folderItem = FolderItem(
-        id: item.id,
-        type: item.type,
-        content: item.type == FolderItemType.link
-            ? StringContent(value: item.url ?? "")
-            : const StringContent(value: ""), // Handle other types if needed
-        tags: item.tags,
-        createdAt: item.createdAt,
-      );
+      final folderItem = switch (item.type) {
+        FolderItemType.link => FolderItem.link(
+            id: item.id,
+            itemId: null,
+            url: item.url ?? "",
+            tags: item.tags,
+            createdAt: item.createdAt,
+          ),
+        FolderItemType.document => FolderItem.document(
+            id: item.id,
+            itemId: null,
+            title: item.title,
+            filePath: "", // Will need to be populated from ViewerItem
+            tags: item.tags,
+            createdAt: item.createdAt,
+          ),
+        FolderItemType.folder => FolderItem.folder(
+            id: item.id,
+            itemId: null,
+            folderId: item.id,
+            title: item.title,
+            tags: item.tags,
+          ),
+      };
 
       unawaited(showDialog(
         context: context,
@@ -231,4 +246,3 @@ class ViewerPresenter extends ChangeNotifier {
     }
   }
 }
-

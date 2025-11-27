@@ -87,6 +87,11 @@ class FolderResultBuilder implements ResultBuilder<FolderResult> {
         if (doc != null) {
           folderItem = doc.toFolderItem(itemId, tags: itemTagsList);
         }
+      } else if (item.typeId == FolderItemType.folder.index) {
+        // For nested folders, we need to fetch the folder data
+        // This is a synchronous process, so nested folder data should be pre-loaded
+        // For now, we'll create a placeholder or need to async fetch
+        // Note: This needs to be handled at the query level
       }
 
       if (folderItem != null) {
@@ -101,5 +106,3 @@ class FolderResultBuilder implements ResultBuilder<FolderResult> {
     );
   }
 }
-
-

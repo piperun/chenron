@@ -7,10 +7,9 @@ import "package:database/extensions/folder/read.dart";
 import "package:database/extensions/folder/remove.dart";
 import "package:database/extensions/operations/database_file_handler.dart";
 import "package:chenron/locator.dart";
-import "package:database/models/db_result.dart" show FolderResult;
-import "package:database/models/item.dart";
-import "package:database/database.dart"
-    show IncludeOptions, AppDataInclude, Folder, AppDatabase;
+import "package:database/models/db_result.dart";
+import "package:database/extensions/convert.dart";
+import "package:database/database.dart";
 import "package:chenron/shared/tag_filter/tag_filter_state.dart";
 import "package:chenron/features/folder_editor/pages/folder_editor.dart";
 import "package:signals/signals_flutter.dart";
@@ -65,13 +64,7 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
 
     // Convert parent folders to FolderItem and combine with existing items
     final parentItems = parentFolders
-        .map((parentFolder) => FolderItem(
-              id: parentFolder.id,
-              type: FolderItemType.folder,
-              content: StringContent(value: parentFolder.title),
-              createdAt: parentFolder.createdAt,
-              tags: [], // Parent folders won't have tags in this context
-            ))
+        .map((parentFolder) => parentFolder.toFolderItem(null))
         .toList();
 
     // Combine parent items with child items
@@ -392,4 +385,3 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
     );
   }
 }
-

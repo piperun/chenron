@@ -26,13 +26,16 @@ class ItemListView extends StatelessWidget {
   });
 
   Future<void> _launchUrl(FolderItem item) async {
-    if (item.path is StringContent) {
-      final url = (item.path as StringContent).value;
-      if (url.isNotEmpty) {
-        final uri = Uri.parse(url);
-        if (await canLaunchUrl(uri)) {
-          await launchUrl(uri);
-        }
+    final url = item.map(
+      link: (linkItem) => linkItem.url,
+      document: (_) => null,
+      folder: (_) => null,
+    );
+
+    if (url != null && url.isNotEmpty) {
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
       }
     }
   }
@@ -225,4 +228,3 @@ class _EmptyState extends StatelessWidget {
     );
   }
 }
-

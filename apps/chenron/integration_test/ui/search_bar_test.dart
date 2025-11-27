@@ -13,17 +13,23 @@ void main() {
         (WidgetTester tester) async {
       // Create test data
       final testItems = [
-        FolderItem(
-          content: const StringContent(value: "default item"),
-          type: FolderItemType.link,
+        FolderItem.link(
+          id: "1",
+          url: "default item",
+          tags: [],
+          createdAt: DateTime.now(),
         ),
-        FolderItem(
-          content: const StringContent(value: "another item"),
-          type: FolderItemType.link,
+        FolderItem.link(
+          id: "2",
+          url: "another item",
+          tags: [],
+          createdAt: DateTime.now(),
         ),
-        FolderItem(
-          content: const StringContent(value: "test"),
-          type: FolderItemType.link,
+        FolderItem.link(
+          id: "3",
+          url: "test",
+          tags: [],
+          createdAt: DateTime.now(),
         ),
       ];
 
@@ -62,7 +68,11 @@ void main() {
                         itemBuilder: (context, index) {
                           final item = filtered[index];
                           return ListTile(
-                            title: Text((item.path as StringContent).value),
+                            title: Text(item.map(
+                              link: (l) => l.url,
+                              document: (d) => d.title,
+                              folder: (f) => f.folderId,
+                            )),
                           );
                         },
                       ),
@@ -132,13 +142,17 @@ void main() {
     testWidgets("clearing search resets to show all items",
         (WidgetTester tester) async {
       final testItems = [
-        FolderItem(
-          content: const StringContent(value: "item 1"),
-          type: FolderItemType.link,
+        FolderItem.link(
+          id: "1",
+          url: "item 1",
+          tags: [],
+          createdAt: DateTime.now(),
         ),
-        FolderItem(
-          content: const StringContent(value: "item 2"),
-          type: FolderItemType.link,
+        FolderItem.link(
+          id: "2",
+          url: "item 2",
+          tags: [],
+          createdAt: DateTime.now(),
         ),
       ];
 
@@ -174,7 +188,11 @@ void main() {
                         itemBuilder: (context, index) {
                           final item = filtered[index];
                           return ListTile(
-                            title: Text((item.path as StringContent).value),
+                            title: Text(item.map(
+                              link: (l) => l.url,
+                              document: (d) => d.title,
+                              folder: (f) => f.folderId,
+                            )),
                           );
                         },
                       ),
@@ -240,13 +258,17 @@ void main() {
   group("SearchFilter Unit Tests", () {
     test("filterItems with empty query returns all items", () {
       final items = [
-        FolderItem(
-          content: const StringContent(value: "test 1"),
-          type: FolderItemType.link,
+        FolderItem.link(
+          id: "1",
+          url: "test 1",
+          tags: [],
+          createdAt: DateTime.now(),
         ),
-        FolderItem(
-          content: const StringContent(value: "test 2"),
-          type: FolderItemType.link,
+        FolderItem.link(
+          id: "2",
+          url: "test 2",
+          tags: [],
+          createdAt: DateTime.now(),
         ),
       ];
 
@@ -262,13 +284,17 @@ void main() {
 
     test("filterItems with query filters correctly", () {
       final items = [
-        FolderItem(
-          content: const StringContent(value: "default item"),
-          type: FolderItemType.link,
+        FolderItem.link(
+          id: "1",
+          url: "default item",
+          tags: [],
+          createdAt: DateTime.now(),
         ),
-        FolderItem(
-          content: const StringContent(value: "another item"),
-          type: FolderItemType.link,
+        FolderItem.link(
+          id: "2",
+          url: "another item",
+          tags: [],
+          createdAt: DateTime.now(),
         ),
       ];
 
@@ -279,10 +305,14 @@ void main() {
 
       expect(result.length, equals(1));
       expect(
-          (result.first.path as StringContent).value, equals("default item"));
+          result.first.map(
+            link: (l) => l.url,
+            document: (_) => "",
+            folder: (_) => "",
+          ),
+          equals("default item"));
 
       filter.dispose();
     });
   });
 }
-

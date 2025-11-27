@@ -392,10 +392,10 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
             itemUpdates: CUD(
               create: [],
               update: [
-                FolderItem(
-                  type: FolderItemType.link,
+                FolderItem.link(
+                  id: null,
                   itemId: result.linkId,
-                  content: StringContent(value: entry.url),
+                  url: entry.url,
                 )
               ],
               remove: [],
@@ -433,4 +433,3 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
     }
   }
 }
-

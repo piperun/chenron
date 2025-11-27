@@ -80,14 +80,17 @@ class AppDatabase extends _$AppDatabase {
         // Migration from v1 to v2: Add Statistics table and updatedAt columns
         if (from < 2) {
           // Add updatedAt to Folders
+          // Add updatedAt to Folders
           await customStatement(
-              'ALTER TABLE folders ADD COLUMN updated_at INTEGER NOT NULL '
-              'DEFAULT (strftime(\'%s\', \'now\'))');
+              'ALTER TABLE folders ADD COLUMN updated_at TEXT NOT NULL DEFAULT \'1970-01-01T00:00:00Z\'');
+          await customStatement(
+              'UPDATE folders SET updated_at = strftime(\'%Y-%m-%dT%H:%M:%SZ\', \'now\')');
 
           // Add updatedAt to Documents
           await customStatement(
-              'ALTER TABLE documents ADD COLUMN updated_at INTEGER NOT NULL '
-              'DEFAULT (strftime(\'%s\', \'now\'))');
+              'ALTER TABLE documents ADD COLUMN updated_at TEXT NOT NULL DEFAULT \'1970-01-01T00:00:00Z\'');
+          await customStatement(
+              'UPDATE documents SET updated_at = strftime(\'%Y-%m-%dT%H:%M:%SZ\', \'now\')');
 
           // Create Statistics table
           await migrator.createTable(statistics);

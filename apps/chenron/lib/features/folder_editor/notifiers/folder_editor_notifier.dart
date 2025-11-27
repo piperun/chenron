@@ -454,10 +454,10 @@ class FolderEditorNotifier {
         parentFolderId: parentId,
         changes: CUD<FolderItem>(
           create: [
-            FolderItem(
-              type: FolderItemType.folder,
+            FolderItem.folder(
+              folderId: currentFolderId,
               itemId: currentFolderId,
-              content: StringContent(value: currentTitle),
+              title: currentTitle,
             )
           ],
           update: [],
@@ -486,10 +486,10 @@ class FolderEditorNotifier {
         parentFolderId: parentId,
         changes: CUD<FolderItem>(
           create: [
-            FolderItem(
-              type: FolderItemType.folder,
+            FolderItem.folder(
+              folderId: currentFolderId,
               itemId: currentFolderId,
-              content: StringContent(value: currentTitle),
+              title: currentTitle,
             )
           ],
           update: [],
@@ -510,4 +510,3 @@ class FolderEditorNotifier {
     formData.dispose();
   }
 }
-

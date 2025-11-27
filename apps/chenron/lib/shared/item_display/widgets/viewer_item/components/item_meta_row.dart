@@ -110,8 +110,16 @@ class _TimeDisplay extends StatelessWidget {
       (context) {
         final timeFormat =
             TimeDisplayFormat.values[controller.timeDisplayFormat.value];
-        final displayText = TimeFormatter.format(item.createdAt, timeFormat);
-        final tooltipText = TimeFormatter.formatTooltip(item.createdAt);
+
+        // Get createdAt - only link and document have it, folders don't
+        final createdAt = item.map(
+          link: (linkItem) => linkItem.createdAt ?? DateTime.now(),
+          document: (docItem) => docItem.createdAt ?? DateTime.now(),
+          folder: (_) => DateTime.now(), // Folders don't have createdAt
+        );
+
+        final displayText = TimeFormatter.format(createdAt, timeFormat);
+        final tooltipText = TimeFormatter.formatTooltip(createdAt);
 
         return Tooltip(
           message: tooltipText,
@@ -127,4 +135,3 @@ class _TimeDisplay extends StatelessWidget {
     );
   }
 }
-

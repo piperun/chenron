@@ -138,11 +138,16 @@ class SearchFilter {
     if (cleanQuery.isNotEmpty) {
       final q = cleanQuery.toLowerCase();
       filtered = filtered.where((item) {
-        // Search in path/content
-        if (item.path is StringContent) {
-          final pathStr = (item.path as StringContent).value.toLowerCase();
-          if (pathStr.contains(q)) return true;
-        }
+        // Search in item-specific content using pattern matching
+        final hasMatch = item.map(
+          link: (linkItem) => linkItem.url.toLowerCase().contains(q),
+          document: (docItem) =>
+              docItem.title.toLowerCase().contains(q) ||
+              docItem.filePath.toLowerCase().contains(q),
+          folder: (folderItem) => folderItem.folderId.toLowerCase().contains(q),
+        );
+        if (hasMatch) return true;
+
         // Search in tags
         if (item.tags.any((t) => t.name.toLowerCase().contains(q))) {
           return true;
@@ -171,15 +176,19 @@ class SearchFilter {
         case SortMode.nameDesc:
           return _getItemName(b).compareTo(_getItemName(a));
         case SortMode.dateAsc:
-          if (a.createdAt == null && b.createdAt == null) return 0;
-          if (a.createdAt == null) return 1;
-          if (b.createdAt == null) return -1;
-          return a.createdAt!.compareTo(b.createdAt!);
+          final aDate = _getCreatedAt(a);
+          final bDate = _getCreatedAt(b);
+          if (aDate == null && bDate == null) return 0;
+          if (aDate == null) return 1;
+          if (bDate == null) return -1;
+          return aDate.compareTo(bDate);
         case SortMode.dateDesc:
-          if (a.createdAt == null && b.createdAt == null) return 0;
-          if (a.createdAt == null) return 1;
-          if (b.createdAt == null) return -1;
-          return b.createdAt!.compareTo(a.createdAt!);
+          final aDate = _getCreatedAt(a);
+          final bDate = _getCreatedAt(b);
+          if (aDate == null && bDate == null) return 0;
+          if (aDate == null) return 1;
+          if (bDate == null) return -1;
+          return bDate.compareTo(aDate);
       }
     });
 
@@ -187,10 +196,19 @@ class SearchFilter {
   }
 
   String _getItemName(FolderItem item) {
-    if (item.path is StringContent) {
-      return (item.path as StringContent).value;
-    }
-    return "";
+    return item.map(
+      link: (linkItem) => linkItem.url,
+      document: (docItem) => docItem.title,
+      folder: (folderItem) => folderItem.folderId,
+    );
+  }
+
+  DateTime? _getCreatedAt(FolderItem item) {
+    return item.map(
+      link: (linkItem) => linkItem.createdAt,
+      document: (docItem) => docItem.createdAt,
+      folder: (_) => null, // Folders don't have createdAt
+    );
   }
 
   /// Convenience method that filters AND sorts in one call
@@ -221,4 +239,3 @@ enum SortMode {
   dateAsc,
   dateDesc,
 }
-

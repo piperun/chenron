@@ -213,34 +213,50 @@ class ItemInfoModal extends StatelessWidget {
                     ],
 
                     // Created date with full timestamp
-                    if (item.createdAt != null) ...[
-                      _InfoSection(
-                        title: "Created",
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              TimeFormatter.formatFull(item.createdAt),
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: theme.colorScheme.onSurface,
+                    Builder(
+                      builder: (context) {
+                        final createdAt = item.map(
+                          link: (l) => l.createdAt,
+                          document: (d) => d.createdAt,
+                          folder: (_) => null,
+                        );
+
+                        if (createdAt != null) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _InfoSection(
+                                title: "Created",
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      TimeFormatter.formatFull(createdAt),
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                        color: theme.colorScheme.onSurface,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      "(${TimeFormatter.formatRelative(createdAt)})",
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: theme.colorScheme.onSurface
+                                            .withValues(alpha: 0.6),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              "(${TimeFormatter.formatRelative(item.createdAt)})",
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: theme.colorScheme.onSurface
-                                    .withValues(alpha: 0.6),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                    ],
+                              const SizedBox(height: 16),
+                            ],
+                          );
+                        }
+                        return const SizedBox.shrink();
+                      },
+                    ),
 
                     // Tags section
                     _InfoSection(
@@ -330,4 +346,3 @@ class _InfoSection extends StatelessWidget {
     );
   }
 }
-

@@ -172,6 +172,7 @@ void main() {
           title: "Existing Folder",
           description: "Existing Description",
           createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
         );
 
         await tester.pumpWidget(buildForm(existingFolder: existingFolder));
@@ -570,4 +571,3 @@ void main() {
     });
   });
 }
-

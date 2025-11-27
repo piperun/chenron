@@ -47,39 +47,33 @@ class ItemTableNotifier<T> extends ChangeNotifier {
   }
 
   List<TrinaRow> getRows(List<FolderItem> items) {
-    return items.map((link) {
-      if (link.path is StringContent) {
-        final content = link.path as StringContent;
-        return TrinaRow(
-          key: link.key,
+    return items.map((item) {
+      return item.map(
+        link: (linkItem) => TrinaRow(
+          key: ValueKey(linkItem.itemId ?? linkItem.id ?? ""),
           cells: {
-            "url": TrinaCell(value: content.value),
+            "url": TrinaCell(value: linkItem.url),
             "comment": TrinaCell(value: ""),
-            "tags": TrinaCell(value: []),
+            "tags": TrinaCell(value: linkItem.tags),
           },
-        );
-      } else if (link.path is MapContent) {
-        final content = link.path as MapContent;
-        final mapValue = content.value;
-        return TrinaRow(
-          key: link.key,
+        ),
+        document: (docItem) => TrinaRow(
+          key: ValueKey(docItem.itemId ?? docItem.id ?? ""),
           cells: {
-            "url": TrinaCell(value: mapValue["url"] ?? ""),
-            "comment": TrinaCell(value: mapValue["comment"] ?? ""),
-            "tags": TrinaCell(value: mapValue["tags"] ?? []),
+            "url": TrinaCell(value: docItem.filePath),
+            "comment": TrinaCell(value: docItem.title),
+            "tags": TrinaCell(value: docItem.tags),
           },
-        );
-      } else {
-        return TrinaRow(
-          key: link.key,
+        ),
+        folder: (folderItem) => TrinaRow(
+          key: ValueKey(folderItem.itemId ?? folderItem.id ?? ""),
           cells: {
-            "url": TrinaCell(value: ""),
+            "url": TrinaCell(value: folderItem.folderId),
             "comment": TrinaCell(value: ""),
-            "tags": TrinaCell(value: []),
+            "tags": TrinaCell(value: folderItem.tags),
           },
-        );
-      }
+        ),
+      );
     }).toList();
   }
 }
-
