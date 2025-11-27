@@ -56,21 +56,21 @@ void main() {
     await mockDb.setup(setupOnInit: true);
 
     // Register mock database in GetIt
-    if (GetIt.I.isRegistered<Signal<Future<AppDatabaseHandler>>>()) {
+    if (GetIt.I.isRegistered<Signal<AppDatabaseHandler>>()) {
       await GetIt.I.reset();
     }
 
     // Create a mock AppDatabaseHandler that returns our mock database
     final mockHandler = _MockAppDatabaseHandler(mockDb.database);
 
-    GetIt.I.registerSingleton<Signal<Future<AppDatabaseHandler>>>(
-      signal<Future<AppDatabaseHandler>>(Future.value(mockHandler)),
+    GetIt.I.registerSingleton<Signal<AppDatabaseHandler>>(
+      signal<AppDatabaseHandler>(mockHandler),
     );
   });
 
   tearDown(() async {
     await mockDb.dispose();
-    if (GetIt.I.isRegistered<Signal<Future<AppDatabaseHandler>>>()) {
+    if (GetIt.I.isRegistered<Signal<AppDatabaseHandler>>()) {
       await GetIt.I.reset();
     }
   });
@@ -140,12 +140,14 @@ void main() {
     }) {
       return MaterialApp(
         home: Scaffold(
-          body: FolderForm(
-            existingFolder: existingFolder,
-            showItemsTable: showItemsTable,
-            keyPrefix: keyPrefix,
-            onDataChanged: onDataChanged,
-            onValidationChanged: onValidationChanged,
+          body: SingleChildScrollView(
+            child: FolderForm(
+              existingFolder: existingFolder,
+              showItemsTable: showItemsTable,
+              keyPrefix: keyPrefix,
+              onDataChanged: onDataChanged,
+              onValidationChanged: onValidationChanged,
+            ),
           ),
         ),
       );

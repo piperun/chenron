@@ -61,15 +61,15 @@ void main() {
       await mockDb.setup(setupOnInit: true);
 
       // Register mock database in locator
-      if (GetIt.I.isRegistered<Signal<Future<AppDatabaseHandler>>>()) {
+      if (GetIt.I.isRegistered<Signal<AppDatabaseHandler>>()) {
         await GetIt.I.reset();
       }
 
       // Create a mock handler that returns our mock database
       final mockHandler = _MockAppDatabaseHandler(mockDb.database);
 
-      GetIt.I.registerSingleton<Signal<Future<AppDatabaseHandler>>>(
-        signal(Future.value(mockHandler)),
+      GetIt.I.registerSingleton<Signal<AppDatabaseHandler>>(
+        signal(mockHandler),
       );
 
       // Create test folder
@@ -82,7 +82,7 @@ void main() {
 
     tearDown(() async {
       await mockDb.dispose();
-      if (GetIt.I.isRegistered<Signal<Future<AppDatabaseHandler>>>()) {
+      if (GetIt.I.isRegistered<Signal<AppDatabaseHandler>>()) {
         await GetIt.I.reset();
       }
     });
