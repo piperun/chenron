@@ -1,4 +1,4 @@
-import "dart:async";
+﻿import "dart:async";
 import "package:flutter/material.dart";
 import "package:database/database.dart" show AppDataInclude;
 import "package:database/extensions/folder/read.dart";
@@ -67,7 +67,7 @@ class _FoldersNavigationRailState extends State<FoldersNavigationRail> {
 
   Future<void> _watchFolders() async {
     try {
-      final db = await locator.get<Signal<Future<AppDatabaseHandler>>>().value;
+      final db = locator.get<Signal<AppDatabaseHandler>>().value;
       final appDb = db.appDatabase;
 
       // Watch for folder changes with items included

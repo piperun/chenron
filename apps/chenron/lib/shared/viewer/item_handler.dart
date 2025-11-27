@@ -1,4 +1,4 @@
-import "package:flutter/material.dart";
+﻿import "package:flutter/material.dart";
 import "package:database/models/item.dart";
 import "package:chenron/features/viewer/state/viewer_state.dart";
 import "package:chenron/features/viewer/ui/viewer_base_item.dart";
@@ -87,7 +87,7 @@ Future<void> handleItemDeletion(
 
   // Delete items from database
   try {
-    final db = await locator.get<Signal<Future<AppDatabaseHandler>>>().value;
+    final db = locator.get<Signal<AppDatabaseHandler>>().value;
     final appDb = db.appDatabase;
 
     int deletedCount = 0;

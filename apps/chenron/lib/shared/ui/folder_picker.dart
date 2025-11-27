@@ -1,4 +1,4 @@
-import "dart:async";
+﻿import "dart:async";
 import "package:database/extensions/operations/database_file_handler.dart";
 import "package:flutter/material.dart";
 import "package:database/database.dart";
@@ -31,7 +31,7 @@ class _FolderPickerState extends State<FolderPicker> {
 
   Future<void> _initializeDatabase() async {
     final dbHandler =
-        await locator.get<Signal<Future<AppDatabaseHandler>>>().value;
+        locator.get<Signal<AppDatabaseHandler>>().value;
     _db = dbHandler.appDatabase;
     unawaited(_loadInitialFolder());
   }

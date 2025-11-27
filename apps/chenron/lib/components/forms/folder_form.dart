@@ -1,4 +1,4 @@
-import "dart:async";
+﻿import "dart:async";
 import "package:chenron/shared/folder_input/folder_input_section.dart";
 import "package:chenron/shared/tag_section/tag_section.dart";
 import "package:chenron/features/create/folder/widgets/folder_parent_section.dart";
@@ -130,7 +130,7 @@ class _FolderFormState extends State<FolderForm> {
   Future<void> _loadParentFolders(List<String> folderIds) async {
     try {
       final dbHandler =
-          await locator.get<Signal<Future<AppDatabaseHandler>>>().value;
+          locator.get<Signal<AppDatabaseHandler>>().value;
       final folders = <Folder>[];
 
       for (final folderId in folderIds) {

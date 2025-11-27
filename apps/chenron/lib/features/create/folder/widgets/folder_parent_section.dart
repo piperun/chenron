@@ -1,4 +1,4 @@
-import "dart:async";
+﻿import "dart:async";
 import "package:flutter/material.dart";
 import "package:database/database.dart";
 import "package:database/extensions/operations/database_file_handler.dart";
@@ -34,7 +34,7 @@ class _FolderParentSectionState extends State<FolderParentSection> {
 
   Future<void> _initializeDatabase() async {
     final dbHandler =
-        await locator.get<Signal<Future<AppDatabaseHandler>>>().value;
+        locator.get<Signal<AppDatabaseHandler>>().value;
     _db = dbHandler.appDatabase;
     setState(() => _isLoading = false);
   }

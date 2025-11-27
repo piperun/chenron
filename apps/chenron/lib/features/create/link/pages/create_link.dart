@@ -1,4 +1,4 @@
-import "package:chenron/shared/tag_section/tag_section.dart";
+﻿import "package:chenron/shared/tag_section/tag_section.dart";
 import "package:flutter/material.dart";
 import "package:database/database.dart";
 import "package:database/extensions/folder/update.dart";
@@ -363,7 +363,7 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
     if (_notifier.entries.isEmpty) return;
 
     try {
-      final db = await locator.get<Signal<Future<AppDatabaseHandler>>>().value;
+      final db = locator.get<Signal<AppDatabaseHandler>>().value;
       final appDb = db.appDatabase;
 
       final targetFolders = _selectedFolders.isEmpty

@@ -1,4 +1,4 @@
-import "package:chenron/components/forms/folder_form.dart";
+﻿import "package:chenron/components/forms/folder_form.dart";
 import "package:flutter/material.dart";
 
 // TODO: FUTURE FOLDER EDITOR MIGRATION
@@ -145,7 +145,7 @@ class _CreateFolderPageState extends State<CreateFolderPage> {
   Future<void> _saveFolder() async {
     if (!_isFormValid || _currentFormData == null) return;
 
-    final db = await locator.get<Signal<Future<AppDatabaseHandler>>>().value;
+    final db = locator.get<Signal<AppDatabaseHandler>>().value;
     final appDb = db.appDatabase;
 
     // Convert tags to Metadata objects

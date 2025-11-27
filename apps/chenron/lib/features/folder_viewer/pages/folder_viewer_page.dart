@@ -1,4 +1,4 @@
-import "package:flutter/material.dart";
+﻿import "package:flutter/material.dart";
 import "dart:async" show unawaited;
 import "package:chenron/features/folder_viewer/ui/components/folder_header.dart";
 import "package:chenron/shared/item_display/filterable_item_display.dart";
@@ -46,7 +46,7 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
   }
 
   Future<FolderResult> _loadFolderWithParents() async {
-    final db = await locator.get<Signal<Future<AppDatabaseHandler>>>().value;
+    final db = locator.get<Signal<AppDatabaseHandler>>().value;
 
     // Load the folder with its child items
     final folder = await db.appDatabase.getFolder(
@@ -189,7 +189,7 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
 
     // Delete folder from database
     try {
-      final db = await locator.get<Signal<Future<AppDatabaseHandler>>>().value;
+      final db = locator.get<Signal<AppDatabaseHandler>>().value;
       final success = await db.appDatabase.removeFolder(folder.id);
 
       if (mounted) {

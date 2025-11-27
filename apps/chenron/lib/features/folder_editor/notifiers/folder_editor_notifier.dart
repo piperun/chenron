@@ -1,4 +1,4 @@
-import "package:chenron/components/forms/folder_form.dart";
+﻿import "package:chenron/components/forms/folder_form.dart";
 import "package:database/extensions/folder/read.dart";
 import "package:database/extensions/folder/update.dart";
 import "package:database/extensions/operations/database_file_handler.dart";
@@ -119,7 +119,7 @@ class FolderEditorNotifier {
 
     try {
       final dbHandler =
-          await locator.get<Signal<Future<AppDatabaseHandler>>>().value;
+          locator.get<Signal<AppDatabaseHandler>>().value;
       final folderResult = await dbHandler.appDatabase.getFolder(
         folderId: folderId,
         includeOptions: const IncludeOptions({
@@ -367,7 +367,7 @@ class FolderEditorNotifier {
 
     try {
       final dbHandler =
-          await locator.get<Signal<Future<AppDatabaseHandler>>>().value;
+          locator.get<Signal<AppDatabaseHandler>>().value;
       final appDb = dbHandler.appDatabase;
 
       final tagUpdates = _buildTagUpdates();
