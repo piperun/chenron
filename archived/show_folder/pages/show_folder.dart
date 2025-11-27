@@ -1,8 +1,8 @@
 import "package:chenron/shared/search/search_button.dart";
 import "package:database/extensions/folder/read.dart";
 import "package:database/extensions/operations/database_file_handler.dart";
-import "package:chenron/features/show_folder/widgets/folder_detail_info.dart";
-import "package:chenron/features/show_folder/widgets/folder_detail_items.dart";
+import "../widgets/folder_detail_info.dart";
+import "../widgets/folder_detail_items.dart";
 import "package:chenron/locator.dart";
 import "package:database/models/db_result.dart" show FolderResult;
 import "package:flutter/material.dart";
@@ -23,19 +23,15 @@ class ShowFolder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Future<FolderResult> folderData = locator
-        .get<Signal<AppDatabaseHandler>>()
-        .value
-        .then((db) => db.appDatabase
-            .getFolder(folderId: folderId)
-            .then((folder) => folder!));
+    final db = locator.get<Signal<AppDatabaseHandler>>().value;
+    final Future<FolderResult> folderData = db.appDatabase
+        .getFolder(folderId: folderId)
+        .then((folder) => folder!);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text("Folder Details"),
-        actions: const [
-          SearchButton(),
-        ],
+        actions: const [SearchButton()],
       ),
       body: FutureBuilder<FolderResult>(
         future: folderData,
@@ -55,12 +51,8 @@ class ShowFolder extends StatelessWidget {
 
           return Column(
             children: [
-              Expanded(
-                child: FolderDetailInfo(folderResult: result),
-              ),
-              Expanded(
-                child: FolderDetailItems(folderResult: result),
-              ),
+              Expanded(child: FolderDetailInfo(folderResult: result)),
+              Expanded(child: FolderDetailItems(folderResult: result)),
             ],
           );
         },

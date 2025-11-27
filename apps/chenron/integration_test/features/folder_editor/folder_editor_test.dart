@@ -17,7 +17,7 @@ class _MockAppDatabaseHandler implements AppDatabaseHandler {
   _MockAppDatabaseHandler(this.appDatabase);
 
   @override
-  DatabaseLocation get databaseLocation => throw UnimplementedError();
+  DatabaseLocation? databaseLocation;
 
   @override
   Future<File?> backupDatabase() => throw UnimplementedError();
@@ -39,9 +39,6 @@ class _MockAppDatabaseHandler implements AppDatabaseHandler {
   Future<File?> importDatabase(File dbFile,
           {required bool copyImport, bool setupOnInit = true}) =>
       throw UnimplementedError();
-
-  @override
-  Future<void> initDatabase() async {}
 
   @override
   Future<void> reloadDatabase() async {}
@@ -556,4 +553,3 @@ void main() {
     });
   });
 }
-
