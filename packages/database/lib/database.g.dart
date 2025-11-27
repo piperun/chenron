@@ -49,9 +49,14 @@ class $FoldersTable extends Folders with TableInfo<$FoldersTable, Folder> {
           minTextLength: 0, maxTextLength: 1000),
       type: DriftSqlType.string,
       requiredDuringInsert: true);
+  static const VerificationMeta _colorMeta = const VerificationMeta('color');
+  @override
+  late final GeneratedColumn<int> color = GeneratedColumn<int>(
+      'color', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns =>
-      [id, createdAt, updatedAt, title, description];
+      [id, createdAt, updatedAt, title, description, color];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -89,6 +94,10 @@ class $FoldersTable extends Folders with TableInfo<$FoldersTable, Folder> {
     } else if (isInserting) {
       context.missing(_descriptionMeta);
     }
+    if (data.containsKey('color')) {
+      context.handle(
+          _colorMeta, color.isAcceptableOrUnknown(data['color']!, _colorMeta));
+    }
     return context;
   }
 
@@ -108,6 +117,8 @@ class $FoldersTable extends Folders with TableInfo<$FoldersTable, Folder> {
           .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
       description: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}description'])!,
+      color: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}color']),
     );
   }
 
@@ -123,12 +134,14 @@ class Folder extends DataClass implements Insertable<Folder> {
   final DateTime updatedAt;
   final String title;
   final String description;
+  final int? color;
   const Folder(
       {required this.id,
       required this.createdAt,
       required this.updatedAt,
       required this.title,
-      required this.description});
+      required this.description,
+      this.color});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -137,6 +150,9 @@ class Folder extends DataClass implements Insertable<Folder> {
     map['updated_at'] = Variable<DateTime>(updatedAt);
     map['title'] = Variable<String>(title);
     map['description'] = Variable<String>(description);
+    if (!nullToAbsent || color != null) {
+      map['color'] = Variable<int>(color);
+    }
     return map;
   }
 
@@ -147,6 +163,8 @@ class Folder extends DataClass implements Insertable<Folder> {
       updatedAt: Value(updatedAt),
       title: Value(title),
       description: Value(description),
+      color:
+          color == null && nullToAbsent ? const Value.absent() : Value(color),
     );
   }
 
@@ -159,6 +177,7 @@ class Folder extends DataClass implements Insertable<Folder> {
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       title: serializer.fromJson<String>(json['title']),
       description: serializer.fromJson<String>(json['description']),
+      color: serializer.fromJson<int?>(json['color']),
     );
   }
   @override
@@ -170,6 +189,7 @@ class Folder extends DataClass implements Insertable<Folder> {
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'title': serializer.toJson<String>(title),
       'description': serializer.toJson<String>(description),
+      'color': serializer.toJson<int?>(color),
     };
   }
 
@@ -178,13 +198,15 @@ class Folder extends DataClass implements Insertable<Folder> {
           DateTime? createdAt,
           DateTime? updatedAt,
           String? title,
-          String? description}) =>
+          String? description,
+          Value<int?> color = const Value.absent()}) =>
       Folder(
         id: id ?? this.id,
         createdAt: createdAt ?? this.createdAt,
         updatedAt: updatedAt ?? this.updatedAt,
         title: title ?? this.title,
         description: description ?? this.description,
+        color: color.present ? color.value : this.color,
       );
   Folder copyWithCompanion(FoldersCompanion data) {
     return Folder(
@@ -194,6 +216,7 @@ class Folder extends DataClass implements Insertable<Folder> {
       title: data.title.present ? data.title.value : this.title,
       description:
           data.description.present ? data.description.value : this.description,
+      color: data.color.present ? data.color.value : this.color,
     );
   }
 
@@ -204,13 +227,15 @@ class Folder extends DataClass implements Insertable<Folder> {
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('title: $title, ')
-          ..write('description: $description')
+          ..write('description: $description, ')
+          ..write('color: $color')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, createdAt, updatedAt, title, description);
+  int get hashCode =>
+      Object.hash(id, createdAt, updatedAt, title, description, color);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -219,7 +244,8 @@ class Folder extends DataClass implements Insertable<Folder> {
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
           other.title == this.title &&
-          other.description == this.description);
+          other.description == this.description &&
+          other.color == this.color);
 }
 
 class FoldersCompanion extends UpdateCompanion<Folder> {
@@ -228,6 +254,7 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
   final Value<DateTime> updatedAt;
   final Value<String> title;
   final Value<String> description;
+  final Value<int?> color;
   final Value<int> rowid;
   const FoldersCompanion({
     this.id = const Value.absent(),
@@ -235,6 +262,7 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
     this.updatedAt = const Value.absent(),
     this.title = const Value.absent(),
     this.description = const Value.absent(),
+    this.color = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   FoldersCompanion.insert({
@@ -243,6 +271,7 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
     this.updatedAt = const Value.absent(),
     required String title,
     required String description,
+    this.color = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         title = Value(title),
@@ -253,6 +282,7 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
     Expression<DateTime>? updatedAt,
     Expression<String>? title,
     Expression<String>? description,
+    Expression<int>? color,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -261,6 +291,7 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
       if (updatedAt != null) 'updated_at': updatedAt,
       if (title != null) 'title': title,
       if (description != null) 'description': description,
+      if (color != null) 'color': color,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -271,6 +302,7 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
       Value<DateTime>? updatedAt,
       Value<String>? title,
       Value<String>? description,
+      Value<int?>? color,
       Value<int>? rowid}) {
     return FoldersCompanion(
       id: id ?? this.id,
@@ -278,6 +310,7 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
       updatedAt: updatedAt ?? this.updatedAt,
       title: title ?? this.title,
       description: description ?? this.description,
+      color: color ?? this.color,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -300,6 +333,9 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
     if (description.present) {
       map['description'] = Variable<String>(description.value);
     }
+    if (color.present) {
+      map['color'] = Variable<int>(color.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -314,6 +350,7 @@ class FoldersCompanion extends UpdateCompanion<Folder> {
           ..write('updatedAt: $updatedAt, ')
           ..write('title: $title, ')
           ..write('description: $description, ')
+          ..write('color: $color, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1157,8 +1194,13 @@ class $TagsTable extends Tags with TableInfo<$TagsTable, Tag> {
       type: DriftSqlType.string,
       requiredDuringInsert: true,
       defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'));
+  static const VerificationMeta _colorMeta = const VerificationMeta('color');
   @override
-  List<GeneratedColumn> get $columns => [id, createdAt, name];
+  late final GeneratedColumn<int> color = GeneratedColumn<int>(
+      'color', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [id, createdAt, name, color];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -1184,6 +1226,10 @@ class $TagsTable extends Tags with TableInfo<$TagsTable, Tag> {
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
+    if (data.containsKey('color')) {
+      context.handle(
+          _colorMeta, color.isAcceptableOrUnknown(data['color']!, _colorMeta));
+    }
     return context;
   }
 
@@ -1199,6 +1245,8 @@ class $TagsTable extends Tags with TableInfo<$TagsTable, Tag> {
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
       name: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      color: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}color']),
     );
   }
 
@@ -1212,13 +1260,21 @@ class Tag extends DataClass implements Insertable<Tag> {
   final String id;
   final DateTime createdAt;
   final String name;
-  const Tag({required this.id, required this.createdAt, required this.name});
+  final int? color;
+  const Tag(
+      {required this.id,
+      required this.createdAt,
+      required this.name,
+      this.color});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['name'] = Variable<String>(name);
+    if (!nullToAbsent || color != null) {
+      map['color'] = Variable<int>(color);
+    }
     return map;
   }
 
@@ -1227,6 +1283,8 @@ class Tag extends DataClass implements Insertable<Tag> {
       id: Value(id),
       createdAt: Value(createdAt),
       name: Value(name),
+      color:
+          color == null && nullToAbsent ? const Value.absent() : Value(color),
     );
   }
 
@@ -1237,6 +1295,7 @@ class Tag extends DataClass implements Insertable<Tag> {
       id: serializer.fromJson<String>(json['id']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       name: serializer.fromJson<String>(json['name']),
+      color: serializer.fromJson<int?>(json['color']),
     );
   }
   @override
@@ -1246,19 +1305,27 @@ class Tag extends DataClass implements Insertable<Tag> {
       'id': serializer.toJson<String>(id),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'name': serializer.toJson<String>(name),
+      'color': serializer.toJson<int?>(color),
     };
   }
 
-  Tag copyWith({String? id, DateTime? createdAt, String? name}) => Tag(
+  Tag copyWith(
+          {String? id,
+          DateTime? createdAt,
+          String? name,
+          Value<int?> color = const Value.absent()}) =>
+      Tag(
         id: id ?? this.id,
         createdAt: createdAt ?? this.createdAt,
         name: name ?? this.name,
+        color: color.present ? color.value : this.color,
       );
   Tag copyWithCompanion(TagsCompanion data) {
     return Tag(
       id: data.id.present ? data.id.value : this.id,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       name: data.name.present ? data.name.value : this.name,
+      color: data.color.present ? data.color.value : this.color,
     );
   }
 
@@ -1267,37 +1334,42 @@ class Tag extends DataClass implements Insertable<Tag> {
     return (StringBuffer('Tag(')
           ..write('id: $id, ')
           ..write('createdAt: $createdAt, ')
-          ..write('name: $name')
+          ..write('name: $name, ')
+          ..write('color: $color')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, createdAt, name);
+  int get hashCode => Object.hash(id, createdAt, name, color);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Tag &&
           other.id == this.id &&
           other.createdAt == this.createdAt &&
-          other.name == this.name);
+          other.name == this.name &&
+          other.color == this.color);
 }
 
 class TagsCompanion extends UpdateCompanion<Tag> {
   final Value<String> id;
   final Value<DateTime> createdAt;
   final Value<String> name;
+  final Value<int?> color;
   final Value<int> rowid;
   const TagsCompanion({
     this.id = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.name = const Value.absent(),
+    this.color = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   TagsCompanion.insert({
     required String id,
     this.createdAt = const Value.absent(),
     required String name,
+    this.color = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         name = Value(name);
@@ -1305,12 +1377,14 @@ class TagsCompanion extends UpdateCompanion<Tag> {
     Expression<String>? id,
     Expression<DateTime>? createdAt,
     Expression<String>? name,
+    Expression<int>? color,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (createdAt != null) 'created_at': createdAt,
       if (name != null) 'name': name,
+      if (color != null) 'color': color,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1319,11 +1393,13 @@ class TagsCompanion extends UpdateCompanion<Tag> {
       {Value<String>? id,
       Value<DateTime>? createdAt,
       Value<String>? name,
+      Value<int?>? color,
       Value<int>? rowid}) {
     return TagsCompanion(
       id: id ?? this.id,
       createdAt: createdAt ?? this.createdAt,
       name: name ?? this.name,
+      color: color ?? this.color,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1340,6 +1416,9 @@ class TagsCompanion extends UpdateCompanion<Tag> {
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
+    if (color.present) {
+      map['color'] = Variable<int>(color.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1352,6 +1431,7 @@ class TagsCompanion extends UpdateCompanion<Tag> {
           ..write('id: $id, ')
           ..write('createdAt: $createdAt, ')
           ..write('name: $name, ')
+          ..write('color: $color, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -2789,6 +2869,7 @@ typedef $$FoldersTableCreateCompanionBuilder = FoldersCompanion Function({
   Value<DateTime> updatedAt,
   required String title,
   required String description,
+  Value<int?> color,
   Value<int> rowid,
 });
 typedef $$FoldersTableUpdateCompanionBuilder = FoldersCompanion Function({
@@ -2797,6 +2878,7 @@ typedef $$FoldersTableUpdateCompanionBuilder = FoldersCompanion Function({
   Value<DateTime> updatedAt,
   Value<String> title,
   Value<String> description,
+  Value<int?> color,
   Value<int> rowid,
 });
 
@@ -2843,6 +2925,9 @@ class $$FoldersTableFilterComposer
   ColumnFilters<String> get description => $composableBuilder(
       column: $table.description, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<int> get color => $composableBuilder(
+      column: $table.color, builder: (column) => ColumnFilters(column));
+
   Expression<bool> itemsRefs(
       Expression<bool> Function($$ItemsTableFilterComposer f) f) {
     final $$ItemsTableFilterComposer composer = $composerBuilder(
@@ -2888,6 +2973,9 @@ class $$FoldersTableOrderingComposer
 
   ColumnOrderings<String> get description => $composableBuilder(
       column: $table.description, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get color => $composableBuilder(
+      column: $table.color, builder: (column) => ColumnOrderings(column));
 }
 
 class $$FoldersTableAnnotationComposer
@@ -2913,6 +3001,9 @@ class $$FoldersTableAnnotationComposer
 
   GeneratedColumn<String> get description => $composableBuilder(
       column: $table.description, builder: (column) => column);
+
+  GeneratedColumn<int> get color =>
+      $composableBuilder(column: $table.color, builder: (column) => column);
 
   Expression<T> itemsRefs<T extends Object>(
       Expression<T> Function($$ItemsTableAnnotationComposer a) f) {
@@ -2964,6 +3055,7 @@ class $$FoldersTableTableManager extends RootTableManager<
             Value<DateTime> updatedAt = const Value.absent(),
             Value<String> title = const Value.absent(),
             Value<String> description = const Value.absent(),
+            Value<int?> color = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               FoldersCompanion(
@@ -2972,6 +3064,7 @@ class $$FoldersTableTableManager extends RootTableManager<
             updatedAt: updatedAt,
             title: title,
             description: description,
+            color: color,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -2980,6 +3073,7 @@ class $$FoldersTableTableManager extends RootTableManager<
             Value<DateTime> updatedAt = const Value.absent(),
             required String title,
             required String description,
+            Value<int?> color = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               FoldersCompanion.insert(
@@ -2988,6 +3082,7 @@ class $$FoldersTableTableManager extends RootTableManager<
             updatedAt: updatedAt,
             title: title,
             description: description,
+            color: color,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
@@ -3428,12 +3523,14 @@ typedef $$TagsTableCreateCompanionBuilder = TagsCompanion Function({
   required String id,
   Value<DateTime> createdAt,
   required String name,
+  Value<int?> color,
   Value<int> rowid,
 });
 typedef $$TagsTableUpdateCompanionBuilder = TagsCompanion Function({
   Value<String> id,
   Value<DateTime> createdAt,
   Value<String> name,
+  Value<int?> color,
   Value<int> rowid,
 });
 
@@ -3453,6 +3550,9 @@ class $$TagsTableFilterComposer extends Composer<_$AppDatabase, $TagsTable> {
 
   ColumnFilters<String> get name => $composableBuilder(
       column: $table.name, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get color => $composableBuilder(
+      column: $table.color, builder: (column) => ColumnFilters(column));
 }
 
 class $$TagsTableOrderingComposer extends Composer<_$AppDatabase, $TagsTable> {
@@ -3471,6 +3571,9 @@ class $$TagsTableOrderingComposer extends Composer<_$AppDatabase, $TagsTable> {
 
   ColumnOrderings<String> get name => $composableBuilder(
       column: $table.name, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get color => $composableBuilder(
+      column: $table.color, builder: (column) => ColumnOrderings(column));
 }
 
 class $$TagsTableAnnotationComposer
@@ -3490,6 +3593,9 @@ class $$TagsTableAnnotationComposer
 
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<int> get color =>
+      $composableBuilder(column: $table.color, builder: (column) => column);
 }
 
 class $$TagsTableTableManager extends RootTableManager<
@@ -3518,24 +3624,28 @@ class $$TagsTableTableManager extends RootTableManager<
             Value<String> id = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
             Value<String> name = const Value.absent(),
+            Value<int?> color = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               TagsCompanion(
             id: id,
             createdAt: createdAt,
             name: name,
+            color: color,
             rowid: rowid,
           ),
           createCompanionCallback: ({
             required String id,
             Value<DateTime> createdAt = const Value.absent(),
             required String name,
+            Value<int?> color = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               TagsCompanion.insert(
             id: id,
             createdAt: createdAt,
             name: name,
+            color: color,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0

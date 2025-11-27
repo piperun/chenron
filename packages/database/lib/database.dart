@@ -161,6 +161,12 @@ class AppDatabase extends _$AppDatabase {
           await customStatement(
               'CREATE INDEX document_title ON documents(title)');
         }
+
+        // Migration from v3 to v4: Add color columns to folders and tags
+        if (from < 4) {
+          await customStatement('ALTER TABLE folders ADD COLUMN color INTEGER');
+          await customStatement('ALTER TABLE tags ADD COLUMN color INTEGER');
+        }
       },
     );
   }

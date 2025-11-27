@@ -7,6 +7,7 @@ class Folders extends Table {
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
   TextColumn get title => text().withLength(min: 6, max: 30)();
   TextColumn get description => text().withLength(min: 0, max: 1000)();
+  IntColumn get color => integer().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -47,6 +48,7 @@ class Tags extends Table {
   TextColumn get id => text().withLength(min: 30, max: 60)();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   TextColumn get name => text().withLength(min: 3, max: 12).unique()();
+  IntColumn get color => integer().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
