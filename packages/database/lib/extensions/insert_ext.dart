@@ -46,22 +46,24 @@ extension InsertionExtensions on AppDatabase {
 
   List<DocumentResultIds> insertDocuments({
     required Batch batch,
-    required List<Document> docs,
+    required List<DocumentItem> docs,
   }) {
     final List<DocumentResultIds> results = <DocumentResultIds>[];
     if (docs.isEmpty) return results;
 
-    for (final Document doc in docs) {
-      final String documentId = generateId();
+    for (final DocumentItem doc in docs) {
+      final String documentId = doc.id ?? generateId();
       batch.insert(
         documents,
         DocumentsCompanion.insert(
           id: documentId,
           title: doc.title,
           filePath: doc.filePath,
-          mimeType: doc.mimeType,
+          fileType: doc.fileType,
           fileSize: Value(doc.fileSize),
           checksum: Value(doc.checksum),
+          createdAt: Value(doc.createdAt ?? DateTime.now()),
+          updatedAt: Value(doc.updatedAt ?? DateTime.now()),
         ),
         mode: InsertMode.insertOrIgnore,
       );

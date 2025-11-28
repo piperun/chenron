@@ -22,7 +22,7 @@ extension ConvertDocumentToItem on Document {
       itemId: itemId,
       title: title,
       filePath: filePath,
-      mimeType: mimeType,
+      fileType: fileType,
       fileSize: fileSize,
       checksum: checksum,
       createdAt: createdAt,

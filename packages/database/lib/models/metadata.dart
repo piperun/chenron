@@ -9,15 +9,18 @@ class Metadata {
 
   String value;
   MetadataTypeEnum type;
+  int? color;
 
-  Metadata._internal(this._id, this._metadataId, this.value, this.type);
+  Metadata._internal(
+      this._id, this._metadataId, this.value, this.type, this.color);
 
   factory Metadata(
       {String? id,
       String? metadataId,
       required String value,
-      required MetadataTypeEnum type}) {
-    return Metadata._internal(id, metadataId, value, type);
+      required MetadataTypeEnum type,
+      int? color}) {
+    return Metadata._internal(id, metadataId, value, type, color);
   }
 
   Insertable toCompanion(String folderId) {
@@ -35,6 +38,7 @@ class Metadata {
         return TagsCompanion.insert(
           id: id,
           name: value,
+          color: Value(color),
         );
     }
   }
@@ -43,5 +47,3 @@ class Metadata {
 enum MetadataTypeEnum {
   tag,
 }
-
-

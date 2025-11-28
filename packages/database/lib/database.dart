@@ -71,7 +71,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration {
@@ -172,8 +172,90 @@ class AppDatabase extends _$AppDatabase {
 
         // Migration from v3 to v4: Add color columns to folders and tags
         if (from < 4) {
-          await customStatement('ALTER TABLE folders ADD COLUMN color INTEGER');
-          await customStatement('ALTER TABLE tags ADD COLUMN color INTEGER');
+          // Check if color column already exists in folders
+          final foldersInfo = await customSelect(
+            "PRAGMA table_info(folders)",
+          ).get();
+          final hasFoldersColor =
+              foldersInfo.any((row) => row.read<String>('name') == 'color');
+
+          if (!hasFoldersColor) {
+            await customStatement(
+                'ALTER TABLE folders ADD COLUMN color INTEGER');
+          }
+
+          // Check if color column already exists in tags
+          final tagsInfo = await customSelect(
+            "PRAGMA table_info(tags)",
+          ).get();
+          final hasTagsColor =
+              tagsInfo.any((row) => row.read<String>('name') == 'color');
+
+          if (!hasTagsColor) {
+            await customStatement('ALTER TABLE tags ADD COLUMN color INTEGER');
+          }
+        }
+
+        // Migration from v4 to v5: Replace mime_type with file_type enum
+        if (from < 5) {
+          // Check if documents table has the columns we expect
+          final docsInfo = await customSelect(
+            "PRAGMA table_info(documents)",
+          ).get();
+
+          final hasMimeType =
+              docsInfo.any((row) => row.read<String>('name') == 'mime_type');
+          final hasFileType =
+              docsInfo.any((row) => row.read<String>('name') == 'file_type');
+
+          // Only run migration if we have mime_type but not file_type
+          if (hasMimeType && !hasFileType) {
+            // First, add the new file_type column with a default value
+            await customStatement(
+                'ALTER TABLE documents ADD COLUMN file_type TEXT NOT NULL DEFAULT "markdown"');
+
+            // Update existing documents: map mime_type to file_type
+            await customStatement('''
+              UPDATE documents 
+              SET file_type = CASE 
+                WHEN mime_type LIKE '%pdf%' THEN 'pdf'
+                WHEN mime_type LIKE '%image%' THEN 'image'
+                ELSE 'markdown'
+              END
+            ''');
+
+            // Now we need to recreate the table without mime_type column
+            await customStatement('''
+              CREATE TABLE documents_new (
+                id TEXT PRIMARY KEY NOT NULL,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                title TEXT NOT NULL,
+                file_path TEXT UNIQUE NOT NULL,
+                file_type TEXT NOT NULL,
+                file_size INTEGER,
+                checksum TEXT
+              )
+            ''');
+
+            await customStatement('''
+              INSERT INTO documents_new (id, created_at, updated_at, title, file_path, file_type, file_size, checksum)
+              SELECT id, created_at, updated_at, title, file_path, file_type, file_size, checksum
+              FROM documents
+            ''');
+
+            await customStatement('DROP TABLE documents');
+            await customStatement(
+                'ALTER TABLE documents_new RENAME TO documents');
+
+            // Recreate index
+            await customStatement(
+                'CREATE INDEX document_title ON documents(title)');
+          } else if (!hasFileType) {
+            // If we don't have file_type at all, just add it
+            await customStatement(
+                'ALTER TABLE documents ADD COLUMN file_type TEXT NOT NULL DEFAULT "markdown"');
+          }
         }
       },
     );

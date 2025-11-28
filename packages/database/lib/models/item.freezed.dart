@@ -212,7 +212,7 @@ extension FolderItemPatterns on FolderItem {
             String? itemId,
             String title,
             String filePath,
-            String mimeType,
+            DocumentFileType fileType,
             int? fileSize,
             String? checksum,
             DateTime? createdAt,
@@ -242,7 +242,7 @@ extension FolderItemPatterns on FolderItem {
             _that.itemId,
             _that.title,
             _that.filePath,
-            _that.mimeType,
+            _that.fileType,
             _that.fileSize,
             _that.checksum,
             _that.createdAt,
@@ -285,7 +285,7 @@ extension FolderItemPatterns on FolderItem {
             String? itemId,
             String title,
             String filePath,
-            String mimeType,
+            DocumentFileType fileType,
             int? fileSize,
             String? checksum,
             DateTime? createdAt,
@@ -314,7 +314,7 @@ extension FolderItemPatterns on FolderItem {
             _that.itemId,
             _that.title,
             _that.filePath,
-            _that.mimeType,
+            _that.fileType,
             _that.fileSize,
             _that.checksum,
             _that.createdAt,
@@ -354,7 +354,7 @@ extension FolderItemPatterns on FolderItem {
             String? itemId,
             String title,
             String filePath,
-            String mimeType,
+            DocumentFileType fileType,
             int? fileSize,
             String? checksum,
             DateTime? createdAt,
@@ -383,7 +383,7 @@ extension FolderItemPatterns on FolderItem {
             _that.itemId,
             _that.title,
             _that.filePath,
-            _that.mimeType,
+            _that.fileType,
             _that.fileSize,
             _that.checksum,
             _that.createdAt,
@@ -543,7 +543,7 @@ class DocumentItem extends FolderItem {
       this.itemId,
       required this.title,
       required this.filePath,
-      this.mimeType = 'text/markdown',
+      this.fileType = DocumentFileType.markdown,
       this.fileSize,
       this.checksum,
       this.createdAt,
@@ -559,7 +559,7 @@ class DocumentItem extends FolderItem {
   final String title;
   final String filePath;
   @JsonKey()
-  final String mimeType;
+  final DocumentFileType fileType;
   final int? fileSize;
   final String? checksum;
   @override
@@ -592,8 +592,8 @@ class DocumentItem extends FolderItem {
             (identical(other.title, title) || other.title == title) &&
             (identical(other.filePath, filePath) ||
                 other.filePath == filePath) &&
-            (identical(other.mimeType, mimeType) ||
-                other.mimeType == mimeType) &&
+            (identical(other.fileType, fileType) ||
+                other.fileType == fileType) &&
             (identical(other.fileSize, fileSize) ||
                 other.fileSize == fileSize) &&
             (identical(other.checksum, checksum) ||
@@ -612,7 +612,7 @@ class DocumentItem extends FolderItem {
       itemId,
       title,
       filePath,
-      mimeType,
+      fileType,
       fileSize,
       checksum,
       createdAt,
@@ -621,7 +621,7 @@ class DocumentItem extends FolderItem {
 
   @override
   String toString() {
-    return 'FolderItem.document(id: $id, itemId: $itemId, title: $title, filePath: $filePath, mimeType: $mimeType, fileSize: $fileSize, checksum: $checksum, createdAt: $createdAt, updatedAt: $updatedAt, tags: $tags)';
+    return 'FolderItem.document(id: $id, itemId: $itemId, title: $title, filePath: $filePath, fileType: $fileType, fileSize: $fileSize, checksum: $checksum, createdAt: $createdAt, updatedAt: $updatedAt, tags: $tags)';
   }
 }
 
@@ -638,7 +638,7 @@ abstract mixin class $DocumentItemCopyWith<$Res>
       String? itemId,
       String title,
       String filePath,
-      String mimeType,
+      DocumentFileType fileType,
       int? fileSize,
       String? checksum,
       DateTime? createdAt,
@@ -662,7 +662,7 @@ class _$DocumentItemCopyWithImpl<$Res> implements $DocumentItemCopyWith<$Res> {
     Object? itemId = freezed,
     Object? title = null,
     Object? filePath = null,
-    Object? mimeType = null,
+    Object? fileType = null,
     Object? fileSize = freezed,
     Object? checksum = freezed,
     Object? createdAt = freezed,
@@ -686,10 +686,10 @@ class _$DocumentItemCopyWithImpl<$Res> implements $DocumentItemCopyWith<$Res> {
           ? _self.filePath
           : filePath // ignore: cast_nullable_to_non_nullable
               as String,
-      mimeType: null == mimeType
-          ? _self.mimeType
-          : mimeType // ignore: cast_nullable_to_non_nullable
-              as String,
+      fileType: null == fileType
+          ? _self.fileType
+          : fileType // ignore: cast_nullable_to_non_nullable
+              as DocumentFileType,
       fileSize: freezed == fileSize
           ? _self.fileSize
           : fileSize // ignore: cast_nullable_to_non_nullable
