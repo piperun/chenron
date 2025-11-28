@@ -1,4 +1,5 @@
 import "dart:async";
+import "package:database/main.dart";
 import "package:flutter/material.dart";
 import "package:chenron/shared/item_display/widgets/display_mode/display_mode.dart";
 import "package:chenron/shared/item_display/widgets/display_mode/display_mode_preference.dart";

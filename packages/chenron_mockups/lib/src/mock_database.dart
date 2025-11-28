@@ -1,7 +1,5 @@
 import "package:database/database.dart";
-import "package:database/extensions/folder/create.dart";
-import "package:database/extensions/folder/read.dart";
-import "package:database/extensions/link/create.dart";
+import "package:database/main.dart";
 import "folder_factory.dart";
 import "package:drift/native.dart";
 

@@ -1,7 +1,7 @@
+import "package:database/main.dart";
 import "package:flex_color_scheme/flex_color_scheme.dart";
 import "package:meta/meta.dart";
 import "package:signals/signals_flutter.dart";
-import "package:database/database.dart";
 import "package:chenron/features/settings/service/config_service.dart";
 import "package:chenron/features/theme/state/theme_controller.dart";
 import "package:chenron/providers/theme_controller_signal.dart";

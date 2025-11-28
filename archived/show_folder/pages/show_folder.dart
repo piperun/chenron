@@ -1,5 +1,5 @@
 import "package:chenron/shared/search/search_button.dart";
-import "package:database/extensions/folder/read.dart";
+import "package:database/src/features/folder/read.dart";
 import "package:database/extensions/operations/database_file_handler.dart";
 import "../widgets/folder_detail_info.dart";
 import "../widgets/folder_detail_items.dart";

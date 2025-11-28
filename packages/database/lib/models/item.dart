@@ -1,5 +1,6 @@
-import 'package:database/database.dart';
 import 'package:cuid2/cuid2.dart';
+import 'package:database/main.dart';
+import 'package:database/models/document_file_type.dart';
 import 'package:drift/drift.dart' hide JsonKey;
 import 'package:freezed_annotation/freezed_annotation.dart';
 

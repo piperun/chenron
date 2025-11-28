@@ -1,9 +1,9 @@
 import "dart:async";
+import "package:database/database.dart";
 import "package:flutter/material.dart";
 import "package:chenron/shared/search/search_controller.dart";
 import "package:chenron/shared/search/suggestion_builder.dart";
 import "package:chenron/shared/utils/debouncer.dart";
-import "package:database/extensions/operations/database_file_handler.dart";
 import "package:signals/signals_flutter.dart";
 
 /// A custom overlay that shows search suggestions without interfering with typing.

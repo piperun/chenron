@@ -1,8 +1,6 @@
 import "dart:async";
 
 import "package:database/database.dart";
-import "package:database/extensions/user_config/read.dart";
-import "package:database/extensions/user_config/update.dart";
 import "package:flutter/material.dart";
 import "package:signals/signals_flutter.dart";
 import "package:logger/logger.dart";
@@ -135,4 +133,3 @@ class ThemeManager {
     await _loadInitialThemeMode();
   }
 }
-

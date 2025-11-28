@@ -1,10 +1,15 @@
 // ignore_for_file: avoid_print
 
 import "dart:io";
+import "package:core/patterns/include_options.dart";
+import "package:database/main.dart";
+import "package:database/models/db_result.dart";
+import "package:database/models/document_file_type.dart";
+import "package:database/models/metadata.dart";
 import "package:flutter_test/flutter_test.dart";
-import "package:database/database.dart";
-import "package:database/extensions/document/read.dart";
-import "package:database/extensions/document/create.dart";
+
+import "package:database/src/features/document/read.dart";
+import "package:database/src/features/document/create.dart";
 import "package:chenron_mockups/chenron_mockups.dart";
 import "package:logger/logger.dart";
 

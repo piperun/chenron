@@ -1,8 +1,9 @@
+import "package:database/main.dart";
 import 'package:flutter_test/flutter_test.dart';
-import 'package:database/database.dart';
-import 'package:database/extensions/user_config/create.dart';
-import 'package:database/extensions/user_config/read.dart';
-import 'package:database/extensions/user_theme/create.dart';
+
+import "package:database/src/features/user_config/create.dart";
+import "package:database/src/features/user_config/read.dart";
+import "package:database/src/features/user_theme/create.dart";
 import 'package:chenron_mockups/chenron_mockups.dart';
 
 void main() {

@@ -2,7 +2,7 @@ import "package:chenron/core/setup/main_setup.dart";
 import "package:database/test_support/locator.dart";
 import "package:get_it/get_it.dart";
 import "package:signals/signals_flutter.dart";
-import "package:database/extensions/operations/database_file_handler.dart";
+import "package:database/database.dart";
 
 /// Initializes the app for testing purposes
 /// This should be called before pumping the MyApp widget

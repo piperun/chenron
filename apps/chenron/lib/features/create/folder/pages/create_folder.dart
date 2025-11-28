@@ -1,4 +1,5 @@
 ﻿import "package:chenron/components/forms/folder_form.dart";
+import "package:database/database.dart";
 import "package:flutter/material.dart";
 
 // TODO: FUTURE FOLDER EDITOR MIGRATION
@@ -7,14 +8,7 @@ import "package:flutter/material.dart";
 // 2. Use FolderForm with existingFolder: folderToEdit and showItemsTable: true
 // 3. Deprecate the buggy apps\chenron\lib\features\folder_editor\ implementation
 // 4. This CreateFolderPage serves as the template for the new editor structure
-import "package:database/extensions/folder/create.dart";
-import "package:database/extensions/folder/update.dart";
-import "package:database/extensions/operations/database_file_handler.dart";
 import "package:chenron/locator.dart";
-import "package:database/models/cud.dart";
-import "package:database/models/item.dart";
-import "package:database/models/metadata.dart";
-import "package:database/models/folder.dart";
 import "package:signals/signals.dart";
 
 class CreateFolderPage extends StatefulWidget {
@@ -127,8 +121,8 @@ class _CreateFolderPageState extends State<CreateFolderPage> {
               padding: const EdgeInsets.all(16.0),
               child: SingleChildScrollView(
                 child: FolderForm(
-                  existingFolder: null, // Create mode
-                  showItemsTable: false, // Not needed for folder creation
+                  existingFolder: null,
+                  showItemsTable: false,
                   keyPrefix: "create_folder",
                   onDataChanged: _onFormDataChanged,
                   onValidationChanged: _onFormValidationChanged,

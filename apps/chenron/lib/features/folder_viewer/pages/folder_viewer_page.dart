@@ -1,13 +1,12 @@
+import "package:database/main.dart";
 import "package:flutter/material.dart";
 import "dart:async";
 import "package:chenron/features/folder_viewer/ui/components/folder_header.dart";
 import "package:chenron/shared/item_display/filterable_item_display.dart";
 import "package:chenron/shared/dialogs/delete_confirmation_dialog.dart";
-import "package:database/extensions/folder/read.dart";
-import "package:database/extensions/folder/remove.dart";
-import "package:database/extensions/operations/database_file_handler.dart";
+
 import "package:chenron/locator.dart";
-import "package:database/extensions/convert.dart";
+
 import "package:database/database.dart";
 import "package:chenron/shared/tag_filter/tag_filter_state.dart";
 import "package:chenron/features/folder_editor/pages/folder_editor.dart";

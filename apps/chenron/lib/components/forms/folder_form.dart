@@ -3,10 +3,9 @@ import "package:chenron/shared/folder_input/folder_input_section.dart";
 import "package:chenron/shared/tag_section/tag_section.dart";
 import "package:chenron/features/create/folder/widgets/folder_parent_section.dart";
 import "package:chenron/notifiers/item_table_notifier.dart";
+import "package:database/main.dart";
 import "package:flutter/material.dart";
 import "package:database/database.dart";
-import "package:database/extensions/folder/read.dart";
-import "package:database/extensions/operations/database_file_handler.dart";
 import "package:chenron/utils/validation/folder_validator.dart";
 import "package:chenron/locator.dart";
 import "package:signals/signals.dart";
@@ -128,8 +127,7 @@ class _FolderFormState extends State<FolderForm> {
 
   Future<void> _loadParentFolders(List<String> folderIds) async {
     try {
-      final dbHandler =
-          locator.get<Signal<AppDatabaseHandler>>().value;
+      final dbHandler = locator.get<Signal<AppDatabaseHandler>>().value;
       final folders = <Folder>[];
 
       for (final folderId in folderIds) {
@@ -299,4 +297,3 @@ class _FolderFormState extends State<FolderForm> {
     );
   }
 }
-

@@ -1,6 +1,7 @@
+import "package:database/main.dart";
 import "package:flutter/material.dart";
 import "package:chenron/features/create/link/models/link_entry.dart";
-import "package:database/database.dart";
+
 import "package:chenron/utils/validation/tag_validator.dart";
 
 class LinkEditBottomSheet extends StatefulWidget {
@@ -47,9 +48,9 @@ class _LinkEditBottomSheetState extends State<LinkEditBottomSheet> {
 
   void _addTag() {
     final tag = _tagsController.text.trim().toLowerCase();
-    
+
     if (tag.isEmpty) return;
-    
+
     // Validate using TagValidator
     final validationError = TagValidator.validateTag(tag);
     if (validationError != null) {
@@ -61,7 +62,7 @@ class _LinkEditBottomSheetState extends State<LinkEditBottomSheet> {
       );
       return;
     }
-    
+
     // Check for duplicates
     if (_tags.contains(tag)) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -72,7 +73,7 @@ class _LinkEditBottomSheetState extends State<LinkEditBottomSheet> {
       );
       return;
     }
-    
+
     setState(() {
       _tags.add(tag);
       _tagsController.clear();
@@ -147,7 +148,8 @@ class _LinkEditBottomSheetState extends State<LinkEditBottomSheet> {
                       const SizedBox(height: 20),
                       _buildTagsSection(theme),
                       const SizedBox(height: 20),
-                      if (widget.availableFolders != null && widget.availableFolders!.isNotEmpty) ...[
+                      if (widget.availableFolders != null &&
+                          widget.availableFolders!.isNotEmpty) ...[
                         _buildFoldersSection(theme),
                         const SizedBox(height: 20),
                       ],
@@ -368,4 +370,3 @@ class _LinkEditBottomSheetState extends State<LinkEditBottomSheet> {
     );
   }
 }
-

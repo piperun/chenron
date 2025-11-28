@@ -1,10 +1,7 @@
-import "package:database/extensions/user_theme/create.dart";
-import "package:database/extensions/user_theme/remove.dart";
 import "package:chenron/features/theme/model/theme_service_model.dart";
 
 import "package:database/database.dart";
-import "package:database/extensions/user_config/read.dart";
-import "package:database/extensions/user_config/update.dart";
+import "package:database/main.dart";
 import "package:logger/logger.dart";
 
 class ThemeServiceDB implements ThemeService {
@@ -132,4 +129,3 @@ class ThemeServiceDB implements ThemeService {
     return _db.getUserTheme(themeKey: themeKey);
   }
 }
-

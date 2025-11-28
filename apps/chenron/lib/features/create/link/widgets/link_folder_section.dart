@@ -1,5 +1,5 @@
+import "package:database/main.dart";
 import "package:flutter/material.dart";
-import "package:database/database.dart";
 import "package:chenron/shared/ui/folder_picker.dart";
 
 class LinkFolderSection extends StatelessWidget {
@@ -15,7 +15,7 @@ class LinkFolderSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
@@ -54,4 +54,3 @@ class LinkFolderSection extends StatelessWidget {
     );
   }
 }
-

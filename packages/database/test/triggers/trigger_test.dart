@@ -1,8 +1,12 @@
+import 'package:database/main.dart';
+import 'package:database/models/document_file_type.dart';
+import 'package:database/models/folder.dart';
+import 'package:database/models/item.dart';
+import 'package:database/src/features/document/handlers/insert_handler.dart';
+import 'package:database/src/features/folder/create.dart';
 import 'package:flutter_test/flutter_test.dart' as matcher;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:database/database.dart';
-import 'package:database/extensions/folder/create.dart';
-import 'package:database/extensions/insert_ext.dart';
+
 import 'package:chenron_mockups/chenron_mockups.dart';
 import 'package:drift/drift.dart';
 

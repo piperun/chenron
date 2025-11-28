@@ -1,7 +1,10 @@
+import 'package:database/main.dart';
+import 'package:database/models/document_file_type.dart';
+import 'package:database/models/metadata.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:database/database.dart';
-import 'package:database/extensions/document/create.dart';
-import 'package:database/extensions/document/update.dart';
+
+import 'package:database/src/features/document/create.dart';
+import 'package:database/src/features/document/update.dart';
 import 'package:chenron_mockups/chenron_mockups.dart';
 import 'package:drift/drift.dart';
 

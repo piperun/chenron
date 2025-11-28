@@ -530,16 +530,13 @@ class DocumentResult implements DbResult {
             (identical(other.title, title) || other.title == title) &&
             (identical(other.filePath, filePath) ||
                 other.filePath == filePath) &&
-            const DeepCollectionEquality().equals(other.fileType, fileType) &&
+            (identical(other.fileType, fileType) ||
+                other.fileType == fileType) &&
             const DeepCollectionEquality().equals(other._tags, _tags));
   }
 
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      title,
-      filePath,
-      const DeepCollectionEquality().hash(fileType),
+  int get hashCode => Object.hash(runtimeType, title, filePath, fileType,
       const DeepCollectionEquality().hash(_tags));
 
   @override
@@ -576,7 +573,7 @@ class _$DocumentResultCopyWithImpl<$Res>
   $Res call({
     Object? title = null,
     Object? filePath = null,
-    Object? fileType = freezed,
+    Object? fileType = null,
     Object? tags = freezed,
   }) {
     return _then(DocumentResult(
@@ -588,7 +585,7 @@ class _$DocumentResultCopyWithImpl<$Res>
           ? _self.filePath
           : filePath // ignore: cast_nullable_to_non_nullable
               as String,
-      fileType: freezed == fileType
+      fileType: null == fileType
           ? _self.fileType
           : fileType // ignore: cast_nullable_to_non_nullable
               as DocumentFileType,

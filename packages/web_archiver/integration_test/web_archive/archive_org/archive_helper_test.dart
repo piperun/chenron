@@ -1,13 +1,12 @@
-import "package:database/extensions/id.dart";
-import "package:database/extensions/link/read.dart";
-import "package:database/extensions/user_config/read.dart";
+import "package:database/main.dart";
+import "package:database/database.dart";
 import "package:drift/drift.dart" as drift;
 import "package:drift/native.dart";
 import "package:flutter_test/flutter_test.dart";
 import "package:integration_test/integration_test.dart";
-import "package:database/database.dart";
-import "package:database/extensions/archive_helper.dart";
-import "package:database/extensions/link/create.dart";
+
+import "package:database/src/core/archive_helper.dart";
+
 import "package:chenron_mockups/chenron_mockups.dart";
 import "package:web_archiver/web_archiver.dart";
 

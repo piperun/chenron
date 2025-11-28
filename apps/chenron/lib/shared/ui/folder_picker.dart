@@ -1,9 +1,8 @@
 ﻿import "dart:async";
-import "package:database/extensions/operations/database_file_handler.dart";
+import "package:database/main.dart";
 import "package:flutter/material.dart";
 import "package:database/database.dart";
 import "package:chenron/locator.dart";
-import "package:database/extensions/folder/read.dart";
 import "package:signals/signals_flutter.dart";
 
 class FolderPicker extends StatefulWidget {
@@ -30,8 +29,7 @@ class _FolderPickerState extends State<FolderPicker> {
   }
 
   Future<void> _initializeDatabase() async {
-    final dbHandler =
-        locator.get<Signal<AppDatabaseHandler>>().value;
+    final dbHandler = locator.get<Signal<AppDatabaseHandler>>().value;
     _db = dbHandler.appDatabase;
     unawaited(_loadInitialFolder());
   }
@@ -222,4 +220,3 @@ class _FolderSelectionDialogState extends State<FolderSelectionDialog> {
     );
   }
 }
-

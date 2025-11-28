@@ -1,8 +1,10 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:database/database.dart';
-import 'package:database/extensions/link/create.dart';
-import 'package:database/extensions/link/remove.dart';
-import 'package:chenron_mockups/chenron_mockups.dart';
+import "package:database/main.dart";
+import "package:database/models/metadata.dart";
+import "package:flutter_test/flutter_test.dart";
+
+import "package:database/src/features/link/create.dart";
+import "package:database/src/features/link/remove.dart";
+import "package:chenron_mockups/chenron_mockups.dart";
 
 void main() {
   setUpAll(() {
@@ -24,11 +26,11 @@ void main() {
     await database.close();
   });
 
-  group('Link Deletion', () {
-    test('remove single link by ID', () async {
+  group("Link Deletion", () {
+    test("remove single link by ID", () async {
       // Create two links
-      final result1 = await database.createLink(link: 'https://link1.com');
-      final result2 = await database.createLink(link: 'https://link2.com');
+      final result1 = await database.createLink(link: "https://link1.com");
+      final result2 = await database.createLink(link: "https://link2.com");
 
       // Remove the first link
       final deleted = await database.removeLink(result1.linkId);
@@ -49,13 +51,13 @@ void main() {
       expect(remainingLink, isNotNull);
     });
 
-    test('remove link with tags - tags should remain', () async {
+    test("remove link with tags - tags should remain", () async {
       // Create link with tags
       final result = await database.createLink(
-        link: 'https://tagged.com',
+        link: "https://tagged.com",
         tags: [
-          Metadata(value: 'tag1', type: MetadataTypeEnum.tag),
-          Metadata(value: 'tag2', type: MetadataTypeEnum.tag),
+          Metadata(value: "tag1", type: MetadataTypeEnum.tag),
+          Metadata(value: "tag2", type: MetadataTypeEnum.tag),
         ],
       );
 
@@ -92,8 +94,8 @@ void main() {
       expect(tagsAfter.length, equals(2));
     });
 
-    test('remove non-existent link returns false', () async {
-      final deleted = await database.removeLink('nonexistent-id');
+    test("remove non-existent link returns false", () async {
+      final deleted = await database.removeLink("nonexistent-id");
       expect(deleted, isFalse);
     });
   });

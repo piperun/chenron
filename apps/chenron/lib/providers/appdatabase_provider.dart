@@ -1,4 +1,4 @@
-import "package:database/extensions/operations/database_file_handler.dart";
+import "package:database/database.dart";
 import "package:signals/signals.dart";
 
 final appDatabaseAccessorSignal = signal(initializeAppDatabaseAccessor());

@@ -1,6 +1,7 @@
+import 'package:database/main.dart';
+import 'package:database/src/features/tag/create.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:database/database.dart';
-import 'package:database/extensions/tags/create.dart';
+
 import 'package:chenron_mockups/chenron_mockups.dart';
 
 void main() {

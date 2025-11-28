@@ -1,7 +1,16 @@
-import 'package:database/extensions/id.dart';
+import "package:database/main.dart";
+
+import 'package:database/models/created_ids.dart';
+import 'package:database/models/document_file_type.dart';
+import 'package:database/models/item.dart';
+import 'package:database/models/metadata.dart';
+import 'package:database/src/core/handlers/relation_handler.dart';
+import 'package:database/src/core/id.dart';
+import 'package:database/src/features/document/handlers/insert_handler.dart';
+import 'package:database/src/features/link/handlers/insert_handler.dart';
+import 'package:database/src/features/tag/handlers/insert_handler.dart';
+import 'package:database/src/features/user_theme/handlers/insert_handler.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:database/database.dart';
-import 'package:database/extensions/insert_ext.dart';
 import 'package:chenron_mockups/chenron_mockups.dart';
 
 void main() {

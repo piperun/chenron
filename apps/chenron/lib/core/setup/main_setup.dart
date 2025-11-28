@@ -1,11 +1,11 @@
 // lib/initialization/app_setupr.dart
 // ignore_for_file: avoid_print
 
-import "package:database/extensions/operations/database_file_handler.dart";
 import "package:chenron/locator.dart";
 import "package:basedir/directory.dart";
+import "package:database/database.dart";
 import "package:logger/logger.dart";
-import "package:database/extensions/operations/config_file_handler.dart";
+
 import "package:chenron/features/theme/state/theme_utils.dart";
 import "package:flutter/foundation.dart";
 import "package:signals/signals_flutter.dart";

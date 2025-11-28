@@ -3,7 +3,6 @@ import "package:flutter_test/flutter_test.dart";
 import "package:integration_test/integration_test.dart";
 import "package:chenron/features/folder_editor/pages/folder_editor.dart";
 import "package:chenron_mockups/chenron_mockups.dart";
-import "package:database/extensions/operations/database_file_handler.dart";
 import "package:database/database.dart";
 import "package:signals/signals.dart";
 import "package:get_it/get_it.dart";

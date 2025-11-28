@@ -1,4 +1,4 @@
-﻿import "package:database/extensions/operations/database_file_handler.dart";
+﻿import "package:database/src/core/handlers/database_file_handler.dart";
 import "package:chenron/locator.dart";
 import "package:logger/logger.dart";
 import "package:cron/cron.dart";
@@ -17,8 +17,7 @@ void scheduleBackup() {
 
 Future<void> backupDatabase() async {
   // Your backupDatabase implementation
-  final appDatabaseHandler =
-      locator.get<Signal<AppDatabaseHandler>>().value;
+  final appDatabaseHandler = locator.get<Signal<AppDatabaseHandler>>().value;
   try {
     final result = await appDatabaseHandler.backupDatabase();
     if (result != null) {
@@ -30,4 +29,3 @@ Future<void> backupDatabase() async {
         "An error occurred during database backup: $e");
   }
 }
-
