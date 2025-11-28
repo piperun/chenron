@@ -175,7 +175,9 @@ extension DbResultPatterns on DbResult {
     TResult Function(Folder data, List<Tag> tags, List<FolderItem> items)?
         folder,
     TResult Function(Link data, List<Tag> tags)? link,
-    TResult Function(String title, String filePath, List<Tag>? tags)? document,
+    TResult Function(String title, String filePath, DocumentFileType fileType,
+            List<Tag>? tags)?
+        document,
     TResult Function(String name, int? color, List<String>? relatedFolderIds,
             List<String>? relatedLinkIds, List<String>? relatedDocumentIds)?
         tag,
@@ -194,7 +196,8 @@ extension DbResultPatterns on DbResult {
       case LinkResult() when link != null:
         return link(_that.data, _that.tags);
       case DocumentResult() when document != null:
-        return document(_that.title, _that.filePath, _that.tags);
+        return document(
+            _that.title, _that.filePath, _that.fileType, _that.tags);
       case TagResult() when tag != null:
         return tag(_that.name, _that.color, _that.relatedFolderIds,
             _that.relatedLinkIds, _that.relatedDocumentIds);
@@ -226,7 +229,8 @@ extension DbResultPatterns on DbResult {
             Folder data, List<Tag> tags, List<FolderItem> items)
         folder,
     required TResult Function(Link data, List<Tag> tags) link,
-    required TResult Function(String title, String filePath, List<Tag>? tags)
+    required TResult Function(String title, String filePath,
+            DocumentFileType fileType, List<Tag>? tags)
         document,
     required TResult Function(
             String name,
@@ -249,7 +253,8 @@ extension DbResultPatterns on DbResult {
       case LinkResult():
         return link(_that.data, _that.tags);
       case DocumentResult():
-        return document(_that.title, _that.filePath, _that.tags);
+        return document(
+            _that.title, _that.filePath, _that.fileType, _that.tags);
       case TagResult():
         return tag(_that.name, _that.color, _that.relatedFolderIds,
             _that.relatedLinkIds, _that.relatedDocumentIds);
@@ -279,7 +284,9 @@ extension DbResultPatterns on DbResult {
     TResult? Function(Folder data, List<Tag> tags, List<FolderItem> items)?
         folder,
     TResult? Function(Link data, List<Tag> tags)? link,
-    TResult? Function(String title, String filePath, List<Tag>? tags)? document,
+    TResult? Function(String title, String filePath, DocumentFileType fileType,
+            List<Tag>? tags)?
+        document,
     TResult? Function(String name, int? color, List<String>? relatedFolderIds,
             List<String>? relatedLinkIds, List<String>? relatedDocumentIds)?
         tag,
@@ -297,7 +304,8 @@ extension DbResultPatterns on DbResult {
       case LinkResult() when link != null:
         return link(_that.data, _that.tags);
       case DocumentResult() when document != null:
-        return document(_that.title, _that.filePath, _that.tags);
+        return document(
+            _that.title, _that.filePath, _that.fileType, _that.tags);
       case TagResult() when tag != null:
         return tag(_that.name, _that.color, _that.relatedFolderIds,
             _that.relatedLinkIds, _that.relatedDocumentIds);
@@ -489,11 +497,15 @@ class _$LinkResultCopyWithImpl<$Res> implements $LinkResultCopyWith<$Res> {
 
 class DocumentResult implements DbResult {
   const DocumentResult(
-      {required this.title, required this.filePath, final List<Tag>? tags})
+      {required this.title,
+      required this.filePath,
+      required this.fileType,
+      final List<Tag>? tags})
       : _tags = tags;
 
   final String title;
   final String filePath;
+  final DocumentFileType fileType;
   final List<Tag>? _tags;
   List<Tag>? get tags {
     final value = _tags;
@@ -518,16 +530,21 @@ class DocumentResult implements DbResult {
             (identical(other.title, title) || other.title == title) &&
             (identical(other.filePath, filePath) ||
                 other.filePath == filePath) &&
+            const DeepCollectionEquality().equals(other.fileType, fileType) &&
             const DeepCollectionEquality().equals(other._tags, _tags));
   }
 
   @override
   int get hashCode => Object.hash(
-      runtimeType, title, filePath, const DeepCollectionEquality().hash(_tags));
+      runtimeType,
+      title,
+      filePath,
+      const DeepCollectionEquality().hash(fileType),
+      const DeepCollectionEquality().hash(_tags));
 
   @override
   String toString() {
-    return 'DbResult.document(title: $title, filePath: $filePath, tags: $tags)';
+    return 'DbResult.document(title: $title, filePath: $filePath, fileType: $fileType, tags: $tags)';
   }
 }
 
@@ -538,7 +555,11 @@ abstract mixin class $DocumentResultCopyWith<$Res>
           DocumentResult value, $Res Function(DocumentResult) _then) =
       _$DocumentResultCopyWithImpl;
   @useResult
-  $Res call({String title, String filePath, List<Tag>? tags});
+  $Res call(
+      {String title,
+      String filePath,
+      DocumentFileType fileType,
+      List<Tag>? tags});
 }
 
 /// @nodoc
@@ -555,6 +576,7 @@ class _$DocumentResultCopyWithImpl<$Res>
   $Res call({
     Object? title = null,
     Object? filePath = null,
+    Object? fileType = freezed,
     Object? tags = freezed,
   }) {
     return _then(DocumentResult(
@@ -566,6 +588,10 @@ class _$DocumentResultCopyWithImpl<$Res>
           ? _self.filePath
           : filePath // ignore: cast_nullable_to_non_nullable
               as String,
+      fileType: freezed == fileType
+          ? _self.fileType
+          : fileType // ignore: cast_nullable_to_non_nullable
+              as DocumentFileType,
       tags: freezed == tags
           ? _self._tags
           : tags // ignore: cast_nullable_to_non_nullable

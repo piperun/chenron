@@ -1,6 +1,4 @@
-import "package:database/database.dart"
-    show BackupSetting, Folder, Link, Tag, UserConfig, UserTheme;
-import "package:database/models/item.dart";
+import "package:database/database.dart";
 import "package:freezed_annotation/freezed_annotation.dart";
 part "db_result.freezed.dart";
 
@@ -20,6 +18,7 @@ abstract class DbResult with _$DbResult {
   const factory DbResult.document({
     required String title,
     required String filePath,
+    required DocumentFileType fileType,
     List<Tag>? tags,
   }) = DocumentResult;
 
