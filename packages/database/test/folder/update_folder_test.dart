@@ -9,6 +9,7 @@ import "package:database/models/created_ids.dart";
 import "package:database/models/item.dart";
 import "package:database/models/metadata.dart";
 import "package:drift/drift.dart";
+import "package:flutter_test/flutter_test.dart" as matcher;
 import "package:flutter_test/flutter_test.dart";
 import "package:chenron_mockups/chenron_mockups.dart";
 
@@ -117,6 +118,29 @@ void main() {
           updatedFolder.description,
           equals(
               "Updated Description, this folder is only for testing updateFolder"));
+    });
+
+    test("should update folder color", () async {
+      // Set initial color
+      final colorValue = 0xFF2196F3;
+      await database.updateFolder(
+        createdIds.folderId,
+        color: Value(colorValue),
+      );
+
+      var updatedFolder =
+          await database.folders.findById(createdIds.folderId).getSingle();
+      expect(updatedFolder.color, equals(colorValue));
+
+      // Remove color (set to null)
+      await database.updateFolder(
+        createdIds.folderId,
+        color: const Value(null),
+      );
+
+      updatedFolder =
+          await database.folders.findById(createdIds.folderId).getSingle();
+      expect(updatedFolder.color, matcher.isNull);
     });
     test("should update folder with two additional existing Tags", () async {
       final Map<String, String> ids = {};
@@ -241,6 +265,40 @@ void main() {
           .get();
 
       expect(folderLinks.length, equals(0));
+    });
+  });
+
+  group("Update Folder Exceptions", () {
+    test("fails to update folder with short title", () async {
+      expect(
+        () => database.updateFolder(
+          createdIds.folderId,
+          title: "Short", // Less than 6 chars
+        ),
+        throwsA(isA<Exception>()),
+      );
+    });
+
+    test("fails to update folder with long title", () async {
+      expect(
+        () => database.updateFolder(
+          createdIds.folderId,
+          title:
+              "This title is definitely way too long for the limit", // > 30 chars
+        ),
+        throwsA(isA<Exception>()),
+      );
+    });
+
+    test(
+        "updateFolder completes without error for non-existent folder (Idempotent)",
+        () async {
+      // The current implementation does not throw if the folder doesn't exist.
+      // It attempts the update and returns the ID.
+      await database.updateFolder(
+        "non-existent-id",
+        title: "New Title",
+      );
     });
   });
 }

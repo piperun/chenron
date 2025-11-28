@@ -1,10 +1,12 @@
 ﻿import "package:database/models/created_ids.dart";
 import "package:database/models/item.dart";
+import "package:flutter_test/flutter_test.dart" as matcher;
 import "package:flutter_test/flutter_test.dart";
 
 import "package:database/database.dart";
 import "package:database/extensions/folder/create.dart";
 import "package:chenron_mockups/chenron_mockups.dart";
+import "package:drift/drift.dart";
 
 void main() {
   setUpAll(() {
@@ -61,6 +63,31 @@ void main() {
       expect(docResult.length, 0);
     });
 
+    test("create folder with color", () async {
+      final folderData = FolderTestDataFactory.create(
+        title: "Colored Folder",
+        description: "Folder with color",
+        tagValues: [],
+        itemsData: [],
+      );
+
+      // Create folder with a specific color
+      final colorValue = 0xFF2196F3;
+      final createdFolderResult = await database.createFolder(
+        folderInfo: folderData.folder.copyWith(color: Value(colorValue)),
+        tags: folderData.tags,
+      );
+
+      final folders = database.folders;
+      final folderResult = await (database.select(folders)
+            ..where((tbl) => tbl.id.equals(createdFolderResult.folderId)))
+          .get();
+
+      expect(folderResult.length, 1);
+      expect(folderResult.first.title, "Colored Folder");
+      expect(folderResult.first.color, colorValue);
+    });
+
     test("create folder with tags only", () async {
       final folderData = FolderTestDataFactory.create(
         title: "Tagged Folder",
@@ -78,6 +105,8 @@ void main() {
           .get();
       expect(folderResult.length, 1);
       expect(folderResult.first.title, "Tagged Folder");
+      expect(
+          folderResult.first.color, matcher.isNull); // Verify default is null
 
       final metadataRecords = database.metadataRecords;
       final metadataResults = await (database.select(metadataRecords)
@@ -150,8 +179,8 @@ void main() {
                   ))
                 .get();
             expect(linkResult.length, 1);
-            expect(linkResult.first.id, isNotNull);
-            expect(linkResult.first.id, isNotEmpty);
+            expect(linkResult.first.id, matcher.isNotNull);
+            expect(linkResult.first.id, matcher.isNotEmpty);
           },
           document: (docItem) async {
             final documents = database.documents;
@@ -161,8 +190,8 @@ void main() {
                   ))
                 .get();
             expect(documentResult.length, 1);
-            expect(documentResult.first.id, isNotNull);
-            expect(documentResult.first.id, isNotEmpty);
+            expect(documentResult.first.id, matcher.isNotNull);
+            expect(documentResult.first.id, matcher.isNotEmpty);
           },
           folder: (_) async {},
         );
@@ -174,6 +203,37 @@ void main() {
           .get();
       expect(itemResults.length, 2);
       _verifyItemIds(itemResults, result.itemIds ?? []);
+    });
+
+    group("createFolder Exceptions", () {
+      test("fails to create folder with short title", () async {
+        final folderData = FolderTestDataFactory.create(
+          title: "Short", // Less than 6 chars
+          description: "Short title",
+          tagValues: [],
+          itemsData: [],
+        );
+
+        expect(
+          () => database.createFolder(folderInfo: folderData.folder),
+          throwsA(isA<Exception>()),
+        );
+      });
+
+      test("fails to create folder with long title", () async {
+        final folderData = FolderTestDataFactory.create(
+          title:
+              "This title is definitely way too long for the limit", // > 30 chars
+          description: "Long title",
+          tagValues: [],
+          itemsData: [],
+        );
+
+        expect(
+          () => database.createFolder(folderInfo: folderData.folder),
+          throwsA(isA<Exception>()),
+        );
+      });
     });
   });
 }
