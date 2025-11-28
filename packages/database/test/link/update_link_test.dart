@@ -11,7 +11,6 @@ import "package:database/models/metadata.dart";
 import "package:chenron_mockups/chenron_mockups.dart";
 
 void main() {
-  
   setUpAll(() {
     installFakePathProvider();
     installTestLogger();
@@ -115,6 +114,29 @@ void main() {
           newPath: "",
         ),
         throwsA(isA<ArgumentError>()),
+      );
+    });
+
+    test("fails to update link with short path (min 10)", () async {
+      final result = await database.createLink(link: "https://example.com");
+      expect(
+        () => database.updateLinkPath(
+          linkId: result.linkId,
+          newPath: "http://a", // 8 chars
+        ),
+        throwsA(isA<Exception>()),
+      );
+    });
+
+    test("fails to update link with long path (max 2048)", () async {
+      final result = await database.createLink(link: "https://example.com");
+      final longUrl = "https://example.com/${"a" * 2050}";
+      expect(
+        () => database.updateLinkPath(
+          linkId: result.linkId,
+          newPath: longUrl,
+        ),
+        throwsA(isA<Exception>()),
       );
     });
   });
@@ -543,7 +565,3 @@ void main() {
     });
   });
 }
-
-
-
-

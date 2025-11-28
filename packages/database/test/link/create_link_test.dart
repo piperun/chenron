@@ -6,7 +6,6 @@ import "package:chenron_mockups/chenron_mockups.dart";
 import "package:database/models/metadata.dart";
 
 void main() {
-  
   setUpAll(() {
     installFakePathProvider();
     installTestLogger();
@@ -259,6 +258,21 @@ void main() {
       expect(
         () => database.createLink(link: "ftp://example.com"),
         throwsA(isA<ArgumentError>()),
+      );
+    });
+
+    test("fails to create link with short path (min 10)", () async {
+      expect(
+        () => database.createLink(link: "http://a"), // 8 chars
+        throwsA(isA<Exception>()),
+      );
+    });
+
+    test("fails to create link with long path (max 2048)", () async {
+      final longUrl = "https://example.com/${"a" * 2050}";
+      expect(
+        () => database.createLink(link: longUrl),
+        throwsA(isA<Exception>()),
       );
     });
   });
