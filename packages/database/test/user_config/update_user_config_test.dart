@@ -44,8 +44,10 @@ void main() {
   });
 
   tearDown(() async {
-    await database.delete(database.userConfigs).go();
-    await database.delete(database.userThemes).go();
+    final userConfigs = database.userConfigs;
+    await database.delete(userConfigs).go();
+    final userThemes = database.userThemes;
+    await database.delete(userThemes).go();
     await database.close();
   });
 
@@ -168,7 +170,8 @@ void main() {
     test("updates with theme deletion", () async {
       // Create a theme first
       final themeId = "delete-me-1234567890123456789012";
-      await database.into(database.userThemes).insert(
+      final userThemes = database.userThemes;
+      await database.into(userThemes).insert(
             UserThemesCompanion.insert(
               id: themeId,
               userConfigId: userConfigId,

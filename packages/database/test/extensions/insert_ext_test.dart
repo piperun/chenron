@@ -30,11 +30,16 @@ void main() {
   });
 
   tearDown(() async {
-    await database.delete(database.links).go();
-    await database.delete(database.documents).go();
-    await database.delete(database.tags).go();
-    await database.delete(database.items).go();
-    await database.delete(database.metadataRecords).go();
+    final links = database.links;
+    await database.delete(links).go();
+    final documents = database.documents;
+    await database.delete(documents).go();
+    final tags = database.tags;
+    await database.delete(tags).go();
+    final items = database.items;
+    await database.delete(items).go();
+    final metadataRecords = database.metadataRecords;
+    await database.delete(metadataRecords).go();
     await database.close();
   });
 
@@ -52,7 +57,8 @@ void main() {
       expect(results.first.linkId, isNotEmpty);
 
       // Verify link in database
-      final links = await database.select(database.links).get();
+      final linksTable = database.links;
+      final links = await database.select(linksTable).get();
       expect(links.length, equals(1));
       expect(links.first.path, equals("https://example.com"));
     });
@@ -72,7 +78,8 @@ void main() {
 
       expect(results.length, equals(3));
 
-      final links = await database.select(database.links).get();
+      final linksTable = database.links;
+      final links = await database.select(linksTable).get();
       expect(links.length, equals(3));
 
       final paths = links.map((l) => l.path).toSet();
@@ -105,7 +112,8 @@ void main() {
         );
       });
 
-      final links = await database.select(database.links).get();
+      final linksTable = database.links;
+      final links = await database.select(linksTable).get();
       expect(links.any((l) => l.path == "https://example.com"), isTrue);
       expect(links.any((l) => l.path == "https://test.com/path"), isTrue);
     });
@@ -133,7 +141,8 @@ void main() {
       expect(results1.first.linkId, equals(results2.first.linkId));
 
       // Should only have one link in database
-      final links = await database.select(database.links).get();
+      final linksTable = database.links;
+      final links = await database.select(linksTable).get();
       expect(links.length, equals(1));
     });
 
@@ -161,7 +170,8 @@ void main() {
 
       expect(results.length, equals(3));
 
-      final links = await database.select(database.links).get();
+      final linksTable = database.links;
+      final links = await database.select(linksTable).get();
       expect(links.length, equals(3)); // 2 existing + 1 new
     });
   });
@@ -209,7 +219,8 @@ void main() {
 
       expect(results.length, equals(3));
 
-      final docs = await database.select(database.documents).get();
+      final documents = database.documents;
+      final docs = await database.select(documents).get();
       expect(docs.length, equals(3));
     });
 
@@ -249,7 +260,8 @@ void main() {
 
       expect(results.length, equals(3));
 
-      final docs = await database.select(database.documents).get();
+      final documents = database.documents;
+      final docs = await database.select(documents).get();
 
       // Verify all three documents were inserted
       expect(docs[0].title, equals("EmptyBody"));
@@ -278,7 +290,8 @@ void main() {
       expect(results.length, equals(1));
       expect(results.first.tagId, isNotEmpty);
 
-      final tags = await database.select(database.tags).get();
+      final tagsTable = database.tags;
+      final tags = await database.select(tagsTable).get();
       expect(tags.length, equals(1));
       expect(tags.first.name, equals("flutter"));
     });
@@ -298,7 +311,8 @@ void main() {
 
       expect(results.length, equals(3));
 
-      final tags = await database.select(database.tags).get();
+      final tagsTable = database.tags;
+      final tags = await database.select(tagsTable).get();
       expect(tags.length, equals(3));
     });
 
@@ -329,7 +343,8 @@ void main() {
       expect(results1.first.tagId, equals(results2.first.tagId));
 
       // Should only have one tag in database
-      final tags = await database.select(database.tags).get();
+      final tagsTable = database.tags;
+      final tags = await database.select(tagsTable).get();
       expect(tags.length, equals(1));
     });
 
@@ -362,7 +377,8 @@ void main() {
 
       expect(results.length, equals(1000));
 
-      final tags = await database.select(database.tags).get();
+      final tagsTable = database.tags;
+      final tags = await database.select(tagsTable).get();
       expect(tags.length, equals(1000));
     });
   });
@@ -400,7 +416,8 @@ void main() {
       expect(result.linkId, equals(linkId));
       expect(result.documentId, isNull);
 
-      final items = await database.select(database.items).get();
+      final itemsTable = database.items;
+      final items = await database.select(itemsTable).get();
       expect(items.length, equals(1));
       expect(items.first.typeId, equals(FolderItemType.link.index));
     });
@@ -442,7 +459,8 @@ void main() {
       expect(result.documentId, equals(docId));
       expect(result.linkId, isNull);
 
-      final items = await database.select(database.items).get();
+      final itemsTable = database.items;
+      final items = await database.select(itemsTable).get();
       expect(items.first.typeId, equals(FolderItemType.document.index));
     });
   });
@@ -477,7 +495,8 @@ void main() {
       expect(result.metadataId, isNotEmpty);
       expect(result.itemId, equals(itemId));
 
-      final metadata = await database.select(database.metadataRecords).get();
+      final metadataRecords = database.metadataRecords;
+      final metadata = await database.select(metadataRecords).get();
       expect(metadata.length, equals(1));
       expect(metadata.first.itemId, equals(itemId));
       expect(metadata.first.metadataId, equals(tagId));
@@ -501,7 +520,8 @@ void main() {
 
       expect(result.metadataId, isNotEmpty);
 
-      final metadata = await (database.select(database.metadataRecords)
+      final metadataRecords = database.metadataRecords;
+      final metadata = await (database.select(metadataRecords)
             ..where((tbl) => tbl.id.equals(result.metadataId)))
           .getSingleOrNull();
 
@@ -520,8 +540,10 @@ void main() {
     });
 
     tearDown(() async {
-      await configDb.delete(configDb.userThemes).go();
-      await configDb.delete(configDb.userConfigs).go();
+      final userThemes = configDb.userThemes;
+      await configDb.delete(userThemes).go();
+      final userConfigs = configDb.userConfigs;
+      await configDb.delete(userConfigs).go();
     });
 
     tearDownAll(() async {
@@ -532,7 +554,8 @@ void main() {
       final userConfigId = configDb.generateId();
 
       // Create user config first
-      await configDb.into(configDb.userConfigs).insert(
+      final userConfigs = configDb.userConfigs;
+      await configDb.into(userConfigs).insert(
             UserConfigsCompanion.insert(id: userConfigId),
           );
 
@@ -560,7 +583,8 @@ void main() {
       expect(results.first.userThemeId, isNotEmpty);
       expect(results.first.userConfigId, equals(userConfigId));
 
-      final themes = await configDb.select(configDb.userThemes).get();
+      final userThemes = configDb.userThemes;
+      final themes = await configDb.select(userThemes).get();
       expect(themes.length, equals(1));
       expect(themes.first.name, equals("Test Theme"));
     });
@@ -568,7 +592,8 @@ void main() {
     test("inserts multiple user themes", () async {
       final userConfigId = configDb.generateId();
 
-      await configDb.into(configDb.userConfigs).insert(
+      final userConfigs = configDb.userConfigs;
+      await configDb.into(userConfigs).insert(
             UserConfigsCompanion.insert(id: userConfigId),
           );
 
@@ -604,7 +629,8 @@ void main() {
 
       expect(results.length, equals(2));
 
-      final themes = await configDb.select(configDb.userThemes).get();
+      final userThemes = configDb.userThemes;
+      final themes = await configDb.select(userThemes).get();
       expect(themes.length, equals(2));
     });
 

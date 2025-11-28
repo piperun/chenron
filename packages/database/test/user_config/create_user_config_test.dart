@@ -21,8 +21,10 @@ void main() {
   });
 
   tearDown(() async {
-    await database.delete(database.userConfigs).go();
-    await database.delete(database.backupSettings).go();
+    final userConfigs = database.userConfigs;
+    await database.delete(userConfigs).go();
+    final backupSettings = database.backupSettings;
+    await database.delete(backupSettings).go();
     await database.close();
   });
 
@@ -47,7 +49,8 @@ void main() {
       expect(result.userConfigId.length, equals(30));
 
       // Verify in database
-      final config = await (database.select(database.userConfigs)
+      final userConfigs = database.userConfigs;
+      final config = await (database.select(userConfigs)
             ..where((tbl) => tbl.id.equals(result.userConfigId)))
           .getSingleOrNull();
 
@@ -74,7 +77,8 @@ void main() {
       final result = await database.createUserConfig(userConfig);
 
       // Verify values persisted correctly
-      final config = await (database.select(database.userConfigs)
+      final userConfigs = database.userConfigs;
+      final config = await (database.select(userConfigs)
             ..where((tbl) => tbl.id.equals(result.userConfigId)))
           .getSingleOrNull();
 
@@ -103,7 +107,8 @@ void main() {
 
       final result = await database.createUserConfig(userConfig);
 
-      final config = await (database.select(database.userConfigs)
+      final userConfigs = database.userConfigs;
+      final config = await (database.select(userConfigs)
             ..where((tbl) => tbl.id.equals(result.userConfigId)))
           .getSingleOrNull();
 
@@ -147,7 +152,8 @@ void main() {
       expect(result.userConfigId, equals(configResult.userConfigId));
 
       // Verify in database
-      final backup = await (database.select(database.backupSettings)
+      final backupSettings = database.backupSettings;
+      final backup = await (database.select(backupSettings)
             ..where((tbl) => tbl.id.equals(result.backupSettingsId)))
           .getSingleOrNull();
 
@@ -185,7 +191,8 @@ void main() {
         userConfigId: configResult.userConfigId,
       );
 
-      final backup = await (database.select(database.backupSettings)
+      final backupSettings = database.backupSettings;
+      final backup = await (database.select(backupSettings)
             ..where((tbl) => tbl.id.equals(result.backupSettingsId)))
           .getSingleOrNull();
 
@@ -222,7 +229,8 @@ void main() {
         userConfigId: configResult.userConfigId,
       );
 
-      final backup = await (database.select(database.backupSettings)
+      final backupSettings = database.backupSettings;
+      final backup = await (database.select(backupSettings)
             ..where((tbl) => tbl.id.equals(result.backupSettingsId)))
           .getSingleOrNull();
 

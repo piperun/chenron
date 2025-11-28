@@ -29,9 +29,13 @@ void main() {
         databaseName: "test_db", setupOnInit: true, debugMode: true);
 
     // Clean up from any previous tests
-    await database.delete(database.documents).go();
-    await database.delete(database.metadataRecords).go();
-    await database.delete(database.tags).go();
+    // Clean up from any previous tests
+    final documents = database.documents;
+    await database.delete(documents).go();
+    final metadataRecords = database.metadataRecords;
+    await database.delete(metadataRecords).go();
+    final tags = database.tags;
+    await database.delete(tags).go();
 
     final activeDocResult = await database.createDocument(
       title: "Active Document",
@@ -56,9 +60,12 @@ void main() {
   });
 
   tearDown(() async {
-    await database.delete(database.documents).go();
-    await database.delete(database.metadataRecords).go();
-    await database.delete(database.tags).go();
+    final documents = database.documents;
+    await database.delete(documents).go();
+    final metadataRecords = database.metadataRecords;
+    await database.delete(metadataRecords).go();
+    final tags = database.tags;
+    await database.delete(tags).go();
     await database.close();
   });
 

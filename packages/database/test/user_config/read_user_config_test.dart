@@ -23,8 +23,10 @@ void main() {
   });
 
   tearDown(() async {
-    await database.delete(database.userConfigs).go();
-    await database.delete(database.userThemes).go();
+    final userConfigs = database.userConfigs;
+    await database.delete(userConfigs).go();
+    final userThemes = database.userThemes;
+    await database.delete(userThemes).go();
     await database.close();
   });
 
@@ -178,7 +180,8 @@ void main() {
       final configResult = await database.createUserConfig(userConfig);
       // Create a theme manually
       final themeId = "test-theme-id-1234567890123456";
-      await database.into(database.userThemes).insert(
+      final userThemes = database.userThemes;
+      await database.into(userThemes).insert(
             UserThemesCompanion.insert(
               id: themeId,
               userConfigId: configResult.userConfigId,
@@ -220,7 +223,8 @@ void main() {
       final configResult = await database.createUserConfig(userConfig);
 
       final themeId = "watch-theme-12345678901234567890";
-      await database.into(database.userThemes).insert(
+      final userThemes = database.userThemes;
+      await database.into(userThemes).insert(
             UserThemesCompanion.insert(
               id: themeId,
               userConfigId: configResult.userConfigId,
@@ -264,7 +268,8 @@ void main() {
       );
       final configResult = await database.createUserConfig(userConfig);
 
-      await database.into(database.userThemes).insert(
+      final userThemes = database.userThemes;
+      await database.into(userThemes).insert(
             UserThemesCompanion.insert(
               id: "theme-a-123456789012345678901234",
               userConfigId: configResult.userConfigId,
@@ -311,7 +316,8 @@ void main() {
       );
       final configResult = await database.createUserConfig(userConfig);
 
-      await database.into(database.userThemes).insert(
+      final userThemes = database.userThemes;
+      await database.into(userThemes).insert(
             UserThemesCompanion.insert(
               id: "theme-dark-12345678901234567890123",
               userConfigId: configResult.userConfigId,
@@ -322,7 +328,7 @@ void main() {
             ),
           );
 
-      await database.into(database.userThemes).insert(
+      await database.into(userThemes).insert(
             UserThemesCompanion.insert(
               id: "theme-light-1234567890123456789012",
               userConfigId: configResult.userConfigId,

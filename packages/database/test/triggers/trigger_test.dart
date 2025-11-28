@@ -27,8 +27,10 @@ void main() {
   });
 
   tearDown(() async {
-    await database.delete(database.folders).go();
-    await database.delete(database.documents).go();
+    final folders = database.folders;
+    await database.delete(folders).go();
+    final documents = database.documents;
+    await database.delete(documents).go();
     await database.close();
   });
 
@@ -42,7 +44,8 @@ void main() {
       final result = await database.createFolder(folderInfo: folderDraft);
 
       // Get original folder
-      final originalFolder = await (database.select(database.folders)
+      final folders = database.folders;
+      final originalFolder = await (database.select(folders)
             ..where((tbl) => tbl.id.equals(result.folderId)))
           .getSingle();
 
@@ -52,12 +55,12 @@ void main() {
       await Future.delayed(const Duration(milliseconds: 1000));
 
       // Update the folder WITHOUT explicitly setting updatedAt
-      await (database.update(database.folders)
+      await (database.update(folders)
             ..where((tbl) => tbl.id.equals(result.folderId)))
           .write(const FoldersCompanion(title: Value("Updated Title")));
 
       // Get updated folder
-      final updatedFolder = await (database.select(database.folders)
+      final updatedFolder = await (database.select(folders)
             ..where((tbl) => tbl.id.equals(result.folderId)))
           .getSingle();
 
@@ -77,7 +80,8 @@ void main() {
       final result = await database.createFolder(folderInfo: folderDraft);
 
       // Get original folder
-      final originalFolder = await (database.select(database.folders)
+      final folders = database.folders;
+      final originalFolder = await (database.select(folders)
             ..where((tbl) => tbl.id.equals(result.folderId)))
           .getSingle();
 
@@ -87,7 +91,7 @@ void main() {
 
       // Update the folder while EXPLICITLY setting updatedAt to the old value
       // The trigger condition "WHEN NEW.updated_at = OLD.updated_at" should prevent update
-      await (database.update(database.folders)
+      await (database.update(folders)
             ..where((tbl) => tbl.id.equals(result.folderId)))
           .write(FoldersCompanion(
         title: const Value("Explicitly Set Title"),
@@ -95,7 +99,7 @@ void main() {
       ));
 
       // Get updated folder
-      final updatedFolder = await (database.select(database.folders)
+      final updatedFolder = await (database.select(folders)
             ..where((tbl) => tbl.id.equals(result.folderId)))
           .getSingle();
 
@@ -111,27 +115,28 @@ void main() {
       );
       final result = await database.createFolder(folderInfo: folderDraft);
 
-      final folder1 = await (database.select(database.folders)
+      final folders = database.folders;
+      final folder1 = await (database.select(folders)
             ..where((tbl) => tbl.id.equals(result.folderId)))
           .getSingle();
 
       await Future.delayed(const Duration(milliseconds: 1000));
 
-      await (database.update(database.folders)
+      await (database.update(folders)
             ..where((tbl) => tbl.id.equals(result.folderId)))
           .write(const FoldersCompanion(title: Value("Update 1")));
 
-      final folder2 = await (database.select(database.folders)
+      final folder2 = await (database.select(folders)
             ..where((tbl) => tbl.id.equals(result.folderId)))
           .getSingle();
 
       await Future.delayed(const Duration(milliseconds: 1000));
 
-      await (database.update(database.folders)
+      await (database.update(folders)
             ..where((tbl) => tbl.id.equals(result.folderId)))
           .write(const FoldersCompanion(title: Value("Update 2")));
 
-      final folder3 = await (database.select(database.folders)
+      final folder3 = await (database.select(folders)
             ..where((tbl) => tbl.id.equals(result.folderId)))
           .getSingle();
 
@@ -154,7 +159,8 @@ void main() {
         docId = results.first.documentId;
       });
 
-      final originalDoc = await (database.select(database.documents)
+      final documents = database.documents;
+      final originalDoc = await (database.select(documents)
             ..where((tbl) => tbl.id.equals(docId)))
           .getSingle();
 
@@ -163,11 +169,10 @@ void main() {
       await Future.delayed(const Duration(milliseconds: 1000));
 
       // Update without explicitly setting updatedAt
-      await (database.update(database.documents)
-            ..where((tbl) => tbl.id.equals(docId)))
+      await (database.update(documents)..where((tbl) => tbl.id.equals(docId)))
           .write(const DocumentsCompanion(title: Value("New Title")));
 
-      final updatedDoc = await (database.select(database.documents)
+      final updatedDoc = await (database.select(documents)
             ..where((tbl) => tbl.id.equals(docId)))
           .getSingle();
 
@@ -189,7 +194,8 @@ void main() {
         docId = results.first.documentId;
       });
 
-      final originalDoc = await (database.select(database.documents)
+      final documents = database.documents;
+      final originalDoc = await (database.select(documents)
             ..where((tbl) => tbl.id.equals(docId)))
           .getSingle();
 
@@ -202,14 +208,13 @@ void main() {
       // Update while explicitly setting updatedAt to a DIFFERENT value
       // The trigger condition "WHEN NEW.updated_at = OLD.updated_at" should prevent update
       // because NEW (manualUpdatedAt) != OLD (originalUpdatedAt)
-      await (database.update(database.documents)
-            ..where((tbl) => tbl.id.equals(docId)))
+      await (database.update(documents)..where((tbl) => tbl.id.equals(docId)))
           .write(DocumentsCompanion(
         title: const Value("Explicitly Set Title"),
         updatedAt: Value(manualUpdatedAt),
       ));
 
-      final updatedDoc = await (database.select(database.documents)
+      final updatedDoc = await (database.select(documents)
             ..where((tbl) => tbl.id.equals(docId)))
           .getSingle();
 

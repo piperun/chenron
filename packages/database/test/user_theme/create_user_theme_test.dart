@@ -41,8 +41,10 @@ void main() {
   });
 
   tearDown(() async {
-    await database.delete(database.userConfigs).go();
-    await database.delete(database.userThemes).go();
+    final userConfigs = database.userConfigs;
+    await database.delete(userConfigs).go();
+    final userThemes = database.userThemes;
+    await database.delete(userThemes).go();
     await database.close();
   });
 
@@ -248,7 +250,8 @@ void main() {
       );
 
       // Verify the theme is linked to the correct config
-      final savedTheme = await (database.select(database.userThemes)
+      final userThemes = database.userThemes;
+      final savedTheme = await (database.select(userThemes)
             ..where((tbl) => tbl.id.equals(results.first.userThemeId)))
           .getSingleOrNull();
 

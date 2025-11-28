@@ -22,7 +22,8 @@ void main() {
   });
 
   tearDown(() async {
-    await database.delete(database.tags).go();
+    final tags = database.tags;
+    await database.delete(tags).go();
     await database.close();
   });
 
@@ -100,7 +101,8 @@ void main() {
       await expectLater(stream, emits(null));
 
       // Create the tag manually
-      await database.into(database.tags).insert(
+      final tags = database.tags;
+      await database.into(tags).insert(
             TagsCompanion.insert(id: tagId, name: "new-tag"),
           );
 

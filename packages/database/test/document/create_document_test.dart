@@ -22,7 +22,8 @@ void main() {
     );
 
     // Clean up any existing documents from previous tests
-    await database.delete(database.documents).go();
+    final documents = database.documents;
+    await database.delete(documents).go();
   });
 
   tearDown(() async {
@@ -39,7 +40,8 @@ void main() {
 
       expect(result.documentId, isNotEmpty);
 
-      final retrievedDoc = await (database.select(database.documents)
+      final documents = database.documents;
+      final retrievedDoc = await (database.select(documents)
             ..where((tbl) => tbl.id.equals(result.documentId)))
           .getSingleOrNull();
 
@@ -64,7 +66,8 @@ void main() {
       expect(result1.documentId, isNotEmpty);
       expect(result2.documentId, isNotEmpty);
 
-      final allDocs = await database.select(database.documents).get();
+      final documents = database.documents;
+      final allDocs = await database.select(documents).get();
       expect(allDocs.length, equals(2));
       expect(allDocs.map((d) => d.id).toSet(),
           equals({result1.documentId, result2.documentId}));
@@ -101,7 +104,9 @@ void main() {
       expect(result.tagIds!.length, equals(3));
 
       // Verify document was created
-      final retrievedDoc = await (database.select(database.documents)
+      // Verify document was created
+      final documents = database.documents;
+      final retrievedDoc = await (database.select(documents)
             ..where((tbl) => tbl.id.equals(result.documentId)))
           .getSingleOrNull();
 
@@ -109,19 +114,23 @@ void main() {
       expect(retrievedDoc!.title, equals("Tagged Document"));
 
       // Verify tags were associated with the document
-      final metadataRecords = await (database.select(database.metadataRecords)
+      // Verify tags were associated with the document
+      final metadataRecordsTable = database.metadataRecords;
+      final records = await (database.select(metadataRecordsTable)
             ..where((tbl) => tbl.itemId.equals(result.documentId)))
           .get();
 
-      expect(metadataRecords.length, equals(3));
+      expect(records.length, equals(3));
 
       // Verify all tag IDs are correct
-      final dbTagIds = metadataRecords.map((m) => m.metadataId).toSet();
+      final dbTagIds = records.map((m) => m.metadataId).toSet();
       final expectedTagIds = result.tagIds!.toSet();
       expect(dbTagIds, equals(expectedTagIds));
 
       // Verify tag content in the tags table
-      final dbTags = await database.select(database.tags).get();
+      // Verify tag content in the tags table
+      final tagsTable = database.tags;
+      final dbTags = await database.select(tagsTable).get();
       expect(dbTags.length, greaterThanOrEqualTo(3));
 
       final tagNames = dbTags.map((m) => m.name).toSet();
@@ -157,8 +166,9 @@ void main() {
       );
 
       // Try to insert directly to bypass VEPR check and trigger DB constraint
+      final documents = database.documents;
       expect(
-        () => database.into(database.documents).insert(
+        () => database.into(documents).insert(
               DocumentsCompanion.insert(
                 id: "new-id",
                 title: "Duplicate",
@@ -166,18 +176,18 @@ void main() {
                 fileType: DocumentFileType.pdf,
               ),
             ),
-        throwsA(isA<Exception>()), // Expecting SqliteException
+        throwsA(isA<Exception>()),
       );
     });
 
     test("fails to create document with short title", () async {
       expect(
         () => database.createDocument(
-          title: "Short", // Less than 6 characters
+          title: "Short",
           filePath: "/path/short-title.pdf",
           fileType: DocumentFileType.pdf,
         ),
-        throwsA(isA<Exception>()), // Expecting InvalidDataException
+        throwsA(isA<Exception>()),
       );
     });
   });

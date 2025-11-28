@@ -38,12 +38,13 @@ void main() {
       expect(deleted, isTrue);
 
       // Verify link1 was deleted
-      final deletedLink = await (database.select(database.links)
+      final links = database.links;
+      final deletedLink = await (database.select(links)
             ..where((tbl) => tbl.id.equals(result1.linkId)))
           .getSingleOrNull();
 
       // Verify link2 still exists
-      final remainingLink = await (database.select(database.links)
+      final remainingLink = await (database.select(links)
             ..where((tbl) => tbl.id.equals(result2.linkId)))
           .getSingleOrNull();
 
@@ -62,14 +63,15 @@ void main() {
       );
 
       // Verify tags were created
-      final tagsBefore = await database.select(database.tags).get();
+      final tagsTable = database.tags;
+      final tagsBefore = await database.select(tagsTable).get();
       expect(tagsBefore.length, equals(2));
 
       // Verify metadata records were created
-      final metadataRecordsBefore =
-          await (database.select(database.metadataRecords)
-                ..where((tbl) => tbl.itemId.equals(result.linkId)))
-              .get();
+      final metadataRecordsTable = database.metadataRecords;
+      final metadataRecordsBefore = await (database.select(metadataRecordsTable)
+            ..where((tbl) => tbl.itemId.equals(result.linkId)))
+          .get();
       expect(metadataRecordsBefore.length, equals(2));
 
       // Remove the link
@@ -77,20 +79,20 @@ void main() {
       expect(deleted, isTrue);
 
       // Verify link was deleted
-      final deletedLink = await (database.select(database.links)
+      final links = database.links;
+      final deletedLink = await (database.select(links)
             ..where((tbl) => tbl.id.equals(result.linkId)))
           .getSingleOrNull();
       expect(deletedLink, isNull);
 
       // Verify metadata records (many-to-many) were deleted
-      final metadataRecordsAfter =
-          await (database.select(database.metadataRecords)
-                ..where((tbl) => tbl.itemId.equals(result.linkId)))
-              .get();
+      final metadataRecordsAfter = await (database.select(metadataRecordsTable)
+            ..where((tbl) => tbl.itemId.equals(result.linkId)))
+          .get();
       expect(metadataRecordsAfter.length, equals(0));
 
       // Verify tags themselves still exist
-      final tagsAfter = await database.select(database.tags).get();
+      final tagsAfter = await database.select(tagsTable).get();
       expect(tagsAfter.length, equals(2));
     });
 

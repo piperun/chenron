@@ -39,7 +39,8 @@ void main() {
 
       await database.statistics.insertOne(stat);
 
-      final retrieved = await (database.select(database.statistics)
+      final statistics = database.statistics;
+      final retrieved = await (database.select(statistics)
             ..where((tbl) => tbl.id.equals(id)))
           .getSingleOrNull();
 
@@ -59,7 +60,8 @@ void main() {
         ),
       );
 
-      final stat = await (database.select(database.statistics)
+      final statistics = database.statistics;
+      final stat = await (database.select(statistics)
             ..where((tbl) => tbl.id.equals(id)))
           .getSingleOrNull();
 
@@ -77,11 +79,11 @@ void main() {
         ),
       );
 
-      await (database.update(database.statistics)
-            ..where((tbl) => tbl.id.equals(id)))
+      final statistics = database.statistics;
+      await (database.update(statistics)..where((tbl) => tbl.id.equals(id)))
           .write(const StatisticsCompanion(totalLinks: Value(20)));
 
-      final updated = await (database.select(database.statistics)
+      final updated = await (database.select(statistics)
             ..where((tbl) => tbl.id.equals(id)))
           .getSingle();
 
@@ -94,11 +96,11 @@ void main() {
         StatisticsCompanion.insert(id: id),
       );
 
-      await (database.delete(database.statistics)
-            ..where((tbl) => tbl.id.equals(id)))
+      final statistics = database.statistics;
+      await (database.delete(statistics)..where((tbl) => tbl.id.equals(id)))
           .go();
 
-      final deleted = await (database.select(database.statistics)
+      final deleted = await (database.select(statistics)
             ..where((tbl) => tbl.id.equals(id)))
           .getSingleOrNull();
 
@@ -113,7 +115,8 @@ void main() {
         StatisticsCompanion.insert(id: id),
       );
 
-      final stat = await (database.select(database.statistics)
+      final statistics = database.statistics;
+      final stat = await (database.select(statistics)
             ..where((tbl) => tbl.id.equals(id)))
           .getSingle();
 
@@ -131,7 +134,8 @@ void main() {
         StatisticsCompanion.insert(id: id),
       );
 
-      final stat = await (database.select(database.statistics)
+      final statistics = database.statistics;
+      final stat = await (database.select(statistics)
             ..where((tbl) => tbl.id.equals(id)))
           .getSingle();
 
@@ -162,7 +166,8 @@ void main() {
         ),
       );
 
-      final stat = await (database.select(database.statistics)
+      final statistics = database.statistics;
+      final stat = await (database.select(statistics)
             ..where((tbl) => tbl.id.equals(id)))
           .getSingle();
 
@@ -182,7 +187,8 @@ void main() {
         ),
       );
 
-      final stat = await (database.select(database.statistics)
+      final statistics = database.statistics;
+      final stat = await (database.select(statistics)
             ..where((tbl) => tbl.id.equals(id)))
           .getSingle();
 
@@ -199,16 +205,16 @@ void main() {
       );
 
       // Increment totalLinks
-      final current = await (database.select(database.statistics)
+      final statistics = database.statistics;
+      final current = await (database.select(statistics)
             ..where((tbl) => tbl.id.equals(id)))
           .getSingle();
 
-      await (database.update(database.statistics)
-            ..where((tbl) => tbl.id.equals(id)))
+      await (database.update(statistics)..where((tbl) => tbl.id.equals(id)))
           .write(
               StatisticsCompanion(totalLinks: Value(current.totalLinks + 1)));
 
-      final updated = await (database.select(database.statistics)
+      final updated = await (database.select(statistics)
             ..where((tbl) => tbl.id.equals(id)))
           .getSingle();
 
@@ -230,7 +236,8 @@ void main() {
         );
       });
 
-      final allStats = await database.select(database.statistics).get();
+      final statistics = database.statistics;
+      final allStats = await database.select(statistics).get();
       expect(allStats.length, matcher.greaterThanOrEqualTo(2));
     });
   });
@@ -249,7 +256,8 @@ void main() {
         StatisticsCompanion.insert(id: id2, totalLinks: const Value(10)),
       );
 
-      final latest = await (database.select(database.statistics)
+      final statistics = database.statistics;
+      final latest = await (database.select(statistics)
             ..orderBy([(t) => OrderingTerm.desc(t.recordedAt)])
             ..limit(1))
           .getSingle();
@@ -269,9 +277,10 @@ void main() {
         );
       });
 
-      await database.delete(database.statistics).go();
+      final statistics = database.statistics;
+      await database.delete(statistics).go();
 
-      final allStats = await database.select(database.statistics).get();
+      final allStats = await database.select(statistics).get();
       expect(allStats.length, equals(0));
     });
   });

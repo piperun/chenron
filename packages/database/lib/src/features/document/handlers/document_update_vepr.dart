@@ -58,7 +58,8 @@ class DocumentUpdateVEPR extends VEPROperation<AppDatabase, DocumentUpdateInput,
     final docId = execResult;
     logStep("Process", "Updating document fields for ID: $docId");
 
-    final updateCount = await (db.update(db.documents)
+    final documents = db.documents;
+    final updateCount = await (db.update(documents)
           ..where((tbl) => tbl.id.equals(docId)))
         .write(DocumentsCompanion(
       title: input.title != null ? Value(input.title!) : const Value.absent(),

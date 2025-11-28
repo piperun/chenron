@@ -23,9 +23,12 @@ void main() {
     );
 
     // Clean up from any previous tests
-    await database.delete(database.documents).go();
-    await database.delete(database.metadataRecords).go();
-    await database.delete(database.tags).go();
+    final documents = database.documents;
+    await database.delete(documents).go();
+    final metadataRecords = database.metadataRecords;
+    await database.delete(metadataRecords).go();
+    final tags = database.tags;
+    await database.delete(tags).go();
   });
 
   tearDown(() async {
@@ -52,12 +55,13 @@ void main() {
       expect(deleted, isTrue);
 
       // Verify doc1 was deleted
-      final deletedDoc = await (database.select(database.documents)
+      final documents = database.documents;
+      final deletedDoc = await (database.select(documents)
             ..where((tbl) => tbl.id.equals(result1.documentId)))
           .getSingleOrNull();
 
       // Verify doc2 still exists
-      final remainingDoc = await (database.select(database.documents)
+      final remainingDoc = await (database.select(documents)
             ..where((tbl) => tbl.id.equals(result2.documentId)))
           .getSingleOrNull();
 
@@ -91,14 +95,15 @@ void main() {
       );
 
       // Verify tags were created
-      final tagsBefore = await database.select(database.tags).get();
+      final tagsTable = database.tags;
+      final tagsBefore = await database.select(tagsTable).get();
       expect(tagsBefore.length, equals(3));
 
       // Verify metadata records were created
-      final metadataRecordsBefore =
-          await (database.select(database.metadataRecords)
-                ..where((tbl) => tbl.itemId.equals(result.documentId)))
-              .get();
+      final metadataRecordsTable = database.metadataRecords;
+      final metadataRecordsBefore = await (database.select(metadataRecordsTable)
+            ..where((tbl) => tbl.itemId.equals(result.documentId)))
+          .get();
       expect(metadataRecordsBefore.length, equals(3));
 
       // Remove the document
@@ -106,20 +111,20 @@ void main() {
       expect(deleted, isTrue);
 
       // Verify document was deleted
-      final deletedDoc = await (database.select(database.documents)
+      final documents = database.documents;
+      final deletedDoc = await (database.select(documents)
             ..where((tbl) => tbl.id.equals(result.documentId)))
           .getSingleOrNull();
       expect(deletedDoc, isNull);
 
       // Verify metadata records (many-to-many) were deleted
-      final metadataRecordsAfter =
-          await (database.select(database.metadataRecords)
-                ..where((tbl) => tbl.itemId.equals(result.documentId)))
-              .get();
+      final metadataRecordsAfter = await (database.select(metadataRecordsTable)
+            ..where((tbl) => tbl.itemId.equals(result.documentId)))
+          .get();
       expect(metadataRecordsAfter.length, equals(0));
 
       // Verify tags themselves still exist
-      final tagsAfter = await database.select(database.tags).get();
+      final tagsAfter = await database.select(tagsTable).get();
       expect(tagsAfter.length, equals(3));
 
       final tagNames = tagsAfter.map((t) => t.name).toSet();
@@ -156,7 +161,8 @@ void main() {
       expect(deletedCount, greaterThan(0));
 
       // Verify first two documents were deleted
-      final remainingDocs = await database.select(database.documents).get();
+      final documents = database.documents;
+      final remainingDocs = await database.select(documents).get();
       expect(remainingDocs.length, equals(1));
       expect(remainingDocs.first.id, equals(docIds[2]));
     });
@@ -182,7 +188,8 @@ void main() {
       expect(deleted, isTrue);
 
       // Verify no items remain for this document
-      final items = await (database.select(database.items)
+      final itemsTable = database.items;
+      final items = await (database.select(itemsTable)
             ..where((tbl) => tbl.itemId.equals(result.documentId)))
           .get();
       expect(items.length, equals(0));

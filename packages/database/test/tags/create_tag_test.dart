@@ -22,7 +22,8 @@ void main() {
 
   tearDown(() async {
     // Clean up tags
-    await database.delete(database.tags).go();
+    final tags = database.tags;
+    await database.delete(tags).go();
     await database.close();
   });
 
@@ -34,7 +35,8 @@ void main() {
       expect(tagId.length, equals(30));
 
       // Verify tag exists in database
-      final tag = await (database.select(database.tags)
+      final tags = database.tags;
+      final tag = await (database.select(tags)
             ..where((tbl) => tbl.id.equals(tagId)))
           .getSingleOrNull();
 
@@ -50,7 +52,8 @@ void main() {
       expect(tagId, isNotEmpty);
 
       // Verify tag exists in database with color
-      final tag = await (database.select(database.tags)
+      final tags = database.tags;
+      final tag = await (database.select(tags)
             ..where((tbl) => tbl.id.equals(tagId)))
           .getSingleOrNull();
 
@@ -69,7 +72,8 @@ void main() {
       expect(tagId1, isNot(equals(tagId3)));
 
       // Verify all tags exist
-      final allTags = await database.select(database.tags).get();
+      final tags = database.tags;
+      final allTags = await database.select(tags).get();
       expect(allTags.length, equals(3));
 
       final tagNames = allTags.map((t) => t.name).toSet();
@@ -79,7 +83,8 @@ void main() {
     test("handles tag with special characters", () async {
       final tagId = await database.addTag("C++ Code");
 
-      final tag = await (database.select(database.tags)
+      final tags = database.tags;
+      final tag = await (database.select(tags)
             ..where((tbl) => tbl.id.equals(tagId)))
           .getSingleOrNull();
 
@@ -90,7 +95,8 @@ void main() {
     test("handles tag with numbers", () async {
       final tagId = await database.addTag("web3.0");
 
-      final tag = await (database.select(database.tags)
+      final tags = database.tags;
+      final tag = await (database.select(tags)
             ..where((tbl) => tbl.id.equals(tagId)))
           .getSingleOrNull();
 
@@ -101,7 +107,8 @@ void main() {
     test("handles tag with emojis", () async {
       final tagId = await database.addTag("🚀 rocket");
 
-      final tag = await (database.select(database.tags)
+      final tags = database.tags;
+      final tag = await (database.select(tags)
             ..where((tbl) => tbl.id.equals(tagId)))
           .getSingleOrNull();
 
@@ -113,7 +120,8 @@ void main() {
       final longName = "a" * 12;
       final tagId = await database.addTag(longName);
 
-      final tag = await (database.select(database.tags)
+      final tags = database.tags;
+      final tag = await (database.select(tags)
             ..where((tbl) => tbl.id.equals(tagId)))
           .getSingleOrNull();
 
@@ -132,7 +140,8 @@ void main() {
       expect(tagId1, equals(tagId2));
 
       // Verify only one tag exists
-      final allTags = await (database.select(database.tags)
+      final tags = database.tags;
+      final allTags = await (database.select(tags)
             ..where((tbl) => tbl.name.equals("same-tag")))
           .get();
 

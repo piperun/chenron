@@ -25,9 +25,13 @@ void main() {
     );
 
     // Clean up from any previous tests
-    await database.delete(database.documents).go();
-    await database.delete(database.metadataRecords).go();
-    await database.delete(database.tags).go();
+    // Clean up from any previous tests
+    final documents = database.documents;
+    await database.delete(documents).go();
+    final metadataRecords = database.metadataRecords;
+    await database.delete(metadataRecords).go();
+    final tags = database.tags;
+    await database.delete(tags).go();
 
     final result = await database.createDocument(
       title: "Original Title",
@@ -50,7 +54,8 @@ void main() {
 
       expect(success, isTrue);
 
-      final doc = await (database.select(database.documents)
+      final documents = database.documents;
+      final doc = await (database.select(documents)
             ..where((tbl) => tbl.id.equals(docId)))
           .getSingle();
 
@@ -66,7 +71,8 @@ void main() {
 
       expect(success, isTrue);
 
-      final doc = await (database.select(database.documents)
+      final documents = database.documents;
+      final doc = await (database.select(documents)
             ..where((tbl) => tbl.id.equals(docId)))
           .getSingle();
 
@@ -75,7 +81,8 @@ void main() {
     });
 
     test("verify updatedAt changes on update", () async {
-      final originalDoc = await (database.select(database.documents)
+      final documents = database.documents;
+      final originalDoc = await (database.select(documents)
             ..where((tbl) => tbl.id.equals(docId)))
           .getSingle();
 
@@ -87,7 +94,7 @@ void main() {
         title: "New Title",
       );
 
-      final updatedDoc = await (database.select(database.documents)
+      final updatedDoc = await (database.select(documents)
             ..where((tbl) => tbl.id.equals(docId)))
           .getSingle();
 
@@ -113,7 +120,8 @@ void main() {
 
       expect(addedIds.length, equals(2));
 
-      final metadataRecords = await (database.select(database.metadataRecords)
+      final metadataRecordsTable = database.metadataRecords;
+      final metadataRecords = await (database.select(metadataRecordsTable)
             ..where((tbl) => tbl.itemId.equals(docId)))
           .get();
 
@@ -159,7 +167,8 @@ void main() {
       // So it should return only the new one.
       expect(addedIds.length, equals(1));
 
-      final metadataRecords = await (database.select(database.metadataRecords)
+      final metadataRecordsTable = database.metadataRecords;
+      final metadataRecords = await (database.select(metadataRecordsTable)
             ..where((tbl) => tbl.itemId.equals(docId)))
           .get();
 
@@ -187,7 +196,8 @@ void main() {
       expect(addedIds.length, equals(2));
 
       // Robustly identify which ID is which
-      final tagsInDb = await (database.select(database.tags)
+      final tagsTable = database.tags;
+      final tagsInDb = await (database.select(tagsTable)
             ..where((tbl) => tbl.id.isIn(addedIds)))
           .get();
 
@@ -202,7 +212,8 @@ void main() {
 
       expect(removedCount, equals(1));
 
-      final metadataRecords = await (database.select(database.metadataRecords)
+      final metadataRecordsTable = database.metadataRecords;
+      final metadataRecords = await (database.select(metadataRecordsTable)
             ..where((tbl) => tbl.itemId.equals(docId)))
           .get();
 
@@ -225,9 +236,9 @@ void main() {
       // Try to update the main document (docId) to use the second document's path
       // Since the extension doesn't allow updating filePath, we use a direct query
       // to verify the database constraint exists.
+      final documents = database.documents;
       expect(
-        () => (database.update(database.documents)
-              ..where((t) => t.id.equals(docId)))
+        () => (database.update(documents)..where((t) => t.id.equals(docId)))
             .write(
           const DocumentsCompanion(
             filePath: Value("/path/existing.pdf"),
