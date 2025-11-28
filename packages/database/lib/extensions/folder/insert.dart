@@ -1,4 +1,4 @@
-import "package:database/database.dart" show AppDatabase, Document;
+import "package:database/database.dart" show AppDatabase;
 import "package:database/extensions/insert_ext.dart";
 import "package:database/models/created_ids.dart" show ItemResultIds;
 import "package:database/models/item.dart";
@@ -11,26 +11,13 @@ extension InsertionExtensions on AppDatabase {
     required List<FolderItem> itemInserts,
   }) async {
     final List<String> linkUrls = [];
-    final List<Document> docList = [];
+    final List<DocumentItem> docItems = [];
     final List<FolderItem> folderItems = [];
 
     for (final item in itemInserts) {
       item.map(
         link: (linkItem) => linkUrls.add(linkItem.url),
-        document: (docItem) {
-          // Create a Document object for insertion
-          final doc = Document(
-            id: docItem.id ?? '',
-            title: docItem.title,
-            filePath: docItem.filePath,
-            mimeType: docItem.mimeType,
-            fileSize: docItem.fileSize,
-            checksum: docItem.checksum,
-            createdAt: docItem.createdAt ?? DateTime.now(),
-            updatedAt: docItem.updatedAt ?? DateTime.now(),
-          );
-          docList.add(doc);
-        },
+        document: (docItem) => docItems.add(docItem),
         folder: (folderItem) => folderItems.add(item),
       );
     }
@@ -63,8 +50,8 @@ extension InsertionExtensions on AppDatabase {
       }
     }
 
-    if (docList.isNotEmpty) {
-      final docResults = insertDocuments(batch: batch, docs: docList);
+    if (docItems.isNotEmpty) {
+      final docResults = insertDocuments(batch: batch, docs: docItems);
       for (final docResult in docResults) {
         final relation = insertItemRelation(
           batch: batch,
