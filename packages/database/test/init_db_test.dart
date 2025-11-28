@@ -24,12 +24,12 @@ void main() {
 
   test("AppDatabase constructor initializes with no setup memory database", () {
     final db = AppDatabase(queryExecutor: NativeDatabase.memory());
-    expect(db.schemaVersion, equals(3));
+    expect(db.schemaVersion, equals(5));
   });
 
   test("AppDatabase constructor initializes with no setup file database", () {
     final db = AppDatabase(databaseName: "test_db", debugMode: true);
-    expect(db.schemaVersion, equals(3));
+    expect(db.schemaVersion, equals(5));
   });
 
   // Helper function to remove the database
