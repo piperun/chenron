@@ -12,10 +12,10 @@ extension DocumentFileOperations on AppDatabase {
   Future<String> createDocumentFile({
     required String title,
     required String content,
-    String mimeType = 'text/markdown',
+    DocumentFileType fileType = DocumentFileType.markdown,
   }) async {
     final docId = generateId();
-    final extension = _getFileExtension(mimeType);
+    final extension = _getFileExtension(fileType);
     final relativePath = 'documents/$docId$extension';
     final file = await _getDocFile(relativePath);
 
@@ -30,7 +30,7 @@ extension DocumentFileOperations on AppDatabase {
         id: docId,
         title: title,
         filePath: relativePath,
-        mimeType: mimeType,
+        fileType: fileType,
         fileSize: Value(size),
         checksum: Value(hash),
       ),
@@ -109,14 +109,18 @@ extension DocumentFileOperations on AppDatabase {
   }
 
   /// Get file extension from MIME type
-  String _getFileExtension(String mimeType) {
-    switch (mimeType) {
-      case 'text/markdown':
+  String _getFileExtension(DocumentFileType fileType) {
+    switch (fileType) {
+      case DocumentFileType.markdown:
         return '.md';
-      case 'text/typst':
+      case DocumentFileType.typst:
         return '.typ';
-      default:
-        return '.md'; // Default to Markdown
+      case DocumentFileType.pdf:
+        return '.pdf';
+      case DocumentFileType.html:
+        return '.html';
+      case DocumentFileType.docx:
+        return '.docx';
     }
   }
 }
