@@ -2,9 +2,10 @@ import "package:database/main.dart";
 import "package:database/models/created_ids.dart";
 import "package:database/models/document_file_type.dart";
 import "package:database/models/metadata.dart";
+import "package:database/src/core/handlers/relation_handler.dart";
 import "package:database/src/core/handlers/vepr_operation.dart";
 import "package:database/src/core/id.dart";
-import "package:database/src/features/tag/create.dart";
+import "package:database/src/features/tag/handlers/insert_handler.dart";
 import "package:drift/drift.dart";
 
 // Define Input type using a Record
@@ -85,32 +86,24 @@ class DocumentCreateVEPR extends VEPROperation<AppDatabase, DocumentCreateInput,
 
     if (input.tags != null && input.tags!.isNotEmpty) {
       logStep("Process.Tags", "Processing ${input.tags!.length} tags");
-      createdTagIdsResult = [];
 
       await db.batch((batch) async {
-        for (var tag in input.tags!) {
-          final tagId = await db.addTag(tag.value);
+        // Use the shared insertTags helper
+        createdTagIdsResult =
+            await db.insertTags(batch: batch, tagMetadata: input.tags!);
 
-          createdTagIdsResult!.add(TagResultIds(
-            tagId: tagId,
-            wasCreated: false,
-          ));
-
-          // Create metadata relation
-          batch.insert(
-            db.metadataRecords,
-            MetadataRecordsCompanion.insert(
-              id: db.generateId(),
-              itemId: docId,
-              metadataId: tagId,
-              typeId: MetadataTypeEnum.tag.index,
-            ),
+        for (final tagResult in createdTagIdsResult!) {
+          db.insertMetadataRelation(
+            batch: batch,
+            metadataId: tagResult.tagId,
+            itemId: docId,
+            type: MetadataTypeEnum.tag,
           );
         }
       });
 
       logStep("Process.Tags",
-          "Finished processing ${createdTagIdsResult.length} tags");
+          "Finished processing ${createdTagIdsResult?.length ?? 0} tags");
     } else {
       logStep("Process.Tags", "No tags to process");
     }

@@ -1,5 +1,6 @@
 import "package:database/main.dart";
 import "package:database/src/core/handlers/vepr_operation.dart";
+import "package:database/src/features/link/read.dart";
 import "package:drift/drift.dart";
 import "package:meta/meta.dart";
 
@@ -58,10 +59,7 @@ class LinkUpdatePathVEPR extends VEPROperation<AppDatabase, LinkUpdatePathInput,
 
     // Check if link exists
     // Check if link exists
-    final links = db.links;
-    final linkExists = await (db.select(links)
-          ..where((tbl) => tbl.id.equals(input.linkId)))
-        .getSingleOrNull();
+    final linkExists = await db.getLink(linkId: input.linkId);
 
     if (linkExists == null) {
       logStep("Execute", "Link does not exist");
@@ -74,6 +72,8 @@ class LinkUpdatePathVEPR extends VEPROperation<AppDatabase, LinkUpdatePathInput,
     // but let's redefine or reuse. Since it's local to the previous block? No, it's in onExecute.
     // I'll reuse 'links' if it's in scope, or define it if not.
     // Wait, I defined 'links' in the previous chunk. It is in scope of onExecute.
+    // Check if new path conflicts with another link
+    final links = db.links;
     final pathConflict = await (db.select(links)
           ..where((tbl) =>
               tbl.path.equals(input.newPath) &
