@@ -1,12 +1,12 @@
-import 'package:database/main.dart';
-import 'package:database/models/document_file_type.dart';
-import 'package:database/models/metadata.dart';
-import 'package:flutter_test/flutter_test.dart';
+import "package:database/main.dart";
+import "package:database/models/document_file_type.dart";
+import "package:database/models/metadata.dart";
+import "package:flutter_test/flutter_test.dart";
 
-import 'package:database/src/features/document/create.dart';
-import 'package:database/src/features/document/update.dart';
-import 'package:chenron_mockups/chenron_mockups.dart';
-import 'package:drift/drift.dart';
+import "package:database/src/features/document/create.dart";
+import "package:database/src/features/document/update.dart";
+import "package:chenron_mockups/chenron_mockups.dart";
+import "package:drift/drift.dart";
 
 void main() {
   setUpAll(() {
@@ -30,8 +30,8 @@ void main() {
     await database.delete(database.tags).go();
 
     final result = await database.createDocument(
-      title: 'Original Title',
-      filePath: '/path/to/doc.pdf',
+      title: "Original Title",
+      filePath: "/path/to/doc.pdf",
       fileType: DocumentFileType.pdf,
     );
     docId = result.documentId;
@@ -41,11 +41,11 @@ void main() {
     await database.close();
   });
 
-  group('Document Update', () {
-    test('update document title', () async {
+  group("Document Update", () {
+    test("update document title", () async {
       final success = await database.updateDocument(
         documentId: docId,
-        title: 'Updated Title',
+        title: "Updated Title",
       );
 
       expect(success, isTrue);
@@ -54,14 +54,14 @@ void main() {
             ..where((tbl) => tbl.id.equals(docId)))
           .getSingle();
 
-      expect(doc.title, equals('Updated Title'));
+      expect(doc.title, equals("Updated Title"));
     });
 
-    test('update document metadata', () async {
+    test("update document metadata", () async {
       final success = await database.updateDocument(
         documentId: docId,
         fileSize: 2048,
-        checksum: 'newhash',
+        checksum: "newhash",
       );
 
       expect(success, isTrue);
@@ -71,10 +71,10 @@ void main() {
           .getSingle();
 
       expect(doc.fileSize, equals(2048));
-      expect(doc.checksum, equals('newhash'));
+      expect(doc.checksum, equals("newhash"));
     });
 
-    test('verify updatedAt changes on update', () async {
+    test("verify updatedAt changes on update", () async {
       final originalDoc = await (database.select(database.documents)
             ..where((tbl) => tbl.id.equals(docId)))
           .getSingle();
@@ -84,7 +84,7 @@ void main() {
 
       await database.updateDocument(
         documentId: docId,
-        title: 'New Title',
+        title: "New Title",
       );
 
       final updatedDoc = await (database.select(database.documents)
@@ -94,14 +94,14 @@ void main() {
       expect(updatedDoc.updatedAt.isAfter(originalDoc.updatedAt), isTrue);
     });
 
-    test('add tags to document', () async {
+    test("add tags to document", () async {
       final tags = [
         Metadata(
-          value: 'tag1',
+          value: "tag1",
           type: MetadataTypeEnum.tag,
         ),
         Metadata(
-          value: 'tag2',
+          value: "tag2",
           type: MetadataTypeEnum.tag,
         ),
       ];
@@ -123,11 +123,11 @@ void main() {
       expect(dbTagIds.containsAll(addedIds), isTrue);
     });
 
-    test('add existing tags to document', () async {
+    test("add existing tags to document", () async {
       // First add a tag
       final tags1 = [
         Metadata(
-          value: 'shared-tag',
+          value: "shared-tag",
           type: MetadataTypeEnum.tag,
         ),
       ];
@@ -139,11 +139,11 @@ void main() {
       // Try to add the same tag again plus a new one
       final tags2 = [
         Metadata(
-          value: 'shared-tag',
+          value: "shared-tag",
           type: MetadataTypeEnum.tag,
         ),
         Metadata(
-          value: 'new-tag',
+          value: "new-tag",
           type: MetadataTypeEnum.tag,
         ),
       ];
@@ -166,15 +166,15 @@ void main() {
       expect(metadataRecords.length, equals(2)); // shared-tag and new-tag
     });
 
-    test('remove tags from document', () async {
+    test("remove tags from document", () async {
       // Add tags first
       final tags = [
         Metadata(
-          value: 'remove-me',
+          value: "remove-me",
           type: MetadataTypeEnum.tag,
         ),
         Metadata(
-          value: 'keep-me',
+          value: "keep-me",
           type: MetadataTypeEnum.tag,
         ),
       ];
@@ -191,8 +191,8 @@ void main() {
             ..where((tbl) => tbl.id.isIn(addedIds)))
           .get();
 
-      final removeId = tagsInDb.firstWhere((t) => t.name == 'remove-me').id;
-      final keepId = tagsInDb.firstWhere((t) => t.name == 'keep-me').id;
+      final removeId = tagsInDb.firstWhere((t) => t.name == "remove-me").id;
+      final keepId = tagsInDb.firstWhere((t) => t.name == "keep-me").id;
 
       // Remove one tag
       final removedCount = await database.removeTagsFromDocument(
@@ -211,14 +211,14 @@ void main() {
     });
   });
 
-  group('Document Update Exceptions', () {
+  group("Document Update Exceptions", () {
     test(
-        'fails to update document to use an existing file path (Constraint Check)',
+        "fails to update document to use an existing file path (Constraint Check)",
         () async {
       // Create a second document
       await database.createDocument(
-        title: 'Second Document',
-        filePath: '/path/existing.pdf',
+        title: "Second Document",
+        filePath: "/path/existing.pdf",
         fileType: DocumentFileType.pdf,
       );
 
@@ -229,29 +229,29 @@ void main() {
         () => (database.update(database.documents)
               ..where((t) => t.id.equals(docId)))
             .write(
-          DocumentsCompanion(
-            filePath: Value('/path/existing.pdf'),
+          const DocumentsCompanion(
+            filePath: Value("/path/existing.pdf"),
           ),
         ),
         throwsA(isA<Exception>()), // Expecting SqliteException
       );
     });
 
-    test('fails to update document with short title', () async {
+    test("fails to update document with short title", () async {
       expect(
         () => database.updateDocument(
           documentId: docId,
-          title: 'Short',
+          title: "Short",
         ),
         throwsA(isA<Exception>()),
       );
     });
 
-    test('fails to update non-existent document', () async {
+    test("fails to update non-existent document", () async {
       expect(
         () => database.updateDocument(
-          documentId: 'non-existent-id',
-          title: 'New Title',
+          documentId: "non-existent-id",
+          title: "New Title",
         ),
         throwsA(isA<ArgumentError>()),
       );

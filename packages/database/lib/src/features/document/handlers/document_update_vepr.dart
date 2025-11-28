@@ -1,3 +1,4 @@
+import "package:database/features.dart";
 import "package:database/main.dart";
 import "package:database/src/core/handlers/vepr_operation.dart";
 import "package:drift/drift.dart";
@@ -44,14 +45,10 @@ class DocumentUpdateVEPR extends VEPROperation<AppDatabase, DocumentUpdateInput,
     logStep("Execute", "Starting document update for: ${input.documentId}");
 
     // Check if document exists
-    final doc = await (db.select(db.documents)
-          ..where((tbl) => tbl.id.equals(input.documentId)))
-        .getSingleOrNull();
-
+    final doc = await db.getDocument(documentId: input.documentId);
     if (doc == null) {
       throw ArgumentError("Document with ID ${input.documentId} not found.");
     }
-
     logStep("Execute", "Document found, proceeding with update");
     return input.documentId;
   }
@@ -61,17 +58,17 @@ class DocumentUpdateVEPR extends VEPROperation<AppDatabase, DocumentUpdateInput,
     final docId = execResult;
     logStep("Process", "Updating document fields for ID: $docId");
 
-    final companion = DocumentsCompanion(
-      title: input.title != null ? Value(input.title!) : const Value.absent(),
-      fileSize:
-          input.fileSize != null ? Value(input.fileSize) : const Value.absent(),
-      checksum:
-          input.checksum != null ? Value(input.checksum) : const Value.absent(),
-    );
-
     final updateCount = await (db.update(db.documents)
           ..where((tbl) => tbl.id.equals(docId)))
-        .write(companion);
+        .write(DocumentsCompanion(
+      title: input.title != null ? Value(input.title!) : const Value.absent(),
+      fileSize: input.fileSize != null
+          ? Value(input.fileSize!)
+          : const Value.absent(),
+      checksum: input.checksum != null
+          ? Value(input.checksum!)
+          : const Value.absent(),
+    ));
 
     logStep("Process", "Updated $updateCount document record(s)");
 

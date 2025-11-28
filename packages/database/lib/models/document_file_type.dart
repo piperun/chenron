@@ -15,22 +15,22 @@ extension DocumentFileTypeExtension on DocumentFileType {
   /// Display name for UI (e.g., "Markdown", "PDF")
   String get displayName {
     return switch (this) {
-      DocumentFileType.markdown => 'Markdown',
-      DocumentFileType.typst => 'Typst',
-      DocumentFileType.pdf => 'PDF',
-      DocumentFileType.html => 'HTML',
-      DocumentFileType.docx => 'Word Document',
+      DocumentFileType.markdown => "Markdown",
+      DocumentFileType.typst => "Typst",
+      DocumentFileType.pdf => "PDF",
+      DocumentFileType.html => "HTML",
+      DocumentFileType.docx => "Word Document",
     };
   }
 
   /// Common file extensions for this type
   List<String> get extensions {
     return switch (this) {
-      DocumentFileType.markdown => ['.md', '.markdown'],
-      DocumentFileType.typst => ['.typ'],
-      DocumentFileType.pdf => ['.pdf'],
-      DocumentFileType.html => ['.html', '.htm'],
-      DocumentFileType.docx => ['.docx'],
+      DocumentFileType.markdown => [".md", ".markdown"],
+      DocumentFileType.typst => [".typ"],
+      DocumentFileType.pdf => [".pdf"],
+      DocumentFileType.html => [".html", ".htm"],
+      DocumentFileType.docx => [".docx"],
     };
   }
 
@@ -38,19 +38,19 @@ extension DocumentFileTypeExtension on DocumentFileType {
   static DocumentFileType fromFilePath(String filePath) {
     final ext = filePath.toLowerCase();
 
-    if (ext.endsWith('.md') || ext.endsWith('.markdown')) {
+    if (ext.endsWith(".md") || ext.endsWith(".markdown")) {
       return DocumentFileType.markdown;
     }
-    if (ext.endsWith('.typ')) {
+    if (ext.endsWith(".typ")) {
       return DocumentFileType.typst;
     }
-    if (ext.endsWith('.pdf')) {
+    if (ext.endsWith(".pdf")) {
       return DocumentFileType.pdf;
     }
-    if (ext.endsWith('.html') || ext.endsWith('.htm')) {
+    if (ext.endsWith(".html") || ext.endsWith(".htm")) {
       return DocumentFileType.html;
     }
-    if (ext.endsWith('.docx')) {
+    if (ext.endsWith(".docx")) {
       return DocumentFileType.docx;
     }
 

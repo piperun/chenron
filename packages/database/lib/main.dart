@@ -80,15 +80,15 @@ class AppDatabase extends _$AppDatabase {
           // Add updatedAt to Folders
           // Add updatedAt to Folders
           await customStatement(
-              'ALTER TABLE folders ADD COLUMN updated_at TEXT NOT NULL DEFAULT \'1970-01-01T00:00:00Z\'');
+              "ALTER TABLE folders ADD COLUMN updated_at TEXT NOT NULL DEFAULT '1970-01-01T00:00:00Z'");
           await customStatement(
-              'UPDATE folders SET updated_at = strftime(\'%Y-%m-%dT%H:%M:%SZ\', \'now\')');
+              "UPDATE folders SET updated_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now')");
 
           // Add updatedAt to Documents
           await customStatement(
-              'ALTER TABLE documents ADD COLUMN updated_at TEXT NOT NULL DEFAULT \'1970-01-01T00:00:00Z\'');
+              "ALTER TABLE documents ADD COLUMN updated_at TEXT NOT NULL DEFAULT '1970-01-01T00:00:00Z'");
           await customStatement(
-              'UPDATE documents SET updated_at = strftime(\'%Y-%m-%dT%H:%M:%SZ\', \'now\')');
+              "UPDATE documents SET updated_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now')");
 
           // Create Statistics table
           await migrator.createTable(statistics);
@@ -103,20 +103,20 @@ class AppDatabase extends _$AppDatabase {
           await customStatement(
               'ALTER TABLE documents ADD COLUMN mime_type TEXT NOT NULL DEFAULT "text/markdown"');
           await customStatement(
-              'ALTER TABLE documents ADD COLUMN file_size INTEGER');
+              "ALTER TABLE documents ADD COLUMN file_size INTEGER");
           await customStatement(
-              'ALTER TABLE documents ADD COLUMN checksum TEXT');
+              "ALTER TABLE documents ADD COLUMN checksum TEXT");
 
           // Migrate existing documents: move content from 'path' column to files
           final existingDocs = await customSelect(
-            'SELECT id, title, path FROM documents',
+            "SELECT id, title, path FROM documents",
             readsFrom: {documents},
           ).get();
 
           for (final row in existingDocs) {
-            final docId = row.read<String>('id');
-            final content = row.read<String>('path'); // Old content stored here
-            final relativePath = 'documents/$docId.md';
+            final docId = row.read<String>("id");
+            final content = row.read<String>("path"); // Old content stored here
+            final relativePath = "documents/$docId.md";
 
             // Write content to file
             final file = await _getDocumentFile(relativePath);
@@ -125,14 +125,14 @@ class AppDatabase extends _$AppDatabase {
 
             // Update database with file path
             await customStatement(
-              'UPDATE documents SET path = ?, file_size = ? WHERE id = ?',
+              "UPDATE documents SET path = ?, file_size = ? WHERE id = ?",
               [relativePath, size, docId],
             );
           }
 
           // Rename path column to file_path
           // SQLite doesn't support RENAME COLUMN before 3.25.0, so we recreate the table
-          await customStatement('''
+          await customStatement("""
             CREATE TABLE documents_new (
               id TEXT PRIMARY KEY NOT NULL,
               created_at INTEGER NOT NULL,
@@ -143,21 +143,21 @@ class AppDatabase extends _$AppDatabase {
               file_size INTEGER,
               checksum TEXT
             )
-          ''');
+          """);
 
-          await customStatement('''
+          await customStatement("""
             INSERT INTO documents_new (id, created_at, updated_at, title, file_path, mime_type, file_size, checksum)
             SELECT id, created_at, updated_at, title, path, mime_type, file_size, checksum
             FROM documents
-          ''');
+          """);
 
-          await customStatement('DROP TABLE documents');
+          await customStatement("DROP TABLE documents");
           await customStatement(
-              'ALTER TABLE documents_new RENAME TO documents');
+              "ALTER TABLE documents_new RENAME TO documents");
 
           // Recreate index
           await customStatement(
-              'CREATE INDEX document_title ON documents(title)');
+              "CREATE INDEX document_title ON documents(title)");
         }
 
         // Migration from v3 to v4: Add color columns to folders and tags
@@ -167,11 +167,11 @@ class AppDatabase extends _$AppDatabase {
             "PRAGMA table_info(folders)",
           ).get();
           final hasFoldersColor =
-              foldersInfo.any((row) => row.read<String>('name') == 'color');
+              foldersInfo.any((row) => row.read<String>("name") == "color");
 
           if (!hasFoldersColor) {
             await customStatement(
-                'ALTER TABLE folders ADD COLUMN color INTEGER');
+                "ALTER TABLE folders ADD COLUMN color INTEGER");
           }
 
           // Check if color column already exists in tags
@@ -179,10 +179,10 @@ class AppDatabase extends _$AppDatabase {
             "PRAGMA table_info(tags)",
           ).get();
           final hasTagsColor =
-              tagsInfo.any((row) => row.read<String>('name') == 'color');
+              tagsInfo.any((row) => row.read<String>("name") == "color");
 
           if (!hasTagsColor) {
-            await customStatement('ALTER TABLE tags ADD COLUMN color INTEGER');
+            await customStatement("ALTER TABLE tags ADD COLUMN color INTEGER");
           }
         }
 
@@ -194,9 +194,9 @@ class AppDatabase extends _$AppDatabase {
           ).get();
 
           final hasMimeType =
-              docsInfo.any((row) => row.read<String>('name') == 'mime_type');
+              docsInfo.any((row) => row.read<String>("name") == "mime_type");
           final hasFileType =
-              docsInfo.any((row) => row.read<String>('name') == 'file_type');
+              docsInfo.any((row) => row.read<String>("name") == "file_type");
 
           // Only run migration if we have mime_type but not file_type
           if (hasMimeType && !hasFileType) {
@@ -205,17 +205,17 @@ class AppDatabase extends _$AppDatabase {
                 'ALTER TABLE documents ADD COLUMN file_type TEXT NOT NULL DEFAULT "markdown"');
 
             // Update existing documents: map mime_type to file_type
-            await customStatement('''
+            await customStatement("""
               UPDATE documents 
               SET file_type = CASE 
                 WHEN mime_type LIKE '%pdf%' THEN 'pdf'
                 WHEN mime_type LIKE '%image%' THEN 'image'
                 ELSE 'markdown'
               END
-            ''');
+            """);
 
             // Now we need to recreate the table without mime_type column
-            await customStatement('''
+            await customStatement("""
               CREATE TABLE documents_new (
                 id TEXT PRIMARY KEY NOT NULL,
                 created_at TEXT NOT NULL,
@@ -226,21 +226,21 @@ class AppDatabase extends _$AppDatabase {
                 file_size INTEGER,
                 checksum TEXT
               )
-            ''');
+            """);
 
-            await customStatement('''
+            await customStatement("""
               INSERT INTO documents_new (id, created_at, updated_at, title, file_path, file_type, file_size, checksum)
               SELECT id, created_at, updated_at, title, file_path, file_type, file_size, checksum
               FROM documents
-            ''');
+            """);
 
-            await customStatement('DROP TABLE documents');
+            await customStatement("DROP TABLE documents");
             await customStatement(
-                'ALTER TABLE documents_new RENAME TO documents');
+                "ALTER TABLE documents_new RENAME TO documents");
 
             // Recreate index
             await customStatement(
-                'CREATE INDEX document_title ON documents(title)');
+                "CREATE INDEX document_title ON documents(title)");
           } else if (!hasFileType) {
             // If we don't have file_type at all, just add it
             await customStatement(
@@ -254,7 +254,7 @@ class AppDatabase extends _$AppDatabase {
   /// Helper to get document file for migration and file operations
   Future<File> _getDocumentFile(String relativePath) async {
     final baseDir = await getDefaultApplicationDirectory();
-    final fullPath = path.join(baseDir.path, 'data', relativePath);
+    final fullPath = path.join(baseDir.path, "data", relativePath);
     final file = File(fullPath);
     await file.parent.create(recursive: true);
     return file;
@@ -263,7 +263,7 @@ class AppDatabase extends _$AppDatabase {
   /// Creates SQLite triggers to automatically update the updatedAt timestamp
   Future<void> _createUpdateTriggers() async {
     // Trigger for Folders table
-    await customStatement('''
+    await customStatement("""
       CREATE TRIGGER IF NOT EXISTS update_folders_timestamp 
       AFTER UPDATE ON folders
       FOR EACH ROW
@@ -273,10 +273,10 @@ class AppDatabase extends _$AppDatabase {
         SET updated_at = (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
         WHERE id = NEW.id;
       END
-    ''');
+    """);
 
     // Trigger for Documents table
-    await customStatement('''
+    await customStatement("""
       CREATE TRIGGER IF NOT EXISTS update_documents_timestamp 
       AFTER UPDATE ON documents
       FOR EACH ROW
@@ -286,7 +286,7 @@ class AppDatabase extends _$AppDatabase {
         SET updated_at = (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
         WHERE id = NEW.id;
       END
-    ''');
+    """);
   }
 
   static QueryExecutor _openConnection(
@@ -381,7 +381,7 @@ class ConfigDatabase extends _$ConfigDatabase {
   /// Creates SQLite triggers to automatically update the updatedAt timestamp for config tables
   Future<void> _createConfigUpdateTriggers() async {
     // Trigger for UserConfigs table
-    await customStatement('''
+    await customStatement("""
       CREATE TRIGGER IF NOT EXISTS update_user_configs_timestamp 
       AFTER UPDATE ON user_configs
       FOR EACH ROW
@@ -391,10 +391,10 @@ class ConfigDatabase extends _$ConfigDatabase {
         SET updated_at = (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
         WHERE id = NEW.id;
       END
-    ''');
+    """);
 
     // Trigger for UserThemes table
-    await customStatement('''
+    await customStatement("""
       CREATE TRIGGER IF NOT EXISTS update_user_themes_timestamp 
       AFTER UPDATE ON user_themes
       FOR EACH ROW
@@ -404,7 +404,7 @@ class ConfigDatabase extends _$ConfigDatabase {
         SET updated_at = (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
         WHERE id = NEW.id;
       END
-    ''');
+    """);
   }
 
   static QueryExecutor _openConnection(

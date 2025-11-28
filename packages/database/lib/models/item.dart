@@ -1,10 +1,10 @@
-import 'package:cuid2/cuid2.dart';
-import 'package:database/main.dart';
-import 'package:database/models/document_file_type.dart';
-import 'package:drift/drift.dart' hide JsonKey;
-import 'package:freezed_annotation/freezed_annotation.dart';
+import "package:cuid2/cuid2.dart";
+import "package:database/main.dart";
+import "package:database/models/document_file_type.dart";
+import "package:drift/drift.dart" hide JsonKey;
+import "package:freezed_annotation/freezed_annotation.dart";
 
-part 'item.freezed.dart';
+part "item.freezed.dart";
 
 @freezed
 sealed class FolderItem with _$FolderItem {

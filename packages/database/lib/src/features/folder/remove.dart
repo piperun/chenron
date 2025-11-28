@@ -1,4 +1,4 @@
-import 'package:database/main.dart';
+import "package:database/main.dart";
 
 extension FolderRemoveExtensions on AppDatabase {
   Future<bool> removeFolder(String folderId) async {

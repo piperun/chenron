@@ -1,10 +1,10 @@
 import "package:database/main.dart";
-import 'package:flutter_test/flutter_test.dart';
+import "package:flutter_test/flutter_test.dart";
 
 import "package:database/src/features/user_config/create.dart";
 import "package:database/src/features/user_config/read.dart";
 import "package:database/src/features/user_theme/create.dart";
-import 'package:chenron_mockups/chenron_mockups.dart';
+import "package:chenron_mockups/chenron_mockups.dart";
 
 void main() {
   setUpAll(() {
@@ -24,9 +24,9 @@ void main() {
 
     // Create a base user config for testing theme creation
     final userConfig = UserConfig(
-      id: '',
+      id: "",
       darkMode: false,
-      archiveOrgS3AccessKey: 'initial-key',
+      archiveOrgS3AccessKey: "initial-key",
       copyOnImport: false,
       defaultArchiveIs: false,
       defaultArchiveOrg: false,
@@ -46,12 +46,12 @@ void main() {
     await database.close();
   });
 
-  group('UserThemeCreateExtension.createUserTheme()', () {
-    test('creates single user theme', () async {
+  group("UserThemeCreateExtension.createUserTheme()", () {
+    test("creates single user theme", () async {
       final theme = UserTheme(
-        id: '',
+        id: "",
         userConfigId: userConfigId,
-        name: 'Ocean Blue',
+        name: "Ocean Blue",
         primaryColor: 0xFF0077BE,
         secondaryColor: 0xFF00A8E8,
         seedType: 0,
@@ -71,16 +71,16 @@ void main() {
       // Verify in database
       final themes = await database.getAllUserThemes();
       expect(themes.length, equals(1));
-      expect(themes.first.data.name, equals('Ocean Blue'));
+      expect(themes.first.data.name, equals("Ocean Blue"));
       expect(themes.first.data.primaryColor, equals(0xFF0077BE));
     });
 
-    test('creates multiple user themes', () async {
+    test("creates multiple user themes", () async {
       final themes = [
         UserTheme(
-          id: '',
+          id: "",
           userConfigId: userConfigId,
-          name: 'Theme 1',
+          name: "Theme 1",
           primaryColor: 0xFFFF0000,
           secondaryColor: 0xFFFF5555,
           seedType: 0,
@@ -88,9 +88,9 @@ void main() {
           updatedAt: DateTime.now(),
         ),
         UserTheme(
-          id: '',
+          id: "",
           userConfigId: userConfigId,
-          name: 'Theme 2',
+          name: "Theme 2",
           primaryColor: 0xFF00FF00,
           secondaryColor: 0xFF55FF55,
           seedType: 0,
@@ -98,9 +98,9 @@ void main() {
           updatedAt: DateTime.now(),
         ),
         UserTheme(
-          id: '',
+          id: "",
           userConfigId: userConfigId,
-          name: 'Theme 3',
+          name: "Theme 3",
           primaryColor: 0xFF0000FF,
           secondaryColor: 0xFF5555FF,
           seedType: 0,
@@ -122,14 +122,14 @@ void main() {
       expect(allThemes.length, equals(3));
 
       final themeNames = allThemes.map((t) => t.data.name).toSet();
-      expect(themeNames, equals({'Theme 1', 'Theme 2', 'Theme 3'}));
+      expect(themeNames, equals({"Theme 1", "Theme 2", "Theme 3"}));
     });
 
-    test('creates theme with all optional fields', () async {
+    test("creates theme with all optional fields", () async {
       final theme = UserTheme(
-        id: '',
+        id: "",
         userConfigId: userConfigId,
-        name: 'Complete Theme',
+        name: "Complete Theme",
         primaryColor: 0xFF123456,
         secondaryColor: 0xFF654321,
         tertiaryColor: 0xFFABCDEF,
@@ -154,11 +154,11 @@ void main() {
       expect(savedTheme.data.seedType, equals(1));
     });
 
-    test('creates theme without optional fields', () async {
+    test("creates theme without optional fields", () async {
       final theme = UserTheme(
-        id: '',
+        id: "",
         userConfigId: userConfigId,
-        name: 'Minimal Theme',
+        name: "Minimal Theme",
         primaryColor: 0xFF000000,
         secondaryColor: 0xFFFFFFFF,
         seedType: 0,
@@ -178,10 +178,10 @@ void main() {
       );
 
       expect(savedTheme, isNotNull);
-      expect(savedTheme!.data.name, equals('Minimal Theme'));
+      expect(savedTheme!.data.name, equals("Minimal Theme"));
     });
 
-    test('handles empty theme list', () async {
+    test("handles empty theme list", () async {
       final results = await database.createUserTheme(
         userConfigId: userConfigId,
         themes: [],
@@ -193,12 +193,12 @@ void main() {
       expect(allThemes, isEmpty);
     });
 
-    test('creates themes with unique IDs', () async {
+    test("creates themes with unique IDs", () async {
       final themes = [
         UserTheme(
-          id: '',
+          id: "",
           userConfigId: userConfigId,
-          name: 'Theme A',
+          name: "Theme A",
           primaryColor: 0xFF111111,
           secondaryColor: 0xFF222222,
           seedType: 0,
@@ -206,9 +206,9 @@ void main() {
           updatedAt: DateTime.now(),
         ),
         UserTheme(
-          id: '',
+          id: "",
           userConfigId: userConfigId,
-          name: 'Theme B',
+          name: "Theme B",
           primaryColor: 0xFF333333,
           secondaryColor: 0xFF444444,
           seedType: 0,
@@ -230,11 +230,11 @@ void main() {
       expect(results[1].userThemeId.length, equals(30));
     });
 
-    test('links themes to correct user config', () async {
+    test("links themes to correct user config", () async {
       final theme = UserTheme(
-        id: '',
+        id: "",
         userConfigId: userConfigId,
-        name: 'Linked Theme',
+        name: "Linked Theme",
         primaryColor: 0xFFAAAAAA,
         secondaryColor: 0xFFBBBBBB,
         seedType: 0,
@@ -256,9 +256,9 @@ void main() {
       expect(savedTheme!.userConfigId, equals(userConfigId));
     });
 
-    test('creates themes with special characters in names', () async {
+    test("creates themes with special characters in names", () async {
       final theme = UserTheme(
-        id: '',
+        id: "",
         userConfigId: userConfigId,
         name: 'Theme: "Special" & <Cool>',
         primaryColor: 0xFF123ABC,
@@ -280,12 +280,12 @@ void main() {
       expect(savedTheme!.data.name, equals('Theme: "Special" & <Cool>'));
     });
 
-    test('creates themes with hex color variations', () async {
+    test("creates themes with hex color variations", () async {
       final themes = [
         UserTheme(
-          id: '',
+          id: "",
           userConfigId: userConfigId,
-          name: 'Short Hex',
+          name: "Short Hex",
           primaryColor: 0xFFFFFFFF,
           secondaryColor: 0xFF000000,
           seedType: 0,
@@ -293,9 +293,9 @@ void main() {
           updatedAt: DateTime.now(),
         ),
         UserTheme(
-          id: '',
+          id: "",
           userConfigId: userConfigId,
-          name: 'Long Hex',
+          name: "Long Hex",
           primaryColor: 0xFFFFFFFF,
           secondaryColor: 0xFF000000,
           seedType: 0,
@@ -303,9 +303,9 @@ void main() {
           updatedAt: DateTime.now(),
         ),
         UserTheme(
-          id: '',
+          id: "",
           userConfigId: userConfigId,
-          name: 'With Alpha',
+          name: "With Alpha",
           primaryColor: 0x00FFFFFF,
           secondaryColor: 0xFF000000,
           seedType: 0,

@@ -1,11 +1,11 @@
-import 'package:database/main.dart';
-import 'package:database/models/document_file_type.dart';
-import 'package:database/models/metadata.dart';
-import 'package:flutter_test/flutter_test.dart';
+import "package:database/main.dart";
+import "package:database/models/document_file_type.dart";
+import "package:database/models/metadata.dart";
+import "package:flutter_test/flutter_test.dart";
 
-import 'package:database/src/features/document/create.dart';
-import 'package:database/src/features/document/remove.dart';
-import 'package:chenron_mockups/chenron_mockups.dart';
+import "package:database/src/features/document/create.dart";
+import "package:database/src/features/document/remove.dart";
+import "package:chenron_mockups/chenron_mockups.dart";
 
 void main() {
   setUpAll(() {
@@ -32,17 +32,17 @@ void main() {
     await database.close();
   });
 
-  group('Document Deletion', () {
-    test('remove single document by ID', () async {
+  group("Document Deletion", () {
+    test("remove single document by ID", () async {
       // Create two documents
       final result1 = await database.createDocument(
-        title: 'Document to Delete',
-        filePath: '/path/to/doc1.pdf',
+        title: "Document to Delete",
+        filePath: "/path/to/doc1.pdf",
         fileType: DocumentFileType.pdf,
       );
       final result2 = await database.createDocument(
-        title: 'Keep This Document',
-        filePath: '/path/to/doc2.pdf',
+        title: "Keep This Document",
+        filePath: "/path/to/doc2.pdf",
         fileType: DocumentFileType.pdf,
       );
 
@@ -65,27 +65,27 @@ void main() {
       expect(remainingDoc, isNotNull);
     });
 
-    test('remove document with tags - tags should remain', () async {
+    test("remove document with tags - tags should remain", () async {
       // Create tags (IDs will be generated automatically)
       final tags = [
         Metadata(
-          value: 'important',
+          value: "important",
           type: MetadataTypeEnum.tag,
         ),
         Metadata(
-          value: 'project-a',
+          value: "project-a",
           type: MetadataTypeEnum.tag,
         ),
         Metadata(
-          value: 'archive',
+          value: "archive",
           type: MetadataTypeEnum.tag,
         ),
       ];
 
       // Create document with tags
       final result = await database.createDocument(
-        title: 'Tagged Document',
-        filePath: '/path/to/tagged.pdf',
+        title: "Tagged Document",
+        filePath: "/path/to/tagged.pdf",
         fileType: DocumentFileType.pdf,
         tags: tags,
       );
@@ -124,25 +124,25 @@ void main() {
 
       final tagNames = tagsAfter.map((t) => t.name).toSet();
       expect(
-          tagNames.containsAll(['important', 'project-a', 'archive']), isTrue);
+          tagNames.containsAll(["important", "project-a", "archive"]), isTrue);
     });
 
-    test('remove multiple documents batch', () async {
+    test("remove multiple documents batch", () async {
       // Create multiple documents
       final results = await Future.wait([
         database.createDocument(
-          title: 'Document 1',
-          filePath: '/path/1.pdf',
+          title: "Document 1",
+          filePath: "/path/1.pdf",
           fileType: DocumentFileType.pdf,
         ),
         database.createDocument(
-          title: 'Document 2',
-          filePath: '/path/2.pdf',
+          title: "Document 2",
+          filePath: "/path/2.pdf",
           fileType: DocumentFileType.pdf,
         ),
         database.createDocument(
-          title: 'Document 3',
-          filePath: '/path/3.pdf',
+          title: "Document 3",
+          filePath: "/path/3.pdf",
           fileType: DocumentFileType.pdf,
         ),
       ]);
@@ -161,16 +161,16 @@ void main() {
       expect(remainingDocs.first.id, equals(docIds[2]));
     });
 
-    test('remove non-existent document returns false', () async {
-      final deleted = await database.removeDocument('nonexistent-id');
+    test("remove non-existent document returns false", () async {
+      final deleted = await database.removeDocument("nonexistent-id");
       expect(deleted, isFalse);
     });
 
-    test('remove document also removes items table entries', () async {
+    test("remove document also removes items table entries", () async {
       // Create a document
       final result = await database.createDocument(
-        title: 'Document with Items',
-        filePath: '/path/to/doc.pdf',
+        title: "Document with Items",
+        filePath: "/path/to/doc.pdf",
         fileType: DocumentFileType.pdf,
       );
 

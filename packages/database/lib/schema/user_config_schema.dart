@@ -66,25 +66,25 @@ class BackupSettings extends Table {
 }
 
 // Enum type tables
-@DataClassName('ThemeTypeEntity')
+@DataClassName("ThemeTypeEntity")
 class ThemeTypes extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get name => text().unique()();
 }
 
-@DataClassName('TimeDisplayFormatEntity')
+@DataClassName("TimeDisplayFormatEntity")
 class TimeDisplayFormats extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get name => text().unique()();
 }
 
-@DataClassName('ItemClickActionEntity')
+@DataClassName("ItemClickActionEntity")
 class ItemClickActions extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get name => text().unique()();
 }
 
-@DataClassName('SeedTypeEntity')
+@DataClassName("SeedTypeEntity")
 class SeedTypes extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get name => text().unique()();

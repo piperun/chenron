@@ -1,17 +1,17 @@
 import "package:database/main.dart";
 
-import 'package:database/models/created_ids.dart';
-import 'package:database/models/document_file_type.dart';
-import 'package:database/models/item.dart';
-import 'package:database/models/metadata.dart';
-import 'package:database/src/core/handlers/relation_handler.dart';
-import 'package:database/src/core/id.dart';
-import 'package:database/src/features/document/handlers/insert_handler.dart';
-import 'package:database/src/features/link/handlers/insert_handler.dart';
-import 'package:database/src/features/tag/handlers/insert_handler.dart';
-import 'package:database/src/features/user_theme/handlers/insert_handler.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:chenron_mockups/chenron_mockups.dart';
+import "package:database/models/created_ids.dart";
+import "package:database/models/document_file_type.dart";
+import "package:database/models/item.dart";
+import "package:database/models/metadata.dart";
+import "package:database/src/core/handlers/relation_handler.dart";
+import "package:database/src/core/id.dart";
+import "package:database/src/features/document/handlers/insert_handler.dart";
+import "package:database/src/features/link/handlers/insert_handler.dart";
+import "package:database/src/features/tag/handlers/insert_handler.dart";
+import "package:database/src/features/user_theme/handlers/insert_handler.dart";
+import "package:flutter_test/flutter_test.dart";
+import "package:chenron_mockups/chenron_mockups.dart";
 
 void main() {
   setUpAll(() {
@@ -38,13 +38,13 @@ void main() {
     await database.close();
   });
 
-  group('InsertionExtensions.insertLinks()', () {
-    test('inserts single link', () async {
+  group("InsertionExtensions.insertLinks()", () {
+    test("inserts single link", () async {
       late List<LinkResultIds> results;
       await database.batch((batch) async {
         results = await database.insertLinks(
           batch: batch,
-          urls: ['https://example.com'],
+          urls: ["https://example.com"],
         );
       });
 
@@ -54,18 +54,18 @@ void main() {
       // Verify link in database
       final links = await database.select(database.links).get();
       expect(links.length, equals(1));
-      expect(links.first.path, equals('https://example.com'));
+      expect(links.first.path, equals("https://example.com"));
     });
 
-    test('inserts multiple links', () async {
+    test("inserts multiple links", () async {
       late List<LinkResultIds> results;
       await database.batch((batch) async {
         results = await database.insertLinks(
           batch: batch,
           urls: [
-            'https://flutter.dev',
-            'https://dart.dev',
-            'https://pub.dev',
+            "https://flutter.dev",
+            "https://dart.dev",
+            "https://pub.dev",
           ],
         );
       });
@@ -79,13 +79,13 @@ void main() {
       expect(
           paths,
           equals({
-            'https://flutter.dev',
-            'https://dart.dev',
-            'https://pub.dev',
+            "https://flutter.dev",
+            "https://dart.dev",
+            "https://pub.dev",
           }));
     });
 
-    test('handles empty URL list', () async {
+    test("handles empty URL list", () async {
       late List<LinkResultIds> results;
       await database.batch((batch) async {
         results = await database.insertLinks(
@@ -97,26 +97,26 @@ void main() {
       expect(results, isEmpty);
     });
 
-    test('removes trailing slashes from URLs', () async {
+    test("removes trailing slashes from URLs", () async {
       await database.batch((batch) async {
         await database.insertLinks(
           batch: batch,
-          urls: ['https://example.com/', 'https://test.com/path/'],
+          urls: ["https://example.com/", "https://test.com/path/"],
         );
       });
 
       final links = await database.select(database.links).get();
-      expect(links.any((l) => l.path == 'https://example.com'), isTrue);
-      expect(links.any((l) => l.path == 'https://test.com/path'), isTrue);
+      expect(links.any((l) => l.path == "https://example.com"), isTrue);
+      expect(links.any((l) => l.path == "https://test.com/path"), isTrue);
     });
 
-    test('reuses existing links', () async {
+    test("reuses existing links", () async {
       // Insert first link
       late List<LinkResultIds> results1;
       await database.batch((batch) async {
         results1 = await database.insertLinks(
           batch: batch,
-          urls: ['https://duplicate.com'],
+          urls: ["https://duplicate.com"],
         );
       });
 
@@ -125,7 +125,7 @@ void main() {
       await database.batch((batch) async {
         results2 = await database.insertLinks(
           batch: batch,
-          urls: ['https://duplicate.com'],
+          urls: ["https://duplicate.com"],
         );
       });
 
@@ -137,12 +137,12 @@ void main() {
       expect(links.length, equals(1));
     });
 
-    test('handles mix of new and existing links', () async {
+    test("handles mix of new and existing links", () async {
       // Insert initial links
       await database.batch((batch) async {
         await database.insertLinks(
           batch: batch,
-          urls: ['https://existing1.com', 'https://existing2.com'],
+          urls: ["https://existing1.com", "https://existing2.com"],
         );
       });
 
@@ -152,9 +152,9 @@ void main() {
         results = await database.insertLinks(
           batch: batch,
           urls: [
-            'https://existing1.com',
-            'https://new.com',
-            'https://existing2.com',
+            "https://existing1.com",
+            "https://new.com",
+            "https://existing2.com",
           ],
         );
       });
@@ -166,16 +166,16 @@ void main() {
     });
   });
 
-  group('InsertionExtensions.insertDocuments()', () {
-    test('inserts single document', () async {
+  group("InsertionExtensions.insertDocuments()", () {
+    test("inserts single document", () async {
       late List<DocumentResultIds> results;
       await database.batch((batch) async {
         results = database.insertDocuments(
           batch: batch,
           docs: [
-            FolderItem.document(
-              title: 'Test Doc',
-              filePath: 'documents/temp1.md',
+            const FolderItem.document(
+              title: "Test Doc",
+              filePath: "documents/temp1.md",
             ) as DocumentItem
           ],
         );
@@ -185,23 +185,23 @@ void main() {
       expect(results.first.documentId, isNotEmpty);
     });
 
-    test('inserts multiple documents', () async {
+    test("inserts multiple documents", () async {
       late List<DocumentResultIds> results;
       await database.batch((batch) async {
         results = database.insertDocuments(
           batch: batch,
           docs: [
-            FolderItem.document(
-              title: 'Document 1',
-              filePath: 'documents/doc1.md',
+            const FolderItem.document(
+              title: "Document 1",
+              filePath: "documents/doc1.md",
             ) as DocumentItem,
-            FolderItem.document(
-              title: 'Document 2',
-              filePath: 'documents/doc2.md',
+            const FolderItem.document(
+              title: "Document 2",
+              filePath: "documents/doc2.md",
             ) as DocumentItem,
-            FolderItem.document(
-              title: 'Document 3',
-              filePath: 'documents/doc3.md',
+            const FolderItem.document(
+              title: "Document 3",
+              filePath: "documents/doc3.md",
             ) as DocumentItem,
           ],
         );
@@ -213,7 +213,7 @@ void main() {
       expect(docs.length, equals(3));
     });
 
-    test('handles empty document list', () async {
+    test("handles empty document list", () async {
       late List<DocumentResultIds> results;
       await database.batch((batch) async {
         results = database.insertDocuments(
@@ -225,23 +225,23 @@ void main() {
       expect(results, isEmpty);
     });
 
-    test('handles empty body with valid titles', () async {
+    test("handles empty body with valid titles", () async {
       late List<DocumentResultIds> results;
       await database.batch((batch) {
         results = database.insertDocuments(
           batch: batch,
           docs: [
-            FolderItem.document(
-              title: 'EmptyBody',
-              filePath: '',
+            const FolderItem.document(
+              title: "EmptyBody",
+              filePath: "",
             ) as DocumentItem,
-            FolderItem.document(
-              title: 'Valid1',
-              filePath: 'body-2',
+            const FolderItem.document(
+              title: "Valid1",
+              filePath: "body-2",
             ) as DocumentItem,
-            FolderItem.document(
-              title: 'Valid2',
-              filePath: 'body-3',
+            const FolderItem.document(
+              title: "Valid2",
+              filePath: "body-3",
             ) as DocumentItem,
           ],
         );
@@ -252,25 +252,25 @@ void main() {
       final docs = await database.select(database.documents).get();
 
       // Verify all three documents were inserted
-      expect(docs[0].title, equals('EmptyBody'));
-      expect(docs[0].filePath, equals(''));
+      expect(docs[0].title, equals("EmptyBody"));
+      expect(docs[0].filePath, equals(""));
 
-      expect(docs[1].title, equals('Valid1'));
-      expect(docs[1].filePath, equals('body-2'));
+      expect(docs[1].title, equals("Valid1"));
+      expect(docs[1].filePath, equals("body-2"));
 
-      expect(docs[2].title, equals('Valid2'));
-      expect(docs[2].filePath, equals('body-3'));
+      expect(docs[2].title, equals("Valid2"));
+      expect(docs[2].filePath, equals("body-3"));
     });
   });
 
-  group('InsertionExtensions.insertTags()', () {
-    test('inserts single tag', () async {
+  group("InsertionExtensions.insertTags()", () {
+    test("inserts single tag", () async {
       late List<TagResultIds> results;
       await database.batch((batch) async {
         results = await database.insertTags(
           batch: batch,
           tagMetadata: [
-            Metadata(value: 'flutter', type: MetadataTypeEnum.tag),
+            Metadata(value: "flutter", type: MetadataTypeEnum.tag),
           ],
         );
       });
@@ -280,18 +280,18 @@ void main() {
 
       final tags = await database.select(database.tags).get();
       expect(tags.length, equals(1));
-      expect(tags.first.name, equals('flutter'));
+      expect(tags.first.name, equals("flutter"));
     });
 
-    test('inserts multiple tags', () async {
+    test("inserts multiple tags", () async {
       late List<TagResultIds> results;
       await database.batch((batch) async {
         results = await database.insertTags(
           batch: batch,
           tagMetadata: [
-            Metadata(value: 'dart', type: MetadataTypeEnum.tag),
-            Metadata(value: 'flutter', type: MetadataTypeEnum.tag),
-            Metadata(value: 'mobile', type: MetadataTypeEnum.tag),
+            Metadata(value: "dart", type: MetadataTypeEnum.tag),
+            Metadata(value: "flutter", type: MetadataTypeEnum.tag),
+            Metadata(value: "mobile", type: MetadataTypeEnum.tag),
           ],
         );
       });
@@ -302,14 +302,14 @@ void main() {
       expect(tags.length, equals(3));
     });
 
-    test('reuses existing tags', () async {
+    test("reuses existing tags", () async {
       // Insert first tag
       late List<TagResultIds> results1;
       await database.batch((batch) async {
         results1 = await database.insertTags(
           batch: batch,
           tagMetadata: [
-            Metadata(value: 'reusable', type: MetadataTypeEnum.tag),
+            Metadata(value: "reusable", type: MetadataTypeEnum.tag),
           ],
         );
       });
@@ -320,7 +320,7 @@ void main() {
         results2 = await database.insertTags(
           batch: batch,
           tagMetadata: [
-            Metadata(value: 'reusable', type: MetadataTypeEnum.tag),
+            Metadata(value: "reusable", type: MetadataTypeEnum.tag),
           ],
         );
       });
@@ -333,7 +333,7 @@ void main() {
       expect(tags.length, equals(1));
     });
 
-    test('handles empty tag list', () async {
+    test("handles empty tag list", () async {
       late List<TagResultIds> results;
       await database.batch((batch) async {
         results = await database.insertTags(
@@ -345,11 +345,11 @@ void main() {
       expect(results, isEmpty);
     });
 
-    test('handles large number of tags (chunking)', () async {
+    test("handles large number of tags (chunking)", () async {
       // Create 1000 tags to test chunking logic (max query size is 500)
       final tagMetadata = List.generate(
         1000,
-        (i) => Metadata(value: 'tag_$i', type: MetadataTypeEnum.tag),
+        (i) => Metadata(value: "tag_$i", type: MetadataTypeEnum.tag),
       );
 
       late List<TagResultIds> results;
@@ -367,8 +367,8 @@ void main() {
     });
   });
 
-  group('InsertionExtensions.insertItemRelation()', () {
-    test('inserts link item relation', () async {
+  group("InsertionExtensions.insertItemRelation()", () {
+    test("inserts link item relation", () async {
       final folderId = database.generateId();
       final linkId = database.generateId();
 
@@ -377,11 +377,11 @@ void main() {
         batch.insert(
           database.folders,
           FoldersCompanion.insert(
-              id: folderId, title: 'Test Folder', description: ''),
+              id: folderId, title: "Test Folder", description: ""),
         );
         batch.insert(
           database.links,
-          LinksCompanion.insert(id: linkId, path: 'https://test.com'),
+          LinksCompanion.insert(id: linkId, path: "https://test.com"),
         );
       });
 
@@ -405,7 +405,7 @@ void main() {
       expect(items.first.typeId, equals(FolderItemType.link.index));
     });
 
-    test('inserts document item relation', () async {
+    test("inserts document item relation", () async {
       final folderId = database.generateId();
       final docId = database.generateId();
 
@@ -414,14 +414,14 @@ void main() {
         batch.insert(
           database.folders,
           FoldersCompanion.insert(
-              id: folderId, title: 'Test Folder', description: ''),
+              id: folderId, title: "Test Folder", description: ""),
         );
         batch.insert(
           database.documents,
           DocumentsCompanion.insert(
             id: docId,
-            title: 'Test Doc',
-            filePath: 'documents/$docId.md',
+            title: "Test Doc",
+            filePath: "documents/$docId.md",
             fileType: DocumentFileType.markdown,
           ),
         );
@@ -447,8 +447,8 @@ void main() {
     });
   });
 
-  group('InsertionExtensions.insertMetadataRelation()', () {
-    test('inserts tag metadata relation', () async {
+  group("InsertionExtensions.insertMetadataRelation()", () {
+    test("inserts tag metadata relation", () async {
       final itemId = database.generateId();
       final tagId = database.generateId();
 
@@ -456,11 +456,11 @@ void main() {
       await database.batch((batch) {
         batch.insert(
           database.links,
-          LinksCompanion.insert(id: itemId, path: 'https://test.com'),
+          LinksCompanion.insert(id: itemId, path: "https://test.com"),
         );
         batch.insert(
           database.tags,
-          TagsCompanion.insert(id: tagId, name: 'test-tag'),
+          TagsCompanion.insert(id: tagId, name: "test-tag"),
         );
       });
 
@@ -484,7 +484,7 @@ void main() {
       expect(metadata.first.typeId, equals(MetadataTypeEnum.tag.index));
     });
 
-    test('inserts metadata relation with value', () async {
+    test("inserts metadata relation with value", () async {
       final itemId = database.generateId();
       final metadataId = database.generateId();
 
@@ -495,7 +495,7 @@ void main() {
           itemId: itemId,
           metadataId: metadataId,
           type: MetadataTypeEnum.tag,
-          value: 'custom-value',
+          value: "custom-value",
         );
       });
 
@@ -505,11 +505,11 @@ void main() {
             ..where((tbl) => tbl.id.equals(result.metadataId)))
           .getSingleOrNull();
 
-      expect(metadata!.value, equals('custom-value'));
+      expect(metadata!.value, equals("custom-value"));
     });
   });
 
-  group('ConfigDatabaseInserts.insertUserThemes()', () {
+  group("ConfigDatabaseInserts.insertUserThemes()", () {
     late ConfigDatabase configDb;
 
     setUpAll(() {
@@ -528,7 +528,7 @@ void main() {
       await configDb.close();
     });
 
-    test('inserts single user theme', () async {
+    test("inserts single user theme", () async {
       final userConfigId = configDb.generateId();
 
       // Create user config first
@@ -542,9 +542,9 @@ void main() {
           batch: batch,
           themes: [
             UserTheme(
-              id: '',
+              id: "",
               userConfigId: userConfigId,
-              name: 'Test Theme',
+              name: "Test Theme",
               primaryColor: 0xFFFF0000,
               secondaryColor: 0xFF00FF00,
               seedType: 0,
@@ -562,10 +562,10 @@ void main() {
 
       final themes = await configDb.select(configDb.userThemes).get();
       expect(themes.length, equals(1));
-      expect(themes.first.name, equals('Test Theme'));
+      expect(themes.first.name, equals("Test Theme"));
     });
 
-    test('inserts multiple user themes', () async {
+    test("inserts multiple user themes", () async {
       final userConfigId = configDb.generateId();
 
       await configDb.into(configDb.userConfigs).insert(
@@ -578,9 +578,9 @@ void main() {
           batch: batch,
           themes: [
             UserTheme(
-              id: '',
+              id: "",
               userConfigId: userConfigId,
-              name: 'Theme 1',
+              name: "Theme 1",
               primaryColor: 0xFF111111,
               secondaryColor: 0xFF222222,
               seedType: 0,
@@ -588,9 +588,9 @@ void main() {
               updatedAt: DateTime.now(),
             ),
             UserTheme(
-              id: '',
+              id: "",
               userConfigId: userConfigId,
-              name: 'Theme 2',
+              name: "Theme 2",
               primaryColor: 0xFF333333,
               secondaryColor: 0xFF444444,
               seedType: 0,
@@ -608,7 +608,7 @@ void main() {
       expect(themes.length, equals(2));
     });
 
-    test('handles empty theme list', () async {
+    test("handles empty theme list", () async {
       final userConfigId = configDb.generateId();
 
       late List<UserThemeResultIds> results;

@@ -94,10 +94,10 @@ void main() {
         title: "Test Folder with Items",
         description: "Test Description",
       );
-      final link = FolderItem.link(url: "https://example.com");
+      final link = const FolderItem.link(url: "https://example.com");
       final document = FolderItem.document(
-        title: 'Test Document',
-        filePath: 'documents/doc1.md',
+        title: "Test Document",
+        filePath: "documents/doc1.md",
         fileType: DocumentFileType.markdown,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),

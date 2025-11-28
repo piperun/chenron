@@ -1,10 +1,10 @@
-import 'package:database/main.dart';
-import 'package:database/src/core/id.dart';
-import 'package:flutter_test/flutter_test.dart' as matcher;
-import 'package:flutter_test/flutter_test.dart';
+import "package:database/main.dart";
+import "package:database/src/core/id.dart";
+import "package:flutter_test/flutter_test.dart" as matcher;
+import "package:flutter_test/flutter_test.dart";
 
-import 'package:chenron_mockups/chenron_mockups.dart';
-import 'package:drift/drift.dart';
+import "package:chenron_mockups/chenron_mockups.dart";
+import "package:drift/drift.dart";
 
 void main() {
   setUpAll(() {
@@ -26,8 +26,8 @@ void main() {
     await database.close();
   });
 
-  group('Statistics CRUD Operations', () {
-    test('create statistics record', () async {
+  group("Statistics CRUD Operations", () {
+    test("create statistics record", () async {
       final id = database.generateId();
       final stat = StatisticsCompanion.insert(
         id: id,
@@ -50,7 +50,7 @@ void main() {
       expect(retrieved.totalFolders, equals(2));
     });
 
-    test('read statistics by ID', () async {
+    test("read statistics by ID", () async {
       final id = database.generateId();
       await database.statistics.insertOne(
         StatisticsCompanion.insert(
@@ -68,7 +68,7 @@ void main() {
       expect(stat.totalLinks, equals(25));
     });
 
-    test('update statistics record', () async {
+    test("update statistics record", () async {
       final id = database.generateId();
       await database.statistics.insertOne(
         StatisticsCompanion.insert(
@@ -88,7 +88,7 @@ void main() {
       expect(updated.totalLinks, equals(20));
     });
 
-    test('delete statistics record', () async {
+    test("delete statistics record", () async {
       final id = database.generateId();
       await database.statistics.insertOne(
         StatisticsCompanion.insert(id: id),
@@ -106,8 +106,8 @@ void main() {
     });
   });
 
-  group('Statistics Default Values', () {
-    test('all counts default to 0 when not specified', () async {
+  group("Statistics Default Values", () {
+    test("all counts default to 0 when not specified", () async {
       final id = database.generateId();
       await database.statistics.insertOne(
         StatisticsCompanion.insert(id: id),
@@ -123,7 +123,7 @@ void main() {
       expect(stat.totalFolders, equals(0));
     });
 
-    test('recordedAt is auto-set on insert', () async {
+    test("recordedAt is auto-set on insert", () async {
       final beforeInsert = DateTime.now();
       final id = database.generateId();
 
@@ -147,8 +147,8 @@ void main() {
     });
   });
 
-  group('Statistics Edge Cases', () {
-    test('max integer values', () async {
+  group("Statistics Edge Cases", () {
+    test("max integer values", () async {
       final id = database.generateId();
       const maxInt = 2147483647; // Max 32-bit signed int
 
@@ -172,7 +172,7 @@ void main() {
       expect(stat.totalFolders, equals(maxInt));
     });
 
-    test('negative values (if supported)', () async {
+    test("negative values (if supported)", () async {
       final id = database.generateId();
 
       await database.statistics.insertOne(
@@ -189,7 +189,7 @@ void main() {
       expect(stat.totalLinks, equals(-1));
     });
 
-    test('incremental updates', () async {
+    test("incremental updates", () async {
       final id = database.generateId();
       await database.statistics.insertOne(
         StatisticsCompanion.insert(
@@ -215,7 +215,7 @@ void main() {
       expect(updated.totalLinks, equals(11));
     });
 
-    test('multiple statistics records', () async {
+    test("multiple statistics records", () async {
       final id1 = database.generateId();
       final id2 = database.generateId();
 
@@ -235,8 +235,8 @@ void main() {
     });
   });
 
-  group('Statistics Query Operations', () {
-    test('get latest statistics', () async {
+  group("Statistics Query Operations", () {
+    test("get latest statistics", () async {
       await Future.delayed(const Duration(milliseconds: 10));
       final id1 = database.generateId();
       await database.statistics.insertOne(
@@ -257,7 +257,7 @@ void main() {
       expect(latest.totalLinks, equals(10));
     });
 
-    test('delete all statistics', () async {
+    test("delete all statistics", () async {
       await database.batch((batch) {
         batch.insert(
           database.statistics,

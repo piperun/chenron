@@ -176,7 +176,7 @@ void main() {
 
     test("should update folder with an existing item", () async {
       final itemUpdates = CUD<FolderItem>(update: [
-        FolderItem.link(
+        const FolderItem.link(
             url: "https://example.com",
             itemId: "nayscsy4hk75zwg83qxhddtct04ut8")
       ]);
@@ -242,7 +242,7 @@ void main() {
     test("should create, add and remove items from folder", () async {
       // Create a new folder item
       final itemUpdates = CUD<FolderItem>(
-          create: [FolderItem.link(url: "https://example.com")]);
+          create: [const FolderItem.link(url: "https://example.com")]);
 
       // Add the item to the folder and get the result
       final result = await database.updateFolder(createdIds.folderId,

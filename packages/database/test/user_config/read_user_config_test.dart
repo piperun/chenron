@@ -1,10 +1,10 @@
-import 'package:database/main.dart';
-import 'package:database/src/features/user_config/create.dart';
-import 'package:database/src/features/user_config/read.dart';
-import 'package:flutter_test/flutter_test.dart';
+import "package:database/main.dart";
+import "package:database/src/features/user_config/create.dart";
+import "package:database/src/features/user_config/read.dart";
+import "package:flutter_test/flutter_test.dart";
 
-import 'package:drift/drift.dart' hide isNotNull, isNull;
-import 'package:chenron_mockups/chenron_mockups.dart';
+import "package:drift/drift.dart" hide isNotNull, isNull;
+import "package:chenron_mockups/chenron_mockups.dart";
 
 void main() {
   setUpAll(() {
@@ -28,13 +28,13 @@ void main() {
     await database.close();
   });
 
-  group('UserConfigReadExtensions.getUserConfig()', () {
-    test('retrieves existing user config', () async {
+  group("UserConfigReadExtensions.getUserConfig()", () {
+    test("retrieves existing user config", () async {
       // Create a config first
       final userConfig = UserConfig(
-        id: '',
+        id: "",
         darkMode: true,
-        archiveOrgS3AccessKey: 'test-key',
+        archiveOrgS3AccessKey: "test-key",
         copyOnImport: false,
         defaultArchiveIs: false,
         defaultArchiveOrg: false,
@@ -51,19 +51,19 @@ void main() {
 
       expect(result, isNotNull);
       expect(result!.data.darkMode, isTrue);
-      expect(result.data.archiveOrgS3AccessKey, equals('test-key'));
+      expect(result.data.archiveOrgS3AccessKey, equals("test-key"));
     });
 
-    test('returns null when no config exists', () async {
+    test("returns null when no config exists", () async {
       final result = await database.getUserConfig();
 
       expect(result, isNull);
     });
 
-    test('returns first config when multiple exist', () async {
+    test("returns first config when multiple exist", () async {
       // Create two configs
       final config1 = UserConfig(
-        id: '',
+        id: "",
         darkMode: true,
         copyOnImport: false,
         defaultArchiveIs: false,
@@ -75,7 +75,7 @@ void main() {
         updatedAt: DateTime.now(),
       );
       final config2 = UserConfig(
-        id: '',
+        id: "",
         darkMode: false,
         copyOnImport: false,
         defaultArchiveIs: false,
@@ -97,10 +97,10 @@ void main() {
     });
   });
 
-  group('UserConfigReadExtensions.watchUserConfig()', () {
-    test('emits config when it exists', () async {
+  group("UserConfigReadExtensions.watchUserConfig()", () {
+    test("emits config when it exists", () async {
       final userConfig = UserConfig(
-        id: '',
+        id: "",
         darkMode: true,
         copyOnImport: false,
         defaultArchiveIs: false,
@@ -123,13 +123,13 @@ void main() {
       );
     });
 
-    test('emits null when no config exists', () async {
+    test("emits null when no config exists", () async {
       final stream = database.watchUserConfig();
 
       await expectLater(stream, emits(null));
     });
 
-    test('emits updates when config is created', () async {
+    test("emits updates when config is created", () async {
       final stream = database.watchUserConfig();
 
       // Initially null
@@ -137,7 +137,7 @@ void main() {
 
       // Create config
       final userConfig = UserConfig(
-        id: '',
+        id: "",
         darkMode: false,
         copyOnImport: false,
         defaultArchiveIs: false,
@@ -160,11 +160,11 @@ void main() {
     });
   });
 
-  group('UserConfigReadExtensions.getUserTheme()', () {
-    test('retrieves existing user theme', () async {
+  group("UserConfigReadExtensions.getUserTheme()", () {
+    test("retrieves existing user theme", () async {
       // Create a user config first
       final userConfig = UserConfig(
-        id: '',
+        id: "",
         darkMode: false,
         copyOnImport: false,
         defaultArchiveIs: false,
@@ -177,36 +177,36 @@ void main() {
       );
       final configResult = await database.createUserConfig(userConfig);
       // Create a theme manually
-      final themeId = 'test-theme-id-1234567890123456';
+      final themeId = "test-theme-id-1234567890123456";
       await database.into(database.userThemes).insert(
             UserThemesCompanion.insert(
               id: themeId,
               userConfigId: configResult.userConfigId,
-              name: 'Blue Theme',
+              name: "Blue Theme",
               primaryColor: 0xFF0000FF,
               secondaryColor: 0xFF00FFFF,
-              seedType: Value(0),
+              seedType: const Value(0),
             ),
           );
 
       final result = await database.getUserTheme(themeKey: themeId);
 
       expect(result, isNotNull);
-      expect(result!.data.name, equals('Blue Theme'));
+      expect(result!.data.name, equals("Blue Theme"));
       expect(result.data.primaryColor, equals(0xFF0000FF));
     });
 
-    test('returns null for non-existent theme', () async {
-      final result = await database.getUserTheme(themeKey: 'non-existent');
+    test("returns null for non-existent theme", () async {
+      final result = await database.getUserTheme(themeKey: "non-existent");
 
       expect(result, isNull);
     });
   });
 
-  group('UserConfigReadExtensions.watchUserTheme()', () {
-    test('emits theme when it exists', () async {
+  group("UserConfigReadExtensions.watchUserTheme()", () {
+    test("emits theme when it exists", () async {
       final userConfig = UserConfig(
-        id: '',
+        id: "",
         darkMode: false,
         copyOnImport: false,
         defaultArchiveIs: false,
@@ -219,15 +219,15 @@ void main() {
       );
       final configResult = await database.createUserConfig(userConfig);
 
-      final themeId = 'watch-theme-12345678901234567890';
+      final themeId = "watch-theme-12345678901234567890";
       await database.into(database.userThemes).insert(
             UserThemesCompanion.insert(
               id: themeId,
               userConfigId: configResult.userConfigId,
-              name: 'Watch Theme',
+              name: "Watch Theme",
               primaryColor: 0xFF123456,
               secondaryColor: 0xFF654321,
-              seedType: Value(0),
+              seedType: const Value(0),
             ),
           );
 
@@ -236,22 +236,22 @@ void main() {
       await expectLater(
         stream,
         emits(predicate<dynamic>((result) {
-          return result != null && result.data.name == 'Watch Theme';
+          return result != null && result.data.name == "Watch Theme";
         })),
       );
     });
 
-    test('emits null for non-existent theme', () async {
-      final stream = database.watchUserTheme(themeId: 'non-existent');
+    test("emits null for non-existent theme", () async {
+      final stream = database.watchUserTheme(themeId: "non-existent");
 
       await expectLater(stream, emits(null));
     });
   });
 
-  group('UserConfigReadExtensions.watchAllUserThemes()', () {
-    test('emits all themes', () async {
+  group("UserConfigReadExtensions.watchAllUserThemes()", () {
+    test("emits all themes", () async {
       final userConfig = UserConfig(
-        id: '',
+        id: "",
         darkMode: false,
         copyOnImport: false,
         defaultArchiveIs: false,
@@ -266,12 +266,12 @@ void main() {
 
       await database.into(database.userThemes).insert(
             UserThemesCompanion.insert(
-              id: 'theme-a-123456789012345678901234',
+              id: "theme-a-123456789012345678901234",
               userConfigId: configResult.userConfigId,
-              name: 'Theme A',
+              name: "Theme A",
               primaryColor: 0xFFAAAAAA,
               secondaryColor: 0xFFBBBBBB,
-              seedType: Value(0),
+              seedType: const Value(0),
             ),
           );
 
@@ -280,12 +280,12 @@ void main() {
       await expectLater(
         stream,
         emits(predicate<List>((results) {
-          return results.length == 1 && results.first.data.name == 'Theme A';
+          return results.length == 1 && results.first.data.name == "Theme A";
         })),
       );
     });
 
-    test('emits empty list when no themes exist', () async {
+    test("emits empty list when no themes exist", () async {
       final stream = database.watchAllUserThemes();
 
       await expectLater(
@@ -295,10 +295,10 @@ void main() {
     });
   });
 
-  group('UserConfigReadExtensions.searchUserThemes()', () {
-    test('finds themes matching query', () async {
+  group("UserConfigReadExtensions.searchUserThemes()", () {
+    test("finds themes matching query", () async {
       final userConfig = UserConfig(
-        id: '',
+        id: "",
         darkMode: false,
         copyOnImport: false,
         defaultArchiveIs: false,
@@ -313,34 +313,34 @@ void main() {
 
       await database.into(database.userThemes).insert(
             UserThemesCompanion.insert(
-              id: 'theme-dark-12345678901234567890123',
+              id: "theme-dark-12345678901234567890123",
               userConfigId: configResult.userConfigId,
-              name: 'Dark Blue',
+              name: "Dark Blue",
               primaryColor: 0xFF000080,
               secondaryColor: 0xFF000040,
-              seedType: Value(0),
+              seedType: const Value(0),
             ),
           );
 
       await database.into(database.userThemes).insert(
             UserThemesCompanion.insert(
-              id: 'theme-light-1234567890123456789012',
+              id: "theme-light-1234567890123456789012",
               userConfigId: configResult.userConfigId,
-              name: 'Light Blue',
+              name: "Light Blue",
               primaryColor: 0xFFADD8E6,
               secondaryColor: 0xFF87CEEB,
-              seedType: Value(0),
+              seedType: const Value(0),
             ),
           );
 
-      final results = await database.searchUserThemes(query: 'Blue');
+      final results = await database.searchUserThemes(query: "Blue");
 
       expect(results.length, greaterThanOrEqualTo(1));
-      expect(results.any((r) => r.data.name.contains('Blue')), isTrue);
+      expect(results.any((r) => r.data.name.contains("Blue")), isTrue);
     });
 
-    test('returns empty list when no matches', () async {
-      final results = await database.searchUserThemes(query: 'nonexistent');
+    test("returns empty list when no matches", () async {
+      final results = await database.searchUserThemes(query: "nonexistent");
 
       expect(results, isEmpty);
     });
