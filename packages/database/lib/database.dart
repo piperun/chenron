@@ -7,9 +7,17 @@ import "package:database/extensions/intial_data/config_database.dart";
 import "package:basedir/directory.dart";
 import "dart:io";
 import "package:path/path.dart" as path;
+import "package:database/models/document_file_type.dart";
 
 // Export IncludeOptions from shared patterns for backward compatibility
 export "package:core/patterns/include_options.dart" show IncludeOptions;
+export "package:database/models/cud.dart";
+export "package:database/models/folder.dart";
+export "package:database/models/item.dart";
+export "package:database/models/metadata.dart";
+export "package:database/models/db_result.dart";
+export "package:database/models/created_ids.dart";
+export "package:database/models/document_file_type.dart";
 
 part "database.g.dart";
 

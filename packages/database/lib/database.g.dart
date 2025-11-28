@@ -782,12 +782,11 @@ class $DocumentsTable extends Documents
       type: DriftSqlType.string,
       requiredDuringInsert: true,
       defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'));
-  static const VerificationMeta _mimeTypeMeta =
-      const VerificationMeta('mimeType');
   @override
-  late final GeneratedColumn<String> mimeType = GeneratedColumn<String>(
-      'mime_type', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+  late final GeneratedColumnWithTypeConverter<DocumentFileType, String>
+      fileType = GeneratedColumn<String>('file_type', aliasedName, false,
+              type: DriftSqlType.string, requiredDuringInsert: true)
+          .withConverter<DocumentFileType>($DocumentsTable.$converterfileType);
   static const VerificationMeta _fileSizeMeta =
       const VerificationMeta('fileSize');
   @override
@@ -802,7 +801,7 @@ class $DocumentsTable extends Documents
       type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns =>
-      [id, createdAt, updatedAt, title, filePath, mimeType, fileSize, checksum];
+      [id, createdAt, updatedAt, title, filePath, fileType, fileSize, checksum];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -838,12 +837,6 @@ class $DocumentsTable extends Documents
     } else if (isInserting) {
       context.missing(_filePathMeta);
     }
-    if (data.containsKey('mime_type')) {
-      context.handle(_mimeTypeMeta,
-          mimeType.isAcceptableOrUnknown(data['mime_type']!, _mimeTypeMeta));
-    } else if (isInserting) {
-      context.missing(_mimeTypeMeta);
-    }
     if (data.containsKey('file_size')) {
       context.handle(_fileSizeMeta,
           fileSize.isAcceptableOrUnknown(data['file_size']!, _fileSizeMeta));
@@ -871,8 +864,9 @@ class $DocumentsTable extends Documents
           .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
       filePath: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}file_path'])!,
-      mimeType: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}mime_type'])!,
+      fileType: $DocumentsTable.$converterfileType.fromSql(attachedDatabase
+          .typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}file_type'])!),
       fileSize: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}file_size']),
       checksum: attachedDatabase.typeMapping
@@ -884,6 +878,10 @@ class $DocumentsTable extends Documents
   $DocumentsTable createAlias(String alias) {
     return $DocumentsTable(attachedDatabase, alias);
   }
+
+  static JsonTypeConverter2<DocumentFileType, String, String>
+      $converterfileType =
+      const EnumNameConverter<DocumentFileType>(DocumentFileType.values);
 }
 
 class Document extends DataClass implements Insertable<Document> {
@@ -892,7 +890,7 @@ class Document extends DataClass implements Insertable<Document> {
   final DateTime updatedAt;
   final String title;
   final String filePath;
-  final String mimeType;
+  final DocumentFileType fileType;
   final int? fileSize;
   final String? checksum;
   const Document(
@@ -901,7 +899,7 @@ class Document extends DataClass implements Insertable<Document> {
       required this.updatedAt,
       required this.title,
       required this.filePath,
-      required this.mimeType,
+      required this.fileType,
       this.fileSize,
       this.checksum});
   @override
@@ -912,7 +910,10 @@ class Document extends DataClass implements Insertable<Document> {
     map['updated_at'] = Variable<DateTime>(updatedAt);
     map['title'] = Variable<String>(title);
     map['file_path'] = Variable<String>(filePath);
-    map['mime_type'] = Variable<String>(mimeType);
+    {
+      map['file_type'] =
+          Variable<String>($DocumentsTable.$converterfileType.toSql(fileType));
+    }
     if (!nullToAbsent || fileSize != null) {
       map['file_size'] = Variable<int>(fileSize);
     }
@@ -929,7 +930,7 @@ class Document extends DataClass implements Insertable<Document> {
       updatedAt: Value(updatedAt),
       title: Value(title),
       filePath: Value(filePath),
-      mimeType: Value(mimeType),
+      fileType: Value(fileType),
       fileSize: fileSize == null && nullToAbsent
           ? const Value.absent()
           : Value(fileSize),
@@ -948,7 +949,8 @@ class Document extends DataClass implements Insertable<Document> {
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       title: serializer.fromJson<String>(json['title']),
       filePath: serializer.fromJson<String>(json['filePath']),
-      mimeType: serializer.fromJson<String>(json['mimeType']),
+      fileType: $DocumentsTable.$converterfileType
+          .fromJson(serializer.fromJson<String>(json['fileType'])),
       fileSize: serializer.fromJson<int?>(json['fileSize']),
       checksum: serializer.fromJson<String?>(json['checksum']),
     );
@@ -962,7 +964,8 @@ class Document extends DataClass implements Insertable<Document> {
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'title': serializer.toJson<String>(title),
       'filePath': serializer.toJson<String>(filePath),
-      'mimeType': serializer.toJson<String>(mimeType),
+      'fileType': serializer
+          .toJson<String>($DocumentsTable.$converterfileType.toJson(fileType)),
       'fileSize': serializer.toJson<int?>(fileSize),
       'checksum': serializer.toJson<String?>(checksum),
     };
@@ -974,7 +977,7 @@ class Document extends DataClass implements Insertable<Document> {
           DateTime? updatedAt,
           String? title,
           String? filePath,
-          String? mimeType,
+          DocumentFileType? fileType,
           Value<int?> fileSize = const Value.absent(),
           Value<String?> checksum = const Value.absent()}) =>
       Document(
@@ -983,7 +986,7 @@ class Document extends DataClass implements Insertable<Document> {
         updatedAt: updatedAt ?? this.updatedAt,
         title: title ?? this.title,
         filePath: filePath ?? this.filePath,
-        mimeType: mimeType ?? this.mimeType,
+        fileType: fileType ?? this.fileType,
         fileSize: fileSize.present ? fileSize.value : this.fileSize,
         checksum: checksum.present ? checksum.value : this.checksum,
       );
@@ -994,7 +997,7 @@ class Document extends DataClass implements Insertable<Document> {
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       title: data.title.present ? data.title.value : this.title,
       filePath: data.filePath.present ? data.filePath.value : this.filePath,
-      mimeType: data.mimeType.present ? data.mimeType.value : this.mimeType,
+      fileType: data.fileType.present ? data.fileType.value : this.fileType,
       fileSize: data.fileSize.present ? data.fileSize.value : this.fileSize,
       checksum: data.checksum.present ? data.checksum.value : this.checksum,
     );
@@ -1008,7 +1011,7 @@ class Document extends DataClass implements Insertable<Document> {
           ..write('updatedAt: $updatedAt, ')
           ..write('title: $title, ')
           ..write('filePath: $filePath, ')
-          ..write('mimeType: $mimeType, ')
+          ..write('fileType: $fileType, ')
           ..write('fileSize: $fileSize, ')
           ..write('checksum: $checksum')
           ..write(')'))
@@ -1017,7 +1020,7 @@ class Document extends DataClass implements Insertable<Document> {
 
   @override
   int get hashCode => Object.hash(
-      id, createdAt, updatedAt, title, filePath, mimeType, fileSize, checksum);
+      id, createdAt, updatedAt, title, filePath, fileType, fileSize, checksum);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1027,7 +1030,7 @@ class Document extends DataClass implements Insertable<Document> {
           other.updatedAt == this.updatedAt &&
           other.title == this.title &&
           other.filePath == this.filePath &&
-          other.mimeType == this.mimeType &&
+          other.fileType == this.fileType &&
           other.fileSize == this.fileSize &&
           other.checksum == this.checksum);
 }
@@ -1038,7 +1041,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
   final Value<DateTime> updatedAt;
   final Value<String> title;
   final Value<String> filePath;
-  final Value<String> mimeType;
+  final Value<DocumentFileType> fileType;
   final Value<int?> fileSize;
   final Value<String?> checksum;
   final Value<int> rowid;
@@ -1048,7 +1051,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
     this.updatedAt = const Value.absent(),
     this.title = const Value.absent(),
     this.filePath = const Value.absent(),
-    this.mimeType = const Value.absent(),
+    this.fileType = const Value.absent(),
     this.fileSize = const Value.absent(),
     this.checksum = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -1059,21 +1062,21 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
     this.updatedAt = const Value.absent(),
     required String title,
     required String filePath,
-    required String mimeType,
+    required DocumentFileType fileType,
     this.fileSize = const Value.absent(),
     this.checksum = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         title = Value(title),
         filePath = Value(filePath),
-        mimeType = Value(mimeType);
+        fileType = Value(fileType);
   static Insertable<Document> custom({
     Expression<String>? id,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<String>? title,
     Expression<String>? filePath,
-    Expression<String>? mimeType,
+    Expression<String>? fileType,
     Expression<int>? fileSize,
     Expression<String>? checksum,
     Expression<int>? rowid,
@@ -1084,7 +1087,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
       if (updatedAt != null) 'updated_at': updatedAt,
       if (title != null) 'title': title,
       if (filePath != null) 'file_path': filePath,
-      if (mimeType != null) 'mime_type': mimeType,
+      if (fileType != null) 'file_type': fileType,
       if (fileSize != null) 'file_size': fileSize,
       if (checksum != null) 'checksum': checksum,
       if (rowid != null) 'rowid': rowid,
@@ -1097,7 +1100,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
       Value<DateTime>? updatedAt,
       Value<String>? title,
       Value<String>? filePath,
-      Value<String>? mimeType,
+      Value<DocumentFileType>? fileType,
       Value<int?>? fileSize,
       Value<String?>? checksum,
       Value<int>? rowid}) {
@@ -1107,7 +1110,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
       updatedAt: updatedAt ?? this.updatedAt,
       title: title ?? this.title,
       filePath: filePath ?? this.filePath,
-      mimeType: mimeType ?? this.mimeType,
+      fileType: fileType ?? this.fileType,
       fileSize: fileSize ?? this.fileSize,
       checksum: checksum ?? this.checksum,
       rowid: rowid ?? this.rowid,
@@ -1132,8 +1135,9 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
     if (filePath.present) {
       map['file_path'] = Variable<String>(filePath.value);
     }
-    if (mimeType.present) {
-      map['mime_type'] = Variable<String>(mimeType.value);
+    if (fileType.present) {
+      map['file_type'] = Variable<String>(
+          $DocumentsTable.$converterfileType.toSql(fileType.value));
     }
     if (fileSize.present) {
       map['file_size'] = Variable<int>(fileSize.value);
@@ -1155,7 +1159,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
           ..write('updatedAt: $updatedAt, ')
           ..write('title: $title, ')
           ..write('filePath: $filePath, ')
-          ..write('mimeType: $mimeType, ')
+          ..write('fileType: $fileType, ')
           ..write('fileSize: $fileSize, ')
           ..write('checksum: $checksum, ')
           ..write('rowid: $rowid')
@@ -3315,7 +3319,7 @@ typedef $$DocumentsTableCreateCompanionBuilder = DocumentsCompanion Function({
   Value<DateTime> updatedAt,
   required String title,
   required String filePath,
-  required String mimeType,
+  required DocumentFileType fileType,
   Value<int?> fileSize,
   Value<String?> checksum,
   Value<int> rowid,
@@ -3326,7 +3330,7 @@ typedef $$DocumentsTableUpdateCompanionBuilder = DocumentsCompanion Function({
   Value<DateTime> updatedAt,
   Value<String> title,
   Value<String> filePath,
-  Value<String> mimeType,
+  Value<DocumentFileType> fileType,
   Value<int?> fileSize,
   Value<String?> checksum,
   Value<int> rowid,
@@ -3356,8 +3360,10 @@ class $$DocumentsTableFilterComposer
   ColumnFilters<String> get filePath => $composableBuilder(
       column: $table.filePath, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get mimeType => $composableBuilder(
-      column: $table.mimeType, builder: (column) => ColumnFilters(column));
+  ColumnWithTypeConverterFilters<DocumentFileType, DocumentFileType, String>
+      get fileType => $composableBuilder(
+          column: $table.fileType,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
 
   ColumnFilters<int> get fileSize => $composableBuilder(
       column: $table.fileSize, builder: (column) => ColumnFilters(column));
@@ -3390,8 +3396,8 @@ class $$DocumentsTableOrderingComposer
   ColumnOrderings<String> get filePath => $composableBuilder(
       column: $table.filePath, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get mimeType => $composableBuilder(
-      column: $table.mimeType, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get fileType => $composableBuilder(
+      column: $table.fileType, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<int> get fileSize => $composableBuilder(
       column: $table.fileSize, builder: (column) => ColumnOrderings(column));
@@ -3424,8 +3430,8 @@ class $$DocumentsTableAnnotationComposer
   GeneratedColumn<String> get filePath =>
       $composableBuilder(column: $table.filePath, builder: (column) => column);
 
-  GeneratedColumn<String> get mimeType =>
-      $composableBuilder(column: $table.mimeType, builder: (column) => column);
+  GeneratedColumnWithTypeConverter<DocumentFileType, String> get fileType =>
+      $composableBuilder(column: $table.fileType, builder: (column) => column);
 
   GeneratedColumn<int> get fileSize =>
       $composableBuilder(column: $table.fileSize, builder: (column) => column);
@@ -3462,7 +3468,7 @@ class $$DocumentsTableTableManager extends RootTableManager<
             Value<DateTime> updatedAt = const Value.absent(),
             Value<String> title = const Value.absent(),
             Value<String> filePath = const Value.absent(),
-            Value<String> mimeType = const Value.absent(),
+            Value<DocumentFileType> fileType = const Value.absent(),
             Value<int?> fileSize = const Value.absent(),
             Value<String?> checksum = const Value.absent(),
             Value<int> rowid = const Value.absent(),
@@ -3473,7 +3479,7 @@ class $$DocumentsTableTableManager extends RootTableManager<
             updatedAt: updatedAt,
             title: title,
             filePath: filePath,
-            mimeType: mimeType,
+            fileType: fileType,
             fileSize: fileSize,
             checksum: checksum,
             rowid: rowid,
@@ -3484,7 +3490,7 @@ class $$DocumentsTableTableManager extends RootTableManager<
             Value<DateTime> updatedAt = const Value.absent(),
             required String title,
             required String filePath,
-            required String mimeType,
+            required DocumentFileType fileType,
             Value<int?> fileSize = const Value.absent(),
             Value<String?> checksum = const Value.absent(),
             Value<int> rowid = const Value.absent(),
@@ -3495,7 +3501,7 @@ class $$DocumentsTableTableManager extends RootTableManager<
             updatedAt: updatedAt,
             title: title,
             filePath: filePath,
-            mimeType: mimeType,
+            fileType: fileType,
             fileSize: fileSize,
             checksum: checksum,
             rowid: rowid,
