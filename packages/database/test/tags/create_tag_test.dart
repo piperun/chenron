@@ -39,6 +39,23 @@ void main() {
 
       expect(tag, isNotNull);
       expect(tag!.name, equals('flutter'));
+      expect(tag.color, isNull); // Verify default is null
+    });
+
+    test('creates new tag with color successfully', () async {
+      final colorValue = 0xFFFF0000;
+      final tagId = await database.addTag('red-tag', color: colorValue);
+
+      expect(tagId, isNotEmpty);
+
+      // Verify tag exists in database with color
+      final tag = await (database.select(database.tags)
+            ..where((tbl) => tbl.id.equals(tagId)))
+          .getSingleOrNull();
+
+      expect(tag, isNotNull);
+      expect(tag!.name, equals('red-tag'));
+      expect(tag.color, equals(colorValue));
     });
 
     test('creates multiple different tags', () async {
@@ -103,20 +120,44 @@ void main() {
       expect(tag!.name, equals(longName));
     });
 
-    test('returns consistent ID for same tag name', () async {
+    test('returns consistent ID for same tag name (Idempotent)', () async {
       // First creation
       final tagId1 = await database.addTag('same-tag');
 
       // Second creation with same name
       final tagId2 = await database.addTag('same-tag');
 
-      // Should return the same tag ID (or create a new one depending on implementation)
-      // Let's verify the tag exists
+      // Should return the same tag ID
+      expect(tagId1, equals(tagId2));
+
+      // Verify only one tag exists
       final allTags = await (database.select(database.tags)
             ..where((tbl) => tbl.name.equals('same-tag')))
           .get();
 
-      expect(allTags.isNotEmpty, isTrue);
+      expect(allTags.length, equals(1));
+    });
+
+    test('fails to create tag with empty name', () async {
+      expect(
+        () => database.addTag(''),
+        throwsA(isA<ArgumentError>()),
+      );
+    });
+
+    test('fails to create tag with short name (min 3)', () async {
+      expect(
+        () => database.addTag('ab'), // 2 chars
+        throwsA(isA<Exception>()),
+      );
+    });
+
+    test('fails to create tag with long name (max 12)', () async {
+      final longName = 'a' * 13;
+      expect(
+        () => database.addTag(longName),
+        throwsA(isA<Exception>()),
+      );
     });
   });
 }
