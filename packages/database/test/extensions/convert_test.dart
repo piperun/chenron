@@ -103,7 +103,7 @@ void main() {
         id: 'doc123',
         title: 'Test Document',
         filePath: 'documents/doc123.md',
-        mimeType: 'text/markdown',
+        fileType: DocumentFileType.markdown,
         createdAt: DateTime(2024, 3, 1),
         updatedAt: DateTime(2024, 3, 1),
       );
@@ -127,7 +127,7 @@ void main() {
         id: 'doc123',
         title: 'Tagged Document',
         filePath: 'documents/doc123.md',
-        mimeType: 'text/markdown',
+        fileType: DocumentFileType.markdown,
         createdAt: DateTime(2024, 4, 1),
         updatedAt: DateTime(2024, 4, 1),
       );
@@ -153,7 +153,7 @@ void main() {
         id: 'doc123',
         title: 'Test',
         filePath: 'documents/doc123.md',
-        mimeType: 'text/markdown',
+        fileType: DocumentFileType.markdown,
         createdAt: DateTime(2024, 1, 1),
         updatedAt: DateTime(2024, 1, 1),
       );
@@ -168,7 +168,7 @@ void main() {
         id: 'doc456',
         title: 'Complex Title',
         filePath: 'documents/doc456.md',
-        mimeType: 'text/markdown',
+        fileType: DocumentFileType.markdown,
         createdAt: DateTime(2024, 5, 1),
         updatedAt: DateTime(2024, 5, 1),
       );

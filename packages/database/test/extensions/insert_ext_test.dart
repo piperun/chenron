@@ -167,14 +167,10 @@ void main() {
         results = database.insertDocuments(
           batch: batch,
           docs: [
-            Document(
-              id: 'temp1',
+            FolderItem.document(
               title: 'Test Doc',
               filePath: 'documents/temp1.md',
-              mimeType: 'text/markdown',
-              createdAt: DateTime.now(),
-              updatedAt: DateTime.now(),
-            )
+            ) as DocumentItem
           ],
         );
       });
@@ -189,30 +185,18 @@ void main() {
         results = database.insertDocuments(
           batch: batch,
           docs: [
-            Document(
-              id: 'temp1',
+            FolderItem.document(
               title: 'Document 1',
               filePath: 'documents/doc1.md',
-              mimeType: 'text/markdown',
-              createdAt: DateTime.now(),
-              updatedAt: DateTime.now(),
-            ),
-            Document(
-              id: 'temp2',
+            ) as DocumentItem,
+            FolderItem.document(
               title: 'Document 2',
               filePath: 'documents/doc2.md',
-              mimeType: 'text/markdown',
-              createdAt: DateTime.now(),
-              updatedAt: DateTime.now(),
-            ),
-            Document(
-              id: 'temp3',
+            ) as DocumentItem,
+            FolderItem.document(
               title: 'Document 3',
               filePath: 'documents/doc3.md',
-              mimeType: 'text/markdown',
-              createdAt: DateTime.now(),
-              updatedAt: DateTime.now(),
-            ),
+            ) as DocumentItem,
           ],
         );
       });
@@ -241,30 +225,18 @@ void main() {
         results = database.insertDocuments(
           batch: batch,
           docs: [
-            Document(
-              id: 'temp1',
+            FolderItem.document(
               title: 'EmptyBody',
               filePath: '',
-              mimeType: 'text/markdown',
-              createdAt: DateTime.now(),
-              updatedAt: DateTime.now(),
-            ),
-            Document(
-              id: 'temp2',
+            ) as DocumentItem,
+            FolderItem.document(
               title: 'Valid1',
               filePath: 'body-2',
-              mimeType: 'text/markdown',
-              createdAt: DateTime.now(),
-              updatedAt: DateTime.now(),
-            ),
-            Document(
-              id: 'temp3',
+            ) as DocumentItem,
+            FolderItem.document(
               title: 'Valid2',
               filePath: 'body-3',
-              mimeType: 'text/markdown',
-              createdAt: DateTime.now(),
-              updatedAt: DateTime.now(),
-            ),
+            ) as DocumentItem,
           ],
         );
       });
@@ -444,7 +416,7 @@ void main() {
             id: docId,
             title: 'Test Doc',
             filePath: 'documents/$docId.md',
-            mimeType: 'text/markdown',
+            fileType: DocumentFileType.markdown,
           ),
         );
       });

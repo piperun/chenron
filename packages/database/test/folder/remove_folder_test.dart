@@ -96,10 +96,9 @@ void main() {
       );
       final link = FolderItem.link(url: "https://example.com");
       final document = FolderItem.document(
-        id: 'doc1',
         title: 'Test Document',
         filePath: 'documents/doc1.md',
-        mimeType: 'text/markdown',
+        fileType: DocumentFileType.markdown,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
