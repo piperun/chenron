@@ -54,6 +54,7 @@ class FolderCreateVEPR extends VEPROperation<
       id: id,
       title: input.folderInfo.title,
       description: input.folderInfo.description,
+      color: Value(input.folderInfo.color),
     );
     await db.folders.insertOne(newFolder);
     logStep("Execute", "Folder record created with ID: $id");
@@ -123,5 +124,3 @@ class FolderCreateVEPR extends VEPROperation<
     return result;
   }
 }
-
-

@@ -4,13 +4,11 @@ import "package:database/models/created_ids.dart"
     show FolderResultIds, TagResultIds, ItemResultIds, MetadataResultIds;
 import "package:database/models/item.dart" show FolderItem;
 import "package:database/models/metadata.dart" show Metadata, MetadataTypeEnum;
-import "package:database/extensions/insert_ext.dart"
-    show InsertionExtensions;
+import "package:database/extensions/insert_ext.dart" show InsertionExtensions;
 import "package:drift/drift.dart"
     show BooleanExpressionOperators, TableStatements, Value;
 import "package:database/models/cud.dart";
-import "package:database/database.dart"
-    show AppDatabase, FoldersCompanion;
+import "package:database/database.dart" show AppDatabase, FoldersCompanion;
 import "package:database/actions/batch.dart" show BatchExtensions;
 
 extension FolderExtensions on AppDatabase {
@@ -23,6 +21,7 @@ extension FolderExtensions on AppDatabase {
     String folderId, {
     String? title,
     String? description,
+    Value<int?>? color,
     CUD<Metadata>? tagUpdates,
     CUD<FolderItem>? itemUpdates,
   }) async {
@@ -30,9 +29,9 @@ extension FolderExtensions on AppDatabase {
     Map<String, List<MetadataResultIds>> cudTagIds = {};
     Map<String, List<ItemResultIds>> cudItemIds = {};
     await batchOps((batch) async {
-      if (title != null || description != null) {
+      if (title != null || description != null || color != null) {
         folderResultIds =
-            await _updateFolderDraft(folderId, title, description);
+            await _updateFolderDraft(folderId, title, description, color);
       }
       if (tagUpdates != null) {
         cudTagIds = await _updateFolderTags(folderId, tagUpdates);
@@ -44,12 +43,13 @@ extension FolderExtensions on AppDatabase {
     return (folderResultIds, cudTagIds, cudItemIds);
   }
 
-  Future<FolderResultIds> _updateFolderDraft(
-      String folderId, String? title, String? description) async {
+  Future<FolderResultIds> _updateFolderDraft(String folderId, String? title,
+      String? description, Value<int?>? color) async {
     final folderUpdate = FoldersCompanion(
       title: title == null ? const Value.absent() : Value(title),
       description:
           description == null ? const Value.absent() : Value(description),
+      color: color ?? const Value.absent(),
     );
     await (folders.update()..where((t) => t.id.equals(folderId)))
         .write(folderUpdate);
@@ -172,5 +172,3 @@ extension FolderExtensions on AppDatabase {
     return itemUpdateResults;
   }
 }
-
-

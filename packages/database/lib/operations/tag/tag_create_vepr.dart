@@ -7,6 +7,7 @@ import "package:drift/drift.dart";
 // Define Input type
 typedef TagCreateInput = ({
   String tagName,
+  int? color,
 });
 
 // Define Process Result type
@@ -47,7 +48,8 @@ class TagCreateVEPR extends VEPROperation<AppDatabase, TagCreateInput,
 
     final tagId = db.generateId();
     await db.tags.insertOne(
-      TagsCompanion.insert(id: tagId, name: input.tagName),
+      TagsCompanion.insert(
+          id: tagId, name: input.tagName, color: Value(input.color)),
       mode: InsertMode.insertOrIgnore,
     );
 
@@ -66,5 +68,3 @@ class TagCreateVEPR extends VEPROperation<AppDatabase, TagCreateInput,
     return execResult;
   }
 }
-
-
