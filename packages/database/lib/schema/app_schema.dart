@@ -1,4 +1,5 @@
 import "package:drift/drift.dart";
+import "package:database/models/document_file_type.dart";
 
 @TableIndex(name: "folder_title", columns: {#title})
 class Folders extends Table {
@@ -34,11 +35,10 @@ class Documents extends Table {
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
   TextColumn get title => text().withLength(min: 6, max: 100)();
-  TextColumn get filePath =>
-      text().unique()(); // Relative path to document file
-  TextColumn get mimeType => text()(); // 'text/markdown' or 'text/typst'
-  IntColumn get fileSize => integer().nullable()(); // File size in bytes
-  TextColumn get checksum => text().nullable()(); // SHA-256 hash for integrity
+  TextColumn get filePath => text().unique()();
+  TextColumn get fileType => textEnum<DocumentFileType>()();
+  IntColumn get fileSize => integer().nullable()();
+  TextColumn get checksum => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
