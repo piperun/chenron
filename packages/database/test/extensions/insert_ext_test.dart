@@ -2,9 +2,6 @@ import 'package:database/extensions/id.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:database/database.dart';
 import 'package:database/extensions/insert_ext.dart';
-import 'package:database/models/metadata.dart';
-import 'package:database/models/item.dart';
-import 'package:database/models/created_ids.dart';
 import 'package:chenron_mockups/chenron_mockups.dart';
 
 void main() {

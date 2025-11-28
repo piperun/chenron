@@ -4,7 +4,6 @@ import "package:database/actions/builders/app_database/link_result_builder.dart"
 import "package:database/actions/builders/app_database/document_result_builder.dart";
 import "package:database/actions/builders/app_database/tag_result_builder.dart";
 import "package:database/database.dart";
-import "package:database/models/db_result.dart";
 import "package:drift/drift.dart";
 
 class ResultBuilderFactory {

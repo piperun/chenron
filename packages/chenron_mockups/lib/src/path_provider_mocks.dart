@@ -1,6 +1,6 @@
 // ignore_for_file: depend_on_referenced_packages, invalid_use_of_visible_for_testing_member
 
-import "dart:io" show Directory;
+import "dart:io";
 
 import "package:flutter_test/flutter_test.dart";
 import "package:path_provider/path_provider.dart";

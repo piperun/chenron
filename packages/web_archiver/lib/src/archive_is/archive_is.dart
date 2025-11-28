@@ -1,7 +1,7 @@
 import "dart:async";
 import "package:logging/logging.dart";
 import "package:http/http.dart" as http;
-import "package:html/parser.dart" show parse;
+import "package:html/parser.dart";
 
 /// Client for archiving URLs using archive.is.
 class ArchiveIsClient {

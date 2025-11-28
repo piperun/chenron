@@ -4,7 +4,7 @@ import "package:chenron/shared/search/search_controller.dart";
 
 import "package:database/extensions/operations/database_file_handler.dart";
 import "package:chenron/features/folder_viewer/pages/folder_viewer_page.dart";
-import "package:database/models/db_result.dart" show FolderResult, LinkResult;
+import "package:database/models/db_result.dart";
 import "package:flutter/material.dart";
 import "package:database/extensions/folder/read.dart";
 import "package:database/extensions/link/read.dart";
@@ -31,7 +31,7 @@ class GlobalSuggestionBuilder {
   });
 
   Future<List<ListTile>> buildSuggestions() async {
-    final handler = await db.value;
+    final handler = db.value;
     final query = queryController?.query.value ?? controller?.text ?? "";
     final folders = await handler.appDatabase.searchFolders(query: query);
 

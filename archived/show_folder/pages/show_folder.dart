@@ -4,7 +4,7 @@ import "package:database/extensions/operations/database_file_handler.dart";
 import "../widgets/folder_detail_info.dart";
 import "../widgets/folder_detail_items.dart";
 import "package:chenron/locator.dart";
-import "package:database/models/db_result.dart" show FolderResult;
+import "package:database/models/db_result.dart";
 import "package:flutter/material.dart";
 import "package:signals/signals_flutter.dart";
 

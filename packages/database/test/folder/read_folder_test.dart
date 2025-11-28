@@ -1,8 +1,5 @@
-﻿// ignore_for_file: avoid_print
+// ignore_for_file: avoid_print
 
-import "package:database/models/created_ids.dart";
-import "package:database/models/db_result.dart";
-import "package:database/models/item.dart";
 import "package:flutter_test/flutter_test.dart";
 import "package:database/database.dart";
 import "package:database/extensions/folder/read.dart";

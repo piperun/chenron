@@ -1,7 +1,5 @@
 import "package:database/database.dart";
 import "package:database/operations/link/link_create_vepr.dart";
-import "package:database/models/created_ids.dart";
-import "package:database/models/metadata.dart";
 
 extension LinkCreateExtensions on AppDatabase {
   /// Creates a new link along with its optional tags using the VEPR pattern.

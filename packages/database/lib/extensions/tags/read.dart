@@ -1,7 +1,6 @@
 import "package:database/actions/handlers/read_handler.dart";
 import "package:database/database.dart";
 import "package:database/extensions/base_query_builder.dart";
-import "package:database/models/db_result.dart";
 
 extension TagReadExtensions on AppDatabase {
   /// Retrieves a single tag by its ID.

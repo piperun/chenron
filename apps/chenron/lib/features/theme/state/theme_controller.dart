@@ -1,9 +1,8 @@
-import "package:database/database.dart" show ThemeType;
+import "package:database/database.dart";
 import "package:database/extensions/operations/config_file_handler.dart";
 import "package:chenron/features/theme/state/theme_service.dart";
 import "package:chenron/features/theme/state/theme_utils.dart";
 import "package:chenron/locator.dart";
-import "package:database/models/db_result.dart";
 import "package:logger/logger.dart";
 import "package:flex_color_scheme/flex_color_scheme.dart";
 import "package:flutter/material.dart";
@@ -49,7 +48,8 @@ class ThemeController {
 
     // Apply immediately without relying on stale config snapshots
     if (themeType == ThemeType.custom) {
-      final UserThemeResult? theme = await _themeService?.getThemeByKey(themeKey);
+      final UserThemeResult? theme =
+          await _themeService?.getThemeByKey(themeKey);
       if (theme != null) {
         currentThemeSignal.value = generateSeedTheme(
           primaryColor: theme.data.primaryColor,
@@ -81,13 +81,15 @@ class ThemeController {
   }
 
   Future<void> setCurrentTheme() async {
-    loggerGlobal.info("ThemeController", "Applying theme from persisted config...");
+    loggerGlobal.info(
+        "ThemeController", "Applying theme from persisted config...");
     final String? key = _themeService?.configData.data.selectedThemeKey;
     final int? typeIndex = _themeService?.configData.data.selectedThemeType;
 
     // Fallback if config incomplete
     if (key == null || typeIndex == null) {
-      loggerGlobal.warning("ThemeController", "No persisted theme selection found. Using fallback.");
+      loggerGlobal.warning("ThemeController",
+          "No persisted theme selection found. Using fallback.");
       currentThemeSignal.value = (
         light: FlexThemeData.light(scheme: FlexScheme.blueWhale),
         dark: FlexThemeData.dark(scheme: FlexScheme.blueWhale),
@@ -96,7 +98,8 @@ class ThemeController {
     }
 
     if (typeIndex == ThemeType.custom.index) {
-      loggerGlobal.fine("ThemeController", "Persisted theme type: custom, key=$key");
+      loggerGlobal.fine(
+          "ThemeController", "Persisted theme type: custom, key=$key");
       final UserThemeResult? theme = await _themeService?.getThemeByKey(key);
       if (theme != null) {
         currentThemeSignal.value = generateSeedTheme(
@@ -108,15 +111,18 @@ class ThemeController {
         return;
       }
       // If custom theme missing, fall through to predefined lookup
-      loggerGlobal.warning("ThemeController", "Custom theme $key not found. Falling back to predefined mapping.");
+      loggerGlobal.warning("ThemeController",
+          "Custom theme $key not found. Falling back to predefined mapping.");
     }
 
-    loggerGlobal.fine("ThemeController", "Persisted theme type: system, key=$key");
+    loggerGlobal.fine(
+        "ThemeController", "Persisted theme type: system, key=$key");
     final variants = getPredefinedTheme(key);
-    currentThemeSignal.value = variants ?? (
-      light: FlexThemeData.light(scheme: FlexScheme.blueWhale),
-      dark: FlexThemeData.dark(scheme: FlexScheme.blueWhale),
-    );
+    currentThemeSignal.value = variants ??
+        (
+          light: FlexThemeData.light(scheme: FlexScheme.blueWhale),
+          dark: FlexThemeData.dark(scheme: FlexScheme.blueWhale),
+        );
   }
 
   Future<ThemeMode> getThemeMode() async {
@@ -153,4 +159,3 @@ ThemeVariants generateSeedTheme({
     useTertiary: useTer,
   );
 }
-

@@ -1,5 +1,4 @@
 import "package:database/database.dart";
-import "package:database/models/item.dart";
 
 class ViewerItem {
   final String id;

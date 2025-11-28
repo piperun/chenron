@@ -7,7 +7,7 @@ import "package:chenron/shared/search/search_filter.dart";
 import "package:chenron/shared/search/local_searchbar.dart";
 
 // Re-export SortMode from SearchFilter for convenience
-export "package:chenron/shared/search/search_filter.dart" show SortMode;
+export "package:chenron/shared/search/search_filter.dart";
 
 enum ViewMode { grid, list }
 
@@ -609,4 +609,3 @@ class _ViewToggleButton extends StatelessWidget {
     );
   }
 }
-

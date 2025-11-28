@@ -4,7 +4,6 @@ import "package:database/actions/joins/relation_builder.dart";
 import "package:database/database.dart";
 import "package:database/extensions/base_query_builder.dart";
 import "package:database/schema/user_config_schema.dart";
-import "package:database/models/db_result.dart";
 import "package:drift/drift.dart";
 
 class ConfigRelationBuilder<T extends DbResult> extends RelationBuilder<T> {

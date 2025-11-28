@@ -4,7 +4,6 @@ import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:database/extensions/user_config/create.dart';
 import 'package:database/extensions/user_config/read.dart';
 import 'package:database/extensions/user_config/update.dart';
-import 'package:database/models/cud.dart';
 import 'package:chenron_mockups/chenron_mockups.dart';
 
 void main() {

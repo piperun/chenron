@@ -8,8 +8,7 @@ import "package:database/extensions/link/remove.dart";
 import "package:database/extensions/operations/database_file_handler.dart";
 import "package:chenron/features/viewer/ui/viewer_base_item.dart";
 import "package:chenron/locator.dart";
-import "package:database/models/db_result.dart" show FolderResult;
-import "package:database/models/item.dart";
+
 import "package:logger/logger.dart";
 import "package:rxdart/rxdart.dart";
 import "package:signals/signals.dart";

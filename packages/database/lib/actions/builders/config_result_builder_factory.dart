@@ -2,7 +2,6 @@ import "package:database/actions/builders/result_builder.dart";
 import "package:database/actions/builders/config_database/user_config_result_builder.dart";
 import "package:database/actions/builders/config_database/user_theme_result_builder.dart";
 import "package:database/database.dart";
-import "package:database/models/db_result.dart";
 import "package:drift/drift.dart";
 
 class ConfigResultBuilderFactory {

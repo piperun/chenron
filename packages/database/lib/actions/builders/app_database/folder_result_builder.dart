@@ -2,8 +2,6 @@ import "package:database/extensions/convert.dart";
 import "package:drift/drift.dart";
 import "package:database/actions/builders/result_builder.dart";
 import "package:database/database.dart";
-import "package:database/models/db_result.dart";
-import "package:database/models/item.dart";
 
 class FolderResultBuilder implements ResultBuilder<FolderResult> {
   final Folder _folder;

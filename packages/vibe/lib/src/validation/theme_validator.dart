@@ -1,4 +1,4 @@
-import 'package:vibe_core/src/spec/theme_spec.dart';
+import 'package:vibe/src/spec/theme_spec.dart';
 
 /// Validation result for theme compliance checks
 sealed class ValidationResult {
@@ -15,9 +15,9 @@ class ValidationSuccess extends ValidationResult {
 
 /// Theme failed one or more validation checks
 class ValidationFailure extends ValidationResult {
-  final List<String> errors;
 
   const ValidationFailure(this.errors);
+  final List<String> errors;
 
   @override
   String toString() => 'ValidationFailure(errors: $errors)';
@@ -25,10 +25,10 @@ class ValidationFailure extends ValidationResult {
 
 /// Exception thrown when theme validation fails
 class ThemeValidationException implements Exception {
-  final String message;
-  final List<String> errors;
 
   ThemeValidationException(this.message, {this.errors = const <String>[]});
+  final String message;
+  final List<String> errors;
 
   @override
   String toString() {

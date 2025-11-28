@@ -3,7 +3,6 @@ import "package:database/extensions/operations/config_file_handler.dart";
 import "package:database/extensions/user_config/read.dart";
 import "package:database/extensions/user_config/update.dart";
 import "package:chenron/locator.dart";
-import "package:database/models/db_result.dart";
 import "package:logger/logger.dart";
 import "package:signals/signals_flutter.dart";
 

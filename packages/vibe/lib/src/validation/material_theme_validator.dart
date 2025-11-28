@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:vibe_core/src/spec/theme_spec.dart';
-import 'package:vibe_core/src/validation/theme_validator.dart';
+import 'package:vibe/src/spec/theme_spec.dart';
+import 'package:vibe/src/validation/theme_validator.dart';
 
 /// Validator that checks for basic Material Design theme compliance
 final class MaterialThemeValidator extends ThemeValidator {
-  final bool requireCardTheme;
 
   const MaterialThemeValidator({
     this.requireCardTheme = false,
   });
+  final bool requireCardTheme;
 
   @override
   ValidationResult validate(ThemeVariants variants) {

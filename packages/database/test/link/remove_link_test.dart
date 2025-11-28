@@ -3,7 +3,6 @@ import 'package:database/database.dart';
 import 'package:database/extensions/link/create.dart';
 import 'package:database/extensions/link/remove.dart';
 import 'package:chenron_mockups/chenron_mockups.dart';
-import 'package:database/models/metadata.dart';
 
 void main() {
   setUpAll(() {

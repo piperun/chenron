@@ -1,8 +1,8 @@
 import "package:database/database.dart"; // ConfigDatabase, UserConfigsCompanion, UserThemesCompanion, UserTheme
 import "package:database/operations/vepr_operation.dart";
 import "package:database/schema/user_config_schema.dart"; // For table refs if needed, though types come from database.dart
-import "package:database/models/cud.dart"; // Import CUD
-import "package:database/models/created_ids.dart"; // Import UserThemeResultIds
+// Import CUD
+// Import UserThemeResultIds
 import "package:database/extensions/insert_ext.dart"; // For insertUserThemes extension
 import "package:drift/drift.dart"; // Value, batch, deleteWhere, update
 

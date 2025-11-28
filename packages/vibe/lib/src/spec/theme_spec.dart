@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 /// Unique identifier for a theme
 class ThemeId {
-  final String value;
 
   const ThemeId(this.value);
+  final String value;
 
   @override
   bool operator ==(Object other) =>
@@ -20,11 +20,6 @@ class ThemeId {
 
 /// Metadata describing a theme
 class ThemeMetadata {
-  final String name;
-  final String description;
-  final String? author;
-  final String? version;
-  final List<String> tags;
 
   const ThemeMetadata({
     required this.name,
@@ -33,6 +28,11 @@ class ThemeMetadata {
     this.version,
     this.tags = const <String>[],
   });
+  final String name;
+  final String description;
+  final String? author;
+  final String? version;
+  final List<String> tags;
 
   @override
   String toString() => 'ThemeMetadata(name: $name, tags: $tags)';

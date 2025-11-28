@@ -34,7 +34,7 @@ class _ViewerState extends State<Viewer> {
       FolderItemType.link => FolderItem.link(
           id: viewerItem.id,
           itemId: null,
-          url: viewerItem.description, // URL stored in description
+          url: viewerItem.description,
           tags: viewerItem.tags,
           createdAt: viewerItem.createdAt,
         ),
@@ -42,7 +42,7 @@ class _ViewerState extends State<Viewer> {
           id: viewerItem.id,
           itemId: null,
           title: viewerItem.title,
-          filePath: "", // This needs to be provided from the viewer item
+          filePath: "",
           tags: viewerItem.tags,
           createdAt: viewerItem.createdAt,
         ),

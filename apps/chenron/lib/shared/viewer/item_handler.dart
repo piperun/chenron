@@ -1,9 +1,8 @@
-﻿import "package:flutter/material.dart";
-import "package:database/models/item.dart";
+import "package:flutter/material.dart";
 import "package:chenron/features/viewer/state/viewer_state.dart";
 import "package:chenron/features/viewer/ui/viewer_base_item.dart";
 import "package:chenron/shared/dialogs/delete_confirmation_dialog.dart";
-import "package:database/database.dart" show AppDatabase;
+import "package:database/database.dart";
 import "package:database/extensions/folder/remove.dart";
 import "package:database/extensions/link/remove.dart";
 import "package:database/extensions/operations/database_file_handler.dart";

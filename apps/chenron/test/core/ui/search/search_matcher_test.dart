@@ -1,4 +1,3 @@
-import "package:database/models/db_result.dart";
 
 import "package:flutter_test/flutter_test.dart";
 import "package:chenron/shared/search/search_matcher.dart";

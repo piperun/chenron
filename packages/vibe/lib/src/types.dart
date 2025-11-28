@@ -1,8 +1,7 @@
 import 'package:flex_color_scheme/flex_color_scheme.dart';
-import 'package:flutter/material.dart';
 
-/// Identifier for a theme.
-typedef ThemeId = String;
+// Re-export from spec module
+export 'package:vibe/src/spec/theme_spec.dart' show ThemeId, ThemeVariants;
 
 /// Preferred theme mode selection.
 /// - [system]: follow platform brightness
@@ -18,9 +17,6 @@ enum ThemeModePref {
   /// Force dark mode.
   dark,
 }
-
-/// A pair of Material ThemeData for light and dark variants.
-typedef ThemeVariants = ({ThemeData light, ThemeData dark});
 
 /// A helper describing color roles for a theme based on FlexSchemeColor.
 ///

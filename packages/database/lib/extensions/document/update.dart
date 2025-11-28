@@ -2,7 +2,6 @@ import "package:database/database.dart";
 import "package:database/operations/document/document_update_vepr.dart";
 import "package:database/extensions/id.dart";
 import "package:database/extensions/tags/create.dart";
-import "package:database/models/metadata.dart";
 import "package:logger/logger.dart";
 import "package:drift/drift.dart";
 

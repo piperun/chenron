@@ -1,4 +1,4 @@
-import "package:database/models/item.dart" show FolderItem;
+import "package:database/models/item.dart";
 import "package:database/models/metadata.dart";
 import "package:drift/drift.dart";
 

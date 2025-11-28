@@ -1,7 +1,5 @@
 import "package:database/database.dart";
 import "package:database/operations/document/document_create_vepr.dart";
-import "package:database/models/created_ids.dart";
-import "package:database/models/metadata.dart";
 
 extension DocumentCreateExtensions on AppDatabase {
   /// Creates a new document along with its optional tags using the VEPR pattern.

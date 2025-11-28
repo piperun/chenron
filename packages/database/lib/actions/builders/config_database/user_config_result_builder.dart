@@ -1,7 +1,6 @@
 import "package:drift/drift.dart";
 import "package:database/actions/builders/result_builder.dart";
 import "package:database/database.dart";
-import "package:database/models/db_result.dart";
 
 class UserConfigResultBuilder implements ResultBuilder<UserConfigResult> {
   final UserConfig _userConfig;

@@ -1,11 +1,11 @@
-import 'package:vibe_core/src/spec/theme_spec.dart';
-import 'package:vibe_core/src/validation/theme_validator.dart';
+import 'package:vibe/src/spec/theme_spec.dart';
+import 'package:vibe/src/validation/theme_validator.dart';
 
 /// Exception thrown when theme registration fails
 class ThemeRegistrationException implements Exception {
-  final String message;
-
   ThemeRegistrationException(this.message);
+
+  final String message;
 
   @override
   String toString() => 'ThemeRegistrationException: $message';
@@ -13,10 +13,10 @@ class ThemeRegistrationException implements Exception {
 
 /// Registry for theme specifications with optional validation
 class ThemeRegistry<T extends ThemeSpec> {
-  final Map<ThemeId, T> _themes = <ThemeId, T>{};
-  final ThemeValidator? _validator;
 
   ThemeRegistry({ThemeValidator? validator}) : _validator = validator;
+  final Map<ThemeId, T> _themes = <ThemeId, T>{};
+  final ThemeValidator? _validator;
 
   /// Register a theme with optional validation
   void register(T spec, {bool validate = true}) {
@@ -63,6 +63,8 @@ class ThemeRegistry<T extends ThemeSpec> {
 
   /// Get all theme metadata without building themes
   List<ThemeMetadata> getMetadataList() {
-    return _themes.values.map((T spec) => spec.metadata).toList(growable: false);
+    return _themes.values
+        .map((T spec) => spec.metadata)
+        .toList(growable: false);
   }
 }

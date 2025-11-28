@@ -1,9 +1,9 @@
-// Re-export vibe_core for convenience
-// Vibe-specific exports
 export 'package:vibe/src/builders/flex_builders.dart';
 export 'package:vibe/src/controller.dart';
+export 'package:vibe/src/registry/theme_registry.dart';
+export 'package:vibe/src/spec/theme_spec.dart';
 export 'package:vibe/src/specs/flex_theme_spec.dart';
 export 'package:vibe/src/themes/index.dart';
-// Export only non-conflicting types from vibe's old types.dart
-export 'package:vibe/src/types.dart' show ThemeModePref, ThemeColors;
-export 'package:vibe_core/vibe_core.dart';
+export 'package:vibe/src/types.dart';
+export 'package:vibe/src/validation/material_theme_validator.dart';
+export 'package:vibe/src/validation/theme_validator.dart';

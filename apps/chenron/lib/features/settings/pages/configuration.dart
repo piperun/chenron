@@ -1,5 +1,5 @@
 import "package:flutter/material.dart";
-import "dart:async" show unawaited;
+import "dart:async";
 import "package:signals/signals_flutter.dart";
 
 import "package:chenron/features/settings/controller/config_controller.dart";
@@ -213,4 +213,3 @@ class SaveSettingsButton extends StatelessWidget {
     );
   }
 }
-

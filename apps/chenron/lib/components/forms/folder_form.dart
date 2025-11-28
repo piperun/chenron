@@ -1,4 +1,4 @@
-﻿import "dart:async";
+import "dart:async";
 import "package:chenron/shared/folder_input/folder_input_section.dart";
 import "package:chenron/shared/tag_section/tag_section.dart";
 import "package:chenron/features/create/folder/widgets/folder_parent_section.dart";
@@ -7,7 +7,6 @@ import "package:flutter/material.dart";
 import "package:database/database.dart";
 import "package:database/extensions/folder/read.dart";
 import "package:database/extensions/operations/database_file_handler.dart";
-import "package:database/models/item.dart";
 import "package:chenron/utils/validation/folder_validator.dart";
 import "package:chenron/locator.dart";
 import "package:signals/signals.dart";

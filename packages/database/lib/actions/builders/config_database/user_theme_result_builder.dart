@@ -1,7 +1,7 @@
 import "package:drift/drift.dart";
 import "package:database/actions/builders/result_builder.dart";
 import "package:database/database.dart"; // Should contain ConfigDatabase, UserTheme, UserConfig, and potentially ConfigIncludes enum
-import "package:database/models/db_result.dart"; // Should contain UserThemeResult
+// Should contain UserThemeResult
 
 /// Builds a [UserThemeResult] from query rows.
 ///

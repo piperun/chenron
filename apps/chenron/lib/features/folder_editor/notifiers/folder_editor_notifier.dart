@@ -1,11 +1,7 @@
-﻿import "package:chenron/components/forms/folder_form.dart";
+import "package:chenron/components/forms/folder_form.dart";
 import "package:database/extensions/folder/read.dart";
 import "package:database/extensions/folder/update.dart";
 import "package:database/extensions/operations/database_file_handler.dart";
-import "package:database/models/item.dart";
-import "package:database/models/metadata.dart";
-import "package:database/models/cud.dart";
-import "package:database/models/db_result.dart";
 import "package:database/database.dart";
 import "package:chenron/locator.dart";
 import "package:signals/signals.dart";

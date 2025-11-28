@@ -4,7 +4,7 @@ import "package:chenron/features/folder_editor/pages/folder_editor.dart";
 import "package:chenron/features/folder_viewer/pages/folder_viewer_page.dart";
 import "package:chenron/features/viewer/mvc/viewer_model.dart";
 import "package:chenron/features/viewer/ui/viewer_base_item.dart";
-import "package:database/models/db_result.dart" show FolderResult;
+import "package:database/models/db_result.dart";
 import "package:database/models/item.dart";
 import "package:chenron/shared/item_display/item_toolbar.dart";
 import "package:flutter/material.dart";

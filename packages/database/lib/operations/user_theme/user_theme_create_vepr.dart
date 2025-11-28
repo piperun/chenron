@@ -1,7 +1,6 @@
 import "package:database/database.dart"; // Needs ConfigDatabase
 import "package:database/extensions/insert_ext.dart"; // For insertUserThemes
 import "package:database/operations/vepr_operation.dart";
-import "package:database/models/created_ids.dart";
 
 // Define Input type
 typedef UserThemeCreateInput = ({

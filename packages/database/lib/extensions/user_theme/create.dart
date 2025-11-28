@@ -2,7 +2,6 @@ import "package:database/database.dart";
 // Remove old extension imports if they are only used by the old private method
 // import "package:database/extensions/insert_ext.dart";
 import "package:database/operations/user_theme/user_theme_create_vepr.dart"; // Import VEPR class
-import "package:database/models/created_ids.dart";
 
 extension UserThemeCreateExtension on ConfigDatabase {
   /// Creates new user themes associated with a user configuration using the VEPR pattern.

@@ -10,7 +10,7 @@ import "package:path/path.dart" as path;
 import "package:database/models/document_file_type.dart";
 
 // Export IncludeOptions from shared patterns for backward compatibility
-export "package:core/patterns/include_options.dart" show IncludeOptions;
+export "package:core/patterns/include_options.dart";
 export "package:database/models/cud.dart";
 export "package:database/models/folder.dart";
 export "package:database/models/item.dart";

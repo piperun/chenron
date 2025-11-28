@@ -1,6 +1,5 @@
 import "package:database/actions/joins/relation_builder.dart";
 import "package:database/database.dart";
-import "package:database/models/db_result.dart";
 import "package:drift/drift.dart";
 
 class ReadDbHandler<T extends DbResult> {

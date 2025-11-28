@@ -1,7 +1,6 @@
 import "package:database/database.dart";
 import "package:database/extensions/base_query_builder.dart";
 import "package:database/schema/app_schema.dart";
-import "package:database/models/item.dart";
 import "package:drift/drift.dart";
 
 class ItemJoins implements RowJoins<Items, FolderItem> {

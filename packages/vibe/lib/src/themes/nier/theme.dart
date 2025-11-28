@@ -1,8 +1,8 @@
 import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/material.dart';
+import 'package:vibe/src/spec/theme_spec.dart';
 import 'package:vibe/src/specs/flex_theme_spec.dart';
 import 'package:vibe/src/themes/nier/colors.dart';
-import 'package:vibe_core/vibe_core.dart';
 
 /// Nier: Automata themed implementation
 class NierTheme extends FlexThemeSpec {

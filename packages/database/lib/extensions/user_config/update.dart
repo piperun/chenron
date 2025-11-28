@@ -1,6 +1,5 @@
 import "package:database/database.dart";
 import "package:database/operations/user_config/user_config_update_vepr.dart";
-import "package:database/models/cud.dart";
 
 extension UserConfigUpdateExtensions on ConfigDatabase {
   Future<UserThemeCUDResults> updateUserConfig({

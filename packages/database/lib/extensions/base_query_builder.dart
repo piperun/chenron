@@ -1,7 +1,5 @@
 import "package:database/database.dart";
-import "package:database/models/db_result.dart";
-import "package:drift/drift.dart"
-    show Expression, GeneratedDatabase, Join, Table;
+import "package:drift/drift.dart";
 
 abstract class BaseRepository<M extends IncludeOptions<Enum>> {
   final GeneratedDatabase appDb;
@@ -39,5 +37,3 @@ abstract class RowJoins<T extends Table, R> {
   /// Create join operations for the given relation ID expression
   List<Join> createJoins(Expression<String> relationId);
 }
-
-

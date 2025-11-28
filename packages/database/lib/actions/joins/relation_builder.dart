@@ -1,6 +1,5 @@
 import "package:database/database.dart";
 import "package:database/extensions/base_query_builder.dart";
-import "package:database/models/db_result.dart" show DbResult;
 import "package:drift/drift.dart";
 import "package:database/actions/joins/app_data_joins.dart";
 import "package:database/actions/joins/config_joins.dart";
@@ -42,5 +41,3 @@ abstract class RelationBuilder<T extends DbResult> {
     required IncludeOptions<Enum> includeOptions,
   });
 }
-
-

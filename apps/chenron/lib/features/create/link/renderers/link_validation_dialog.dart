@@ -1,5 +1,5 @@
 import "package:flutter/material.dart";
-import "dart:async" show unawaited;
+import "dart:async";
 import "package:chenron/features/create/link/models/link_entry.dart";
 
 /// Dialog for displaying link validation status details
@@ -176,4 +176,3 @@ class LinkValidationDialog {
     return "";
   }
 }
-

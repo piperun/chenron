@@ -1,7 +1,5 @@
-﻿import "dart:io";
+import "dart:io";
 
-import "package:database/models/item.dart";
-import "package:database/models/metadata.dart";
 import "package:flutter_test/flutter_test.dart";
 import "package:drift/native.dart";
 import "package:database/database.dart";

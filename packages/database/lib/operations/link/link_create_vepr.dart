@@ -2,8 +2,6 @@ import "package:database/database.dart";
 import "package:database/extensions/id.dart";
 import "package:database/extensions/tags/create.dart";
 import "package:database/operations/vepr_operation.dart";
-import "package:database/models/created_ids.dart";
-import "package:database/models/metadata.dart";
 import "package:drift/drift.dart";
 
 // Define Input type using a Record

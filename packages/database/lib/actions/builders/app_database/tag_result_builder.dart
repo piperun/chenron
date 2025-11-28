@@ -1,8 +1,6 @@
-import "package:database/models/item.dart" show FolderItemType;
 import "package:drift/drift.dart";
 import "package:database/actions/builders/result_builder.dart";
 import "package:database/database.dart";
-import "package:database/models/db_result.dart";
 
 class TagResultBuilder implements ResultBuilder<TagResult> {
   final Tag _tag;

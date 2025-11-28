@@ -1,11 +1,9 @@
-﻿import "dart:async";
+import "dart:async";
 import "package:flutter/material.dart";
-import "package:database/database.dart" show AppDataInclude;
+import "package:database/database.dart";
 import "package:database/extensions/folder/read.dart";
 import "package:database/extensions/operations/database_file_handler.dart";
 import "package:chenron/locator.dart";
-import "package:database/models/db_result.dart";
-import "package:core/patterns/include_options.dart";
 import "package:signals/signals.dart";
 
 import "package:chenron/features/shell/ui/widgets/rail_header.dart";
@@ -142,4 +140,3 @@ class _FoldersNavigationRailState extends State<FoldersNavigationRail> {
     );
   }
 }
-

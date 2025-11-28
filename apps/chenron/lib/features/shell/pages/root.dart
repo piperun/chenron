@@ -1,5 +1,5 @@
 import "package:flutter/material.dart";
-import "dart:async" show unawaited;
+import "dart:async";
 import "package:chenron/shared/search/searchbar.dart";
 import "package:chenron/shared/search/search_filter.dart";
 import "package:core/patterns/include_options.dart";
@@ -382,4 +382,3 @@ class _SectionButton extends StatelessWidget {
     );
   }
 }
-

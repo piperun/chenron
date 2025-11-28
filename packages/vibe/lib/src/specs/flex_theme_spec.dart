@@ -1,7 +1,7 @@
 import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:vibe_core/vibe_core.dart';
+import 'package:vibe/src/spec/theme_spec.dart';
 
 /// Configuration for building FlexColorScheme themes
 class FlexThemeBuildConfig {

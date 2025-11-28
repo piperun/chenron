@@ -1,12 +1,10 @@
-﻿import "package:chenron/shared/tag_section/tag_section.dart";
+import "package:chenron/shared/tag_section/tag_section.dart";
 import "package:flutter/material.dart";
 import "package:database/database.dart";
 import "package:database/extensions/folder/update.dart";
 import "package:database/extensions/link/create.dart";
 import "package:database/extensions/operations/database_file_handler.dart";
 import "package:chenron/locator.dart";
-import "package:database/models/cud.dart";
-import "package:database/models/item.dart";
 import "package:signals/signals.dart";
 import "package:chenron/features/create/link/notifiers/create_link_notifier.dart";
 import "package:chenron/features/create/link/widgets/link_folder_section.dart";
@@ -20,7 +18,6 @@ import "package:chenron/features/create/link/models/validation_result.dart";
 import "package:chenron/utils/validation/link_validator.dart";
 import "package:chenron/utils/validation/tag_validator.dart";
 import "package:chenron/notifiers/item_table_notifier.dart";
-import "package:database/models/metadata.dart";
 import "package:logger/logger.dart";
 
 class CreateLinkPage extends StatefulWidget {

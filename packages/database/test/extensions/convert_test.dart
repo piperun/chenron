@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:database/database.dart';
 import 'package:database/extensions/convert.dart';
-import 'package:database/models/item.dart';
 import 'package:chenron_mockups/chenron_mockups.dart';
 
 void main() {
