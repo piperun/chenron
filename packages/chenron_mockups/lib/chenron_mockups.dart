@@ -9,6 +9,7 @@ export 'src/path_provider_mocks.dart';
 
 // Factories & Fixtures
 export 'src/folder_factory.dart';
+export 'src/document_factory.dart';
 export 'src/link_factory.dart' hide MetadataFactory;
 
 // Test Utilities
