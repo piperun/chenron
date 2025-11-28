@@ -12,31 +12,57 @@ class FolderTestData {
 }
 
 class FolderDraftFactory {
-  static FolderDraft create(String title, String description) {
-    return FolderDraft(title: title, description: description);
+  static FolderDraft create(String title, String description, {int? color}) {
+    return FolderDraft(title: title, description: description, color: color);
+  }
+
+  /// Creates a folder with a random color
+  static FolderDraft createWithRandomColor(String title, String description) {
+    final random = DateTime.now().millisecondsSinceEpoch % 0xFFFFFF;
+    final color = 0xFF000000 | random; // Full opacity + random RGB
+    return FolderDraft(title: title, description: description, color: color);
   }
 }
 
 class MetadataFactory {
   static List<Metadata> createTags(List<String> tagValues,
-      {Map<String, String>? ids, Map<String, String>? metadataIds}) {
+      {Map<String, String>? ids,
+      Map<String, String>? metadataIds,
+      Map<String, int>? colors}) {
     final List<Metadata> tags = [];
     for (String value in tagValues) {
+      final color = colors?[value];
       if (ids != null) {
-        tags.add(
-            Metadata(id: ids[value], value: value, type: MetadataTypeEnum.tag));
+        tags.add(Metadata(
+            id: ids[value],
+            value: value,
+            type: MetadataTypeEnum.tag,
+            color: color));
       }
       if (metadataIds != null) {
         tags.add(Metadata(
             metadataId: metadataIds[value],
             value: value,
-            type: MetadataTypeEnum.tag));
+            type: MetadataTypeEnum.tag,
+            color: color));
       }
       if (metadataIds == null && ids == null) {
-        tags.add(Metadata(value: value, type: MetadataTypeEnum.tag));
+        tags.add(
+            Metadata(value: value, type: MetadataTypeEnum.tag, color: color));
       }
     }
     return tags;
+  }
+
+  /// Creates tags with random colors
+  static List<Metadata> createTagsWithRandomColors(List<String> tagValues) {
+    final colors = <String, int>{};
+    for (var value in tagValues) {
+      final random =
+          (DateTime.now().millisecondsSinceEpoch + value.hashCode) % 0xFFFFFF;
+      colors[value] = 0xFF000000 | random; // Full opacity + random RGB
+    }
+    return createTags(tagValues, colors: colors);
   }
 }
 
@@ -71,10 +97,25 @@ class FolderTestDataFactory {
     required String description,
     required List<String> tagValues,
     required List<Map<String, dynamic>> itemsData,
+    int? color,
   }) {
     return FolderTestData(
-      folder: FolderDraftFactory.create(title, description),
+      folder: FolderDraftFactory.create(title, description, color: color),
       tags: MetadataFactory.createTags(tagValues),
+      items: FolderItemFactory.createItems(itemsData),
+    );
+  }
+
+  /// Creates test data with random colors for folder and tags
+  static FolderTestData createWithRandomColors({
+    required String title,
+    required String description,
+    required List<String> tagValues,
+    required List<Map<String, dynamic>> itemsData,
+  }) {
+    return FolderTestData(
+      folder: FolderDraftFactory.createWithRandomColor(title, description),
+      tags: MetadataFactory.createTagsWithRandomColors(tagValues),
       items: FolderItemFactory.createItems(itemsData),
     );
   }
