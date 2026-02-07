@@ -1,6 +1,6 @@
 name: cache_manager
 description: A caching package for handling metadata and image caching with persistence
-version: 1.0.0
+version: 0.1.0
 publish_to: none
 resolution: workspace
 

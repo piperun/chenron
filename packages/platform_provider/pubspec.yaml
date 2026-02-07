@@ -1,6 +1,6 @@
 name: platform_provider
 description: A platform abstraction package for Chenron.
-version: 0.0.1
+version: 0.1.0
 publish_to: 'none'
 resolution: workspace
 
