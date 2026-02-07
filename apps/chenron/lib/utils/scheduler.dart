@@ -1,4 +1,4 @@
-﻿import "package:database/src/core/handlers/database_file_handler.dart";
+﻿import "package:database/database.dart";
 import "package:chenron/locator.dart";
 import "package:logger/logger.dart";
 import "package:cron/cron.dart";

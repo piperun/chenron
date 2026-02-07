@@ -1,5 +1,5 @@
 import "package:logger/logger.dart";
-import "package:chenron/utils/str_sanitizer.dart";
+import "package:core/utils/str_sanitizer.dart";
 import "package:chenron/utils/metadata.dart";
 import "package:flutter/material.dart";
 import "package:cache_manager/cache_manager.dart";
