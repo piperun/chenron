@@ -58,6 +58,12 @@ example.png
 
 *_old
 
+# Secrets and credentials
+.env*
+*.pem
+*.key
+*.p12
+
 docs/
 
 *.html
