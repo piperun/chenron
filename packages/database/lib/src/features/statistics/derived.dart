@@ -51,7 +51,7 @@ extension DerivedStatistics on AppDatabase {
     // Total events
     final totalResult = await customSelect(
       "SELECT COUNT(*) AS total FROM activity_events "
-      "WHERE occurred_at >= ? AND occurred_at <= ?",
+      "WHERE datetime(occurred_at) >= datetime(?) AND datetime(occurred_at) <= datetime(?)",
       variables: [
         Variable.withDateTime(startDate),
         Variable.withDateTime(endDate),
@@ -64,7 +64,7 @@ extension DerivedStatistics on AppDatabase {
     final dayResult = await customSelect(
       "SELECT DATE(occurred_at) AS day, COUNT(*) AS count "
       "FROM activity_events "
-      "WHERE occurred_at >= ? AND occurred_at <= ? "
+      "WHERE datetime(occurred_at) >= datetime(?) AND datetime(occurred_at) <= datetime(?) "
       "GROUP BY day ORDER BY count DESC LIMIT 1",
       variables: [
         Variable.withDateTime(startDate),
@@ -84,7 +84,7 @@ extension DerivedStatistics on AppDatabase {
     final actionResult = await customSelect(
       "SELECT event_type, COUNT(*) AS count "
       "FROM activity_events "
-      "WHERE occurred_at >= ? AND occurred_at <= ? "
+      "WHERE datetime(occurred_at) >= datetime(?) AND datetime(occurred_at) <= datetime(?) "
       "GROUP BY event_type ORDER BY count DESC LIMIT 1",
       variables: [
         Variable.withDateTime(startDate),

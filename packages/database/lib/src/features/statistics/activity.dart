@@ -12,6 +12,7 @@ extension ActivityTracking on AppDatabase {
     await into(activityEvents).insert(
       ActivityEventsCompanion.insert(
         id: generateId(),
+        occurredAt: Value(DateTime.now()),
         eventType: eventType,
         entityType: entityType,
         entityId: entityId != null ? Value(entityId) : const Value.absent(),
@@ -48,7 +49,7 @@ extension ActivityTracking on AppDatabase {
   }) async {
     final query = customSelect(
       "SELECT event_type, COUNT(*) as count FROM activity_events "
-      "WHERE occurred_at >= ? AND occurred_at <= ? "
+      "WHERE datetime(occurred_at) >= datetime(?) AND datetime(occurred_at) <= datetime(?) "
       "GROUP BY event_type ORDER BY count DESC",
       variables: [
         Variable.withDateTime(startDate),
@@ -72,7 +73,7 @@ extension ActivityTracking on AppDatabase {
     final query = customSelect(
       "SELECT DATE(occurred_at) as day, entity_type, COUNT(*) as count "
       "FROM activity_events "
-      "WHERE occurred_at >= ? AND occurred_at <= ? "
+      "WHERE datetime(occurred_at) >= datetime(?) AND datetime(occurred_at) <= datetime(?) "
       "GROUP BY day, entity_type ORDER BY day ASC",
       variables: [
         Variable.withDateTime(startDate),

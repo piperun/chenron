@@ -16,7 +16,7 @@ extension RecentAccessTracking on AppDatabase {
       [
         entityId,
         entityType,
-        DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        DateTime.now().toUtc().toIso8601String(),
       ],
     );
   }

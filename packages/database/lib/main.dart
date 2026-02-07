@@ -320,7 +320,7 @@ class AppDatabase extends _$AppDatabase {
       AFTER INSERT ON links
       BEGIN
         INSERT INTO activity_events (id, occurred_at, event_type, entity_type, entity_id)
-        VALUES ($idExpr, strftime('%s', 'now'), 'link_created', 'link', NEW.id);
+        VALUES ($idExpr, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), 'link_created', 'link', NEW.id);
       END
     """);
     await customStatement("""
@@ -328,7 +328,7 @@ class AppDatabase extends _$AppDatabase {
       AFTER DELETE ON links
       BEGIN
         INSERT INTO activity_events (id, occurred_at, event_type, entity_type, entity_id)
-        VALUES ($idExpr, strftime('%s', 'now'), 'link_deleted', 'link', OLD.id);
+        VALUES ($idExpr, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), 'link_deleted', 'link', OLD.id);
       END
     """);
 
@@ -338,7 +338,7 @@ class AppDatabase extends _$AppDatabase {
       AFTER INSERT ON documents
       BEGIN
         INSERT INTO activity_events (id, occurred_at, event_type, entity_type, entity_id)
-        VALUES ($idExpr, strftime('%s', 'now'), 'document_created', 'document', NEW.id);
+        VALUES ($idExpr, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), 'document_created', 'document', NEW.id);
       END
     """);
     await customStatement("""
@@ -346,7 +346,7 @@ class AppDatabase extends _$AppDatabase {
       AFTER DELETE ON documents
       BEGIN
         INSERT INTO activity_events (id, occurred_at, event_type, entity_type, entity_id)
-        VALUES ($idExpr, strftime('%s', 'now'), 'document_deleted', 'document', OLD.id);
+        VALUES ($idExpr, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), 'document_deleted', 'document', OLD.id);
       END
     """);
 
@@ -356,7 +356,7 @@ class AppDatabase extends _$AppDatabase {
       AFTER INSERT ON folders
       BEGIN
         INSERT INTO activity_events (id, occurred_at, event_type, entity_type, entity_id)
-        VALUES ($idExpr, strftime('%s', 'now'), 'folder_created', 'folder', NEW.id);
+        VALUES ($idExpr, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), 'folder_created', 'folder', NEW.id);
       END
     """);
     await customStatement("""
@@ -364,7 +364,7 @@ class AppDatabase extends _$AppDatabase {
       AFTER DELETE ON folders
       BEGIN
         INSERT INTO activity_events (id, occurred_at, event_type, entity_type, entity_id)
-        VALUES ($idExpr, strftime('%s', 'now'), 'folder_deleted', 'folder', OLD.id);
+        VALUES ($idExpr, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), 'folder_deleted', 'folder', OLD.id);
       END
     """);
 
@@ -374,7 +374,7 @@ class AppDatabase extends _$AppDatabase {
       AFTER INSERT ON tags
       BEGIN
         INSERT INTO activity_events (id, occurred_at, event_type, entity_type, entity_id)
-        VALUES ($idExpr, strftime('%s', 'now'), 'tag_created', 'tag', NEW.id);
+        VALUES ($idExpr, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), 'tag_created', 'tag', NEW.id);
       END
     """);
     await customStatement("""
@@ -382,7 +382,7 @@ class AppDatabase extends _$AppDatabase {
       AFTER DELETE ON tags
       BEGIN
         INSERT INTO activity_events (id, occurred_at, event_type, entity_type, entity_id)
-        VALUES ($idExpr, strftime('%s', 'now'), 'tag_deleted', 'tag', OLD.id);
+        VALUES ($idExpr, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), 'tag_deleted', 'tag', OLD.id);
       END
     """);
   }
