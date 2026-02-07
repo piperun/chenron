@@ -1,0 +1,96 @@
+from_latest_tag = true
+ignore_merge_commits = true
+tag_prefix = "v"
+branch_whitelist = ["main"]
+monorepo_version_separator = "-"
+
+[commit_types]
+hotfix = { changelog_title = "Hotfixes", bump_patch = true }
+chore = { changelog_title = "Chores", omit_from_changelog = true }
+test = { changelog_title = "Tests", omit_from_changelog = true }
+ci = { changelog_title = "CI", omit_from_changelog = true }
+style = { changelog_title = "Style", omit_from_changelog = true }
+
+[changelog]
+path = "CHANGELOG.md"
+template = "remote"
+remote = "github.com"
+owner = "piperun"
+repository = "chenron-flutter"
+
+[[changelog.authors]]
+signature = "piperun"
+username = "piperun"
+
+[git_hooks.commit-msg]
+script = "#!/bin/sh\nset -e\ncog verify --file $1"
+
+[packages.chenron]
+path = "apps/chenron"
+public_api = true
+pre_bump_hooks = [
+  "sed -i 's/^version: .*/version: {{version}}+0/' pubspec.yaml",
+]
+
+[packages.database]
+path = "packages/database"
+public_api = true
+pre_bump_hooks = [
+  "sed -i 's/^version: .*/version: {{version}}/' pubspec.yaml",
+]
+
+[packages.core]
+path = "packages/core"
+public_api = true
+pre_bump_hooks = [
+  "sed -i 's/^version: .*/version: {{version}}/' pubspec.yaml",
+]
+
+[packages.basedir]
+path = "packages/basedir"
+public_api = false
+pre_bump_hooks = [
+  "sed -i 's/^version: .*/version: {{version}}/' pubspec.yaml",
+]
+
+[packages.cache_manager]
+path = "packages/cache_manager"
+public_api = false
+pre_bump_hooks = [
+  "sed -i 's/^version: .*/version: {{version}}/' pubspec.yaml",
+]
+
+[packages.logger]
+path = "packages/logger"
+public_api = false
+pre_bump_hooks = [
+  "sed -i 's/^version: .*/version: {{version}}/' pubspec.yaml",
+]
+
+[packages.vibe]
+path = "packages/vibe"
+public_api = false
+pre_bump_hooks = [
+  "sed -i 's/^version: .*/version: {{version}}/' pubspec.yaml",
+]
+
+[packages.web_archiver]
+path = "packages/web_archiver"
+public_api = false
+pre_bump_hooks = [
+  "sed -i 's/^version: .*/version: {{version}}/' pubspec.yaml",
+]
+
+[packages.platform_provider]
+path = "packages/platform_provider"
+public_api = false
+pre_bump_hooks = [
+  "sed -i 's/^version: .*/version: {{version}}/' pubspec.yaml",
+]
+
+[packages.chenron_mockups]
+path = "packages/chenron_mockups"
+public_api = false
+pre_bump_hooks = [
+  "sed -i 's/^version: .*/version: {{version}}/' pubspec.yaml",
+]
