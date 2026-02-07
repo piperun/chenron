@@ -4,7 +4,7 @@ import "package:chenron/components/metadata_factory.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/item_utils.dart";
 
 // Description widget
-class ItemDescription extends StatelessWidget {
+class ItemDescription extends StatefulWidget {
   final FolderItem item;
   final String? url;
   final int maxLines;
@@ -17,12 +17,33 @@ class ItemDescription extends StatelessWidget {
   });
 
   @override
+  State<ItemDescription> createState() => _ItemDescriptionState();
+}
+
+class _ItemDescriptionState extends State<ItemDescription> {
+  Future<Map<String, dynamic>?>? _metadataFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _initFuture();
+  }
+
+  void _initFuture() {
+    if (widget.item.type == FolderItemType.link &&
+        widget.url != null &&
+        widget.url!.isNotEmpty) {
+      _metadataFuture = MetadataFactory.getOrFetch(widget.url!);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    if (item.type == FolderItemType.link && url != null && url!.isNotEmpty) {
+    if (_metadataFuture != null) {
       return FutureBuilder<Map<String, dynamic>?>(
-        future: MetadataFactory.getOrFetch(url!),
+        future: _metadataFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Text("Loading...");
@@ -36,7 +57,7 @@ class ItemDescription extends StatelessWidget {
                 fontStyle: FontStyle.italic,
               ),
               softWrap: true,
-              maxLines: maxLines,
+              maxLines: widget.maxLines,
               overflow: TextOverflow.ellipsis,
             );
           }
@@ -46,15 +67,14 @@ class ItemDescription extends StatelessWidget {
     }
 
     return Text(
-      ItemUtils.getItemSubtitle(item),
+      ItemUtils.getItemSubtitle(widget.item),
       style: TextStyle(
         fontSize: 13,
         height: 1.4,
         color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
       ),
-      maxLines: maxLines,
+      maxLines: widget.maxLines,
       overflow: TextOverflow.ellipsis,
     );
   }
 }
-

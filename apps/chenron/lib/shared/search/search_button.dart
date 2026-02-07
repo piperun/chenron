@@ -16,7 +16,7 @@ class SearchButton extends StatelessWidget {
           onTap: () {
             unawaited(showDialog(
               context: context,
-              builder: (context) => SearchView(),
+              builder: (context) => const SearchView(),
             ));
           },
           child: Container(

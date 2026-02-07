@@ -4,7 +4,7 @@ import "package:chenron/components/metadata_factory.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/item_utils.dart";
 
 // Title widget
-class ItemTitle extends StatelessWidget {
+class ItemTitle extends StatefulWidget {
   final FolderItem item;
   final String? url;
   final int maxLines;
@@ -17,14 +17,31 @@ class ItemTitle extends StatelessWidget {
   });
 
   @override
+  State<ItemTitle> createState() => _ItemTitleState();
+}
+
+class _ItemTitleState extends State<ItemTitle> {
+  Future<Map<String, dynamic>?>? _metadataFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.item.type == FolderItemType.link &&
+        widget.url != null &&
+        widget.url!.isNotEmpty) {
+      _metadataFuture = MetadataFactory.getOrFetch(widget.url!);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    if (item.type == FolderItemType.link && url != null && url!.isNotEmpty) {
+    if (_metadataFuture != null) {
       return FutureBuilder<Map<String, dynamic>?>(
-        future: MetadataFactory.getOrFetch(url!),
+        future: _metadataFuture,
         builder: (context, snapshot) {
-          final title = snapshot.data?["title"] as String? ?? url!;
+          final title = snapshot.data?["title"] as String? ?? widget.url!;
           return Tooltip(
             message: title,
             child: Text(
@@ -35,7 +52,7 @@ class ItemTitle extends StatelessWidget {
                 height: 1.3,
                 letterSpacing: 0,
               ),
-              maxLines: maxLines,
+              maxLines: widget.maxLines,
               overflow: TextOverflow.ellipsis,
             ),
           );
@@ -44,24 +61,23 @@ class ItemTitle extends StatelessWidget {
     }
 
     // For folders and other items, use prominent styling
-    final title = ItemUtils.getItemTitle(item);
+    final title = ItemUtils.getItemTitle(widget.item);
     return Tooltip(
       message: title,
       child: Text(
         title,
         style: TextStyle(
           fontWeight: FontWeight.w700,
-          fontSize: item.type == FolderItemType.folder ? 16 : 15,
+          fontSize: widget.item.type == FolderItemType.folder ? 16 : 15,
           height: 1.3,
-          color: item.type == FolderItemType.folder
+          color: widget.item.type == FolderItemType.folder
               ? theme.colorScheme.onSurface
               : null,
-          letterSpacing: item.type == FolderItemType.folder ? 0.1 : 0,
+          letterSpacing: widget.item.type == FolderItemType.folder ? 0.1 : 0,
         ),
-        maxLines: maxLines,
+        maxLines: widget.maxLines,
         overflow: TextOverflow.ellipsis,
       ),
     );
   }
 }
-

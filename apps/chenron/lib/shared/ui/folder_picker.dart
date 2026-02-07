@@ -127,6 +127,8 @@ class _FolderSelectionDialogState extends State<FolderSelectionDialog> {
   late Set<Folder> _selectedFolders;
   String _searchQuery = "";
   List<Folder> _allFolders = [];
+  List<Folder>? _cachedFilteredFolders;
+  String? _lastSearchQuery;
   bool _isLoading = true;
 
   @override
@@ -141,6 +143,7 @@ class _FolderSelectionDialogState extends State<FolderSelectionDialog> {
       final results = await widget.db.getAllFolders();
       setState(() {
         _allFolders = results.map((r) => r.data).toList();
+        _cachedFilteredFolders = null;
         _isLoading = false;
       });
     } catch (e) {
@@ -148,9 +151,17 @@ class _FolderSelectionDialogState extends State<FolderSelectionDialog> {
     }
   }
 
-  List<Folder> get _filteredFolders => _allFolders
-      .where((f) => f.title.toLowerCase().contains(_searchQuery.toLowerCase()))
-      .toList();
+  List<Folder> get _filteredFolders {
+    if (_lastSearchQuery == _searchQuery && _cachedFilteredFolders != null) {
+      return _cachedFilteredFolders!;
+    }
+    _lastSearchQuery = _searchQuery;
+    _cachedFilteredFolders = _allFolders
+        .where(
+            (f) => f.title.toLowerCase().contains(_searchQuery.toLowerCase()))
+        .toList();
+    return _cachedFilteredFolders!;
+  }
 
   @override
   Widget build(BuildContext context) {

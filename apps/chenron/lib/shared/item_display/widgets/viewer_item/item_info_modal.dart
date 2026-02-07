@@ -228,16 +228,29 @@ class ItemInfoModal extends StatelessWidget {
   }
 }
 
-class _MetadataSection extends StatelessWidget {
+class _MetadataSection extends StatefulWidget {
   final String url;
 
   const _MetadataSection({required this.url});
 
   @override
+  State<_MetadataSection> createState() => _MetadataSectionState();
+}
+
+class _MetadataSectionState extends State<_MetadataSection> {
+  late final Future<Map<String, dynamic>?> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = MetadataFactory.getOrFetch(widget.url);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return FutureBuilder<Map<String, dynamic>?>(
-      future: MetadataFactory.getOrFetch(url),
+      future: _future,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting ||
             snapshot.hasError) {

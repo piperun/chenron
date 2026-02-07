@@ -1,3 +1,4 @@
+import "dart:async";
 import "package:flutter/material.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/item_utils.dart";
 
@@ -16,15 +17,23 @@ class ItemUrlBar extends StatefulWidget {
 
 class _ItemUrlBarState extends State<ItemUrlBar> {
   bool _copied = false;
+  Timer? _resetTimer;
 
   void _handleCopy() {
+    _resetTimer?.cancel();
     ItemUtils.copyUrl(widget.url);
     setState(() => _copied = true);
-    Future.delayed(const Duration(milliseconds: 1500), () {
+    _resetTimer = Timer(const Duration(milliseconds: 1500), () {
       if (mounted) {
         setState(() => _copied = false);
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _resetTimer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -106,4 +115,3 @@ class _ItemUrlBarState extends State<ItemUrlBar> {
     );
   }
 }
-

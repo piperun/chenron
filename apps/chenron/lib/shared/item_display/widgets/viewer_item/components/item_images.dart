@@ -4,7 +4,7 @@ import "package:flutter_cache_manager/flutter_cache_manager.dart" as fcm;
 import "package:chenron/components/metadata_factory.dart";
 
 // OG:image header for links
-class ItemImageHeader extends StatelessWidget {
+class ItemImageHeader extends StatefulWidget {
   final String url;
   final double height;
 
@@ -15,17 +15,30 @@ class ItemImageHeader extends StatelessWidget {
   });
 
   @override
+  State<ItemImageHeader> createState() => _ItemImageHeaderState();
+}
+
+class _ItemImageHeaderState extends State<ItemImageHeader> {
+  late final Future<List<dynamic>> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = Future.wait([
+      MetadataFactory.getOrFetch(widget.url),
+      ImageCacheManager.instance,
+    ]);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return FutureBuilder<List<dynamic>>(
-      future: Future.wait([
-        MetadataFactory.getOrFetch(url),
-        ImageCacheManager.instance,
-      ]),
+      future: _future,
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return _ImagePlaceholder(height: height, iconSize: 40);
+          return _ImagePlaceholder(height: widget.height, iconSize: 40);
         }
 
         final metadata = snapshot.data![0] as Map<String, dynamic>?;
@@ -34,7 +47,7 @@ class ItemImageHeader extends StatelessWidget {
 
         if (imageUrl != null && imageUrl.isNotEmpty) {
           return SizedBox(
-            height: height,
+            height: widget.height,
             width: double.infinity,
             child: CachedNetworkImage(
               imageUrl: imageUrl,
@@ -51,18 +64,18 @@ class ItemImageHeader extends StatelessWidget {
                 ),
               ),
               errorWidget: (context, url, error) =>
-                  _ImagePlaceholder(height: height, iconSize: 40),
+                  _ImagePlaceholder(height: widget.height, iconSize: 40),
             ),
           );
         }
-        return _ImagePlaceholder(height: height, iconSize: 40);
+        return _ImagePlaceholder(height: widget.height, iconSize: 40);
       },
     );
   }
 }
 
 // Thumbnail image for list view
-class ItemThumbnail extends StatelessWidget {
+class ItemThumbnail extends StatefulWidget {
   final String url;
   final double width;
   final double height;
@@ -75,17 +88,30 @@ class ItemThumbnail extends StatelessWidget {
   });
 
   @override
+  State<ItemThumbnail> createState() => _ItemThumbnailState();
+}
+
+class _ItemThumbnailState extends State<ItemThumbnail> {
+  late final Future<List<dynamic>> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = Future.wait([
+      MetadataFactory.getOrFetch(widget.url),
+      ImageCacheManager.instance,
+    ]);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<dynamic>>(
-      future: Future.wait([
-        MetadataFactory.getOrFetch(url),
-        ImageCacheManager.instance,
-      ]),
+      future: _future,
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return _ImagePlaceholder(
-            height: height,
-            width: width,
+            height: widget.height,
+            width: widget.width,
             iconSize: 32,
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(12),
@@ -105,15 +131,15 @@ class ItemThumbnail extends StatelessWidget {
               bottomLeft: Radius.circular(12),
             ),
             child: SizedBox(
-              width: width,
-              height: height,
+              width: widget.width,
+              height: widget.height,
               child: CachedNetworkImage(
                 imageUrl: imageUrl,
                 cacheManager: cacheManager,
                 fit: BoxFit.cover,
                 errorWidget: (context, url, error) => _ImagePlaceholder(
-                  height: height,
-                  width: width,
+                  height: widget.height,
+                  width: widget.width,
                   iconSize: 32,
                 ),
               ),
@@ -121,8 +147,8 @@ class ItemThumbnail extends StatelessWidget {
           );
         }
         return _ImagePlaceholder(
-          height: height,
-          width: width,
+          height: widget.height,
+          width: widget.width,
           iconSize: 32,
           borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(12),

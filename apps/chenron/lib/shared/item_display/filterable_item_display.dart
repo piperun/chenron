@@ -68,6 +68,7 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
   late final bool _ownsSearchFilter;
   late final TagFilterState _tagFilterState;
   late final bool _ownsTagFilterState;
+  late Map<FolderItemType, int> _itemCounts;
   bool _isLoadingDisplayMode = true;
   bool _isDeleteMode = false;
   final Map<String, FolderItem> _selectedItems = {};
@@ -79,6 +80,7 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
     _sortMode = widget.initialSortMode;
     _selectedTypes = Set.of(widget.initialSelectedTypes);
     _displayMode = widget.displayMode; // Use provided default initially
+    _itemCounts = _getItemCounts(widget.items);
 
     // Use external search filter if provided, otherwise create our own
     if (widget.externalSearchFilter != null) {
@@ -111,6 +113,14 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
         _displayMode = savedMode;
         _isLoadingDisplayMode = false;
       });
+    }
+  }
+
+  @override
+  void didUpdateWidget(FilterableItemDisplay oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.items != widget.items) {
+      _itemCounts = _getItemCounts(widget.items);
     }
   }
 
@@ -251,8 +261,6 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    final counts = _getItemCounts(widget.items);
-
     return Column(
       children: [
         Watch((context) {
@@ -286,9 +294,9 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
           );
         }),
         ItemStatsBar(
-          linkCount: counts[FolderItemType.link] ?? 0,
-          documentCount: counts[FolderItemType.document] ?? 0,
-          folderCount: counts[FolderItemType.folder] ?? 0,
+          linkCount: _itemCounts[FolderItemType.link] ?? 0,
+          documentCount: _itemCounts[FolderItemType.document] ?? 0,
+          folderCount: _itemCounts[FolderItemType.folder] ?? 0,
           selectedTypes: _selectedTypes,
           onFilterChanged: _onFilterChanged,
         ),
