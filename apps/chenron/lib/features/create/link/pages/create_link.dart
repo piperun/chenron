@@ -2,9 +2,9 @@ import "package:chenron/shared/tag_section/tag_section.dart";
 import "package:flutter/material.dart";
 import "package:database/database.dart";
 import "package:database/main.dart";
-import "package:chenron/locator.dart";
-import "package:signals/signals.dart";
 import "package:chenron/features/create/link/notifiers/create_link_notifier.dart";
+import "package:chenron/features/create/link/services/link_persistence_service.dart";
+
 import "package:chenron/features/create/link/widgets/link_folder_section.dart";
 import "package:chenron/features/create/link/widgets/link_input_section.dart";
 import "package:chenron/features/create/link/widgets/link_archive_toggle.dart";
@@ -297,64 +297,25 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
     if (_notifier.entries.isEmpty) return;
 
     try {
-      final db = locator.get<Signal<AppDatabaseHandler>>().value;
-      final appDb = db.appDatabase;
-
-      final targetFolders = _selectedFolders.isEmpty
-          ? ["default"]
-          : _selectedFolders.map((f) => f.id).toList();
-
-      for (final folderId in targetFolders) {
-        for (final entry in _notifier.entries) {
-          // Convert tags to Metadata objects
-          final tags = entry.tags.isNotEmpty
-              ? entry.tags
-                  .map((tag) => Metadata(
-                        value: tag,
-                        type: MetadataTypeEnum.tag,
-                      ))
-                  .toList()
-              : null;
-
-          final result = await appDb.createLink(
-            link: entry.url,
-            tags: tags,
-          );
-
-          await appDb.updateFolder(
-            folderId,
-            itemUpdates: CUD(
-              create: [],
-              update: [
-                FolderItem.link(
-                  id: null,
-                  itemId: result.linkId,
-                  url: entry.url,
-                )
-              ],
-              remove: [],
-            ),
-          );
-        }
-      }
+      final savedCount = await LinkPersistenceService().saveLinks(
+        entries: _notifier.entries,
+        folderIds: _selectedFolders.map((f) => f.id).toList(),
+      );
 
       if (mounted) {
-        // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              "Successfully saved ${_notifier.entries.length} link(s)",
+              "Successfully saved $savedCount link(s)",
             ),
             backgroundColor: Colors.green,
             duration: const Duration(seconds: 2),
           ),
         );
 
-        // If onSaved callback provided, call it (main page mode)
         if (widget.onSaved != null) {
           widget.onSaved!();
         } else {
-          // Otherwise, close via Navigator (modal mode)
           Navigator.pop(context);
         }
       }

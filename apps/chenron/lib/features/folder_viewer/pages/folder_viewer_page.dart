@@ -1,18 +1,15 @@
 import "package:database/main.dart";
+import "package:database/database.dart";
 import "package:flutter/material.dart";
 import "dart:async";
 import "package:chenron/features/folder_viewer/ui/components/folder_header.dart";
 import "package:chenron/shared/item_display/filterable_item_display.dart";
 import "package:chenron/shared/dialogs/delete_confirmation_dialog.dart";
+import "package:chenron/features/folder_viewer/services/folder_viewer_service.dart";
 
-import "package:chenron/locator.dart";
-
-import "package:database/database.dart";
 import "package:chenron/shared/tag_filter/tag_filter_state.dart";
 import "package:chenron/features/folder_editor/pages/folder_editor.dart";
-import "package:signals/signals_flutter.dart";
 import "package:logger/logger.dart";
-import "package:shared_preferences/shared_preferences.dart";
 import "package:chenron/features/shell/pages/root.dart";
 import "package:chenron/shared/viewer/item_handler.dart";
 
@@ -29,6 +26,7 @@ class FolderViewerPage extends StatefulWidget {
 }
 
 class _FolderViewerPageState extends State<FolderViewerPage> {
+  final _service = FolderViewerService();
   late Future<FolderResult> _folderData;
   late final TagFilterState _tagFilterState;
   bool _isHeaderExpanded = true;
@@ -39,69 +37,7 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
     super.initState();
     _tagFilterState = TagFilterState();
     unawaited(_loadLockState());
-    _folderData = _loadFolderWithParents();
-  }
-
-  Future<FolderResult> _loadFolderWithParents() async {
-    final db = locator.get<Signal<AppDatabaseHandler>>().value;
-
-    // Load the folder with its child items
-    final folder = await db.appDatabase.getFolder(
-      folderId: widget.folderId,
-      includeOptions:
-          const IncludeOptions({AppDataInclude.items, AppDataInclude.tags}),
-    );
-
-    if (folder == null) {
-      throw Exception("Folder not found");
-    }
-
-    // Load parent folders
-    final parentFolders = await _loadParentFolders(db.appDatabase);
-
-    // Convert parent folders to FolderItem and combine with existing items
-    final parentItems = parentFolders
-        .map((parentFolder) => parentFolder.toFolderItem(null))
-        .toList();
-
-    // Combine parent items with child items
-    final allItems = [...parentItems, ...folder.items];
-
-    return FolderResult(
-      data: folder.data,
-      tags: folder.tags,
-      items: allItems,
-    );
-  }
-
-  Future<List<Folder>> _loadParentFolders(AppDatabase db) async {
-    try {
-      // Query Items table to find folders that contain this folder
-      final items = db.items;
-      final query = db.select(items)
-        ..where((item) => item.itemId.equals(widget.folderId));
-      final results = await query.get();
-      final parentFolderIds = results.map((item) => item.folderId).toList();
-
-      if (parentFolderIds.isEmpty) return [];
-
-      // Fetch the actual folder data for each parent ID
-      final List<Folder> parentFolders = [];
-      for (final parentId in parentFolderIds) {
-        final folders = db.folders;
-        final folderQuery = db.select(folders)
-          ..where((folder) => folder.id.equals(parentId));
-        final folderResults = await folderQuery.get();
-        if (folderResults.isNotEmpty) {
-          parentFolders.add(folderResults.first);
-        }
-      }
-
-      return parentFolders;
-    } catch (e) {
-      loggerGlobal.warning("FOLDER_VIEWER", "Error loading parent folders: $e");
-      return [];
-    }
+    _folderData = _service.loadFolderWithParents(widget.folderId);
   }
 
   @override
@@ -111,19 +47,11 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
   }
 
   Future<void> _loadLockState() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final isLocked = prefs.getBool("folder_viewer_header_locked") ?? false;
-      if (mounted) {
-        setState(() {
-          _isHeaderLocked = isLocked;
-        });
-      }
-    } catch (e, stackTrace) {
-      loggerGlobal.warning(
-          "FolderViewer", "Failed to load lock state", e, stackTrace);
-      // Use default value (already initialized as false)
-      // No user-facing error needed - non-critical feature
+    final isLocked = await _service.loadLockState();
+    if (mounted) {
+      setState(() {
+        _isHeaderLocked = isLocked;
+      });
     }
   }
 
@@ -132,8 +60,7 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
     setState(() {
       _isHeaderLocked = newLockState;
     });
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool("folder_viewer_header_locked", newLockState);
+    await _service.saveLockState(isLocked: newLockState);
   }
 
   Future<void> _handleEdit() async {
@@ -150,9 +77,7 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
 
       // Refresh folder data after returning from editor
       if (mounted) {
-        setState(() {
-          _folderData = _loadFolderWithParents();
-        });
+        _refreshFolderData();
       }
     } catch (e, stackTrace) {
       loggerGlobal.severe(
@@ -169,7 +94,6 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
   }
 
   Future<void> _handleDelete(Folder folder) async {
-    // Show confirmation dialog
     final confirmed = await showDeleteConfirmationDialog(
       context: context,
       items: [
@@ -184,17 +108,13 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
 
     if (!confirmed || !mounted) return;
 
-    // Delete folder from database
     try {
-      final db = locator.get<Signal<AppDatabaseHandler>>().value;
-      final success = await db.appDatabase.removeFolder(folder.id);
+      final success = await _service.deleteFolder(folder.id);
 
       if (mounted) {
         if (success) {
-          // Navigate back to viewer
           Navigator.pop(context);
 
-          // Show success message on the viewer page
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text("Folder '${folder.title}' deleted successfully"),
@@ -220,6 +140,12 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
         );
       }
     }
+  }
+
+  void _refreshFolderData() {
+    setState(() {
+      _folderData = _service.loadFolderWithParents(widget.folderId);
+    });
   }
 
   @override
@@ -268,12 +194,9 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
                           onToggleLock: _toggleHeaderLock,
                           onTagTap: (tagName) {
                             Navigator.pop(context);
-                            // Access the global search filter to add the tag
                             final searchFilter = globalSearchFilterSignal.value;
                             if (searchFilter != null) {
-                              // Format as tag pattern and trigger submission
                               searchFilter.controller.value = "#$tagName";
-                              // Trigger onSubmitted to parse and add the tag to filter state
                               searchFilter.controller.onSubmitted
                                   ?.call("#$tagName");
                             }
@@ -302,8 +225,7 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
                   onDeleteRequested: (items) => handleItemDeletion(
                     context,
                     items,
-                    () =>
-                        setState(() => _folderData = _loadFolderWithParents()),
+                    _refreshFolderData,
                   ),
                 ),
               ),

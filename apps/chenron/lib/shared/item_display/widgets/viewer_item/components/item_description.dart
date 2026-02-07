@@ -21,9 +21,27 @@ class ItemDescription extends StatelessWidget {
     final theme = Theme.of(context);
 
     if (item.type == FolderItemType.link && url != null && url!.isNotEmpty) {
-      return MetadataDescription(
-        widget: MetadataWidget(url: url!),
-        maxLines: maxLines,
+      return FutureBuilder<Map<String, dynamic>?>(
+        future: MetadataFactory.getOrFetch(url!),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Text("Loading...");
+          }
+          final description = snapshot.data?["description"] as String?;
+          if (description != null) {
+            return Text(
+              description,
+              style: const TextStyle(
+                color: Colors.grey,
+                fontStyle: FontStyle.italic,
+              ),
+              softWrap: true,
+              maxLines: maxLines,
+              overflow: TextOverflow.ellipsis,
+            );
+          }
+          return const SizedBox.shrink();
+        },
       );
     }
 
