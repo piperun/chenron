@@ -76,8 +76,6 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
       appBar: widget.hideAppBar
           ? null
@@ -93,75 +91,16 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
             ),
       body: Column(
         children: [
-          // General error banner
           if (_generalError != null)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.errorContainer,
-                border: Border(
-                  bottom: BorderSide(color: theme.colorScheme.error, width: 2),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    color: theme.colorScheme.error,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      "Error: $_generalError",
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onErrorContainer,
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close, size: 18),
-                    onPressed: () => setState(() => _generalError = null),
-                    color: theme.colorScheme.error,
-                    tooltip: "Dismiss",
-                  ),
-                ],
-              ),
+            _ErrorBanner(
+              error: _generalError!,
+              onDismiss: () => setState(() => _generalError = null),
             ),
-          // Header with close button when in main page mode
           if (widget.hideAppBar && widget.onClose != null)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(color: theme.colorScheme.outlineVariant),
-                ),
-              ),
-              child: Row(
-                children: [
-                  IconButton(
-                    key: const Key("create_link_close_button"),
-                    icon: const Icon(Icons.close),
-                    onPressed: widget.onClose,
-                    tooltip: "Close",
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    "Add Links",
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const Spacer(),
-                  FilledButton.icon(
-                    key: const Key("create_link_header_save_button"),
-                    onPressed: _notifier.hasEntries ? _saveLinks : null,
-                    icon: const Icon(Icons.save, size: 18),
-                    label: const Text("Save"),
-                  ),
-                ],
-              ),
+            _PageHeader(
+              onClose: widget.onClose!,
+              onSave: _saveLinks,
+              hasEntries: _notifier.hasEntries,
             ),
           Expanded(
             child: Padding(
@@ -426,5 +365,103 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
         });
       }
     }
+  }
+}
+
+class _ErrorBanner extends StatelessWidget {
+  final String error;
+  final VoidCallback onDismiss;
+
+  const _ErrorBanner({
+    required this.error,
+    required this.onDismiss,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.errorContainer,
+        border: Border(
+          bottom: BorderSide(color: theme.colorScheme.error, width: 2),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.error_outline,
+            color: theme.colorScheme.error,
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              "Error: $error",
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onErrorContainer,
+              ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.close, size: 18),
+            onPressed: onDismiss,
+            color: theme.colorScheme.error,
+            tooltip: "Dismiss",
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PageHeader extends StatelessWidget {
+  final VoidCallback onClose;
+  final VoidCallback onSave;
+  final bool hasEntries;
+
+  const _PageHeader({
+    required this.onClose,
+    required this.onSave,
+    required this.hasEntries,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: theme.colorScheme.outlineVariant),
+        ),
+      ),
+      child: Row(
+        children: [
+          IconButton(
+            key: const Key("create_link_close_button"),
+            icon: const Icon(Icons.close),
+            onPressed: onClose,
+            tooltip: "Close",
+          ),
+          const SizedBox(width: 8),
+          Text(
+            "Add Links",
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const Spacer(),
+          FilledButton.icon(
+            key: const Key("create_link_header_save_button"),
+            onPressed: hasEntries ? onSave : null,
+            icon: const Icon(Icons.save, size: 18),
+            label: const Text("Save"),
+          ),
+        ],
+      ),
+    );
   }
 }

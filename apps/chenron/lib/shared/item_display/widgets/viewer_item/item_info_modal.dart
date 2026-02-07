@@ -118,67 +118,10 @@ class ItemInfoModal extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
 
-                    // Title
                     if (item.type == FolderItemType.link &&
                         url != null &&
                         url!.isNotEmpty)
-                      FutureBuilder<Map<String, dynamic>?>(
-                        future: MetadataFactory.getOrFetch(url!),
-                        builder: (context, snapshot) {
-                          final title = snapshot.data?["title"] as String?;
-                          if (title != null && title.isNotEmpty) {
-                            return Column(
-                              children: [
-                                _InfoSection(
-                                  title: "Title",
-                                  child: Text(
-                                    title,
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w500,
-                                      color: theme.colorScheme.onSurface,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                              ],
-                            );
-                          }
-                          return const SizedBox.shrink();
-                        },
-                      ),
-
-                    // Description
-                    if (item.type == FolderItemType.link &&
-                        url != null &&
-                        url!.isNotEmpty)
-                      FutureBuilder<Map<String, dynamic>?>(
-                        future: MetadataFactory.getOrFetch(url!),
-                        builder: (context, snapshot) {
-                          final description =
-                              snapshot.data?["description"] as String?;
-                          if (description != null && description.isNotEmpty) {
-                            return Column(
-                              children: [
-                                _InfoSection(
-                                  title: "Description",
-                                  child: Text(
-                                    description,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      height: 1.5,
-                                      color: theme.colorScheme.onSurface
-                                          .withValues(alpha: 0.8),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                              ],
-                            );
-                          }
-                          return const SizedBox.shrink();
-                        },
-                      ),
+                      _MetadataSection(url: url!),
 
                     // URL
                     if (item.type == FolderItemType.link &&
@@ -282,6 +225,64 @@ class ItemInfoModal extends StatelessWidget {
       case FolderItemType.folder:
         return Icons.folder;
     }
+  }
+}
+
+class _MetadataSection extends StatelessWidget {
+  final String url;
+
+  const _MetadataSection({required this.url});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return FutureBuilder<Map<String, dynamic>?>(
+      future: MetadataFactory.getOrFetch(url),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting ||
+            snapshot.hasError) {
+          return const SizedBox.shrink();
+        }
+
+        final title = snapshot.data?["title"] as String?;
+        final description = snapshot.data?["description"] as String?;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (title != null && title.isNotEmpty) ...[
+              _InfoSection(
+                title: "Title",
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+            if (description != null && description.isNotEmpty) ...[
+              _InfoSection(
+                title: "Description",
+                child: Text(
+                  description,
+                  style: TextStyle(
+                    fontSize: 14,
+                    height: 1.5,
+                    color: theme.colorScheme.onSurface
+                        .withValues(alpha: 0.8),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ],
+        );
+      },
+    );
   }
 }
 

@@ -74,130 +74,14 @@ class FolderHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Back button and toggle row
-          Row(
-            children: [
-              Material(
-                color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(6),
-                child: InkWell(
-                  onTap: onBack,
-                  borderRadius: BorderRadius.circular(6),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.arrow_back,
-                          size: 16,
-                          color: Colors.white.withValues(alpha: 0.95),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          "Back to Viewer",
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.white.withValues(alpha: 0.95),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              const Spacer(),
-              // Edit button
-              if (onEdit != null)
-                Material(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(6),
-                  child: InkWell(
-                    onTap: onEdit,
-                    borderRadius: BorderRadius.circular(6),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: Icon(
-                        Icons.edit,
-                        size: 20,
-                        color: Colors.white.withValues(alpha: 0.95),
-                      ),
-                    ),
-                  ),
-                ),
-              if (onEdit != null) const SizedBox(width: 8),
-              // Delete button
-              if (onDelete != null)
-                Material(
-                  color: Colors.red.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(6),
-                  child: InkWell(
-                    onTap: onDelete,
-                    borderRadius: BorderRadius.circular(6),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: Icon(
-                        Icons.delete,
-                        size: 20,
-                        color: Colors.red.shade200,
-                      ),
-                    ),
-                  ),
-                ),
-              if (onDelete != null) const SizedBox(width: 8),
-              // Lock button
-              Material(
-                color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(6),
-                child: InkWell(
-                  onTap: onToggleLock,
-                  borderRadius: BorderRadius.circular(6),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 200),
-                      transitionBuilder: (child, animation) {
-                        return FadeTransition(
-                          opacity: animation,
-                          child: ScaleTransition(
-                            scale: animation,
-                            child: child,
-                          ),
-                        );
-                      },
-                      child: Icon(
-                        isLocked ? Icons.lock : Icons.lock_open,
-                        key: ValueKey<bool>(isLocked),
-                        size: 20,
-                        color: Colors.white.withValues(alpha: 0.95),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              // Expand/collapse button
-              Material(
-                color: Colors.white.withValues(alpha: isLocked ? 0.1 : 0.2),
-                borderRadius: BorderRadius.circular(6),
-                child: InkWell(
-                  onTap: isLocked ? null : onToggle,
-                  borderRadius: BorderRadius.circular(6),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: Icon(
-                      isExpanded ? Icons.expand_less : Icons.expand_more,
-                      size: 20,
-                      color:
-                          Colors.white.withValues(alpha: isLocked ? 0.4 : 0.95),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+          _ActionRow(
+            onBack: onBack,
+            onEdit: onEdit,
+            onDelete: onDelete,
+            isLocked: isLocked,
+            onToggleLock: onToggleLock,
+            isExpanded: isExpanded,
+            onToggle: onToggle,
           ),
 
           const SizedBox(height: 16),
@@ -260,6 +144,150 @@ class FolderHeader extends StatelessWidget {
           ],
         ],
       ),
+    );
+  }
+}
+
+class _ActionRow extends StatelessWidget {
+  final VoidCallback onBack;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
+  final bool isLocked;
+  final VoidCallback onToggleLock;
+  final bool isExpanded;
+  final VoidCallback onToggle;
+
+  const _ActionRow({
+    required this.onBack,
+    this.onEdit,
+    this.onDelete,
+    required this.isLocked,
+    required this.onToggleLock,
+    required this.isExpanded,
+    required this.onToggle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Material(
+          color: Colors.white.withValues(alpha: 0.2),
+          borderRadius: BorderRadius.circular(6),
+          child: InkWell(
+            onTap: onBack,
+            borderRadius: BorderRadius.circular(6),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 8,
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.arrow_back,
+                    size: 16,
+                    color: Colors.white.withValues(alpha: 0.95),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    "Back to Viewer",
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.white.withValues(alpha: 0.95),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        const Spacer(),
+        if (onEdit != null)
+          Material(
+            color: Colors.white.withValues(alpha: 0.2),
+            borderRadius: BorderRadius.circular(6),
+            child: InkWell(
+              onTap: onEdit,
+              borderRadius: BorderRadius.circular(6),
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: Icon(
+                  Icons.edit,
+                  size: 20,
+                  color: Colors.white.withValues(alpha: 0.95),
+                ),
+              ),
+            ),
+          ),
+        if (onEdit != null) const SizedBox(width: 8),
+        if (onDelete != null)
+          Material(
+            color: Colors.red.withValues(alpha: 0.2),
+            borderRadius: BorderRadius.circular(6),
+            child: InkWell(
+              onTap: onDelete,
+              borderRadius: BorderRadius.circular(6),
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: Icon(
+                  Icons.delete,
+                  size: 20,
+                  color: Colors.red.shade200,
+                ),
+              ),
+            ),
+          ),
+        if (onDelete != null) const SizedBox(width: 8),
+        Material(
+          color: Colors.white.withValues(alpha: 0.2),
+          borderRadius: BorderRadius.circular(6),
+          child: InkWell(
+            onTap: onToggleLock,
+            borderRadius: BorderRadius.circular(6),
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                transitionBuilder: (child, animation) {
+                  return FadeTransition(
+                    opacity: animation,
+                    child: ScaleTransition(
+                      scale: animation,
+                      child: child,
+                    ),
+                  );
+                },
+                child: Icon(
+                  isLocked ? Icons.lock : Icons.lock_open,
+                  key: ValueKey<bool>(isLocked),
+                  size: 20,
+                  color: Colors.white.withValues(alpha: 0.95),
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Material(
+          color: Colors.white.withValues(alpha: isLocked ? 0.1 : 0.2),
+          borderRadius: BorderRadius.circular(6),
+          child: InkWell(
+            onTap: isLocked ? null : onToggle,
+            borderRadius: BorderRadius.circular(6),
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: Icon(
+                isExpanded ? Icons.expand_less : Icons.expand_more,
+                size: 20,
+                color:
+                    Colors.white.withValues(alpha: isLocked ? 0.4 : 0.95),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

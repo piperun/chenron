@@ -222,76 +222,6 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
     }
   }
 
-  Widget _buildCollapsedHeader(Folder folder) {
-    final theme = Theme.of(context);
-    return Container(
-      height: 60,
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            theme.colorScheme.primary.withValues(alpha: 0.9),
-            theme.colorScheme.secondary.withValues(alpha: 0.8),
-          ],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => Navigator.pop(context),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Text(
-              folder.title,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          // Lock button
-          IconButton(
-            icon: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 200),
-              transitionBuilder: (child, animation) {
-                return FadeTransition(
-                  opacity: animation,
-                  child: ScaleTransition(
-                    scale: animation,
-                    child: child,
-                  ),
-                );
-              },
-              child: Icon(
-                _isHeaderLocked ? Icons.lock : Icons.lock_open,
-                key: ValueKey<bool>(_isHeaderLocked),
-                color: Colors.white,
-              ),
-            ),
-            onPressed: () => _toggleHeaderLock(),
-          ),
-          Icon(
-            _isHeaderExpanded ? Icons.expand_less : Icons.expand_more,
-            color: Colors.white.withValues(alpha: _isHeaderLocked ? 0.4 : 1.0),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -309,14 +239,6 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
           final result = snapshot.data;
           if (result == null) {
             return const Center(child: Text("Folder not found"));
-          }
-
-          // Debug: log item tags
-          loggerGlobal.fine("FOLDER_VIEWER",
-              "${result.items.length} items, ${result.tags.length} folder tags");
-          for (final item in result.items.take(3)) {
-            loggerGlobal.fine("FOLDER_VIEWER",
-                '  Item ${item.id}: ${item.tags.length} tags - ${item.tags.map((t) => t.name).join(", ")}');
           }
 
           return Column(
@@ -357,7 +279,13 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
                           onEdit: _handleEdit,
                           onDelete: () => _handleDelete(result.data),
                         )
-                      : _buildCollapsedHeader(result.data),
+                      : _CollapsedHeader(
+                          folder: result.data,
+                          isHeaderLocked: _isHeaderLocked,
+                          isHeaderExpanded: _isHeaderExpanded,
+                          onBack: () => Navigator.pop(context),
+                          onToggleLock: _toggleHeaderLock,
+                        ),
                 ),
               ),
               Expanded(
@@ -378,6 +306,92 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+class _CollapsedHeader extends StatelessWidget {
+  final Folder folder;
+  final bool isHeaderLocked;
+  final bool isHeaderExpanded;
+  final VoidCallback onBack;
+  final VoidCallback onToggleLock;
+
+  const _CollapsedHeader({
+    required this.folder,
+    required this.isHeaderLocked,
+    required this.isHeaderExpanded,
+    required this.onBack,
+    required this.onToggleLock,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      height: 60,
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            theme.colorScheme.primary.withValues(alpha: 0.9),
+            theme.colorScheme.secondary.withValues(alpha: 0.8),
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: onBack,
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              folder.title,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          IconButton(
+            icon: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              transitionBuilder: (child, animation) {
+                return FadeTransition(
+                  opacity: animation,
+                  child: ScaleTransition(
+                    scale: animation,
+                    child: child,
+                  ),
+                );
+              },
+              child: Icon(
+                isHeaderLocked ? Icons.lock : Icons.lock_open,
+                key: ValueKey<bool>(isHeaderLocked),
+                color: Colors.white,
+              ),
+            ),
+            onPressed: onToggleLock,
+          ),
+          Icon(
+            isHeaderExpanded ? Icons.expand_less : Icons.expand_more,
+            color: Colors.white.withValues(alpha: isHeaderLocked ? 0.4 : 1.0),
+          ),
+        ],
       ),
     );
   }

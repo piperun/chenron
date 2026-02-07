@@ -30,7 +30,7 @@ class LinkValidationDialog {
                 style: const TextStyle(fontFamily: "monospace"),
               ),
               const SizedBox(height: 16),
-              _buildValidationChecks(entry, theme),
+              _ValidationChecks(entry: entry),
               if (entry.validationMessage != null) ...[
                 const SizedBox(height: 16),
                 Text("Details:", style: theme.textTheme.labelSmall),
@@ -73,15 +73,35 @@ class LinkValidationDialog {
     };
   }
 
-  static Widget _buildValidationChecks(LinkEntry entry, ThemeData theme) {
+  static String _getStatusCodeDescription(int code) {
+    if (code >= 200 && code < 300) return "✓ Success";
+    if (code >= 300 && code < 400) return "↪ Redirect";
+    if (code >= 400 && code < 500) return "✗ Client error";
+    if (code >= 500) return "✗ Server error";
+    return "";
+  }
+}
+
+class _ValidationChecks extends StatelessWidget {
+  final LinkEntry entry;
+
+  const _ValidationChecks({required this.entry});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final statusColor = LinkValidationDialog._getStatusColor(
+      entry.validationStatus,
+      theme,
+    );
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: _getStatusColor(entry.validationStatus, theme)
-              .withValues(alpha: 0.3),
+          color: statusColor.withValues(alpha: 0.3),
         ),
       ),
       child: Column(
@@ -94,48 +114,54 @@ class LinkValidationDialog {
             ),
           ),
           const SizedBox(height: 12),
-          _buildCheckItem(
-            "URL Format",
-            entry.validationStatus != LinkValidationStatus.invalid,
-            entry.validationStatus == LinkValidationStatus.invalid
+          _CheckItem(
+            label: "URL Format",
+            passed: entry.validationStatus != LinkValidationStatus.invalid,
+            description: entry.validationStatus == LinkValidationStatus.invalid
                 ? "Invalid format"
                 : "Valid format",
-            theme,
           ),
           const SizedBox(height: 8),
-          _buildCheckItem(
-            "DNS Resolution",
-            entry.validationStatus == LinkValidationStatus.valid ||
+          _CheckItem(
+            label: "DNS Resolution",
+            passed: entry.validationStatus == LinkValidationStatus.valid ||
                 entry.validationStatus == LinkValidationStatus.validating,
-            entry.validationStatus == LinkValidationStatus.valid
+            description: entry.validationStatus == LinkValidationStatus.valid
                 ? "Domain resolved"
                 : entry.validationStatus == LinkValidationStatus.validating
                     ? "Checking..."
                     : "Failed to resolve",
-            theme,
           ),
           const SizedBox(height: 8),
-          _buildCheckItem(
-            "HTTP Response",
-            entry.validationStatus == LinkValidationStatus.valid,
-            entry.validationStatusCode != null
-                ? "Status ${entry.validationStatusCode} ${_getStatusCodeDescription(entry.validationStatusCode!)}"
+          _CheckItem(
+            label: "HTTP Response",
+            passed: entry.validationStatus == LinkValidationStatus.valid,
+            description: entry.validationStatusCode != null
+                ? "Status ${entry.validationStatusCode} ${LinkValidationDialog._getStatusCodeDescription(entry.validationStatusCode!)}"
                 : entry.validationStatus == LinkValidationStatus.validating
                     ? "Waiting..."
                     : "No response",
-            theme,
           ),
         ],
       ),
     );
   }
+}
 
-  static Widget _buildCheckItem(
-    String label,
-    bool passed,
-    String description,
-    ThemeData theme,
-  ) {
+class _CheckItem extends StatelessWidget {
+  final String label;
+  final bool passed;
+  final String description;
+
+  const _CheckItem({
+    required this.label,
+    required this.passed,
+    required this.description,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -166,13 +192,5 @@ class LinkValidationDialog {
         ),
       ],
     );
-  }
-
-  static String _getStatusCodeDescription(int code) {
-    if (code >= 200 && code < 300) return "✓ Success";
-    if (code >= 300 && code < 400) return "↪ Redirect";
-    if (code >= 400 && code < 500) return "✗ Client error";
-    if (code >= 500) return "✗ Server error";
-    return "";
   }
 }

@@ -180,7 +180,11 @@ class MetadataImage extends StatelessWidget {
       future: _getCachedMetadata(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const CircularProgressIndicator();
+          return const SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          );
         } else if (snapshot.hasError) {
           return const SizedBox();
         } else {
