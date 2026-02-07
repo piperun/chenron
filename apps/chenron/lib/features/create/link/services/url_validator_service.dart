@@ -63,7 +63,7 @@ class UrlValidatorService {
         final response = await http
             .head(uri)
             .timeout(_timeout)
-            .catchError((_) async => await http.get(uri).timeout(_timeout));
+            .catchError((_) => http.get(uri).timeout(_timeout));
 
         final isReachable = response.statusCode >= 200 && response.statusCode < 400;
 
@@ -104,7 +104,7 @@ class UrlValidatorService {
       return UrlValidationResult(
         isValid: true,
         isReachable: false,
-        message: "Validation error: ${e.toString()}",
+        message: "Validation error: $e",
       );
     }
   }

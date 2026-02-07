@@ -1,7 +1,8 @@
+import "package:database/models/item.dart";
 import "package:flutter/material.dart";
 
 class ItemSectionToolbar extends StatelessWidget {
-  final List items;
+  final List<FolderItem> items;
   final bool hasSelectedRows;
   final VoidCallback onAddLink;
   final VoidCallback onAddDocument;

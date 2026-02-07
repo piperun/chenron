@@ -110,7 +110,7 @@ Future<void> handleItemDeletion(
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Failed to delete items: ${e.toString()}"),
+          content: Text("Failed to delete items: $e"),
           backgroundColor: Colors.red,
         ),
       );
@@ -124,10 +124,10 @@ Future<void> handleItemDeletion(
 Future<bool> deleteItem(AppDatabase db, FolderItem item) async {
   switch (item.type) {
     case FolderItemType.folder:
-      return await db.removeFolder(item.id!);
+      return db.removeFolder(item.id!);
     case FolderItemType.link:
-      return await db.removeLink(item.id!);
+      return db.removeLink(item.id!);
     case FolderItemType.document:
-      return await db.removeDocument(item.id!);
+      return db.removeDocument(item.id!);
   }
 }

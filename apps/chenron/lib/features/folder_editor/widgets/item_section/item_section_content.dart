@@ -15,8 +15,8 @@ class ItemSectionContent extends StatelessWidget {
   final VoidCallback onDeleteSelected;
   final bool hasSelectedRows;
   final List<TrinaColumn> columns;
-  final List<TrinaRow> Function(List<FolderItem>) buildRows;
-  final ItemTableNotifier tableNotifier;
+  final List<TrinaRow<dynamic>> Function(List<FolderItem>) buildRows;
+  final ItemTableNotifier<FolderItem> tableNotifier;
 
   const ItemSectionContent({
     super.key,

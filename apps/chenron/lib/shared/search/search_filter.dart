@@ -72,7 +72,7 @@ class SearchFilter {
 
   /// Load search history (if history feature is enabled)
   Future<List<SearchHistoryItem>> loadHistory() async {
-    return await _featureManager.loadHistory();
+    return _featureManager.loadHistory();
   }
 
   /// Clear search history (if history feature is enabled)

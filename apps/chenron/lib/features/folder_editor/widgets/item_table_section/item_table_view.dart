@@ -10,8 +10,8 @@ class ItemTableView extends StatelessWidget {
   final List<FolderItem> allItems;
   final bool hasSearchQuery;
   final List<TrinaColumn> columns;
-  final List<TrinaRow> Function(List<FolderItem>) buildRows;
-  final ItemTableNotifier tableNotifier;
+  final List<TrinaRow<dynamic>> Function(List<FolderItem>) buildRows;
+  final ItemTableNotifier<FolderItem> tableNotifier;
 
   const ItemTableView({
     super.key,

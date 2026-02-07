@@ -8,9 +8,7 @@ import "package:chenron_mockups/chenron_mockups.dart";
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  setUpAll(() {
-    installFakePathProvider();
-  });
+  setUpAll(installFakePathProvider);
 
   group("basedir provider", () {
     test("initializeBaseDirs creates expected layout", () async {

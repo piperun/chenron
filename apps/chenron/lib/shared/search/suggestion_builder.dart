@@ -115,7 +115,7 @@ class SuggestionFactory {
     if (context.mounted) {
       Navigator.push(
         context,
-        MaterialPageRoute(
+        MaterialPageRoute<void>(
           builder: (context) => FolderViewerPage(folderId: folderId),
         ),
       );

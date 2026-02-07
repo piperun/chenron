@@ -83,7 +83,7 @@ class LocalSearchBar extends StatelessWidget {
 
     if (!context.mounted) return;
 
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       builder: (context) => _HistoryModal(
         history: history,

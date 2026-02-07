@@ -217,7 +217,7 @@ class CreateLinkNotifier extends ChangeNotifier {
     final keys = _entries.map((e) => e.key).toList(growable: false);
 
     if (parallel) {
-      await Future.wait(keys.map((key) => _validateEntry(key)));
+      await Future.wait(keys.map(_validateEntry));
     } else {
       for (final key in keys) {
         await _validateEntry(key);

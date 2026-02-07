@@ -32,9 +32,7 @@ class _TagFieldState extends State<TagField> {
                 onFieldSubmit: (value) {
                   if (FolderValidator.validateTags(value) == null) {
                     folderDraft.addTag(value, MetadataTypeEnum.tag);
-                    setState(() {
-                      _tagsController.clear();
-                    });
+                    setState(_tagsController.clear);
                   }
                 },
               ),

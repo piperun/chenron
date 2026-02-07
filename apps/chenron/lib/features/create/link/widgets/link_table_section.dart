@@ -9,7 +9,7 @@ import "package:chenron/features/create/link/renderers/link_table_actions.dart";
 
 class LinkTableSection extends StatelessWidget {
   final List<LinkEntry> entries;
-  final ItemTableNotifier notifier;
+  final ItemTableNotifier<dynamic> notifier;
   final ValueChanged<Key> onEdit;
   final ValueChanged<Key> onDelete;
   final VoidCallback onDeleteSelected;

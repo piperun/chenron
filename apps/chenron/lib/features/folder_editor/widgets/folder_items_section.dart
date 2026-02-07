@@ -29,14 +29,14 @@ class FolderItemsSection extends StatefulWidget {
 }
 
 class _FolderItemsSectionState extends State<FolderItemsSection> {
-  late final ItemTableNotifier _tableNotifier;
+  late final ItemTableNotifier<FolderItem> _tableNotifier;
   late final ItemSectionController _controller;
   late final List<TrinaColumn> _columns;
 
   @override
   void initState() {
     super.initState();
-    _tableNotifier = ItemTableNotifier();
+    _tableNotifier = ItemTableNotifier<FolderItem>();
     _controller = ItemSectionController();
     _columns = _buildColumns();
 
@@ -66,7 +66,7 @@ class _FolderItemsSectionState extends State<FolderItemsSection> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Failed to refresh items: ${e.toString()}"),
+            content: Text("Failed to refresh items: $e"),
             backgroundColor: Colors.red,
           ),
         );
@@ -78,7 +78,7 @@ class _FolderItemsSectionState extends State<FolderItemsSection> {
     try {
       await Navigator.push(
         context,
-        MaterialPageRoute(
+        MaterialPageRoute<void>(
           builder: (context) => CreateLinkPage(
             hideAppBar: true,
             onClose: () => Navigator.pop(context),
@@ -172,13 +172,13 @@ class _FolderItemsSectionState extends State<FolderItemsSection> {
     ];
   }
 
-  List<TrinaRow> _buildRows(List<FolderItem> items) {
+  List<TrinaRow<dynamic>> _buildRows(List<FolderItem> items) {
     return items.asMap().entries.map((entry) {
       final index = entry.key;
       final item = entry.value;
       final title = ItemSectionController.getTitleFromItem(item);
 
-      return TrinaRow(
+      return TrinaRow<dynamic>(
         key: ValueKey("item_row_$index"),
         cells: {
           "type": TrinaCell(value: item.type.name),

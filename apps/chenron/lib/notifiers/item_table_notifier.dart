@@ -23,7 +23,7 @@ class ItemTableNotifier<T> extends ChangeNotifier {
     notifyListeners();
   }
 
-  void appendRow(TrinaRow row, {String? key}) {
+  void appendRow(TrinaRow<dynamic> row, {String? key}) {
     if (_stateManager != null) {
       final String? newUrl = row.cells[key]?.value as String?;
 
@@ -46,10 +46,10 @@ class ItemTableNotifier<T> extends ChangeNotifier {
     notifyListeners();
   }
 
-  List<TrinaRow> getRows(List<FolderItem> items) {
+  List<TrinaRow<dynamic>> getRows(List<FolderItem> items) {
     return items.map((item) {
       return item.map(
-        link: (linkItem) => TrinaRow(
+        link: (linkItem) => TrinaRow<dynamic>(
           key: ValueKey(linkItem.itemId ?? linkItem.id ?? ""),
           cells: {
             "url": TrinaCell(value: linkItem.url),
@@ -57,7 +57,7 @@ class ItemTableNotifier<T> extends ChangeNotifier {
             "tags": TrinaCell(value: linkItem.tags),
           },
         ),
-        document: (docItem) => TrinaRow(
+        document: (docItem) => TrinaRow<dynamic>(
           key: ValueKey(docItem.itemId ?? docItem.id ?? ""),
           cells: {
             "url": TrinaCell(value: docItem.filePath),
@@ -65,7 +65,7 @@ class ItemTableNotifier<T> extends ChangeNotifier {
             "tags": TrinaCell(value: docItem.tags),
           },
         ),
-        folder: (folderItem) => TrinaRow(
+        folder: (folderItem) => TrinaRow<dynamic>(
           key: ValueKey(folderItem.itemId ?? folderItem.id ?? ""),
           cells: {
             "url": TrinaCell(value: folderItem.folderId),

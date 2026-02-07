@@ -140,7 +140,7 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
     try {
       await Navigator.push(
         context,
-        MaterialPageRoute(
+        MaterialPageRoute<void>(
           builder: (context) => FolderEditor(
             folderId: widget.folderId,
             hideAppBar: false,
@@ -214,7 +214,7 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Error deleting folder: ${e.toString()}"),
+            content: Text("Error deleting folder: $e"),
             backgroundColor: Colors.red,
           ),
         );

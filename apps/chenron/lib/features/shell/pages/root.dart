@@ -227,7 +227,7 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onSettingsPressed;
   final SearchFilter searchFilter;
   final NavigationSection currentSection;
-  final Function(NavigationSection) onSectionSelected;
+  final void Function(NavigationSection) onSectionSelected;
 
   const _AppBar({
     required this.onSettingsPressed,
@@ -292,7 +292,7 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
 // Custom Section Toggle Widget
 class _SectionToggle extends StatelessWidget {
   final NavigationSection currentSection;
-  final Function(NavigationSection) onSectionSelected;
+  final void Function(NavigationSection) onSectionSelected;
 
   const _SectionToggle({
     required this.currentSection,

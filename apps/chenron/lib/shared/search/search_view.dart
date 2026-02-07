@@ -38,7 +38,7 @@ class SearchView extends StatelessWidget {
                 trailing: [
                   IconButton(
                     icon: const Icon(Icons.clear),
-                    onPressed: () => searchController.clear(),
+                    onPressed: searchController.clear,
                   ),
                 ],
                 onChanged: (value) {

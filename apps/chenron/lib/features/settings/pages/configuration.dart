@@ -139,7 +139,7 @@ class SettingsBody extends StatelessWidget {
     scaffoldMessenger.hideCurrentSnackBar();
 
     // Wait a brief moment to ensure the previous snackbar is dismissed
-    await Future.delayed(const Duration(milliseconds: 100));
+    await Future<void>.delayed(const Duration(milliseconds: 100));
 
     // Show result feedback
     if (context.mounted) {

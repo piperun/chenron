@@ -3,7 +3,7 @@ import "package:chenron/features/create/folder/pages/create_folder.dart";
 import "package:chenron/features/create/link/pages/create_link.dart";
 
 class ShellAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final Function(BuildContext, Widget, String) onNavigateToCreate;
+  final void Function(BuildContext, Widget, String) onNavigateToCreate;
 
   const ShellAppBar({
     super.key,
@@ -129,7 +129,7 @@ class _SearchBarSection extends StatelessWidget {
 }
 
 class _ActionsSection extends StatelessWidget {
-  final Function(BuildContext, Widget, String) onNavigateToCreate;
+  final void Function(BuildContext, Widget, String) onNavigateToCreate;
 
   const _ActionsSection({required this.onNavigateToCreate});
 

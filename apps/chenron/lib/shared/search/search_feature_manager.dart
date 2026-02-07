@@ -108,7 +108,7 @@ class SearchFeatureManager {
   /// Load search history (if history feature is enabled)
   Future<List<SearchHistoryItem>> loadHistory() async {
     if (_historyManager != null) {
-      return await _historyManager!.loadHistory();
+      return _historyManager!.loadHistory();
     }
     return [];
   }

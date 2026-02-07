@@ -4,8 +4,8 @@ class InfoField extends StatelessWidget {
   final String labelText;
   final TextEditingController controller;
   final String? Function(String?)? validator;
-  final Function(String)? onSaved;
-  final Function(String)? onFieldSubmit;
+  final void Function(String)? onSaved;
+  final void Function(String)? onFieldSubmit;
 
   const InfoField({
     super.key,

@@ -18,7 +18,7 @@ import "package:chenron/features/shell/ui/widgets/rail_bottom_section.dart";
 /// Feature flags control visibility of sync-related and premium features.
 class FoldersNavigationRail extends StatefulWidget {
   final String? selectedFolderId;
-  final Function(String folderId) onFolderSelected;
+  final void Function(String folderId) onFolderSelected;
   final bool isExtended;
   final VoidCallback onToggleExtended;
   final VoidCallback onAddPressed;

@@ -32,8 +32,8 @@ void locatorSetup() {
   });
 
   // Register ConfigService
-  locator.registerLazySingleton<ConfigService>(() => ConfigService());
+  locator.registerLazySingleton<ConfigService>(ConfigService.new);
 
   // Register ConfigController
-  locator.registerLazySingleton<ConfigController>(() => ConfigController());
+  locator.registerLazySingleton<ConfigController>(ConfigController.new);
 }

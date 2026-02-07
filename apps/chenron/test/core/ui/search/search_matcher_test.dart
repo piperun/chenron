@@ -48,7 +48,7 @@ void main() {
     });
 
     test("URL matching with various search terms", () {
-      final items = urlTestCases.map((url) => _createMockLink(url)).toList();
+      final items = urlTestCases.map(_createMockLink).toList();
 
       final results = matcher.getTopUrlMatches(
         items,
@@ -62,7 +62,7 @@ void main() {
 
     test("URL matching with empty search", () {
       matcher = SearchMatcher("");
-      final items = urlTestCases.map((url) => _createMockLink(url)).toList();
+      final items = urlTestCases.map(_createMockLink).toList();
 
       final results = matcher.getTopUrlMatches(
         items,
@@ -94,7 +94,7 @@ void main() {
 
     test("Content matching with fuzzy search", () {
       final items = contentTestCases
-          .map((content) => _createMockFolder(content))
+          .map(_createMockFolder)
           .toList();
 
       final results = matcher.getTopContentMatches(

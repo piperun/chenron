@@ -46,9 +46,7 @@ class _MockAppDatabaseHandler implements AppDatabaseHandler {
 void main() {
   late MockDatabaseHelper mockDb;
 
-  setUpAll(() {
-    installTestLogger();
-  });
+  setUpAll(installTestLogger);
 
   setUp(() async {
     // Set up mock database for GetIt dependencies

@@ -3,9 +3,9 @@ import "package:chenron/features/create/link/models/link_entry.dart";
 
 /// Builder for converting LinkEntry objects to TrinaRow objects
 class LinkRowBuilder {
-  static List<TrinaRow> build(List<LinkEntry> entries) {
+  static List<TrinaRow<dynamic>> build(List<LinkEntry> entries) {
     return entries.map((entry) {
-      return TrinaRow(
+      return TrinaRow<dynamic>(
         key: entry.key,
         cells: {
           "status": TrinaCell(value: ""),

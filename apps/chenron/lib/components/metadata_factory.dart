@@ -129,7 +129,7 @@ class MetadataDescription extends StatelessWidget {
 
   Future<Map<String, dynamic>?> _getCachedMetadata() async {
     if (widget.metadata != null) return widget.metadata;
-    return await MetadataFactory.getOrFetch(widget.url);
+    return MetadataFactory.getOrFetch(widget.url);
   }
 
   @override
@@ -171,7 +171,7 @@ class MetadataImage extends StatelessWidget {
 
   Future<Map<String, dynamic>?> _getCachedMetadata() async {
     if (widget.metadata != null) return widget.metadata;
-    return await MetadataFactory.getOrFetch(widget.url);
+    return MetadataFactory.getOrFetch(widget.url);
   }
 
   @override
@@ -206,7 +206,7 @@ class MetadataUrl extends StatelessWidget {
 
   Future<Map<String, dynamic>?> _getCachedMetadata() async {
     if (widget.metadata != null) return widget.metadata;
-    return await MetadataFactory.getOrFetch(widget.url);
+    return MetadataFactory.getOrFetch(widget.url);
   }
 
   @override

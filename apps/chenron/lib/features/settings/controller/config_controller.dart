@@ -117,7 +117,7 @@ class ConfigController {
     for (var scheme in FlexScheme.values) {
       choices.add(ThemeChoice(
           key: scheme.name,
-          name: scheme.name.toString(),
+          name: scheme.name,
           type: ThemeType.system));
     }
 

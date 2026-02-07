@@ -5,8 +5,8 @@ class ActiveFiltersTab extends StatefulWidget {
   final Set<String> excludedTags;
   final TextEditingController searchController;
   final VoidCallback onClearAll;
-  final Function(String) onRemoveIncluded;
-  final Function(String) onRemoveExcluded;
+  final void Function(String) onRemoveIncluded;
+  final void Function(String) onRemoveExcluded;
   final VoidCallback onClearIncluded;
   final VoidCallback onClearExcluded;
 

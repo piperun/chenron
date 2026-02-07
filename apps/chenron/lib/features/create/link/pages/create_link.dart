@@ -40,7 +40,7 @@ class CreateLinkPage extends StatefulWidget {
 
 class _CreateLinkPageState extends State<CreateLinkPage> {
   late CreateLinkNotifier _notifier;
-  final ItemTableNotifier _tableNotifier = ItemTableNotifier();
+  final ItemTableNotifier<FolderItem> _tableNotifier = ItemTableNotifier<FolderItem>();
   List<Folder> _selectedFolders = [];
   String? _singleInputError;
   String? _generalError;
@@ -250,7 +250,7 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
     if (entry == null) return;
 
     try {
-      await showModalBottomSheet(
+      await showModalBottomSheet<void>(
         context: context,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
@@ -361,7 +361,7 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _generalError = "Could not save: ${e.toString()}";
+          _generalError = "Could not save: $e";
         });
       }
     }

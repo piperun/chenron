@@ -7,9 +7,9 @@ class AvailableTagsTab extends StatelessWidget {
   final Set<String> excludedTags;
   final TextEditingController searchController;
   final String searchQuery;
-  final Function(String) onInclude;
-  final Function(String) onExclude;
-  final Function(String) onRemove;
+  final void Function(String) onInclude;
+  final void Function(String) onExclude;
+  final void Function(String) onRemove;
 
   const AvailableTagsTab({
     super.key,

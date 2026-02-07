@@ -7,9 +7,9 @@ class ShellNavigationRail extends StatelessWidget {
   final bool isExtended;
   final int? selectedIndex;
   final List<NavigationRailDestination> destinations;
-  final Function(int) onDestinationSelected;
+  final void Function(int) onDestinationSelected;
   final VoidCallback onToggleExtended;
-  final Function(BuildContext, Widget, String) onNavigateToCreate;
+  final void Function(BuildContext, Widget, String) onNavigateToCreate;
 
   const ShellNavigationRail({
     super.key,
@@ -41,7 +41,7 @@ class ShellNavigationRail extends StatelessWidget {
 class _NavigationRailLeading extends StatelessWidget {
   final bool isExtended;
   final VoidCallback onToggleExtended;
-  final Function(BuildContext, Widget, String) onNavigateToCreate;
+  final void Function(BuildContext, Widget, String) onNavigateToCreate;
 
   const _NavigationRailLeading({
     required this.isExtended,
@@ -66,7 +66,7 @@ class _NavigationRailLeading extends StatelessWidget {
 }
 
 class _CreateExpansionTile extends StatelessWidget {
-  final Function(BuildContext, Widget, String) onNavigateToCreate;
+  final void Function(BuildContext, Widget, String) onNavigateToCreate;
 
   const _CreateExpansionTile({required this.onNavigateToCreate});
 

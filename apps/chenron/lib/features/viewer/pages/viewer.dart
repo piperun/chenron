@@ -122,7 +122,7 @@ class _ViewerState extends State<Viewer> {
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, stackTrace) {
+            error: (Object error, StackTrace stackTrace) {
               return Center(child: Text("Error: $error"));
             },
           );

@@ -27,7 +27,7 @@ class _FolderParentSectionState extends State<FolderParentSection> {
       locator.get<Signal<AppDatabaseHandler>>().value.appDatabase;
 
   Future<void> _showFolderSelectionDialog() async {
-    await showDialog(
+    await showDialog<void>(
       context: context,
       builder: (context) => _FolderSelectionDialog(
         db: _db,

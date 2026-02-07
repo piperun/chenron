@@ -75,7 +75,7 @@ class FolderForm extends StatefulWidget {
 class _FolderFormState extends State<FolderForm> {
   late final TextEditingController _titleController;
   late final TextEditingController _descriptionController;
-  final ItemTableNotifier _tableNotifier = ItemTableNotifier();
+  final ItemTableNotifier<FolderItem> _tableNotifier = ItemTableNotifier<FolderItem>();
 
   List<Folder> _selectedParentFolders = [];
   Set<String> _tags = {};

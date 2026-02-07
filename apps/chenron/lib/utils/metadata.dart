@@ -26,7 +26,7 @@ class MetadataFetcher {
     } catch (e) {
       loggerGlobal.warning(
         "MetadataFetcher",
-        "Failed to fetch metadata for: $url | Error: ${e.toString()}",
+        "Failed to fetch metadata for: $url | Error: $e",
       );
       rethrow;
     }

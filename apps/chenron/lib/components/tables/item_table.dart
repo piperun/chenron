@@ -4,8 +4,8 @@ import "package:chenron/notifiers/item_table_notifier.dart";
 
 class DataGrid extends StatelessWidget {
   final List<TrinaColumn> columns;
-  final List<TrinaRow> rows;
-  final ItemTableNotifier notifier;
+  final List<TrinaRow<dynamic>> rows;
+  final ItemTableNotifier<dynamic> notifier;
 
   const DataGrid({
     super.key,

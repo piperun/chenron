@@ -17,7 +17,7 @@ class Favicon extends StatelessWidget {
     if (!_cache.containsKey(url)) {
       _cache[url] = FaviconFinder.getBest(url).then((favicon) {
         return favicon?.url;
-      }).catchError((error) {
+      }).catchError((Object error) {
         // Log the error once and cache the null result
         loggerGlobal.warning(
             "FavIcon", "Error while fetching favicon: $error");

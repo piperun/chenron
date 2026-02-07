@@ -45,9 +45,7 @@ void main() {
             appBar: AppBar(
               title: SearchBar(
                 hintText: "Search...",
-                onChanged: (value) {
-                  controller.updateSignal(value);
-                },
+                onChanged: controller.updateSignal,
               ),
             ),
             body: Watch(
@@ -166,9 +164,7 @@ void main() {
             appBar: AppBar(
               title: SearchBar(
                 hintText: "Search...",
-                onChanged: (value) {
-                  controller.updateSignal(value);
-                },
+                onChanged: controller.updateSignal,
               ),
             ),
             body: Watch(

@@ -88,12 +88,12 @@ class FolderEditorNotifier {
         }
 
         // Check tags change
-        if (!const SetEquality().equals(originalTags, currentTags)) {
+        if (!const SetEquality<String>().equals(originalTags, currentTags)) {
           return true;
         }
 
         // Check parent folders change
-        if (!const ListEquality()
+        if (!const ListEquality<String>()
             .equals(_originalParentFolderIds, current.parentFolderIds)) {
           return true;
         }
@@ -390,7 +390,7 @@ class FolderEditorNotifier {
       return true;
     } catch (e) {
       state.value = FolderEditorState.error;
-      errorMessage.value = "Failed to save changes: ${e.toString()}";
+      errorMessage.value = "Failed to save changes: $e";
       return false;
     }
   }
