@@ -18,19 +18,14 @@ class FolderPicker extends StatefulWidget {
 }
 
 class _FolderPickerState extends State<FolderPicker> {
-  late final AppDatabase _db;
+  final AppDatabase _db =
+      locator.get<Signal<AppDatabaseHandler>>().value.appDatabase;
   final Set<Folder> _selectedFolders = {};
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    unawaited(_initializeDatabase());
-  }
-
-  Future<void> _initializeDatabase() async {
-    final dbHandler = locator.get<Signal<AppDatabaseHandler>>().value;
-    _db = dbHandler.appDatabase;
     unawaited(_loadInitialFolder());
   }
 

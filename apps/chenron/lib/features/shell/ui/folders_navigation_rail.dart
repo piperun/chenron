@@ -53,7 +53,7 @@ class _FoldersNavigationRailState extends State<FoldersNavigationRail> {
   @override
   void initState() {
     super.initState();
-    unawaited(_watchFolders());
+    _watchFolders();
   }
 
   @override
@@ -62,12 +62,11 @@ class _FoldersNavigationRailState extends State<FoldersNavigationRail> {
     super.dispose();
   }
 
-  Future<void> _watchFolders() async {
+  void _watchFolders() {
     try {
-      final db = locator.get<Signal<AppDatabaseHandler>>().value;
-      final appDb = db.appDatabase;
+      final appDb =
+          locator.get<Signal<AppDatabaseHandler>>().value.appDatabase;
 
-      // Watch for folder changes with items included
       _foldersSubscription = appDb
           .watchAllFolders(
         includeOptions:

@@ -1,5 +1,3 @@
-import "dart:async";
-
 import "package:database/database.dart";
 
 import "package:chenron/features/viewer/ui/viewer_base_item.dart";
@@ -11,15 +9,12 @@ import "package:rxdart/rxdart.dart";
 import "package:signals/signals.dart";
 
 class ViewerModel {
-  Future<AppDatabase> loadDatabase() async {
-    final database = locator.get<Signal<AppDatabaseHandler>>().value;
-    return database.appDatabase;
-  }
+  AppDatabase get _db =>
+      locator.get<Signal<AppDatabaseHandler>>().value.appDatabase;
 
   Future<bool> removeFolder(String folder) async {
     try {
-      final db = await loadDatabase();
-      await db.removeFolder(folder);
+      await _db.removeFolder(folder);
       return true;
     } catch (e) {
       loggerGlobal.severe("ViewerModel" "Error deleting folder: $e", e);
@@ -29,8 +24,7 @@ class ViewerModel {
 
   Future<bool> removeLink(String linkId) async {
     try {
-      final db = await loadDatabase();
-      await db.removeLink(linkId);
+      await _db.removeLink(linkId);
       return true;
     } catch (e) {
       loggerGlobal.severe("ViewerModel" "Error deleting link: $e", e);
@@ -40,8 +34,7 @@ class ViewerModel {
 
   Future<bool> removeDocument(String documentId) async {
     try {
-      final db = await loadDatabase();
-      await db.removeDocument(documentId);
+      await _db.removeDocument(documentId);
       return true;
     } catch (e) {
       loggerGlobal.severe("ViewerModel" "Error deleting document: $e", e);
@@ -49,21 +42,14 @@ class ViewerModel {
     }
   }
 
-  Stream<List<FolderResult>> watchAllFolders() async* {
-    try {
-      final db = await loadDatabase();
-      yield* db.watchAllFolders(
-          includeOptions:
-              const IncludeOptions<AppDataInclude>({AppDataInclude.tags}));
-    } catch (e) {
-      loggerGlobal.severe("ViewerModel" "Error watching folders: $e", e);
-      yield [];
-    }
+  Stream<List<FolderResult>> watchAllFolders() {
+    return _db.watchAllFolders(
+        includeOptions:
+            const IncludeOptions<AppDataInclude>({AppDataInclude.tags}));
   }
 
-  Stream<List<ViewerItem>> watchAllItems() async* {
-    final db = await loadDatabase();
-    final folderStream = db
+  Stream<List<ViewerItem>> watchAllItems() {
+    final folderStream = _db
         .watchAllFolders(
             includeOptions:
                 const IncludeOptions<AppDataInclude>({AppDataInclude.tags}))
@@ -80,7 +66,7 @@ class ViewerModel {
           ),
         );
 
-    final linkStream = db
+    final linkStream = _db
         .watchAllLinks(
             includeOptions:
                 const IncludeOptions<AppDataInclude>({AppDataInclude.tags}))
@@ -98,7 +84,7 @@ class ViewerModel {
           ),
         );
 
-    yield* Rx.combineLatestList([folderStream, linkStream])
+    return Rx.combineLatestList([folderStream, linkStream])
         .map((lists) => lists.expand((list) => list).toList());
   }
 }

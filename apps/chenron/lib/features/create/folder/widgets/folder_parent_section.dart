@@ -23,24 +23,10 @@ class FolderParentSection extends StatefulWidget {
 }
 
 class _FolderParentSectionState extends State<FolderParentSection> {
-  late final AppDatabase _db;
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    unawaited(_initializeDatabase());
-  }
-
-  Future<void> _initializeDatabase() async {
-    final dbHandler = locator.get<Signal<AppDatabaseHandler>>().value;
-    _db = dbHandler.appDatabase;
-    setState(() => _isLoading = false);
-  }
+  final AppDatabase _db =
+      locator.get<Signal<AppDatabaseHandler>>().value.appDatabase;
 
   Future<void> _showFolderSelectionDialog() async {
-    if (_isLoading) return;
-
     await showDialog(
       context: context,
       builder: (context) => _FolderSelectionDialog(
@@ -85,15 +71,7 @@ class _FolderParentSectionState extends State<FolderParentSection> {
               ),
             ),
             const SizedBox(height: 12),
-            if (_isLoading)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: CircularProgressIndicator(),
-                ),
-              )
-            else
-              Wrap(
+            Wrap(
                 spacing: 8,
                 runSpacing: 8,
                 children: [
