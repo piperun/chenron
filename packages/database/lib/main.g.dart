@@ -2825,6 +2825,610 @@ class StatisticsCompanion extends UpdateCompanion<Statistic> {
   }
 }
 
+class $ActivityEventsTable extends ActivityEvents
+    with TableInfo<$ActivityEventsTable, ActivityEvent> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ActivityEventsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 30, maxTextLength: 60),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _occurredAtMeta =
+      const VerificationMeta('occurredAt');
+  @override
+  late final GeneratedColumn<DateTime> occurredAt = GeneratedColumn<DateTime>(
+      'occurred_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _eventTypeMeta =
+      const VerificationMeta('eventType');
+  @override
+  late final GeneratedColumn<String> eventType = GeneratedColumn<String>(
+      'event_type', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _entityTypeMeta =
+      const VerificationMeta('entityType');
+  @override
+  late final GeneratedColumn<String> entityType = GeneratedColumn<String>(
+      'entity_type', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _entityIdMeta =
+      const VerificationMeta('entityId');
+  @override
+  late final GeneratedColumn<String> entityId = GeneratedColumn<String>(
+      'entity_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, occurredAt, eventType, entityType, entityId];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'activity_events';
+  @override
+  VerificationContext validateIntegrity(Insertable<ActivityEvent> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('occurred_at')) {
+      context.handle(
+          _occurredAtMeta,
+          occurredAt.isAcceptableOrUnknown(
+              data['occurred_at']!, _occurredAtMeta));
+    }
+    if (data.containsKey('event_type')) {
+      context.handle(_eventTypeMeta,
+          eventType.isAcceptableOrUnknown(data['event_type']!, _eventTypeMeta));
+    } else if (isInserting) {
+      context.missing(_eventTypeMeta);
+    }
+    if (data.containsKey('entity_type')) {
+      context.handle(
+          _entityTypeMeta,
+          entityType.isAcceptableOrUnknown(
+              data['entity_type']!, _entityTypeMeta));
+    } else if (isInserting) {
+      context.missing(_entityTypeMeta);
+    }
+    if (data.containsKey('entity_id')) {
+      context.handle(_entityIdMeta,
+          entityId.isAcceptableOrUnknown(data['entity_id']!, _entityIdMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ActivityEvent map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ActivityEvent(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      occurredAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}occurred_at'])!,
+      eventType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}event_type'])!,
+      entityType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}entity_type'])!,
+      entityId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}entity_id']),
+    );
+  }
+
+  @override
+  $ActivityEventsTable createAlias(String alias) {
+    return $ActivityEventsTable(attachedDatabase, alias);
+  }
+}
+
+class ActivityEvent extends DataClass implements Insertable<ActivityEvent> {
+  final String id;
+  final DateTime occurredAt;
+  final String eventType;
+  final String entityType;
+  final String? entityId;
+  const ActivityEvent(
+      {required this.id,
+      required this.occurredAt,
+      required this.eventType,
+      required this.entityType,
+      this.entityId});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['occurred_at'] = Variable<DateTime>(occurredAt);
+    map['event_type'] = Variable<String>(eventType);
+    map['entity_type'] = Variable<String>(entityType);
+    if (!nullToAbsent || entityId != null) {
+      map['entity_id'] = Variable<String>(entityId);
+    }
+    return map;
+  }
+
+  ActivityEventsCompanion toCompanion(bool nullToAbsent) {
+    return ActivityEventsCompanion(
+      id: Value(id),
+      occurredAt: Value(occurredAt),
+      eventType: Value(eventType),
+      entityType: Value(entityType),
+      entityId: entityId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(entityId),
+    );
+  }
+
+  factory ActivityEvent.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ActivityEvent(
+      id: serializer.fromJson<String>(json['id']),
+      occurredAt: serializer.fromJson<DateTime>(json['occurredAt']),
+      eventType: serializer.fromJson<String>(json['eventType']),
+      entityType: serializer.fromJson<String>(json['entityType']),
+      entityId: serializer.fromJson<String?>(json['entityId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'occurredAt': serializer.toJson<DateTime>(occurredAt),
+      'eventType': serializer.toJson<String>(eventType),
+      'entityType': serializer.toJson<String>(entityType),
+      'entityId': serializer.toJson<String?>(entityId),
+    };
+  }
+
+  ActivityEvent copyWith(
+          {String? id,
+          DateTime? occurredAt,
+          String? eventType,
+          String? entityType,
+          Value<String?> entityId = const Value.absent()}) =>
+      ActivityEvent(
+        id: id ?? this.id,
+        occurredAt: occurredAt ?? this.occurredAt,
+        eventType: eventType ?? this.eventType,
+        entityType: entityType ?? this.entityType,
+        entityId: entityId.present ? entityId.value : this.entityId,
+      );
+  ActivityEvent copyWithCompanion(ActivityEventsCompanion data) {
+    return ActivityEvent(
+      id: data.id.present ? data.id.value : this.id,
+      occurredAt:
+          data.occurredAt.present ? data.occurredAt.value : this.occurredAt,
+      eventType: data.eventType.present ? data.eventType.value : this.eventType,
+      entityType:
+          data.entityType.present ? data.entityType.value : this.entityType,
+      entityId: data.entityId.present ? data.entityId.value : this.entityId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ActivityEvent(')
+          ..write('id: $id, ')
+          ..write('occurredAt: $occurredAt, ')
+          ..write('eventType: $eventType, ')
+          ..write('entityType: $entityType, ')
+          ..write('entityId: $entityId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, occurredAt, eventType, entityType, entityId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ActivityEvent &&
+          other.id == this.id &&
+          other.occurredAt == this.occurredAt &&
+          other.eventType == this.eventType &&
+          other.entityType == this.entityType &&
+          other.entityId == this.entityId);
+}
+
+class ActivityEventsCompanion extends UpdateCompanion<ActivityEvent> {
+  final Value<String> id;
+  final Value<DateTime> occurredAt;
+  final Value<String> eventType;
+  final Value<String> entityType;
+  final Value<String?> entityId;
+  final Value<int> rowid;
+  const ActivityEventsCompanion({
+    this.id = const Value.absent(),
+    this.occurredAt = const Value.absent(),
+    this.eventType = const Value.absent(),
+    this.entityType = const Value.absent(),
+    this.entityId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ActivityEventsCompanion.insert({
+    required String id,
+    this.occurredAt = const Value.absent(),
+    required String eventType,
+    required String entityType,
+    this.entityId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        eventType = Value(eventType),
+        entityType = Value(entityType);
+  static Insertable<ActivityEvent> custom({
+    Expression<String>? id,
+    Expression<DateTime>? occurredAt,
+    Expression<String>? eventType,
+    Expression<String>? entityType,
+    Expression<String>? entityId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (occurredAt != null) 'occurred_at': occurredAt,
+      if (eventType != null) 'event_type': eventType,
+      if (entityType != null) 'entity_type': entityType,
+      if (entityId != null) 'entity_id': entityId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ActivityEventsCompanion copyWith(
+      {Value<String>? id,
+      Value<DateTime>? occurredAt,
+      Value<String>? eventType,
+      Value<String>? entityType,
+      Value<String?>? entityId,
+      Value<int>? rowid}) {
+    return ActivityEventsCompanion(
+      id: id ?? this.id,
+      occurredAt: occurredAt ?? this.occurredAt,
+      eventType: eventType ?? this.eventType,
+      entityType: entityType ?? this.entityType,
+      entityId: entityId ?? this.entityId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (occurredAt.present) {
+      map['occurred_at'] = Variable<DateTime>(occurredAt.value);
+    }
+    if (eventType.present) {
+      map['event_type'] = Variable<String>(eventType.value);
+    }
+    if (entityType.present) {
+      map['entity_type'] = Variable<String>(entityType.value);
+    }
+    if (entityId.present) {
+      map['entity_id'] = Variable<String>(entityId.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ActivityEventsCompanion(')
+          ..write('id: $id, ')
+          ..write('occurredAt: $occurredAt, ')
+          ..write('eventType: $eventType, ')
+          ..write('entityType: $entityType, ')
+          ..write('entityId: $entityId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $RecentAccessTable extends RecentAccess
+    with TableInfo<$RecentAccessTable, RecentAccessData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $RecentAccessTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _entityIdMeta =
+      const VerificationMeta('entityId');
+  @override
+  late final GeneratedColumn<String> entityId = GeneratedColumn<String>(
+      'entity_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _entityTypeMeta =
+      const VerificationMeta('entityType');
+  @override
+  late final GeneratedColumn<String> entityType = GeneratedColumn<String>(
+      'entity_type', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _lastAccessedAtMeta =
+      const VerificationMeta('lastAccessedAt');
+  @override
+  late final GeneratedColumn<DateTime> lastAccessedAt =
+      GeneratedColumn<DateTime>('last_accessed_at', aliasedName, false,
+          type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _accessCountMeta =
+      const VerificationMeta('accessCount');
+  @override
+  late final GeneratedColumn<int> accessCount = GeneratedColumn<int>(
+      'access_count', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(1));
+  @override
+  List<GeneratedColumn> get $columns =>
+      [entityId, entityType, lastAccessedAt, accessCount];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'recent_access';
+  @override
+  VerificationContext validateIntegrity(Insertable<RecentAccessData> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('entity_id')) {
+      context.handle(_entityIdMeta,
+          entityId.isAcceptableOrUnknown(data['entity_id']!, _entityIdMeta));
+    } else if (isInserting) {
+      context.missing(_entityIdMeta);
+    }
+    if (data.containsKey('entity_type')) {
+      context.handle(
+          _entityTypeMeta,
+          entityType.isAcceptableOrUnknown(
+              data['entity_type']!, _entityTypeMeta));
+    } else if (isInserting) {
+      context.missing(_entityTypeMeta);
+    }
+    if (data.containsKey('last_accessed_at')) {
+      context.handle(
+          _lastAccessedAtMeta,
+          lastAccessedAt.isAcceptableOrUnknown(
+              data['last_accessed_at']!, _lastAccessedAtMeta));
+    } else if (isInserting) {
+      context.missing(_lastAccessedAtMeta);
+    }
+    if (data.containsKey('access_count')) {
+      context.handle(
+          _accessCountMeta,
+          accessCount.isAcceptableOrUnknown(
+              data['access_count']!, _accessCountMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {entityId, entityType};
+  @override
+  RecentAccessData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return RecentAccessData(
+      entityId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}entity_id'])!,
+      entityType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}entity_type'])!,
+      lastAccessedAt: attachedDatabase.typeMapping.read(
+          DriftSqlType.dateTime, data['${effectivePrefix}last_accessed_at'])!,
+      accessCount: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}access_count'])!,
+    );
+  }
+
+  @override
+  $RecentAccessTable createAlias(String alias) {
+    return $RecentAccessTable(attachedDatabase, alias);
+  }
+}
+
+class RecentAccessData extends DataClass
+    implements Insertable<RecentAccessData> {
+  final String entityId;
+  final String entityType;
+  final DateTime lastAccessedAt;
+  final int accessCount;
+  const RecentAccessData(
+      {required this.entityId,
+      required this.entityType,
+      required this.lastAccessedAt,
+      required this.accessCount});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['entity_id'] = Variable<String>(entityId);
+    map['entity_type'] = Variable<String>(entityType);
+    map['last_accessed_at'] = Variable<DateTime>(lastAccessedAt);
+    map['access_count'] = Variable<int>(accessCount);
+    return map;
+  }
+
+  RecentAccessCompanion toCompanion(bool nullToAbsent) {
+    return RecentAccessCompanion(
+      entityId: Value(entityId),
+      entityType: Value(entityType),
+      lastAccessedAt: Value(lastAccessedAt),
+      accessCount: Value(accessCount),
+    );
+  }
+
+  factory RecentAccessData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return RecentAccessData(
+      entityId: serializer.fromJson<String>(json['entityId']),
+      entityType: serializer.fromJson<String>(json['entityType']),
+      lastAccessedAt: serializer.fromJson<DateTime>(json['lastAccessedAt']),
+      accessCount: serializer.fromJson<int>(json['accessCount']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'entityId': serializer.toJson<String>(entityId),
+      'entityType': serializer.toJson<String>(entityType),
+      'lastAccessedAt': serializer.toJson<DateTime>(lastAccessedAt),
+      'accessCount': serializer.toJson<int>(accessCount),
+    };
+  }
+
+  RecentAccessData copyWith(
+          {String? entityId,
+          String? entityType,
+          DateTime? lastAccessedAt,
+          int? accessCount}) =>
+      RecentAccessData(
+        entityId: entityId ?? this.entityId,
+        entityType: entityType ?? this.entityType,
+        lastAccessedAt: lastAccessedAt ?? this.lastAccessedAt,
+        accessCount: accessCount ?? this.accessCount,
+      );
+  RecentAccessData copyWithCompanion(RecentAccessCompanion data) {
+    return RecentAccessData(
+      entityId: data.entityId.present ? data.entityId.value : this.entityId,
+      entityType:
+          data.entityType.present ? data.entityType.value : this.entityType,
+      lastAccessedAt: data.lastAccessedAt.present
+          ? data.lastAccessedAt.value
+          : this.lastAccessedAt,
+      accessCount:
+          data.accessCount.present ? data.accessCount.value : this.accessCount,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RecentAccessData(')
+          ..write('entityId: $entityId, ')
+          ..write('entityType: $entityType, ')
+          ..write('lastAccessedAt: $lastAccessedAt, ')
+          ..write('accessCount: $accessCount')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(entityId, entityType, lastAccessedAt, accessCount);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is RecentAccessData &&
+          other.entityId == this.entityId &&
+          other.entityType == this.entityType &&
+          other.lastAccessedAt == this.lastAccessedAt &&
+          other.accessCount == this.accessCount);
+}
+
+class RecentAccessCompanion extends UpdateCompanion<RecentAccessData> {
+  final Value<String> entityId;
+  final Value<String> entityType;
+  final Value<DateTime> lastAccessedAt;
+  final Value<int> accessCount;
+  final Value<int> rowid;
+  const RecentAccessCompanion({
+    this.entityId = const Value.absent(),
+    this.entityType = const Value.absent(),
+    this.lastAccessedAt = const Value.absent(),
+    this.accessCount = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  RecentAccessCompanion.insert({
+    required String entityId,
+    required String entityType,
+    required DateTime lastAccessedAt,
+    this.accessCount = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : entityId = Value(entityId),
+        entityType = Value(entityType),
+        lastAccessedAt = Value(lastAccessedAt);
+  static Insertable<RecentAccessData> custom({
+    Expression<String>? entityId,
+    Expression<String>? entityType,
+    Expression<DateTime>? lastAccessedAt,
+    Expression<int>? accessCount,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (entityId != null) 'entity_id': entityId,
+      if (entityType != null) 'entity_type': entityType,
+      if (lastAccessedAt != null) 'last_accessed_at': lastAccessedAt,
+      if (accessCount != null) 'access_count': accessCount,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  RecentAccessCompanion copyWith(
+      {Value<String>? entityId,
+      Value<String>? entityType,
+      Value<DateTime>? lastAccessedAt,
+      Value<int>? accessCount,
+      Value<int>? rowid}) {
+    return RecentAccessCompanion(
+      entityId: entityId ?? this.entityId,
+      entityType: entityType ?? this.entityType,
+      lastAccessedAt: lastAccessedAt ?? this.lastAccessedAt,
+      accessCount: accessCount ?? this.accessCount,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (entityId.present) {
+      map['entity_id'] = Variable<String>(entityId.value);
+    }
+    if (entityType.present) {
+      map['entity_type'] = Variable<String>(entityType.value);
+    }
+    if (lastAccessedAt.present) {
+      map['last_accessed_at'] = Variable<DateTime>(lastAccessedAt.value);
+    }
+    if (accessCount.present) {
+      map['access_count'] = Variable<int>(accessCount.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RecentAccessCompanion(')
+          ..write('entityId: $entityId, ')
+          ..write('entityType: $entityType, ')
+          ..write('lastAccessedAt: $lastAccessedAt, ')
+          ..write('accessCount: $accessCount, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2838,6 +3442,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $MetadataRecordsTable metadataRecords =
       $MetadataRecordsTable(this);
   late final $StatisticsTable statistics = $StatisticsTable(this);
+  late final $ActivityEventsTable activityEvents = $ActivityEventsTable(this);
+  late final $RecentAccessTable recentAccess = $RecentAccessTable(this);
   late final Index folderTitle =
       Index('folder_title', 'CREATE INDEX folder_title ON folders (title)');
   late final Index documentTitle = Index(
@@ -2858,6 +3464,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         metadataTypes,
         metadataRecords,
         statistics,
+        activityEvents,
+        recentAccess,
         folderTitle,
         documentTitle,
         itemsFolderItemIdx
@@ -4897,6 +5505,340 @@ typedef $$StatisticsTableProcessedTableManager = ProcessedTableManager<
     (Statistic, BaseReferences<_$AppDatabase, $StatisticsTable, Statistic>),
     Statistic,
     PrefetchHooks Function()>;
+typedef $$ActivityEventsTableCreateCompanionBuilder = ActivityEventsCompanion
+    Function({
+  required String id,
+  Value<DateTime> occurredAt,
+  required String eventType,
+  required String entityType,
+  Value<String?> entityId,
+  Value<int> rowid,
+});
+typedef $$ActivityEventsTableUpdateCompanionBuilder = ActivityEventsCompanion
+    Function({
+  Value<String> id,
+  Value<DateTime> occurredAt,
+  Value<String> eventType,
+  Value<String> entityType,
+  Value<String?> entityId,
+  Value<int> rowid,
+});
+
+class $$ActivityEventsTableFilterComposer
+    extends Composer<_$AppDatabase, $ActivityEventsTable> {
+  $$ActivityEventsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get occurredAt => $composableBuilder(
+      column: $table.occurredAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get eventType => $composableBuilder(
+      column: $table.eventType, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get entityType => $composableBuilder(
+      column: $table.entityType, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get entityId => $composableBuilder(
+      column: $table.entityId, builder: (column) => ColumnFilters(column));
+}
+
+class $$ActivityEventsTableOrderingComposer
+    extends Composer<_$AppDatabase, $ActivityEventsTable> {
+  $$ActivityEventsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get occurredAt => $composableBuilder(
+      column: $table.occurredAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get eventType => $composableBuilder(
+      column: $table.eventType, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get entityType => $composableBuilder(
+      column: $table.entityType, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get entityId => $composableBuilder(
+      column: $table.entityId, builder: (column) => ColumnOrderings(column));
+}
+
+class $$ActivityEventsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ActivityEventsTable> {
+  $$ActivityEventsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get occurredAt => $composableBuilder(
+      column: $table.occurredAt, builder: (column) => column);
+
+  GeneratedColumn<String> get eventType =>
+      $composableBuilder(column: $table.eventType, builder: (column) => column);
+
+  GeneratedColumn<String> get entityType => $composableBuilder(
+      column: $table.entityType, builder: (column) => column);
+
+  GeneratedColumn<String> get entityId =>
+      $composableBuilder(column: $table.entityId, builder: (column) => column);
+}
+
+class $$ActivityEventsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $ActivityEventsTable,
+    ActivityEvent,
+    $$ActivityEventsTableFilterComposer,
+    $$ActivityEventsTableOrderingComposer,
+    $$ActivityEventsTableAnnotationComposer,
+    $$ActivityEventsTableCreateCompanionBuilder,
+    $$ActivityEventsTableUpdateCompanionBuilder,
+    (
+      ActivityEvent,
+      BaseReferences<_$AppDatabase, $ActivityEventsTable, ActivityEvent>
+    ),
+    ActivityEvent,
+    PrefetchHooks Function()> {
+  $$ActivityEventsTableTableManager(
+      _$AppDatabase db, $ActivityEventsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ActivityEventsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ActivityEventsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ActivityEventsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<DateTime> occurredAt = const Value.absent(),
+            Value<String> eventType = const Value.absent(),
+            Value<String> entityType = const Value.absent(),
+            Value<String?> entityId = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              ActivityEventsCompanion(
+            id: id,
+            occurredAt: occurredAt,
+            eventType: eventType,
+            entityType: entityType,
+            entityId: entityId,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            Value<DateTime> occurredAt = const Value.absent(),
+            required String eventType,
+            required String entityType,
+            Value<String?> entityId = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              ActivityEventsCompanion.insert(
+            id: id,
+            occurredAt: occurredAt,
+            eventType: eventType,
+            entityType: entityType,
+            entityId: entityId,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$ActivityEventsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $ActivityEventsTable,
+    ActivityEvent,
+    $$ActivityEventsTableFilterComposer,
+    $$ActivityEventsTableOrderingComposer,
+    $$ActivityEventsTableAnnotationComposer,
+    $$ActivityEventsTableCreateCompanionBuilder,
+    $$ActivityEventsTableUpdateCompanionBuilder,
+    (
+      ActivityEvent,
+      BaseReferences<_$AppDatabase, $ActivityEventsTable, ActivityEvent>
+    ),
+    ActivityEvent,
+    PrefetchHooks Function()>;
+typedef $$RecentAccessTableCreateCompanionBuilder = RecentAccessCompanion
+    Function({
+  required String entityId,
+  required String entityType,
+  required DateTime lastAccessedAt,
+  Value<int> accessCount,
+  Value<int> rowid,
+});
+typedef $$RecentAccessTableUpdateCompanionBuilder = RecentAccessCompanion
+    Function({
+  Value<String> entityId,
+  Value<String> entityType,
+  Value<DateTime> lastAccessedAt,
+  Value<int> accessCount,
+  Value<int> rowid,
+});
+
+class $$RecentAccessTableFilterComposer
+    extends Composer<_$AppDatabase, $RecentAccessTable> {
+  $$RecentAccessTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get entityId => $composableBuilder(
+      column: $table.entityId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get entityType => $composableBuilder(
+      column: $table.entityType, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get lastAccessedAt => $composableBuilder(
+      column: $table.lastAccessedAt,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get accessCount => $composableBuilder(
+      column: $table.accessCount, builder: (column) => ColumnFilters(column));
+}
+
+class $$RecentAccessTableOrderingComposer
+    extends Composer<_$AppDatabase, $RecentAccessTable> {
+  $$RecentAccessTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get entityId => $composableBuilder(
+      column: $table.entityId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get entityType => $composableBuilder(
+      column: $table.entityType, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get lastAccessedAt => $composableBuilder(
+      column: $table.lastAccessedAt,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get accessCount => $composableBuilder(
+      column: $table.accessCount, builder: (column) => ColumnOrderings(column));
+}
+
+class $$RecentAccessTableAnnotationComposer
+    extends Composer<_$AppDatabase, $RecentAccessTable> {
+  $$RecentAccessTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get entityId =>
+      $composableBuilder(column: $table.entityId, builder: (column) => column);
+
+  GeneratedColumn<String> get entityType => $composableBuilder(
+      column: $table.entityType, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get lastAccessedAt => $composableBuilder(
+      column: $table.lastAccessedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get accessCount => $composableBuilder(
+      column: $table.accessCount, builder: (column) => column);
+}
+
+class $$RecentAccessTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $RecentAccessTable,
+    RecentAccessData,
+    $$RecentAccessTableFilterComposer,
+    $$RecentAccessTableOrderingComposer,
+    $$RecentAccessTableAnnotationComposer,
+    $$RecentAccessTableCreateCompanionBuilder,
+    $$RecentAccessTableUpdateCompanionBuilder,
+    (
+      RecentAccessData,
+      BaseReferences<_$AppDatabase, $RecentAccessTable, RecentAccessData>
+    ),
+    RecentAccessData,
+    PrefetchHooks Function()> {
+  $$RecentAccessTableTableManager(_$AppDatabase db, $RecentAccessTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$RecentAccessTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$RecentAccessTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$RecentAccessTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> entityId = const Value.absent(),
+            Value<String> entityType = const Value.absent(),
+            Value<DateTime> lastAccessedAt = const Value.absent(),
+            Value<int> accessCount = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              RecentAccessCompanion(
+            entityId: entityId,
+            entityType: entityType,
+            lastAccessedAt: lastAccessedAt,
+            accessCount: accessCount,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String entityId,
+            required String entityType,
+            required DateTime lastAccessedAt,
+            Value<int> accessCount = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              RecentAccessCompanion.insert(
+            entityId: entityId,
+            entityType: entityType,
+            lastAccessedAt: lastAccessedAt,
+            accessCount: accessCount,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$RecentAccessTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $RecentAccessTable,
+    RecentAccessData,
+    $$RecentAccessTableFilterComposer,
+    $$RecentAccessTableOrderingComposer,
+    $$RecentAccessTableAnnotationComposer,
+    $$RecentAccessTableCreateCompanionBuilder,
+    $$RecentAccessTableUpdateCompanionBuilder,
+    (
+      RecentAccessData,
+      BaseReferences<_$AppDatabase, $RecentAccessTable, RecentAccessData>
+    ),
+    RecentAccessData,
+    PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -4918,6 +5860,10 @@ class $AppDatabaseManager {
       $$MetadataRecordsTableTableManager(_db, _db.metadataRecords);
   $$StatisticsTableTableManager get statistics =>
       $$StatisticsTableTableManager(_db, _db.statistics);
+  $$ActivityEventsTableTableManager get activityEvents =>
+      $$ActivityEventsTableTableManager(_db, _db.activityEvents);
+  $$RecentAccessTableTableManager get recentAccess =>
+      $$RecentAccessTableTableManager(_db, _db.recentAccess);
 }
 
 class $ThemeTypesTable extends ThemeTypes

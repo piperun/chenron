@@ -37,6 +37,8 @@ typedef DeleteRelationRecord = ({String id, IdType idType});
   MetadataRecords,
   MetadataTypes,
   Statistics,
+  ActivityEvents,
+  RecentAccess,
 ])
 class AppDatabase extends _$AppDatabase {
   static const int idLength = 30;
@@ -61,7 +63,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration {
@@ -73,6 +75,8 @@ class AppDatabase extends _$AppDatabase {
         }
         // Create triggers for auto-updating timestamps on new databases
         await _createUpdateTriggers();
+        // Create triggers for automatic activity tracking
+        await _createActivityTriggers();
       },
       onUpgrade: (migrator, from, to) async {
         // Migration from v1 to v2: Add Statistics table and updatedAt columns
@@ -247,6 +251,21 @@ class AppDatabase extends _$AppDatabase {
                 'ALTER TABLE documents ADD COLUMN file_type TEXT NOT NULL DEFAULT "markdown"');
           }
         }
+
+        // Migration from v5 to v6: Add ActivityEvents and RecentAccess tables
+        if (from < 6) {
+          await migrator.createTable(activityEvents);
+          await migrator.createTable(recentAccess);
+
+          await customStatement(
+              "CREATE INDEX idx_activity_events_occurred_at ON activity_events(occurred_at)");
+          await customStatement(
+              "CREATE INDEX idx_activity_events_entity ON activity_events(entity_type, entity_id)");
+          await customStatement(
+              "CREATE INDEX idx_recent_access_last ON recent_access(last_accessed_at DESC)");
+
+          await _createActivityTriggers();
+        }
       },
     );
   }
@@ -285,6 +304,85 @@ class AppDatabase extends _$AppDatabase {
         UPDATE documents 
         SET updated_at = (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
         WHERE id = NEW.id;
+      END
+    """);
+  }
+
+  /// Creates SQLite triggers to automatically record activity events
+  /// on INSERT and DELETE for links, documents, folders, and tags.
+  Future<void> _createActivityTriggers() async {
+    // Use hex(randomblob(15)) to generate a 30-char ID inside triggers
+    const idExpr = "lower(hex(randomblob(15)))";
+
+    // Links
+    await customStatement("""
+      CREATE TRIGGER IF NOT EXISTS track_link_created
+      AFTER INSERT ON links
+      BEGIN
+        INSERT INTO activity_events (id, occurred_at, event_type, entity_type, entity_id)
+        VALUES ($idExpr, strftime('%s', 'now'), 'link_created', 'link', NEW.id);
+      END
+    """);
+    await customStatement("""
+      CREATE TRIGGER IF NOT EXISTS track_link_deleted
+      AFTER DELETE ON links
+      BEGIN
+        INSERT INTO activity_events (id, occurred_at, event_type, entity_type, entity_id)
+        VALUES ($idExpr, strftime('%s', 'now'), 'link_deleted', 'link', OLD.id);
+      END
+    """);
+
+    // Documents
+    await customStatement("""
+      CREATE TRIGGER IF NOT EXISTS track_document_created
+      AFTER INSERT ON documents
+      BEGIN
+        INSERT INTO activity_events (id, occurred_at, event_type, entity_type, entity_id)
+        VALUES ($idExpr, strftime('%s', 'now'), 'document_created', 'document', NEW.id);
+      END
+    """);
+    await customStatement("""
+      CREATE TRIGGER IF NOT EXISTS track_document_deleted
+      AFTER DELETE ON documents
+      BEGIN
+        INSERT INTO activity_events (id, occurred_at, event_type, entity_type, entity_id)
+        VALUES ($idExpr, strftime('%s', 'now'), 'document_deleted', 'document', OLD.id);
+      END
+    """);
+
+    // Folders
+    await customStatement("""
+      CREATE TRIGGER IF NOT EXISTS track_folder_created
+      AFTER INSERT ON folders
+      BEGIN
+        INSERT INTO activity_events (id, occurred_at, event_type, entity_type, entity_id)
+        VALUES ($idExpr, strftime('%s', 'now'), 'folder_created', 'folder', NEW.id);
+      END
+    """);
+    await customStatement("""
+      CREATE TRIGGER IF NOT EXISTS track_folder_deleted
+      AFTER DELETE ON folders
+      BEGIN
+        INSERT INTO activity_events (id, occurred_at, event_type, entity_type, entity_id)
+        VALUES ($idExpr, strftime('%s', 'now'), 'folder_deleted', 'folder', OLD.id);
+      END
+    """);
+
+    // Tags
+    await customStatement("""
+      CREATE TRIGGER IF NOT EXISTS track_tag_created
+      AFTER INSERT ON tags
+      BEGIN
+        INSERT INTO activity_events (id, occurred_at, event_type, entity_type, entity_id)
+        VALUES ($idExpr, strftime('%s', 'now'), 'tag_created', 'tag', NEW.id);
+      END
+    """);
+    await customStatement("""
+      CREATE TRIGGER IF NOT EXISTS track_tag_deleted
+      AFTER DELETE ON tags
+      BEGIN
+        INSERT INTO activity_events (id, occurred_at, event_type, entity_type, entity_id)
+        VALUES ($idExpr, strftime('%s', 'now'), 'tag_deleted', 'tag', OLD.id);
       END
     """);
   }

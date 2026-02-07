@@ -101,3 +101,27 @@ class Statistics extends Table {
   @override
   Set<Column> get primaryKey => {id};
 }
+
+/// Tracks individual user activity events (create, delete, view, edit, archive)
+class ActivityEvents extends Table {
+  TextColumn get id => text().withLength(min: 30, max: 60)();
+  DateTimeColumn get occurredAt =>
+      dateTime().withDefault(currentDateAndTime)();
+  TextColumn get eventType => text()();
+  TextColumn get entityType => text()();
+  TextColumn get entityId => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Tracks when each item was last accessed (for "recently viewed" features)
+class RecentAccess extends Table {
+  TextColumn get entityId => text()();
+  TextColumn get entityType => text()();
+  DateTimeColumn get lastAccessedAt => dateTime()();
+  IntColumn get accessCount => integer().withDefault(const Constant(1))();
+
+  @override
+  Set<Column> get primaryKey => {entityId, entityType};
+}

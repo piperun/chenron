@@ -38,6 +38,9 @@ export "src/features/user_theme/remove.dart";
 
 // Statistics
 export "src/features/statistics/track.dart";
+export "src/features/statistics/activity.dart";
+export "src/features/statistics/recent_access.dart";
+export "src/features/statistics/derived.dart";
 
 // Core utilities that users might need
 export "src/core/id.dart" show GlobalIdGenerator;
