@@ -128,7 +128,6 @@ Future<bool> deleteItem(AppDatabase db, FolderItem item) async {
     case FolderItemType.link:
       return await db.removeLink(item.id!);
     case FolderItemType.document:
-      // TODO: Implement document deletion
-      return false;
+      return await db.removeDocument(item.id!);
   }
 }

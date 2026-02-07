@@ -39,8 +39,14 @@ class ViewerModel {
   }
 
   Future<bool> removeDocument(String documentId) async {
-    // TODO: Implement document removal when document feature is added
-    return true;
+    try {
+      final db = await loadDatabase();
+      await db.removeDocument(documentId);
+      return true;
+    } catch (e) {
+      loggerGlobal.severe("ViewerModel" "Error deleting document: $e", e);
+      return false;
+    }
   }
 
   Stream<List<FolderResult>> watchAllFolders() async* {
