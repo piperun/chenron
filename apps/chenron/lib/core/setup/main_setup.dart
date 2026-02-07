@@ -141,6 +141,9 @@ class MainSetup {
       );
       appDbHandler.value.databaseLocation = appDatabaseLocation;
       await appDbHandler.value.createDatabase(setupOnInit: true);
+
+      // Record a daily statistics snapshot if the last one is older than 24h
+      await _recordDailySnapshot(appDbHandler.value.appDatabase);
     } catch (e, s) {
       const errorMsg = "Configuration database setup failed.";
       loggerGlobal.severe("MainSetup", errorMsg, e, s);
@@ -167,6 +170,24 @@ class MainSetup {
       const errorMsg = "Logging setup failed.";
       print("!!! ERROR: $errorMsg\nError: $e\nStackTrace: $s");
       throw InitializationException(errorMsg, cause: e, stackTrace: s);
+    }
+  }
+
+  static Future<void> _recordDailySnapshot(AppDatabase db) async {
+    try {
+      final latest = await db.getLatestStatistics();
+      final now = DateTime.now();
+      final shouldRecord = latest == null ||
+          now.difference(latest.recordedAt).inHours >= 24;
+
+      if (shouldRecord) {
+        await db.recordStatisticsSnapshot();
+        loggerGlobal.fine("MainSetup", "Recorded daily statistics snapshot.");
+      }
+    } catch (e) {
+      // Non-fatal — don't block app startup
+      loggerGlobal.warning(
+          "MainSetup", "Failed to record statistics snapshot: $e");
     }
   }
 }

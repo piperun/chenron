@@ -4,12 +4,31 @@ import "package:chenron/features/viewer/ui/viewer_base_item.dart";
 import "package:chenron/shared/dialogs/delete_confirmation_dialog.dart";
 import "package:database/database.dart";
 import "package:chenron/locator.dart";
+import "package:chenron/services/activity_tracker.dart";
 import "package:signals/signals_flutter.dart";
 
 /// Handles item tap by converting FolderItem to ViewerItem and delegating
 /// to the presenter's configurable onItemTap method.
 void handleItemTap(BuildContext context, FolderItem item) {
   final presenter = viewerViewModelSignal.value;
+  final tracker = locator.get<ActivityTracker>();
+
+  // Track the view event
+  final itemId = item.map(
+    link: (l) => l.id ?? "",
+    document: (d) => d.id ?? "",
+    folder: (f) => f.id ?? "",
+  );
+  if (itemId.isNotEmpty) {
+    switch (item.type) {
+      case FolderItemType.link:
+        tracker.trackLinkViewed(itemId);
+      case FolderItemType.document:
+        tracker.trackDocumentViewed(itemId);
+      case FolderItemType.folder:
+        tracker.trackFolderViewed(itemId);
+    }
+  }
 
   // Convert FolderItem to ViewerItem format for presenter
   final viewerItem = item.map(
@@ -122,6 +141,7 @@ Future<void> handleItemDeletion(
 ///
 /// Returns true if deletion was successful, false otherwise.
 Future<bool> deleteItem(AppDatabase db, FolderItem item) async {
+  // Deletion activity events are tracked automatically by SQLite triggers
   switch (item.type) {
     case FolderItemType.folder:
       return db.removeFolder(item.id!);

@@ -10,6 +10,7 @@ import "package:database/database.dart";
 import "package:chenron/features/settings/service/config_service.dart";
 import "package:chenron/features/settings/controller/config_controller.dart";
 import "package:chenron/base_dirs/schema.dart";
+import "package:chenron/services/activity_tracker.dart";
 
 final locator = GetIt.I;
 
@@ -36,4 +37,10 @@ void locatorSetup() {
 
   // Register ConfigController
   locator.registerLazySingleton<ConfigController>(ConfigController.new);
+
+  // Register ActivityTracker
+  locator.registerLazySingleton<ActivityTracker>(() {
+    final db = locator.get<Signal<AppDatabaseHandler>>().value.appDatabase;
+    return ActivityTracker(db);
+  });
 }
