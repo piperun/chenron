@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [v0.3.1](https://github.com/piperun/chenron-flutter/compare/626cde9ddf30a0660836237063eac3cb0279b64a..v0.3.1) - 2026-02-07
+### Package updates
+- [database-v0.3.1](packages/database) bumped to [database-v0.3.1](https://github.com/piperun/chenron-flutter/compare/database-v0.3.0..database-v0.3.1)
+- [chenron-v0.3.1](apps/chenron) bumped to [chenron-v0.3.1](https://github.com/piperun/chenron-flutter/compare/chenron-v0.3.0..chenron-v0.3.1)
+### Global changes
+#### Bug Fixes
+- folder timestamp/description display and add home navigation to folder viewer - ([626cde9](https://github.com/piperun/chenron-flutter/commit/626cde9ddf30a0660836237063eac3cb0279b64a)) - [@piperun](https://github.com/piperun)
+
+- - -
+
 ## [v0.3.0](https://github.com/piperun/chenron-flutter/compare/v0.2.0..v0.3.0) - 1970-01-01
 ### Package updates
 - [chenron-v0.3.0](apps/chenron) bumped to [chenron-v0.3.0](https://github.com/piperun/chenron-flutter/compare/chenron-v0.2.0..chenron-v0.3.0)

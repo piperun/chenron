@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## database-v0.3.1 - 2026-02-07
+#### Bug Fixes
+- folder timestamp/description display and add home navigation to folder viewer - (626cde9) - *piperun*
+
+- - -
+
 ## database-v0.3.0 - 2026-02-07
 #### Features
 - add activity tracking and recent access schema with SQLite triggers - (c795c80) - *piperun*

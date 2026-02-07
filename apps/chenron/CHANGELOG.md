@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## chenron-v0.3.1 - 2026-02-07
+#### Bug Fixes
+- folder timestamp/description display and add home navigation to folder viewer - (626cde9) - *piperun*
+#### Performance Improvements
+- cache futures, fix resource leaks, and memoize expensive operations - (26995c1) - *piperun*
+#### Refactoring
+- extract ItemDeletionService and folder loading - (e5e87ba) - *piperun*
+- extract FolderPersistenceService from CreateFolderPage - (9c77dd5) - *piperun*
+- remove dead metadata classes and extract service layers - (55c9b58) - *piperun*
+
+- - -
+
 ## chenron-v0.3.0 - 2026-02-07
 #### Features
 - wire activity tracking service and daily snapshot scheduling - (d4dba45) - *piperun*
