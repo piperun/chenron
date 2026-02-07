@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## database-v0.2.0 - 2026-02-07
+#### Features
+- add per-type item count badges to folder sidebar - (4f73830) - *piperun*
+
+- - -
+
 ## database-v0.1.0 - 2026-02-07
 #### Features
 - (**database**) add color parameter to folder and tag creation operations - (e169c2b) - *piperun*

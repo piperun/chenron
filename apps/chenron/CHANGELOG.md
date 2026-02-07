@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## chenron-v0.2.0 - 2026-02-07
+#### Features
+- add per-type item count badges to folder sidebar - (4f73830) - *piperun*
+#### Bug Fixes
+- resolve card grid RenderFlex overflow - (c2ca12e) - *piperun*
+- implement document deletion in item handler and viewer model - (411b39a) - *piperun*
+
+- - -
+
 ## chenron-v0.1.0 - 2026-02-07
 #### Features
 - Add unit tests for parseArchiveDate function to validate URL parsing - (49851a3) - *piperun*
