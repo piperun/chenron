@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## chenron-v0.3.0 - 2026-02-07
+#### Features
+- wire activity tracking service and daily snapshot scheduling - (d4dba45) - *piperun*
+- implement analytics dashboard with fl_chart visualizations - (40b03c9) - *piperun*
+#### Refactoring
+- improve card layout with tag badge overlay and tighter aspect ratio - (787418f) - *piperun*
+- resolve all lint issues from stricter analysis configuration - (95ed734) - *piperun*
+- fix remaining lint warnings for clean analyze - (e5e6a70) - *piperun*
+- remove unnecessary async wrapping from AppDatabase access - (604487d) - *piperun*
+
+- - -
+
 ## chenron-v0.2.0 - 2026-02-07
 #### Features
 - add per-type item count badges to folder sidebar - (4f73830) - *piperun*

@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## database-v0.3.0 - 2026-02-07
+#### Features
+- add activity tracking and recent access schema with SQLite triggers - (c795c80) - *piperun*
+#### Bug Fixes
+- resolve datetime format mismatches in statistics and activity triggers - (371ec6c) - *piperun*
+#### Refactoring
+- fix remaining lint warnings for clean analyze - (e5e6a70) - *piperun*
+
+- - -
+
 ## database-v0.2.0 - 2026-02-07
 #### Features
 - add per-type item count badges to folder sidebar - (4f73830) - *piperun*
