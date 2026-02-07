@@ -5,9 +5,12 @@ import 'package:vibe/src/validation/theme_validator.dart';
 /// Validator that checks for basic Material Design theme compliance
 final class MaterialThemeValidator extends ThemeValidator {
 
+  /// Creates a Material validator, optionally requiring a card theme override.
   const MaterialThemeValidator({
     this.requireCardTheme = false,
   });
+
+  /// Whether to enforce that [CardTheme.color] is explicitly set.
   final bool requireCardTheme;
 
   @override
@@ -46,6 +49,7 @@ final class MaterialThemeValidator extends ThemeValidator {
 
 /// No-op validator that always passes (useful for development/testing)
 final class NoOpValidator extends ThemeValidator {
+  /// Creates a no-op validator that always passes.
   const NoOpValidator();
 
   @override

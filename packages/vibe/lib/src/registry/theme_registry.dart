@@ -3,8 +3,10 @@ import 'package:vibe/src/validation/theme_validator.dart';
 
 /// Exception thrown when theme registration fails
 class ThemeRegistrationException implements Exception {
+  /// Creates a [ThemeRegistrationException] with the given [message].
   ThemeRegistrationException(this.message);
 
+  /// Description of why registration failed.
   final String message;
 
   @override
@@ -14,6 +16,7 @@ class ThemeRegistrationException implements Exception {
 /// Registry for theme specifications with optional validation
 class ThemeRegistry<T extends ThemeSpec> {
 
+  /// Creates a registry with an optional [validator] for theme compliance.
   ThemeRegistry({ThemeValidator? validator}) : _validator = validator;
   final Map<ThemeId, T> _themes = <ThemeId, T>{};
   final ThemeValidator? _validator;

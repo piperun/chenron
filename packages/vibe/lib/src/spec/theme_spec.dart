@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 /// Unique identifier for a theme
 class ThemeId {
 
+  /// Creates a [ThemeId] with the given string [value].
   const ThemeId(this.value);
+
+  /// The unique string identifier.
   final String value;
 
   @override
@@ -21,6 +24,7 @@ class ThemeId {
 /// Metadata describing a theme
 class ThemeMetadata {
 
+  /// Creates theme metadata with a required [name] and optional details.
   const ThemeMetadata({
     required this.name,
     this.description = '',
@@ -28,10 +32,20 @@ class ThemeMetadata {
     this.version,
     this.tags = const <String>[],
   });
+
+  /// Display name of the theme.
   final String name;
+
+  /// Brief description of the theme.
   final String description;
+
+  /// Theme author or creator.
   final String? author;
+
+  /// Semantic version string.
   final String? version;
+
+  /// Searchable tags for categorisation.
   final List<String> tags;
 
   @override

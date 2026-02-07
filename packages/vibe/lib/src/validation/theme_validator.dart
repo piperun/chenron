@@ -7,6 +7,7 @@ sealed class ValidationResult {
 
 /// Theme passed all validation checks
 class ValidationSuccess extends ValidationResult {
+  /// Creates a successful validation result.
   const ValidationSuccess();
 
   @override
@@ -16,7 +17,10 @@ class ValidationSuccess extends ValidationResult {
 /// Theme failed one or more validation checks
 class ValidationFailure extends ValidationResult {
 
+  /// Creates a failure result with the given [errors].
   const ValidationFailure(this.errors);
+
+  /// List of human-readable validation error descriptions.
   final List<String> errors;
 
   @override
@@ -26,8 +30,13 @@ class ValidationFailure extends ValidationResult {
 /// Exception thrown when theme validation fails
 class ThemeValidationException implements Exception {
 
+  /// Creates a [ThemeValidationException] with a [message] and optional [errors].
   ThemeValidationException(this.message, {this.errors = const <String>[]});
+
+  /// Description of the validation failure.
   final String message;
+
+  /// Individual validation errors that caused the failure.
   final List<String> errors;
 
   @override
@@ -41,6 +50,7 @@ class ThemeValidationException implements Exception {
 
 /// Contract for validating theme implementations
 abstract base class ThemeValidator {
+  /// Creates a [ThemeValidator].
   const ThemeValidator();
 
   /// Validate that a theme meets all requirements
