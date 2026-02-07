@@ -202,7 +202,6 @@ class SectionBody extends StatelessWidget {
                   existingTags: folder.tags.map((t) => t.name).toSet(),
                   existingParentFolderIds:
                       notifier.formData.value?.parentFolderIds,
-                  showItemsTable: false,
                   keyPrefix: "folder_editor",
                   onDataChanged: notifier.updateFormData,
                   onValidationChanged: _onFormValidationChanged,

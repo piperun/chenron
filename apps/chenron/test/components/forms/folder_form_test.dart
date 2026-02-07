@@ -131,7 +131,6 @@ void main() {
   group("FolderForm Widget", () {
     Widget buildForm({
       Folder? existingFolder,
-      bool showItemsTable = false,
       String? keyPrefix,
       ValueChanged<FolderFormData>? onDataChanged,
       ValueChanged<bool>? onValidationChanged,
@@ -141,7 +140,6 @@ void main() {
           body: SingleChildScrollView(
             child: FolderForm(
               existingFolder: existingFolder,
-              showItemsTable: showItemsTable,
               keyPrefix: keyPrefix,
               onDataChanged: onDataChanged,
               onValidationChanged: onValidationChanged,
@@ -179,12 +177,11 @@ void main() {
         expect(find.text("Existing Description"), findsOneWidget);
       });
 
-      testWidgets("shows items table when showItemsTable is true",
-          (tester) async {
-        await tester.pumpWidget(buildForm(showItemsTable: true));
+      testWidgets("does not show items table", (tester) async {
+        await tester.pumpWidget(buildForm());
         await tester.pumpAndSettle();
 
-        expect(find.text("Folder Items"), findsOneWidget);
+        expect(find.text("Folder Items"), findsNothing);
       });
     });
 
@@ -466,23 +463,6 @@ void main() {
       });
     });
 
-    group("Items Table Display", () {
-      testWidgets("shows placeholder when showItemsTable is true",
-          (tester) async {
-        await tester.pumpWidget(buildForm(showItemsTable: true));
-        await tester.pumpAndSettle();
-
-        expect(find.text("Folder Items"), findsOneWidget);
-        expect(find.textContaining("Item management"), findsOneWidget);
-      });
-
-      testWidgets("items table not shown by default", (tester) async {
-        await tester.pumpWidget(buildForm(showItemsTable: false));
-        await tester.pumpAndSettle();
-
-        expect(find.text("Folder Items"), findsNothing);
-      });
-    });
 
     group("Lifecycle", () {
       testWidgets("properly disposes controllers", (tester) async {

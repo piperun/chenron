@@ -2,7 +2,6 @@ import "dart:async";
 import "package:chenron/shared/folder_input/folder_input_section.dart";
 import "package:chenron/shared/tag_section/tag_section.dart";
 import "package:chenron/features/create/folder/widgets/folder_parent_section.dart";
-import "package:chenron/notifiers/item_table_notifier.dart";
 import "package:database/main.dart";
 import "package:flutter/material.dart";
 import "package:database/database.dart";
@@ -48,7 +47,6 @@ class FolderForm extends StatefulWidget {
   final Folder? existingFolder;
   final Set<String>? existingTags;
   final List<String>? existingParentFolderIds;
-  final bool showItemsTable;
   final String? keyPrefix;
   final ValueChanged<FolderFormData>? onDataChanged;
   final ValueChanged<bool>? onValidationChanged;
@@ -60,7 +58,6 @@ class FolderForm extends StatefulWidget {
     this.existingFolder,
     this.existingTags,
     this.existingParentFolderIds,
-    this.showItemsTable = false,
     this.keyPrefix,
     this.onDataChanged,
     this.onValidationChanged,
@@ -75,11 +72,8 @@ class FolderForm extends StatefulWidget {
 class _FolderFormState extends State<FolderForm> {
   late final TextEditingController _titleController;
   late final TextEditingController _descriptionController;
-  final ItemTableNotifier<FolderItem> _tableNotifier = ItemTableNotifier<FolderItem>();
-
   List<Folder> _selectedParentFolders = [];
   Set<String> _tags = {};
-  final List<FolderItem> _items = [];
   String? _titleError;
   String? _descriptionError;
 
@@ -205,7 +199,7 @@ class _FolderFormState extends State<FolderForm> {
       description: _description.value,
       parentFolderIds: _selectedParentFolders.map((f) => f.id).toList(),
       tags: _tags,
-      items: _items,
+      items: const [],
     );
 
     widget.onDataChanged?.call(formData);
@@ -221,7 +215,6 @@ class _FolderFormState extends State<FolderForm> {
     _title.dispose();
     _description.dispose();
     _tagsSignal.dispose();
-    _tableNotifier.dispose();
     super.dispose();
   }
 
@@ -252,39 +245,6 @@ class _FolderFormState extends State<FolderForm> {
           onTagAdded: _onTagAdded,
           onTagRemoved: _onTagRemoved,
         ),
-        // TODO: Add DataGrid/ItemTable integration when showItemsTable is true
-        // This will allow managing folder items in edit mode
-        // FUTURE: When implementing folder editor, this section will use:
-        // - DataGrid component from apps\chenron\lib\components\tables\item_table.dart
-        // - ItemTableNotifier for state management
-        // - Support for adding/removing/editing folder items
-        // - Integration with the existing folder item CRUD operations
-        if (widget.showItemsTable) ...[
-          const SizedBox(height: 16),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Folder Items",
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                  ),
-                  const SizedBox(height: 16),
-                  // TODO: Implement DataGrid here
-                  // This would show existing folder items and allow adding/removing items
-                  const Text(
-                    "Item management will be implemented here using DataGrid component",
-                    style: TextStyle(fontStyle: FontStyle.italic),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
       ],
     );
   }
