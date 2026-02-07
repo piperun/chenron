@@ -58,6 +58,8 @@ example.png
 
 *_old
 
+docs/
+
 *.html
 *.json
 nul
