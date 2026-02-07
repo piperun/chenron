@@ -7,7 +7,7 @@ import "package:database/main.dart";
 import "package:flutter/material.dart";
 import "package:database/database.dart";
 import "package:chenron/utils/validation/folder_validator.dart";
-import "package:chenron/locator.dart";
+import "package:chenron/features/create/folder/services/folder_persistence_service.dart";
 import "package:signals/signals.dart";
 
 /// Form model that represents the folder data
@@ -127,16 +127,8 @@ class _FolderFormState extends State<FolderForm> {
 
   Future<void> _loadParentFolders(List<String> folderIds) async {
     try {
-      final dbHandler = locator.get<Signal<AppDatabaseHandler>>().value;
-      final folders = <Folder>[];
-
-      for (final folderId in folderIds) {
-        final result =
-            await dbHandler.appDatabase.getFolder(folderId: folderId);
-        if (result != null) {
-          folders.add(result.data);
-        }
-      }
+      final folders =
+          await FolderPersistenceService().loadFoldersByIds(folderIds);
 
       if (mounted && folders.isNotEmpty) {
         setState(() {

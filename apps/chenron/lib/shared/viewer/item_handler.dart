@@ -2,10 +2,10 @@ import "package:flutter/material.dart";
 import "package:chenron/features/viewer/state/viewer_state.dart";
 import "package:chenron/features/viewer/ui/viewer_base_item.dart";
 import "package:chenron/shared/dialogs/delete_confirmation_dialog.dart";
+import "package:chenron/shared/viewer/item_deletion_service.dart";
 import "package:database/database.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/services/activity_tracker.dart";
-import "package:signals/signals_flutter.dart";
 
 /// Handles item tap by converting FolderItem to ViewerItem and delegating
 /// to the presenter's configurable onItemTap method.
@@ -102,15 +102,7 @@ Future<void> handleItemDeletion(
 
   // Delete items from database
   try {
-    final db = locator.get<Signal<AppDatabaseHandler>>().value;
-    final appDb = db.appDatabase;
-
-    int deletedCount = 0;
-    for (final item in itemsToDelete) {
-      if (item.id == null) continue;
-      final success = await deleteItem(appDb, item);
-      if (success) deletedCount++;
-    }
+    final deletedCount = await ItemDeletionService().deleteItems(itemsToDelete);
 
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -134,20 +126,5 @@ Future<void> handleItemDeletion(
         ),
       );
     }
-  }
-}
-
-/// Deletes a single item from the database based on its type.
-///
-/// Returns true if deletion was successful, false otherwise.
-Future<bool> deleteItem(AppDatabase db, FolderItem item) async {
-  // Deletion activity events are tracked automatically by SQLite triggers
-  switch (item.type) {
-    case FolderItemType.folder:
-      return db.removeFolder(item.id!);
-    case FolderItemType.link:
-      return db.removeLink(item.id!);
-    case FolderItemType.document:
-      return db.removeDocument(item.id!);
   }
 }
