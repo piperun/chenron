@@ -29,6 +29,8 @@ class _ViewerState extends State<Viewer> {
           itemId: null,
           folderId: viewerItem.id,
           title: viewerItem.title,
+          description: viewerItem.description,
+          createdAt: viewerItem.createdAt,
           tags: viewerItem.tags,
         ),
       FolderItemType.link => FolderItem.link(

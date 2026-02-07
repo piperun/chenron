@@ -12,13 +12,16 @@ class FolderResultBuilder implements ResultBuilder<FolderResult> {
   final Map<String, Item> _items = {};
   final Map<String, Link> _links = {};
   final Map<String, Document> _documents = {};
+  final Map<String, Folder> _folders = {};
   final AppDatabase _db;
   late final $MetadataRecordsTable _linkMetadata;
   late final $TagsTable _linkTags;
+  late final $FoldersTable _nestedFolders;
 
   FolderResultBuilder(this._folder, this._db) {
     _linkMetadata = _db.metadataRecords.createAlias("link_metadata");
     _linkTags = _db.tags.createAlias("link_tags");
+    _nestedFolders = _db.folders.createAlias("nested_folders");
   }
 
   @override
@@ -41,7 +44,7 @@ class FolderResultBuilder implements ResultBuilder<FolderResult> {
           _items[item.id] = item;
         }
 
-        // Store link or document data
+        // Store link, document, or nested folder data
         if (item.typeId == FolderItemType.link.index) {
           final link = row.readTableOrNull(_db.links);
           if (link != null && !_links.containsKey(link.id)) {
@@ -51,6 +54,11 @@ class FolderResultBuilder implements ResultBuilder<FolderResult> {
           final doc = row.readTableOrNull(_db.documents);
           if (doc != null && !_documents.containsKey(doc.id)) {
             _documents[doc.id] = doc;
+          }
+        } else if (item.typeId == FolderItemType.folder.index) {
+          final folder = row.readTableOrNull(_nestedFolders);
+          if (folder != null && !_folders.containsKey(folder.id)) {
+            _folders[folder.id] = folder;
           }
         }
 
@@ -88,13 +96,10 @@ class FolderResultBuilder implements ResultBuilder<FolderResult> {
           folderItem = doc.toFolderItem(itemId, tags: itemTagsList);
         }
       } else if (item.typeId == FolderItemType.folder.index) {
-        folderItem = FolderItem.folder(
-          id: item.itemId,
-          itemId: itemId,
-          folderId: item.itemId,
-          title: "",
-          tags: itemTagsList,
-        );
+        final folder = _folders[item.itemId];
+        if (folder != null) {
+          folderItem = folder.toFolderItem(itemId, tags: itemTagsList);
+        }
       }
 
       if (folderItem != null) {

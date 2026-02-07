@@ -44,7 +44,7 @@ class ItemUtils {
     return item.map(
       link: (linkItem) => linkItem.url,
       document: (docItem) => docItem.filePath,
-      folder: (folderItem) => "",
+      folder: (folderItem) => folderItem.description ?? "",
     );
   }
 

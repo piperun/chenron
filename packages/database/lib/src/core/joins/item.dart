@@ -8,10 +8,12 @@ class ItemJoins implements RowJoins<Items, FolderItem> {
   final AppDatabase db;
   late final $MetadataRecordsTable linkMetadata;
   late final $TagsTable linkTags;
+  late final $FoldersTable nestedFolders;
 
   ItemJoins(this.db) {
     linkMetadata = db.metadataRecords.createAlias("link_metadata");
     linkTags = db.tags.createAlias("link_tags");
+    nestedFolders = db.folders.createAlias("nested_folders");
   }
 
   @override
@@ -19,6 +21,8 @@ class ItemJoins implements RowJoins<Items, FolderItem> {
         leftOuterJoin(db.items, db.items.folderId.equalsExp(relationId)),
         leftOuterJoin(db.links, db.links.id.equalsExp(db.items.itemId)),
         leftOuterJoin(db.documents, db.documents.id.equalsExp(db.items.itemId)),
+        leftOuterJoin(
+            nestedFolders, nestedFolders.id.equalsExp(db.items.itemId)),
         // Load tags from the source link/document, not from item metadata
         leftOuterJoin(
             linkMetadata, linkMetadata.itemId.equalsExp(db.items.itemId)),

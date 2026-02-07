@@ -7,6 +7,7 @@ class FolderHeader extends StatelessWidget {
   final List<Tag> tags;
   final int totalItems;
   final VoidCallback onBack;
+  final VoidCallback onHome;
   final bool isExpanded;
   final VoidCallback onToggle;
   final bool isLocked;
@@ -21,6 +22,7 @@ class FolderHeader extends StatelessWidget {
     this.tags = const [],
     required this.totalItems,
     required this.onBack,
+    required this.onHome,
     this.isExpanded = true,
     required this.onToggle,
     this.isLocked = false,
@@ -76,6 +78,7 @@ class FolderHeader extends StatelessWidget {
         children: [
           _ActionRow(
             onBack: onBack,
+            onHome: onHome,
             onEdit: onEdit,
             onDelete: onDelete,
             isLocked: isLocked,
@@ -150,6 +153,7 @@ class FolderHeader extends StatelessWidget {
 
 class _ActionRow extends StatelessWidget {
   final VoidCallback onBack;
+  final VoidCallback onHome;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
   final bool isLocked;
@@ -159,6 +163,7 @@ class _ActionRow extends StatelessWidget {
 
   const _ActionRow({
     required this.onBack,
+    required this.onHome,
     this.onEdit,
     this.onDelete,
     required this.isLocked,
@@ -175,30 +180,31 @@ class _ActionRow extends StatelessWidget {
           color: Colors.white.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(6),
           child: InkWell(
+            onTap: onHome,
+            borderRadius: BorderRadius.circular(6),
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: Icon(
+                Icons.home,
+                size: 18,
+                color: Colors.white.withValues(alpha: 0.95),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Material(
+          color: Colors.white.withValues(alpha: 0.2),
+          borderRadius: BorderRadius.circular(6),
+          child: InkWell(
             onTap: onBack,
             borderRadius: BorderRadius.circular(6),
             child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 8,
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.arrow_back,
-                    size: 16,
-                    color: Colors.white.withValues(alpha: 0.95),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    "Back to Viewer",
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white.withValues(alpha: 0.95),
-                    ),
-                  ),
-                ],
+              padding: const EdgeInsets.all(8),
+              child: Icon(
+                Icons.arrow_back,
+                size: 18,
+                color: Colors.white.withValues(alpha: 0.95),
               ),
             ),
           ),

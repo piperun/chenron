@@ -259,6 +259,8 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
                           tags: result.tags,
                           totalItems: result.items.length,
                           onBack: () => Navigator.pop(context),
+                          onHome: () =>
+                              Navigator.popUntil(context, (route) => route.isFirst),
                           isExpanded: _isHeaderExpanded,
                           onToggle: () => setState(
                               () => _isHeaderExpanded = !_isHeaderExpanded),
@@ -284,6 +286,8 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
                           isHeaderLocked: _isHeaderLocked,
                           isHeaderExpanded: _isHeaderExpanded,
                           onBack: () => Navigator.pop(context),
+                          onHome: () =>
+                              Navigator.popUntil(context, (route) => route.isFirst),
                           onToggleLock: _toggleHeaderLock,
                         ),
                 ),
@@ -316,6 +320,7 @@ class _CollapsedHeader extends StatelessWidget {
   final bool isHeaderLocked;
   final bool isHeaderExpanded;
   final VoidCallback onBack;
+  final VoidCallback onHome;
   final VoidCallback onToggleLock;
 
   const _CollapsedHeader({
@@ -323,6 +328,7 @@ class _CollapsedHeader extends StatelessWidget {
     required this.isHeaderLocked,
     required this.isHeaderExpanded,
     required this.onBack,
+    required this.onHome,
     required this.onToggleLock,
   });
 
@@ -352,10 +358,14 @@ class _CollapsedHeader extends StatelessWidget {
       child: Row(
         children: [
           IconButton(
+            icon: const Icon(Icons.home, color: Colors.white),
+            onPressed: onHome,
+          ),
+          IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: onBack,
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(
               folder.title,

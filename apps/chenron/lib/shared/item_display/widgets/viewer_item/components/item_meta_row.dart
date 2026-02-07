@@ -111,11 +111,10 @@ class _TimeDisplay extends StatelessWidget {
         final timeFormat =
             TimeDisplayFormat.values[controller.timeDisplayFormat.value];
 
-        // Get createdAt - only link and document have it, folders don't
         final createdAt = item.map(
           link: (linkItem) => linkItem.createdAt ?? DateTime.now(),
           document: (docItem) => docItem.createdAt ?? DateTime.now(),
-          folder: (_) => DateTime.now(), // Folders don't have createdAt
+          folder: (folderItem) => folderItem.createdAt ?? DateTime.now(),
         );
 
         final displayText = TimeFormatter.format(createdAt, timeFormat);
