@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [v0.4.0](https://github.com/piperun/chenron-flutter/compare/7e9e19fbfe2cd8688d035200dec0b2589fb17939..v0.4.0) - 2026-02-07
+### Package updates
+- [chenron-v0.4.0](apps/chenron) bumped to [chenron-v0.4.0](https://github.com/piperun/chenron-flutter/compare/chenron-v0.3.1..chenron-v0.4.0)
+### Global changes
+
+- - -
+
 ## [v0.3.1](https://github.com/piperun/chenron-flutter/compare/626cde9ddf30a0660836237063eac3cb0279b64a..v0.3.1) - 2026-02-07
 ### Package updates
 - [database-v0.3.1](packages/database) bumped to [database-v0.3.1](https://github.com/piperun/chenron-flutter/compare/database-v0.3.0..database-v0.3.1)

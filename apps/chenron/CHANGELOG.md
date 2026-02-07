@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## chenron-v0.4.0 - 2026-02-07
+#### Features
+- redesign settings page with category sidebar navigation - (774bfdc) - *piperun*
+- theme DataGrid with Flutter ColorScheme - (7977341) - *piperun*
+#### Bug Fixes
+- truncate long tooltip text in ItemTitle to 200 chars - (7c8d5a9) - *piperun*
+#### Refactoring
+- remove dead showItemsTable from FolderForm - (f292cd1) - *piperun*
+
+- - -
+
 ## chenron-v0.3.1 - 2026-02-07
 #### Bug Fixes
 - folder timestamp/description display and add home navigation to folder viewer - (626cde9) - *piperun*
