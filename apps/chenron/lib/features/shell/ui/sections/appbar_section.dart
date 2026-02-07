@@ -1,6 +1,7 @@
 // Navigation sections that appear in the sidebar
 
 import "package:chenron/features/dashboard/pages/dashboard.dart";
+import "package:chenron/features/settings/models/settings_category.dart";
 import "package:chenron/features/settings/pages/configuration.dart";
 import "package:chenron/features/shell/ui/sections/navigation_section.dart";
 import "package:chenron/features/viewer/pages/viewer.dart";
@@ -47,7 +48,10 @@ enum AppPage {
           onSaved: onSaved,
         );
       case AppPage.settings:
-        return const ConfigPage();
+        // Settings routing is handled by _CurrentPageBuilder in RootPage,
+        // this fallback uses the default category.
+        return ConfigPage(
+            selectedCategory: SettingsCategory.defaultSelection);
     }
   }
 }

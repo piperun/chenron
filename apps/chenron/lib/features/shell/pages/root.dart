@@ -7,6 +7,9 @@ import "package:chenron/features/shell/widgets/add_item_modal.dart";
 import "package:chenron/features/shell/ui/sections/navigation_section.dart";
 import "package:chenron/features/shell/ui/sections/appbar_section.dart";
 import "package:chenron/features/shell/ui/folders_navigation_rail.dart";
+import "package:chenron/features/settings/models/settings_category.dart";
+import "package:chenron/features/settings/ui/settings_navigation_rail.dart";
+import "package:chenron/features/settings/pages/configuration.dart";
 import "package:chenron/features/folder_viewer/pages/folder_viewer_page.dart";
 import "package:chenron/features/viewer/pages/viewer.dart";
 import "package:logger/logger.dart";
@@ -29,6 +32,7 @@ class _RootPageState extends State<RootPage> {
   bool _isExtended = true;
   String? _selectedFolderId;
   NavigationSection _currentSection = NavigationSection.viewer;
+  SettingsCategory _settingsCategory = SettingsCategory.defaultSelection;
   late final SearchFilter _searchFilter;
 
   @override
@@ -110,7 +114,18 @@ class _RootPageState extends State<RootPage> {
   }
 
   void _navigateToSettings() {
-    setState(() => _currentPage = AppPage.settings);
+    setState(() {
+      _previousPage = _currentPage;
+      _currentPage = AppPage.settings;
+      _settingsCategory = SettingsCategory.defaultSelection;
+    });
+  }
+
+  void _returnFromSettings() {
+    setState(() {
+      _currentPage = _previousPage ?? AppPage.dashboard;
+      _previousPage = null;
+    });
   }
 
   @override
@@ -125,16 +140,28 @@ class _RootPageState extends State<RootPage> {
       ),
       body: Row(
         children: [
-          FoldersNavigationRail(
-            selectedFolderId: _selectedFolderId,
-            onFolderSelected: _onFolderSelected,
-            isExtended: _isExtended,
-            onToggleExtended: () => setState(() => _isExtended = !_isExtended),
-            onAddPressed: _showCreateModal,
-            showSyncFeatures: false,
-            showPlanInfo: false,
-            showQuotaBar: false,
-          ),
+          if (_currentPage == AppPage.settings)
+            SettingsNavigationRail(
+              selectedCategory: _settingsCategory,
+              onCategorySelected: (cat) =>
+                  setState(() => _settingsCategory = cat),
+              isExtended: _isExtended,
+              onToggleExtended: () =>
+                  setState(() => _isExtended = !_isExtended),
+              onBack: _returnFromSettings,
+            )
+          else
+            FoldersNavigationRail(
+              selectedFolderId: _selectedFolderId,
+              onFolderSelected: _onFolderSelected,
+              isExtended: _isExtended,
+              onToggleExtended: () =>
+                  setState(() => _isExtended = !_isExtended),
+              onAddPressed: _showCreateModal,
+              showSyncFeatures: false,
+              showPlanInfo: false,
+              showQuotaBar: false,
+            ),
           const VerticalDivider(thickness: 1, width: 1),
           Expanded(
             child: AnimatedSwitcher(
@@ -142,13 +169,16 @@ class _RootPageState extends State<RootPage> {
               switchInCurve: Curves.easeInOut,
               switchOutCurve: Curves.easeInOut,
               child: KeyedSubtree(
-                key: ValueKey(_currentPage),
+                key: ValueKey(_currentPage == AppPage.settings
+                    ? "settings_${_settingsCategory.name}"
+                    : _currentPage.name),
                 child: _CurrentPageBuilder(
                   currentPage: _currentPage,
                   currentSection: _currentSection,
                   searchFilter: _searchFilter,
                   onClose: _returnToPreviousPage,
                   onSaved: _handleSaved,
+                  settingsCategory: _settingsCategory,
                 ),
               ),
             ),
@@ -184,6 +214,7 @@ class _CurrentPageBuilder extends StatelessWidget {
   final SearchFilter searchFilter;
   final VoidCallback onClose;
   final VoidCallback onSaved;
+  final SettingsCategory settingsCategory;
 
   const _CurrentPageBuilder({
     required this.currentPage,
@@ -191,6 +222,7 @@ class _CurrentPageBuilder extends StatelessWidget {
     required this.searchFilter,
     required this.onClose,
     required this.onSaved,
+    required this.settingsCategory,
   });
 
   @override
@@ -204,13 +236,9 @@ class _CurrentPageBuilder extends StatelessWidget {
       );
     }
 
-    // If on settings page, show settings
+    // If on settings page, show settings with selected category
     if (currentPage == AppPage.settings) {
-      return currentPage.getPage(
-        onClose: onClose,
-        onSaved: onSaved,
-        searchFilter: searchFilter,
-      );
+      return ConfigPage(selectedCategory: settingsCategory);
     }
 
     // Otherwise, show the current section's page

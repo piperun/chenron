@@ -12,25 +12,15 @@ class ThemeSettings extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 12.0),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Theme Settings",
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const Divider(),
-            AvailableThemeSelector(
-              controller: controller,
-            ),
-            const SizedBox(height: 8),
-          ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        AvailableThemeSelector(
+          controller: controller,
         ),
-      ),
+        const SizedBox(height: 8),
+      ],
     );
   }
 }
