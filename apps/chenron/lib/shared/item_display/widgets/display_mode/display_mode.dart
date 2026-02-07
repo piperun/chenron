@@ -63,7 +63,7 @@ enum DisplayMode {
     showImage: true,
     showUrlBar: true,
     maxCrossAxisExtent: 320.0,
-    aspectRatio: 0.72,
+    aspectRatio: 0.85,
   ),
 
   /// Extended mode: Maximum information display
