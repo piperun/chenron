@@ -16,6 +16,8 @@ analyzer:
     - archived/**
   language:
     strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
   errors: 
     prefer_final_locals: error
     prefer_final_fields: error
@@ -52,13 +54,6 @@ dcm:
     - avoid-unnecessary-type-casts
     - avoid-unused-parameters
     - avoid-generics-shadowing
-custom_lint:
-  rules:
-  - avoid_ref_inside_state_dispose
-  - avoid_manual_providers_as_generated_provider_dependency
-  - missing_provider_scope
-  - notifier_build
-  - protected_notifier_properties 
 linter:
   # The lint rules applied to this project can be customized in the
   # section below to disable rules from the `package:flutter_lints/flutter.yaml`
@@ -102,8 +97,10 @@ linter:
     - valid_regexps
     - void_checks
     - use_enums
-    # avoid_print: false  # Uncomment to disable the `avoid_print` rule
-    # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
+    - avoid_print
+    - unnecessary_await_in_return
+    - noop_primitive_operations
+    - unnecessary_lambdas
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options
