@@ -50,7 +50,6 @@ class CardItem extends StatelessWidget {
           clipBehavior: Clip.antiAlias,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
             children: [
               // OG:image header for links
               if (showImage &&
@@ -58,44 +57,49 @@ class CardItem extends StatelessWidget {
                   url.isNotEmpty)
                 ItemImageHeader(url: url),
 
-              // Content section
-              Padding(
-                padding: EdgeInsets.all(showImage ? 12 : 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Info bar (Created + Items)
-                    ItemMetaRow(item: item, url: url),
-                    const SizedBox(height: 4),
-
-                    // Title
-                    ItemTitle(item: item, url: url, maxLines: titleLines),
-                    const SizedBox(height: 4),
-
-                    // Description
-                    ItemDescription(item: item, url: url, maxLines: descriptionLines),
-                    
-                    // Link + copy bar (only for links when enabled)
-                    if (showUrlBar && item.type == FolderItemType.link && url.isNotEmpty) ...[
+              // Content section — Expanded fills remaining grid cell height
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.all(showImage ? 12 : 8),
+                  child: SingleChildScrollView(
+                    physics: const NeverScrollableScrollPhysics(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                      // Info bar (Created + Items)
+                      ItemMetaRow(item: item, url: url),
                       const SizedBox(height: 4),
-                      ItemUrlBar(url: url),
-                    ],
 
-                    // Tags at bottom
-                    if (ItemUtils.buildTags(item, maxTags: maxTags).isNotEmpty) ...[
+                      // Title
+                      ItemTitle(item: item, url: url, maxLines: titleLines),
                       const SizedBox(height: 4),
-                      Wrap(
-                        spacing: 4,
-                        runSpacing: 4,
-                        children: ItemUtils.buildTags(
-                          item,
-                          maxTags: maxTags,
-                          includedTagNames: includedTagNames,
+
+                      // Description
+                      ItemDescription(item: item, url: url, maxLines: descriptionLines),
+
+                      // Link + copy bar (only for links when enabled)
+                      if (showUrlBar && item.type == FolderItemType.link && url.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        ItemUrlBar(url: url),
+                      ],
+
+                      // Tags at bottom
+                      if (ItemUtils.buildTags(item, maxTags: maxTags).isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Wrap(
+                          spacing: 4,
+                          runSpacing: 4,
+                          children: ItemUtils.buildTags(
+                            item,
+                            maxTags: maxTags,
+                            includedTagNames: includedTagNames,
+                          ),
                         ),
-                      ),
-                    ],
-                  ],
+                      ],
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ],
