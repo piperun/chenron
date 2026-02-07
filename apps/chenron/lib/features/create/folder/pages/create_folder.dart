@@ -1,5 +1,4 @@
 ﻿import "package:chenron/components/forms/folder_form.dart";
-import "package:database/database.dart";
 import "package:flutter/material.dart";
 
 // TODO: FUTURE FOLDER EDITOR MIGRATION
@@ -8,8 +7,7 @@ import "package:flutter/material.dart";
 // 2. Use FolderForm with existingFolder: folderToEdit and showItemsTable: true
 // 3. Deprecate the buggy apps\chenron\lib\features\folder_editor\ implementation
 // 4. This CreateFolderPage serves as the template for the new editor structure
-import "package:chenron/locator.dart";
-import "package:signals/signals.dart";
+import "package:chenron/features/create/folder/services/folder_persistence_service.dart";
 
 class CreateFolderPage extends StatefulWidget {
   final bool hideAppBar;
@@ -139,55 +137,12 @@ class _CreateFolderPageState extends State<CreateFolderPage> {
   Future<void> _saveFolder() async {
     if (!_isFormValid || _currentFormData == null) return;
 
-    final db = locator.get<Signal<AppDatabaseHandler>>().value;
-    final appDb = db.appDatabase;
-
-    // Convert tags to Metadata objects
-    final tags = _currentFormData!.tags.isNotEmpty
-        ? _currentFormData!.tags
-            .map((tag) => Metadata(
-                  value: tag,
-                  type: MetadataTypeEnum.tag,
-                ))
-            .toList()
-        : null;
-
-    // Create the folder
-    final result = await appDb.createFolder(
-      folderInfo: FolderDraft(
-        title: _currentFormData!.title,
-        description: _currentFormData!.description,
-      ),
-      tags: tags,
-    );
-
-    // Add the new folder to parent folders if any selected
-    if (_currentFormData!.parentFolderIds.isNotEmpty) {
-      for (final parentFolderId in _currentFormData!.parentFolderIds) {
-        await appDb.updateFolder(
-          parentFolderId,
-          itemUpdates: CUD(
-            create: [],
-            update: [
-              FolderItem.folder(
-                id: null,
-                itemId: result.folderId,
-                folderId: result.folderId,
-                title: _currentFormData!.title,
-              )
-            ],
-            remove: [],
-          ),
-        );
-      }
-    }
+    await FolderPersistenceService().saveFolder(_currentFormData!);
 
     if (mounted) {
-      // If onSaved callback provided, call it (main page mode)
       if (widget.onSaved != null) {
         widget.onSaved!();
       } else {
-        // Otherwise, close via Navigator (modal mode)
         Navigator.pop(context);
       }
     }
