@@ -30,6 +30,7 @@ path = "apps/chenron"
 public_api = true
 pre_bump_hooks = [
   "sed -i 's/^version: .*/version: {{version}}+0/' pubspec.yaml",
+  "grep -rl '  chenron:' ../.. --include=pubspec.yaml | xargs -r sed -i 's/  chenron: \\^.*/  chenron: ^{{version}}/'",
 ]
 
 [packages.database]
@@ -37,6 +38,7 @@ path = "packages/database"
 public_api = true
 pre_bump_hooks = [
   "sed -i 's/^version: .*/version: {{version}}/' pubspec.yaml",
+  "grep -rl '  database:' ../.. --include=pubspec.yaml | xargs -r sed -i 's/  database: \\^.*/  database: ^{{version}}/'",
 ]
 
 [packages.core]
@@ -44,6 +46,7 @@ path = "packages/core"
 public_api = true
 pre_bump_hooks = [
   "sed -i 's/^version: .*/version: {{version}}/' pubspec.yaml",
+  "grep -rl '  core:' ../.. --include=pubspec.yaml | xargs -r sed -i 's/  core: \\^.*/  core: ^{{version}}/'",
 ]
 
 [packages.basedir]
@@ -51,6 +54,7 @@ path = "packages/basedir"
 public_api = false
 pre_bump_hooks = [
   "sed -i 's/^version: .*/version: {{version}}/' pubspec.yaml",
+  "grep -rl '  basedir:' ../.. --include=pubspec.yaml | xargs -r sed -i 's/  basedir: \\^.*/  basedir: ^{{version}}/'",
 ]
 
 [packages.cache_manager]
@@ -58,6 +62,7 @@ path = "packages/cache_manager"
 public_api = false
 pre_bump_hooks = [
   "sed -i 's/^version: .*/version: {{version}}/' pubspec.yaml",
+  "grep -rl '  cache_manager:' ../.. --include=pubspec.yaml | xargs -r sed -i 's/  cache_manager: \\^.*/  cache_manager: ^{{version}}/'",
 ]
 
 [packages.logger]
@@ -65,6 +70,7 @@ path = "packages/logger"
 public_api = false
 pre_bump_hooks = [
   "sed -i 's/^version: .*/version: {{version}}/' pubspec.yaml",
+  "grep -rl '  logger:' ../.. --include=pubspec.yaml | xargs -r sed -i 's/  logger: \\^.*/  logger: ^{{version}}/'",
 ]
 
 [packages.vibe]
@@ -72,6 +78,7 @@ path = "packages/vibe"
 public_api = false
 pre_bump_hooks = [
   "sed -i 's/^version: .*/version: {{version}}/' pubspec.yaml",
+  "grep -rl '  vibe:' ../.. --include=pubspec.yaml | xargs -r sed -i 's/  vibe: \\^.*/  vibe: ^{{version}}/'",
 ]
 
 [packages.web_archiver]
@@ -79,6 +86,7 @@ path = "packages/web_archiver"
 public_api = false
 pre_bump_hooks = [
   "sed -i 's/^version: .*/version: {{version}}/' pubspec.yaml",
+  "grep -rl '  web_archiver:' ../.. --include=pubspec.yaml | xargs -r sed -i 's/  web_archiver: \\^.*/  web_archiver: ^{{version}}/'",
 ]
 
 [packages.platform_provider]
@@ -86,6 +94,7 @@ path = "packages/platform_provider"
 public_api = false
 pre_bump_hooks = [
   "sed -i 's/^version: .*/version: {{version}}/' pubspec.yaml",
+  "grep -rl '  platform_provider:' ../.. --include=pubspec.yaml | xargs -r sed -i 's/  platform_provider: \\^.*/  platform_provider: ^{{version}}/'",
 ]
 
 [packages.chenron_mockups]
@@ -93,4 +102,5 @@ path = "packages/chenron_mockups"
 public_api = false
 pre_bump_hooks = [
   "sed -i 's/^version: .*/version: {{version}}/' pubspec.yaml",
+  "grep -rl '  chenron_mockups:' ../.. --include=pubspec.yaml | xargs -r sed -i 's/  chenron_mockups: \\^.*/  chenron_mockups: ^{{version}}/'",
 ]
