@@ -33,6 +33,13 @@ class _ItemTitleState extends State<ItemTitle> {
     }
   }
 
+  static const _maxTooltipLength = 200;
+
+  static String _truncateTooltip(String text) {
+    if (text.length <= _maxTooltipLength) return text;
+    return "${text.substring(0, _maxTooltipLength)}…";
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -43,7 +50,7 @@ class _ItemTitleState extends State<ItemTitle> {
         builder: (context, snapshot) {
           final title = snapshot.data?["title"] as String? ?? widget.url!;
           return Tooltip(
-            message: title,
+            message: _truncateTooltip(title),
             child: Text(
               title,
               style: const TextStyle(
@@ -63,7 +70,7 @@ class _ItemTitleState extends State<ItemTitle> {
     // For folders and other items, use prominent styling
     final title = ItemUtils.getItemTitle(widget.item);
     return Tooltip(
-      message: title,
+      message: _truncateTooltip(title),
       child: Text(
         title,
         style: TextStyle(
