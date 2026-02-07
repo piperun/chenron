@@ -1,5 +1,6 @@
 import "package:flutter/material.dart";
 import "package:database/models/db_result.dart";
+import "package:database/models/item.dart";
 
 class FolderList extends StatelessWidget {
   final bool isLoading;
@@ -113,26 +114,61 @@ class _FolderRow extends StatelessWidget {
                   style: const TextStyle(fontSize: 14),
                 ),
               ),
-              // Item count badge
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  border: Border.all(
-                    color: Theme.of(context).dividerColor,
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  "${folder.items.length}",
-                  style: const TextStyle(fontSize: 12),
-                ),
-              ),
+              // Item count badges by type
+              ..._buildItemBadges(context),
             ],
           ],
         ),
       ),
     );
+  }
+
+  List<Widget> _buildItemBadges(BuildContext context) {
+    final counts = <FolderItemType, int>{};
+    for (final item in folder.items) {
+      counts[item.type] = (counts[item.type] ?? 0) + 1;
+    }
+
+    final colorScheme = Theme.of(context).colorScheme;
+    final badgeConfig = {
+      FolderItemType.link: (icon: Icons.link, color: colorScheme.primary),
+      FolderItemType.document: (icon: Icons.description, color: colorScheme.tertiary),
+      FolderItemType.folder: (icon: Icons.folder, color: colorScheme.secondary),
+    };
+
+    return [
+      for (final type in FolderItemType.values)
+        if ((counts[type] ?? 0) > 0)
+          Padding(
+            padding: const EdgeInsets.only(left: 4),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+              decoration: BoxDecoration(
+                color: badgeConfig[type]!.color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    badgeConfig[type]!.icon,
+                    size: 11,
+                    color: badgeConfig[type]!.color,
+                  ),
+                  const SizedBox(width: 2),
+                  Text(
+                    "${counts[type]}",
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: badgeConfig[type]!.color,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+    ];
   }
 }
 
