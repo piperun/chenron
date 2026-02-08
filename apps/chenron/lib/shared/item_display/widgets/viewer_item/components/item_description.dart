@@ -52,8 +52,9 @@ class _ItemDescriptionState extends State<ItemDescription> {
           if (description != null) {
             return Text(
               description,
-              style: const TextStyle(
-                color: Colors.grey,
+              style: TextStyle(
+                color: theme.textTheme.bodyMedium?.color
+                    ?.withValues(alpha: 0.7),
                 fontStyle: FontStyle.italic,
               ),
               softWrap: true,

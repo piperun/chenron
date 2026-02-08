@@ -43,9 +43,7 @@ class _ItemUrlBarState extends State<ItemUrlBar> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
-        color: theme.brightness == Brightness.light
-            ? const Color(0xFFF8F8F8)
-            : theme.colorScheme.surfaceContainerHighest,
+        color: theme.colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(6),
       ),
       child: Row(
@@ -53,7 +51,7 @@ class _ItemUrlBarState extends State<ItemUrlBar> {
           Icon(
             Icons.link,
             size: 12,
-            color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5),
+            color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6),
           ),
           const SizedBox(width: 6),
           Expanded(
@@ -61,7 +59,7 @@ class _ItemUrlBarState extends State<ItemUrlBar> {
               widget.url,
               style: TextStyle(
                 fontSize: 11,
-                color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6),
+                color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
                 fontFamily: "monospace",
               ),
               overflow: TextOverflow.ellipsis,
@@ -91,7 +89,7 @@ class _ItemUrlBarState extends State<ItemUrlBar> {
                     Icon(
                       Icons.check,
                       size: 10,
-                      color: theme.colorScheme.primary,
+                      color: theme.colorScheme.onPrimaryContainer,
                     ),
                     const SizedBox(width: 3),
                   ],
@@ -100,7 +98,7 @@ class _ItemUrlBarState extends State<ItemUrlBar> {
                     style: TextStyle(
                       fontSize: 10,
                       color: _copied
-                          ? theme.colorScheme.primary
+                          ? theme.colorScheme.onPrimaryContainer
                           : theme.textTheme.bodySmall?.color
                               ?.withValues(alpha: 0.7),
                       fontWeight: _copied ? FontWeight.w600 : FontWeight.normal,

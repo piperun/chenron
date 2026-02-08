@@ -48,7 +48,7 @@ class ItemMetaRow extends StatelessWidget {
             " • ",
             style: TextStyle(
               fontSize: 10,
-              color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5),
+              color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6),
             ),
           ),
           _TimeDisplay(item: item),
@@ -126,7 +126,7 @@ class _TimeDisplay extends StatelessWidget {
             displayText,
             style: TextStyle(
               fontSize: 12,
-              color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5),
+              color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6),
             ),
           ),
         );

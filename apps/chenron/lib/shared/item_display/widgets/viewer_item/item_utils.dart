@@ -101,22 +101,26 @@ class ItemUtils {
     final int remaining = tags.length - visibleCount;
     if (remaining > 0) {
       chips.add(
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: Colors.grey.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
-          ),
-          child: Text(
-            "+$remaining more",
-            style: const TextStyle(
-              fontSize: 11,
-              color: Colors.grey,
-              fontWeight: FontWeight.w500,
+        Builder(builder: (context) {
+          final muted =
+              Theme.of(context).textTheme.bodySmall?.color ?? Colors.grey;
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: muted.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: muted.withValues(alpha: 0.3)),
             ),
-          ),
-        ),
+            child: Text(
+              "+$remaining more",
+              style: TextStyle(
+                fontSize: 11,
+                color: muted.withValues(alpha: 0.7),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          );
+        }),
       );
     }
 
