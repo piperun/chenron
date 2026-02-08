@@ -1,10 +1,11 @@
 import "package:flutter/material.dart";
-import "package:database/main.dart";
+import "package:flutter/services.dart";
+import "package:database/database.dart";
 import "package:chenron/features/dashboard/widgets/chart_card.dart";
 import "package:chenron/shared/utils/time_formatter.dart";
 
 class RecentActivityList extends StatelessWidget {
-  final List<ActivityEvent> events;
+  final List<EnrichedActivityEvent> events;
 
   const RecentActivityList({
     super.key,
@@ -24,8 +25,7 @@ class RecentActivityList extends StatelessWidget {
                 child: Text(
                   "No activity recorded yet.",
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.textTheme.bodyMedium?.color
-                        ?.withValues(alpha: 0.5),
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
               ),
@@ -45,14 +45,17 @@ class RecentActivityList extends StatelessWidget {
 }
 
 class _ActivityTile extends StatelessWidget {
-  final ActivityEvent event;
+  final EnrichedActivityEvent event;
 
   const _ActivityTile({required this.event});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final (icon, color) = _getIconAndColor(event.eventType);
+    final colorScheme = theme.colorScheme;
+    final (icon, color) = _getIconAndColor(event.eventType, colorScheme);
+
+    final displayName = event.entityName ?? event.entityId;
 
     return ListTile(
       dense: true,
@@ -64,33 +67,64 @@ class _ActivityTile extends StatelessWidget {
       ),
       title: Text(
         _formatEventType(event.eventType),
-        style: theme.textTheme.bodyMedium,
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: colorScheme.onSurface,
+        ),
       ),
-      subtitle: event.entityId != null
+      subtitle: displayName != null
           ? Text(
-              "${event.entityType} ${_shortId(event.entityId!)}",
+              "${event.entityType}: $displayName",
               style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.textTheme.bodySmall?.color
-                    ?.withValues(alpha: 0.6),
+                color: colorScheme.onSurfaceVariant,
               ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             )
           : null,
-      trailing: Text(
-        TimeFormatter.formatRelative(event.occurredAt),
-        style: theme.textTheme.labelSmall?.copyWith(
-          color: theme.textTheme.labelSmall?.color?.withValues(alpha: 0.5),
-        ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            TimeFormatter.formatRelative(event.occurredAt),
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+          if (event.entityId != null)
+            IconButton(
+              icon: Icon(
+                Icons.copy,
+                size: 14,
+                color: colorScheme.onSurfaceVariant,
+              ),
+              tooltip: "Copy ID",
+              visualDensity: VisualDensity.compact,
+              padding: const EdgeInsets.only(left: 4),
+              constraints: const BoxConstraints(),
+              onPressed: () async {
+                await Clipboard.setData(ClipboardData(text: event.entityId!));
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text("Copied ${event.entityType} ID"),
+                    duration: const Duration(seconds: 1),
+                  ),
+                );
+              },
+            ),
+        ],
       ),
     );
   }
 
-  (IconData, Color) _getIconAndColor(String eventType) {
-    if (eventType.contains("created")) return (Icons.add_circle_outline, Colors.green);
-    if (eventType.contains("deleted")) return (Icons.remove_circle_outline, Colors.red);
-    if (eventType.contains("viewed")) return (Icons.visibility_outlined, Colors.blue);
-    if (eventType.contains("edited")) return (Icons.edit_outlined, Colors.orange);
-    if (eventType.contains("archived")) return (Icons.archive_outlined, Colors.grey);
-    return (Icons.circle_outlined, Colors.grey);
+  (IconData, Color) _getIconAndColor(
+      String eventType, ColorScheme colorScheme) {
+    if (eventType.contains("created")) return (Icons.add_circle_outline, colorScheme.primary);
+    if (eventType.contains("deleted")) return (Icons.remove_circle_outline, colorScheme.error);
+    if (eventType.contains("viewed")) return (Icons.visibility_outlined, colorScheme.tertiary);
+    if (eventType.contains("edited")) return (Icons.edit_outlined, colorScheme.secondary);
+    if (eventType.contains("archived")) return (Icons.archive_outlined, colorScheme.outline);
+    return (Icons.circle_outlined, colorScheme.outline);
   }
 
   String _formatEventType(String eventType) {
@@ -99,10 +133,5 @@ class _ActivityTile extends StatelessWidget {
           RegExp(r"^[a-z]"),
           (match) => match.group(0)!.toUpperCase(),
         );
-  }
-
-  String _shortId(String id) {
-    if (id.length <= 8) return id;
-    return "${id.substring(0, 8)}...";
   }
 }

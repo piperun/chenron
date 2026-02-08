@@ -35,8 +35,8 @@ class _DashBoardState extends State<DashBoard> {
   List<FolderItemCount> _folderCounts = [];
 
   // Activity stream
-  StreamSubscription<List<ActivityEvent>>? _activitySubscription;
-  List<ActivityEvent> _recentActivity = [];
+  StreamSubscription<List<EnrichedActivityEvent>>? _activitySubscription;
+  List<EnrichedActivityEvent> _recentActivity = [];
 
   bool _isLoading = true;
 
@@ -44,7 +44,7 @@ class _DashBoardState extends State<DashBoard> {
   void initState() {
     super.initState();
     unawaited(_loadData());
-    _activitySubscription = _db.watchRecentActivity().listen((events) {
+    _activitySubscription = _db.watchRecentActivityWithNames().listen((events) {
       if (mounted) {
         setState(() => _recentActivity = events);
       }

@@ -99,6 +99,53 @@ extension ActivityTracking on AppDatabase {
           ..limit(limit))
         .watch();
   }
+
+  /// Stream of recent activity events with resolved entity names.
+  ///
+  /// LEFT JOINs activity_events with links, documents, folders, and tags
+  /// to resolve human-readable names for each entity.
+  Stream<List<EnrichedActivityEvent>> watchRecentActivityWithNames(
+      {int limit = 20}) {
+    return customSelect(
+      "SELECT ae.*, "
+      "COALESCE(l.path, d.title, f.title, t.name) AS entity_name "
+      "FROM activity_events ae "
+      "LEFT JOIN links l ON ae.entity_type = 'link' AND ae.entity_id = l.id "
+      "LEFT JOIN documents d ON ae.entity_type = 'document' AND ae.entity_id = d.id "
+      "LEFT JOIN folders f ON ae.entity_type = 'folder' AND ae.entity_id = f.id "
+      "LEFT JOIN tags t ON ae.entity_type = 'tag' AND ae.entity_id = t.id "
+      "ORDER BY ae.occurred_at DESC LIMIT ?",
+      variables: [Variable.withInt(limit)],
+      readsFrom: {activityEvents, links, documents, folders, tags},
+    ).watch().map((rows) => rows
+        .map((row) => EnrichedActivityEvent(
+              id: row.read<String>("id"),
+              occurredAt: row.read<DateTime>("occurred_at"),
+              eventType: row.read<String>("event_type"),
+              entityType: row.read<String>("entity_type"),
+              entityId: row.readNullable<String>("entity_id"),
+              entityName: row.readNullable<String>("entity_name"),
+            ))
+        .toList());
+  }
+}
+
+class EnrichedActivityEvent {
+  final String id;
+  final DateTime occurredAt;
+  final String eventType;
+  final String entityType;
+  final String? entityId;
+  final String? entityName;
+
+  const EnrichedActivityEvent({
+    required this.id,
+    required this.occurredAt,
+    required this.eventType,
+    required this.entityType,
+    this.entityId,
+    this.entityName,
+  });
 }
 
 class DailyActivityCount {

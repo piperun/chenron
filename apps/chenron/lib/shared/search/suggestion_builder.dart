@@ -31,10 +31,13 @@ class GlobalSuggestionBuilder {
 
   Future<List<ListTile>> buildSuggestions() async {
     final handler = db.value;
+    final appDb = handler.appDatabase;
     final query = queryController?.query.value ?? controller?.text ?? "";
-    final folders = await handler.appDatabase.searchFolders(query: query);
+    final folders = await appDb.searchFolders(query: query);
+    final links = await appDb.searchLinks(query: query);
 
-    final links = await handler.appDatabase.searchLinks(query: query);
+    // Also try direct ID lookups so pasted IDs resolve to results
+    final idResults = await _lookupById(appDb, query);
 
     if (!context.mounted) return [];
 
@@ -57,10 +60,39 @@ class GlobalSuggestionBuilder {
       (link) => link.tags,
     );
 
+    // Collect IDs already present from text search to avoid duplicates
+    final seenFolderIds = matchedFolders.map((f) => f.data.id).toSet();
+    final seenLinkIds = matchedLinks.map((l) => l.data.id).toSet();
+
     return [
+      // ID-matched results first (exact match is highest relevance)
+      for (final folder in idResults.folders)
+        if (!seenFolderIds.contains(folder.data.id))
+          suggestionFactory.createFolderSuggestion(folder),
+      for (final link in idResults.links)
+        if (!seenLinkIds.contains(link.data.id))
+          suggestionFactory.createLinkSuggestion(link),
       ...matchedFolders.map(suggestionFactory.createFolderSuggestion),
       ...matchedLinks.map(suggestionFactory.createLinkSuggestion),
     ];
+  }
+
+  /// Tries to find entities by direct ID lookup when the query is long
+  /// enough to be a valid ID (30+ hex characters).
+  Future<_IdLookupResults> _lookupById(
+      AppDatabase appDb, String query) async {
+    final trimmed = query.trim();
+    if (trimmed.length < 30) return const _IdLookupResults();
+
+    final results = await Future.wait([
+      appDb.getFolder(folderId: trimmed),
+      appDb.getLink(linkId: trimmed),
+    ]);
+
+    return _IdLookupResults(
+      folders: [if (results[0] != null) results[0]! as FolderResult],
+      links: [if (results[1] != null) results[1]! as LinkResult],
+    );
   }
 }
 
@@ -136,6 +168,16 @@ class SuggestionFactory {
       await launchUrl(uri);
     }
   }
+}
+
+class _IdLookupResults {
+  final List<FolderResult> folders;
+  final List<LinkResult> links;
+
+  const _IdLookupResults({
+    this.folders = const [],
+    this.links = const [],
+  });
 }
 
 class SuggestionTile {

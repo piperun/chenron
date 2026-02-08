@@ -5,17 +5,13 @@ import "package:chenron/features/dashboard/widgets/chart_card.dart";
 
 class FolderCompositionChart extends StatelessWidget {
   final List<FolderItemCount> folderCounts;
+  final Map<String, Color>? typeColors;
 
   const FolderCompositionChart({
     super.key,
     required this.folderCounts,
+    this.typeColors,
   });
-
-  static const _typeColors = {
-    "link": Colors.blue,
-    "document": Colors.purple,
-    "folder": Colors.orange,
-  };
 
   @override
   Widget build(BuildContext context) {
@@ -31,8 +27,7 @@ class FolderCompositionChart extends StatelessWidget {
                 child: Text(
                   "No folders with items yet.",
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.textTheme.bodyMedium?.color
-                        ?.withValues(alpha: 0.5),
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
               )
@@ -63,6 +58,12 @@ class FolderCompositionChart extends StatelessWidget {
   }
 
   BarChartData _buildChartData(ThemeData theme, List<_FolderData> folders) {
+    final colors = typeColors ?? {
+      "link": theme.colorScheme.primary,
+      "document": theme.colorScheme.tertiary,
+      "folder": theme.colorScheme.secondary,
+    };
+
     return BarChartData(
       alignment: BarChartAlignment.spaceAround,
       gridData: FlGridData(
@@ -114,13 +115,13 @@ class FolderCompositionChart extends StatelessWidget {
         final rodStacks = <BarChartRodStackItem>[];
         double cumulative = 0;
 
-        for (final type in _typeColors.keys) {
+        for (final type in colors.keys) {
           final count = (folder.typeCounts[type] ?? 0).toDouble();
           if (count > 0) {
             rodStacks.add(BarChartRodStackItem(
               cumulative,
               cumulative + count,
-              _typeColors[type]!,
+              colors[type]!,
             ));
             cumulative += count;
           }
