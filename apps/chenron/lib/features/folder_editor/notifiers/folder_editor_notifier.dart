@@ -33,80 +33,80 @@ class FolderEditorNotifier {
   List<String> _originalParentFolderIds = [];
 
   // Computed signal for current items (original + changes)
-  Computed<List<FolderItem>> get currentItems => computed(() {
-        final original = originalItems.value;
-        final changes = itemChanges.value;
+  late final Computed<List<FolderItem>> currentItems = computed(() {
+    final original = originalItems.value;
+    final changes = itemChanges.value;
 
-        // Start with original items
-        final items = List<FolderItem>.from(original);
+    // Start with original items
+    final items = List<FolderItem>.from(original);
 
-        // Remove deleted items
-        items.removeWhere((item) =>
-            changes.remove.contains(item.id) ||
-            changes.remove.any((removedId) => item.id == removedId));
+    // Remove deleted items
+    items.removeWhere((item) =>
+        changes.remove.contains(item.id) ||
+        changes.remove.any((removedId) => item.id == removedId));
 
-        // Update modified items
-        for (final updatedItem in changes.update) {
-          final index = items.indexWhere((item) => item.id == updatedItem.id);
-          if (index != -1) {
-            items[index] = updatedItem;
-          }
-        }
+    // Update modified items
+    for (final updatedItem in changes.update) {
+      final index = items.indexWhere((item) => item.id == updatedItem.id);
+      if (index != -1) {
+        items[index] = updatedItem;
+      }
+    }
 
-        // Add new items
-        items.addAll(changes.create);
+    // Add new items
+    items.addAll(changes.create);
 
-        return items;
-      });
+    return items;
+  });
 
   // Computed signal for filtered items (for search/display)
-  Computed<List<FolderItem>> get displayItems => computed(() {
-        return currentItems.value;
-      });
+  late final Computed<List<FolderItem>> displayItems = computed(() {
+    return currentItems.value;
+  });
 
-  Computed<bool> get hasChanges => computed(() {
-        final FolderResult? original = _originalFolder;
-        final FolderFormData? current = formData.value;
-        final CUD<FolderItem> changes = itemChanges.value;
+  late final Computed<bool> hasChanges = computed(() {
+    final FolderResult? original = _originalFolder;
+    final FolderFormData? current = formData.value;
+    final CUD<FolderItem> changes = itemChanges.value;
 
-        if (original == null || current == null) {
-          return false;
-        }
+    if (original == null || current == null) {
+      return false;
+    }
 
-        final originalFolder = original.data;
-        final originalTags = original.tags.map((t) => t.name).toSet();
-        final currentTags = current.tags;
+    final originalFolder = original.data;
+    final originalTags = original.tags.map((t) => t.name).toSet();
+    final currentTags = current.tags;
 
-        // Check title change
-        if (originalFolder.title != current.title) {
-          return true;
-        }
+    // Check title change
+    if (originalFolder.title != current.title) {
+      return true;
+    }
 
-        // Check description change
-        if (originalFolder.description != current.description) {
-          return true;
-        }
+    // Check description change
+    if (originalFolder.description != current.description) {
+      return true;
+    }
 
-        // Check tags change
-        if (!const SetEquality<String>().equals(originalTags, currentTags)) {
-          return true;
-        }
+    // Check tags change
+    if (!const SetEquality<String>().equals(originalTags, currentTags)) {
+      return true;
+    }
 
-        // Check parent folders change
-        if (!const ListEquality<String>()
-            .equals(_originalParentFolderIds, current.parentFolderIds)) {
-          return true;
-        }
+    // Check parent folders change
+    if (!const ListEquality<String>()
+        .equals(_originalParentFolderIds, current.parentFolderIds)) {
+      return true;
+    }
 
-        // Check if there are any item changes
-        if (changes.create.isNotEmpty ||
-            changes.update.isNotEmpty ||
-            changes.remove.isNotEmpty) {
-          return true;
-        }
+    // Check if there are any item changes
+    if (changes.create.isNotEmpty ||
+        changes.update.isNotEmpty ||
+        changes.remove.isNotEmpty) {
+      return true;
+    }
 
-        return false;
-      });
+    return false;
+  });
 
   Future<void> loadFolder(String folderId) async {
     state.value = FolderEditorState.loading;
@@ -501,5 +501,8 @@ class FolderEditorNotifier {
     originalItems.dispose();
     itemChanges.dispose();
     formData.dispose();
+    currentItems.dispose();
+    displayItems.dispose();
+    hasChanges.dispose();
   }
 }

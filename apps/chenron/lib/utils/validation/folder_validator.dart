@@ -5,14 +5,16 @@ import "package:validator_dart/src/validators/is_length.dart";
 
 class FolderValidator {
   static String? validateTitle(String? value) {
-    if (value == null || value.isEmpty) {
+    if (value == null || value.trim().isEmpty) {
       return "Title cannot be empty";
     }
-    final valueLocaleCheck = Validator.isAlphanumeric(value, locale: "en-US") ||
-        Validator.isAlphanumeric(value, locale: "sv-SE") ||
-        Validator.isAlphanumeric(value, locale: "ja-JP") ||
-        Validator.isAlphanumeric(value, locale: "ru-RU") ||
-        Validator.isAlphanumeric(value, locale: "uk-UA");
+    final stripped = value.replaceAll(RegExp(r"\s+"), "");
+    final valueLocaleCheck =
+        Validator.isAlphanumeric(stripped, locale: "en-US") ||
+        Validator.isAlphanumeric(stripped, locale: "sv-SE") ||
+        Validator.isAlphanumeric(stripped, locale: "ja-JP") ||
+        Validator.isAlphanumeric(stripped, locale: "ru-RU") ||
+        Validator.isAlphanumeric(stripped, locale: "uk-UA");
 
     if (!Validator.isLength(value,
         options: LengthOptions(
