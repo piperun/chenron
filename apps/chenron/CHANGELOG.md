@@ -2,6 +2,20 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## chenron-v0.6.0 - 2026-02-08
+#### Features
+- improve dashboard activity list and search - (3b49b53) - *piperun*
+#### Bug Fixes
+- propagate folder context and add dbId getter - (fe97640) - *piperun*
+- correct type ID off-by-one and default folder lookup - (75d21df) - *piperun*
+- replace hardcoded colors with colorScheme values - (ceaefd6) - *piperun*
+- eliminate dark mode flicker on app startup - (4d097f3) - *piperun*
+#### Refactoring
+- move integration tests to test/ as widget tests - (0854e0a) - *piperun*
+- migrate app theme layer to new vibe API - (4ffdf55) - *piperun*
+
+- - -
+
 ## chenron-v0.5.0 - 2026-02-08
 #### Features
 - add custom interval picker to backup schedule settings - (68612be) - *piperun*

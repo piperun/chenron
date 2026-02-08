@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## database-v0.5.0 - 2026-02-08
+#### Features
+- improve dashboard activity list and search - (3b49b53) - *piperun*
+#### Bug Fixes
+- propagate folder context and add dbId getter - (fe97640) - *piperun*
+- add migration to correct existing 0-based type_id values - (347c82f) - *piperun*
+- correct type ID off-by-one and default folder lookup - (75d21df) - *piperun*
+
+- - -
+
 ## database-v0.4.0 - 2026-02-08
 #### Features
 - add backup schedule settings with startup wiring - (03f16ad) - *piperun*

@@ -15,12 +15,12 @@ dependencies:
   html: ^0.15.4
 
 dev_dependencies:
-  database: ^0.4.0
+  database: ^0.5.0
   flutter_test:
     sdk: flutter
   integration_test:
     sdk: flutter
   flutter_lints: ^6.0.0
   chenron_mockups: ^0.0.1
-  chenron: ^0.5.0
+  chenron: ^0.6.0
   drift: ^2.28.2
