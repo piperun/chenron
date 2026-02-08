@@ -11,7 +11,13 @@ class LinkPersistenceService {
     final db = locator.get<Signal<AppDatabaseHandler>>().value;
     final appDb = db.appDatabase;
 
-    final targetFolders = folderIds.isEmpty ? ["default"] : folderIds;
+    List<String> targetFolders = folderIds;
+    if (targetFolders.isEmpty) {
+      final defaultId = await appDb.getDefaultFolderId();
+      if (defaultId != null) {
+        targetFolders = [defaultId];
+      }
+    }
 
     var savedCount = 0;
     for (final folderId in targetFolders) {

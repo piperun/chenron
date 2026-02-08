@@ -39,6 +39,19 @@ extension FolderReadExtensions on AppDatabase {
         .watchAll(includeOptions: includeOptions);
   }
 
+  /// Returns the ID of the "Default" folder, or the first folder if
+  /// no folder is titled "Default". Returns null only if no folders exist.
+  Future<String?> getDefaultFolderId() async {
+    final byTitle = await (select(folders)
+          ..where((f) => f.title.equals("Default"))
+          ..limit(1))
+        .getSingleOrNull();
+    if (byTitle != null) return byTitle.id;
+
+    final first = await (select(folders)..limit(1)).getSingleOrNull();
+    return first?.id;
+  }
+
   Future<List<FolderResult>> searchFolders({
     required String query,
     IncludeOptions includeOptions = const IncludeOptions.empty(),
