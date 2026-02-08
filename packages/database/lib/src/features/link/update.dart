@@ -51,6 +51,13 @@ extension LinkUpdateExtensions on AppDatabase {
         loggerGlobal.fine(
             "LinkUpdate", "Adding ${tags.length} tags to link $linkId");
 
+        final linkExists = await (select(links)
+              ..where((l) => l.id.equals(linkId)))
+            .getSingleOrNull();
+        if (linkExists == null) {
+          throw ArgumentError("Link with ID $linkId not found.");
+        }
+
         final List<String> addedTagIds = [];
 
         for (var tag in tags) {

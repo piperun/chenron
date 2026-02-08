@@ -37,6 +37,14 @@ extension DocumentUpdateExtensions on AppDatabase {
         loggerGlobal.fine("DocumentUpdate",
             "Adding ${tags.length} tags to document $documentId");
 
+        final docExists = await (select(documents)
+              ..where((d) => d.id.equals(documentId)))
+            .getSingleOrNull();
+        if (docExists == null) {
+          throw ArgumentError(
+              "Document with ID $documentId not found.");
+        }
+
         final List<String> addedTagIds = [];
 
         for (var tag in tags) {

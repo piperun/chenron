@@ -9,6 +9,7 @@ extension ArchiveHelperExtension on AppDatabase {
     List<String> linkIds,
     UserConfig userConfig, {
     int archiveDueDate = 7,
+    ArchiveOrgClient? client,
     ArchiveOrgOptions? archiveOptions,
   }) async {
     if (userConfig.archiveOrgS3AccessKey!.isNotEmpty &&
@@ -26,6 +27,7 @@ extension ArchiveHelperExtension on AppDatabase {
               linkId,
               accessKey: userConfig.archiveOrgS3AccessKey!,
               secretKey: userConfig.archiveOrgS3SecretKey!,
+              client: client,
               options: archiveOptions,
             );
           }
