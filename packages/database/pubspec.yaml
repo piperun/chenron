@@ -17,7 +17,7 @@ dependencies:
   basedir: any
   platform_provider: any
   core: any
-  logger: any
+  app_logger: any
   cron: ^0.6.1
 
   # Add other dependencies as needed based on analysis

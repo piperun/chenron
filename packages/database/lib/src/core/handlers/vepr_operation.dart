@@ -1,4 +1,4 @@
-import "package:logger/logger.dart";
+import "package:app_logger/app_logger.dart";
 import "package:drift/drift.dart"; // Import GeneratedDatabase
 import "package:meta/meta.dart";
 
@@ -21,14 +21,15 @@ abstract class VEPROperation<DB extends GeneratedDatabase, Input, ExecResult,
   Future<FinalResult> run(Input input) async {
     return db.transaction(() async {
       try {
-        logStep("Runner", "Starting operation");
+        loggerGlobal.fine("VEPROperation.$runtimeType", "Starting operation");
 
         validate(input);
         await execute();
         await process();
         final finalResult = buildResult();
 
-        logStep("Runner", "Operation completed successfully");
+        loggerGlobal.fine(
+            "VEPROperation.$runtimeType", "Operation completed successfully");
         return finalResult;
       } catch (e) {
         loggerGlobal.severe("VEPROperation", "Error during operation: $e");
@@ -79,9 +80,9 @@ abstract class VEPROperation<DB extends GeneratedDatabase, Input, ExecResult,
   @protected
   FinalResult onBuildResult();
 
-  /// Helper method to log steps
+  /// Helper method to log VEPR step detail (uses FINEST level)
   void logStep(String step, String message) {
-    loggerGlobal.fine("VEPROperation.$runtimeType.$step", message);
+    loggerGlobal.finest("VEPROperation.$runtimeType.$step", message);
   }
 }
 

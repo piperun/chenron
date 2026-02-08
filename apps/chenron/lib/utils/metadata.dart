@@ -1,5 +1,5 @@
 import "package:metadata_fetch/metadata_fetch.dart";
-import "package:logger/logger.dart";
+import "package:app_logger/app_logger.dart";
 
 class MetadataFetcher {
   final String? title;

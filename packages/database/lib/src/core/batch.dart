@@ -1,5 +1,5 @@
 import "package:database/main.dart";
-import "package:logger/logger.dart";
+import "package:app_logger/app_logger.dart";
 import "package:drift/drift.dart";
 
 extension BatchExtensions on AppDatabase {

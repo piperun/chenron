@@ -1,7 +1,7 @@
 import "package:database/database.dart";
 import "package:chenron/locator.dart";
 import "package:database/main.dart";
-import "package:logger/logger.dart";
+import "package:app_logger/app_logger.dart";
 import "package:signals/signals_flutter.dart";
 
 class ConfigService {

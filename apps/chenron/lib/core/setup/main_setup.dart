@@ -5,7 +5,7 @@ import "package:chenron/locator.dart";
 import "package:basedir/directory.dart";
 import "package:database/database.dart";
 import "package:database/main.dart" show ConfigIncludes;
-import "package:logger/logger.dart";
+import "package:app_logger/app_logger.dart";
 
 import "package:chenron/features/theme/state/theme_utils.dart";
 import "package:flutter/foundation.dart";

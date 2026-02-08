@@ -9,7 +9,7 @@ import "package:flutter/material.dart";
 import "package:shared_preferences/shared_preferences.dart";
 import "package:signals/signals_flutter.dart";
 
-import "package:logger/logger.dart";
+import "package:app_logger/app_logger.dart";
 
 void main() async {
   try {

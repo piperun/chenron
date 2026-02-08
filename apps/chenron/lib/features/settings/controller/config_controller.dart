@@ -6,7 +6,7 @@ import "package:chenron/features/settings/service/config_service.dart";
 import "package:chenron/features/theme/state/theme_controller.dart";
 import "package:chenron/providers/theme_controller_signal.dart";
 import "package:chenron/locator.dart";
-import "package:logger/logger.dart";
+import "package:app_logger/app_logger.dart";
 
 @immutable
 class ThemeChoice {

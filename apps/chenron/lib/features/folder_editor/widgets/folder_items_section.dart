@@ -9,7 +9,7 @@ import "package:chenron/features/folder_editor/widgets/item_section/item_section
 import "package:chenron/features/folder_editor/widgets/cells/type_cell.dart";
 import "package:chenron/features/folder_editor/widgets/cells/delete_cell.dart";
 import "package:chenron/features/folder_editor/notifiers/folder_editor_notifier.dart";
-import "package:logger/logger.dart";
+import "package:app_logger/app_logger.dart";
 
 /// Widget for displaying and managing folder items in the editor
 class FolderItemsSection extends StatefulWidget {

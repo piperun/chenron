@@ -16,7 +16,7 @@ import "package:chenron/features/create/link/models/validation_result.dart";
 import "package:chenron/utils/validation/link_validator.dart";
 import "package:chenron/utils/validation/tag_validator.dart";
 import "package:chenron/notifiers/item_table_notifier.dart";
-import "package:logger/logger.dart";
+import "package:app_logger/app_logger.dart";
 
 class CreateLinkPage extends StatefulWidget {
   final bool hideAppBar;

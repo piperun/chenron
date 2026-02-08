@@ -1,4 +1,4 @@
-import "package:logger/logger.dart";
+import "package:app_logger/app_logger.dart";
 import "package:favicon/favicon.dart";
 import "package:flutter/material.dart";
 import "package:flutter_svg/flutter_svg.dart";

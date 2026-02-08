@@ -2,7 +2,7 @@ import "package:flutter/foundation.dart";
 import "dart:async";
 import "package:chenron/features/create/link/models/link_entry.dart";
 import "package:chenron/features/create/link/services/url_validator_service.dart";
-import "package:logger/logger.dart";
+import "package:app_logger/app_logger.dart";
 
 enum InputMode { single, bulk }
 

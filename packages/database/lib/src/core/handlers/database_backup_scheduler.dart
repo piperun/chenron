@@ -2,7 +2,7 @@ import "package:cron/cron.dart";
 import "package:database/src/core/handlers/config_file_handler.dart";
 import "package:database/src/core/handlers/database_file_handler.dart";
 import "package:database/src/features/backup_settings/update.dart";
-import "package:logger/logger.dart";
+import "package:app_logger/app_logger.dart";
 
 class DatabaseBackupScheduler {
   final AppDatabaseHandler databaseHandler;

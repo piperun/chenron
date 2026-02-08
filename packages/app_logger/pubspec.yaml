@@ -1,4 +1,4 @@
-name: logger
+name: app_logger
 description: A simple logger wrapper for Chenron.
 version: 0.0.1
 publish_to: 'none'

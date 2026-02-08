@@ -2,7 +2,7 @@ import "package:database/main.dart";
 import "package:database/models/created_ids.dart";
 import "package:database/src/core/id.dart";
 import "package:drift/drift.dart";
-import "package:logger/logger.dart";
+import "package:app_logger/app_logger.dart";
 
 extension ConfigDatabaseInit on ConfigDatabase {
   Future<void> setupConfigEnums() async {

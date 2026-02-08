@@ -4,7 +4,7 @@ import "package:database/file_operations.dart";
 import "package:database/main.dart";
 import "package:database/test_support/locator.dart";
 import "package:basedir/directory.dart";
-import "package:logger/logger.dart";
+import "package:app_logger/app_logger.dart";
 import "package:path/path.dart" as p;
 
 import "package:database/test_support/schema.dart";

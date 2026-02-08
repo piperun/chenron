@@ -2,7 +2,7 @@ import "package:chenron/features/theme/model/theme_service_model.dart";
 
 import "package:database/database.dart";
 import "package:database/main.dart";
-import "package:logger/logger.dart";
+import "package:app_logger/app_logger.dart";
 
 class ThemeServiceDB implements ThemeService {
   final ConfigDatabase _db;

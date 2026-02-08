@@ -12,7 +12,7 @@ import "package:chenron/features/settings/ui/settings_navigation_rail.dart";
 import "package:chenron/features/settings/pages/configuration.dart";
 import "package:chenron/features/folder_viewer/pages/folder_viewer_page.dart";
 import "package:chenron/features/viewer/pages/viewer.dart";
-import "package:logger/logger.dart";
+import "package:app_logger/app_logger.dart";
 import "package:chenron/shared/ui/dark_mode.dart";
 import "package:signals/signals.dart";
 

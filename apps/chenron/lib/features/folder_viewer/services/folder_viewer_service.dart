@@ -2,7 +2,7 @@ import "package:database/main.dart";
 import "package:database/database.dart";
 import "package:chenron/locator.dart";
 import "package:signals/signals_flutter.dart";
-import "package:logger/logger.dart";
+import "package:app_logger/app_logger.dart";
 import "package:shared_preferences/shared_preferences.dart";
 
 class FolderViewerService {

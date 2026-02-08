@@ -11,7 +11,7 @@ import "package:flutter_test/flutter_test.dart";
 import "package:database/src/features/document/read.dart";
 import "package:database/src/features/document/create.dart";
 import "package:chenron_mockups/chenron_mockups.dart";
-import "package:logger/logger.dart";
+import "package:app_logger/app_logger.dart";
 
 void main() {
   setUpAll(() {

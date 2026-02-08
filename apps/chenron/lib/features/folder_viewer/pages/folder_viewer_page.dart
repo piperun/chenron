@@ -9,7 +9,7 @@ import "package:chenron/features/folder_viewer/services/folder_viewer_service.da
 
 import "package:chenron/shared/tag_filter/tag_filter_state.dart";
 import "package:chenron/features/folder_editor/pages/folder_editor.dart";
-import "package:logger/logger.dart";
+import "package:app_logger/app_logger.dart";
 import "package:chenron/features/shell/pages/root.dart";
 import "package:chenron/shared/viewer/item_handler.dart";
 

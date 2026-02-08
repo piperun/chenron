@@ -3,7 +3,7 @@ import "package:database/models/metadata.dart";
 import "package:database/src/features/link/handlers/link_update_vepr.dart";
 import "package:database/src/core/id.dart";
 import "package:database/src/features/tag/create.dart";
-import "package:logger/logger.dart";
+import "package:app_logger/app_logger.dart";
 import "package:drift/drift.dart";
 import "package:meta/meta.dart";
 

@@ -6,7 +6,7 @@ import "package:chenron/features/settings/controller/config_controller.dart";
 import "package:chenron/features/settings/models/settings_category.dart";
 import "package:chenron/features/settings/ui/settings_content_panel.dart";
 import "package:chenron/locator.dart";
-import "package:logger/logger.dart";
+import "package:app_logger/app_logger.dart";
 
 class ConfigPage extends StatefulWidget {
   final SettingsCategory selectedCategory;

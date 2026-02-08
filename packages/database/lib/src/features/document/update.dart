@@ -4,7 +4,7 @@ import "package:database/src/core/id.dart";
 import "package:database/src/features/document/handlers/document_update_vepr.dart";
 import "package:database/src/features/tag/create.dart";
 
-import "package:logger/logger.dart";
+import "package:app_logger/app_logger.dart";
 import "package:drift/drift.dart";
 
 extension DocumentUpdateExtensions on AppDatabase {
