@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import "package:flutter/services.dart";
 import "package:file_picker/file_picker.dart";
 import "package:signals/signals_flutter.dart";
 import "package:chenron/features/settings/controller/config_controller.dart";
@@ -7,6 +8,11 @@ import "package:chenron/base_dirs/schema.dart";
 import "package:basedir/directory.dart";
 
 enum BackupPathMode { defaultMode, custom }
+
+enum _IntervalUnit { hours, days }
+
+/// Sentinel value used in the dropdown to indicate "Custom" selection.
+const _customSentinel = "__custom__";
 
 class ScheduleSettings extends StatefulWidget {
   final ConfigController controller;
@@ -19,15 +25,45 @@ class ScheduleSettings extends StatefulWidget {
 
 class _ScheduleSettingsState extends State<ScheduleSettings> {
   late TextEditingController _pathController;
+  late TextEditingController _customAmountController;
   BackupPathMode _mode = BackupPathMode.defaultMode;
+  bool _isCustomInterval = false;
+  _IntervalUnit _customUnit = _IntervalUnit.hours;
 
-  static const _intervalOptions = <(String, String?)>[
+  static const _presetOptions = <(String, String?)>[
     ("Off", null),
     ("Every 4 hours", "0 0 */4 * * *"),
     ("Every 8 hours", "0 0 */8 * * *"),
     ("Every 12 hours", "0 0 */12 * * *"),
     ("Every 24 hours", "0 0 0 * * *"),
   ];
+
+  static bool _isPreset(String? cron) {
+    return _presetOptions.any((o) => o.$2 == cron);
+  }
+
+  /// Parse a custom cron expression into (amount, unit).
+  static (int, _IntervalUnit)? _parseCustomCron(String cron) {
+    // Hourly: "0 0 */N * * *"
+    final hourMatch = RegExp(r"^0 0 \*/(\d+) \* \* \*$").firstMatch(cron);
+    if (hourMatch != null) {
+      return (int.parse(hourMatch.group(1)!), _IntervalUnit.hours);
+    }
+    // Daily: "0 0 0 */N * *"
+    final dayMatch = RegExp(r"^0 0 0 \*/(\d+) \* \*$").firstMatch(cron);
+    if (dayMatch != null) {
+      return (int.parse(dayMatch.group(1)!), _IntervalUnit.days);
+    }
+    return null;
+  }
+
+  /// Build a cron expression from a custom amount and unit.
+  static String _buildCron(int amount, _IntervalUnit unit) {
+    return switch (unit) {
+      _IntervalUnit.hours => "0 0 */$amount * * *",
+      _IntervalUnit.days => "0 0 0 */$amount * *",
+    };
+  }
 
   @override
   void initState() {
@@ -37,11 +73,28 @@ class _ScheduleSettingsState extends State<ScheduleSettings> {
         ? BackupPathMode.defaultMode
         : BackupPathMode.custom;
     _pathController = TextEditingController(text: customPath ?? "");
+
+    // Determine if current interval is a custom one
+    final currentCron = widget.controller.backupInterval.peek();
+    if (currentCron != null && !_isPreset(currentCron)) {
+      _isCustomInterval = true;
+      final parsed = _parseCustomCron(currentCron);
+      if (parsed != null) {
+        _customAmountController =
+            TextEditingController(text: parsed.$1.toString());
+        _customUnit = parsed.$2;
+      } else {
+        _customAmountController = TextEditingController(text: "1");
+      }
+    } else {
+      _customAmountController = TextEditingController(text: "2");
+    }
   }
 
   @override
   void dispose() {
     _pathController.dispose();
+    _customAmountController.dispose();
     super.dispose();
   }
 
@@ -79,6 +132,14 @@ class _ScheduleSettingsState extends State<ScheduleSettings> {
     }
   }
 
+  void _applyCustomInterval() {
+    final amount = int.tryParse(_customAmountController.text);
+    if (amount != null && amount > 0) {
+      final cron = _buildCron(amount, _customUnit);
+      widget.controller.updateBackupInterval(cron);
+    }
+  }
+
   void _onPathChanged(String value) {
     if (_mode == BackupPathMode.custom && value.trim().isNotEmpty) {
       widget.controller.updateBackupPath(value.trim());
@@ -86,10 +147,16 @@ class _ScheduleSettingsState extends State<ScheduleSettings> {
   }
 
   String _labelForCron(String? cronExpression) {
-    for (final (label, cron) in _intervalOptions) {
+    for (final (label, cron) in _presetOptions) {
       if (cron == cronExpression) return label;
     }
-    return "Custom ($cronExpression)";
+    if (cronExpression == null) return "Off";
+    final parsed = _parseCustomCron(cronExpression);
+    if (parsed != null) {
+      final unit = parsed.$2 == _IntervalUnit.hours ? "hours" : "days";
+      return "Every ${parsed.$1} $unit";
+    }
+    return "Custom";
   }
 
   String _formatTimestamp(DateTime? timestamp) {
@@ -133,22 +200,86 @@ class _ScheduleSettingsState extends State<ScheduleSettings> {
             children: [
               Text("Frequency:", style: theme.textTheme.bodyMedium),
               const SizedBox(width: 16),
-              DropdownButton<String?>(
-                value: interval,
+              DropdownButton<String>(
+                value: _isCustomInterval
+                    ? _customSentinel
+                    : (interval ?? ""),
                 onChanged: (value) {
-                  widget.controller.updateBackupInterval(value);
+                  if (value == _customSentinel) {
+                    setState(() => _isCustomInterval = true);
+                    _applyCustomInterval();
+                  } else {
+                    setState(() => _isCustomInterval = false);
+                    widget.controller.updateBackupInterval(
+                      value == "" ? null : value,
+                    );
+                  }
                 },
-                items: _intervalOptions
-                    .map(
-                      (option) => DropdownMenuItem<String?>(
-                        value: option.$2,
-                        child: Text(option.$1),
-                      ),
-                    )
-                    .toList(),
+                items: [
+                  ..._presetOptions.map(
+                    (option) => DropdownMenuItem<String>(
+                      value: option.$2 ?? "",
+                      child: Text(option.$1),
+                    ),
+                  ),
+                  const DropdownMenuItem<String>(
+                    value: _customSentinel,
+                    child: Text("Custom"),
+                  ),
+                ],
               ),
             ],
           ),
+
+          // Custom interval picker
+          if (_isCustomInterval)
+            Padding(
+              padding: const EdgeInsets.only(top: 12.0),
+              child: Row(
+                children: [
+                  const Text("Every "),
+                  SizedBox(
+                    width: 64,
+                    child: TextField(
+                      controller: _customAmountController,
+                      keyboardType: TextInputType.number,
+                      textAlign: TextAlign.center,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                      ],
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        isDense: true,
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 10,
+                        ),
+                      ),
+                      onChanged: (_) => _applyCustomInterval(),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  DropdownButton<_IntervalUnit>(
+                    value: _customUnit,
+                    onChanged: (value) {
+                      if (value == null) return;
+                      setState(() => _customUnit = value);
+                      _applyCustomInterval();
+                    },
+                    items: const [
+                      DropdownMenuItem(
+                        value: _IntervalUnit.hours,
+                        child: Text("hours"),
+                      ),
+                      DropdownMenuItem(
+                        value: _IntervalUnit.days,
+                        child: Text("days"),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
 
           const Divider(height: 32),
 

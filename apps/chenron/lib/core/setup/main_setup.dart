@@ -222,13 +222,20 @@ class MainSetup {
   }
 
   static int _parseIntervalHours(String cronExpression) {
-    return switch (cronExpression) {
-      "0 0 */4 * * *" => 4,
-      "0 0 */8 * * *" => 8,
-      "0 0 */12 * * *" => 12,
-      "0 0 0 * * *" => 24,
-      _ => 8,
-    };
+    // Hourly pattern: "0 0 */N * * *"
+    final hourMatch =
+        RegExp(r"^0 0 \*/(\d+) \* \* \*$").firstMatch(cronExpression);
+    if (hourMatch != null) return int.parse(hourMatch.group(1)!);
+
+    // Daily pattern: "0 0 0 */N * *"
+    final dayMatch =
+        RegExp(r"^0 0 0 \*/(\d+) \* \*$").firstMatch(cronExpression);
+    if (dayMatch != null) return int.parse(dayMatch.group(1)!) * 24;
+
+    // "0 0 0 * * *" = once per day (24h)
+    if (cronExpression == "0 0 0 * * *") return 24;
+
+    return 8; // fallback
   }
 
   static Future<void> _recordDailySnapshot(AppDatabase db) async {
