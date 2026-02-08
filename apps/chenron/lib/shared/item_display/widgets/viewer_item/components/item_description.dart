@@ -53,8 +53,7 @@ class _ItemDescriptionState extends State<ItemDescription> {
             return Text(
               description,
               style: TextStyle(
-                color: theme.textTheme.bodyMedium?.color
-                    ?.withValues(alpha: 0.7),
+                color: theme.colorScheme.onSurfaceVariant,
                 fontStyle: FontStyle.italic,
               ),
               softWrap: true,
@@ -72,7 +71,7 @@ class _ItemDescriptionState extends State<ItemDescription> {
       style: TextStyle(
         fontSize: 13,
         height: 1.4,
-        color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+        color: theme.colorScheme.onSurfaceVariant,
       ),
       maxLines: widget.maxLines,
       overflow: TextOverflow.ellipsis,

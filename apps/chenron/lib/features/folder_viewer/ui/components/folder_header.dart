@@ -45,32 +45,12 @@ class FolderHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    // Use theme colors for gradient
-    final primaryColor = theme.colorScheme.primary;
-    final secondaryColor = theme.colorScheme.secondary;
-
-    // Create gradient colors based on theme
-    final gradientStart =
-        isDark ? primaryColor.withValues(alpha: 0.9) : primaryColor;
-    final gradientEnd =
-        isDark ? secondaryColor.withValues(alpha: 0.8) : secondaryColor;
-
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [gradientStart, gradientEnd],
+        color: theme.colorScheme.surfaceContainerHighest,
+        border: Border(
+          bottom: BorderSide(color: theme.colorScheme.outline.withValues(alpha: 0.3)),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -92,10 +72,10 @@ class FolderHeader extends StatelessWidget {
           // Folder title
           Text(
             folder.title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: theme.colorScheme.onSurface,
             ),
           ),
 
@@ -140,7 +120,7 @@ class FolderHeader extends StatelessWidget {
               folder.description,
               style: TextStyle(
                 fontSize: 15,
-                color: Colors.white.withValues(alpha: 0.95),
+                color: theme.colorScheme.onSurfaceVariant,
                 height: 1.5,
               ),
             ),
@@ -174,10 +154,13 @@ class _ActionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final foreground = theme.colorScheme.onSurface;
+
     return Row(
       children: [
         Material(
-          color: Colors.white.withValues(alpha: 0.2),
+          color: foreground.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(6),
           child: InkWell(
             onTap: onHome,
@@ -187,14 +170,14 @@ class _ActionRow extends StatelessWidget {
               child: Icon(
                 Icons.home,
                 size: 18,
-                color: Colors.white.withValues(alpha: 0.95),
+                color: foreground.withValues(alpha: 0.8),
               ),
             ),
           ),
         ),
         const SizedBox(width: 8),
         Material(
-          color: Colors.white.withValues(alpha: 0.2),
+          color: foreground.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(6),
           child: InkWell(
             onTap: onBack,
@@ -204,7 +187,7 @@ class _ActionRow extends StatelessWidget {
               child: Icon(
                 Icons.arrow_back,
                 size: 18,
-                color: Colors.white.withValues(alpha: 0.95),
+                color: foreground.withValues(alpha: 0.8),
               ),
             ),
           ),
@@ -212,7 +195,7 @@ class _ActionRow extends StatelessWidget {
         const Spacer(),
         if (onEdit != null)
           Material(
-            color: Colors.white.withValues(alpha: 0.2),
+            color: foreground.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(6),
             child: InkWell(
               onTap: onEdit,
@@ -222,7 +205,7 @@ class _ActionRow extends StatelessWidget {
                 child: Icon(
                   Icons.edit,
                   size: 20,
-                  color: Colors.white.withValues(alpha: 0.95),
+                  color: foreground.withValues(alpha: 0.8),
                 ),
               ),
             ),
@@ -230,7 +213,7 @@ class _ActionRow extends StatelessWidget {
         if (onEdit != null) const SizedBox(width: 8),
         if (onDelete != null)
           Material(
-            color: Colors.red.withValues(alpha: 0.2),
+            color: Theme.of(context).colorScheme.error.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(6),
             child: InkWell(
               onTap: onDelete,
@@ -240,14 +223,14 @@ class _ActionRow extends StatelessWidget {
                 child: Icon(
                   Icons.delete,
                   size: 20,
-                  color: Colors.red.shade200,
+                  color: Theme.of(context).colorScheme.error,
                 ),
               ),
             ),
           ),
         if (onDelete != null) const SizedBox(width: 8),
         Material(
-          color: Colors.white.withValues(alpha: 0.2),
+          color: foreground.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(6),
           child: InkWell(
             onTap: onToggleLock,
@@ -269,7 +252,7 @@ class _ActionRow extends StatelessWidget {
                   isLocked ? Icons.lock : Icons.lock_open,
                   key: ValueKey<bool>(isLocked),
                   size: 20,
-                  color: Colors.white.withValues(alpha: 0.95),
+                  color: foreground.withValues(alpha: 0.8),
                 ),
               ),
             ),
@@ -277,7 +260,7 @@ class _ActionRow extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         Material(
-          color: Colors.white.withValues(alpha: isLocked ? 0.1 : 0.2),
+          color: foreground.withValues(alpha: isLocked ? 0.04 : 0.08),
           borderRadius: BorderRadius.circular(6),
           child: InkWell(
             onTap: isLocked ? null : onToggle,
@@ -287,8 +270,7 @@ class _ActionRow extends StatelessWidget {
               child: Icon(
                 isExpanded ? Icons.expand_less : Icons.expand_more,
                 size: 20,
-                color:
-                    Colors.white.withValues(alpha: isLocked ? 0.4 : 0.95),
+                color: foreground.withValues(alpha: isLocked ? 0.4 : 0.95),
               ),
             ),
           ),
@@ -363,20 +345,22 @@ class _MetaItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final foreground = Theme.of(context).colorScheme.onSurfaceVariant;
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(
           icon,
           size: 16,
-          color: Colors.white.withValues(alpha: 0.9),
+          color: foreground.withValues(alpha: 0.9),
         ),
         const SizedBox(width: 6),
         Text(
           text,
           style: TextStyle(
             fontSize: 14,
-            color: Colors.white.withValues(alpha: 0.9),
+            color: foreground.withValues(alpha: 0.9),
           ),
         ),
       ],

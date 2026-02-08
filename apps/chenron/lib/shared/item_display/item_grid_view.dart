@@ -64,9 +64,7 @@ class ItemGridView extends StatelessWidget {
     }
 
     return Container(
-      color: theme.brightness == Brightness.light
-          ? const Color(0xFFFAFAFA)
-          : theme.scaffoldBackgroundColor,
+      color: theme.scaffoldBackgroundColor,
       padding: const EdgeInsets.all(24),
       child: GridView.builder(
         gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
@@ -211,14 +209,14 @@ class _EmptyState extends StatelessWidget {
           Icon(
             Icons.inbox,
             size: 64,
-            color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.3),
+            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
           ),
           const SizedBox(height: 16),
           Text(
             "No items found",
             style: TextStyle(
               fontSize: 16,
-              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
+              color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 8),
@@ -226,7 +224,7 @@ class _EmptyState extends StatelessWidget {
             "Try adjusting your search or filters",
             style: TextStyle(
               fontSize: 14,
-              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.5),
+              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
             ),
             textAlign: TextAlign.center,
           ),

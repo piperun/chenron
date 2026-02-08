@@ -45,9 +45,11 @@ class FolderList extends StatelessWidget {
                     ? "No folders yet.\nCreate one to get started."
                     : "No folders match '$filterTerm'",
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.grey),
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant),
               )
-            : const Icon(Icons.folder_outlined, color: Colors.grey),
+            : Icon(Icons.folder_outlined,
+                color: Theme.of(context).colorScheme.onSurfaceVariant),
       );
     }
 
@@ -101,7 +103,7 @@ class _FolderRow extends StatelessWidget {
               width: 8,
               height: 8,
               decoration: BoxDecoration(
-                color: Colors.blue,
+                color: Theme.of(context).colorScheme.primary,
                 borderRadius: BorderRadius.circular(4),
               ),
             ),

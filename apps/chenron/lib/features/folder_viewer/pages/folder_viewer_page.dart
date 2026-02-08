@@ -257,44 +257,36 @@ class _CollapsedHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final foreground = theme.colorScheme.onSurface;
+
     return Container(
       height: 60,
       padding: const EdgeInsets.symmetric(horizontal: 24),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            theme.colorScheme.primary.withValues(alpha: 0.9),
-            theme.colorScheme.secondary.withValues(alpha: 0.8),
-          ],
+        color: theme.colorScheme.surfaceContainerHighest,
+        border: Border(
+          bottom: BorderSide(
+              color: theme.colorScheme.outline.withValues(alpha: 0.3)),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.home, color: Colors.white),
+            icon: Icon(Icons.home, color: foreground),
             onPressed: onHome,
           ),
           IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            icon: Icon(Icons.arrow_back, color: foreground),
             onPressed: onBack,
           ),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               folder.title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: foreground,
               ),
               overflow: TextOverflow.ellipsis,
             ),
@@ -314,14 +306,14 @@ class _CollapsedHeader extends StatelessWidget {
               child: Icon(
                 isHeaderLocked ? Icons.lock : Icons.lock_open,
                 key: ValueKey<bool>(isHeaderLocked),
-                color: Colors.white,
+                color: foreground,
               ),
             ),
             onPressed: onToggleLock,
           ),
           Icon(
             isHeaderExpanded ? Icons.expand_less : Icons.expand_more,
-            color: Colors.white.withValues(alpha: isHeaderLocked ? 0.4 : 1.0),
+            color: foreground.withValues(alpha: isHeaderLocked ? 0.4 : 1.0),
           ),
         ],
       ),

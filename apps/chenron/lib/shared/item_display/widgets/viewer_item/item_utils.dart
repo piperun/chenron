@@ -70,31 +70,35 @@ class ItemUtils {
     for (var i = 0; i < visibleCount; i++) {
       final tag = ordered[i];
       final bool isIncluded = includedTagNames.contains(tag.name);
-      final Color baseColor = isIncluded ? Colors.green : Colors.blue;
       chips.add(
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: baseColor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: baseColor.withValues(alpha: 0.3)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.tag, size: 12, color: baseColor),
-              const SizedBox(width: 4),
-              Text(
-                tag.name,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: baseColor,
-                  fontWeight: FontWeight.w500,
+        Builder(builder: (context) {
+          final colorScheme = Theme.of(context).colorScheme;
+          final Color baseColor =
+              isIncluded ? colorScheme.primary : colorScheme.secondary;
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: baseColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: baseColor.withValues(alpha: 0.3)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.tag, size: 12, color: baseColor),
+                const SizedBox(width: 4),
+                Text(
+                  tag.name,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: baseColor,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ),
+              ],
+            ),
+          );
+        }),
       );
     }
 
@@ -102,8 +106,7 @@ class ItemUtils {
     if (remaining > 0) {
       chips.add(
         Builder(builder: (context) {
-          final muted =
-              Theme.of(context).textTheme.bodySmall?.color ?? Colors.grey;
+          final muted = Theme.of(context).colorScheme.onSurfaceVariant;
           return Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
@@ -140,24 +143,25 @@ class ItemIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     late final Color backgroundColor;
     late final Color iconColor;
     late final IconData icon;
 
     switch (type) {
       case FolderItemType.link:
-        backgroundColor = Colors.blue.withValues(alpha: 0.1);
-        iconColor = Colors.blue;
+        backgroundColor = colorScheme.primary.withValues(alpha: 0.1);
+        iconColor = colorScheme.primary;
         icon = Icons.link;
         break;
       case FolderItemType.document:
-        backgroundColor = Colors.purple.withValues(alpha: 0.1);
-        iconColor = Colors.purple;
+        backgroundColor = colorScheme.tertiary.withValues(alpha: 0.1);
+        iconColor = colorScheme.tertiary;
         icon = Icons.description;
         break;
       case FolderItemType.folder:
-        backgroundColor = Colors.orange.withValues(alpha: 0.1);
-        iconColor = Colors.orange;
+        backgroundColor = colorScheme.secondary.withValues(alpha: 0.1);
+        iconColor = colorScheme.secondary;
         icon = Icons.folder;
         break;
     }

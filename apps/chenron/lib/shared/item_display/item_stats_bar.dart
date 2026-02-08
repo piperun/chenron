@@ -24,9 +24,7 @@ class ItemStatsBar extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
       decoration: BoxDecoration(
-        color: theme.brightness == Brightness.light
-            ? const Color(0xFFFAFAFA)
-            : theme.cardColor,
+        color: theme.cardColor,
         border: Border(
           bottom: BorderSide(
             color: theme.dividerColor,
@@ -40,7 +38,7 @@ class ItemStatsBar extends StatelessWidget {
             icon: Icons.link,
             label: "Links",
             count: linkCount,
-            color: Colors.blue,
+            color: theme.colorScheme.primary,
             isActive: selectedTypes.contains(FolderItemType.link),
             onTap: () {
               final newTypes = Set<FolderItemType>.from(selectedTypes);
@@ -59,7 +57,7 @@ class ItemStatsBar extends StatelessWidget {
             icon: Icons.description,
             label: "Documents",
             count: documentCount,
-            color: Colors.purple,
+            color: theme.colorScheme.tertiary,
             isActive: selectedTypes.contains(FolderItemType.document),
             onTap: () {
               final newTypes = Set<FolderItemType>.from(selectedTypes);
@@ -78,7 +76,7 @@ class ItemStatsBar extends StatelessWidget {
             icon: Icons.folder,
             label: "Folders",
             count: folderCount,
-            color: Colors.orange,
+            color: theme.colorScheme.secondary,
             isActive: selectedTypes.contains(FolderItemType.folder),
             onTap: () {
               final newTypes = Set<FolderItemType>.from(selectedTypes);
@@ -144,8 +142,8 @@ class _StatItem extends StatelessWidget {
                 fontWeight: isActive ? FontWeight.w700 : FontWeight.w600,
                 fontSize: 13,
                 color: isActive
-                    ? theme.textTheme.bodyLarge?.color
-                    : theme.textTheme.bodyLarge?.color?.withValues(alpha: 0.8),
+                    ? theme.colorScheme.onSurface
+                    : theme.colorScheme.onSurface.withValues(alpha: 0.8),
               ),
             ),
             const SizedBox(width: 4),
@@ -155,8 +153,8 @@ class _StatItem extends StatelessWidget {
                 fontSize: 13,
                 fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
                 color: isActive
-                    ? theme.textTheme.bodyMedium?.color
-                    : theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+                    ? theme.colorScheme.onSurface
+                    : theme.colorScheme.onSurfaceVariant,
               ),
             ),
           ],

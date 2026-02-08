@@ -103,15 +103,15 @@ class ItemInfoModal extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFE3F2FD),
+                          color: theme.colorScheme.primaryContainer,
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
                           item.type.name,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w500,
-                            color: Color(0xFF1976D2),
+                            color: theme.colorScheme.onPrimaryContainer,
                           ),
                         ),
                       ),

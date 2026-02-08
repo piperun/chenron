@@ -237,6 +237,7 @@ class _ToolbarButton extends StatelessWidget {
       icon: Icon(icon, size: 16),
       label: Text(label),
       style: OutlinedButton.styleFrom(
+        foregroundColor: theme.colorScheme.onSurfaceVariant,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
@@ -291,6 +292,7 @@ class _FilterDropdown extends StatelessWidget {
           icon: const Icon(Icons.filter_alt, size: 16),
           label: Text(_getLabel()),
           style: OutlinedButton.styleFrom(
+            foregroundColor: theme.colorScheme.onSurfaceVariant,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
@@ -411,12 +413,13 @@ class _TagFilterButton extends StatelessWidget {
     return OutlinedButton(
       onPressed: onPressed,
       style: OutlinedButton.styleFrom(
+        foregroundColor: theme.colorScheme.onSurfaceVariant,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
         ),
         side: BorderSide(
-          color: hasFilters ? theme.colorScheme.primary : theme.dividerColor,
+          color: hasFilters ? theme.colorScheme.secondary : theme.dividerColor,
         ),
       ),
       child: Row(
@@ -425,13 +428,13 @@ class _TagFilterButton extends StatelessWidget {
           Icon(
             Icons.local_offer_outlined,
             size: 16,
-            color: hasFilters ? theme.colorScheme.primary : null,
+            color: hasFilters ? theme.colorScheme.secondary : null,
           ),
           const SizedBox(width: 8),
           Text(
             "Tags",
             style: TextStyle(
-              color: hasFilters ? theme.colorScheme.primary : null,
+              color: hasFilters ? theme.colorScheme.secondary : null,
             ),
           ),
           if (includedCount > 0 || excludedCount > 0) ...[
@@ -509,6 +512,7 @@ class _DeleteModeButton extends StatelessWidget {
         icon: const Icon(Icons.check_box_outlined, size: 16),
         label: const Text("Select"),
         style: OutlinedButton.styleFrom(
+          foregroundColor: colorScheme.onSurfaceVariant,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
@@ -528,6 +532,7 @@ class _DeleteModeButton extends StatelessWidget {
           icon: const Icon(Icons.close, size: 16),
           label: const Text("Cancel"),
           style: OutlinedButton.styleFrom(
+            foregroundColor: colorScheme.onSurfaceVariant,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
@@ -590,7 +595,7 @@ class _ViewToggleButton extends StatelessWidget {
                 size: 18,
                 color: isSelected
                     ? theme.colorScheme.onPrimary
-                    : theme.textTheme.bodyMedium?.color,
+                    : theme.colorScheme.onSurface,
               ),
               const SizedBox(width: 6),
               Text(
@@ -599,7 +604,7 @@ class _ViewToggleButton extends StatelessWidget {
                   fontSize: 14,
                   color: isSelected
                       ? theme.colorScheme.onPrimary
-                      : theme.textTheme.bodyMedium?.color,
+                      : theme.colorScheme.onSurface,
                 ),
               ),
             ],
