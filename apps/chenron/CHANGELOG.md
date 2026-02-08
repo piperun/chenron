@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## chenron-v0.5.0 - 2026-02-08
+#### Features
+- add custom interval picker to backup schedule settings - (68612be) - *piperun*
+- add backup schedule settings with startup wiring - (03f16ad) - *piperun*
+#### Bug Fixes
+- replace hardcoded colors with theme-aware values in item display - (ac3b16f) - *piperun*
+
+- - -
+
 ## chenron-v0.4.0 - 2026-02-07
 #### Features
 - redesign settings page with category sidebar navigation - (774bfdc) - *piperun*
