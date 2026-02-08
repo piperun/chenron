@@ -3,6 +3,8 @@ import "package:trina_grid/trina_grid.dart";
 import "package:database/models/item.dart";
 import "package:chenron/notifiers/item_table_notifier.dart";
 import "package:chenron/features/create/link/pages/create_link.dart";
+import "package:chenron/features/folder_editor/item_picker/document_picker_sheet.dart";
+import "package:chenron/features/folder_editor/item_picker/link_picker_sheet.dart";
 import "package:chenron/features/folder_editor/widgets/item_section/item_section.dart";
 import "package:chenron/features/folder_editor/widgets/item_section/item_section_content.dart";
 import "package:chenron/features/folder_editor/widgets/item_section/item_section_controller.dart";
@@ -75,6 +77,44 @@ class _FolderItemsSectionState extends State<FolderItemsSection> {
   }
 
   Future<void> _handleAddLink() async {
+    final List<FolderItem>? picked = await showModalBottomSheet<List<FolderItem>>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => LinkPickerSheet(
+        currentFolderItems: widget.items,
+        onCreateNew: () async {
+          Navigator.pop(context);
+          await _navigateToCreateLink();
+        },
+      ),
+    );
+
+    if (picked != null) {
+      for (final FolderItem item in picked) {
+        widget.notifier.addItem(item);
+      }
+    }
+  }
+
+  Future<void> _handleAddDocument() async {
+    final List<FolderItem>? picked = await showModalBottomSheet<List<FolderItem>>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => DocumentPickerSheet(
+        currentFolderItems: widget.items,
+      ),
+    );
+
+    if (picked != null) {
+      for (final FolderItem item in picked) {
+        widget.notifier.addItem(item);
+      }
+    }
+  }
+
+  Future<void> _navigateToCreateLink() async {
     try {
       final folder = widget.notifier.folder.value?.data;
       await Navigator.push(
@@ -105,14 +145,6 @@ class _FolderItemsSectionState extends State<FolderItemsSection> {
         );
       }
     }
-  }
-
-  void _handleAddDocument() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Document creation not yet implemented"),
-      ),
-    );
   }
 
   void _handleDelete(String itemId) {
