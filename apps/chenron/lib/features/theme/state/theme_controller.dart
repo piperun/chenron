@@ -11,8 +11,6 @@ import "package:vibe/vibe.dart";
 
 ThemeServiceDB? _themeService;
 
-typedef ThemeVariants = ({ThemeData light, ThemeData dark});
-
 class ThemeController {
   final Signal<ThemeMode> themeModeSignal = Signal<ThemeMode>(ThemeMode.system);
   final Signal<ThemeVariants> currentThemeSignal = Signal<ThemeVariants>((
