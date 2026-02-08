@@ -1,7 +1,7 @@
 name: vibe
 description: "Theming core utilities using FlexColorScheme (FlexSchemeColor)."
 publish_to: 'none'
-version: 0.1.0
+version: 0.2.0
 resolution: workspace
 
 environment:
@@ -11,7 +11,6 @@ dependencies:
   flex_color_scheme: ^8.3.0
   flutter:
     sdk: flutter
-  signals: ^6.0.2
 
 dev_dependencies:
   flutter_lints: ^6.0.0

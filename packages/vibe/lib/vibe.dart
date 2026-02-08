@@ -1,9 +1,8 @@
-export 'package:vibe/src/builders/flex_builders.dart';
-export 'package:vibe/src/controller.dart';
-export 'package:vibe/src/registry/theme_registry.dart';
-export 'package:vibe/src/spec/theme_spec.dart';
-export 'package:vibe/src/specs/flex_theme_spec.dart';
-export 'package:vibe/src/themes/index.dart';
-export 'package:vibe/src/types.dart';
-export 'package:vibe/src/validation/material_theme_validator.dart';
-export 'package:vibe/src/validation/theme_validator.dart';
+export 'package:vibe/src/flex/flex_theme.dart';
+export 'package:vibe/src/flex/palette_builder.dart';
+export 'package:vibe/src/flex/seed_builder.dart';
+export 'package:vibe/src/palette.dart';
+export 'package:vibe/src/registry.dart';
+export 'package:vibe/src/theme.dart';
+export 'package:vibe/src/themes/nier/palette.dart';
+export 'package:vibe/src/themes/nier/theme.dart';
