@@ -86,8 +86,6 @@ dev_dependencies:
   custom_lint: ^0.8.1
   freezed: ^3.0.0-0.0.dev
   source_gen: ^4.1.1
-  integration_test:
-    sdk: flutter
   flutter_test:
     sdk: flutter
   

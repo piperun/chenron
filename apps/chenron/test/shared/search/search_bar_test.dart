@@ -1,14 +1,11 @@
 import "package:flutter/material.dart";
 import "package:flutter_test/flutter_test.dart";
-import "package:integration_test/integration_test.dart";
 import "package:chenron/shared/search/search_filter.dart";
 import "package:database/models/item.dart";
 import "package:signals/signals_flutter.dart";
 
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-
-  group("SearchBar Integration Tests", () {
+  group("SearchBar Widget Tests", () {
     testWidgets("typing multiple characters updates filter",
         (WidgetTester tester) async {
       // Create test data
@@ -99,7 +96,6 @@ void main() {
       await tester.enterText(searchBar, "d");
       await tester.pumpAndSettle();
 
-      // Debug: print('After typing "d", query: ${searchFilter.controller.query.value}');
       expect(searchFilter.controller.query.value, equals("d"));
       expect(find.text("Query: d"), findsOneWidget);
       expect(find.text("Count: 1"), findsOneWidget);
@@ -109,7 +105,6 @@ void main() {
       await tester.enterText(searchBar, "de");
       await tester.pumpAndSettle();
 
-      // Debug: print('After typing "de", query: ${searchFilter.controller.query.value}');
       expect(searchFilter.controller.query.value, equals("de"));
       expect(find.text("Query: de"), findsOneWidget);
       expect(find.text("Count: 1"), findsOneWidget);
@@ -118,7 +113,6 @@ void main() {
       await tester.enterText(searchBar, "def");
       await tester.pumpAndSettle();
 
-      // Debug: print('After typing "def", query: ${searchFilter.controller.query.value}');
       expect(searchFilter.controller.query.value, equals("def"));
       expect(find.text("Query: def"), findsOneWidget);
       expect(find.text("Count: 1"), findsOneWidget);
@@ -127,7 +121,6 @@ void main() {
       await tester.enterText(searchBar, "default");
       await tester.pumpAndSettle();
 
-      // Debug: print('After typing "default", query: ${searchFilter.controller.query.value}');
       expect(searchFilter.controller.query.value, equals("default"));
       expect(find.text("Query: default"), findsOneWidget);
       expect(find.text("Count: 1"), findsOneWidget);
@@ -230,7 +223,6 @@ void main() {
       await tester.enterText(searchBar, "");
       await tester.pumpAndSettle();
 
-      // Debug: print('After clearing, query: "${searchFilter.controller.query.value}"');
       expect(searchFilter.controller.query.value, equals(""));
       expect(find.text("Count: 2"), findsOneWidget);
       // Both items should be visible in the ListView after clearing

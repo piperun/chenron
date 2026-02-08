@@ -1,6 +1,5 @@
 import "package:flutter/material.dart";
 import "package:flutter_test/flutter_test.dart";
-import "package:integration_test/integration_test.dart";
 import "package:chenron/features/folder_editor/pages/folder_editor.dart";
 import "package:chenron_mockups/chenron_mockups.dart";
 import "package:database/database.dart";
@@ -8,7 +7,6 @@ import "package:signals/signals.dart";
 import "package:get_it/get_it.dart";
 import "dart:io";
 
-// Mock AppDatabaseHandler for integration tests
 class _MockAppDatabaseHandler implements AppDatabaseHandler {
   @override
   final AppDatabase appDatabase;
@@ -44,14 +42,12 @@ class _MockAppDatabaseHandler implements AppDatabaseHandler {
 }
 
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-
   setUpAll(() {
     installFakePathProvider();
     installTestLogger();
   });
 
-  group("Folder Editor Integration Tests", () {
+  group("Folder Editor Tests", () {
     late MockDatabaseHelper mockDb;
     late String testFolderId;
 
