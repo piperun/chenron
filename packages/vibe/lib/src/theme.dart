@@ -13,15 +13,6 @@ typedef ThemeVariants = ({ThemeData light, ThemeData dark});
 /// - [VibeTheme.fromPalette] — Tier 2/3: 6-10 palette colors
 /// - Subclass [FlexVibeTheme] — Tier 4: full FlexSchemeColor control
 abstract class VibeTheme {
-  /// Unique string identifier for this theme.
-  String get id;
-
-  /// Human-readable display name.
-  String get name;
-
-  /// Build the light and dark theme variants.
-  ThemeVariants build();
-
   /// Creates a seed-based theme (Tier 1).
   ///
   /// FlexColorScheme generates the full palette from [primary]
@@ -47,6 +38,15 @@ abstract class VibeTheme {
     required VibePalette light,
     required VibePalette dark,
   }) = _PaletteVibeTheme;
+
+  /// Unique string identifier for this theme.
+  String get id;
+
+  /// Human-readable display name.
+  String get name;
+
+  /// Build the light and dark theme variants.
+  ThemeVariants build();
 }
 
 class _SeedVibeTheme implements VibeTheme {

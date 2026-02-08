@@ -17,7 +17,7 @@ void main() {
     });
 
     test("register and get", () {
-      final theme = VibeTheme.fromSeed(
+      final VibeTheme theme = VibeTheme.fromSeed(
         id: "blue",
         name: "Blue",
         primary: const Color(0xFF0000FF),
@@ -36,12 +36,12 @@ void main() {
     });
 
     test("all returns all registered themes", () {
-      final a = VibeTheme.fromSeed(
+      final VibeTheme a = VibeTheme.fromSeed(
         id: "a",
         name: "A",
         primary: const Color(0xFFFF0000),
       );
-      final b = VibeTheme.fromSeed(
+      final VibeTheme b = VibeTheme.fromSeed(
         id: "b",
         name: "B",
         primary: const Color(0xFF00FF00),
@@ -51,16 +51,16 @@ void main() {
       registry.register(b);
 
       expect(registry.all, hasLength(2));
-      expect(registry.ids, containsAll(["a", "b"]));
+      expect(registry.ids, containsAll(<String>["a", "b"]));
     });
 
     test("overwrite replaces theme with same id", () {
-      final v1 = VibeTheme.fromSeed(
+      final VibeTheme v1 = VibeTheme.fromSeed(
         id: "x",
         name: "X v1",
         primary: const Color(0xFFFF0000),
       );
-      final v2 = VibeTheme.fromSeed(
+      final VibeTheme v2 = VibeTheme.fromSeed(
         id: "x",
         name: "X v2",
         primary: const Color(0xFF00FF00),

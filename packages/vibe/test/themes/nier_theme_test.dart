@@ -86,7 +86,7 @@ void main() {
     });
 
     test("can register in VibeRegistry", () {
-      final registry = VibeRegistry();
+      final VibeRegistry registry = VibeRegistry();
       registry.register(theme);
 
       expect(registry.get("nier"), same(theme));

@@ -5,7 +5,7 @@ import "package:vibe/vibe.dart";
 void main() {
   group("VibePalette", () {
     test("constructs with only required colors", () {
-      const palette = VibePalette(
+      const VibePalette palette = VibePalette(
         canvas: Color(0xFFFFFFFF),
         surface: Color(0xFFF5F5F5),
         content: Color(0xFF212121),
@@ -23,7 +23,7 @@ void main() {
     });
 
     test("optional fields default to null", () {
-      const palette = VibePalette(
+      const VibePalette palette = VibePalette(
         canvas: Color(0xFFFFFFFF),
         surface: Color(0xFFF5F5F5),
         content: Color(0xFF212121),
@@ -39,7 +39,7 @@ void main() {
     });
 
     test("constructs with all 10 colors", () {
-      const palette = VibePalette(
+      const VibePalette palette = VibePalette(
         canvas: Color(0xFFFFFFFF),
         surface: Color(0xFFF5F5F5),
         content: Color(0xFF212121),

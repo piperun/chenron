@@ -5,7 +5,7 @@ import "package:vibe/vibe.dart";
 void main() {
   group("VibeTheme.fromSeed", () {
     test("produces valid light and dark ThemeData", () {
-      final theme = VibeTheme.fromSeed(
+      final VibeTheme theme = VibeTheme.fromSeed(
         id: "ocean",
         name: "Ocean",
         primary: const Color(0xFF0066CC),
@@ -14,7 +14,7 @@ void main() {
       expect(theme.id, "ocean");
       expect(theme.name, "Ocean");
 
-      final variants = theme.build();
+      final ThemeVariants variants = theme.build();
       expect(variants.light, isA<ThemeData>());
       expect(variants.dark, isA<ThemeData>());
       expect(variants.light.brightness, Brightness.light);
@@ -22,7 +22,7 @@ void main() {
     });
 
     test("accepts secondary and tertiary seed colors", () {
-      final theme = VibeTheme.fromSeed(
+      final VibeTheme theme = VibeTheme.fromSeed(
         id: "tri",
         name: "Tri-color",
         primary: const Color(0xFF0066CC),
@@ -32,7 +32,7 @@ void main() {
         useTertiary: true,
       );
 
-      final variants = theme.build();
+      final ThemeVariants variants = theme.build();
       expect(variants.light, isA<ThemeData>());
       expect(variants.dark, isA<ThemeData>());
     });
@@ -40,7 +40,7 @@ void main() {
 
   group("VibeTheme.fromPalette", () {
     test("produces valid light and dark ThemeData", () {
-      const lightPalette = VibePalette(
+      const VibePalette lightPalette = VibePalette(
         canvas: Color(0xFFFFFFFF),
         surface: Color(0xFFF5F5F5),
         content: Color(0xFF212121),
@@ -48,7 +48,7 @@ void main() {
         outline: Color(0xFFBDBDBD),
         error: Color(0xFFD32F2F),
       );
-      const darkPalette = VibePalette(
+      const VibePalette darkPalette = VibePalette(
         canvas: Color(0xFF121212),
         surface: Color(0xFF1E1E1E),
         content: Color(0xFFE0E0E0),
@@ -57,7 +57,7 @@ void main() {
         error: Color(0xFFEF9A9A),
       );
 
-      final theme = VibeTheme.fromPalette(
+      final VibeTheme theme = VibeTheme.fromPalette(
         id: "material",
         name: "Material",
         light: lightPalette,
@@ -67,13 +67,13 @@ void main() {
       expect(theme.id, "material");
       expect(theme.name, "Material");
 
-      final variants = theme.build();
+      final ThemeVariants variants = theme.build();
       expect(variants.light, isA<ThemeData>());
       expect(variants.dark, isA<ThemeData>());
     });
 
     test("applies canvas and surface overrides", () {
-      const lightPalette = VibePalette(
+      const VibePalette lightPalette = VibePalette(
         canvas: Color(0xFFFAFAFA),
         surface: Color(0xFFEEEEEE),
         content: Color(0xFF333333),
@@ -81,7 +81,7 @@ void main() {
         outline: Color(0xFFBDBDBD),
         error: Color(0xFFD32F2F),
       );
-      const darkPalette = VibePalette(
+      const VibePalette darkPalette = VibePalette(
         canvas: Color(0xFF1A1A1A),
         surface: Color(0xFF2C2C2C),
         content: Color(0xFFCCCCCC),
@@ -90,14 +90,14 @@ void main() {
         error: Color(0xFFEF5350),
       );
 
-      final theme = VibeTheme.fromPalette(
+      final VibeTheme theme = VibeTheme.fromPalette(
         id: "test",
         name: "Test",
         light: lightPalette,
         dark: darkPalette,
       );
 
-      final variants = theme.build();
+      final ThemeVariants variants = theme.build();
 
       // Verify copyWith overrides are applied
       expect(

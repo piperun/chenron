@@ -39,7 +39,7 @@ void main() {
     });
 
     test("builds valid light and dark ThemeData", () {
-      final variants = theme.build();
+      final ThemeVariants variants = theme.build();
 
       expect(variants.light, isA<ThemeData>());
       expect(variants.dark, isA<ThemeData>());
@@ -48,7 +48,7 @@ void main() {
     });
 
     test("uses Material 3", () {
-      final variants = theme.build();
+      final ThemeVariants variants = theme.build();
 
       expect(variants.light.useMaterial3, isTrue);
       expect(variants.dark.useMaterial3, isTrue);
