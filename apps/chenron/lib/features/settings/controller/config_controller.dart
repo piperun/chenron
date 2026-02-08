@@ -48,6 +48,11 @@ class ConfigController {
   final itemClickAction = signal<int>(0); // 0 = Open URL, 1 = Show Details
   final cacheDirectory = signal<String?>(null); // null = use default temp dir
 
+  // Backup schedule signals
+  final backupSettings = signal<BackupSetting?>(null);
+  final backupInterval = signal<String?>(null); // cron expression
+  final backupPath = signal<String?>(null);
+
   Future<void> initialize() async {
     isLoading.value = true;
     error.value = null;
@@ -64,6 +69,11 @@ class ConfigController {
         timeDisplayFormat.value = config.timeDisplayFormat;
         itemClickAction.value = config.itemClickAction;
         cacheDirectory.value = config.cacheDirectory;
+
+        final backup = await _configService.getBackupSettings();
+        backupSettings.value = backup;
+        backupInterval.value = backup?.backupInterval;
+        backupPath.value = backup?.backupPath;
 
         await _loadAvailableThemes();
         final initialChoice = availableThemes.peek().firstWhere(
@@ -83,6 +93,9 @@ class ConfigController {
         timeDisplayFormat.value = 0;
         itemClickAction.value = 0;
         cacheDirectory.value = null;
+        backupSettings.value = null;
+        backupInterval.value = null;
+        backupPath.value = null;
         await _loadAvailableThemes();
         selectedThemeChoice.value = availableThemes.peek().isNotEmpty
             ? availableThemes.peek().first
@@ -100,6 +113,9 @@ class ConfigController {
       timeDisplayFormat.value = 0;
       itemClickAction.value = 0;
       cacheDirectory.value = null;
+      backupSettings.value = null;
+      backupInterval.value = null;
+      backupPath.value = null;
       availableThemes.value = [];
       selectedThemeChoice.value = null;
     } finally {
@@ -169,6 +185,14 @@ class ConfigController {
     cacheDirectory.value = value;
   }
 
+  void updateBackupInterval(String? value) {
+    backupInterval.value = value;
+  }
+
+  void updateBackupPath(String? value) {
+    backupPath.value = value;
+  }
+
   // --- Saving ---
   Future<bool> saveSettings() async {
     final config = userConfig.peek();
@@ -202,13 +226,27 @@ class ConfigController {
         cacheDirectory: cacheDirectory.peek(),
       );
 
+      // Save backup settings if they exist
+      final backup = backupSettings.peek();
+      if (backup != null) {
+        final intervalValue = backupInterval.peek();
+        await _configService.updateBackupSettings(
+          id: backup.id,
+          backupInterval: intervalValue,
+          backupPath: backupPath.peek(),
+          clearInterval: intervalValue == null,
+        );
+      }
+
       await _themeController.changeTheme(selectedTheme.key, selectedTheme.type);
 
-      // Refresh the user config to reflect the saved changes
+      // Refresh to reflect saved changes
       final updatedConfigResult = await _configService.getUserConfig();
       if (updatedConfigResult != null) {
         userConfig.value = updatedConfigResult.data;
       }
+      final updatedBackup = await _configService.getBackupSettings();
+      backupSettings.value = updatedBackup;
 
       loggerGlobal.info("ConfigController", "Settings saved successfully.");
       return true;
@@ -230,6 +268,8 @@ class ConfigController {
 
     final currentSelected = selectedThemeChoice.peek();
 
+    final originalBackup = backupSettings.peek();
+
     return defaultArchiveIs.peek() != originalConfig.defaultArchiveIs ||
         defaultArchiveOrg.peek() != originalConfig.defaultArchiveOrg ||
         archiveOrgS3AccessKey.peek()?.trim() !=
@@ -240,7 +280,9 @@ class ConfigController {
         currentSelected?.type.index != originalConfig.selectedThemeType ||
         timeDisplayFormat.peek() != originalConfig.timeDisplayFormat ||
         itemClickAction.peek() != originalConfig.itemClickAction ||
-        cacheDirectory.peek() != originalConfig.cacheDirectory;
+        cacheDirectory.peek() != originalConfig.cacheDirectory ||
+        backupInterval.peek() != originalBackup?.backupInterval ||
+        backupPath.peek() != originalBackup?.backupPath;
   }
 }
 

@@ -4,6 +4,7 @@
 import "package:chenron/locator.dart";
 import "package:basedir/directory.dart";
 import "package:database/database.dart";
+import "package:database/main.dart" show ConfigIncludes;
 import "package:logger/logger.dart";
 
 import "package:chenron/features/theme/state/theme_utils.dart";
@@ -69,6 +70,9 @@ class MainSetup {
       // 3. Setup Configuration Database
       await _setupConfig(baseDirs);
       loggerGlobal.info("MainSetup", "Config database setup complete.");
+      // 4b. Start backup scheduler
+      await _startBackupScheduler();
+      loggerGlobal.info("MainSetup", "Backup scheduler initialized.");
       // 5. Initialize Theme Registry
       initializeThemeRegistry();
       loggerGlobal.info("MainSetup", "Theme registry initialized.");
@@ -171,6 +175,60 @@ class MainSetup {
       print("!!! ERROR: $errorMsg\nError: $e\nStackTrace: $s");
       throw InitializationException(errorMsg, cause: e, stackTrace: s);
     }
+  }
+
+  static Future<void> _startBackupScheduler() async {
+    try {
+      final configHandler = locator.get<Signal<ConfigDatabaseFileHandler>>();
+      final configDb = configHandler.value.configDatabase;
+
+      final configResult = await configDb.getUserConfig(
+        includeOptions:
+            const IncludeOptions({ConfigIncludes.backupSettings}),
+      );
+
+      final backupConfig = configResult?.backupSettings;
+      if (backupConfig == null) {
+        loggerGlobal.info(
+            "MainSetup", "No backup settings found, skipping scheduler.");
+        return;
+      }
+
+      final scheduler = locator.get<DatabaseBackupScheduler>();
+      final cronExpression = backupConfig.backupInterval;
+
+      if (cronExpression != null && cronExpression.isNotEmpty) {
+        final lastBackup = backupConfig.lastBackupTimestamp;
+        final now = DateTime.now();
+        final intervalHours = _parseIntervalHours(cronExpression);
+
+        await scheduler.start(
+          cronExpression: cronExpression,
+          backupSettingsId: backupConfig.id,
+        );
+
+        if (lastBackup == null ||
+            now.difference(lastBackup).inHours >= intervalHours) {
+          loggerGlobal.info("MainSetup",
+              "Running catch-up backup (last: $lastBackup, interval: ${intervalHours}h)");
+          await scheduler.runBackup();
+        }
+      }
+    } catch (e) {
+      // Non-fatal — don't block app startup
+      loggerGlobal.warning(
+          "MainSetup", "Failed to start backup scheduler: $e");
+    }
+  }
+
+  static int _parseIntervalHours(String cronExpression) {
+    return switch (cronExpression) {
+      "0 0 */4 * * *" => 4,
+      "0 0 */8 * * *" => 8,
+      "0 0 */12 * * *" => 12,
+      "0 0 0 * * *" => 24,
+      _ => 8,
+    };
   }
 
   static Future<void> _recordDailySnapshot(AppDatabase db) async {

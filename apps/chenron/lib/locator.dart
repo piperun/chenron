@@ -38,6 +38,17 @@ void locatorSetup() {
   // Register ConfigController
   locator.registerLazySingleton<ConfigController>(ConfigController.new);
 
+  // Register DatabaseBackupScheduler
+  locator.registerLazySingleton<DatabaseBackupScheduler>(() {
+    final appDbHandler = locator.get<Signal<AppDatabaseHandler>>().value;
+    final configHandler =
+        locator.get<Signal<ConfigDatabaseFileHandler>>().value;
+    return DatabaseBackupScheduler(
+      databaseHandler: appDbHandler,
+      configHandler: configHandler,
+    );
+  });
+
   // Register ActivityTracker
   locator.registerLazySingleton<ActivityTracker>(() {
     final db = locator.get<Signal<AppDatabaseHandler>>().value.appDatabase;

@@ -36,7 +36,41 @@ class ConfigService {
     }
   }
 
-  // Add methods to get predefined theme keys/names if needed for UI
+  Future<BackupSetting?> getBackupSettings() async {
+    try {
+      final configResult = await _db.getUserConfig(
+        includeOptions:
+            const IncludeOptions({ConfigIncludes.backupSettings}),
+      );
+      return configResult?.backupSettings;
+    } catch (e, s) {
+      loggerGlobal.severe(
+          "ConfigService", "Error fetching backup settings", e, s);
+      return null;
+    }
+  }
+
+  Future<void> updateBackupSettings({
+    required String id,
+    String? backupInterval,
+    String? backupPath,
+    bool clearInterval = false,
+  }) async {
+    try {
+      await _db.updateBackupSettings(
+        id: id,
+        backupInterval: backupInterval,
+        backupPath: backupPath,
+        clearInterval: clearInterval,
+      );
+      loggerGlobal.info(
+          "ConfigService", "Backup settings updated successfully.");
+    } catch (e, s) {
+      loggerGlobal.severe(
+          "ConfigService", "Error updating backup settings", e, s);
+      rethrow;
+    }
+  }
 
   Future<void> updateUserConfig({
     required String configId,

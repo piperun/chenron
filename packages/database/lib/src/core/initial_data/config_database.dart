@@ -52,7 +52,7 @@ extension ConfigDatabaseInit on ConfigDatabase {
   Future<UserConfigResultIds> setupUserConfig() async {
     final userConfigCreatedId = await _setupUserConfigEntry();
 
-    if (userConfigCreatedId.userConfigId.isEmpty) {
+    if (userConfigCreatedId.userConfigId.isNotEmpty) {
       await _setupBackupConfig(userConfigCreatedId.userConfigId);
     }
 
