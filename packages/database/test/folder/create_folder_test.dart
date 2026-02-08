@@ -242,11 +242,11 @@ void _verifyItemIds(
     List<Item> fetchResults, List<ItemResultIds> returnResults) {
   final fetchedIds = {
     "linkIds": fetchResults
-        .where((item) => item.typeId == FolderItemType.link.index)
+        .where((item) => item.typeId == FolderItemType.link.dbId)
         .map((item) => item.itemId)
         .toSet(),
     "documentIds": fetchResults
-        .where((item) => item.typeId == FolderItemType.document.index)
+        .where((item) => item.typeId == FolderItemType.document.dbId)
         .map((item) => item.itemId)
         .toSet(),
     "itemIds": fetchResults.map((item) => item.id).toSet(),

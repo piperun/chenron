@@ -63,7 +63,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration {
@@ -269,12 +269,33 @@ class AppDatabase extends _$AppDatabase {
 
         // Migration v6 to v7: Fix 0-based type_id values in items and
         // metadata_records. The relation_handler was inserting type.index
-        // (0-based) instead of type.index + 1 (matching 1-based seed IDs).
+        // (0-based) instead of type.dbId (matching 1-based seed IDs).
+        // All existing rows need incrementing: links (0→1), documents (1→2),
+        // folders (2→3).
         if (from < 7) {
           await customStatement(
-              "UPDATE items SET type_id = type_id + 1 WHERE type_id = 0");
+              "UPDATE items SET type_id = type_id + 1");
           await customStatement(
-              "UPDATE metadata_records SET type_id = type_id + 1 WHERE type_id = 0");
+              "UPDATE metadata_records SET type_id = type_id + 1");
+        }
+
+        // Migration v7 to v8: The v7 migration only fixed type_id=0 (links)
+        // on databases that already ran v7. This corrective migration sets
+        // the correct type_id by joining against the actual entity tables,
+        // so it's safe for both partially-migrated and fresh databases.
+        if (from < 8) {
+          await customStatement(
+              "UPDATE items SET type_id = 1 WHERE id IN "
+              "(SELECT i.id FROM items i INNER JOIN links l ON i.item_id = l.id)");
+          await customStatement(
+              "UPDATE items SET type_id = 2 WHERE id IN "
+              "(SELECT i.id FROM items i INNER JOIN documents d ON i.item_id = d.id)");
+          await customStatement(
+              "UPDATE items SET type_id = 3 WHERE id IN "
+              "(SELECT i.id FROM items i INNER JOIN folders f ON i.item_id = f.id)");
+          await customStatement(
+              "UPDATE metadata_records SET type_id = 1 WHERE id IN "
+              "(SELECT mr.id FROM metadata_records mr INNER JOIN tags t ON mr.metadata_id = t.id)");
         }
       },
     );

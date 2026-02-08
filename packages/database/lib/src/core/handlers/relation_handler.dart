@@ -21,7 +21,7 @@ extension RelationHandler on AppDatabase {
         id: id,
         folderId: folderId,
         itemId: entityId,
-        typeId: type.index + 1,
+        typeId: type.dbId,
       ),
       mode: InsertMode.insertOrIgnore,
     );
@@ -47,7 +47,7 @@ extension RelationHandler on AppDatabase {
       metadataRecords,
       MetadataRecordsCompanion.insert(
         id: id,
-        typeId: type.index + 1,
+        typeId: type.dbId,
         itemId: itemId,
         metadataId: metadataId,
         value: Value(value),

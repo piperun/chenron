@@ -24,6 +24,7 @@ class CreateLinkPage extends StatefulWidget {
   final ValueChanged<bool>? onValidationChanged;
   final VoidCallback? onClose;
   final VoidCallback? onSaved;
+  final List<Folder>? initialFolders;
 
   const CreateLinkPage({
     super.key,
@@ -32,6 +33,7 @@ class CreateLinkPage extends StatefulWidget {
     this.onValidationChanged,
     this.onClose,
     this.onSaved,
+    this.initialFolders,
   });
 
   @override
@@ -41,7 +43,7 @@ class CreateLinkPage extends StatefulWidget {
 class _CreateLinkPageState extends State<CreateLinkPage> {
   late CreateLinkNotifier _notifier;
   final ItemTableNotifier<FolderItem> _tableNotifier = ItemTableNotifier<FolderItem>();
-  List<Folder> _selectedFolders = [];
+  late List<Folder> _selectedFolders;
   String? _singleInputError;
   String? _generalError;
 
@@ -49,6 +51,12 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
   void initState() {
     super.initState();
     _notifier = CreateLinkNotifier();
+    _selectedFolders = List.from(widget.initialFolders ?? []);
+    if (_selectedFolders.isNotEmpty) {
+      _notifier.setSelectedFolders(
+        _selectedFolders.map((f) => f.id).toList(),
+      );
+    }
 
     // Provide save callback to parent if requested
     widget.onSaveCallbackReady?.call(_saveLinks);

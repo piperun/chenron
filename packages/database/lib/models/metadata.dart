@@ -28,7 +28,7 @@ class Metadata {
       id: _id!,
       itemId: folderId,
       metadataId: _metadataId!,
-      typeId: type.index,
+      typeId: type.dbId,
     );
   }
 
@@ -45,5 +45,8 @@ class Metadata {
 }
 
 enum MetadataTypeEnum {
-  tag,
+  tag;
+
+  /// Database ID (1-based, matching metadata_types seed table).
+  int get dbId => index + 1;
 }

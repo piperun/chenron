@@ -64,7 +64,7 @@ sealed class FolderItem with _$FolderItem {
       id: entityId ?? "",
       folderId: folderId,
       itemId: itemId ?? "",
-      typeId: type.index,
+      typeId: type.dbId,
     );
   }
 
@@ -97,5 +97,8 @@ sealed class FolderItem with _$FolderItem {
 enum FolderItemType {
   link,
   document,
-  folder,
+  folder;
+
+  /// Database ID (1-based, matching item_types seed table).
+  int get dbId => index + 1;
 }

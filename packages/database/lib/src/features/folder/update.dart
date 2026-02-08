@@ -108,7 +108,7 @@ extension FolderUpdateExtensions on AppDatabase {
             (tbl) =>
                 tbl.metadataId.equals(tagId) &
                 tbl.itemId.equals(folderId) &
-                tbl.typeId.equals(MetadataTypeEnum.tag.index),
+                tbl.typeId.equals(MetadataTypeEnum.tag.dbId),
           );
         }
       });

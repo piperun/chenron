@@ -65,7 +65,7 @@ extension LinkUpdateExtensions on AppDatabase {
           final existingMetadata = await (select(metadataRecords)
                 ..where((tbl) =>
                     tbl.itemId.equals(linkId) &
-                    tbl.typeId.equals(MetadataTypeEnum.tag.index)))
+                    tbl.typeId.equals(MetadataTypeEnum.tag.dbId)))
               .get();
 
           // Get or create the tag
@@ -82,7 +82,7 @@ extension LinkUpdateExtensions on AppDatabase {
                 id: generateId(),
                 itemId: linkId,
                 metadataId: tagId,
-                typeId: MetadataTypeEnum.tag.index,
+                typeId: MetadataTypeEnum.tag.dbId,
               ),
             );
             addedTagIds.add(tagId);
@@ -113,7 +113,7 @@ extension LinkUpdateExtensions on AppDatabase {
               ..where((tbl) =>
                   tbl.itemId.equals(linkId) &
                   tbl.metadataId.isIn(tagIds) &
-                  tbl.typeId.equals(MetadataTypeEnum.tag.index)))
+                  tbl.typeId.equals(MetadataTypeEnum.tag.dbId)))
             .go();
 
         loggerGlobal.fine(

@@ -45,17 +45,17 @@ class FolderResultBuilder implements ResultBuilder<FolderResult> {
         }
 
         // Store link, document, or nested folder data
-        if (item.typeId == FolderItemType.link.index) {
+        if (item.typeId == FolderItemType.link.dbId) {
           final link = row.readTableOrNull(_db.links);
           if (link != null && !_links.containsKey(link.id)) {
             _links[link.id] = link;
           }
-        } else if (item.typeId == FolderItemType.document.index) {
+        } else if (item.typeId == FolderItemType.document.dbId) {
           final doc = row.readTableOrNull(_db.documents);
           if (doc != null && !_documents.containsKey(doc.id)) {
             _documents[doc.id] = doc;
           }
-        } else if (item.typeId == FolderItemType.folder.index) {
+        } else if (item.typeId == FolderItemType.folder.dbId) {
           final folder = row.readTableOrNull(_nestedFolders);
           if (folder != null && !_folders.containsKey(folder.id)) {
             _folders[folder.id] = folder;
@@ -85,17 +85,17 @@ class FolderResultBuilder implements ResultBuilder<FolderResult> {
       final itemTagsList = _itemTags[itemId] ?? [];
 
       FolderItem? folderItem;
-      if (item.typeId == FolderItemType.link.index) {
+      if (item.typeId == FolderItemType.link.dbId) {
         final link = _links[item.itemId];
         if (link != null) {
           folderItem = link.toFolderItem(itemId, tags: itemTagsList);
         }
-      } else if (item.typeId == FolderItemType.document.index) {
+      } else if (item.typeId == FolderItemType.document.dbId) {
         final doc = _documents[item.itemId];
         if (doc != null) {
           folderItem = doc.toFolderItem(itemId, tags: itemTagsList);
         }
-      } else if (item.typeId == FolderItemType.folder.index) {
+      } else if (item.typeId == FolderItemType.folder.dbId) {
         final folder = _folders[item.itemId];
         if (folder != null) {
           folderItem = folder.toFolderItem(itemId, tags: itemTagsList);

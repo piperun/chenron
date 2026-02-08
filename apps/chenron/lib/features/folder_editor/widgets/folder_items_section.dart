@@ -76,11 +76,13 @@ class _FolderItemsSectionState extends State<FolderItemsSection> {
 
   Future<void> _handleAddLink() async {
     try {
+      final folder = widget.notifier.folder.value?.data;
       await Navigator.push(
         context,
         MaterialPageRoute<void>(
           builder: (context) => CreateLinkPage(
             hideAppBar: true,
+            initialFolders: folder != null ? [folder] : null,
             onClose: () => Navigator.pop(context),
             onSaved: () {
               Navigator.pop(context);

@@ -7,10 +7,12 @@ import "package:signals/signals_flutter.dart";
 
 class FolderPicker extends StatefulWidget {
   final void Function(List<Folder> selectedFolders) onFoldersSelected;
+  final List<Folder>? initialFolders;
 
   const FolderPicker({
     super.key,
     required this.onFoldersSelected,
+    this.initialFolders,
   });
 
   @override
@@ -31,6 +33,12 @@ class _FolderPickerState extends State<FolderPicker> {
 
   Future<void> _loadInitialFolder() async {
     try {
+      if (widget.initialFolders != null && widget.initialFolders!.isNotEmpty) {
+        _selectedFolders.addAll(widget.initialFolders!);
+        _isLoading = false;
+        return;
+      }
+
       final results = await _db.getAllFolders();
       if (results.isNotEmpty) {
         setState(() {

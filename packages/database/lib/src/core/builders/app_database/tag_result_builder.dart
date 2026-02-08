@@ -26,9 +26,9 @@ class TagResultBuilder implements ResultBuilder<TagResult> {
       // Need to determine the type of the item to add to the right collection
       final item = row.readTableOrNull(_db.items);
       if (item != null) {
-        if (item.typeId == FolderItemType.link.index) {
+        if (item.typeId == FolderItemType.link.dbId) {
           _relatedLinkIds.add(itemId);
-        } else if (item.typeId == FolderItemType.document.index) {
+        } else if (item.typeId == FolderItemType.document.dbId) {
           _relatedDocumentIds.add(itemId);
         } else {
           _relatedFolderIds.add(itemId);
