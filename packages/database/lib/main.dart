@@ -63,7 +63,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration {
@@ -265,6 +265,16 @@ class AppDatabase extends _$AppDatabase {
               "CREATE INDEX idx_recent_access_last ON recent_access(last_accessed_at DESC)");
 
           await _createActivityTriggers();
+        }
+
+        // Migration v6 to v7: Fix 0-based type_id values in items and
+        // metadata_records. The relation_handler was inserting type.index
+        // (0-based) instead of type.index + 1 (matching 1-based seed IDs).
+        if (from < 7) {
+          await customStatement(
+              "UPDATE items SET type_id = type_id + 1 WHERE type_id = 0");
+          await customStatement(
+              "UPDATE metadata_records SET type_id = type_id + 1 WHERE type_id = 0");
         }
       },
     );
