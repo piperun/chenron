@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## vibe-v0.1.1 - 2026-02-08
+#### Bug Fixes
+- resolve vibe lint warnings and remove stale test driver - (4ed0e9b) - *piperun*
+#### Documentation
+- (**vibe**) add missing public API documentation - (a3440b0) - *piperun*
+#### Refactoring
+- migrate NierTheme to FlexVibeTheme and fix colorScheme - (8de9a14) - *piperun*
+- redesign vibe package core types and structure - (4ea2950) - *piperun*
+
+- - -
+
 ## vibe-v0.1.0 - 2026-02-07
 #### Features
 - Remove default title parameter from createTestLink method for cleaner API - (db0b8c0) - *piperun*

@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [v0.6.2](https://github.com/piperun/chenron-flutter/compare/v0.6.1..v0.6.2) - 1970-01-01
+### Package updates
+- [chenron-v0.6.2](apps/chenron) bumped to [chenron-v0.6.2](https://github.com/piperun/chenron-flutter/compare/chenron-v0.6.1..chenron-v0.6.2)
+- [vibe-v0.1.1](packages/vibe) bumped to [vibe-v0.1.1](https://github.com/piperun/chenron-flutter/compare/vibe-v0.1.0..vibe-v0.1.1)
+### Global changes
+
+- - -
+
 ## [v0.6.1](https://github.com/piperun/chenron-flutter/compare/30d5ae9eee2f8b92fe9a64904188f6f0d7f5921d..v0.6.1) - 2026-02-08
 ### Package updates
 - [chenron-v0.6.1](apps/chenron) bumped to [chenron-v0.6.1](https://github.com/piperun/chenron-flutter/compare/chenron-v0.6.0..chenron-v0.6.1)

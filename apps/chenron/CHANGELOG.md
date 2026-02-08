@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## chenron-v0.6.2 - 2026-02-08
+#### Bug Fixes
+- resolve vibe lint warnings and remove stale test driver - (4ed0e9b) - *piperun*
+
+- - -
+
 ## chenron-v0.6.1 - 2026-02-08
 #### Bug Fixes
 - resolve folder editor save and validation bugs - (df5ca22) - *piperun*
