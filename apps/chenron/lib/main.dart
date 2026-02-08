@@ -6,6 +6,7 @@ import "package:chenron/locator.dart";
 import "package:chenron/providers/theme_controller_signal.dart";
 
 import "package:flutter/material.dart";
+import "package:shared_preferences/shared_preferences.dart";
 import "package:signals/signals_flutter.dart";
 
 import "package:logger/logger.dart";
@@ -13,11 +14,18 @@ import "package:logger/logger.dart";
 void main() async {
   try {
     WidgetsFlutterBinding.ensureInitialized();
+
+    // Read cached dark mode preference before any heavy setup so the
+    // first frame renders with the correct theme (no light→dark flicker).
+    final prefs = await SharedPreferences.getInstance();
+    final isDark = prefs.getBool("dark_mode") ?? false;
+    final initialThemeMode = isDark ? ThemeMode.dark : ThemeMode.light;
+
     await MainSetup.setup();
     loggerGlobal.info("main", "Waiting for locator dependencies...");
     await locator.allReady();
     loggerGlobal.info("main", "Locator ready, running app.");
-    runApp(const MyApp());
+    runApp(MyApp(initialThemeMode: initialThemeMode));
   } catch (error, stackTrace) {
     loggerGlobal.severe(
         "Startup", "Failed to initialize app: $error", error, stackTrace);
@@ -26,7 +34,9 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final ThemeMode initialThemeMode;
+
+  const MyApp({super.key, required this.initialThemeMode});
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +58,7 @@ class MyApp extends StatelessWidget {
         darkTheme: variants.dark,
         themeAnimationDuration: const Duration(milliseconds: 300),
         themeAnimationCurve: Curves.easeInOut,
-        themeMode: currentMode ?? ThemeMode.light,
+        themeMode: currentMode ?? initialThemeMode,
         home: const RootPage(),
       );
     });

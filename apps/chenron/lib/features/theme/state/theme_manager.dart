@@ -2,8 +2,11 @@ import "dart:async";
 
 import "package:database/database.dart";
 import "package:flutter/material.dart";
+import "package:shared_preferences/shared_preferences.dart";
 import "package:signals/signals_flutter.dart";
 import "package:logger/logger.dart";
+
+const _darkModeKey = "dark_mode";
 
 /// Manages the application's theme mode (light/dark).
 ///
@@ -55,6 +58,9 @@ class ThemeManager {
         _userConfigId = configResult.data.id; // Store the ID for updates
         final isDark = configResult.data.darkMode;
         themeModeSignal.value = isDark ? ThemeMode.dark : ThemeMode.light;
+        // Sync SharedPreferences cache so the next startup is flicker-free
+        unawaited(SharedPreferences.getInstance()
+            .then((p) => p.setBool(_darkModeKey, isDark)));
         loggerGlobal.info("ThemeManager",
             "Initial theme mode loaded: ${themeModeSignal.value} (UserConfig ID: $_userConfigId)");
       } else {
@@ -93,6 +99,8 @@ class ThemeManager {
     }
 
     themeModeSignal.value = newMode;
+    unawaited(SharedPreferences.getInstance()
+        .then((p) => p.setBool(_darkModeKey, isDark)));
     loggerGlobal.info(
         "ThemeManager", "Optimistically set theme mode to: $newMode");
 
