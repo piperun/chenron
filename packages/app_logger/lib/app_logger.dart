@@ -19,6 +19,7 @@ final class LoggerImpl {
   void setupLogging({
     required Directory logDir,
     bool logToFileInDebug = false,
+    Level level = Level.FINE,
   }) {
     if (_isSetup) {
       // Avoid attaching multiple listeners if called again
@@ -26,7 +27,7 @@ final class LoggerImpl {
       return;
     }
 
-    Logger.root.level = Level.ALL; // Capture all levels
+    Logger.root.level = level;
 
     Logger.root.onRecord.listen((record) {
       // 1. Console Logging (Always in Debug)

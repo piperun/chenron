@@ -1,6 +1,5 @@
 // ignore_for_file: avoid_print
 
-import "dart:io";
 import "package:core/patterns/include_options.dart";
 import "package:database/main.dart";
 import "package:database/models/db_result.dart";
@@ -11,14 +10,11 @@ import "package:flutter_test/flutter_test.dart";
 import "package:database/src/features/document/read.dart";
 import "package:database/src/features/document/create.dart";
 import "package:chenron_mockups/chenron_mockups.dart";
-import "package:app_logger/app_logger.dart";
 
 void main() {
   setUpAll(() {
     installFakePathProvider();
-    // Initialize logger for VEPR operations with temp directory
-    final tempDir = Directory.systemTemp.createTempSync("test_logs");
-    loggerGlobal.setupLogging(logDir: tempDir, logToFileInDebug: false);
+    installTestLogger();
   });
 
   late AppDatabase database;
