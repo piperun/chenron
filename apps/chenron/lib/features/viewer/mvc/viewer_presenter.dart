@@ -15,16 +15,16 @@ import "package:chenron/features/settings/controller/config_controller.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/item_info_modal.dart";
 
-class ViewerPresenter extends ChangeNotifier {
-  final Set<String> selectedItemIds = {};
-  final Set<FolderItemType> selectedTypes = {
+class ViewerPresenter {
+  final Signal<Set<String>> selectedItemIds = signal({});
+  final Signal<Set<FolderItemType>> selectedTypes = signal({
     FolderItemType.folder,
     FolderItemType.link,
     FolderItemType.document,
-  };
+  });
   final SearchController searchController = SearchController();
-  ViewMode viewMode = ViewMode.grid;
-  SortMode sortMode = SortMode.nameAsc;
+  final Signal<ViewMode> viewMode = signal(ViewMode.grid);
+  final Signal<SortMode> sortMode = signal(SortMode.nameAsc);
 
   final _itemsController = StreamController<List<ViewerItem>>.broadcast();
   final ViewerModel _model;
@@ -43,36 +43,32 @@ class ViewerPresenter extends ChangeNotifier {
   Future<void> init() async {
     _allItemsStream = _model.watchAllItems();
     _allItemsStream!.listen(_processItems);
-    notifyListeners();
   }
 
   void clearSelectedItems() {
-    selectedItemIds.clear();
-    notifyListeners();
+    selectedItemIds.value = {};
   }
 
   void onTypesChanged(Set<FolderItemType> types) {
-    selectedTypes.clear();
-    selectedTypes.addAll(types);
+    selectedTypes.value = Set.of(types);
 
-    selectedItemIds.removeWhere((itemId) {
-      final item = _currentItems.firstWhere((item) => item.id == itemId);
-      return !types.contains(item.type);
-    });
+    selectedItemIds.value = Set.of(
+      selectedItemIds.value.where((itemId) {
+        final item = _currentItems.firstWhere((item) => item.id == itemId);
+        return types.contains(item.type);
+      }),
+    );
 
     _filterAndAddItems(_currentItems);
-    notifyListeners();
   }
 
   void onViewModeChanged(ViewMode mode) {
-    viewMode = mode;
-    notifyListeners();
+    viewMode.value = mode;
   }
 
   void onSortChanged(SortMode mode) {
-    sortMode = mode;
+    sortMode.value = mode;
     _filterAndAddItems(_currentItems);
-    notifyListeners();
   }
 
   void onFolderTap(BuildContext context, FolderResult folder) {
@@ -96,12 +92,13 @@ class ViewerPresenter extends ChangeNotifier {
   }
 
   void toggleItemSelection(String itemId) {
-    if (selectedItemIds.contains(itemId)) {
-      selectedItemIds.remove(itemId);
+    final current = Set<String>.of(selectedItemIds.value);
+    if (current.contains(itemId)) {
+      current.remove(itemId);
     } else {
-      selectedItemIds.add(itemId);
+      current.add(itemId);
     }
-    notifyListeners();
+    selectedItemIds.value = current;
   }
 
   void _onSearchChanged() {
@@ -116,7 +113,7 @@ class ViewerPresenter extends ChangeNotifier {
   void _filterAndAddItems(List<ViewerItem> items) {
     var filteredItems = filterItems(
       items,
-      selectedTypes,
+      selectedTypes.value,
       searchController.text,
     );
     filteredItems = _sortItems(filteredItems);
@@ -126,7 +123,7 @@ class ViewerPresenter extends ChangeNotifier {
   List<ViewerItem> _sortItems(List<ViewerItem> items) {
     final sorted = List<ViewerItem>.from(items);
     sorted.sort((a, b) {
-      switch (sortMode) {
+      switch (sortMode.value) {
         case SortMode.nameAsc:
           return a.title.toLowerCase().compareTo(b.title.toLowerCase());
         case SortMode.nameDesc:
@@ -140,12 +137,14 @@ class ViewerPresenter extends ChangeNotifier {
     return sorted;
   }
 
-  @override
   void dispose() {
     searchController.removeListener(_onSearchChanged);
     searchController.dispose();
     unawaited(_itemsController.close());
-    super.dispose();
+    selectedItemIds.dispose();
+    selectedTypes.dispose();
+    viewMode.dispose();
+    sortMode.dispose();
   }
 
   List<ViewerItem> filterItems(
@@ -227,10 +226,10 @@ class ViewerPresenter extends ChangeNotifier {
   }
 
   Future<void> onDeleteSelected() async {
-    if (selectedItemIds.isEmpty) return;
+    if (selectedItemIds.value.isEmpty) return;
 
     bool success = true;
-    for (final itemId in selectedItemIds) {
+    for (final itemId in selectedItemIds.value) {
       final item = _currentItems.firstWhere((item) => item.id == itemId);
 
       success = switch (item.type) {

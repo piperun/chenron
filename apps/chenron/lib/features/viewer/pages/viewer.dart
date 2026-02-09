@@ -98,29 +98,24 @@ class _ViewerState extends State<Viewer> {
             data: (data) {
               final folderItems = data.map(_viewerItemToFolderItem).toList();
 
-              return ListenableBuilder(
-                listenable: presenter,
-                builder: (context, _) {
-                  return FilterableItemDisplay(
-                    items: folderItems,
-                    externalSearchFilter: widget.searchFilter,
-                    tagFilterState: _tagFilterState,
-                    enableTagFiltering: true,
-                    displayModeContext: "viewer",
-                    showSearch: false,
-                    onItemTap: (item) => handleItemTap(context, item),
-                    onDeleteModeChanged: (
-                        {required bool isDeleteMode,
-                        required int selectedCount}) {
-                      // Optional: Track delete mode state if needed
-                    },
-                    onDeleteRequested: (items) => handleItemDeletion(
-                      context,
-                      items,
-                      () => viewerViewModelSignal.value.init(),
-                    ),
-                  );
+              return FilterableItemDisplay(
+                items: folderItems,
+                externalSearchFilter: widget.searchFilter,
+                tagFilterState: _tagFilterState,
+                enableTagFiltering: true,
+                displayModeContext: "viewer",
+                showSearch: false,
+                onItemTap: (item) => handleItemTap(context, item),
+                onDeleteModeChanged: (
+                    {required bool isDeleteMode,
+                    required int selectedCount}) {
+                  // Optional: Track delete mode state if needed
                 },
+                onDeleteRequested: (items) => handleItemDeletion(
+                  context,
+                  items,
+                  () => viewerViewModelSignal.value.init(),
+                ),
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
