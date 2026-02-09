@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## chenron-v0.9.0 - 2026-02-09
+#### Features
+- add CD workflow for Windows and Linux releases - (aea3728) - *piperun*
+#### Bug Fixes
+- register ConfigController in folder_header tests - (b33a541) - *piperun*
+
+- - -
+
 ## chenron-v0.8.0 - 2026-02-09
 #### Features
 - add viewer display preferences with persistent settings - (f2ea94c) - *piperun*
