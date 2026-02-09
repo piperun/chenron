@@ -1,26 +1,25 @@
 import "package:database/models/item.dart";
 import "package:flutter/material.dart";
+import "package:signals/signals.dart";
 import "package:trina_grid/trina_grid.dart";
 
 /// Generic notifier for managing table state and interactions
 ///
 /// This notifier handles state management for any type of table (links, documents, etc.)
 /// and provides a bridge between the UI and the TrinaGrid state manager.
-class ItemTableNotifier<T> extends ChangeNotifier {
+class ItemTableNotifier<T> {
   TrinaGridStateManager? _stateManager;
 
   TrinaGridStateManager? get stateManager => _stateManager;
 
-  bool checkedRows = false;
+  final Signal<bool> hasCheckedRows = signal(false);
 
   void setStateManager(TrinaGridStateManager stateManager) {
     _stateManager = stateManager;
-    notifyListeners();
   }
 
   void onRowChecked(TrinaGridOnRowCheckedEvent event) {
-    checkedRows = event.isChecked!;
-    notifyListeners();
+    hasCheckedRows.value = event.isChecked!;
   }
 
   void appendRow(TrinaRow<dynamic> row, {String? key}) {
@@ -34,7 +33,6 @@ class ItemTableNotifier<T> extends ChangeNotifier {
 
       if (!isDuplicate) {
         _stateManager!.appendRows([row]);
-        notifyListeners();
       }
     }
   }
@@ -43,7 +41,11 @@ class ItemTableNotifier<T> extends ChangeNotifier {
     if (_stateManager == null) return;
     final selectedRows = _stateManager!.checkedRows;
     _stateManager!.removeRows(selectedRows);
-    notifyListeners();
+    hasCheckedRows.value = false;
+  }
+
+  void dispose() {
+    hasCheckedRows.dispose();
   }
 
   List<TrinaRow<dynamic>> getRows(List<FolderItem> items) {

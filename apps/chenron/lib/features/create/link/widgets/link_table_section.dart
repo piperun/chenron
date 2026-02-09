@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import "package:signals/signals_flutter.dart";
 import "package:chenron/features/create/link/models/link_entry.dart";
 import "package:chenron/notifiers/item_table_notifier.dart";
 import "package:chenron/components/tables/item_table.dart";
@@ -34,9 +35,9 @@ class LinkTableSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return ListenableBuilder(
-      listenable: notifier,
-      builder: (context, _) => Card(
+    return Watch((context) {
+      notifier.hasCheckedRows.value; // subscribe to row check changes
+      return Card(
         margin: const EdgeInsets.only(bottom: 16),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -84,8 +85,8 @@ class LinkTableSection extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
+      );
+    });
   }
 }
 

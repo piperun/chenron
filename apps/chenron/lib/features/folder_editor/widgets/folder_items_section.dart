@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import "package:signals/signals_flutter.dart";
 import "package:trina_grid/trina_grid.dart";
 import "package:database/models/item.dart";
 import "package:chenron/notifiers/item_table_notifier.dart";
@@ -226,27 +227,24 @@ class _FolderItemsSectionState extends State<FolderItemsSection> {
 
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: _tableNotifier,
-      builder: (context, _) {
-        final hasSelectedRows =
-            _tableNotifier.stateManager?.checkedRows.isNotEmpty ?? false;
+    return Watch((context) {
+      _tableNotifier.hasCheckedRows.value; // subscribe to row check changes
+      final hasSelectedRows =
+          _tableNotifier.stateManager?.checkedRows.isNotEmpty ?? false;
 
-        // Clean composition with separated concerns
-        return ItemSection(
-          child: ItemSectionContent(
-            controller: _controller,
-            onAddLink: _handleAddLink,
-            onAddDocument: _handleAddDocument,
-            onDeleteSelected: _handleDeleteSelected,
-            hasSelectedRows: hasSelectedRows,
-            columns: _columns,
-            buildRows: _buildRows,
-            tableNotifier: _tableNotifier,
-          ),
-        );
-      },
-    );
+      return ItemSection(
+        child: ItemSectionContent(
+          controller: _controller,
+          onAddLink: _handleAddLink,
+          onAddDocument: _handleAddDocument,
+          onDeleteSelected: _handleDeleteSelected,
+          hasSelectedRows: hasSelectedRows,
+          columns: _columns,
+          buildRows: _buildRows,
+          tableNotifier: _tableNotifier,
+        ),
+      );
+    });
   }
 }
 
