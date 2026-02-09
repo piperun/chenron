@@ -2,6 +2,21 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [v0.9.0](https://github.com/piperun/chenron-flutter/compare/f2045774e5b60ab4cee8af021be0582b2b697b73..v0.9.0) - 2026-02-09
+### Package updates
+- [database-v0.6.1](packages/database) bumped to [database-v0.6.1](https://github.com/piperun/chenron-flutter/compare/database-v0.6.0..database-v0.6.1)
+### Global changes
+#### Features
+- add CD workflow for Windows and Linux releases - ([aea3728](https://github.com/piperun/chenron-flutter/commit/aea3728035e0082ccf64a9b922252bd220899acc)) - [@piperun](https://github.com/piperun)
+#### Bug Fixes
+- guard integration test CI steps for missing directory - ([92903fd](https://github.com/piperun/chenron-flutter/commit/92903fd1d028c269a0b9c3e5ecbb5bacbad57e04)) - [@piperun](https://github.com/piperun)
+- specify -d linux for integration tests in CI - ([f204577](https://github.com/piperun/chenron-flutter/commit/f2045774e5b60ab4cee8af021be0582b2b697b73)) - [@piperun](https://github.com/piperun)
+#### Refactoring
+- extract UI components and deduplicate database builders - ([48f515c](https://github.com/piperun/chenron-flutter/commit/48f515c87650611b68672d47f0a8507810a27b1f)) - [@piperun](https://github.com/piperun)
+- collapse CI into single test job - ([d4fe79d](https://github.com/piperun/chenron-flutter/commit/d4fe79d75fa2f885f49d086a7160c42ca3cafb18)) - [@piperun](https://github.com/piperun)
+
+- - -
+
 ## [v0.8.0](https://github.com/piperun/chenron-flutter/compare/v0.7.0..v0.8.0) - 1970-01-01
 ### Package updates
 - [chenron-v0.8.0](apps/chenron) bumped to [chenron-v0.8.0](https://github.com/piperun/chenron-flutter/compare/chenron-v0.7.0..chenron-v0.8.0)

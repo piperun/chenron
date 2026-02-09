@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## database-v0.6.1 - 2026-02-09
+#### Bug Fixes
+- make statistics ordering test deterministic - (10f7a72) - *piperun*
+#### Refactoring
+- extract UI components and deduplicate database builders - (48f515c) - *piperun*
+
+- - -
+
 ## database-v0.6.0 - 2026-02-09
 #### Features
 - add viewer display preferences with persistent settings - (f2ea94c) - *piperun*
