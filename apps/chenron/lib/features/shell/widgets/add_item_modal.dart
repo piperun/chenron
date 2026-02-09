@@ -1,6 +1,7 @@
 import "package:flutter/material.dart";
 import "package:chenron/features/create/folder/pages/create_folder.dart";
 import "package:chenron/features/create/link/pages/create_link.dart";
+import "package:chenron/responsible_design/breakpoints.dart";
 
 enum ItemType {
   link,
@@ -46,8 +47,8 @@ class _AddItemModalState extends State<AddItemModal> {
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
-    final isSmallScreen = screenSize.width < 700;
-    final isMediumScreen = screenSize.width >= 700 && screenSize.width < 1200;
+    final isSmallScreen = screenSize.width < Breakpoints.md;
+    final isMediumScreen = screenSize.width >= Breakpoints.md && screenSize.width < Breakpoints.xl;
 
     // Responsive sizing based on screen width
     double modalWidth;

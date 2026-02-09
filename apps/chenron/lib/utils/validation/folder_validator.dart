@@ -1,4 +1,5 @@
 import "package:chenron/utils/validation/schema_rules.dart";
+import "package:chenron/utils/validation/tag_validator.dart";
 import "package:validator_dart/validator_dart.dart";
 // ignore: implementation_imports
 import "package:validator_dart/src/validators/is_length.dart";
@@ -38,14 +39,7 @@ class FolderValidator {
   }
 
   static String? validateTags(String? value) {
-    if (value == null || value.isEmpty) {
-      return null;
-    }
-    final List<String> tags = value.split(",").map((tag) => tag.trim()).toList();
-    if (!tags.every(Validator.isAlpha)) {
-      return "Tags can only contain latin alphabetic characters";
-    }
-    return null;
+    return TagValidator.validateTagString(value);
   }
 }
 

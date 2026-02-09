@@ -1,209 +1,72 @@
 import "package:flutter/material.dart";
-import "package:chenron/features/create/folder/pages/create_folder.dart";
-import "package:chenron/features/create/link/pages/create_link.dart";
+import "package:chenron/shared/search/searchbar.dart";
+import "package:chenron/shared/search/search_filter.dart";
+import "package:chenron/features/shell/ui/sections/navigation_section.dart";
+import "package:chenron/features/shell/ui/section_toggle.dart";
+import "package:chenron/shared/ui/dark_mode.dart";
 
 class ShellAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final void Function(BuildContext, Widget, String) onNavigateToCreate;
+  final VoidCallback onSettingsPressed;
+  final SearchFilter searchFilter;
+  final NavigationSection currentSection;
+  final void Function(NavigationSection) onSectionSelected;
 
   const ShellAppBar({
     super.key,
-    required this.onNavigateToCreate,
+    required this.onSettingsPressed,
+    required this.searchFilter,
+    required this.currentSection,
+    required this.onSectionSelected,
   });
 
   @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+
+  @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return AppBar(
-      backgroundColor: Colors.white,
-      elevation: 1,
-      automaticallyImplyLeading: false,
       title: Row(
         children: [
-          // Logo/Brand section
-          const _LogoSection(),
-          
-          // Spacer to push search to center
-          const Spacer(),
-          
-          // Centered search bar
-          const Expanded(
-            flex: 2,
-            child: _SearchBarSection(),
+          Expanded(
+            child: Center(
+              child: FractionallySizedBox(
+                widthFactor: 0.8,
+                child: GlobalSearchBar(
+                  externalController: searchFilter.controller,
+                ),
+              ),
+            ),
           ),
-          
-          // Spacer to balance the layout
-          const Spacer(),
-          
-          // Right side actions
-          _ActionsSection(onNavigateToCreate: onNavigateToCreate),
-        ],
-      ),
-    );
-  }
-
-  @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
-}
-
-class _LogoSection extends StatelessWidget {
-  const _LogoSection();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
+          // Visual separator after search
           Container(
-            width: 24,
-            height: 24,
-            decoration: BoxDecoration(
-              color: Colors.blue,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: const Icon(
-              Icons.apps,
-              color: Colors.white,
-              size: 16,
-            ),
+            margin: const EdgeInsets.symmetric(horizontal: 12),
+            width: 1,
+            height: 32,
+            color: colorScheme.outline.withValues(alpha: 0.3),
           ),
-          const SizedBox(width: 8),
-          const Text(
-            "chenron",
-            style: TextStyle(
-              color: Colors.black87,
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
+          // Custom styled button group
+          SectionToggle(
+            currentSection: currentSection,
+            onSectionSelected: onSectionSelected,
           ),
         ],
       ),
-    );
-  }
-}
-
-class _SearchBarSection extends StatelessWidget {
-  const _SearchBarSection();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      constraints: const BoxConstraints(maxWidth: 500),
-      child: SearchBar(
-        hintText: "Search",
-        leading: const Icon(
-          Icons.search,
-          color: Colors.grey,
-          size: 20,
-        ),
-        backgroundColor: WidgetStatePropertyAll(
-          Colors.grey[100],
-        ),
-        elevation: const WidgetStatePropertyAll(1),
-        side: WidgetStatePropertyAll(
-          BorderSide(color: Colors.grey[300]!),
-        ),
-        shape: WidgetStatePropertyAll(
-          RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(6),
-          ),
-        ),
-        hintStyle: WidgetStatePropertyAll(
-          TextStyle(
-            color: Colors.grey[600],
-            fontSize: 14,
-          ),
-        ),
-        textStyle: const WidgetStatePropertyAll(
-          TextStyle(
-            color: Colors.black87,
-            fontSize: 14,
-          ),
-        ),
-        padding: const WidgetStatePropertyAll(
-          EdgeInsets.symmetric(horizontal: 12),
-        ),
-      ),
-    );
-  }
-}
-
-class _ActionsSection extends StatelessWidget {
-  final void Function(BuildContext, Widget, String) onNavigateToCreate;
-
-  const _ActionsSection({required this.onNavigateToCreate});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Create dropdown button
-        PopupMenuButton<String>(
-          icon: const Icon(
-            Icons.add,
-            color: Colors.grey,
-            size: 20,
-          ),
-          tooltip: "Create",
-          onSelected: (String value) {
-            switch (value) {
-              case "folder":
-                onNavigateToCreate(context, const CreateFolderPage(), "Add Folder");
-                break;
-              case "link":
-                onNavigateToCreate(context, const CreateLinkPage(), "Add Link");
-                break;
-              case "document":
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Document creation coming soon!")),
-                );
-                break;
-            }
-          },
-          itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-            const PopupMenuItem<String>(
-              value: "folder",
-              child: ListTile(
-                leading: Icon(Icons.create_new_folder_outlined),
-                title: Text("Folder"),
-                contentPadding: EdgeInsets.zero,
-              ),
-            ),
-            const PopupMenuItem<String>(
-              value: "link",
-              child: ListTile(
-                leading: Icon(Icons.add_link),
-                title: Text("Link"),
-                contentPadding: EdgeInsets.zero,
-              ),
-            ),
-            const PopupMenuItem<String>(
-              value: "document",
-              child: ListTile(
-                leading: Icon(Icons.article_outlined),
-                title: Text("Document"),
-                contentPadding: EdgeInsets.zero,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(width: 8),
-        // User avatar
+      actions: [
+        // Visual separator before actions
         Container(
-          width: 32,
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          width: 1,
           height: 32,
-          decoration: BoxDecoration(
-            color: Colors.blue,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: const Icon(
-            Icons.person,
-            color: Colors.white,
-            size: 18,
-          ),
+          color: colorScheme.outline.withValues(alpha: 0.3),
         ),
-        const SizedBox(width: 16),
+        const DarkModeToggle(),
+        IconButton(
+          tooltip: "Settings",
+          icon: const Icon(Icons.settings_outlined),
+          onPressed: onSettingsPressed,
+        ),
       ],
     );
   }

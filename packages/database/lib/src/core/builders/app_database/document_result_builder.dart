@@ -2,10 +2,12 @@ import "package:database/main.dart";
 import "package:database/models/db_result.dart";
 import "package:drift/drift.dart";
 import "package:database/src/core/builders/result_builder.dart";
+import "package:database/src/core/builders/tag_processing_mixin.dart";
 
-class DocumentResultBuilder implements ResultBuilder<DocumentResult> {
+class DocumentResultBuilder
+    with TagProcessingMixin
+    implements ResultBuilder<DocumentResult> {
   final Document _document;
-  final List<Tag> _tags = [];
   final AppDatabase _db;
 
   DocumentResultBuilder(this._document, this._db);
@@ -15,12 +17,7 @@ class DocumentResultBuilder implements ResultBuilder<DocumentResult> {
 
   @override
   void processRow(TypedResult row, Set<Enum> includeOptions) {
-    if (includeOptions.contains(AppDataInclude.tags)) {
-      final tag = row.readTableOrNull(_db.tags);
-      if (tag != null && !_tags.any((t) => t.id == tag.id)) {
-        _tags.add(tag);
-      }
-    }
+    processTags(row, includeOptions, _db.tags);
   }
 
   @override
@@ -29,7 +26,7 @@ class DocumentResultBuilder implements ResultBuilder<DocumentResult> {
       title: _document.title,
       filePath: _document.filePath,
       fileType: _document.fileType,
-      tags: _tags.isEmpty ? null : _tags,
+      tags: tags.isEmpty ? null : tags,
     );
   }
 }

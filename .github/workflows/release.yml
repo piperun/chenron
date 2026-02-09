@@ -118,7 +118,7 @@ jobs:
 
       - name: Convert SVG icon to PNG
         run: |
-          magick convert -background none -resize 256x256 \
+          convert -background none -resize 256x256 \
             apps/chenron/assets/icon.svg \
             apps/chenron/linux/com.chenron.chenron.png
 

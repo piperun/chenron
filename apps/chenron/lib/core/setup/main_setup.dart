@@ -1,5 +1,4 @@
 // lib/initialization/app_setupr.dart
-// ignore_for_file: avoid_print
 
 import "package:chenron/locator.dart";
 import "package:basedir/directory.dart";
@@ -41,7 +40,8 @@ class MainSetup {
         _setupDone && !locator.isRegistered<Signal<AppDatabaseHandler>>();
 
     if (_setupDone && !getItWasReset) {
-      print("Warning: MainSetup.setup() called more than once.");
+      loggerGlobal.warning(
+          "MainSetup", "setup() called more than once.");
       return;
     }
 
@@ -49,12 +49,12 @@ class MainSetup {
       // GetIt was reset, allow re-initialization
       _setupDone = false;
       if (kDebugMode) {
-        print("MainSetup: GetIt was reset, re-initializing...");
+        debugPrint("MainSetup: GetIt was reset, re-initializing...");
       }
     }
 
     if (kDebugMode) {
-      print("MainSetup: Starting initialization...");
+      debugPrint("MainSetup: Starting initialization...");
     }
 
     try {
@@ -83,10 +83,11 @@ class MainSetup {
     } catch (error, stackTrace) {
       // Catch any error bubbling up from the setup steps
       final errorMsg = "Core application initialization failed.";
-      // Use print as a fallback in case logger itself failed during setup
-
-      print(
-          "!!! FATAL INITIALIZATION ERROR: $errorMsg\nError: $error\nStackTrace: $stackTrace");
+      // Use debugPrint as a fallback in case logger itself failed during setup
+      if (kDebugMode) {
+        debugPrint(
+            "!!! FATAL INITIALIZATION ERROR: $errorMsg\nError: $error\nStackTrace: $stackTrace");
+      }
       // Attempt to log using the logger as well, it might partially work
       loggerGlobal.severe("MainSetup", errorMsg, error, stackTrace);
 
@@ -101,9 +102,10 @@ class MainSetup {
       locatorSetup();
     } catch (e, s) {
       // Failure here is likely fatal and happens before logger is ready
-
-      print(
-          "!!! FATAL ERROR: Locator setup failed.\nError: $e\nStackTrace: $s");
+      if (kDebugMode) {
+        debugPrint(
+            "!!! FATAL ERROR: Locator setup failed.\nError: $e\nStackTrace: $s");
+      }
       throw InitializationException("Locator setup failed",
           cause: e, stackTrace: s);
     }
@@ -121,8 +123,9 @@ class MainSetup {
       return baseDirs;
     } catch (e, s) {
       const errorMsg = "Failed to resolve base directories.";
-
-      print("!!! FATAL ERROR: $errorMsg\nError: $e\nStackTrace: $s");
+      if (kDebugMode) {
+        debugPrint("!!! FATAL ERROR: $errorMsg\nError: $e\nStackTrace: $s");
+      }
       throw InitializationException(errorMsg, cause: e, stackTrace: s);
     }
   }
@@ -172,7 +175,9 @@ class MainSetup {
       loggerGlobal.setupLogging(logDir: logDir, logToFileInDebug: false);
     } catch (e, s) {
       const errorMsg = "Logging setup failed.";
-      print("!!! ERROR: $errorMsg\nError: $e\nStackTrace: $s");
+      if (kDebugMode) {
+        debugPrint("!!! ERROR: $errorMsg\nError: $e\nStackTrace: $s");
+      }
       throw InitializationException(errorMsg, cause: e, stackTrace: s);
     }
   }
