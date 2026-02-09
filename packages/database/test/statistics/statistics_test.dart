@@ -244,16 +244,28 @@ void main() {
 
   group("Statistics Query Operations", () {
     test("get latest statistics", () async {
-      await Future.delayed(const Duration(milliseconds: 10));
+      // Clear any leftover rows from prior tests sharing the same DB file.
+      await database.delete(database.statistics).go();
+
+      final earlier = DateTime.utc(2024, 1, 1, 0, 0, 0);
+      final later = DateTime.utc(2024, 1, 2, 0, 0, 0);
+
       final id1 = database.generateId();
       await database.statistics.insertOne(
-        StatisticsCompanion.insert(id: id1, totalLinks: const Value(5)),
+        StatisticsCompanion.insert(
+          id: id1,
+          totalLinks: const Value(5),
+          recordedAt: Value(earlier),
+        ),
       );
 
-      await Future.delayed(const Duration(milliseconds: 10));
       final id2 = database.generateId();
       await database.statistics.insertOne(
-        StatisticsCompanion.insert(id: id2, totalLinks: const Value(10)),
+        StatisticsCompanion.insert(
+          id: id2,
+          totalLinks: const Value(10),
+          recordedAt: Value(later),
+        ),
       );
 
       final statistics = database.statistics;
