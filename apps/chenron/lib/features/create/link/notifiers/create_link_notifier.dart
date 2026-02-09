@@ -1,62 +1,59 @@
 import "package:flutter/foundation.dart";
 import "dart:async";
+import "package:signals/signals.dart";
 import "package:chenron/features/create/link/models/link_entry.dart";
 import "package:chenron/features/create/link/services/url_validator_service.dart";
 import "package:app_logger/app_logger.dart";
 
 enum InputMode { single, bulk }
 
-class CreateLinkNotifier extends ChangeNotifier {
-  InputMode _inputMode = InputMode.single;
-  final List<LinkEntry> _entries = [];
-  final Set<String> _globalTags = {};
-  List<String> _selectedFolderIds = [];
-  bool _isArchiveMode = false;
+class CreateLinkNotifier {
+  final Signal<InputMode> _inputMode = signal(InputMode.single);
+  final Signal<List<LinkEntry>> _entries = signal([]);
+  final Signal<Set<String>> _globalTags = signal({});
+  final Signal<List<String>> _selectedFolderIds = signal([]);
+  final Signal<bool> _isArchiveMode = signal(false);
 
-  InputMode get inputMode => _inputMode;
-  List<LinkEntry> get entries => List.unmodifiable(_entries);
-  Set<String> get globalTags => Set.unmodifiable(_globalTags);
-  List<String> get selectedFolderIds => List.unmodifiable(_selectedFolderIds);
-  bool get isArchiveMode => _isArchiveMode;
-  bool get hasEntries => _entries.isNotEmpty;
+  late final Computed<bool> hasEntries = computed(() => _entries.value.isNotEmpty);
+
+  InputMode get inputMode => _inputMode.value;
+  List<LinkEntry> get entries => List.unmodifiable(_entries.value);
+  Set<String> get globalTags => Set.unmodifiable(_globalTags.value);
+  List<String> get selectedFolderIds => List.unmodifiable(_selectedFolderIds.value);
+  bool get isArchiveMode => _isArchiveMode.value;
 
   void setInputMode(InputMode mode) {
-    if (_inputMode != mode) {
-      _inputMode = mode;
-      notifyListeners();
+    if (_inputMode.value != mode) {
+      _inputMode.value = mode;
     }
   }
 
   void setArchiveMode({required bool value}) {
-    if (_isArchiveMode != value) {
-      _isArchiveMode = value;
-      notifyListeners();
+    if (_isArchiveMode.value != value) {
+      _isArchiveMode.value = value;
     }
   }
 
   void setSelectedFolders(List<String> folderIds) {
-    _selectedFolderIds = folderIds;
-    notifyListeners();
+    _selectedFolderIds.value = folderIds;
   }
 
   void addGlobalTag(String tag) {
     final cleanTag = tag.trim().toLowerCase();
-    if (cleanTag.isNotEmpty && !_globalTags.contains(cleanTag)) {
-      _globalTags.add(cleanTag);
-      notifyListeners();
+    if (cleanTag.isNotEmpty && !_globalTags.value.contains(cleanTag)) {
+      _globalTags.value = {..._globalTags.value, cleanTag};
     }
   }
 
   void removeGlobalTag(String tag) {
-    if (_globalTags.remove(tag)) {
-      notifyListeners();
+    if (_globalTags.value.contains(tag)) {
+      _globalTags.value = Set.from(_globalTags.value)..remove(tag);
     }
   }
 
   void clearGlobalTags() {
-    if (_globalTags.isNotEmpty) {
-      _globalTags.clear();
-      notifyListeners();
+    if (_globalTags.value.isNotEmpty) {
+      _globalTags.value = {};
     }
   }
 
@@ -69,20 +66,21 @@ class CreateLinkNotifier extends ChangeNotifier {
   }) {
     final entryTags = <String>{
       ...?tags,
-      ..._globalTags,
+      ..._globalTags.value,
     }.toList();
 
     final entry = LinkEntry(
       key: UniqueKey(),
       url: url.trim(),
       tags: entryTags,
-      folderIds: _selectedFolderIds.isEmpty ? ["default"] : _selectedFolderIds,
-      isArchived: isArchived ?? _isArchiveMode,
+      folderIds: _selectedFolderIds.value.isEmpty
+          ? ["default"]
+          : List.of(_selectedFolderIds.value),
+      isArchived: isArchived ?? _isArchiveMode.value,
       validationStatus: LinkValidationStatus.pending,
     );
 
-    _entries.add(entry);
-    notifyListeners();
+    _entries.value = [..._entries.value, entry];
 
     if (validateAsync) {
       unawaited(_validateEntry(entry.key));
@@ -110,55 +108,58 @@ class CreateLinkNotifier extends ChangeNotifier {
 
   /// Updates an existing entry
   void updateEntry(Key key, LinkEntry updatedEntry) {
-    final index = _entries.indexWhere((e) => e.key == key);
+    final current = _entries.value;
+    final index = current.indexWhere((e) => e.key == key);
     if (index != -1) {
-      _entries[index] = updatedEntry;
-      notifyListeners();
+      final newList = List<LinkEntry>.from(current);
+      newList[index] = updatedEntry;
+      _entries.value = newList;
     }
   }
 
   /// Removes an entry
   void removeEntry(Key key) {
-    final initialLength = _entries.length;
-    _entries.removeWhere((e) => e.key == key);
-    if (_entries.length != initialLength) {
-      notifyListeners();
+    final current = _entries.value;
+    final newList = current.where((e) => e.key != key).toList();
+    if (newList.length != current.length) {
+      _entries.value = newList;
     }
   }
 
   /// Removes multiple entries
   void removeEntries(List<Key> keys) {
     final keySet = keys.toSet();
-    final initialLength = _entries.length;
-    _entries.removeWhere((e) => keySet.contains(e.key));
-    if (_entries.length != initialLength) {
-      notifyListeners();
+    final current = _entries.value;
+    final newList = current.where((e) => !keySet.contains(e.key)).toList();
+    if (newList.length != current.length) {
+      _entries.value = newList;
     }
   }
 
   /// Clears all entries
   void clearEntries() {
-    if (_entries.isNotEmpty) {
-      _entries.clear();
-      notifyListeners();
+    if (_entries.value.isNotEmpty) {
+      _entries.value = [];
     }
   }
 
   /// Validates a specific entry asynchronously
   Future<void> _validateEntry(Key key) async {
-    final index = _entries.indexWhere((e) => e.key == key);
+    final current = _entries.value;
+    final index = current.indexWhere((e) => e.key == key);
     if (index == -1) return;
 
-    final entry = _entries[index];
+    final entry = current[index];
 
     loggerGlobal.info(
         "CreateLinkNotifier", "Starting validation for URL: ${entry.url}");
 
     // Set validating status
-    _entries[index] = entry.copyWith(
+    final list1 = List<LinkEntry>.from(current);
+    list1[index] = entry.copyWith(
       validationStatus: LinkValidationStatus.validating,
     );
-    notifyListeners();
+    _entries.value = list1;
 
     try {
       // Perform validation
@@ -167,8 +168,9 @@ class CreateLinkNotifier extends ChangeNotifier {
       loggerGlobal.info("CreateLinkNotifier",
           "Validation completed for ${entry.url}: isValid=${result.isValid}, isReachable=${result.isReachable}, message=${result.message}");
 
-      // Update entry with result
-      final updatedIndex = _entries.indexWhere((e) => e.key == key);
+      // Update entry with result (re-find index since list may have changed)
+      final latest = _entries.value;
+      final updatedIndex = latest.indexWhere((e) => e.key == key);
       if (updatedIndex != -1) {
         LinkValidationStatus status;
         if (!result.isValid) {
@@ -185,25 +187,28 @@ class CreateLinkNotifier extends ChangeNotifier {
               "URL ${entry.url} is VALID (status code: ${result.statusCode})");
         }
 
-        _entries[updatedIndex] = _entries[updatedIndex].copyWith(
+        final list2 = List<LinkEntry>.from(latest);
+        list2[updatedIndex] = latest[updatedIndex].copyWith(
           validationStatus: status,
           validationMessage: result.message,
           validationStatusCode: result.statusCode,
         );
-        notifyListeners();
+        _entries.value = list2;
       }
     } catch (e, stackTrace) {
       loggerGlobal.severe("CreateLinkNotifier",
           "Validation error for ${entry.url}: $e", e, stackTrace);
 
       // Mark as unreachable on error
-      final updatedIndex = _entries.indexWhere((e) => e.key == key);
+      final latest = _entries.value;
+      final updatedIndex = latest.indexWhere((e) => e.key == key);
       if (updatedIndex != -1) {
-        _entries[updatedIndex] = _entries[updatedIndex].copyWith(
+        final list3 = List<LinkEntry>.from(latest);
+        list3[updatedIndex] = latest[updatedIndex].copyWith(
           validationStatus: LinkValidationStatus.unreachable,
           validationMessage: "Validation error: $e",
         );
-        notifyListeners();
+        _entries.value = list3;
       }
     }
   }
@@ -211,10 +216,10 @@ class CreateLinkNotifier extends ChangeNotifier {
   /// Validates all entries with a configurable strategy
   Future<void> validateAllEntries({bool parallel = true}) async {
     loggerGlobal.info("CreateLinkNotifier",
-        "Starting ${parallel ? 'parallel' : 'sequential'} validation for ${_entries.length} entries");
+        "Starting ${parallel ? 'parallel' : 'sequential'} validation for ${_entries.value.length} entries");
     final startTime = DateTime.now();
 
-    final keys = _entries.map((e) => e.key).toList(growable: false);
+    final keys = _entries.value.map((e) => e.key).toList(growable: false);
 
     if (parallel) {
       await Future.wait(keys.map(_validateEntry));
@@ -237,17 +242,18 @@ class CreateLinkNotifier extends ChangeNotifier {
   /// Gets an entry by key
   LinkEntry? getEntry(Key key) {
     try {
-      return _entries.firstWhere((e) => e.key == key);
+      return _entries.value.firstWhere((e) => e.key == key);
     } catch (e) {
       return null;
     }
   }
 
-  @override
   void dispose() {
-    _entries.clear();
-    _globalTags.clear();
-    _selectedFolderIds.clear();
-    super.dispose();
+    _inputMode.dispose();
+    _entries.dispose();
+    _globalTags.dispose();
+    _selectedFolderIds.dispose();
+    _isArchiveMode.dispose();
+    hasEntries.dispose();
   }
 }

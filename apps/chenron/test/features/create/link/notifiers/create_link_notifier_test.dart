@@ -24,7 +24,7 @@ void main() {
 
     test("starts with no entries", () {
       expect(notifier.entries, isEmpty);
-      expect(notifier.hasEntries, false);
+      expect(notifier.hasEntries.value, false);
     });
 
     test("starts with no global tags", () {
@@ -52,20 +52,14 @@ void main() {
       expect(notifier.inputMode, InputMode.single);
     });
 
-    test("does not notify when setting same mode", () {
-      int notifyCount = 0;
-      notifier.addListener(() => notifyCount++);
-
+    test("does not change when setting same mode", () {
       notifier.setInputMode(InputMode.single); // same as initial
-      expect(notifyCount, 0);
+      expect(notifier.inputMode, InputMode.single);
     });
 
-    test("notifies when mode actually changes", () {
-      int notifyCount = 0;
-      notifier.addListener(() => notifyCount++);
-
+    test("changes when mode actually changes", () {
       notifier.setInputMode(InputMode.bulk);
-      expect(notifyCount, 1);
+      expect(notifier.inputMode, InputMode.bulk);
     });
   });
 
@@ -81,12 +75,9 @@ void main() {
       expect(notifier.isArchiveMode, false);
     });
 
-    test("does not notify when setting same value", () {
-      int notifyCount = 0;
-      notifier.addListener(() => notifyCount++);
-
+    test("does not change when setting same value", () {
       notifier.setArchiveMode(value: false); // same as initial
-      expect(notifyCount, 0);
+      expect(notifier.isArchiveMode, false);
     });
   });
 
@@ -96,12 +87,9 @@ void main() {
       expect(notifier.selectedFolderIds, ["folder-1", "folder-2"]);
     });
 
-    test("notifies on folder change", () {
-      int notifyCount = 0;
-      notifier.addListener(() => notifyCount++);
-
+    test("updates on folder change", () {
       notifier.setSelectedFolders(["folder-1"]);
-      expect(notifyCount, 1);
+      expect(notifier.selectedFolderIds, ["folder-1"]);
     });
   });
 
@@ -117,23 +105,15 @@ void main() {
     });
 
     test("ignores empty tags", () {
-      int notifyCount = 0;
-      notifier.addListener(() => notifyCount++);
-
       notifier.addGlobalTag("");
       notifier.addGlobalTag("   ");
       expect(notifier.globalTags, isEmpty);
-      expect(notifyCount, 0);
     });
 
     test("ignores duplicate tags", () {
       notifier.addGlobalTag("flutter");
-      int notifyCount = 0;
-      notifier.addListener(() => notifyCount++);
-
       notifier.addGlobalTag("flutter");
       expect(notifier.globalTags.length, 1);
-      expect(notifyCount, 0);
     });
 
     test("removes a tag", () {
@@ -144,12 +124,9 @@ void main() {
       expect(notifier.globalTags, {"dart"});
     });
 
-    test("does not notify when removing non-existent tag", () {
-      int notifyCount = 0;
-      notifier.addListener(() => notifyCount++);
-
+    test("does not change when removing non-existent tag", () {
       notifier.removeGlobalTag("nonexistent");
-      expect(notifyCount, 0);
+      expect(notifier.globalTags, isEmpty);
     });
 
     test("clears all tags", () {
@@ -160,12 +137,9 @@ void main() {
       expect(notifier.globalTags, isEmpty);
     });
 
-    test("does not notify when clearing already empty", () {
-      int notifyCount = 0;
-      notifier.addListener(() => notifyCount++);
-
+    test("does not change when clearing already empty", () {
       notifier.clearGlobalTags();
-      expect(notifyCount, 0);
+      expect(notifier.globalTags, isEmpty);
     });
   });
 
@@ -175,7 +149,7 @@ void main() {
 
       expect(notifier.entries.length, 1);
       expect(notifier.entries.first.url, "https://example.com");
-      expect(notifier.hasEntries, true);
+      expect(notifier.hasEntries.value, true);
     });
 
     test("trims URL", () {
@@ -300,14 +274,12 @@ void main() {
       expect(notifier.entries.first.url, "https://two.com");
     });
 
-    test("does not notify when removing non-existent key", () {
+    test("does not change when removing non-existent key", () {
       notifier.addEntry(url: "https://example.com", validateAsync: false);
-
-      int notifyCount = 0;
-      notifier.addListener(() => notifyCount++);
+      final entriesBefore = notifier.entries.length;
 
       notifier.removeEntry(UniqueKey());
-      expect(notifyCount, 0);
+      expect(notifier.entries.length, entriesBefore);
     });
 
     test("removes multiple entries", () {
@@ -330,15 +302,12 @@ void main() {
       notifier.clearEntries();
 
       expect(notifier.entries, isEmpty);
-      expect(notifier.hasEntries, false);
+      expect(notifier.hasEntries.value, false);
     });
 
-    test("does not notify when clearing already empty", () {
-      int notifyCount = 0;
-      notifier.addListener(() => notifyCount++);
-
+    test("does not change when clearing already empty", () {
       notifier.clearEntries();
-      expect(notifyCount, 0);
+      expect(notifier.entries, isEmpty);
     });
   });
 
@@ -374,48 +343,47 @@ void main() {
     });
   });
 
-  group("notification behavior", () {
-    test("notifies on addEntry", () {
-      int notifyCount = 0;
-      notifier.addListener(() => notifyCount++);
+  group("signal reactivity", () {
+    test("hasEntries reacts to addEntry", () {
+      expect(notifier.hasEntries.value, false);
 
       notifier.addEntry(url: "https://example.com", validateAsync: false);
-      expect(notifyCount, 1);
+      expect(notifier.hasEntries.value, true);
     });
 
-    test("notifies on updateEntry", () {
+    test("hasEntries reacts to clearEntries", () {
       notifier.addEntry(url: "https://example.com", validateAsync: false);
-      final key = notifier.entries.first.key;
-
-      int notifyCount = 0;
-      notifier.addListener(() => notifyCount++);
-
-      notifier.updateEntry(
-        key,
-        notifier.entries.first.copyWith(url: "https://new.com"),
-      );
-      expect(notifyCount, 1);
-    });
-
-    test("notifies on removeEntry", () {
-      notifier.addEntry(url: "https://example.com", validateAsync: false);
-      final key = notifier.entries.first.key;
-
-      int notifyCount = 0;
-      notifier.addListener(() => notifyCount++);
-
-      notifier.removeEntry(key);
-      expect(notifyCount, 1);
-    });
-
-    test("notifies on clearEntries", () {
-      notifier.addEntry(url: "https://example.com", validateAsync: false);
-
-      int notifyCount = 0;
-      notifier.addListener(() => notifyCount++);
+      expect(notifier.hasEntries.value, true);
 
       notifier.clearEntries();
-      expect(notifyCount, 1);
+      expect(notifier.hasEntries.value, false);
+    });
+
+    test("entries signal updates on addEntry", () {
+      var updateCount = 0;
+      final dispose = notifier.hasEntries.subscribe((_) {
+        updateCount++;
+      });
+
+      notifier.addEntry(url: "https://example.com", validateAsync: false);
+      expect(updateCount, greaterThan(0));
+
+      dispose();
+    });
+
+    test("entries signal updates on removeEntry", () {
+      notifier.addEntry(url: "https://example.com", validateAsync: false);
+      final key = notifier.entries.first.key;
+
+      var updateCount = 0;
+      final dispose = notifier.hasEntries.subscribe((_) {
+        updateCount++;
+      });
+
+      notifier.removeEntry(key);
+      expect(updateCount, greaterThan(0));
+
+      dispose();
     });
   });
 }

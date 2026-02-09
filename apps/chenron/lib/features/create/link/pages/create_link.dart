@@ -2,6 +2,7 @@ import "package:chenron/shared/tag_section/tag_section.dart";
 import "package:flutter/material.dart";
 import "package:database/database.dart";
 import "package:database/main.dart";
+import "package:signals/signals_flutter.dart";
 import "package:chenron/features/create/link/notifiers/create_link_notifier.dart";
 import "package:chenron/features/create/link/services/link_persistence_service.dart";
 
@@ -10,6 +11,8 @@ import "package:chenron/features/create/link/widgets/link_input_section.dart";
 import "package:chenron/features/create/link/widgets/link_archive_toggle.dart";
 import "package:chenron/features/create/link/widgets/link_table_section.dart";
 import "package:chenron/features/create/link/widgets/link_edit_bottom_sheet.dart";
+import "package:chenron/features/create/link/widgets/error_banner.dart";
+import "package:chenron/features/create/link/widgets/link_page_header.dart";
 import "package:chenron/features/create/link/services/url_parser_service.dart";
 import "package:chenron/features/create/link/services/bulk_validator_service.dart";
 import "package:chenron/features/create/link/models/validation_result.dart";
@@ -46,6 +49,7 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
   late List<Folder> _selectedFolders;
   String? _singleInputError;
   String? _generalError;
+  late final void Function() _disposeEffect;
 
   @override
   void initState() {
@@ -61,126 +65,121 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
     // Provide save callback to parent if requested
     widget.onSaveCallbackReady?.call(_saveLinks);
 
-    // Listen to notifier for validation changes
-    _notifier.addListener(_onNotifierChanged);
-
-    // Initially no links, so invalid
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      widget.onValidationChanged?.call(false);
+    // React to hasEntries changes for parent validation callback
+    _disposeEffect = effect(() {
+      final hasEntries = _notifier.hasEntries.value;
+      widget.onValidationChanged?.call(hasEntries);
     });
-  }
-
-  void _onNotifierChanged() {
-    widget.onValidationChanged?.call(_notifier.hasEntries);
-    setState(() {});
   }
 
   @override
   void dispose() {
-    _notifier.removeListener(_onNotifierChanged);
+    _disposeEffect();
     _notifier.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: widget.hideAppBar
-          ? null
-          : AppBar(
-              title: const Text("Add Links"),
-              actions: [
-                IconButton(
-                  key: const Key("create_link_save_button"),
-                  icon: const Icon(Icons.save),
-                  onPressed: _saveLinks,
-                ),
-              ],
-            ),
-      body: Column(
-        children: [
-          if (_generalError != null)
-            _ErrorBanner(
-              error: _generalError!,
-              onDismiss: () => setState(() => _generalError = null),
-            ),
-          if (widget.hideAppBar && widget.onClose != null)
-            _PageHeader(
-              onClose: widget.onClose!,
-              onSave: _saveLinks,
-              hasEntries: _notifier.hasEntries,
-            ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    LinkFolderSection(
-                      selectedFolders: _selectedFolders,
-                      onFoldersChanged: (folders) {
-                        setState(() {
-                          _selectedFolders = folders;
-                          _notifier.setSelectedFolders(
-                            folders.map((f) => f.id).toList(),
-                          );
-                        });
-                      },
-                    ),
-                    LinkInputSection(
-                      keyPrefix: "link_input",
-                      mode: _notifier.inputMode,
-                      onModeChanged: _notifier.setInputMode,
-                      onAddSingle: _handleAddSingle,
-                      onAddBulk: _handleAddBulk,
-                      singleInputError: _singleInputError,
-                      onErrorDismissed: () =>
-                          setState(() => _singleInputError = null),
-                    ),
-                    LinkArchiveToggle(
-                      value: _notifier.isArchiveMode,
-                      onChanged: (value) =>
-                          _notifier.setArchiveMode(value: value),
-                    ),
-                    TagSection(
-                      keyPrefix: "global_tags",
-                      title: "Global Tags",
-                      description:
-                          "Add tags to all links created in this session",
-                      tags: _notifier.globalTags,
-                      onTagAdded: _notifier.addGlobalTag,
-                      onTagRemoved: _notifier.removeGlobalTag,
-                    ),
-                    ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: 300,
-                        maxHeight: (MediaQuery.of(context).size.height * 0.5)
-                            .clamp(300.0, double.infinity),
+    return Watch((context) {
+      return Scaffold(
+        appBar: widget.hideAppBar
+            ? null
+            : AppBar(
+                title: const Text("Add Links"),
+                actions: [
+                  IconButton(
+                    key: const Key("create_link_save_button"),
+                    icon: const Icon(Icons.save),
+                    onPressed: _saveLinks,
+                  ),
+                ],
+              ),
+        body: Column(
+          children: [
+            if (_generalError != null)
+              ErrorBanner(
+                error: _generalError!,
+                onDismiss: () => setState(() => _generalError = null),
+              ),
+            if (widget.hideAppBar && widget.onClose != null)
+              LinkPageHeader(
+                onClose: widget.onClose!,
+                onSave: _saveLinks,
+                hasEntries: _notifier.hasEntries.value,
+              ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      LinkFolderSection(
+                        selectedFolders: _selectedFolders,
+                        onFoldersChanged: (folders) {
+                          setState(() {
+                            _selectedFolders = folders;
+                            _notifier.setSelectedFolders(
+                              folders.map((f) => f.id).toList(),
+                            );
+                          });
+                        },
                       ),
-                      child: LinkTableSection(
-                        entries: _notifier.entries,
-                        notifier: _tableNotifier,
-                        onEdit: _handleEdit,
-                        onDelete: _handleDelete,
-                        onDeleteSelected: _handleDeleteSelected,
-                        onClearAll: _handleClearAll,
-                        folderNames: _selectedFolders
-                            .fold<Map<String, String>>({}, (map, folder) {
-                          map[folder.id] = folder.title;
-                          return map;
-                        }),
+                      LinkInputSection(
+                        keyPrefix: "link_input",
+                        mode: _notifier.inputMode,
+                        onModeChanged: _notifier.setInputMode,
+                        onAddSingle: _handleAddSingle,
+                        onAddBulk: _handleAddBulk,
+                        singleInputError: _singleInputError,
+                        onErrorDismissed: () =>
+                            setState(() => _singleInputError = null),
                       ),
-                    ),
-                  ],
+                      LinkArchiveToggle(
+                        value: _notifier.isArchiveMode,
+                        onChanged: (value) =>
+                            _notifier.setArchiveMode(value: value),
+                      ),
+                      TagSection(
+                        keyPrefix: "global_tags",
+                        title: "Global Tags",
+                        description:
+                            "Add tags to all links created in this session",
+                        tags: _notifier.globalTags,
+                        onTagAdded: _notifier.addGlobalTag,
+                        onTagRemoved: _notifier.removeGlobalTag,
+                      ),
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: 300,
+                          maxHeight: (MediaQuery.of(context).size.height * 0.5)
+                              .clamp(300.0, double.infinity),
+                        ),
+                        child: LinkTableSection(
+                          entries: _notifier.entries,
+                          notifier: _tableNotifier,
+                          onEdit: _handleEdit,
+                          onDelete: _handleDelete,
+                          onDeleteSelected: _handleDeleteSelected,
+                          onClearAll: _handleClearAll,
+                          folderNames: _selectedFolders
+                              .fold<Map<String, String>>({}, (map, folder) {
+                            map[folder.id] = folder.title;
+                            return map;
+                          }),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
-      ),
-    );
+          ],
+        ),
+      );
+    });
   }
 
   void _handleAddSingle(String input) {
@@ -334,103 +333,5 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
         });
       }
     }
-  }
-}
-
-class _ErrorBanner extends StatelessWidget {
-  final String error;
-  final VoidCallback onDismiss;
-
-  const _ErrorBanner({
-    required this.error,
-    required this.onDismiss,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.errorContainer,
-        border: Border(
-          bottom: BorderSide(color: theme.colorScheme.error, width: 2),
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.error_outline,
-            color: theme.colorScheme.error,
-            size: 20,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              "Error: $error",
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onErrorContainer,
-              ),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.close, size: 18),
-            onPressed: onDismiss,
-            color: theme.colorScheme.error,
-            tooltip: "Dismiss",
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PageHeader extends StatelessWidget {
-  final VoidCallback onClose;
-  final VoidCallback onSave;
-  final bool hasEntries;
-
-  const _PageHeader({
-    required this.onClose,
-    required this.onSave,
-    required this.hasEntries,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: theme.colorScheme.outlineVariant),
-        ),
-      ),
-      child: Row(
-        children: [
-          IconButton(
-            key: const Key("create_link_close_button"),
-            icon: const Icon(Icons.close),
-            onPressed: onClose,
-            tooltip: "Close",
-          ),
-          const SizedBox(width: 8),
-          Text(
-            "Add Links",
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const Spacer(),
-          FilledButton.icon(
-            key: const Key("create_link_header_save_button"),
-            onPressed: hasEntries ? onSave : null,
-            icon: const Icon(Icons.save, size: 18),
-            label: const Text("Save"),
-          ),
-        ],
-      ),
-    );
   }
 }
