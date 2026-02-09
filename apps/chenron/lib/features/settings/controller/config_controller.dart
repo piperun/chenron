@@ -48,6 +48,12 @@ class ConfigController {
   final itemClickAction = signal<int>(0); // 0 = Open URL, 1 = Show Details
   final cacheDirectory = signal<String?>(null); // null = use default temp dir
 
+  // Viewer display preferences
+  final showDescription = signal<bool>(true);
+  final showImages = signal<bool>(true);
+  final showTags = signal<bool>(true);
+  final showCopyLink = signal<bool>(true);
+
   // Backup schedule signals
   final backupSettings = signal<BackupSetting?>(null);
   final backupInterval = signal<String?>(null); // cron expression
@@ -69,6 +75,10 @@ class ConfigController {
         timeDisplayFormat.value = config.timeDisplayFormat;
         itemClickAction.value = config.itemClickAction;
         cacheDirectory.value = config.cacheDirectory;
+        showDescription.value = config.showDescription;
+        showImages.value = config.showImages;
+        showTags.value = config.showTags;
+        showCopyLink.value = config.showCopyLink;
 
         final backup = await _configService.getBackupSettings();
         backupSettings.value = backup;
@@ -93,6 +103,10 @@ class ConfigController {
         timeDisplayFormat.value = 0;
         itemClickAction.value = 0;
         cacheDirectory.value = null;
+        showDescription.value = true;
+        showImages.value = true;
+        showTags.value = true;
+        showCopyLink.value = true;
         backupSettings.value = null;
         backupInterval.value = null;
         backupPath.value = null;
@@ -113,6 +127,10 @@ class ConfigController {
       timeDisplayFormat.value = 0;
       itemClickAction.value = 0;
       cacheDirectory.value = null;
+      showDescription.value = true;
+      showImages.value = true;
+      showTags.value = true;
+      showCopyLink.value = true;
       backupSettings.value = null;
       backupInterval.value = null;
       backupPath.value = null;
@@ -193,6 +211,22 @@ class ConfigController {
     backupPath.value = value;
   }
 
+  void updateShowDescription({required bool enabled}) {
+    showDescription.value = enabled;
+  }
+
+  void updateShowImages({required bool enabled}) {
+    showImages.value = enabled;
+  }
+
+  void updateShowTags({required bool enabled}) {
+    showTags.value = enabled;
+  }
+
+  void updateShowCopyLink({required bool enabled}) {
+    showCopyLink.value = enabled;
+  }
+
   // --- Saving ---
   Future<bool> saveSettings() async {
     final config = userConfig.peek();
@@ -224,6 +258,10 @@ class ConfigController {
         timeDisplayFormat: timeDisplayFormat.peek(),
         itemClickAction: itemClickAction.peek(),
         cacheDirectory: cacheDirectory.peek(),
+        showDescription: showDescription.peek(),
+        showImages: showImages.peek(),
+        showTags: showTags.peek(),
+        showCopyLink: showCopyLink.peek(),
       );
 
       // Save backup settings if they exist
@@ -281,6 +319,10 @@ class ConfigController {
         timeDisplayFormat.peek() != originalConfig.timeDisplayFormat ||
         itemClickAction.peek() != originalConfig.itemClickAction ||
         cacheDirectory.peek() != originalConfig.cacheDirectory ||
+        showDescription.peek() != originalConfig.showDescription ||
+        showImages.peek() != originalConfig.showImages ||
+        showTags.peek() != originalConfig.showTags ||
+        showCopyLink.peek() != originalConfig.showCopyLink ||
         backupInterval.peek() != originalBackup?.backupInterval ||
         backupPath.peek() != originalBackup?.backupPath;
   }

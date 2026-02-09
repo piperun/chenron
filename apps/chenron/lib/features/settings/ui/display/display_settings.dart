@@ -101,6 +101,54 @@ class DisplaySettings extends StatelessWidget {
             fontStyle: FontStyle.italic,
           ),
         ),
+        const SizedBox(height: 24),
+        Text(
+          "Card Display",
+          style: theme.textTheme.titleMedium,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          "Choose which elements to show on item cards.",
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6),
+            fontStyle: FontStyle.italic,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Watch(
+          (context) => Column(
+            children: [
+              SwitchListTile(
+                title: const Text("Show Images"),
+                subtitle: const Text("Display thumbnail images on cards"),
+                value: controller.showImages.value,
+                onChanged: (value) =>
+                    controller.updateShowImages(enabled: value),
+              ),
+              SwitchListTile(
+                title: const Text("Show Description"),
+                subtitle: const Text("Display description text on cards"),
+                value: controller.showDescription.value,
+                onChanged: (value) =>
+                    controller.updateShowDescription(enabled: value),
+              ),
+              SwitchListTile(
+                title: const Text("Show Tags"),
+                subtitle: const Text("Display tags on cards"),
+                value: controller.showTags.value,
+                onChanged: (value) =>
+                    controller.updateShowTags(enabled: value),
+              ),
+              SwitchListTile(
+                title: const Text("Show Copy Link"),
+                subtitle: const Text("Display the URL bar on cards"),
+                value: controller.showCopyLink.value,
+                onChanged: (value) =>
+                    controller.updateShowCopyLink(enabled: value),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }

@@ -1,5 +1,8 @@
 import "package:flutter/material.dart";
+import "package:signals/signals_flutter.dart";
 import "package:database/models/item.dart";
+import "package:chenron/features/settings/controller/config_controller.dart";
+import "package:chenron/locator.dart";
 import "package:chenron/shared/item_display/widgets/display_mode/display_mode.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/card_view.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/row_item.dart";
@@ -42,37 +45,51 @@ class ViewerItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Resolve final values: override > displayMode default
-    final resolvedTitleLines = titleLinesOverride ?? displayMode.titleLines;
-    final resolvedDescriptionLines =
-        descriptionLinesOverride ?? displayMode.descriptionLines;
-    final resolvedMaxTags = maxTagsOverride ?? displayMode.maxTags;
-    final resolvedShowImage = showImageOverride ?? displayMode.showImage;
-    final resolvedShowUrlBar = showUrlBarOverride ?? displayMode.showUrlBar;
+    final ConfigController config = locator.get<ConfigController>();
 
-    return mode == PreviewMode.card
-        ? CardItem(
-            item: item,
-            onTap: onTap,
-            showImage: resolvedShowImage,
-            maxTags: resolvedMaxTags,
-            titleLines: resolvedTitleLines,
-            descriptionLines: resolvedDescriptionLines,
-            showUrlBar: resolvedShowUrlBar,
-            includedTagNames: includedTagNames,
-            excludedTagNames: excludedTagNames,
-          )
-        : RowItem(
-            item: item,
-            onTap: onTap,
-            showImage: resolvedShowImage,
-            maxTags: resolvedMaxTags,
-            titleLines: resolvedTitleLines,
-            descriptionLines: resolvedDescriptionLines,
-            showUrlBar: resolvedShowUrlBar,
-            includedTagNames: includedTagNames,
-            excludedTagNames: excludedTagNames,
-          );
+    return Watch((BuildContext context) {
+      // Read config preferences (reactive via Watch)
+      final bool configShowImages = config.showImages.value;
+      final bool configShowDescription = config.showDescription.value;
+      final bool configShowTags = config.showTags.value;
+      final bool configShowCopyLink = config.showCopyLink.value;
+
+      // Resolve: explicit override > config preference > displayMode default
+      final int resolvedTitleLines =
+          titleLinesOverride ?? displayMode.titleLines;
+      final int resolvedDescriptionLines = descriptionLinesOverride ??
+          (configShowDescription ? displayMode.descriptionLines : 0);
+      final int resolvedMaxTags =
+          maxTagsOverride ?? (configShowTags ? displayMode.maxTags : 0);
+      final bool resolvedShowImage =
+          showImageOverride ?? (configShowImages && displayMode.showImage);
+      final bool resolvedShowUrlBar =
+          showUrlBarOverride ?? (configShowCopyLink && displayMode.showUrlBar);
+
+      return mode == PreviewMode.card
+          ? CardItem(
+              item: item,
+              onTap: onTap,
+              showImage: resolvedShowImage,
+              maxTags: resolvedMaxTags,
+              titleLines: resolvedTitleLines,
+              descriptionLines: resolvedDescriptionLines,
+              showUrlBar: resolvedShowUrlBar,
+              includedTagNames: includedTagNames,
+              excludedTagNames: excludedTagNames,
+            )
+          : RowItem(
+              item: item,
+              onTap: onTap,
+              showImage: resolvedShowImage,
+              maxTags: resolvedMaxTags,
+              titleLines: resolvedTitleLines,
+              descriptionLines: resolvedDescriptionLines,
+              showUrlBar: resolvedShowUrlBar,
+              includedTagNames: includedTagNames,
+              excludedTagNames: excludedTagNames,
+            );
+    });
   }
 }
 

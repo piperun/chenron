@@ -38,6 +38,10 @@ void main() {
       selectedThemeType: 0,
       timeDisplayFormat: 0,
       itemClickAction: 0,
+        showDescription: true,
+        showImages: true,
+        showTags: true,
+        showCopyLink: true,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
     );

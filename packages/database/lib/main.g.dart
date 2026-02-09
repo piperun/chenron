@@ -6541,6 +6541,46 @@ class $UserConfigsTable extends UserConfigs
   late final GeneratedColumn<String> cacheDirectory = GeneratedColumn<String>(
       'cache_directory', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _showDescriptionMeta =
+      const VerificationMeta('showDescription');
+  @override
+  late final GeneratedColumn<bool> showDescription = GeneratedColumn<bool>(
+      'show_description', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("show_description" IN (0, 1))'),
+      defaultValue: const Constant(true));
+  static const VerificationMeta _showImagesMeta =
+      const VerificationMeta('showImages');
+  @override
+  late final GeneratedColumn<bool> showImages = GeneratedColumn<bool>(
+      'show_images', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("show_images" IN (0, 1))'),
+      defaultValue: const Constant(true));
+  static const VerificationMeta _showTagsMeta =
+      const VerificationMeta('showTags');
+  @override
+  late final GeneratedColumn<bool> showTags = GeneratedColumn<bool>(
+      'show_tags', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("show_tags" IN (0, 1))'),
+      defaultValue: const Constant(true));
+  static const VerificationMeta _showCopyLinkMeta =
+      const VerificationMeta('showCopyLink');
+  @override
+  late final GeneratedColumn<bool> showCopyLink = GeneratedColumn<bool>(
+      'show_copy_link', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("show_copy_link" IN (0, 1))'),
+      defaultValue: const Constant(true));
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -6556,7 +6596,11 @@ class $UserConfigsTable extends UserConfigs
         selectedThemeType,
         timeDisplayFormat,
         itemClickAction,
-        cacheDirectory
+        cacheDirectory,
+        showDescription,
+        showImages,
+        showTags,
+        showCopyLink
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -6645,6 +6689,28 @@ class $UserConfigsTable extends UserConfigs
           cacheDirectory.isAcceptableOrUnknown(
               data['cache_directory']!, _cacheDirectoryMeta));
     }
+    if (data.containsKey('show_description')) {
+      context.handle(
+          _showDescriptionMeta,
+          showDescription.isAcceptableOrUnknown(
+              data['show_description']!, _showDescriptionMeta));
+    }
+    if (data.containsKey('show_images')) {
+      context.handle(
+          _showImagesMeta,
+          showImages.isAcceptableOrUnknown(
+              data['show_images']!, _showImagesMeta));
+    }
+    if (data.containsKey('show_tags')) {
+      context.handle(_showTagsMeta,
+          showTags.isAcceptableOrUnknown(data['show_tags']!, _showTagsMeta));
+    }
+    if (data.containsKey('show_copy_link')) {
+      context.handle(
+          _showCopyLinkMeta,
+          showCopyLink.isAcceptableOrUnknown(
+              data['show_copy_link']!, _showCopyLinkMeta));
+    }
     return context;
   }
 
@@ -6684,6 +6750,14 @@ class $UserConfigsTable extends UserConfigs
           .read(DriftSqlType.int, data['${effectivePrefix}item_click_action'])!,
       cacheDirectory: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}cache_directory']),
+      showDescription: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}show_description'])!,
+      showImages: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}show_images'])!,
+      showTags: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}show_tags'])!,
+      showCopyLink: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}show_copy_link'])!,
     );
   }
 
@@ -6708,6 +6782,10 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
   final int timeDisplayFormat;
   final int itemClickAction;
   final String? cacheDirectory;
+  final bool showDescription;
+  final bool showImages;
+  final bool showTags;
+  final bool showCopyLink;
   const UserConfig(
       {required this.id,
       required this.createdAt,
@@ -6722,7 +6800,11 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
       required this.selectedThemeType,
       required this.timeDisplayFormat,
       required this.itemClickAction,
-      this.cacheDirectory});
+      this.cacheDirectory,
+      required this.showDescription,
+      required this.showImages,
+      required this.showTags,
+      required this.showCopyLink});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -6750,6 +6832,10 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
     if (!nullToAbsent || cacheDirectory != null) {
       map['cache_directory'] = Variable<String>(cacheDirectory);
     }
+    map['show_description'] = Variable<bool>(showDescription);
+    map['show_images'] = Variable<bool>(showImages);
+    map['show_tags'] = Variable<bool>(showTags);
+    map['show_copy_link'] = Variable<bool>(showCopyLink);
     return map;
   }
 
@@ -6777,6 +6863,10 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
       cacheDirectory: cacheDirectory == null && nullToAbsent
           ? const Value.absent()
           : Value(cacheDirectory),
+      showDescription: Value(showDescription),
+      showImages: Value(showImages),
+      showTags: Value(showTags),
+      showCopyLink: Value(showCopyLink),
     );
   }
 
@@ -6800,6 +6890,10 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
       timeDisplayFormat: serializer.fromJson<int>(json['timeDisplayFormat']),
       itemClickAction: serializer.fromJson<int>(json['itemClickAction']),
       cacheDirectory: serializer.fromJson<String?>(json['cacheDirectory']),
+      showDescription: serializer.fromJson<bool>(json['showDescription']),
+      showImages: serializer.fromJson<bool>(json['showImages']),
+      showTags: serializer.fromJson<bool>(json['showTags']),
+      showCopyLink: serializer.fromJson<bool>(json['showCopyLink']),
     );
   }
   @override
@@ -6822,6 +6916,10 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
       'timeDisplayFormat': serializer.toJson<int>(timeDisplayFormat),
       'itemClickAction': serializer.toJson<int>(itemClickAction),
       'cacheDirectory': serializer.toJson<String?>(cacheDirectory),
+      'showDescription': serializer.toJson<bool>(showDescription),
+      'showImages': serializer.toJson<bool>(showImages),
+      'showTags': serializer.toJson<bool>(showTags),
+      'showCopyLink': serializer.toJson<bool>(showCopyLink),
     };
   }
 
@@ -6839,7 +6937,11 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
           int? selectedThemeType,
           int? timeDisplayFormat,
           int? itemClickAction,
-          Value<String?> cacheDirectory = const Value.absent()}) =>
+          Value<String?> cacheDirectory = const Value.absent(),
+          bool? showDescription,
+          bool? showImages,
+          bool? showTags,
+          bool? showCopyLink}) =>
       UserConfig(
         id: id ?? this.id,
         createdAt: createdAt ?? this.createdAt,
@@ -6862,6 +6964,10 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
         itemClickAction: itemClickAction ?? this.itemClickAction,
         cacheDirectory:
             cacheDirectory.present ? cacheDirectory.value : this.cacheDirectory,
+        showDescription: showDescription ?? this.showDescription,
+        showImages: showImages ?? this.showImages,
+        showTags: showTags ?? this.showTags,
+        showCopyLink: showCopyLink ?? this.showCopyLink,
       );
   UserConfig copyWithCompanion(UserConfigsCompanion data) {
     return UserConfig(
@@ -6899,6 +7005,15 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
       cacheDirectory: data.cacheDirectory.present
           ? data.cacheDirectory.value
           : this.cacheDirectory,
+      showDescription: data.showDescription.present
+          ? data.showDescription.value
+          : this.showDescription,
+      showImages:
+          data.showImages.present ? data.showImages.value : this.showImages,
+      showTags: data.showTags.present ? data.showTags.value : this.showTags,
+      showCopyLink: data.showCopyLink.present
+          ? data.showCopyLink.value
+          : this.showCopyLink,
     );
   }
 
@@ -6918,7 +7033,11 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
           ..write('selectedThemeType: $selectedThemeType, ')
           ..write('timeDisplayFormat: $timeDisplayFormat, ')
           ..write('itemClickAction: $itemClickAction, ')
-          ..write('cacheDirectory: $cacheDirectory')
+          ..write('cacheDirectory: $cacheDirectory, ')
+          ..write('showDescription: $showDescription, ')
+          ..write('showImages: $showImages, ')
+          ..write('showTags: $showTags, ')
+          ..write('showCopyLink: $showCopyLink')
           ..write(')'))
         .toString();
   }
@@ -6938,7 +7057,11 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
       selectedThemeType,
       timeDisplayFormat,
       itemClickAction,
-      cacheDirectory);
+      cacheDirectory,
+      showDescription,
+      showImages,
+      showTags,
+      showCopyLink);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -6956,7 +7079,11 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
           other.selectedThemeType == this.selectedThemeType &&
           other.timeDisplayFormat == this.timeDisplayFormat &&
           other.itemClickAction == this.itemClickAction &&
-          other.cacheDirectory == this.cacheDirectory);
+          other.cacheDirectory == this.cacheDirectory &&
+          other.showDescription == this.showDescription &&
+          other.showImages == this.showImages &&
+          other.showTags == this.showTags &&
+          other.showCopyLink == this.showCopyLink);
 }
 
 class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
@@ -6974,6 +7101,10 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
   final Value<int> timeDisplayFormat;
   final Value<int> itemClickAction;
   final Value<String?> cacheDirectory;
+  final Value<bool> showDescription;
+  final Value<bool> showImages;
+  final Value<bool> showTags;
+  final Value<bool> showCopyLink;
   final Value<int> rowid;
   const UserConfigsCompanion({
     this.id = const Value.absent(),
@@ -6990,6 +7121,10 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
     this.timeDisplayFormat = const Value.absent(),
     this.itemClickAction = const Value.absent(),
     this.cacheDirectory = const Value.absent(),
+    this.showDescription = const Value.absent(),
+    this.showImages = const Value.absent(),
+    this.showTags = const Value.absent(),
+    this.showCopyLink = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   UserConfigsCompanion.insert({
@@ -7007,6 +7142,10 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
     this.timeDisplayFormat = const Value.absent(),
     this.itemClickAction = const Value.absent(),
     this.cacheDirectory = const Value.absent(),
+    this.showDescription = const Value.absent(),
+    this.showImages = const Value.absent(),
+    this.showTags = const Value.absent(),
+    this.showCopyLink = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id);
   static Insertable<UserConfig> custom({
@@ -7024,6 +7163,10 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
     Expression<int>? timeDisplayFormat,
     Expression<int>? itemClickAction,
     Expression<String>? cacheDirectory,
+    Expression<bool>? showDescription,
+    Expression<bool>? showImages,
+    Expression<bool>? showTags,
+    Expression<bool>? showCopyLink,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -7043,6 +7186,10 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
       if (timeDisplayFormat != null) 'time_display_format': timeDisplayFormat,
       if (itemClickAction != null) 'item_click_action': itemClickAction,
       if (cacheDirectory != null) 'cache_directory': cacheDirectory,
+      if (showDescription != null) 'show_description': showDescription,
+      if (showImages != null) 'show_images': showImages,
+      if (showTags != null) 'show_tags': showTags,
+      if (showCopyLink != null) 'show_copy_link': showCopyLink,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -7062,6 +7209,10 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
       Value<int>? timeDisplayFormat,
       Value<int>? itemClickAction,
       Value<String?>? cacheDirectory,
+      Value<bool>? showDescription,
+      Value<bool>? showImages,
+      Value<bool>? showTags,
+      Value<bool>? showCopyLink,
       Value<int>? rowid}) {
     return UserConfigsCompanion(
       id: id ?? this.id,
@@ -7080,6 +7231,10 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
       timeDisplayFormat: timeDisplayFormat ?? this.timeDisplayFormat,
       itemClickAction: itemClickAction ?? this.itemClickAction,
       cacheDirectory: cacheDirectory ?? this.cacheDirectory,
+      showDescription: showDescription ?? this.showDescription,
+      showImages: showImages ?? this.showImages,
+      showTags: showTags ?? this.showTags,
+      showCopyLink: showCopyLink ?? this.showCopyLink,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -7131,6 +7286,18 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
     if (cacheDirectory.present) {
       map['cache_directory'] = Variable<String>(cacheDirectory.value);
     }
+    if (showDescription.present) {
+      map['show_description'] = Variable<bool>(showDescription.value);
+    }
+    if (showImages.present) {
+      map['show_images'] = Variable<bool>(showImages.value);
+    }
+    if (showTags.present) {
+      map['show_tags'] = Variable<bool>(showTags.value);
+    }
+    if (showCopyLink.present) {
+      map['show_copy_link'] = Variable<bool>(showCopyLink.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -7154,6 +7321,10 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
           ..write('timeDisplayFormat: $timeDisplayFormat, ')
           ..write('itemClickAction: $itemClickAction, ')
           ..write('cacheDirectory: $cacheDirectory, ')
+          ..write('showDescription: $showDescription, ')
+          ..write('showImages: $showImages, ')
+          ..write('showTags: $showTags, ')
+          ..write('showCopyLink: $showCopyLink, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -8898,6 +9069,10 @@ typedef $$UserConfigsTableCreateCompanionBuilder = UserConfigsCompanion
   Value<int> timeDisplayFormat,
   Value<int> itemClickAction,
   Value<String?> cacheDirectory,
+  Value<bool> showDescription,
+  Value<bool> showImages,
+  Value<bool> showTags,
+  Value<bool> showCopyLink,
   Value<int> rowid,
 });
 typedef $$UserConfigsTableUpdateCompanionBuilder = UserConfigsCompanion
@@ -8916,6 +9091,10 @@ typedef $$UserConfigsTableUpdateCompanionBuilder = UserConfigsCompanion
   Value<int> timeDisplayFormat,
   Value<int> itemClickAction,
   Value<String?> cacheDirectory,
+  Value<bool> showDescription,
+  Value<bool> showImages,
+  Value<bool> showTags,
+  Value<bool> showCopyLink,
   Value<int> rowid,
 });
 
@@ -9050,6 +9229,19 @@ class $$UserConfigsTableFilterComposer
   ColumnFilters<String> get cacheDirectory => $composableBuilder(
       column: $table.cacheDirectory,
       builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get showDescription => $composableBuilder(
+      column: $table.showDescription,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get showImages => $composableBuilder(
+      column: $table.showImages, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get showTags => $composableBuilder(
+      column: $table.showTags, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get showCopyLink => $composableBuilder(
+      column: $table.showCopyLink, builder: (column) => ColumnFilters(column));
 
   $$ThemeTypesTableFilterComposer get selectedThemeType {
     final $$ThemeTypesTableFilterComposer composer = $composerBuilder(
@@ -9203,6 +9395,20 @@ class $$UserConfigsTableOrderingComposer
       column: $table.cacheDirectory,
       builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<bool> get showDescription => $composableBuilder(
+      column: $table.showDescription,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get showImages => $composableBuilder(
+      column: $table.showImages, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get showTags => $composableBuilder(
+      column: $table.showTags, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get showCopyLink => $composableBuilder(
+      column: $table.showCopyLink,
+      builder: (column) => ColumnOrderings(column));
+
   $$ThemeTypesTableOrderingComposer get selectedThemeType {
     final $$ThemeTypesTableOrderingComposer composer = $composerBuilder(
         composer: this,
@@ -9305,6 +9511,18 @@ class $$UserConfigsTableAnnotationComposer
 
   GeneratedColumn<String> get cacheDirectory => $composableBuilder(
       column: $table.cacheDirectory, builder: (column) => column);
+
+  GeneratedColumn<bool> get showDescription => $composableBuilder(
+      column: $table.showDescription, builder: (column) => column);
+
+  GeneratedColumn<bool> get showImages => $composableBuilder(
+      column: $table.showImages, builder: (column) => column);
+
+  GeneratedColumn<bool> get showTags =>
+      $composableBuilder(column: $table.showTags, builder: (column) => column);
+
+  GeneratedColumn<bool> get showCopyLink => $composableBuilder(
+      column: $table.showCopyLink, builder: (column) => column);
 
   $$ThemeTypesTableAnnotationComposer get selectedThemeType {
     final $$ThemeTypesTableAnnotationComposer composer = $composerBuilder(
@@ -9452,6 +9670,10 @@ class $$UserConfigsTableTableManager extends RootTableManager<
             Value<int> timeDisplayFormat = const Value.absent(),
             Value<int> itemClickAction = const Value.absent(),
             Value<String?> cacheDirectory = const Value.absent(),
+            Value<bool> showDescription = const Value.absent(),
+            Value<bool> showImages = const Value.absent(),
+            Value<bool> showTags = const Value.absent(),
+            Value<bool> showCopyLink = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               UserConfigsCompanion(
@@ -9469,6 +9691,10 @@ class $$UserConfigsTableTableManager extends RootTableManager<
             timeDisplayFormat: timeDisplayFormat,
             itemClickAction: itemClickAction,
             cacheDirectory: cacheDirectory,
+            showDescription: showDescription,
+            showImages: showImages,
+            showTags: showTags,
+            showCopyLink: showCopyLink,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -9486,6 +9712,10 @@ class $$UserConfigsTableTableManager extends RootTableManager<
             Value<int> timeDisplayFormat = const Value.absent(),
             Value<int> itemClickAction = const Value.absent(),
             Value<String?> cacheDirectory = const Value.absent(),
+            Value<bool> showDescription = const Value.absent(),
+            Value<bool> showImages = const Value.absent(),
+            Value<bool> showTags = const Value.absent(),
+            Value<bool> showCopyLink = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               UserConfigsCompanion.insert(
@@ -9503,6 +9733,10 @@ class $$UserConfigsTableTableManager extends RootTableManager<
             timeDisplayFormat: timeDisplayFormat,
             itemClickAction: itemClickAction,
             cacheDirectory: cacheDirectory,
+            showDescription: showDescription,
+            showImages: showImages,
+            showTags: showTags,
+            showCopyLink: showCopyLink,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0

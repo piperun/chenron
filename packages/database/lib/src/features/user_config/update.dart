@@ -15,6 +15,10 @@ extension UserConfigUpdateExtensions on ConfigDatabase {
     int? timeDisplayFormat,
     int? itemClickAction,
     String? cacheDirectory,
+    bool? showDescription,
+    bool? showImages,
+    bool? showTags,
+    bool? showCopyLink,
     CUD<UserTheme>? themeUpdates,
   }) async {
     final operation = UserConfigUpdateVEPR(this);
@@ -31,6 +35,10 @@ extension UserConfigUpdateExtensions on ConfigDatabase {
       timeDisplayFormat: timeDisplayFormat,
       itemClickAction: itemClickAction,
       cacheDirectory: cacheDirectory,
+      showDescription: showDescription,
+      showImages: showImages,
+      showTags: showTags,
+      showCopyLink: showCopyLink,
       themeUpdates: themeUpdates,
     );
 

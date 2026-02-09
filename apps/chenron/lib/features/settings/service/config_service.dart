@@ -83,7 +83,10 @@ class ConfigService {
     required int timeDisplayFormat,
     required int itemClickAction,
     String? cacheDirectory,
-    // Add other config fields as needed
+    required bool showDescription,
+    required bool showImages,
+    required bool showTags,
+    required bool showCopyLink,
   }) async {
     try {
       loggerGlobal.info(
@@ -99,12 +102,15 @@ class ConfigService {
         timeDisplayFormat: timeDisplayFormat,
         itemClickAction: itemClickAction,
         cacheDirectory: cacheDirectory,
-        // Note: Theme CUD operations removed as draft logic is gone
+        showDescription: showDescription,
+        showImages: showImages,
+        showTags: showTags,
+        showCopyLink: showCopyLink,
       );
       loggerGlobal.info("ConfigService", "User config updated successfully.");
     } catch (e, s) {
       loggerGlobal.severe("ConfigService", "Error updating user config", e, s);
-      rethrow; // Rethrow to let the controller handle UI feedback
+      rethrow;
     }
   }
 }

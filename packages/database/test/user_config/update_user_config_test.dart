@@ -36,6 +36,10 @@ void main() {
       selectedThemeType: 0,
       timeDisplayFormat: 0,
       itemClickAction: 0,
+        showDescription: true,
+        showImages: true,
+        showTags: true,
+        showCopyLink: true,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
     );
@@ -136,6 +140,36 @@ void main() {
 
       final config = await database.getUserConfig();
       expect(config!.data.cacheDirectory, equals("/custom/cache/path"));
+    });
+
+    test("updates viewer display preferences", () async {
+      await database.updateUserConfig(
+        id: userConfigId,
+        showDescription: false,
+        showImages: false,
+        showTags: false,
+        showCopyLink: false,
+      );
+
+      final config = await database.getUserConfig();
+      expect(config!.data.showDescription, isFalse);
+      expect(config.data.showImages, isFalse);
+      expect(config.data.showTags, isFalse);
+      expect(config.data.showCopyLink, isFalse);
+    });
+
+    test("updates individual display preference", () async {
+      await database.updateUserConfig(
+        id: userConfigId,
+        showImages: false,
+      );
+
+      final config = await database.getUserConfig();
+      expect(config!.data.showImages, isFalse);
+      // Others remain at default (true)
+      expect(config.data.showDescription, isTrue);
+      expect(config.data.showTags, isTrue);
+      expect(config.data.showCopyLink, isTrue);
     });
 
     test("updates with theme creation", () async {

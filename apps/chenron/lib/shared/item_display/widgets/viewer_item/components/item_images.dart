@@ -3,6 +3,11 @@ import "package:cache_manager/cache_manager.dart";
 import "package:flutter_cache_manager/flutter_cache_manager.dart" as fcm;
 import "package:chenron/components/metadata_factory.dart";
 
+bool _isValidImageUrl(String url) {
+  final uri = Uri.tryParse(url);
+  return uri != null && uri.hasScheme && uri.hasAuthority;
+}
+
 // OG:image header for links
 class ItemImageHeader extends StatefulWidget {
   final String url;
@@ -45,7 +50,7 @@ class _ItemImageHeaderState extends State<ItemImageHeader> {
         final cacheManager = snapshot.data![1] as fcm.BaseCacheManager;
         final imageUrl = metadata?["image"] as String?;
 
-        if (imageUrl != null && imageUrl.isNotEmpty) {
+        if (imageUrl != null && _isValidImageUrl(imageUrl)) {
           return SizedBox(
             height: widget.height,
             width: double.infinity,
@@ -124,7 +129,7 @@ class _ItemThumbnailState extends State<ItemThumbnail> {
         final cacheManager = snapshot.data![1] as fcm.BaseCacheManager;
         final imageUrl = metadata?["image"] as String?;
 
-        if (imageUrl != null && imageUrl.isNotEmpty) {
+        if (imageUrl != null && _isValidImageUrl(imageUrl)) {
           return ClipRRect(
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(12),

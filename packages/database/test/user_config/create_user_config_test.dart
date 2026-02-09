@@ -39,6 +39,10 @@ void main() {
         selectedThemeType: 0,
         timeDisplayFormat: 0,
         itemClickAction: 0,
+        showDescription: true,
+        showImages: true,
+        showTags: true,
+        showCopyLink: true,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
@@ -56,6 +60,10 @@ void main() {
 
       expect(config, isNotNull);
       expect(config!.darkMode, isFalse);
+      expect(config.showDescription, isTrue);
+      expect(config.showImages, isTrue);
+      expect(config.showTags, isTrue);
+      expect(config.showCopyLink, isTrue);
     });
 
     test("creates user config with custom values", () async {
@@ -70,6 +78,10 @@ void main() {
         selectedThemeType: 1,
         timeDisplayFormat: 24,
         itemClickAction: 1,
+        showDescription: true,
+        showImages: true,
+        showTags: true,
+        showCopyLink: true,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
@@ -101,6 +113,10 @@ void main() {
         selectedThemeType: 0,
         timeDisplayFormat: 0,
         itemClickAction: 0,
+        showDescription: true,
+        showImages: true,
+        showTags: true,
+        showCopyLink: true,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
@@ -129,6 +145,10 @@ void main() {
         selectedThemeType: 0,
         timeDisplayFormat: 0,
         itemClickAction: 0,
+        showDescription: true,
+        showImages: true,
+        showTags: true,
+        showCopyLink: true,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
@@ -173,6 +193,10 @@ void main() {
         selectedThemeType: 0,
         timeDisplayFormat: 0,
         itemClickAction: 0,
+        showDescription: true,
+        showImages: true,
+        showTags: true,
+        showCopyLink: true,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
@@ -210,6 +234,10 @@ void main() {
         selectedThemeType: 0,
         timeDisplayFormat: 0,
         itemClickAction: 0,
+        showDescription: true,
+        showImages: true,
+        showTags: true,
+        showCopyLink: true,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );

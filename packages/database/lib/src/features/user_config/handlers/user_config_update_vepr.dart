@@ -22,6 +22,10 @@ typedef UserConfigUpdateInput = ({
   int? timeDisplayFormat,
   int? itemClickAction,
   String? cacheDirectory,
+  bool? showDescription,
+  bool? showImages,
+  bool? showTags,
+  bool? showCopyLink,
   CUD<UserTheme>? themeUpdates,
 });
 
@@ -136,6 +140,18 @@ class UserConfigUpdateVEPR extends VEPROperation<
           ? (input.cacheDirectory!.isEmpty
               ? const Value(null)
               : Value(input.cacheDirectory))
+          : const Value.absent(),
+      showDescription: input.showDescription != null
+          ? Value(input.showDescription!)
+          : const Value.absent(),
+      showImages: input.showImages != null
+          ? Value(input.showImages!)
+          : const Value.absent(),
+      showTags: input.showTags != null
+          ? Value(input.showTags!)
+          : const Value.absent(),
+      showCopyLink: input.showCopyLink != null
+          ? Value(input.showCopyLink!)
           : const Value.absent(),
     );
 

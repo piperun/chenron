@@ -29,6 +29,13 @@ class UserConfigs extends Table {
   // Path to cache directory for images (null = use system temp directory)
   TextColumn get cacheDirectory => text().nullable()();
 
+  // Viewer display preferences
+  BoolColumn get showDescription =>
+      boolean().withDefault(const Constant(true))();
+  BoolColumn get showImages => boolean().withDefault(const Constant(true))();
+  BoolColumn get showTags => boolean().withDefault(const Constant(true))();
+  BoolColumn get showCopyLink => boolean().withDefault(const Constant(true))();
+
   @override
   Set<Column> get primaryKey => {id};
 }

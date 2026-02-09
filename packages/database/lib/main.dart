@@ -466,7 +466,7 @@ class ConfigDatabase extends _$ConfigDatabase {
                 debugMode: debugMode));
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration {
@@ -502,6 +502,14 @@ class ConfigDatabase extends _$ConfigDatabase {
 
           // Create triggers for auto-updating timestamps
           await _createConfigUpdateTriggers();
+        }
+        if (from < 4) {
+          // Schema v4: Add viewer display preference columns
+          await migrator.addColumn(
+              userConfigs, userConfigs.showDescription);
+          await migrator.addColumn(userConfigs, userConfigs.showImages);
+          await migrator.addColumn(userConfigs, userConfigs.showTags);
+          await migrator.addColumn(userConfigs, userConfigs.showCopyLink);
         }
       },
     );
