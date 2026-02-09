@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <!-- Dragon ball sphere gradient -->
+    <radialGradient id="sphere" cx="40%" cy="35%" r="55%">
+      <stop offset="0%" stop-color="#FFD54F"/>
+      <stop offset="45%" stop-color="#FF9800"/>
+      <stop offset="100%" stop-color="#E65100"/>
+    </radialGradient>
+    <!-- Highlight/shine -->
+    <radialGradient id="shine" cx="30%" cy="25%" r="30%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Star gradient -->
+    <radialGradient id="star-glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#B71C1C"/>
+      <stop offset="100%" stop-color="#7F0000"/>
+    </radialGradient>
+    <!-- Subtle shadow -->
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#000" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- Main sphere -->
+  <circle cx="256" cy="256" r="240" fill="url(#sphere)" filter="url(#shadow)"/>
+
+  <!-- Sphere edge ring -->
+  <circle cx="256" cy="256" r="240" fill="none" stroke="#BF360C" stroke-width="4" opacity="0.4"/>
+
+  <!-- Highlight -->
+  <circle cx="256" cy="256" r="240" fill="url(#shine)"/>
+
+  <!-- Letter C -->
+  <text x="256" y="280" text-anchor="middle" font-family="Arial, Helvetica, sans-serif"
+        font-size="220" font-weight="bold" fill="#FFFFFF" opacity="0.95"
+        stroke="#E65100" stroke-width="3">C</text>
+
+  <!-- 4 Stars arranged around the C -->
+  <!-- Top-left star -->
+  <circle cx="145" cy="135" r="28" fill="url(#star-glow)"/>
+  <circle cx="145" cy="135" r="22" fill="none" stroke="#FF1744" stroke-width="2" opacity="0.5"/>
+  <!-- Small inner highlight -->
+  <circle cx="140" cy="130" r="8" fill="#EF5350" opacity="0.6"/>
+
+  <!-- Top-right star -->
+  <circle cx="367" cy="135" r="28" fill="url(#star-glow)"/>
+  <circle cx="367" cy="135" r="22" fill="none" stroke="#FF1744" stroke-width="2" opacity="0.5"/>
+  <circle cx="362" cy="130" r="8" fill="#EF5350" opacity="0.6"/>
+
+  <!-- Bottom-left star -->
+  <circle cx="145" cy="377" r="28" fill="url(#star-glow)"/>
+  <circle cx="145" cy="377" r="22" fill="none" stroke="#FF1744" stroke-width="2" opacity="0.5"/>
+  <circle cx="140" cy="372" r="8" fill="#EF5350" opacity="0.6"/>
+
+  <!-- Bottom-right star -->
+  <circle cx="367" cy="377" r="28" fill="url(#star-glow)"/>
+  <circle cx="367" cy="377" r="22" fill="none" stroke="#FF1744" stroke-width="2" opacity="0.5"/>
+  <circle cx="362" cy="372" r="8" fill="#EF5350" opacity="0.6"/>
+</svg>

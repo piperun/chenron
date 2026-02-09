@@ -96,6 +96,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  msix: ^3.16.0
   path_provider_platform_interface: ^2.1.2
 
 
@@ -144,3 +145,15 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
+
+msix_config:
+  display_name: Chenron
+  publisher_display_name: Chenron
+  identity_name: com.chenron.chenron
+  publisher: CN=Chenron, O=Chenron, C=US
+  msix_version: 0.8.0.0
+  logo_path: windows/runner/resources/app_icon.ico
+  capabilities: internetClient
+  certificate_path: cert.pfx
+  certificate_password: msix-ci-password
+  install_certificate: false

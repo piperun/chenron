@@ -1,0 +1,32 @@
+app-id: com.chenron.chenron
+runtime: org.freedesktop.Platform
+runtime-version: '24.08'
+sdk: org.freedesktop.Sdk
+command: chenron
+
+finish-args:
+  - --share=ipc
+  - --socket=fallback-x11
+  - --socket=wayland
+  - --share=network
+  - --filesystem=home
+  - --device=dri
+
+modules:
+  - name: chenron
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 -t /app/bin/ chenron
+      - cp -r lib /app/bin/
+      - cp -r data /app/bin/
+      - install -Dm644 com.chenron.chenron.desktop
+          /app/share/applications/com.chenron.chenron.desktop
+      - install -Dm644 com.chenron.chenron.png
+          /app/share/icons/hicolor/256x256/apps/com.chenron.chenron.png
+    sources:
+      - type: dir
+        path: ../../build/linux/x64/release/bundle
+      - type: file
+        path: ../com.chenron.chenron.desktop
+      - type: file
+        path: ../com.chenron.chenron.png

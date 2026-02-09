@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Chenron
+Comment=Metadata storage software for managing link collections
+Exec=chenron
+Icon=com.chenron.chenron
+Terminal=false
+Type=Application
+Categories=Utility;
+StartupWMClass=chenron
