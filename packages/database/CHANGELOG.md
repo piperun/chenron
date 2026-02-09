@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## database-v0.6.0 - 2026-02-09
+#### Features
+- add viewer display preferences with persistent settings - (f2ea94c) - *piperun*
+#### Refactoring
+- suppress verbose log output in tests and default to FINE - (a22473a) - *piperun*
+- rename logger package to app_logger, adjust VEPR log levels - (30d5ae9) - *piperun*
+
+- - -
+
 ## database-v0.5.0 - 2026-02-08
 #### Features
 - improve dashboard activity list and search - (3b49b53) - *piperun*

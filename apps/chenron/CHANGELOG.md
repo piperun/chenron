@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## chenron-v0.8.0 - 2026-02-09
+#### Features
+- add viewer display preferences with persistent settings - (f2ea94c) - *piperun*
+
+- - -
+
 ## chenron-v0.7.0 - 2026-02-08
 #### Features
 - add item picker bottom sheets for folder editor - (11f05cf) - *piperun*
