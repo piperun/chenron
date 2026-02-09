@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  test-offline:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -36,40 +36,12 @@ jobs:
         working-directory: apps/chenron
         run: flutter test test/
 
-      # Run chenron integration tests (excluding online tests)
-      - name: Run chenron offline integration tests
+      # Run chenron integration tests
+      - name: Run chenron integration tests
         working-directory: apps/chenron
         run: |
           if [ -d "integration_test" ]; then
-            flutter test integration_test/ --exclude-tags=online -d linux
-          else
-            echo "No integration_test directory, skipping."
-          fi
-        shell: bash
-
-  test-online:
-    needs: test-offline
-
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with:
-            channel: 'stable'
-      - name: Pub get (workspace)
-        run: flutter pub get
-
-      # Run chenron unit tests that require secrets (if any)
-      - name: Run chenron online unit tests
-        working-directory: apps/chenron
-        run: flutter test test/ --tags=online
-
-      # Run chenron integration tests that require secrets
-      - name: Run chenron online integration tests
-        working-directory: apps/chenron
-        run: |
-          if [ -d "integration_test" ]; then
-            flutter test integration_test/ --tags=online -d linux
+            flutter test integration_test/ -d linux
           else
             echo "No integration_test directory, skipping."
           fi
