@@ -1,9 +1,56 @@
+import "package:database/database.dart";
 import "package:database/main.dart";
 import "package:flutter/material.dart";
 import "package:flutter_test/flutter_test.dart";
+import "package:get_it/get_it.dart";
+import "package:signals/signals.dart";
+import "package:chenron/features/settings/controller/config_controller.dart";
+import "package:chenron/features/settings/service/config_service.dart";
 import "package:chenron/features/folder_viewer/ui/components/folder_header.dart";
+import "package:chenron_mockups/chenron_mockups.dart";
+
+class _MockConfigDbHandler extends ConfigDatabaseFileHandler {
+  final ConfigDatabase _db;
+  _MockConfigDbHandler(this._db);
+
+  @override
+  ConfigDatabase get configDatabase => _db;
+}
 
 void main() {
+  late ConfigDatabase configDb;
+
+  setUpAll(() {
+    installFakePathProvider();
+    installTestLogger();
+  });
+
+  setUp(() async {
+    if (GetIt.I.isRegistered<Signal<ConfigDatabaseFileHandler>>()) {
+      await GetIt.I.reset();
+    }
+
+    configDb = ConfigDatabase(
+      databaseName: "test_config_db",
+      setupOnInit: true,
+      debugMode: true,
+    );
+    await configDb.setup();
+
+    final handler = _MockConfigDbHandler(configDb);
+    GetIt.I.registerSingleton<Signal<ConfigDatabaseFileHandler>>(
+      signal(handler),
+    );
+    GetIt.I.registerLazySingleton<ConfigService>(ConfigService.new);
+    GetIt.I.registerLazySingleton<ConfigController>(ConfigController.new);
+  });
+
+  tearDown(() async {
+    await configDb.close();
+    if (GetIt.I.isRegistered<Signal<ConfigDatabaseFileHandler>>()) {
+      await GetIt.I.reset();
+    }
+  });
   Folder makeFolder({
     String title = "Test Folder",
     String description = "",
