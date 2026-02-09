@@ -510,7 +510,7 @@ void main() {
         // Integration depends on routing setup
       });
 
-      testWidgets("add document button shows not implemented", (tester) async {
+      testWidgets("add document button opens document picker sheet", (tester) async {
         await tester.pumpWidget(buildEditor(folderId: testFolderId));
         await tester.pumpAndSettle();
 
@@ -520,7 +520,7 @@ void main() {
         await tester.tap(addDocButton);
         await tester.pumpAndSettle();
 
-        expect(find.textContaining("not yet implemented"), findsOneWidget);
+        expect(find.text("Add Existing Documents"), findsOneWidget);
       });
     });
 
