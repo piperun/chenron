@@ -39,7 +39,7 @@ jobs:
       # Run chenron integration tests (excluding online tests)
       - name: Run chenron offline integration tests
         working-directory: apps/chenron
-        run: flutter test integration_test/ --exclude-tags=online
+        run: flutter test integration_test/ --exclude-tags=online -d linux
 
   test-online:
     needs: test-offline
@@ -61,5 +61,5 @@ jobs:
       # Run chenron integration tests that require secrets
       - name: Run chenron online integration tests
         working-directory: apps/chenron
-        run: flutter test integration_test/ --tags=online
+        run: flutter test integration_test/ --tags=online -d linux
 
