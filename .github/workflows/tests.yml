@@ -16,7 +16,7 @@ jobs:
             channel: 'stable'
       - name: Pub get (workspace)
         run: flutter pub get
-      
+
       # Run all package tests
       - name: Run all package tests
         run: |
@@ -30,16 +30,22 @@ jobs:
             fi
           done
         shell: bash
-      
+
       # Run chenron unit tests
       - name: Run chenron unit tests
         working-directory: apps/chenron
         run: flutter test test/
-      
+
       # Run chenron integration tests (excluding online tests)
       - name: Run chenron offline integration tests
         working-directory: apps/chenron
-        run: flutter test integration_test/ --exclude-tags=online -d linux
+        run: |
+          if [ -d "integration_test" ]; then
+            flutter test integration_test/ --exclude-tags=online -d linux
+          else
+            echo "No integration_test directory, skipping."
+          fi
+        shell: bash
 
   test-online:
     needs: test-offline
@@ -52,14 +58,19 @@ jobs:
             channel: 'stable'
       - name: Pub get (workspace)
         run: flutter pub get
-      
+
       # Run chenron unit tests that require secrets (if any)
       - name: Run chenron online unit tests
         working-directory: apps/chenron
         run: flutter test test/ --tags=online
-      
+
       # Run chenron integration tests that require secrets
       - name: Run chenron online integration tests
         working-directory: apps/chenron
-        run: flutter test integration_test/ --tags=online -d linux
-
+        run: |
+          if [ -d "integration_test" ]; then
+            flutter test integration_test/ --tags=online -d linux
+          else
+            echo "No integration_test directory, skipping."
+          fi
+        shell: bash
