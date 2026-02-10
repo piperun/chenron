@@ -226,6 +226,8 @@ class MainSetup {
     }
   }
 
+  static const _defaultBackupIntervalHours = 8;
+
   static int _parseIntervalHours(String cronExpression) {
     // Hourly pattern: "0 0 */N * * *"
     final hourMatch =
@@ -240,7 +242,7 @@ class MainSetup {
     // "0 0 0 * * *" = once per day (24h)
     if (cronExpression == "0 0 0 * * *") return 24;
 
-    return 8; // fallback
+    return _defaultBackupIntervalHours;
   }
 
   static Future<void> _recordDailySnapshot(AppDatabase db) async {

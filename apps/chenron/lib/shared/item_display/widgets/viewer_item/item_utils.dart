@@ -49,7 +49,11 @@ class ItemUtils {
   }
 
   static void copyUrl(String url) {
-    unawaited(Clipboard.setData(ClipboardData(text: url)));
+    unawaited(Clipboard.setData(ClipboardData(text: url)).catchError(
+      (Object error) {
+        // Clipboard can fail on some platforms (e.g. no display server)
+      },
+    ));
   }
 
   static List<Widget> buildTags(

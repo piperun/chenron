@@ -1,5 +1,6 @@
 import "dart:async";
 
+import "package:app_logger/app_logger.dart";
 import "package:database/database.dart";
 
 /// App-level service for recording view/access activity events.
@@ -14,31 +15,36 @@ class ActivityTracker {
   ActivityTracker(this._db);
 
   void trackLinkViewed(String linkId) {
-    unawaited(_db.recordActivity(
+    _record(_db.recordActivity(
       eventType: "link_viewed",
       entityType: "link",
       entityId: linkId,
     ));
-    unawaited(_db.recordItemAccess(entityId: linkId, entityType: "link"));
+    _record(_db.recordItemAccess(entityId: linkId, entityType: "link"));
   }
 
   void trackDocumentViewed(String docId) {
-    unawaited(_db.recordActivity(
+    _record(_db.recordActivity(
       eventType: "document_viewed",
       entityType: "document",
       entityId: docId,
     ));
-    unawaited(
-        _db.recordItemAccess(entityId: docId, entityType: "document"));
+    _record(_db.recordItemAccess(entityId: docId, entityType: "document"));
   }
 
   void trackFolderViewed(String folderId) {
-    unawaited(_db.recordActivity(
+    _record(_db.recordActivity(
       eventType: "folder_viewed",
       entityType: "folder",
       entityId: folderId,
     ));
-    unawaited(
-        _db.recordItemAccess(entityId: folderId, entityType: "folder"));
+    _record(_db.recordItemAccess(entityId: folderId, entityType: "folder"));
+  }
+
+  void _record(Future<void> future) {
+    unawaited(future.catchError((Object error) {
+      loggerGlobal.warning(
+          "ActivityTracker", "Failed to record activity: $error");
+    }));
   }
 }

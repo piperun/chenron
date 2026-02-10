@@ -60,7 +60,12 @@ class ThemeManager {
         themeModeSignal.value = isDark ? ThemeMode.dark : ThemeMode.light;
         // Sync SharedPreferences cache so the next startup is flicker-free
         unawaited(SharedPreferences.getInstance()
-            .then((p) => p.setBool(_darkModeKey, isDark)));
+            .then((p) => p.setBool(_darkModeKey, isDark))
+            .catchError((Object error) {
+          loggerGlobal.warning(
+              "ThemeManager", "Failed to cache theme preference: $error");
+          return false;
+        }));
         loggerGlobal.info("ThemeManager",
             "Initial theme mode loaded: ${themeModeSignal.value} (UserConfig ID: $_userConfigId)");
       } else {
@@ -100,7 +105,12 @@ class ThemeManager {
 
     themeModeSignal.value = newMode;
     unawaited(SharedPreferences.getInstance()
-        .then((p) => p.setBool(_darkModeKey, isDark)));
+        .then((p) => p.setBool(_darkModeKey, isDark))
+        .catchError((Object error) {
+      loggerGlobal.warning(
+          "ThemeManager", "Failed to cache theme preference: $error");
+      return false;
+    }));
     loggerGlobal.info(
         "ThemeManager", "Optimistically set theme mode to: $newMode");
 
