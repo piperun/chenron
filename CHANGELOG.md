@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [v0.10.0](https://github.com/piperun/chenron-flutter/compare/978b218c3ea9d36ff12daf39fe77aa5b4195493c..v0.10.0) - 2026-02-10
+### Package updates
+- [chenron-v0.10.0](apps/chenron) bumped to [chenron-v0.10.0](https://github.com/piperun/chenron-flutter/compare/chenron-v0.9.1..chenron-v0.10.0)
+### Global changes
+#### Features
+- add persistent MSIX signing with install script - ([978b218](https://github.com/piperun/chenron-flutter/commit/978b218c3ea9d36ff12daf39fe77aa5b4195493c)) - [@piperun](https://github.com/piperun)
+
+- - -
+
 ## [v0.9.0](https://github.com/piperun/chenron-flutter/compare/f2045774e5b60ab4cee8af021be0582b2b697b73..v0.9.0) - 2026-02-09
 ### Package updates
 - [database-v0.6.1](packages/database) bumped to [database-v0.6.1](https://github.com/piperun/chenron-flutter/compare/database-v0.6.0..database-v0.6.1)

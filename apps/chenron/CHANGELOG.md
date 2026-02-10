@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## chenron-v0.10.0 - 2026-02-10
+#### Features
+- add persistent MSIX signing with install script - (978b218) - *piperun*
+
+- - -
+
 ## chenron-v0.9.1 - 2026-02-10
 #### Bug Fixes
 - add error handling for fire-and-forget calls and debug output - (640d7b3) - *piperun*
