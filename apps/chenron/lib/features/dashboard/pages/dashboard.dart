@@ -25,20 +25,16 @@ class _DashBoardState extends State<DashBoard> {
   final AppDatabase _db =
       locator.get<Signal<AppDatabaseHandler>>().value.appDatabase;
 
-  TimeRange _timeRange = TimeRange.month;
+  final _timeRange = signal(TimeRange.month);
+  final _latestStats = signal<Statistic?>(null);
+  final _history = signal<List<Statistic>>([]);
+  final _dailyCounts = signal<List<DailyActivityCount>>([]);
+  final _tagCounts = signal<List<TagCount>>([]);
+  final _folderCounts = signal<List<FolderItemCount>>([]);
+  final _recentActivity = signal<List<EnrichedActivityEvent>>([]);
+  final _isLoading = signal(true);
 
-  // Data
-  Statistic? _latestStats;
-  List<Statistic> _history = [];
-  List<DailyActivityCount> _dailyCounts = [];
-  List<TagCount> _tagCounts = [];
-  List<FolderItemCount> _folderCounts = [];
-
-  // Activity stream
   StreamSubscription<List<EnrichedActivityEvent>>? _activitySubscription;
-  List<EnrichedActivityEvent> _recentActivity = [];
-
-  bool _isLoading = true;
 
   @override
   void initState() {
@@ -46,7 +42,7 @@ class _DashBoardState extends State<DashBoard> {
     unawaited(_loadData());
     _activitySubscription = _db.watchRecentActivityWithNames().listen((events) {
       if (mounted) {
-        setState(() => _recentActivity = events);
+        _recentActivity.value = events;
       }
     });
   }
@@ -54,11 +50,19 @@ class _DashBoardState extends State<DashBoard> {
   @override
   void dispose() {
     unawaited(_activitySubscription?.cancel());
+    _timeRange.dispose();
+    _latestStats.dispose();
+    _history.dispose();
+    _dailyCounts.dispose();
+    _tagCounts.dispose();
+    _folderCounts.dispose();
+    _recentActivity.dispose();
+    _isLoading.dispose();
     super.dispose();
   }
 
   Future<void> _loadData() async {
-    final startDate = _timeRange.startDate;
+    final startDate = _timeRange.value.startDate;
     final endDate = DateTime.now();
 
     final latestStats = await _db.getLatestStatistics();
@@ -74,73 +78,71 @@ class _DashBoardState extends State<DashBoard> {
     final folderCounts = await _db.getFolderComposition();
 
     if (mounted) {
-      setState(() {
-        _latestStats = latestStats;
-        _history = history;
-        _dailyCounts = dailyCounts;
-        _tagCounts = tagCounts;
-        _folderCounts = folderCounts;
-        _isLoading = false;
-      });
+      _latestStats.value = latestStats;
+      _history.value = history;
+      _dailyCounts.value = dailyCounts;
+      _tagCounts.value = tagCounts;
+      _folderCounts.value = folderCounts;
+      _isLoading.value = false;
     }
   }
 
   void _onTimeRangeChanged(TimeRange range) {
-    setState(() {
-      _timeRange = range;
-      _isLoading = true;
-    });
+    _timeRange.value = range;
+    _isLoading.value = true;
     unawaited(_loadData());
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
+    return Watch((context) {
+      if (_isLoading.value) {
+        return const Center(child: CircularProgressIndicator());
+      }
 
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: EdgeInsets.all(widget.padding),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            OverviewCards(
-              totalLinks: _latestStats?.totalLinks ?? 0,
-              totalDocuments: _latestStats?.totalDocuments ?? 0,
-              totalFolders: _latestStats?.totalFolders ?? 0,
-              totalTags: _latestStats?.totalTags ?? 0,
-            ),
-            const SizedBox(height: 16),
-            GrowthTrendChart(
-              history: _history,
-              timeRange: _timeRange,
-              onTimeRangeChanged: _onTimeRangeChanged,
-            ),
-            const SizedBox(height: 16),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: ActivityTimelineChart(
-                    dailyCounts: _dailyCounts,
-                    timeRange: _timeRange,
-                    onTimeRangeChanged: _onTimeRangeChanged,
+      return SafeArea(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(widget.padding),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              OverviewCards(
+                totalLinks: _latestStats.value?.totalLinks ?? 0,
+                totalDocuments: _latestStats.value?.totalDocuments ?? 0,
+                totalFolders: _latestStats.value?.totalFolders ?? 0,
+                totalTags: _latestStats.value?.totalTags ?? 0,
+              ),
+              const SizedBox(height: 16),
+              GrowthTrendChart(
+                history: _history.value,
+                timeRange: _timeRange.value,
+                onTimeRangeChanged: _onTimeRangeChanged,
+              ),
+              const SizedBox(height: 16),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: ActivityTimelineChart(
+                      dailyCounts: _dailyCounts.value,
+                      timeRange: _timeRange.value,
+                      onTimeRangeChanged: _onTimeRangeChanged,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: TagDistributionChart(tagCounts: _tagCounts),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            FolderCompositionChart(folderCounts: _folderCounts),
-            const SizedBox(height: 16),
-            RecentActivityList(events: _recentActivity),
-          ],
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: TagDistributionChart(tagCounts: _tagCounts.value),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              FolderCompositionChart(folderCounts: _folderCounts.value),
+              const SizedBox(height: 16),
+              RecentActivityList(events: _recentActivity.value),
+            ],
+          ),
         ),
-      ),
-    );
+      );
+    });
   }
 }
