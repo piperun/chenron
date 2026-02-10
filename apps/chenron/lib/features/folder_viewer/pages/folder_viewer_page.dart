@@ -2,11 +2,14 @@ import "package:database/main.dart";
 import "package:database/database.dart";
 import "package:flutter/material.dart";
 import "dart:async";
+import "package:signals/signals_flutter.dart";
+import "package:chenron/shared/constants/durations.dart";
 import "package:chenron/features/folder_viewer/ui/components/folder_header.dart";
 import "package:chenron/features/folder_viewer/ui/components/collapsed_header.dart";
 import "package:chenron/shared/item_display/filterable_item_display.dart";
 import "package:chenron/shared/dialogs/delete_confirmation_dialog.dart";
 import "package:chenron/features/folder_viewer/services/folder_viewer_service.dart";
+import "package:chenron/shared/infinite_scroll/infinite_scroll_state.dart";
 
 import "package:chenron/shared/tag_filter/tag_filter_state.dart";
 import "package:chenron/features/folder_editor/pages/folder_editor.dart";
@@ -28,7 +31,8 @@ class FolderViewerPage extends StatefulWidget {
 
 class _FolderViewerPageState extends State<FolderViewerPage> {
   final _service = FolderViewerService();
-  late Future<FolderResult> _folderData;
+  late Future<FolderResult> _metadata;
+  late final InfiniteScrollState<FolderItem> _infiniteScroll;
   late final TagFilterState _tagFilterState;
   bool _isHeaderExpanded = true;
   bool _isHeaderLocked = false;
@@ -37,13 +41,23 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
   void initState() {
     super.initState();
     _tagFilterState = TagFilterState();
+    _infiniteScroll = InfiniteScrollState<FolderItem>(
+      loader: (limit, offset) => _service.getFolderItemsPaginated(
+        widget.folderId,
+        limit,
+        offset,
+      ),
+      countLoader: () => _service.getFolderItemCount(widget.folderId),
+    );
     unawaited(_loadLockState());
-    _folderData = _service.loadFolderWithParents(widget.folderId);
+    _metadata = _service.loadFolderMetadata(widget.folderId);
+    unawaited(_infiniteScroll.loadInitial());
   }
 
   @override
   void dispose() {
     _tagFilterState.dispose();
+    _infiniteScroll.dispose();
     super.dispose();
   }
 
@@ -144,16 +158,18 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
   }
 
   void _refreshFolderData() {
+    _infiniteScroll.reset();
     setState(() {
-      _folderData = _service.loadFolderWithParents(widget.folderId);
+      _metadata = _service.loadFolderMetadata(widget.folderId);
     });
+    unawaited(_infiniteScroll.loadInitial());
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: FutureBuilder<FolderResult>(
-        future: _folderData,
+        future: _metadata,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -168,72 +184,99 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
             return const Center(child: Text("Folder not found"));
           }
 
+          final parentItems = result.items;
+
           return Column(
             children: [
-              // Collapsible header
-              GestureDetector(
-                onTap: _isHeaderLocked
-                    ? null
-                    : () =>
-                        setState(() => _isHeaderExpanded = !_isHeaderExpanded),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                  height: _isHeaderExpanded ? null : 60,
-                  child: _isHeaderExpanded
-                      ? FolderHeader(
-                          folder: result.data,
-                          tags: result.tags,
-                          totalItems: result.items.length,
-                          onBack: () => Navigator.pop(context),
-                          onHome: () =>
-                              Navigator.popUntil(context, (route) => route.isFirst),
-                          isExpanded: _isHeaderExpanded,
-                          onToggle: () => setState(
-                              () => _isHeaderExpanded = !_isHeaderExpanded),
-                          isLocked: _isHeaderLocked,
-                          onToggleLock: _toggleHeaderLock,
-                          onTagTap: (tagName) {
-                            Navigator.pop(context);
-                            final searchFilter = globalSearchFilterSignal.value;
-                            if (searchFilter != null) {
-                              searchFilter.controller.value = "#$tagName";
-                              searchFilter.controller.onSubmitted
-                                  ?.call("#$tagName");
-                            }
-                          },
-                          onEdit: _handleEdit,
-                          onDelete: () => _handleDelete(result.data),
-                        )
-                      : CollapsedHeader(
-                          folder: result.data,
-                          isHeaderLocked: _isHeaderLocked,
-                          isHeaderExpanded: _isHeaderExpanded,
-                          onBack: () => Navigator.pop(context),
-                          onHome: () =>
-                              Navigator.popUntil(context, (route) => route.isFirst),
-                          onToggleLock: _toggleHeaderLock,
-                        ),
-                ),
-              ),
-              Expanded(
-                child: FilterableItemDisplay(
-                  items: result.items,
-                  tagFilterState: _tagFilterState,
-                  enableTagFiltering: true,
-                  displayModeContext: "folder_viewer",
-                  onItemTap: (item) => handleItemTap(context, item),
-                  onDeleteRequested: (items) => handleItemDeletion(
-                    context,
-                    items,
-                    _refreshFolderData,
-                  ),
-                ),
-              ),
+              _buildCollapsibleHeader(result, parentItems),
+              _buildItemDisplay(parentItems),
             ],
           );
         },
       ),
+    );
+  }
+
+  Widget _buildCollapsibleHeader(
+    FolderResult result,
+    List<FolderItem> parentItems,
+  ) {
+    return Watch((context) {
+      final totalItems =
+          _infiniteScroll.estimatedTotal + parentItems.length;
+
+      return GestureDetector(
+        onTap: _isHeaderLocked
+            ? null
+            : () =>
+                setState(() => _isHeaderExpanded = !_isHeaderExpanded),
+        child: AnimatedContainer(
+          duration: kDefaultAnimationDuration,
+          curve: Curves.easeInOut,
+          height: _isHeaderExpanded ? null : 60,
+          child: _isHeaderExpanded
+              ? FolderHeader(
+                  folder: result.data,
+                  tags: result.tags,
+                  totalItems: totalItems,
+                  onBack: () => Navigator.pop(context),
+                  onHome: () => Navigator.popUntil(
+                      context, (route) => route.isFirst),
+                  isExpanded: _isHeaderExpanded,
+                  onToggle: () => setState(
+                      () => _isHeaderExpanded = !_isHeaderExpanded),
+                  isLocked: _isHeaderLocked,
+                  onToggleLock: _toggleHeaderLock,
+                  onTagTap: (tagName) {
+                    Navigator.pop(context);
+                    final searchFilter =
+                        globalSearchFilterSignal.value;
+                    if (searchFilter != null) {
+                      searchFilter.controller.value = "#$tagName";
+                      searchFilter.controller.onSubmitted
+                          ?.call("#$tagName");
+                    }
+                  },
+                  onEdit: _handleEdit,
+                  onDelete: () => _handleDelete(result.data),
+                )
+              : CollapsedHeader(
+                  folder: result.data,
+                  isHeaderLocked: _isHeaderLocked,
+                  isHeaderExpanded: _isHeaderExpanded,
+                  onBack: () => Navigator.pop(context),
+                  onHome: () => Navigator.popUntil(
+                      context, (route) => route.isFirst),
+                  onToggleLock: _toggleHeaderLock,
+                ),
+        ),
+      );
+    });
+  }
+
+  Widget _buildItemDisplay(List<FolderItem> parentItems) {
+    return Expanded(
+      child: Watch((context) {
+        final loadedItems = _infiniteScroll.loadedItems.value;
+        final allItems = [...parentItems, ...loadedItems];
+
+        return FilterableItemDisplay(
+          items: allItems,
+          tagFilterState: _tagFilterState,
+          enableTagFiltering: true,
+          displayModeContext: "folder_viewer",
+          onItemTap: (item) => handleItemTap(context, item),
+          onDeleteRequested: (items) => handleItemDeletion(
+            context,
+            items,
+            _refreshFolderData,
+          ),
+          onLoadMore: _infiniteScroll.loadNextPage,
+          isLoadingMore: _infiniteScroll.isLoadingMore.value,
+          hasMore: _infiniteScroll.hasMore.value,
+          onLoadAllRemaining: _infiniteScroll.loadAll,
+        );
+      }),
     );
   }
 }

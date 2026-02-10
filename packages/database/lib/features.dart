@@ -13,6 +13,7 @@ export "src/features/folder/read.dart";
 export "src/features/folder/update.dart";
 export "src/features/folder/remove.dart";
 export "src/features/folder/insert.dart";
+export "src/features/folder/item_pagination.dart";
 
 // Link operations
 export "src/features/link/create.dart";

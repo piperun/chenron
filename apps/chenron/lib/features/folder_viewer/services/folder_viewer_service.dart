@@ -8,10 +8,51 @@ import "package:shared_preferences/shared_preferences.dart";
 class FolderViewerService {
   static const _lockKey = "folder_viewer_header_locked";
 
-  Future<FolderResult> loadFolderWithParents(String folderId) async {
-    final db = locator.get<Signal<AppDatabaseHandler>>().value;
+  AppDatabase get _db =>
+      locator.get<Signal<AppDatabaseHandler>>().value.appDatabase;
 
-    final folder = await db.appDatabase.getFolder(
+  /// Loads folder metadata (data + tags) and parent folder items.
+  /// Does NOT load the folder's own items — those come via pagination.
+  Future<FolderResult> loadFolderMetadata(String folderId) async {
+    final folder = await _db.getFolder(
+      folderId: folderId,
+      includeOptions: const IncludeOptions({AppDataInclude.tags}),
+    );
+
+    if (folder == null) {
+      throw Exception("Folder not found");
+    }
+
+    final parentFolders = await _loadParentFolders(_db, folderId);
+    final parentItems = parentFolders
+        .map((parentFolder) => parentFolder.toFolderItem(null))
+        .toList();
+
+    return FolderResult(
+      data: folder.data,
+      tags: folder.tags,
+      items: parentItems,
+    );
+  }
+
+  Future<int> getFolderItemCount(String folderId) {
+    return _db.getFolderItemCount(folderId);
+  }
+
+  Future<List<FolderItem>> getFolderItemsPaginated(
+    String folderId,
+    int limit,
+    int offset,
+  ) {
+    return _db.getFolderItemsPaginated(
+      folderId: folderId,
+      limit: limit,
+      offset: offset,
+    );
+  }
+
+  Future<FolderResult> loadFolderWithParents(String folderId) async {
+    final folder = await _db.getFolder(
       folderId: folderId,
       includeOptions:
           const IncludeOptions({AppDataInclude.items, AppDataInclude.tags}),
@@ -21,7 +62,7 @@ class FolderViewerService {
       throw Exception("Folder not found");
     }
 
-    final parentFolders = await _loadParentFolders(db.appDatabase, folderId);
+    final parentFolders = await _loadParentFolders(_db, folderId);
 
     final parentItems = parentFolders
         .map((parentFolder) => parentFolder.toFolderItem(null))
@@ -65,9 +106,8 @@ class FolderViewerService {
     }
   }
 
-  Future<bool> deleteFolder(String folderId) async {
-    final db = locator.get<Signal<AppDatabaseHandler>>().value;
-    return db.appDatabase.removeFolder(folderId);
+  Future<bool> deleteFolder(String folderId) {
+    return _db.removeFolder(folderId);
   }
 
   Future<bool> loadLockState() async {

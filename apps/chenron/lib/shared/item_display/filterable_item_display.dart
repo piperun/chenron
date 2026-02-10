@@ -8,6 +8,7 @@ import "package:chenron/shared/item_display/item_list_view.dart";
 import "package:chenron/shared/item_display/filterable_item_display_notifier.dart";
 import "package:chenron/features/folder_viewer/ui/components/tag_filter_modal.dart";
 import "package:database/database.dart";
+import "package:database/main.dart";
 import "package:chenron/shared/search/search_features.dart";
 import "package:chenron/shared/tag_filter/tag_filter_state.dart";
 import "package:signals/signals_flutter.dart";
@@ -31,6 +32,12 @@ class FilterableItemDisplay extends StatefulWidget {
       onDeleteModeChanged;
   final void Function(List<FolderItem> items)? onDeleteRequested;
 
+  // Infinite scroll support
+  final VoidCallback? onLoadMore;
+  final bool isLoadingMore;
+  final bool hasMore;
+  final VoidCallback? onLoadAllRemaining;
+
   const FilterableItemDisplay({
     super.key,
     required this.items,
@@ -52,6 +59,10 @@ class FilterableItemDisplay extends StatefulWidget {
     this.onItemTap,
     this.onDeleteModeChanged,
     this.onDeleteRequested,
+    this.onLoadMore,
+    this.isLoadingMore = false,
+    this.hasMore = false,
+    this.onLoadAllRemaining,
   });
 
   @override
@@ -61,6 +72,8 @@ class FilterableItemDisplay extends StatefulWidget {
 class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
   late final FilterableItemDisplayNotifier _notifier;
   late final void Function() _disposeDeleteModeEffect;
+  var _cachedTags = <Tag>[];
+  List<FolderItem>? _cachedTagsSource;
 
   @override
   void initState() {
@@ -132,7 +145,11 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
   }
 
   Future<void> _openTagFilterModal() async {
-    final allTags = collectAllTags(widget.items);
+    if (!identical(_cachedTagsSource, widget.items)) {
+      _cachedTags = collectAllTags(widget.items);
+      _cachedTagsSource = widget.items;
+    }
+    final allTags = _cachedTags;
     final result = await TagFilterModal.show(
       context: context,
       availableTags: allTags,
@@ -210,11 +227,27 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
               final isDeleteMode = _notifier.isDeleteMode.value;
               final selectedItemIds =
                   _notifier.selectedItems.value.keys.toSet();
+              final isFiltering = currentQuery.isNotEmpty ||
+                  _notifier.tagFilterState.includedTags.value.isNotEmpty ||
+                  _notifier.tagFilterState.excludedTags.value.isNotEmpty;
+
+              // When a filter activates, eagerly load all remaining
+              // items so in-memory filtering works on the full dataset.
+              if (isFiltering && widget.hasMore) {
+                widget.onLoadAllRemaining?.call();
+              }
+
               final filtered = _notifier.getFilteredAndSortedItems(
                 items: widget.items,
                 query: currentQuery,
                 enableTagFiltering: widget.enableTagFiltering,
               );
+
+              // Disable lazy loading while filtering (all items loaded).
+              final VoidCallback? loadMore =
+                  isFiltering ? null : widget.onLoadMore;
+              final bool showHasMore =
+                  isFiltering ? false : widget.hasMore;
 
               return viewMode == ViewMode.grid
                   ? ItemGridView(
@@ -229,6 +262,9 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
                       maxCrossAxisExtent: displayModeVal.maxCrossAxisExtent,
                       isDeleteMode: isDeleteMode,
                       selectedItemIds: selectedItemIds,
+                      onLoadMore: loadMore,
+                      isLoadingMore: widget.isLoadingMore,
+                      hasMore: showHasMore,
                     )
                   : ItemListView(
                       items: filtered,
@@ -240,6 +276,9 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
                       onItemTap: _handleItemTap,
                       isDeleteMode: isDeleteMode,
                       selectedItemIds: selectedItemIds,
+                      onLoadMore: loadMore,
+                      isLoadingMore: widget.isLoadingMore,
+                      hasMore: showHasMore,
                     );
             }),
           ),
