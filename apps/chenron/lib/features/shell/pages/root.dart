@@ -1,5 +1,6 @@
 import "package:flutter/material.dart";
 import "dart:async";
+import "package:chenron/shared/constants/durations.dart";
 import "package:chenron/shared/search/search_filter.dart";
 import "package:core/patterns/include_options.dart";
 import "package:chenron/features/shell/widgets/add_item_modal.dart";
@@ -163,7 +164,7 @@ class _RootPageState extends State<RootPage> {
           const VerticalDivider(thickness: 1, width: 1),
           Expanded(
             child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
+              duration: kDefaultAnimationDuration,
               switchInCurve: Curves.easeInOut,
               switchOutCurve: Curves.easeInOut,
               child: KeyedSubtree(

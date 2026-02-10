@@ -1,4 +1,5 @@
 import "package:database/models/item.dart";
+import "package:chenron/shared/constants/durations.dart";
 import "package:core/patterns/include_options.dart";
 import "package:chenron/shared/search/search_features.dart";
 import "package:chenron/shared/search/search_controller.dart";
@@ -39,7 +40,7 @@ class SearchFilter {
 
   SearchFilter({
     IncludeOptions<SearchFeature> features = const IncludeOptions.empty(),
-    Duration debounceDuration = const Duration(milliseconds: 300),
+    Duration debounceDuration = kDefaultDebounceDuration,
     String? historyKey,
     int maxHistoryItems = 10,
   })  : _controller = SearchBarController(),

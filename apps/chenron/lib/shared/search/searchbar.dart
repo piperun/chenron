@@ -1,3 +1,4 @@
+import "package:chenron/shared/constants/durations.dart";
 import "package:chenron/shared/search/search_controller.dart";
 import "package:chenron/shared/search/search_features.dart";
 import "package:chenron/shared/search/search_feature_manager.dart";
@@ -29,7 +30,7 @@ class GlobalSearchBar extends StatefulWidget {
       SearchFeature.navigation,
     }),
     this.externalController,
-    this.debounceDuration = const Duration(milliseconds: 300),
+    this.debounceDuration = kDefaultDebounceDuration,
     this.historyKey = "global_search",
     this.maxHistoryItems = 10,
   });

@@ -1,4 +1,5 @@
 import "dart:async";
+import "package:chenron/shared/constants/durations.dart";
 import "package:database/database.dart";
 import "package:flutter/material.dart";
 import "package:chenron/shared/search/search_controller.dart";
@@ -26,7 +27,7 @@ class SuggestionsOverlay extends StatefulWidget {
     required this.controller,
     required this.db,
     required this.child,
-    this.debounceDuration = const Duration(milliseconds: 300),
+    this.debounceDuration = kDefaultDebounceDuration,
     this.onItemSelected,
   });
 

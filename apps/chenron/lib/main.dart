@@ -6,6 +6,7 @@ import "package:chenron/locator.dart";
 import "package:chenron/providers/theme_controller_signal.dart";
 
 import "package:flutter/material.dart";
+import "package:chenron/shared/constants/durations.dart";
 import "package:shared_preferences/shared_preferences.dart";
 import "package:signals/signals_flutter.dart";
 
@@ -56,7 +57,7 @@ class MyApp extends StatelessWidget {
         title: "Chenron",
         theme: variants.light,
         darkTheme: variants.dark,
-        themeAnimationDuration: const Duration(milliseconds: 300),
+        themeAnimationDuration: kDefaultAnimationDuration,
         themeAnimationCurve: Curves.easeInOut,
         themeMode: currentMode ?? initialThemeMode,
         home: const RootPage(),

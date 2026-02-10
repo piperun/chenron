@@ -1,4 +1,5 @@
 import "dart:async";
+import "package:chenron/shared/constants/durations.dart";
 import "package:core/patterns/include_options.dart";
 import "package:chenron/shared/search/search_features.dart";
 import "package:chenron/shared/search/search_controller.dart";
@@ -35,7 +36,7 @@ class SearchFeatureManager {
 
   SearchFeatureManager({
     required this.features,
-    this.debounceDuration = const Duration(milliseconds: 300),
+    this.debounceDuration = kDefaultDebounceDuration,
     this.historyKey,
     this.maxHistoryItems = 10,
   });
