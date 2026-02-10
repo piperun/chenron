@@ -1,4 +1,5 @@
 import "package:chenron/features/theme/model/theme_service_model.dart";
+import "package:chenron/utils/run_logged.dart";
 
 import "package:database/database.dart";
 import "package:database/main.dart";
@@ -14,21 +15,21 @@ class ThemeServiceDB implements ThemeService {
   static Future<ThemeServiceDB> init({required ConfigDatabase database}) async {
     UserConfigResult fetchedConfigId;
     try {
-      loggerGlobal.info("ThemeService.create", "Fetching UserConfig...");
+      loggerGlobal.info("ThemeServiceDB", "Fetching UserConfig...");
 
       final userConfig = await database.getUserConfig();
 
       if (userConfig != null) {
         fetchedConfigId = userConfig;
         loggerGlobal.info(
-            "ThemeService.create", "UserConfig found, ID: $fetchedConfigId");
+            "ThemeServiceDB", "UserConfig found, ID: $fetchedConfigId");
       } else {
         loggerGlobal.severe(
-            "ThemeService.create", "UserConfig not found during creation.");
+            "ThemeServiceDB", "UserConfig not found during creation.");
         throw StateError("UserConfig not found during ThemeService creation.");
       }
     } catch (error, stackTrace) {
-      loggerGlobal.severe("ThemeService.create",
+      loggerGlobal.severe("ThemeServiceDB",
           "Failed to fetch configId: $error", error, stackTrace);
       rethrow;
     }
@@ -43,13 +44,11 @@ class ThemeServiceDB implements ThemeService {
   }
 
   Future<void> removeTheme(String themeId) {
-    try {
-      return _db.removeUserTheme(id: themeId);
-    } catch (error, stackTrace) {
-      loggerGlobal.severe(
-          "ThemeServiceDB", "Error removing theme: $error", error, stackTrace);
-      rethrow;
-    }
+    return runLogged(
+      tag: "ThemeServiceDB",
+      operation: "Removing theme: $themeId",
+      action: () => _db.removeUserTheme(id: themeId),
+    );
   }
 
   @override
@@ -77,15 +76,13 @@ class ThemeServiceDB implements ThemeService {
   }
 
   @override
-  Future<List<UserThemeResult>> getAllSavedThemes() async {
-    try {
-      return await _db.getAllUserThemes();
-    } catch (error, stackTrace) {
-      loggerGlobal.severe("ThemeServiceImpl", "Error getting all saved themes",
-          error, stackTrace);
-
-      return [];
-    }
+  Future<List<UserThemeResult>> getAllSavedThemes() {
+    return runLoggedOr(
+      tag: "ThemeServiceDB",
+      operation: "Fetching all saved themes",
+      action: _db.getAllUserThemes,
+      fallback: [],
+    );
   }
 
   @override
@@ -95,33 +92,24 @@ class ThemeServiceDB implements ThemeService {
     ThemeType? selectedThemeType,
     bool? isDarkMode,
     CUD<UserTheme>? themeUpdates,
-  }) async {
-    Map<String, List<UserThemeResultIds>> updateResult = {};
+  }) {
     if (configId.isEmpty) {
-      loggerGlobal.warning("ThemeServiceImpl",
+      loggerGlobal.warning("ThemeServiceDB",
           "updateUserThemeSettings called with empty configId.");
       throw ArgumentError("configId cannot be empty.");
     }
 
-    try {
-      updateResult = await _db.updateUserConfig(
+    return runLogged(
+      tag: "ThemeServiceDB",
+      operation: "Updating theme settings for config ID: $configId",
+      action: () => _db.updateUserConfig(
         id: configId,
         selectedThemeKey: selectedThemeKey,
         selectedThemeType: selectedThemeType,
         darkMode: isDarkMode,
         themeUpdates: themeUpdates,
-      );
-      loggerGlobal.info("ThemeServiceImpl",
-          "Updated theme settings for config ID: $configId");
-    } catch (error, stackTrace) {
-      loggerGlobal.severe(
-          "ThemeServiceImpl",
-          "Error updating theme settings for config ID: $configId",
-          error,
-          stackTrace);
-      rethrow;
-    }
-    return updateResult;
+      ),
+    );
   }
 
   /// Fetch a specific custom theme by its key.
