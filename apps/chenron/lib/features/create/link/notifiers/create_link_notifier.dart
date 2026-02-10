@@ -87,22 +87,35 @@ class CreateLinkNotifier {
     }
   }
 
-  /// Adds multiple entries (bulk mode)
+  /// Adds multiple entries (bulk mode) in a single batch
   void addEntries(List<Map<String, dynamic>> entriesData) {
     loggerGlobal.info("CreateLinkNotifier",
         "Adding ${entriesData.length} entries in bulk mode");
 
+    final newEntries = <LinkEntry>[];
     for (final data in entriesData) {
-      addEntry(
-        url: data["url"] as String,
-        tags: data["tags"] as List<String>?,
-        validateAsync: false,
-      );
+      final entryTags = <String>{
+        ...?(data["tags"] as List<String>?),
+        ..._globalTags.value,
+      }.toList();
+
+      newEntries.add(LinkEntry(
+        key: UniqueKey(),
+        url: (data["url"] as String).trim(),
+        tags: entryTags,
+        folderIds: _selectedFolderIds.value.isEmpty
+            ? ["default"]
+            : List.of(_selectedFolderIds.value),
+        isArchived: _isArchiveMode.value,
+        validationStatus: LinkValidationStatus.pending,
+      ));
     }
+
+    // Single signal update instead of one per entry
+    _entries.value = [..._entries.value, ...newEntries];
 
     loggerGlobal.info("CreateLinkNotifier",
         "Starting validation for ${entriesData.length} entries");
-    // Validate all at once (non-blocking)
     unawaited(validateAllEntries(parallel: true));
   }
 

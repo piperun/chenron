@@ -1,5 +1,6 @@
 import "dart:async";
 
+import "package:app_logger/app_logger.dart";
 import "package:flutter/material.dart";
 import "package:database/database.dart";
 import "package:database/main.dart";
@@ -40,11 +41,17 @@ class _DashBoardState extends State<DashBoard> {
   void initState() {
     super.initState();
     unawaited(_loadData());
-    _activitySubscription = _db.watchRecentActivityWithNames().listen((events) {
-      if (mounted) {
-        _recentActivity.value = events;
-      }
-    });
+    _activitySubscription = _db.watchRecentActivityWithNames().listen(
+      (events) {
+        if (mounted) {
+          _recentActivity.value = events;
+        }
+      },
+      onError: (Object error) {
+        loggerGlobal.warning(
+            "Dashboard", "Activity stream error: $error");
+      },
+    );
   }
 
   @override

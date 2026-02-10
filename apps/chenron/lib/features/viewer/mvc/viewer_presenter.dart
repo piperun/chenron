@@ -32,6 +32,9 @@ class ViewerPresenter {
   Stream<List<ViewerItem>>? _allItemsStream;
   List<ViewerItem> _currentItems = [];
 
+  Map<String, ViewerItem> get _currentItemsById =>
+      {for (final item in _currentItems) item.id: item};
+
   Stream<List<ViewerItem>> get itemsStream => _itemsController.stream;
   late final StreamSignal<List<ViewerItem>> itemsSignal =
       StreamSignal(() => _itemsController.stream);
@@ -52,10 +55,11 @@ class ViewerPresenter {
   void onTypesChanged(Set<FolderItemType> types) {
     selectedTypes.value = Set.of(types);
 
+    final itemById = _currentItemsById;
     selectedItemIds.value = Set.of(
       selectedItemIds.value.where((itemId) {
-        final item = _currentItems.firstWhere((item) => item.id == itemId);
-        return types.contains(item.type);
+        final item = itemById[itemId];
+        return item != null && types.contains(item.type);
       }),
     );
 
@@ -122,18 +126,18 @@ class ViewerPresenter {
 
   List<ViewerItem> _sortItems(List<ViewerItem> items) {
     final sorted = List<ViewerItem>.from(items);
-    sorted.sort((a, b) {
-      switch (sortMode.value) {
-        case SortMode.nameAsc:
-          return a.title.toLowerCase().compareTo(b.title.toLowerCase());
-        case SortMode.nameDesc:
-          return b.title.toLowerCase().compareTo(a.title.toLowerCase());
-        case SortMode.dateAsc:
-          return a.createdAt.compareTo(b.createdAt);
-        case SortMode.dateDesc:
-          return b.createdAt.compareTo(a.createdAt);
-      }
-    });
+    final mode = sortMode.value;
+
+    if (mode == SortMode.nameAsc || mode == SortMode.nameDesc) {
+      // Cache lowercased titles to avoid repeated toLowerCase() in comparator
+      final lowered = {for (final item in sorted) item: item.title.toLowerCase()};
+      final dir = mode == SortMode.nameAsc ? 1 : -1;
+      sorted.sort((a, b) => dir * lowered[a]!.compareTo(lowered[b]!));
+    } else {
+      final dir = mode == SortMode.dateAsc ? 1 : -1;
+      sorted.sort((a, b) => dir * a.createdAt.compareTo(b.createdAt));
+    }
+
     return sorted;
   }
 
@@ -149,12 +153,12 @@ class ViewerPresenter {
 
   List<ViewerItem> filterItems(
       List<ViewerItem> items, Set<FolderItemType> types, String searchQuery) {
+    final query = searchQuery.toLowerCase();
     return items.where((item) {
       final matchesType = types.contains(item.type);
-      final matchesSearch = searchQuery.isEmpty ||
-          item.title.toLowerCase().contains(searchQuery.toLowerCase()) ||
-          item.tags.any((tag) =>
-              tag.name.toLowerCase().contains(searchQuery.toLowerCase()));
+      final matchesSearch = query.isEmpty ||
+          item.title.toLowerCase().contains(query) ||
+          item.tags.any((tag) => tag.name.toLowerCase().contains(query));
 
       return matchesType && matchesSearch;
     }).toList();
@@ -228,9 +232,11 @@ class ViewerPresenter {
   Future<void> onDeleteSelected() async {
     if (selectedItemIds.value.isEmpty) return;
 
+    final itemById = _currentItemsById;
     bool success = true;
     for (final itemId in selectedItemIds.value) {
-      final item = _currentItems.firstWhere((item) => item.id == itemId);
+      final item = itemById[itemId];
+      if (item == null) continue;
 
       success = switch (item.type) {
         FolderItemType.folder => await _model.removeFolder(itemId),

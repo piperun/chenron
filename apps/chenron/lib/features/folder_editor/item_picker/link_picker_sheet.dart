@@ -27,6 +27,7 @@ class LinkPickerSheet extends StatefulWidget {
 class _LinkPickerSheetState extends State<LinkPickerSheet> {
   late final ItemPickerService _service;
   List<LinkResult> _allLinks = [];
+  var _lowercasedPaths = <String, String>{};
   List<LinkResult> _filteredLinks = [];
   final Set<String> _selectedIds = {};
   bool _isLoading = true;
@@ -48,6 +49,7 @@ class _LinkPickerSheetState extends State<LinkPickerSheet> {
     if (mounted) {
       setState(() {
         _allLinks = links;
+        _lowercasedPaths = {for (final link in links) link.data.id: link.data.path.toLowerCase()};
         _filteredLinks = links;
         _isLoading = false;
       });
@@ -62,7 +64,7 @@ class _LinkPickerSheetState extends State<LinkPickerSheet> {
       } else {
         _filteredLinks = _allLinks
             .where((LinkResult link) =>
-                link.data.path.toLowerCase().contains(_searchQuery))
+                (_lowercasedPaths[link.data.id] ?? "").contains(_searchQuery))
             .toList();
       }
     });

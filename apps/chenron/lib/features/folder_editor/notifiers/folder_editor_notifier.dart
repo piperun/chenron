@@ -37,13 +37,9 @@ class FolderEditorNotifier {
     final original = originalItems.value;
     final changes = itemChanges.value;
 
-    // Start with original items
-    final items = List<FolderItem>.from(original);
-
-    // Remove deleted items
-    items.removeWhere((item) =>
-        changes.remove.contains(item.id) ||
-        changes.remove.any((removedId) => item.id == removedId));
+    // Start with original items, excluding deleted ones
+    final removedIds = changes.remove.toSet();
+    final items = original.where((item) => !removedIds.contains(item.id)).toList();
 
     // Update modified items
     for (final updatedItem in changes.update) {
@@ -309,13 +305,11 @@ class FolderEditorNotifier {
         originalIds.difference(newIds).whereType<String>().toList();
 
     // Items to update: in both but might have changed
+    final originalById = {for (final o in original) o.id: o};
     final itemsToUpdate = newItems
         .where((item) => item.id != null && originalIds.contains(item.id))
-        .where((item) {
-      // Only include if actually changed
-      final originalItem = original.firstWhere((o) => o.id == item.id);
-      return originalItem != item; // You might need a better comparison here
-    }).toList();
+        .where((item) => originalById[item.id] != item)
+        .toList();
 
     itemChanges.value = CUD<FolderItem>(
       create: itemsToCreate,
