@@ -214,7 +214,7 @@ class _FolderItemsSectionState extends State<FolderItemsSection> {
       final title = ItemSectionController.getTitleFromItem(item);
 
       return TrinaRow<dynamic>(
-        key: ValueKey("item_row_$index"),
+        key: ValueKey(item.id ?? "item_new_$index"),
         cells: {
           "type": TrinaCell(value: item.type.name),
           "title": TrinaCell(value: title),

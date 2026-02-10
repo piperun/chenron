@@ -1,6 +1,7 @@
 import "package:flutter/material.dart";
 import "package:database/models/item.dart";
 import "package:chenron/shared/item_display/widgets/display_mode/display_mode.dart";
+import "package:chenron/shared/item_display/widgets/selectable_item_wrapper.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/viewer_item.dart";
 import "package:url_launcher/url_launcher.dart";
 
@@ -16,6 +17,10 @@ class ItemGridView extends StatelessWidget {
   final bool isDeleteMode;
   final Set<String> selectedItemIds;
 
+  final VoidCallback? onLoadMore;
+  final bool isLoadingMore;
+  final bool hasMore;
+
   const ItemGridView({
     super.key,
     required this.items,
@@ -27,6 +32,9 @@ class ItemGridView extends StatelessWidget {
     this.onItemTap,
     this.isDeleteMode = false,
     this.selectedItemIds = const {},
+    this.onLoadMore,
+    this.isLoadingMore = false,
+    this.hasMore = false,
   });
 
   Future<void> _launchUrl(FolderItem item) async {
@@ -63,135 +71,59 @@ class ItemGridView extends StatelessWidget {
       return _EmptyState();
     }
 
+    final showLoadingCell = hasMore && onLoadMore != null;
+    final totalCount = items.length + (showLoadingCell ? 1 : 0);
+
     return Container(
       color: theme.scaffoldBackgroundColor,
       padding: const EdgeInsets.all(24),
-      child: GridView.builder(
-        gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-          maxCrossAxisExtent: maxCrossAxisExtent,
-          mainAxisSpacing: 16,
-          crossAxisSpacing: 16,
-          childAspectRatio: aspectRatio,
-        ),
-        itemCount: items.length,
-        itemBuilder: (context, index) {
-          final item = items[index];
-          final isSelected = isDeleteMode &&
-              item.id != null &&
-              selectedItemIds.contains(item.id);
-
-          return RepaintBoundary(
-            child: _SelectableItemWrapper(
-              isDeleteMode: isDeleteMode,
-              isSelected: isSelected,
-              onTap: isDeleteMode ? () => onItemTap?.call(item) : null,
-              child: ViewerItem(
-                item: item,
-                mode: PreviewMode.card,
-                onTap: _getItemTapHandler(item),
-                displayMode: displayMode,
-                includedTagNames: includedTagNames,
-                excludedTagNames: excludedTagNames,
-              ),
-            ),
-          );
+      child: NotificationListener<ScrollNotification>(
+        onNotification: (notification) {
+          if (onLoadMore != null &&
+              hasMore &&
+              !isLoadingMore &&
+              notification.metrics.pixels >=
+                  notification.metrics.maxScrollExtent - 200) {
+            onLoadMore!();
+          }
+          return false;
         },
-      ),
-    );
-  }
-}
-
-class _SelectableItemWrapper extends StatelessWidget {
-  final bool isDeleteMode;
-  final bool isSelected;
-  final Widget child;
-  final VoidCallback? onTap;
-
-  const _SelectableItemWrapper({
-    required this.isDeleteMode,
-    required this.isSelected,
-    required this.child,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    if (!isDeleteMode) {
-      return child;
-    }
-
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return GestureDetector(
-      onTap: isDeleteMode ? onTap : null,
-      child: Stack(
-        children: [
-          // Original item with opacity when selected
-          AnimatedOpacity(
-            opacity: isSelected ? 0.6 : 1.0,
-            duration: const Duration(milliseconds: 150),
-            child: child,
+        child: GridView.builder(
+          gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent: maxCrossAxisExtent,
+            mainAxisSpacing: 16,
+            crossAxisSpacing: 16,
+            childAspectRatio: aspectRatio,
           ),
-          // Selection overlay
-          if (isSelected)
-            Positioned.fill(
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 150),
-                decoration: BoxDecoration(
-                  color: colorScheme.primary.withValues(alpha: 0.2),
-                  border: Border.all(
-                    color: colorScheme.primary,
-                    width: 3,
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: colorScheme.primary.withValues(alpha: 0.3),
-                      blurRadius: 8,
-                      spreadRadius: 2,
-                    ),
-                  ],
-                ),
-                child: Center(
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: colorScheme.primary,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.2),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.check_circle,
-                          color: colorScheme.onPrimary,
-                          size: 32,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          "SELECTED",
-                          style: TextStyle(
-                            color: colorScheme.onPrimary,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+          itemCount: totalCount,
+          itemBuilder: (context, index) {
+            if (index >= items.length) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            final item = items[index];
+            final isSelected = isDeleteMode &&
+                item.id != null &&
+                selectedItemIds.contains(item.id);
+
+            return RepaintBoundary(
+              key: ValueKey(item.id ?? index),
+              child: SelectableItemWrapper(
+                isDeleteMode: isDeleteMode,
+                isSelected: isSelected,
+                onTap: isDeleteMode ? () => onItemTap?.call(item) : null,
+                child: ViewerItem(
+                  item: item,
+                  mode: PreviewMode.card,
+                  onTap: _getItemTapHandler(item),
+                  displayMode: displayMode,
+                  includedTagNames: includedTagNames,
+                  excludedTagNames: excludedTagNames,
                 ),
               ),
-            ),
-        ],
+            );
+          },
+        ),
       ),
     );
   }
