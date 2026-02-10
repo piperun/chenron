@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import "package:chenron/shared/constants/durations.dart";
 import "package:chenron/features/create/folder/pages/create_folder.dart";
 import "package:chenron/features/create/link/pages/create_link.dart";
 import "package:chenron/responsible_design/breakpoints.dart";
@@ -79,7 +80,7 @@ class _AddItemModalState extends State<AddItemModal> {
         width: modalWidth,
         height: modalHeight,
         child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
+          duration: kDefaultAnimationDuration,
           switchInCurve: Curves.easeInOut,
           switchOutCurve: Curves.easeInOut,
           transitionBuilder: (child, animation) {
