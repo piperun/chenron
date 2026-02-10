@@ -1,12 +1,11 @@
 import "dart:async";
-import "package:database/main.dart";
 import "package:flutter/material.dart";
 import "package:chenron/shared/item_display/widgets/display_mode/display_mode.dart";
-import "package:chenron/shared/item_display/widgets/display_mode/display_mode_preference.dart";
 import "package:chenron/shared/item_display/item_toolbar.dart";
 import "package:chenron/shared/item_display/item_stats_bar.dart";
 import "package:chenron/shared/item_display/item_grid_view.dart";
 import "package:chenron/shared/item_display/item_list_view.dart";
+import "package:chenron/shared/item_display/filterable_item_display_notifier.dart";
 import "package:chenron/features/folder_viewer/ui/components/tag_filter_modal.dart";
 import "package:database/database.dart";
 import "package:chenron/shared/search/search_features.dart";
@@ -60,276 +59,192 @@ class FilterableItemDisplay extends StatefulWidget {
 }
 
 class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
-  late ViewMode _viewMode;
-  late SortMode _sortMode;
-  late Set<FolderItemType> _selectedTypes;
-  late DisplayMode _displayMode;
-  late final SearchFilter _searchFilter;
-  late final bool _ownsSearchFilter;
-  late final TagFilterState _tagFilterState;
-  late final bool _ownsTagFilterState;
-  late Map<FolderItemType, int> _itemCounts;
-  bool _isLoadingDisplayMode = true;
-  bool _isDeleteMode = false;
-  final Map<String, FolderItem> _selectedItems = {};
+  late final FilterableItemDisplayNotifier _notifier;
+  late final void Function() _disposeDeleteModeEffect;
 
   @override
   void initState() {
     super.initState();
-    _viewMode = widget.initialViewMode;
-    _sortMode = widget.initialSortMode;
-    _selectedTypes = Set.of(widget.initialSelectedTypes);
-    _displayMode = widget.displayMode; // Use provided default initially
-    _itemCounts = _getItemCounts(widget.items);
 
-    // Use external search filter if provided, otherwise create our own
+    final SearchFilter searchFilter;
+    final bool ownsSearchFilter;
     if (widget.externalSearchFilter != null) {
-      _searchFilter = widget.externalSearchFilter!;
-      _ownsSearchFilter = false;
+      searchFilter = widget.externalSearchFilter!;
+      ownsSearchFilter = false;
     } else {
-      _searchFilter = SearchFilter(features: widget.searchFeatures);
-      _searchFilter.setup();
-      _ownsSearchFilter = true;
+      searchFilter = SearchFilter(features: widget.searchFeatures);
+      searchFilter.setup();
+      ownsSearchFilter = true;
     }
 
-    // Use external tag filter state if provided, otherwise create our own
+    final TagFilterState tagFilterState;
+    final bool ownsTagFilterState;
     if (widget.tagFilterState != null) {
-      _tagFilterState = widget.tagFilterState!;
-      _ownsTagFilterState = false;
+      tagFilterState = widget.tagFilterState!;
+      ownsTagFilterState = false;
     } else {
-      _tagFilterState = TagFilterState();
-      _ownsTagFilterState = true;
+      tagFilterState = TagFilterState();
+      ownsTagFilterState = true;
     }
 
-    unawaited(_loadDisplayMode());
-  }
-
-  Future<void> _loadDisplayMode() async {
-    final savedMode = await DisplayModePreference.getDisplayMode(
-      context: widget.displayModeContext,
+    _notifier = FilterableItemDisplayNotifier(
+      initialViewMode: widget.initialViewMode,
+      initialSortMode: widget.initialSortMode,
+      initialSelectedTypes: widget.initialSelectedTypes,
+      initialDisplayMode: widget.displayMode,
+      searchFilter: searchFilter,
+      ownsSearchFilter: ownsSearchFilter,
+      tagFilterState: tagFilterState,
+      ownsTagFilterState: ownsTagFilterState,
     );
-    if (mounted) {
-      setState(() {
-        _displayMode = savedMode;
-        _isLoadingDisplayMode = false;
-      });
-    }
-  }
 
-  @override
-  void didUpdateWidget(FilterableItemDisplay oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.items != widget.items) {
-      _itemCounts = _getItemCounts(widget.items);
-    }
+    unawaited(_notifier.loadDisplayMode(context: widget.displayModeContext));
+
+    _disposeDeleteModeEffect = effect(() {
+      final isDelete = _notifier.isDeleteMode.value;
+      final count = _notifier.selectedItems.value.length;
+      widget.onDeleteModeChanged?.call(
+        isDeleteMode: isDelete,
+        selectedCount: count,
+      );
+    });
   }
 
   @override
   void dispose() {
-    // Only dispose filter if we own it
-    if (_ownsSearchFilter) {
-      _searchFilter.dispose();
-    }
-    // Only dispose tag state if we own it
-    if (_ownsTagFilterState) {
-      _tagFilterState.dispose();
-    }
+    _disposeDeleteModeEffect();
+    _notifier.dispose();
     super.dispose();
   }
 
-  void _onViewModeChanged(ViewMode mode) => setState(() => _viewMode = mode);
-  void _onSortChanged(SortMode mode) => setState(() => _sortMode = mode);
-  void _onFilterChanged(Set<FolderItemType> types) =>
-      setState(() => _selectedTypes = types);
-
-  void _toggleDeleteMode() {
-    setState(() {
-      _isDeleteMode = !_isDeleteMode;
-      if (!_isDeleteMode) {
-        // Clear selections when exiting delete mode
-        _selectedItems.clear();
-      }
-    });
-    widget.onDeleteModeChanged?.call(
-      isDeleteMode: _isDeleteMode,
-      selectedCount: _selectedItems.length,
-    );
-  }
-
-  void _toggleItemSelection(FolderItem item) {
-    if (!_isDeleteMode || item.id == null) return;
-
-    setState(() {
-      if (_selectedItems.containsKey(item.id)) {
-        _selectedItems.remove(item.id);
-      } else {
-        _selectedItems[item.id!] = item;
-      }
-    });
-    widget.onDeleteModeChanged?.call(
-      isDeleteMode: _isDeleteMode,
-      selectedCount: _selectedItems.length,
-    );
-  }
-
   void _handleDeletePressed() {
-    if (_selectedItems.isEmpty) return;
-    widget.onDeleteRequested?.call(_selectedItems.values.toList());
+    final items = _notifier.selectedItems.value.values.toList();
+    if (items.isEmpty) return;
+    widget.onDeleteRequested?.call(items);
   }
 
   void _handleItemTap(FolderItem item) {
-    if (_isDeleteMode) {
-      _toggleItemSelection(item);
+    if (_notifier.isDeleteMode.value) {
+      _notifier.toggleItemSelection(item);
     } else {
       widget.onItemTap?.call(item);
     }
   }
 
-  Future<void> _onDisplayModeChanged(DisplayMode mode) async {
-    setState(() => _displayMode = mode);
-    await DisplayModePreference.setDisplayMode(
-      mode,
-      context: widget.displayModeContext,
-    );
-  }
-
   Future<void> _openTagFilterModal() async {
-    final allTags = _collectAllTags(widget.items);
+    final allTags = collectAllTags(widget.items);
     final result = await TagFilterModal.show(
       context: context,
       availableTags: allTags,
-      initialIncludedTags: _tagFilterState.includedTagNames,
-      initialExcludedTags: _tagFilterState.excludedTagNames,
+      initialIncludedTags: _notifier.tagFilterState.includedTagNames,
+      initialExcludedTags: _notifier.tagFilterState.excludedTagNames,
     );
     if (result != null) {
-      _tagFilterState.updateTags(
+      _notifier.tagFilterState.updateTags(
         included: result.included,
         excluded: result.excluded,
       );
     }
   }
 
-  void _handleSearchSubmitted(String query) {
-    // Parse and add tags from query to state, get clean query back
-    final cleanQuery = _tagFilterState.parseAndAddFromQuery(query);
-
-    // Update the search query to remove tag patterns
-    _searchFilter.controller.value = cleanQuery;
-  }
-
-  List<FolderItem> _getFilteredAndSortedItems(String query) {
-    // Use SearchFilter for all filtering and sorting logic
-    return _searchFilter.filterAndSort(
-      items: widget.items,
-      query: query,
-      types: _selectedTypes,
-      includedTags:
-          widget.enableTagFiltering ? _tagFilterState.includedTagNames : null,
-      excludedTags:
-          widget.enableTagFiltering ? _tagFilterState.excludedTagNames : null,
-      sortMode: _sortMode,
-    );
-  }
-
-  Map<FolderItemType, int> _getItemCounts(List<FolderItem> items) {
-    final counts = <FolderItemType, int>{
-      FolderItemType.link: 0,
-      FolderItemType.document: 0,
-      FolderItemType.folder: 0,
-    };
-    for (final item in items) {
-      counts[item.type] = (counts[item.type] ?? 0) + 1;
-    }
-    return counts;
-  }
-
-  List<Tag> _collectAllTags(List<FolderItem> items) {
-    final byId = <String, Tag>{};
-    for (final item in items) {
-      for (final tag in item.tags) {
-        byId[tag.id] = tag;
-      }
-    }
-    final result = byId.values.toList();
-    return result;
-  }
-
   @override
   Widget build(BuildContext context) {
-    // Show loading indicator while loading display mode preference
-    if (_isLoadingDisplayMode) {
-      return const Center(child: CircularProgressIndicator());
-    }
+    return Watch((context) {
+      if (_notifier.isLoadingDisplayMode.value) {
+        return const Center(child: CircularProgressIndicator());
+      }
 
-    return Column(
-      children: [
-        Watch((context) {
-          // Rebuild when tag state changes
-          final includedTags = _tagFilterState.includedTags.value;
-          final excludedTags = _tagFilterState.excludedTags.value;
+      final itemCounts = getItemCounts(widget.items);
 
-          return ItemToolbar(
-            searchFilter: _searchFilter,
-            selectedTypes: _selectedTypes,
-            onFilterChanged: _onFilterChanged,
-            sortMode: _sortMode,
-            onSortChanged: _onSortChanged,
-            viewMode: _viewMode,
-            onViewModeChanged: _onViewModeChanged,
-            displayMode: _displayMode,
-            onDisplayModeChanged: _onDisplayModeChanged,
-            showSearch: widget.showSearch,
-            showTagFilterButton: widget.enableTagFiltering,
-            includedTagNames: includedTags,
-            excludedTagNames: excludedTags,
-            onTagFilterPressed:
-                widget.enableTagFiltering ? _openTagFilterModal : null,
-            onSearchSubmitted:
-                widget.enableTagFiltering ? _handleSearchSubmitted : null,
-            isDeleteMode: _isDeleteMode,
-            selectedCount: _selectedItems.length,
-            onDeleteModeToggled:
-                widget.onDeleteRequested != null ? _toggleDeleteMode : null,
-            onDeletePressed: _handleDeletePressed,
-          );
-        }),
-        ItemStatsBar(
-          linkCount: _itemCounts[FolderItemType.link] ?? 0,
-          documentCount: _itemCounts[FolderItemType.document] ?? 0,
-          folderCount: _itemCounts[FolderItemType.folder] ?? 0,
-          selectedTypes: _selectedTypes,
-          onFilterChanged: _onFilterChanged,
-        ),
-        Expanded(
-          child: Watch((context) {
-            // Trigger rebuild when search query changes
-            final currentQuery = _searchFilter.controller.query.value;
-            final filtered = _getFilteredAndSortedItems(currentQuery);
+      return Column(
+        children: [
+          Watch((context) {
+            final includedTags = _notifier.tagFilterState.includedTags.value;
+            final excludedTags = _notifier.tagFilterState.excludedTags.value;
+            final isDeleteMode = _notifier.isDeleteMode.value;
+            final selectedCount = _notifier.selectedItems.value.length;
 
-            return _viewMode == ViewMode.grid
-                ? ItemGridView(
-                    items: filtered,
-                    displayMode: _displayMode,
-                    includedTagNames: _tagFilterState.includedTagNames,
-                    excludedTagNames: _tagFilterState.excludedTagNames,
-                    onItemTap: _handleItemTap,
-                    aspectRatio: _displayMode.aspectRatio,
-                    maxCrossAxisExtent: _displayMode.maxCrossAxisExtent,
-                    isDeleteMode: _isDeleteMode,
-                    selectedItemIds: _selectedItems.keys.toSet(),
-                  )
-                : ItemListView(
-                    items: filtered,
-                    displayMode: _displayMode,
-                    includedTagNames: _tagFilterState.includedTagNames,
-                    excludedTagNames: _tagFilterState.excludedTagNames,
-                    onItemTap: _handleItemTap,
-                    isDeleteMode: _isDeleteMode,
-                    selectedItemIds: _selectedItems.keys.toSet(),
-                  );
+            return ItemToolbar(
+              searchFilter: _notifier.searchFilter,
+              selectedTypes: _notifier.selectedTypes.value,
+              onFilterChanged: _notifier.setSelectedTypes,
+              sortMode: _notifier.sortMode.value,
+              onSortChanged: _notifier.setSortMode,
+              viewMode: _notifier.viewMode.value,
+              onViewModeChanged: _notifier.setViewMode,
+              displayMode: _notifier.displayMode.value,
+              onDisplayModeChanged: (mode) => _notifier.setDisplayMode(
+                mode,
+                context: widget.displayModeContext,
+              ),
+              showSearch: widget.showSearch,
+              showTagFilterButton: widget.enableTagFiltering,
+              includedTagNames: includedTags,
+              excludedTagNames: excludedTags,
+              onTagFilterPressed:
+                  widget.enableTagFiltering ? _openTagFilterModal : null,
+              onSearchSubmitted: widget.enableTagFiltering
+                  ? _notifier.handleSearchSubmitted
+                  : null,
+              isDeleteMode: isDeleteMode,
+              selectedCount: selectedCount,
+              onDeleteModeToggled: widget.onDeleteRequested != null
+                  ? _notifier.toggleDeleteMode
+                  : null,
+              onDeletePressed: _handleDeletePressed,
+            );
           }),
-        ),
-      ],
-    );
+          ItemStatsBar(
+            linkCount: itemCounts[FolderItemType.link] ?? 0,
+            documentCount: itemCounts[FolderItemType.document] ?? 0,
+            folderCount: itemCounts[FolderItemType.folder] ?? 0,
+            selectedTypes: _notifier.selectedTypes.value,
+            onFilterChanged: _notifier.setSelectedTypes,
+          ),
+          Expanded(
+            child: Watch((context) {
+              final currentQuery =
+                  _notifier.searchFilter.controller.query.value;
+              final viewMode = _notifier.viewMode.value;
+              final displayModeVal = _notifier.displayMode.value;
+              final isDeleteMode = _notifier.isDeleteMode.value;
+              final selectedItemIds =
+                  _notifier.selectedItems.value.keys.toSet();
+              final filtered = _notifier.getFilteredAndSortedItems(
+                items: widget.items,
+                query: currentQuery,
+                enableTagFiltering: widget.enableTagFiltering,
+              );
+
+              return viewMode == ViewMode.grid
+                  ? ItemGridView(
+                      items: filtered,
+                      displayMode: displayModeVal,
+                      includedTagNames:
+                          _notifier.tagFilterState.includedTagNames,
+                      excludedTagNames:
+                          _notifier.tagFilterState.excludedTagNames,
+                      onItemTap: _handleItemTap,
+                      aspectRatio: displayModeVal.aspectRatio,
+                      maxCrossAxisExtent: displayModeVal.maxCrossAxisExtent,
+                      isDeleteMode: isDeleteMode,
+                      selectedItemIds: selectedItemIds,
+                    )
+                  : ItemListView(
+                      items: filtered,
+                      displayMode: displayModeVal,
+                      includedTagNames:
+                          _notifier.tagFilterState.includedTagNames,
+                      excludedTagNames:
+                          _notifier.tagFilterState.excludedTagNames,
+                      onItemTap: _handleItemTap,
+                      isDeleteMode: isDeleteMode,
+                      selectedItemIds: selectedItemIds,
+                    );
+            }),
+          ),
+        ],
+      );
+    });
   }
 }
