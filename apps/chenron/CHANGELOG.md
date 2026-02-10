@@ -2,6 +2,25 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## chenron-v0.9.1 - 2026-02-10
+#### Bug Fixes
+- add error handling for fire-and-forget calls and debug output - (640d7b3) - *piperun*
+#### Refactoring
+- replace hardcoded breakpoints with shared constants - (e183596) - *piperun*
+- extract runLogged utilities and deduplicate service errors - (757c4e8) - *piperun*
+- extract SelectableItemWrapper and fix widget keys - (61edf17) - *piperun*
+- fix O(n^2) lookups, batch updates, and search optimization - (498c107) - *piperun*
+- add infinite scroll pagination for folder viewer - (303cac1) - *piperun*
+- extract duration constants for animations and debounce - (4391d22) - *piperun*
+- extract FilterableItemDisplayNotifier with Signals - (419554a) - *piperun*
+- migrate Dashboard from setState to Signals - (5ccb14c) - *piperun*
+- migrate CreateLinkNotifier from ChangeNotifier to Signals - (a958ead) - *piperun*
+- migrate ViewerPresenter from ChangeNotifier to Signals - (8f7049e) - *piperun*
+- migrate ItemTableNotifier from ChangeNotifier to Signals - (f0459cc) - *piperun*
+- extract UI components and deduplicate database builders - (48f515c) - *piperun*
+
+- - -
+
 ## chenron-v0.9.0 - 2026-02-09
 #### Features
 - add CD workflow for Windows and Linux releases - (aea3728) - *piperun*
