@@ -63,6 +63,7 @@ example.png
 *.pem
 *.key
 *.p12
+*.pfx
 
 docs/
 

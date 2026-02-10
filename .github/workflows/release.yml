@@ -58,18 +58,13 @@ jobs:
             -Path "apps/chenron/build/windows/x64/runner/Release/*" `
             -DestinationPath "chenron-$env:VERSION-windows-x64.zip"
 
-      - name: Generate self-signed certificate
+      - name: Decode signing certificate
         shell: pwsh
+        env:
+          CERT_BASE64: ${{ secrets.MSIX_CERTIFICATE_BASE64 }}
         run: |
-          $cert = New-SelfSignedCertificate `
-            -Type Custom `
-            -Subject "CN=Chenron, O=Chenron, C=US" `
-            -KeyUsage DigitalSignature `
-            -FriendlyName "Chenron App" `
-            -CertStoreLocation "Cert:\CurrentUser\My" `
-            -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}")
-          $password = ConvertTo-SecureString -String "msix-ci-password" -Force -AsPlainText
-          Export-PfxCertificate -cert $cert -FilePath "apps/chenron/cert.pfx" -Password $password
+          $bytes = [Convert]::FromBase64String($env:CERT_BASE64)
+          [IO.File]::WriteAllBytes("apps/chenron/cert.pfx", $bytes)
 
       - name: Create MSIX package
         working-directory: apps/chenron
@@ -86,6 +81,11 @@ jobs:
             exit 1
           }
 
+      - name: Copy install script
+        shell: pwsh
+        run: |
+          Copy-Item "apps/chenron/windows/install.ps1" "install-chenron.ps1"
+
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -93,6 +93,7 @@ jobs:
           path: |
             chenron-${{ env.VERSION }}-windows-x64.zip
             chenron-${{ env.VERSION }}-windows-x64.msix
+            install-chenron.ps1
 
   build-linux:
     needs: extract-version
@@ -186,12 +187,13 @@ jobs:
             | Linux x64 | `chenron-${{ env.VERSION }}-linux-x64.tar.gz` | `chenron-${{ env.VERSION }}-linux-x64.flatpak` |
 
             ### Notes
-            - **Windows MSIX**: Self-signed for sideloading. Right-click → Install, or use `Add-AppxPackage` in PowerShell.
+            - **Windows MSIX**: Download `install-chenron.ps1` and the `.msix` into the same folder, then run the script in PowerShell as Admin. It installs the signing certificate and the app in one step.
             - **Linux Flatpak**: Install with `flatpak install chenron-${{ env.VERSION }}-linux-x64.flatpak`
-            - **Zip/Tarball**: Extract and run the `chenron` binary directly.
+            - **Zip/Tarball**: Extract and run the `chenron` binary directly (no signing needed).
           files: |
             chenron-${{ env.VERSION }}-windows-x64.zip
             chenron-${{ env.VERSION }}-windows-x64.msix
+            install-chenron.ps1
             chenron-${{ env.VERSION }}-linux-x64.tar.gz
             chenron-${{ env.VERSION }}-linux-x64.flatpak
           draft: false
