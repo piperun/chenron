@@ -1,5 +1,6 @@
 import "package:database/main.dart";
 import "package:flutter/material.dart";
+import "package:chenron/shared/section_card/section_card.dart";
 import "package:chenron/shared/ui/folder_picker.dart";
 
 class LinkFolderSection extends StatelessWidget {
@@ -16,42 +17,27 @@ class LinkFolderSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.folder, size: 20, color: theme.colorScheme.primary),
-                const SizedBox(width: 8),
-                Text(
-                  "Target Folders",
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Text(
-              "Select which folder(s) the links will be added to",
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 12),
-            FolderPicker(
-              key: const Key("link_folder_picker"),
-              initialFolders: selectedFolders,
-              onFoldersSelected: onFoldersChanged,
-            ),
-          ],
+    return CardSection(
+      sectionIcon: const Icon(Icons.folder),
+      title: Text(
+        "Target Folders",
+        style: theme.textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.w600,
         ),
       ),
+      description: Text(
+        "Select which folder(s) the links will be added to",
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+      ),
+      children: [
+        FolderPicker(
+          key: const Key("link_folder_picker"),
+          initialFolders: selectedFolders,
+          onFoldersSelected: onFoldersChanged,
+        ),
+      ],
     );
   }
 }

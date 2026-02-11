@@ -3,6 +3,7 @@ import "package:database/main.dart";
 import "package:flutter/material.dart";
 import "package:database/database.dart";
 import "package:chenron/locator.dart";
+import "package:chenron/shared/section_card/section_card.dart";
 
 import "package:signals/signals_flutter.dart";
 
@@ -42,59 +43,43 @@ class _FolderParentSectionState extends State<FolderParentSection> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.folder_open,
-                    size: 20, color: theme.colorScheme.primary),
-                const SizedBox(width: 8),
-                Text(
-                  "Parent Folders",
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Text(
-              "Add this folder to existing folders (optional)",
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  ...widget.selectedFolders.map((folder) => Chip(
-                        label: Text(folder.title),
-                        onDeleted: () {
-                          final updated =
-                              List<Folder>.from(widget.selectedFolders)
-                                ..remove(folder);
-                          widget.onFoldersChanged(updated);
-                        },
-                        deleteIconColor: theme.colorScheme.error,
-                      )),
-                  ActionChip(
-                    avatar: const Icon(Icons.add, size: 18),
-                    label: const Text("Add Folder"),
-                    onPressed: _showFolderSelectionDialog,
-                  ),
-                ],
-              ),
-          ],
+    return CardSection(
+      sectionIcon: const Icon(Icons.folder_open),
+      title: Text(
+        "Parent Folders",
+        style: theme.textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.w600,
         ),
       ),
+      description: Text(
+        "Add this folder to existing folders (optional)",
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+      ),
+      children: [
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            ...widget.selectedFolders.map((folder) => Chip(
+                  label: Text(folder.title),
+                  onDeleted: () {
+                    final updated =
+                        List<Folder>.from(widget.selectedFolders)
+                          ..remove(folder);
+                    widget.onFoldersChanged(updated);
+                  },
+                  deleteIconColor: theme.colorScheme.error,
+                )),
+            ActionChip(
+              avatar: const Icon(Icons.add, size: 18),
+              label: const Text("Add Folder"),
+              onPressed: _showFolderSelectionDialog,
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

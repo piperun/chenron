@@ -1,7 +1,8 @@
 import "package:database/main.dart";
 import "package:flutter/material.dart";
 import "package:chenron/features/create/link/models/link_entry.dart";
-
+import "package:chenron/shared/bottom_sheet/bottom_sheet_scaffold.dart";
+import "package:chenron/shared/bottom_sheet/sheet_action_bar.dart";
 import "package:chenron/utils/validation/tag_validator.dart";
 
 class LinkEditBottomSheet extends StatefulWidget {
@@ -107,150 +108,72 @@ class _LinkEditBottomSheetState extends State<LinkEditBottomSheet> {
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
 
-    return DraggableScrollableSheet(
-      initialChildSize: 0.6,
-      minChildSize: 0.4,
-      maxChildSize: 0.9,
-      builder: (context, scrollController) {
-        return _SheetContainer(
-          child: Column(
-            children: [
-              const _Handle(),
-              _Header(onCancel: widget.onCancel),
-              const Divider(height: 1),
-              Expanded(
-                child: SingleChildScrollView(
-                  controller: scrollController,
-                  padding: EdgeInsets.only(
-                    left: 16,
-                    right: 16,
-                    top: 16,
-                    bottom: bottomPadding + 16,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _UrlField(controller: _urlController),
-                      const SizedBox(height: 20),
-                      _TagsSection(
-                        tags: _tags,
-                        controller: _tagsController,
-                        onAddTag: _addTag,
-                        onRemoveTag: _removeTag,
-                      ),
-                      const SizedBox(height: 20),
-                      if (widget.availableFolders != null &&
-                          widget.availableFolders!.isNotEmpty) ...[
-                        _FoldersSection(
-                          folders: widget.availableFolders!,
-                          selectedFolderIds: _selectedFolderIds,
-                          onFolderToggled: (folderId, {required selected}) {
-                            setState(() {
-                              if (selected) {
-                                _selectedFolderIds.add(folderId);
-                              } else {
-                                _selectedFolderIds.remove(folderId);
-                              }
-                            });
-                          },
-                        ),
-                        const SizedBox(height: 20),
-                      ],
-                      _ArchiveToggle(
-                        value: _isArchived,
-                        onChanged: (value) =>
-                            setState(() => _isArchived = value),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              _Actions(
-                onCancel: widget.onCancel,
-                onSave: _handleSave,
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _SheetContainer extends StatelessWidget {
-  final Widget child;
-
-  const _SheetContainer({required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: child,
-    );
-  }
-}
-
-class _Handle extends StatelessWidget {
-  const _Handle();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      margin: const EdgeInsets.only(top: 12, bottom: 8),
-      width: 40,
-      height: 4,
-      decoration: BoxDecoration(
-        color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(2),
-      ),
-    );
-  }
-}
-
-class _Header extends StatelessWidget {
-  final VoidCallback onCancel;
-
-  const _Header({required this.onCancel});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          Icon(Icons.edit, color: theme.colorScheme.primary),
-          const SizedBox(width: 12),
-          Text(
-            "Edit Link",
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w600,
+    return BottomSheetScaffold(
+      headerIcon: Icons.edit,
+      title: "Edit Link",
+      onClose: widget.onCancel,
+      bodyBuilder: (scrollController) => SingleChildScrollView(
+        controller: scrollController,
+        padding: EdgeInsets.only(
+          left: 16,
+          right: 16,
+          top: 16,
+          bottom: bottomPadding + 16,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _UrlField(controller: _urlController),
+            const SizedBox(height: 20),
+            _TagsSection(
+              tags: _tags,
+              controller: _tagsController,
+              onAddTag: _addTag,
+              onRemoveTag: _removeTag,
             ),
+            const SizedBox(height: 20),
+            if (widget.availableFolders != null &&
+                widget.availableFolders!.isNotEmpty) ...[
+              _FoldersSection(
+                folders: widget.availableFolders!,
+                selectedFolderIds: _selectedFolderIds,
+                onFolderToggled: (folderId, {required selected}) {
+                  setState(() {
+                    if (selected) {
+                      _selectedFolderIds.add(folderId);
+                    } else {
+                      _selectedFolderIds.remove(folderId);
+                    }
+                  });
+                },
+              ),
+              const SizedBox(height: 20),
+            ],
+            _ArchiveToggle(
+              value: _isArchived,
+              onChanged: (value) =>
+                  setState(() => _isArchived = value),
+            ),
+          ],
+        ),
+      ),
+      actions: SheetActionBar(
+        trailing: [
+          TextButton(
+            onPressed: widget.onCancel,
+            child: const Text("Cancel"),
           ),
-          const Spacer(),
-          IconButton(
-            icon: const Icon(Icons.close),
-            onPressed: onCancel,
-            tooltip: "Close",
+          FilledButton.icon(
+            onPressed: _handleSave,
+            icon: const Icon(Icons.save, size: 18),
+            label: const Text("Update"),
           ),
         ],
       ),
     );
   }
 }
+
 
 class _UrlField extends StatelessWidget {
   final TextEditingController controller;
@@ -436,40 +359,3 @@ class _ArchiveToggle extends StatelessWidget {
   }
 }
 
-class _Actions extends StatelessWidget {
-  final VoidCallback onCancel;
-  final VoidCallback onSave;
-
-  const _Actions({
-    required this.onCancel,
-    required this.onSave,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        border: Border(
-          top: BorderSide(color: theme.colorScheme.outlineVariant),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          TextButton(
-            onPressed: onCancel,
-            child: const Text("Cancel"),
-          ),
-          const SizedBox(width: 12),
-          FilledButton.icon(
-            onPressed: onSave,
-            icon: const Icon(Icons.save, size: 18),
-            label: const Text("Update"),
-          ),
-        ],
-      ),
-    );
-  }
-}

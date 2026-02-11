@@ -3,7 +3,7 @@ import "package:chenron/components/tables/item_table.dart";
 import "package:database/models/item.dart";
 import "package:chenron/notifiers/item_table_notifier.dart";
 import "package:trina_grid/trina_grid.dart";
-import "package:chenron/features/folder_editor/widgets/item_section/empty_state_message.dart";
+import "package:chenron/shared/empty_state/empty_state.dart";
 
 class ItemTableView extends StatelessWidget {
   final List<FolderItem> items;
@@ -27,7 +27,7 @@ class ItemTableView extends StatelessWidget {
   Widget build(BuildContext context) {
     // No items at all
     if (items.isEmpty && allItems.isEmpty) {
-      return const EmptyStateMessage(
+      return const EmptyState(
         message: "No items in this folder",
         icon: Icons.folder_open,
       );
@@ -35,7 +35,7 @@ class ItemTableView extends StatelessWidget {
 
     // Has items but search returned nothing
     if (items.isEmpty && hasSearchQuery) {
-      return const EmptyStateMessage(
+      return const EmptyState(
         message: "No items match your search",
         icon: Icons.search_off,
       );

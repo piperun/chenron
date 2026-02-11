@@ -1,34 +1,13 @@
 import "package:flutter/material.dart";
+import "package:chenron/shared/empty_state/empty_state.dart";
 
-/// Empty state display for link tables
+/// Empty state display for link tables.
 class LinkEmptyState {
   static Widget build(ThemeData theme) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.link_off,
-            size: 64,
-            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            "No links added yet",
-            style: theme.textTheme.bodyLarge?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            "Add URLs above to see them here",
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-            ),
-          ),
-        ],
-      ),
+    return const EmptyState(
+      icon: Icons.link_off,
+      message: "No links added yet",
+      subtitle: "Add URLs above to see them here",
     );
   }
 }
-
