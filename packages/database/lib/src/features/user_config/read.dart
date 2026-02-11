@@ -30,7 +30,7 @@ extension UserConfigReadExtensions on ConfigDatabase {
   // User theme methods matching exactly how folder works
   Future<UserThemeResult?> getUserTheme({
     required String themeKey,
-    IncludeOptions<Enum> includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<ConfigIncludes> includeOptions = const IncludeOptions.empty(),
   }) {
     return _UserThemeReadRepository(db: this).getOne(
       id: themeKey,
@@ -39,7 +39,7 @@ extension UserConfigReadExtensions on ConfigDatabase {
   }
 
   Future<List<UserThemeResult>> getAllUserThemes({
-    IncludeOptions<Enum> includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<ConfigIncludes> includeOptions = const IncludeOptions.empty(),
   }) {
     return _UserThemeReadRepository(db: this).getAll(
       includeOptions: includeOptions,
@@ -48,7 +48,7 @@ extension UserConfigReadExtensions on ConfigDatabase {
 
   Stream<UserThemeResult?> watchUserTheme({
     required String themeId,
-    IncludeOptions<Enum> includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<ConfigIncludes> includeOptions = const IncludeOptions.empty(),
   }) {
     return _UserThemeReadRepository(db: this).watchOne(
       id: themeId,
@@ -57,7 +57,7 @@ extension UserConfigReadExtensions on ConfigDatabase {
   }
 
   Stream<List<UserThemeResult>> watchAllUserThemes({
-    IncludeOptions<Enum> includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<ConfigIncludes> includeOptions = const IncludeOptions.empty(),
   }) {
     return _UserThemeReadRepository(db: this).watchAll(
       includeOptions: includeOptions,
@@ -66,7 +66,7 @@ extension UserConfigReadExtensions on ConfigDatabase {
 
   Future<List<UserThemeResult>> searchUserThemes({
     required String query,
-    IncludeOptions<Enum> includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<ConfigIncludes> includeOptions = const IncludeOptions.empty(),
   }) {
     return _UserThemeReadRepository(db: this).searchTable(
       query: query,
@@ -136,10 +136,10 @@ class _UserConfigReadRepository
 }
 
 // Repository for user theme operations using Result pattern
-class _UserThemeReadRepository extends BaseRepository<IncludeOptions<Enum>>
+class _UserThemeReadRepository extends BaseRepository<IncludeOptions<ConfigIncludes>>
     implements
-        BaseWatchRepository<IncludeOptions<Enum>>,
-        ExtraRepository<IncludeOptions<Enum>> {
+        BaseWatchRepository<IncludeOptions<ConfigIncludes>>,
+        ExtraRepository<IncludeOptions<ConfigIncludes>> {
   final ConfigDatabase db;
   final ReadDbHandler<UserThemeResult> readHandler;
 
@@ -151,7 +151,7 @@ class _UserThemeReadRepository extends BaseRepository<IncludeOptions<Enum>>
   @override
   Future<UserThemeResult?> getOne({
     required String id,
-    IncludeOptions<Enum> includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<ConfigIncludes> includeOptions = const IncludeOptions.empty(),
   }) async {
     return readHandler.getOne(
       predicate: db.userThemes.id.equals(id),
@@ -162,7 +162,7 @@ class _UserThemeReadRepository extends BaseRepository<IncludeOptions<Enum>>
 
   @override
   Future<List<UserThemeResult>> getAll({
-    IncludeOptions<Enum> includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<ConfigIncludes> includeOptions = const IncludeOptions.empty(),
   }) async {
     return readHandler.getAll(
       includeOptions: includeOptions,
@@ -173,7 +173,7 @@ class _UserThemeReadRepository extends BaseRepository<IncludeOptions<Enum>>
   @override
   Stream<UserThemeResult?> watchOne({
     required String id,
-    IncludeOptions<Enum> includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<ConfigIncludes> includeOptions = const IncludeOptions.empty(),
   }) {
     return readHandler.watchOne(
       includeOptions: includeOptions,
@@ -184,7 +184,7 @@ class _UserThemeReadRepository extends BaseRepository<IncludeOptions<Enum>>
 
   @override
   Stream<List<UserThemeResult>> watchAll({
-    IncludeOptions<Enum> includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<ConfigIncludes> includeOptions = const IncludeOptions.empty(),
   }) {
     return readHandler.watchAll(
       includeOptions: includeOptions,
@@ -195,7 +195,7 @@ class _UserThemeReadRepository extends BaseRepository<IncludeOptions<Enum>>
   @override
   Future<List<UserThemeResult>> searchTable({
     required String query,
-    IncludeOptions<Enum> includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<ConfigIncludes> includeOptions = const IncludeOptions.empty(),
   }) async {
     return readHandler.searchTable(
       query: query,

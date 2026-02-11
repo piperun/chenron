@@ -7,28 +7,28 @@ import "package:database/src/core/handlers/read_handler.dart";
 extension LinkReadExtensions on AppDatabase {
   Future<LinkResult?> getLink({
     required String linkId,
-    IncludeOptions includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<AppDataInclude> includeOptions = const IncludeOptions<AppDataInclude>.empty(),
   }) {
     return _LinkReadRepository(db: this)
         .getOne(id: linkId, includeOptions: includeOptions);
   }
 
   Future<List<LinkResult>> getAllLinks({
-    IncludeOptions includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<AppDataInclude> includeOptions = const IncludeOptions<AppDataInclude>.empty(),
   }) async {
     return _LinkReadRepository(db: this).getAll(includeOptions: includeOptions);
   }
 
   Stream<LinkResult?> watchLink({
     required String linkId,
-    IncludeOptions includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<AppDataInclude> includeOptions = const IncludeOptions<AppDataInclude>.empty(),
   }) {
     return _LinkReadRepository(db: this)
         .watchOne(id: linkId, includeOptions: includeOptions);
   }
 
   Stream<List<LinkResult>> watchAllLinks({
-    IncludeOptions includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<AppDataInclude> includeOptions = const IncludeOptions<AppDataInclude>.empty(),
   }) {
     return _LinkReadRepository(db: this)
         .watchAll(includeOptions: includeOptions);
@@ -36,17 +36,17 @@ extension LinkReadExtensions on AppDatabase {
 
   Future<List<LinkResult>> searchLinks({
     required String query,
-    IncludeOptions includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<AppDataInclude> includeOptions = const IncludeOptions<AppDataInclude>.empty(),
   }) async {
     return _LinkReadRepository(db: this)
         .searchTable(query: query, includeOptions: includeOptions);
   }
 }
 
-class _LinkReadRepository extends BaseRepository<IncludeOptions>
+class _LinkReadRepository extends BaseRepository<IncludeOptions<AppDataInclude>>
     implements
-        BaseWatchRepository<IncludeOptions>,
-        ExtraRepository<IncludeOptions> {
+        BaseWatchRepository<IncludeOptions<AppDataInclude>>,
+        ExtraRepository<IncludeOptions<AppDataInclude>> {
   final AppDatabase db;
   final ReadDbHandler<LinkResult> readHandler;
 
@@ -57,7 +57,7 @@ class _LinkReadRepository extends BaseRepository<IncludeOptions>
   @override
   Future<LinkResult?> getOne({
     required String id,
-    IncludeOptions includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<AppDataInclude> includeOptions = const IncludeOptions<AppDataInclude>.empty(),
   }) async {
     return readHandler.getOne(
       includeOptions: includeOptions,
@@ -68,7 +68,7 @@ class _LinkReadRepository extends BaseRepository<IncludeOptions>
 
   @override
   Future<List<LinkResult>> getAll({
-    IncludeOptions includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<AppDataInclude> includeOptions = const IncludeOptions<AppDataInclude>.empty(),
   }) async {
     return readHandler.getAll(
       includeOptions: includeOptions,
@@ -79,7 +79,7 @@ class _LinkReadRepository extends BaseRepository<IncludeOptions>
   @override
   Stream<LinkResult?> watchOne({
     required String id,
-    IncludeOptions includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<AppDataInclude> includeOptions = const IncludeOptions<AppDataInclude>.empty(),
   }) {
     return readHandler.watchOne(
         includeOptions: includeOptions,
@@ -89,7 +89,7 @@ class _LinkReadRepository extends BaseRepository<IncludeOptions>
 
   @override
   Stream<List<LinkResult>> watchAll({
-    IncludeOptions includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<AppDataInclude> includeOptions = const IncludeOptions<AppDataInclude>.empty(),
   }) {
     return readHandler.watchAll(
       includeOptions: includeOptions,
@@ -100,7 +100,7 @@ class _LinkReadRepository extends BaseRepository<IncludeOptions>
   @override
   Future<List<LinkResult>> searchTable({
     required String query,
-    IncludeOptions includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<AppDataInclude> includeOptions = const IncludeOptions<AppDataInclude>.empty(),
   }) async {
     return readHandler.searchTable(
       query: query,

@@ -9,7 +9,7 @@ extension TagReadExtensions on AppDatabase {
   /// Retrieves a single tag by its ID.
   Future<TagResult?> getTag({
     required String tagId,
-    IncludeOptions includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<AppDataInclude> includeOptions = const IncludeOptions<AppDataInclude>.empty(),
   }) {
     return _TagReadRepository(db: this)
         .getOne(id: tagId, includeOptions: includeOptions);
@@ -18,7 +18,7 @@ extension TagReadExtensions on AppDatabase {
   /// Retrieves all tags. If [modes] contains relation options,
   /// related data can be loaded as well.
   Future<List<TagResult>> getAllTags({
-    IncludeOptions includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<AppDataInclude> includeOptions = const IncludeOptions<AppDataInclude>.empty(),
   }) {
     return _TagReadRepository(db: this).getAll(includeOptions: includeOptions);
   }
@@ -26,7 +26,7 @@ extension TagReadExtensions on AppDatabase {
   /// Watches a single tag by its ID as a stream of Result
   Stream<TagResult?> watchTag({
     required String tagId,
-    IncludeOptions includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<AppDataInclude> includeOptions = const IncludeOptions<AppDataInclude>.empty(),
   }) {
     return _TagReadRepository(db: this)
         .watchOne(id: tagId, includeOptions: includeOptions);
@@ -34,7 +34,7 @@ extension TagReadExtensions on AppDatabase {
 
   /// Watches all tags, returning them as a stream of Result lists.
   Stream<List<TagResult>> watchAllTags({
-    IncludeOptions includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<AppDataInclude> includeOptions = const IncludeOptions<AppDataInclude>.empty(),
   }) {
     return _TagReadRepository(db: this)
         .watchAll(includeOptions: includeOptions);
@@ -44,17 +44,17 @@ extension TagReadExtensions on AppDatabase {
   /// matching the given [query].
   Future<List<TagResult>> searchTags({
     required String query,
-    IncludeOptions includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<AppDataInclude> includeOptions = const IncludeOptions<AppDataInclude>.empty(),
   }) {
     return _TagReadRepository(db: this)
         .searchTable(query: query, includeOptions: includeOptions);
   }
 }
 
-class _TagReadRepository extends BaseRepository<IncludeOptions>
+class _TagReadRepository extends BaseRepository<IncludeOptions<AppDataInclude>>
     implements
-        BaseWatchRepository<IncludeOptions>,
-        ExtraRepository<IncludeOptions> {
+        BaseWatchRepository<IncludeOptions<AppDataInclude>>,
+        ExtraRepository<IncludeOptions<AppDataInclude>> {
   final AppDatabase db;
   final ReadDbHandler<TagResult> readHandler;
 
@@ -68,7 +68,7 @@ class _TagReadRepository extends BaseRepository<IncludeOptions>
   @override
   Future<TagResult?> getOne({
     required String id,
-    IncludeOptions includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<AppDataInclude> includeOptions = const IncludeOptions<AppDataInclude>.empty(),
   }) async {
     return readHandler.getOne(
       includeOptions: includeOptions,
@@ -79,7 +79,7 @@ class _TagReadRepository extends BaseRepository<IncludeOptions>
 
   @override
   Future<List<TagResult>> getAll({
-    IncludeOptions includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<AppDataInclude> includeOptions = const IncludeOptions<AppDataInclude>.empty(),
   }) async {
     return readHandler.getAll(
       includeOptions: includeOptions,
@@ -90,7 +90,7 @@ class _TagReadRepository extends BaseRepository<IncludeOptions>
   @override
   Stream<TagResult?> watchOne({
     required String id,
-    IncludeOptions includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<AppDataInclude> includeOptions = const IncludeOptions<AppDataInclude>.empty(),
   }) {
     return readHandler.watchOne(
       includeOptions: includeOptions,
@@ -101,7 +101,7 @@ class _TagReadRepository extends BaseRepository<IncludeOptions>
 
   @override
   Stream<List<TagResult>> watchAll({
-    IncludeOptions includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<AppDataInclude> includeOptions = const IncludeOptions<AppDataInclude>.empty(),
   }) {
     return readHandler.watchAll(
       includeOptions: includeOptions,
@@ -112,7 +112,7 @@ class _TagReadRepository extends BaseRepository<IncludeOptions>
   @override
   Future<List<TagResult>> searchTable({
     required String query,
-    IncludeOptions includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<AppDataInclude> includeOptions = const IncludeOptions<AppDataInclude>.empty(),
   }) async {
     return readHandler.searchTable(
       query: query,

@@ -7,14 +7,14 @@ import "package:database/src/core/handlers/read_handler.dart";
 extension DocumentReadExtensions on AppDatabase {
   Future<DocumentResult?> getDocument({
     required String documentId,
-    IncludeOptions includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<AppDataInclude> includeOptions = const IncludeOptions<AppDataInclude>.empty(),
   }) {
     return _DocumentReadRepository(db: this)
         .getOne(id: documentId, includeOptions: includeOptions);
   }
 
   Future<List<DocumentResult>> getAllDocuments({
-    IncludeOptions includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<AppDataInclude> includeOptions = const IncludeOptions<AppDataInclude>.empty(),
   }) async {
     return _DocumentReadRepository(db: this)
         .getAll(includeOptions: includeOptions);
@@ -22,14 +22,14 @@ extension DocumentReadExtensions on AppDatabase {
 
   Stream<DocumentResult?> watchDocument({
     required String documentId,
-    IncludeOptions includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<AppDataInclude> includeOptions = const IncludeOptions<AppDataInclude>.empty(),
   }) {
     return _DocumentReadRepository(db: this)
         .watchOne(id: documentId, includeOptions: includeOptions);
   }
 
   Stream<List<DocumentResult>> watchAllDocuments({
-    IncludeOptions includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<AppDataInclude> includeOptions = const IncludeOptions<AppDataInclude>.empty(),
   }) {
     return _DocumentReadRepository(db: this)
         .watchAll(includeOptions: includeOptions);
@@ -37,17 +37,17 @@ extension DocumentReadExtensions on AppDatabase {
 
   Future<List<DocumentResult>> searchDocuments({
     required String query,
-    IncludeOptions includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<AppDataInclude> includeOptions = const IncludeOptions<AppDataInclude>.empty(),
   }) async {
     return _DocumentReadRepository(db: this)
         .searchTable(query: query, includeOptions: includeOptions);
   }
 }
 
-class _DocumentReadRepository extends BaseRepository<IncludeOptions>
+class _DocumentReadRepository extends BaseRepository<IncludeOptions<AppDataInclude>>
     implements
-        BaseWatchRepository<IncludeOptions>,
-        ExtraRepository<IncludeOptions> {
+        BaseWatchRepository<IncludeOptions<AppDataInclude>>,
+        ExtraRepository<IncludeOptions<AppDataInclude>> {
   final AppDatabase db;
   final ReadDbHandler<DocumentResult> readHandler;
 
@@ -59,7 +59,7 @@ class _DocumentReadRepository extends BaseRepository<IncludeOptions>
   @override
   Future<DocumentResult?> getOne({
     required String id,
-    IncludeOptions includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<AppDataInclude> includeOptions = const IncludeOptions<AppDataInclude>.empty(),
   }) async {
     return readHandler.getOne(
       includeOptions: includeOptions,
@@ -70,7 +70,7 @@ class _DocumentReadRepository extends BaseRepository<IncludeOptions>
 
   @override
   Future<List<DocumentResult>> getAll({
-    IncludeOptions includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<AppDataInclude> includeOptions = const IncludeOptions<AppDataInclude>.empty(),
   }) async {
     return readHandler.getAll(
       includeOptions: includeOptions,
@@ -81,7 +81,7 @@ class _DocumentReadRepository extends BaseRepository<IncludeOptions>
   @override
   Stream<DocumentResult?> watchOne({
     required String id,
-    IncludeOptions includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<AppDataInclude> includeOptions = const IncludeOptions<AppDataInclude>.empty(),
   }) {
     return readHandler.watchOne(
         includeOptions: includeOptions,
@@ -91,7 +91,7 @@ class _DocumentReadRepository extends BaseRepository<IncludeOptions>
 
   @override
   Stream<List<DocumentResult>> watchAll({
-    IncludeOptions includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<AppDataInclude> includeOptions = const IncludeOptions<AppDataInclude>.empty(),
   }) {
     return readHandler.watchAll(
       includeOptions: includeOptions,
@@ -102,7 +102,7 @@ class _DocumentReadRepository extends BaseRepository<IncludeOptions>
   @override
   Future<List<DocumentResult>> searchTable({
     required String query,
-    IncludeOptions includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<AppDataInclude> includeOptions = const IncludeOptions<AppDataInclude>.empty(),
   }) async {
     return readHandler.searchTable(
       query: query,

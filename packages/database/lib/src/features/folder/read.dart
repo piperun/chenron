@@ -7,7 +7,7 @@ import "package:database/src/core/handlers/read_handler.dart";
 extension FolderReadExtensions on AppDatabase {
   Future<FolderResult?> getFolder({
     required String folderId,
-    IncludeOptions includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<AppDataInclude> includeOptions = const IncludeOptions<AppDataInclude>.empty(),
   }) {
     return _FolderReadRepository(db: this).getOne(
       id: folderId,
@@ -16,7 +16,7 @@ extension FolderReadExtensions on AppDatabase {
   }
 
   Future<List<FolderResult>> getAllFolders({
-    IncludeOptions includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<AppDataInclude> includeOptions = const IncludeOptions<AppDataInclude>.empty(),
   }) async {
     return _FolderReadRepository(db: this)
         .getAll(includeOptions: includeOptions);
@@ -24,7 +24,7 @@ extension FolderReadExtensions on AppDatabase {
 
   Stream<FolderResult?> watchFolder({
     required String folderId,
-    IncludeOptions includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<AppDataInclude> includeOptions = const IncludeOptions<AppDataInclude>.empty(),
   }) {
     return _FolderReadRepository(db: this).watchOne(
       id: folderId,
@@ -33,7 +33,7 @@ extension FolderReadExtensions on AppDatabase {
   }
 
   Stream<List<FolderResult>> watchAllFolders({
-    IncludeOptions includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<AppDataInclude> includeOptions = const IncludeOptions<AppDataInclude>.empty(),
   }) {
     return _FolderReadRepository(db: this)
         .watchAll(includeOptions: includeOptions);
@@ -54,7 +54,7 @@ extension FolderReadExtensions on AppDatabase {
 
   Future<List<FolderResult>> searchFolders({
     required String query,
-    IncludeOptions includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<AppDataInclude> includeOptions = const IncludeOptions<AppDataInclude>.empty(),
   }) async {
     return _FolderReadRepository(db: this).searchTable(
       query: query,
@@ -63,10 +63,10 @@ extension FolderReadExtensions on AppDatabase {
   }
 }
 
-class _FolderReadRepository extends BaseRepository<IncludeOptions>
+class _FolderReadRepository extends BaseRepository<IncludeOptions<AppDataInclude>>
     implements
-        BaseWatchRepository<IncludeOptions>,
-        ExtraRepository<IncludeOptions> {
+        BaseWatchRepository<IncludeOptions<AppDataInclude>>,
+        ExtraRepository<IncludeOptions<AppDataInclude>> {
   final AppDatabase db;
   final ReadDbHandler<FolderResult> readHandler;
 
@@ -77,7 +77,7 @@ class _FolderReadRepository extends BaseRepository<IncludeOptions>
   @override
   Future<FolderResult?> getOne({
     required String id,
-    IncludeOptions includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<AppDataInclude> includeOptions = const IncludeOptions<AppDataInclude>.empty(),
   }) async {
     return readHandler.getOne(
         predicate: db.folders.id.equals(id),
@@ -87,7 +87,7 @@ class _FolderReadRepository extends BaseRepository<IncludeOptions>
 
   @override
   Future<List<FolderResult>> getAll({
-    IncludeOptions includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<AppDataInclude> includeOptions = const IncludeOptions<AppDataInclude>.empty(),
   }) async {
     return readHandler.getAll(
       includeOptions: includeOptions,
@@ -98,7 +98,7 @@ class _FolderReadRepository extends BaseRepository<IncludeOptions>
   @override
   Stream<FolderResult?> watchOne({
     required String id,
-    IncludeOptions includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<AppDataInclude> includeOptions = const IncludeOptions<AppDataInclude>.empty(),
   }) {
     return readHandler.watchOne(
         includeOptions: includeOptions,
@@ -108,7 +108,7 @@ class _FolderReadRepository extends BaseRepository<IncludeOptions>
 
   @override
   Stream<List<FolderResult>> watchAll({
-    IncludeOptions includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<AppDataInclude> includeOptions = const IncludeOptions<AppDataInclude>.empty(),
   }) {
     return readHandler.watchAll(
       includeOptions: includeOptions,
@@ -119,7 +119,7 @@ class _FolderReadRepository extends BaseRepository<IncludeOptions>
   @override
   Future<List<FolderResult>> searchTable({
     required String query,
-    IncludeOptions includeOptions = const IncludeOptions.empty(),
+    IncludeOptions<AppDataInclude> includeOptions = const IncludeOptions<AppDataInclude>.empty(),
   }) async {
     return readHandler.searchTable(
         query: query,
