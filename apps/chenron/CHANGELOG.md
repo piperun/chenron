@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## chenron-v0.11.0 - 2026-02-11
+#### Features
+- add configurable database location setting - (6b92bbe) - *piperun*
+#### Refactoring
+- normalize DocumentResult to use data field - (493f350) - *piperun*
+- extract shared BottomSheetScaffold, EmptyState, and ItemPickerSheet - (a5930ea) - *piperun*
+
+- - -
+
 ## chenron-v0.10.0 - 2026-02-10
 #### Features
 - add persistent MSIX signing with install script - (978b218) - *piperun*
