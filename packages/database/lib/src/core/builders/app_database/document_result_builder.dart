@@ -23,9 +23,7 @@ class DocumentResultBuilder
   @override
   DocumentResult build() {
     return DocumentResult(
-      title: _document.title,
-      filePath: _document.filePath,
-      fileType: _document.fileType,
+      data: _document,
       tags: tags.isEmpty ? null : tags,
     );
   }

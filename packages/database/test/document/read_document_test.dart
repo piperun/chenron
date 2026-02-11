@@ -78,9 +78,8 @@ void main() {
       );
 
       expect(result, isNotNull);
-      // DocumentResult properties accessed directly
-      expect(result!.title, equals("Active Document"));
-      expect(result.filePath, equals("/path/active.pdf"));
+      expect(result!.data.title, equals("Active Document"));
+      expect(result.data.filePath, equals("/path/active.pdf"));
       expect(result.tags, isNull);
     });
 
@@ -105,9 +104,9 @@ void main() {
       final results = await database.getAllDocuments();
 
       expect(results.length, equals(2));
-      expect(results.map((r) => r.title).toList(), contains("Active Document"));
+      expect(results.map((r) => r.data.title).toList(), contains("Active Document"));
       expect(
-          results.map((r) => r.title).toList(), contains("Inactive Document"));
+          results.map((r) => r.data.title).toList(), contains("Inactive Document"));
       expect(results.every((r) => r.tags == null), isTrue);
     });
 
@@ -119,7 +118,7 @@ void main() {
       expect(results.length, equals(2));
 
       final activeResult =
-          results.firstWhere((r) => r.title == "Active Document");
+          results.firstWhere((r) => r.data.title == "Active Document");
       expect(activeResult.tags?.length, equals(2));
       expect(
         activeResult.tags!.map((t) => t.name).toSet(),
@@ -127,7 +126,7 @@ void main() {
       );
 
       final inactiveResult =
-          results.firstWhere((r) => r.title == "Inactive Document");
+          results.firstWhere((r) => r.data.title == "Inactive Document");
       expect(inactiveResult.tags?.length, equals(2));
       expect(
         inactiveResult.tags!.map((t) => t.name).toSet(),
@@ -150,7 +149,7 @@ void main() {
       expect(
         stream,
         emitsThrough(predicate<DocumentResult>((result) =>
-            result.title == "Active Document" && result.tags == null)),
+            result.data.title == "Active Document" && result.tags == null)),
       );
     });
 
@@ -183,7 +182,7 @@ void main() {
           return results.length == 2 &&
               results.every((r) => r.tags == null) &&
               results
-                  .map((r) => r.title)
+                  .map((r) => r.data.title)
                   .toSet()
                   .containsAll(["Active Document", "Inactive Document"]);
         })),

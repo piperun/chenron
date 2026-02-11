@@ -175,9 +175,7 @@ extension DbResultPatterns on DbResult {
     TResult Function(Folder data, List<Tag> tags, List<FolderItem> items)?
         folder,
     TResult Function(Link data, List<Tag> tags)? link,
-    TResult Function(String title, String filePath, DocumentFileType fileType,
-            List<Tag>? tags)?
-        document,
+    TResult Function(Document data, List<Tag>? tags)? document,
     TResult Function(String name, int? color, List<String>? relatedFolderIds,
             List<String>? relatedLinkIds, List<String>? relatedDocumentIds)?
         tag,
@@ -196,8 +194,7 @@ extension DbResultPatterns on DbResult {
       case LinkResult() when link != null:
         return link(_that.data, _that.tags);
       case DocumentResult() when document != null:
-        return document(
-            _that.title, _that.filePath, _that.fileType, _that.tags);
+        return document(_that.data, _that.tags);
       case TagResult() when tag != null:
         return tag(_that.name, _that.color, _that.relatedFolderIds,
             _that.relatedLinkIds, _that.relatedDocumentIds);
@@ -229,9 +226,7 @@ extension DbResultPatterns on DbResult {
             Folder data, List<Tag> tags, List<FolderItem> items)
         folder,
     required TResult Function(Link data, List<Tag> tags) link,
-    required TResult Function(String title, String filePath,
-            DocumentFileType fileType, List<Tag>? tags)
-        document,
+    required TResult Function(Document data, List<Tag>? tags) document,
     required TResult Function(
             String name,
             int? color,
@@ -253,8 +248,7 @@ extension DbResultPatterns on DbResult {
       case LinkResult():
         return link(_that.data, _that.tags);
       case DocumentResult():
-        return document(
-            _that.title, _that.filePath, _that.fileType, _that.tags);
+        return document(_that.data, _that.tags);
       case TagResult():
         return tag(_that.name, _that.color, _that.relatedFolderIds,
             _that.relatedLinkIds, _that.relatedDocumentIds);
@@ -284,9 +278,7 @@ extension DbResultPatterns on DbResult {
     TResult? Function(Folder data, List<Tag> tags, List<FolderItem> items)?
         folder,
     TResult? Function(Link data, List<Tag> tags)? link,
-    TResult? Function(String title, String filePath, DocumentFileType fileType,
-            List<Tag>? tags)?
-        document,
+    TResult? Function(Document data, List<Tag>? tags)? document,
     TResult? Function(String name, int? color, List<String>? relatedFolderIds,
             List<String>? relatedLinkIds, List<String>? relatedDocumentIds)?
         tag,
@@ -304,8 +296,7 @@ extension DbResultPatterns on DbResult {
       case LinkResult() when link != null:
         return link(_that.data, _that.tags);
       case DocumentResult() when document != null:
-        return document(
-            _that.title, _that.filePath, _that.fileType, _that.tags);
+        return document(_that.data, _that.tags);
       case TagResult() when tag != null:
         return tag(_that.name, _that.color, _that.relatedFolderIds,
             _that.relatedLinkIds, _that.relatedDocumentIds);
@@ -496,16 +487,10 @@ class _$LinkResultCopyWithImpl<$Res> implements $LinkResultCopyWith<$Res> {
 /// @nodoc
 
 class DocumentResult implements DbResult {
-  const DocumentResult(
-      {required this.title,
-      required this.filePath,
-      required this.fileType,
-      final List<Tag>? tags})
+  const DocumentResult({required this.data, final List<Tag>? tags})
       : _tags = tags;
 
-  final String title;
-  final String filePath;
-  final DocumentFileType fileType;
+  final Document data;
   final List<Tag>? _tags;
   List<Tag>? get tags {
     final value = _tags;
@@ -527,21 +512,17 @@ class DocumentResult implements DbResult {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is DocumentResult &&
-            (identical(other.title, title) || other.title == title) &&
-            (identical(other.filePath, filePath) ||
-                other.filePath == filePath) &&
-            (identical(other.fileType, fileType) ||
-                other.fileType == fileType) &&
+            (identical(other.data, data) || other.data == data) &&
             const DeepCollectionEquality().equals(other._tags, _tags));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, title, filePath, fileType,
-      const DeepCollectionEquality().hash(_tags));
+  int get hashCode => Object.hash(
+      runtimeType, data, const DeepCollectionEquality().hash(_tags));
 
   @override
   String toString() {
-    return 'DbResult.document(title: $title, filePath: $filePath, fileType: $fileType, tags: $tags)';
+    return 'DbResult.document(data: $data, tags: $tags)';
   }
 }
 
@@ -552,11 +533,7 @@ abstract mixin class $DocumentResultCopyWith<$Res>
           DocumentResult value, $Res Function(DocumentResult) _then) =
       _$DocumentResultCopyWithImpl;
   @useResult
-  $Res call(
-      {String title,
-      String filePath,
-      DocumentFileType fileType,
-      List<Tag>? tags});
+  $Res call({Document data, List<Tag>? tags});
 }
 
 /// @nodoc
@@ -571,24 +548,14 @@ class _$DocumentResultCopyWithImpl<$Res>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   $Res call({
-    Object? title = null,
-    Object? filePath = null,
-    Object? fileType = null,
+    Object? data = null,
     Object? tags = freezed,
   }) {
     return _then(DocumentResult(
-      title: null == title
-          ? _self.title
-          : title // ignore: cast_nullable_to_non_nullable
-              as String,
-      filePath: null == filePath
-          ? _self.filePath
-          : filePath // ignore: cast_nullable_to_non_nullable
-              as String,
-      fileType: null == fileType
-          ? _self.fileType
-          : fileType // ignore: cast_nullable_to_non_nullable
-              as DocumentFileType,
+      data: null == data
+          ? _self.data
+          : data // ignore: cast_nullable_to_non_nullable
+              as Document,
       tags: freezed == tags
           ? _self._tags
           : tags // ignore: cast_nullable_to_non_nullable

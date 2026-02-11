@@ -1,5 +1,4 @@
 import "package:database/main.dart";
-import "package:database/models/document_file_type.dart";
 import "package:database/models/item.dart";
 import "package:freezed_annotation/freezed_annotation.dart";
 part "db_result.freezed.dart";
@@ -18,9 +17,7 @@ abstract class DbResult with _$DbResult {
   }) = LinkResult;
 
   const factory DbResult.document({
-    required String title,
-    required String filePath,
-    required DocumentFileType fileType,
+    required Document data,
     List<Tag>? tags,
   }) = DocumentResult;
 

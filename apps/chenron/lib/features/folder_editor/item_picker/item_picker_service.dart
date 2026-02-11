@@ -37,9 +37,6 @@ class ItemPickerService {
   }
 
   /// Returns all documents NOT already in [currentFolderItems].
-  ///
-  /// Queries raw [Document] rows directly because [DocumentResult]
-  /// does not carry the document ID.
   Future<List<Document>> getAvailableDocuments({
     required List<FolderItem> currentFolderItems,
   }) async {
