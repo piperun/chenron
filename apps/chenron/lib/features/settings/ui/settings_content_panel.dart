@@ -4,6 +4,7 @@ import "package:chenron/features/settings/models/settings_category.dart";
 import "package:chenron/features/settings/ui/archive/archive_settings.dart";
 import "package:chenron/features/settings/ui/cache/cache_settings.dart";
 import "package:chenron/features/settings/ui/display/display_settings.dart";
+import "package:chenron/features/settings/ui/data/data_settings.dart";
 import "package:chenron/features/settings/ui/schedule/schedule_settings.dart";
 import "package:chenron/features/theme/pages/theme_settings.dart";
 
@@ -66,6 +67,7 @@ class SettingsContentPanel extends StatelessWidget {
       SettingsCategory.cache => [CacheSettings(controller: controller)],
       SettingsCategory.archive => [ArchiveSettings(controller: controller)],
       SettingsCategory.schedule => [ScheduleSettings(controller: controller)],
+      SettingsCategory.data => [DataSettings(controller: controller)],
       // Parent categories: show first child's content as fallback
       SettingsCategory.appearance => [ThemeSettings(controller: controller)],
     };

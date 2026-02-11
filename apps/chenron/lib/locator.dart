@@ -8,6 +8,7 @@ import "package:signals/signals_flutter.dart";
 import "package:chenron/features/theme/state/theme_manager.dart";
 import "package:database/database.dart";
 import "package:chenron/features/settings/service/config_service.dart";
+import "package:chenron/features/settings/service/data_settings_service.dart";
 import "package:chenron/features/settings/controller/config_controller.dart";
 import "package:chenron/base_dirs/schema.dart";
 import "package:chenron/services/activity_tracker.dart";
@@ -34,6 +35,9 @@ void locatorSetup() {
 
   // Register ConfigService
   locator.registerLazySingleton<ConfigService>(ConfigService.new);
+
+  // Register DataSettingsService
+  locator.registerLazySingleton<DataSettingsService>(DataSettingsService.new);
 
   // Register ConfigController
   locator.registerLazySingleton<ConfigController>(ConfigController.new);

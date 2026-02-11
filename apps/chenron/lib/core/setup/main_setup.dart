@@ -34,7 +34,7 @@ class InitializationException implements Exception {
 class MainSetup {
   static bool _setupDone = false;
 
-  static Future<void> setup() async {
+  static Future<void> setup({String? customAppDbPath}) async {
     // Check if GetIt was reset (indicates test scenario requiring re-init)
     final getItWasReset =
         _setupDone && !locator.isRegistered<Signal<AppDatabaseHandler>>();
@@ -68,7 +68,7 @@ class MainSetup {
       // Logger should be fully functional now (including file logging if enabled)
       loggerGlobal.info("MainSetup", "Logging setup complete.");
       // 3. Setup Configuration Database
-      await _setupConfig(baseDirs);
+      await _setupConfig(baseDirs, customAppDbPath: customAppDbPath);
       loggerGlobal.info("MainSetup", "Config database setup complete.");
       // 4b. Start backup scheduler
       await _startBackupScheduler();
@@ -130,7 +130,10 @@ class MainSetup {
     }
   }
 
-  static Future<void> _setupConfig(BaseDirectories<ChenronDir> baseDirs) async {
+  static Future<void> _setupConfig(
+    BaseDirectories<ChenronDir> baseDirs, {
+    String? customAppDbPath,
+  }) async {
     try {
       final configHandler = locator.get<Signal<ConfigDatabaseFileHandler>>();
       final databaseLocation = DatabaseLocation(
@@ -140,10 +143,24 @@ class MainSetup {
       configHandler.value.databaseLocation = databaseLocation;
       configHandler.value.createDatabase(setupOnInit: true);
 
-      // Initialize AppDatabase similarly
+      // Initialize AppDatabase — use custom path if provided and valid,
+      // otherwise fall back to the default base directory.
       final appDbHandler = locator.get<Signal<AppDatabaseHandler>>();
+      final Directory appDbDir;
+      if (customAppDbPath != null &&
+          Directory(customAppDbPath).existsSync()) {
+        appDbDir = Directory(customAppDbPath);
+        loggerGlobal.info("MainSetup",
+            "Using custom app database path: $customAppDbPath");
+      } else {
+        appDbDir = baseDirs.dir(ChenronDir.database);
+        if (customAppDbPath != null) {
+          loggerGlobal.warning("MainSetup",
+              "Custom db path '$customAppDbPath' not found, using default.");
+        }
+      }
       final appDatabaseLocation = DatabaseLocation(
-        databaseDirectory: baseDirs.dir(ChenronDir.database),
+        databaseDirectory: appDbDir,
         databaseFilename: "app.sqlite",
       );
       appDbHandler.value.databaseLocation = appDatabaseLocation;

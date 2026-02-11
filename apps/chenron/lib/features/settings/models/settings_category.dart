@@ -14,6 +14,7 @@ enum SettingsCategory {
   cache,
   archive,
   schedule,
+  data,
   // Sub-categories of appearance
   theme,
   display;
@@ -25,6 +26,7 @@ enum SettingsCategory {
         cache => "Cache",
         archive => "Archive",
         schedule => "Schedule",
+        data => "Data",
       };
 
   IconData get icon => switch (this) {
@@ -34,6 +36,7 @@ enum SettingsCategory {
         cache => Icons.storage_outlined,
         archive => Icons.archive_outlined,
         schedule => Icons.schedule_outlined,
+        data => Icons.folder_outlined,
       };
 
   IconData get selectedIcon => switch (this) {
@@ -43,6 +46,7 @@ enum SettingsCategory {
         cache => Icons.storage,
         archive => Icons.archive,
         schedule => Icons.schedule,
+        data => Icons.folder,
       };
 
   /// Parent category, or null if this is top-level.

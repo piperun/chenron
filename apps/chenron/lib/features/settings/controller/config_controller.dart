@@ -3,6 +3,7 @@ import "package:flex_color_scheme/flex_color_scheme.dart";
 import "package:meta/meta.dart";
 import "package:signals/signals_flutter.dart";
 import "package:chenron/features/settings/service/config_service.dart";
+import "package:chenron/features/settings/service/data_settings_service.dart";
 import "package:chenron/features/theme/state/theme_controller.dart";
 import "package:chenron/providers/theme_controller_signal.dart";
 import "package:chenron/locator.dart";
@@ -31,11 +32,16 @@ class ThemeChoice {
 
 class ConfigController {
   final ConfigService _configService = locator.get<ConfigService>();
+  final DataSettingsService _dataService = locator.get<DataSettingsService>();
   final ThemeController _themeController = themeControllerSignal.value;
 
   final isLoading = signal<bool>(true);
   final error = signal<String?>(null);
   final userConfig = signal<UserConfig?>(null);
+
+  // Database path (stored in SharedPreferences, not config database)
+  final appDatabasePath = signal<String?>(null);
+  String? savedAppDatabasePath;
 
   final selectedThemeChoice = signal<ThemeChoice?>(null);
   final availableThemes = signal<List<ThemeChoice>>([]);
@@ -63,6 +69,11 @@ class ConfigController {
     isLoading.value = true;
     error.value = null;
     try {
+      // Load database path from SharedPreferences (not config database)
+      final savedPath = await _dataService.getCustomDatabasePath();
+      appDatabasePath.value = savedPath;
+      savedAppDatabasePath = savedPath;
+
       final configResult = await _configService.getUserConfig();
       if (configResult != null) {
         final config = configResult.data;
@@ -199,6 +210,10 @@ class ConfigController {
     itemClickAction.value = value;
   }
 
+  void updateAppDatabasePath(String? value) {
+    appDatabasePath.value = value;
+  }
+
   void updateCacheDirectory(String? value) {
     cacheDirectory.value = value;
   }
@@ -246,6 +261,13 @@ class ConfigController {
 
     try {
       loggerGlobal.info("ConfigController", "Starting save operation...");
+
+      // Save database path to SharedPreferences
+      final newDbPath = appDatabasePath.peek();
+      if (newDbPath != savedAppDatabasePath) {
+        await _dataService.setCustomDatabasePath(newDbPath);
+        savedAppDatabasePath = newDbPath;
+      }
 
       await _configService.updateUserConfig(
         configId: config.id,
@@ -308,7 +330,8 @@ class ConfigController {
 
     final originalBackup = backupSettings.peek();
 
-    return defaultArchiveIs.peek() != originalConfig.defaultArchiveIs ||
+    return appDatabasePath.peek() != savedAppDatabasePath ||
+        defaultArchiveIs.peek() != originalConfig.defaultArchiveIs ||
         defaultArchiveOrg.peek() != originalConfig.defaultArchiveOrg ||
         archiveOrgS3AccessKey.peek()?.trim() !=
             originalConfig.archiveOrgS3AccessKey ||

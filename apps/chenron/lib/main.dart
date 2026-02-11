@@ -16,13 +16,15 @@ void main() async {
   try {
     WidgetsFlutterBinding.ensureInitialized();
 
-    // Read cached dark mode preference before any heavy setup so the
-    // first frame renders with the correct theme (no light→dark flicker).
+    // Read cached preferences before any heavy setup so the first frame
+    // renders with the correct theme and the database opens from the
+    // right location.
     final prefs = await SharedPreferences.getInstance();
     final isDark = prefs.getBool("dark_mode") ?? false;
     final initialThemeMode = isDark ? ThemeMode.dark : ThemeMode.light;
+    final customAppDbPath = prefs.getString("app_database_path");
 
-    await MainSetup.setup();
+    await MainSetup.setup(customAppDbPath: customAppDbPath);
     loggerGlobal.info("main", "Waiting for locator dependencies...");
     await locator.allReady();
     loggerGlobal.info("main", "Locator ready, running app.");
