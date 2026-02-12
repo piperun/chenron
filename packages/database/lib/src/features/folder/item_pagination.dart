@@ -32,7 +32,7 @@ extension FolderItemPaginationExtensions on AppDatabase {
 
     if (itemRows.isEmpty) return [];
 
-    // Step 2: Group entity IDs by type
+    // Step 2: Group item IDs by type
     final linkIds = <String>[];
     final docIds = <String>[];
     final folderIds = <String>[];
@@ -76,30 +76,30 @@ extension FolderItemPaginationExtensions on AppDatabase {
           };
 
     // Step 4: Batch load tags for all items via metadata_records
-    final allEntityIds = itemRows.map((r) => r.itemId).toList();
-    final tagsByEntityId = await _loadTagsForEntities(allEntityIds);
+    final allItemIds = itemRows.map((r) => r.itemId).toList();
+    final tagsByItemId = await _loadTagsForItems(allItemIds);
 
     // Step 5: Assemble FolderItem objects
     final result = <FolderItem>[];
     for (final row in itemRows) {
-      final entityTags = tagsByEntityId[row.itemId] ?? [];
+      final itemTags = tagsByItemId[row.itemId] ?? [];
       FolderItem? folderItem;
 
       switch (row.typeId) {
         case 1:
           final link = linkMap[row.itemId];
           if (link != null) {
-            folderItem = link.toFolderItem(row.id, tags: entityTags);
+            folderItem = link.toFolderItem(row.id, tags: itemTags);
           }
         case 2:
           final doc = docMap[row.itemId];
           if (doc != null) {
-            folderItem = doc.toFolderItem(row.id, tags: entityTags);
+            folderItem = doc.toFolderItem(row.id, tags: itemTags);
           }
         case 3:
           final folder = folderMap[row.itemId];
           if (folder != null) {
-            folderItem = folder.toFolderItem(row.id, tags: entityTags);
+            folderItem = folder.toFolderItem(row.id, tags: itemTags);
           }
       }
 
@@ -111,15 +111,15 @@ extension FolderItemPaginationExtensions on AppDatabase {
     return result;
   }
 
-  /// Loads tags grouped by entity ID for a batch of entities.
-  Future<Map<String, List<Tag>>> _loadTagsForEntities(
-    List<String> entityIds,
+  /// Loads tags grouped by item ID for a batch of items.
+  Future<Map<String, List<Tag>>> _loadTagsForItems(
+    List<String> itemIds,
   ) async {
-    if (entityIds.isEmpty) return {};
+    if (itemIds.isEmpty) return {};
 
     // Query metadata records for these entities
     final metadataQuery = select(metadataRecords)
-      ..where((m) => m.itemId.isIn(entityIds));
+      ..where((m) => m.itemId.isIn(itemIds));
     final metadataRows = await metadataQuery.get();
 
     if (metadataRows.isEmpty) return {};
@@ -134,7 +134,7 @@ extension FolderItemPaginationExtensions on AppDatabase {
         t.id: t,
     };
 
-    // Group tags by entity ID
+    // Group tags by item ID
     final result = <String, List<Tag>>{};
     for (final m in metadataRows) {
       final tag = tagMap[m.metadataId];

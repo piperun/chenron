@@ -31,7 +31,7 @@ extension InsertionExtensions on AppDatabase {
       for (final folderItem in folderItems) {
         final relation = insertItemRelation(
           batch: batch,
-          entityId: folderItem.itemId!,
+          itemId: folderItem.itemId!,
           folderId: folderId,
           type: FolderItemType.folder,
         );
@@ -44,7 +44,7 @@ extension InsertionExtensions on AppDatabase {
       for (final linkResult in linkResults) {
         final relation = insertItemRelation(
           batch: batch,
-          entityId: linkResult.linkId,
+          itemId: linkResult.linkId,
           folderId: folderId,
           type: FolderItemType.link,
         );
@@ -57,7 +57,7 @@ extension InsertionExtensions on AppDatabase {
       for (final docResult in docResults) {
         final relation = insertItemRelation(
           batch: batch,
-          entityId: docResult.documentId,
+          itemId: docResult.documentId,
           folderId: folderId,
           type: FolderItemType.document,
         );

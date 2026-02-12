@@ -51,25 +51,18 @@ sealed class FolderItem with _$FolderItem {
         folder: (_) => FolderItemType.folder,
       );
 
-  /// Get the id (if set)
-  String? get entityId => map(
-        link: (item) => item.id,
-        document: (item) => item.id,
-        folder: (item) => item.id,
-      );
-
   /// Create a companion for the Items table (many-to-many relation)
   Insertable toCompanion(String folderId) {
     return ItemsCompanion.insert(
-      id: entityId ?? "",
+      id: id ?? "",
       folderId: folderId,
       itemId: itemId ?? "",
       typeId: type.dbId,
     );
   }
 
-  /// Create the actual entity (Link, Document, or reference to Folder)
-  Insertable? toEntityCompanion(String generatedId) {
+  /// Create the type-specific companion (Link, Document, or null for Folder)
+  Insertable? toTypeCompanion(String generatedId) {
     if (!isCuid(generatedId)) {
       throw Exception("Invalid id: not a CUID");
     }

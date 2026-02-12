@@ -405,7 +405,7 @@ void main() {
       await database.batch((batch) async {
         result = database.insertItemRelation(
           batch: batch,
-          entityId: linkId,
+          itemId: linkId,
           folderId: folderId,
           type: FolderItemType.link,
         );
@@ -448,7 +448,7 @@ void main() {
       await database.batch((batch) async {
         result = database.insertItemRelation(
           batch: batch,
-          entityId: docId,
+          itemId: docId,
           folderId: folderId,
           type: FolderItemType.document,
         );

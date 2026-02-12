@@ -161,7 +161,7 @@ class FolderUpdateVEPR extends VEPROperation<AppDatabase, FolderUpdateInput,
             if (itemUpdate.itemId != null) {
               itemResults["update"]!.add(db.insertItemRelation(
                 batch: batch,
-                entityId: itemUpdate.itemId!,
+                itemId: itemUpdate.itemId!,
                 folderId: folderId,
                 type: itemUpdate.type,
               ));

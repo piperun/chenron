@@ -9,7 +9,7 @@ import "package:drift/drift.dart";
 extension RelationHandler on AppDatabase {
   ItemResultIds insertItemRelation({
     required Batch batch,
-    required String entityId,
+    required String itemId,
     required String folderId,
     required FolderItemType type,
   }) {
@@ -20,7 +20,7 @@ extension RelationHandler on AppDatabase {
       ItemsCompanion.insert(
         id: id,
         folderId: folderId,
-        itemId: entityId,
+        itemId: itemId,
         typeId: type.dbId,
       ),
       mode: InsertMode.insertOrIgnore,
@@ -29,8 +29,8 @@ extension RelationHandler on AppDatabase {
     return CreatedIds.item(
       itemId: id,
       folderId: folderId,
-      linkId: type == FolderItemType.link ? entityId : null,
-      documentId: type == FolderItemType.document ? entityId : null,
+      linkId: type == FolderItemType.link ? itemId : null,
+      documentId: type == FolderItemType.document ? itemId : null,
     ) as ItemResultIds;
   }
 
