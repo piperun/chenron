@@ -5,9 +5,13 @@ import "package:flutter/services.dart";
 import "package:database/database.dart";
 import "package:database/main.dart";
 import "package:signals/signals_flutter.dart";
+import "package:url_launcher/url_launcher.dart" as url_launcher;
 
 import "package:chenron/locator.dart";
+import "package:chenron/components/favicon_display/favicon.dart";
 import "package:chenron/components/metadata_factory.dart";
+import "package:chenron/features/folder_viewer/pages/folder_viewer_page.dart";
+import "package:chenron/shared/errors/user_error_message.dart";
 import "package:chenron/shared/item_detail/item_detail_data.dart";
 import "package:chenron/shared/item_detail/item_detail_service.dart";
 import "package:chenron/shared/utils/time_formatter.dart";
@@ -73,7 +77,7 @@ class _ItemDetailDialogState extends State<ItemDetailDialog> {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _error = "Failed to load: $e";
+          _error = userErrorMessage(e);
         });
       }
     }
@@ -153,25 +157,22 @@ class _ItemDetailDialogState extends State<ItemDetailDialog> {
             else if (_data != null)
               Flexible(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 20, vertical: 16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _TypeBadge(type: _data!.itemType),
-                      const SizedBox(height: 16),
-                      _ContentSection(data: _data!),
-                      _DatesSection(
-                        createdAt: _data!.createdAt,
-                        updatedAt: _data!.updatedAt,
-                      ),
-                      const SizedBox(height: 16),
+                      _HeroSection(data: _data!),
+                      const Divider(height: 32),
+                      _DetailsTable(data: _data!),
+                      const Divider(height: 32),
                       _TagsSection(
                         tags: _data!.tags,
                         isEditing: _isEditing,
                         onTagAdded: _handleAddTag,
                         onTagRemoved: _handleRemoveTag,
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       _FoldersSection(
                         parentFolders: _data!.parentFolders,
                         isEditing: _isEditing,
@@ -269,32 +270,377 @@ class _DetailHeader extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Type badge
+// Hero section (type-specific primary info + actions)
 // ---------------------------------------------------------------------------
 
-class _TypeBadge extends StatelessWidget {
-  final FolderItemType type;
+class _HeroSection extends StatelessWidget {
+  final ItemDetailData data;
 
-  const _TypeBadge({required this.type});
+  const _HeroSection({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    return switch (data.itemType) {
+      FolderItemType.link => _LinkHero(data: data),
+      FolderItemType.document => _DocumentHero(data: data),
+      FolderItemType.folder => _FolderHero(data: data),
+    };
+  }
+}
+
+class _LinkHero extends StatefulWidget {
+  final ItemDetailData data;
+
+  const _LinkHero({required this.data});
+
+  @override
+  State<_LinkHero> createState() => _LinkHeroState();
+}
+
+class _LinkHeroState extends State<_LinkHero> {
+  late final Future<Map<String, dynamic>?> _metadataFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _metadataFuture = widget.data.url != null
+        ? MetadataFactory.getOrFetch(widget.data.url!)
+        : Future.value(null);
+  }
+
+  Future<void> _handleOpenLink() async {
+    if (widget.data.url == null) return;
+    final uri = Uri.parse(widget.data.url!);
+    if (await url_launcher.canLaunchUrl(uri)) {
+      await url_launcher.launchUrl(uri);
+    }
+  }
+
+  void _handleCopyUrl() {
+    if (widget.data.url == null) return;
+    unawaited(Clipboard.setData(ClipboardData(text: widget.data.url!)));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("URL copied to clipboard"),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return _InfoSection(
-      title: "Type",
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.primaryContainer,
-          borderRadius: BorderRadius.circular(4),
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Domain row with favicon and type badge
+        Row(
+          children: [
+            if (widget.data.url != null) ...[
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: Favicon(url: widget.data.url!),
+              ),
+              const SizedBox(width: 8),
+            ],
+            if (widget.data.domain != null)
+              Expanded(
+                child: Text(
+                  widget.data.domain!,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              )
+            else
+              const Spacer(),
+            _TypeChip(type: widget.data.itemType),
+          ],
         ),
-        child: Text(
-          type.name,
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w500,
-            color: theme.colorScheme.onPrimaryContainer,
+        const SizedBox(height: 12),
+
+        // Metadata title + description
+        FutureBuilder<Map<String, dynamic>?>(
+          future: _metadataFuture,
+          builder: (context, snapshot) {
+            final title = snapshot.data?["title"] as String?;
+            final description = snapshot.data?["description"] as String?;
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (title != null && title.isNotEmpty) ...[
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      height: 1.3,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                ],
+                if (description != null && description.isNotEmpty)
+                  Text(
+                    description,
+                    style: TextStyle(
+                      fontSize: 14,
+                      height: 1.4,
+                      color: theme.colorScheme.onSurface
+                          .withValues(alpha: 0.7),
+                    ),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+              ],
+            );
+          },
+        ),
+        const SizedBox(height: 16),
+
+        // Action buttons
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            FilledButton.icon(
+              onPressed: _handleOpenLink,
+              icon: const Icon(Icons.open_in_new, size: 16),
+              label: const Text("Open Link"),
+            ),
+            OutlinedButton.icon(
+              onPressed: _handleCopyUrl,
+              icon: const Icon(Icons.copy, size: 16),
+              label: const Text("Copy URL"),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _FolderHero extends StatelessWidget {
+  final ItemDetailData data;
+
+  const _FolderHero({required this.data});
+
+  void _handleOpenFolder(BuildContext context) {
+    Navigator.of(context).pop();
+    unawaited(Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FolderViewerPage(folderId: data.itemId),
+      ),
+    ));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Color dot + type badge row
+        Row(
+          children: [
+            if (data.color != null) ...[
+              Container(
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: Color(data.color!),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                    color:
+                        theme.colorScheme.outline.withValues(alpha: 0.3),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+            ],
+            const Spacer(),
+            _TypeChip(type: data.itemType),
+          ],
+        ),
+        const SizedBox(height: 12),
+
+        // Description
+        if (data.description != null &&
+            data.description!.isNotEmpty) ...[
+          Text(
+            data.description!,
+            style: TextStyle(
+              fontSize: 14,
+              height: 1.4,
+              color:
+                  theme.colorScheme.onSurface.withValues(alpha: 0.7),
+            ),
           ),
+          const SizedBox(height: 8),
+        ],
+
+        // Contents summary
+        Text(
+          _formatContents(),
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w500,
+            color: theme.colorScheme.onSurface,
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Action button
+        FilledButton.icon(
+          onPressed: () => _handleOpenFolder(context),
+          icon: const Icon(Icons.folder_open, size: 16),
+          label: const Text("Open Folder"),
+        ),
+      ],
+    );
+  }
+
+  String _formatContents() {
+    final parts = <String>[];
+    if (data.linkCount > 0) {
+      parts.add(
+          "${data.linkCount} ${data.linkCount == 1 ? 'link' : 'links'}");
+    }
+    if (data.documentCount > 0) {
+      parts.add(
+          "${data.documentCount} ${data.documentCount == 1 ? 'document' : 'documents'}");
+    }
+    if (data.folderCount > 0) {
+      parts.add(
+          "${data.folderCount} ${data.folderCount == 1 ? 'folder' : 'folders'}");
+    }
+    return parts.isEmpty ? "Empty" : parts.join(", ");
+  }
+}
+
+class _DocumentHero extends StatelessWidget {
+  final ItemDetailData data;
+
+  const _DocumentHero({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Type badge row
+        Row(
+          children: [
+            const Spacer(),
+            _TypeChip(type: data.itemType),
+          ],
+        ),
+        const SizedBox(height: 12),
+
+        // File type + size inline
+        Row(
+          children: [
+            if (data.fileType != null)
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.tertiaryContainer,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  data.fileType!.displayName,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: theme.colorScheme.onTertiaryContainer,
+                  ),
+                ),
+              ),
+            if (data.fileType != null && data.fileSize != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Text(
+                  "\u00B7",
+                  style: TextStyle(
+                      color: theme.colorScheme.onSurfaceVariant),
+                ),
+              ),
+            if (data.fileSize != null)
+              Text(
+                _formatFileSize(data.fileSize!),
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: theme.colorScheme.onSurface,
+                ),
+              ),
+          ],
+        ),
+
+        // File path
+        if (data.filePath != null) ...[
+          const SizedBox(height: 8),
+          SelectableText(
+            data.filePath!,
+            style: TextStyle(
+              fontSize: 13,
+              fontFamily: "monospace",
+              color:
+                  theme.colorScheme.onSurface.withValues(alpha: 0.7),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  static String _formatFileSize(int bytes) {
+    if (bytes < 1024) return "$bytes B";
+    if (bytes < 1024 * 1024) {
+      return "${(bytes / 1024).toStringAsFixed(1)} KB";
+    }
+    if (bytes < 1024 * 1024 * 1024) {
+      return "${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB";
+    }
+    return "${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB";
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Compact type chip
+// ---------------------------------------------------------------------------
+
+class _TypeChip extends StatelessWidget {
+  final FolderItemType type;
+
+  const _TypeChip({required this.type});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primaryContainer,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        type.name,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w500,
+          color: theme.colorScheme.onPrimaryContainer,
         ),
       ),
     );
@@ -302,85 +648,74 @@ class _TypeBadge extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Content section (type-specific)
+// Compact details table
 // ---------------------------------------------------------------------------
 
-class _ContentSection extends StatelessWidget {
+class _DetailsTable extends StatelessWidget {
   final ItemDetailData data;
 
-  const _ContentSection({required this.data});
-
-  @override
-  Widget build(BuildContext context) {
-    return switch (data.itemType) {
-      FolderItemType.link => _LinkContent(data: data),
-      FolderItemType.document => _DocumentContent(data: data),
-      FolderItemType.folder => _FolderContent(data: data),
-    };
-  }
-}
-
-class _LinkContent extends StatelessWidget {
-  final ItemDetailData data;
-
-  const _LinkContent({required this.data});
+  const _DetailsTable({required this.data});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (data.url != null) ...[
-          _LinkMetadataSection(url: data.url!),
-          _InfoSection(
-            title: "URL",
-            child: Row(
-              children: [
-                Expanded(
-                  child: SelectableText(
-                    data.url!,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontFamily: "monospace",
-                      color: theme.colorScheme.primary,
-                    ),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.copy, size: 16),
-                  onPressed: () => unawaited(
-                      Clipboard.setData(ClipboardData(text: data.url!))),
-                  tooltip: "Copy URL",
-                  visualDensity: VisualDensity.compact,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          if (data.domain != null) ...[
-            _InfoSection(
-              title: "Domain",
-              child: Text(
-                data.domain!,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: theme.colorScheme.onSurface,
-                ),
+        if (data.createdAt != null)
+          _DetailRow(
+            label: "Created",
+            child: Text(
+              "${TimeFormatter.formatFull(data.createdAt)} (${TimeFormatter.formatRelative(data.createdAt)})",
+              style: TextStyle(
+                fontSize: 13,
+                color: theme.colorScheme.onSurface,
               ),
             ),
-            const SizedBox(height: 16),
-          ],
-        ],
+          ),
+        if (data.updatedAt != null && data.updatedAt != data.createdAt)
+          _DetailRow(
+            label: "Updated",
+            child: Text(
+              "${TimeFormatter.formatFull(data.updatedAt)} (${TimeFormatter.formatRelative(data.updatedAt)})",
+              style: TextStyle(
+                fontSize: 13,
+                color: theme.colorScheme.onSurface,
+              ),
+            ),
+          ),
+        if (data.url != null)
+          _DetailRow(
+            label: "URL",
+            child: SelectableText(
+              data.url!,
+              style: TextStyle(
+                fontSize: 12,
+                fontFamily: "monospace",
+                color: theme.colorScheme.primary,
+              ),
+              maxLines: 2,
+            ),
+          ),
+        if (data.domain != null)
+          _DetailRow(
+            label: "Domain",
+            child: Text(
+              data.domain!,
+              style: TextStyle(
+                fontSize: 13,
+                color: theme.colorScheme.onSurface,
+              ),
+            ),
+          ),
         if (data.archiveOrgUrl != null ||
             data.archiveIsUrl != null ||
-            data.localArchivePath != null) ...[
-          _InfoSection(
-            title: "Archives",
+            data.localArchivePath != null)
+          _DetailRow(
+            label: "Archives",
             child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
+              spacing: 6,
+              runSpacing: 6,
               children: [
                 if (data.archiveOrgUrl != null)
                   const _ArchiveBadge(label: "archive.org"),
@@ -391,9 +726,40 @@ class _LinkContent extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 16),
-        ],
       ],
+    );
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  final String label;
+  final Widget child;
+
+  const _DetailRow({required this.label, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 80,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color:
+                    theme.colorScheme.onSurface.withValues(alpha: 0.5),
+              ),
+            ),
+          ),
+          Expanded(child: child),
+        ],
+      ),
     );
   }
 }
@@ -423,306 +789,6 @@ class _ArchiveBadge extends StatelessWidget {
           color: theme.colorScheme.onTertiaryContainer,
         ),
       ),
-    );
-  }
-}
-
-class _LinkMetadataSection extends StatefulWidget {
-  final String url;
-
-  const _LinkMetadataSection({required this.url});
-
-  @override
-  State<_LinkMetadataSection> createState() => _LinkMetadataSectionState();
-}
-
-class _LinkMetadataSectionState extends State<_LinkMetadataSection> {
-  late final Future<Map<String, dynamic>?> _future;
-
-  @override
-  void initState() {
-    super.initState();
-    _future = MetadataFactory.getOrFetch(widget.url);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return FutureBuilder<Map<String, dynamic>?>(
-      future: _future,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting ||
-            snapshot.hasError) {
-          return const SizedBox.shrink();
-        }
-
-        final title = snapshot.data?["title"] as String?;
-        final description = snapshot.data?["description"] as String?;
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (title != null && title.isNotEmpty) ...[
-              _InfoSection(
-                title: "Title",
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                    color: theme.colorScheme.onSurface,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
-            if (description != null && description.isNotEmpty) ...[
-              _InfoSection(
-                title: "Description",
-                child: Text(
-                  description,
-                  style: TextStyle(
-                    fontSize: 14,
-                    height: 1.5,
-                    color:
-                        theme.colorScheme.onSurface.withValues(alpha: 0.8),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _DocumentContent extends StatelessWidget {
-  final ItemDetailData data;
-
-  const _DocumentContent({required this.data});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (data.fileType != null) ...[
-          _InfoSection(
-            title: "File Type",
-            child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.tertiaryContainer,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                data.fileType!.displayName,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  color: theme.colorScheme.onTertiaryContainer,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-        ],
-        if (data.fileSize != null) ...[
-          _InfoSection(
-            title: "File Size",
-            child: Text(
-              _formatFileSize(data.fileSize!),
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: theme.colorScheme.onSurface,
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-        ],
-        if (data.filePath != null) ...[
-          _InfoSection(
-            title: "File Path",
-            child: SelectableText(
-              data.filePath!,
-              style: TextStyle(
-                fontSize: 13,
-                fontFamily: "monospace",
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-        ],
-      ],
-    );
-  }
-
-  static String _formatFileSize(int bytes) {
-    if (bytes < 1024) return "$bytes B";
-    if (bytes < 1024 * 1024) return "${(bytes / 1024).toStringAsFixed(1)} KB";
-    if (bytes < 1024 * 1024 * 1024) {
-      return "${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB";
-    }
-    return "${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB";
-  }
-}
-
-class _FolderContent extends StatelessWidget {
-  final ItemDetailData data;
-
-  const _FolderContent({required this.data});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (data.description != null && data.description!.isNotEmpty) ...[
-          _InfoSection(
-            title: "Description",
-            child: Text(
-              data.description!,
-              style: TextStyle(
-                fontSize: 14,
-                height: 1.5,
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-        ],
-        if (data.color != null) ...[
-          _InfoSection(
-            title: "Color",
-            child: Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                color: Color(data.color!),
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(
-                  color: theme.colorScheme.outline.withValues(alpha: 0.3),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-        ],
-        _InfoSection(
-          title: "Contents",
-          child: Text(
-            _formatContents(),
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: theme.colorScheme.onSurface,
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-      ],
-    );
-  }
-
-  String _formatContents() {
-    final parts = <String>[];
-    if (data.linkCount > 0) {
-      parts.add("${data.linkCount} ${data.linkCount == 1 ? 'link' : 'links'}");
-    }
-    if (data.documentCount > 0) {
-      parts.add(
-          "${data.documentCount} ${data.documentCount == 1 ? 'document' : 'documents'}");
-    }
-    if (data.folderCount > 0) {
-      parts.add(
-          "${data.folderCount} ${data.folderCount == 1 ? 'folder' : 'folders'}");
-    }
-    return parts.isEmpty ? "Empty" : parts.join(", ");
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Dates section
-// ---------------------------------------------------------------------------
-
-class _DatesSection extends StatelessWidget {
-  final DateTime? createdAt;
-  final DateTime? updatedAt;
-
-  const _DatesSection({this.createdAt, this.updatedAt});
-
-  @override
-  Widget build(BuildContext context) {
-    if (createdAt == null) return const SizedBox.shrink();
-
-    final theme = Theme.of(context);
-    final showUpdated =
-        updatedAt != null && updatedAt != createdAt;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _InfoSection(
-          title: "Created",
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                TimeFormatter.formatFull(createdAt),
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: theme.colorScheme.onSurface,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                "(${TimeFormatter.formatRelative(createdAt)})",
-                style: TextStyle(
-                  fontSize: 13,
-                  color:
-                      theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                ),
-              ),
-            ],
-          ),
-        ),
-        if (showUpdated) ...[
-          const SizedBox(height: 16),
-          _InfoSection(
-            title: "Updated",
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  TimeFormatter.formatFull(updatedAt),
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: theme.colorScheme.onSurface,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  "(${TimeFormatter.formatRelative(updatedAt)})",
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: theme.colorScheme.onSurface
-                        .withValues(alpha: 0.6),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ],
     );
   }
 }

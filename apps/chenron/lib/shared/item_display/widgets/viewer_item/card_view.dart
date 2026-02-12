@@ -76,18 +76,23 @@ class _CardItemState extends State<CardItem> {
                       padding: EdgeInsets.all(widget.showImage ? 12 : 8),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           ItemMetaRow(item: widget.item, url: url),
                           const SizedBox(height: 4),
-                          ItemTitle(
-                              item: widget.item,
-                              url: url,
-                              maxLines: widget.titleLines),
+                          Flexible(
+                            child: ItemTitle(
+                                item: widget.item,
+                                url: url,
+                                maxLines: widget.titleLines),
+                          ),
                           const SizedBox(height: 4),
-                          ItemDescription(
-                              item: widget.item,
-                              url: url,
-                              maxLines: widget.descriptionLines),
+                          Flexible(
+                            child: ItemDescription(
+                                item: widget.item,
+                                url: url,
+                                maxLines: widget.descriptionLines),
+                          ),
                           if (widget.showUrlBar &&
                               widget.item.type == FolderItemType.link &&
                               url.isNotEmpty) ...[
