@@ -7,6 +7,8 @@ import "package:file_picker/file_picker.dart";
 import "package:signals/signals_flutter.dart";
 
 import "package:chenron/features/settings/controller/config_controller.dart";
+import "package:chenron/features/settings/service/bookmark_export_service.dart";
+import "package:chenron/features/settings/service/bookmark_import_service.dart";
 import "package:chenron/features/settings/service/data_settings_service.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/shared/errors/error_snack_bar.dart";
@@ -148,6 +150,58 @@ class _DataSettingsState extends State<DataSettings> {
     }
   }
 
+  Future<void> _handleExportBookmarks() async {
+    final messenger = ScaffoldMessenger.of(context);
+
+    final destination = await FilePicker.platform.saveFile(
+      fileName: "bookmarks.html",
+      type: FileType.custom,
+      allowedExtensions: ["html"],
+    );
+    if (destination == null) return;
+
+    try {
+      final file =
+          await BookmarkExportService().exportBookmarks(File(destination));
+      messenger.showSnackBar(SnackBar(
+        content: Text("Bookmarks exported to ${file.path}"),
+        duration: const Duration(seconds: 3),
+      ));
+    } catch (e) {
+      if (!mounted) return;
+      showErrorSnackBar(context, e);
+    }
+  }
+
+  Future<void> _handleImportBookmarks() async {
+    final messenger = ScaffoldMessenger.of(context);
+
+    final picked = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ["html", "htm"],
+    );
+    if (picked == null || picked.files.isEmpty) return;
+
+    final filePath = picked.files.single.path;
+    if (filePath == null) return;
+
+    try {
+      final result =
+          await BookmarkImportService().importBookmarks(File(filePath));
+      messenger.showSnackBar(SnackBar(
+        content: Text(
+          "Imported ${result.linksImported} links, "
+          "${result.foldersCreated} folders. "
+          "${result.linksSkipped} duplicates skipped.",
+        ),
+        duration: const Duration(seconds: 5),
+      ));
+    } catch (e) {
+      if (!mounted) return;
+      showErrorSnackBar(context, e);
+    }
+  }
+
   Future<void> _handleApplyRestart() async {
     final navigator = Navigator.of(context);
 
@@ -279,6 +333,38 @@ class _DataSettingsState extends State<DataSettings> {
                 onPressed: _handleImport,
                 icon: const Icon(Icons.download_outlined, size: 18),
                 label: const Text("Import Database"),
+              ),
+            ],
+          ),
+
+          const Divider(height: 32),
+
+          // --- Bookmarks ---
+          Text("Bookmarks", style: theme.textTheme.titleMedium),
+          const SizedBox(height: 8),
+          Text(
+            "Export or import bookmarks in standard HTML format, "
+            "compatible with all major browsers.",
+            style: theme.textTheme.bodySmall?.copyWith(
+              color:
+                  theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              OutlinedButton.icon(
+                onPressed: _handleExportBookmarks,
+                icon: const Icon(Icons.upload_outlined, size: 18),
+                label: const Text("Export Bookmarks"),
+              ),
+              OutlinedButton.icon(
+                onPressed: _handleImportBookmarks,
+                icon: const Icon(Icons.download_outlined, size: 18),
+                label: const Text("Import Bookmarks"),
               ),
             ],
           ),
