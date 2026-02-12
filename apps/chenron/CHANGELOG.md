@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## chenron-v0.12.0 - 2026-02-12
+#### Features
+- add item detail dialog with tag and folder management - (e13ca46) - *piperun*
+#### Refactoring
+- rename dashboard feature to statistics - (5b5d4be) - *piperun*
+
+- - -
+
 ## chenron-v0.11.0 - 2026-02-11
 #### Features
 - add configurable database location setting - (6b92bbe) - *piperun*

@@ -2,6 +2,20 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## database-v0.7.0 - 2026-02-12
+#### Features
+- add item detail dialog with tag and folder management - (e13ca46) - *piperun*
+- enable WAL journal mode for SQLite databases - (e47b69d) - *piperun*
+#### Refactoring
+- rename entity to item in domain-level code - (75e5285) - *piperun*
+- migrate user_config and backup_settings create to VEPR - (c23a8fc) - *piperun*
+- migrate folder update to VEPR pattern - (9098be6) - *piperun*
+- normalize DocumentResult to use data field - (493f350) - *piperun*
+- type IncludeOptions generics consistently across read handlers - (96b636e) - *piperun*
+- add infinite scroll pagination for folder viewer - (303cac1) - *piperun*
+
+- - -
+
 ## database-v0.6.1 - 2026-02-09
 #### Bug Fixes
 - make statistics ordering test deterministic - (10f7a72) - *piperun*
