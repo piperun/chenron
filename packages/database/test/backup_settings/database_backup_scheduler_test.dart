@@ -254,6 +254,137 @@ void main() {
       await scheduler.stop();
     });
   });
+
+  group("backup deduplication", () {
+    test("keeps first backup file", () async {
+      final content = [1, 2, 3, 4, 5];
+      final fakeHandler = _FakeAppDatabaseHandler(fileContent: content);
+      final scheduler = DatabaseBackupScheduler(
+        databaseHandler: fakeHandler,
+        configHandler: configHandler,
+      );
+
+      await scheduler.start(
+        cronExpression: "0 0 */8 * * *",
+        backupSettingsId: backupSettingsId,
+      );
+
+      await scheduler.runBackup();
+
+      // Timestamp should be updated (backup was kept)
+      final settings =
+          await configDb.getBackupSettings(userConfigId: userConfigId);
+      expect(settings!.lastBackupTimestamp, isNotNull);
+
+      await scheduler.stop();
+    });
+
+    test("deletes duplicate when database unchanged", () async {
+      final content = [1, 2, 3, 4, 5];
+      final fakeHandler = _FakeAppDatabaseHandler(fileContent: content);
+      final scheduler = DatabaseBackupScheduler(
+        databaseHandler: fakeHandler,
+        configHandler: configHandler,
+      );
+
+      await scheduler.start(
+        cronExpression: "0 0 */8 * * *",
+        backupSettingsId: backupSettingsId,
+      );
+
+      // First backup — kept
+      await scheduler.runBackup();
+      final firstTimestamp = (await configDb.getBackupSettings(
+              userConfigId: userConfigId))!
+          .lastBackupTimestamp;
+
+      // Small delay so timestamp would differ if updated
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      // Second backup — same content, should be deleted
+      await scheduler.runBackup();
+      final secondTimestamp = (await configDb.getBackupSettings(
+              userConfigId: userConfigId))!
+          .lastBackupTimestamp;
+
+      // Timestamp should NOT have been updated (backup was skipped)
+      expect(secondTimestamp, equals(firstTimestamp));
+
+      await scheduler.stop();
+    });
+
+    test("keeps backup when database has changed", () async {
+      final fakeHandler = _FakeAppDatabaseHandler(fileContent: [1, 2, 3]);
+      final scheduler = DatabaseBackupScheduler(
+        databaseHandler: fakeHandler,
+        configHandler: configHandler,
+      );
+
+      await scheduler.start(
+        cronExpression: "0 0 */8 * * *",
+        backupSettingsId: backupSettingsId,
+      );
+
+      // First backup
+      await scheduler.runBackup();
+      final firstTimestamp = (await configDb.getBackupSettings(
+              userConfigId: userConfigId))!
+          .lastBackupTimestamp;
+
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      // Change the content
+      fakeHandler.fileContent = [4, 5, 6];
+
+      // Second backup — different content, should be kept
+      await scheduler.runBackup();
+      final secondTimestamp = (await configDb.getBackupSettings(
+              userConfigId: userConfigId))!
+          .lastBackupTimestamp;
+
+      expect(secondTimestamp, isNot(equals(firstTimestamp)));
+
+      await scheduler.stop();
+    });
+
+    test("dedup resets after stop and start", () async {
+      final content = [1, 2, 3, 4, 5];
+      final fakeHandler = _FakeAppDatabaseHandler(fileContent: content);
+      final scheduler = DatabaseBackupScheduler(
+        databaseHandler: fakeHandler,
+        configHandler: configHandler,
+      );
+
+      await scheduler.start(
+        cronExpression: "0 0 */8 * * *",
+        backupSettingsId: backupSettingsId,
+      );
+
+      await scheduler.runBackup();
+      final firstTimestamp = (await configDb.getBackupSettings(
+              userConfigId: userConfigId))!
+          .lastBackupTimestamp;
+
+      // Stop and restart — checksum should be cleared
+      await scheduler.stop();
+      await scheduler.start(
+        cronExpression: "0 0 */8 * * *",
+        backupSettingsId: backupSettingsId,
+      );
+
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      // Same content, but after restart — should be kept (no cached checksum)
+      await scheduler.runBackup();
+      final secondTimestamp = (await configDb.getBackupSettings(
+              userConfigId: userConfigId))!
+          .lastBackupTimestamp;
+
+      expect(secondTimestamp, isNot(equals(firstTimestamp)));
+
+      await scheduler.stop();
+    });
+  });
 }
 
 /// Minimal fake that tracks backup calls without needing real file system.
@@ -261,13 +392,23 @@ class _FakeAppDatabaseHandler extends AppDatabaseHandler {
   bool backupCalled = false;
   final bool shouldFail;
 
-  _FakeAppDatabaseHandler({this.shouldFail = false});
+  /// When non-null, [backupDatabase] writes these bytes to a temp file
+  /// and returns it instead of null.
+  List<int>? fileContent;
+
+  _FakeAppDatabaseHandler({this.shouldFail = false, this.fileContent});
 
   @override
   Future<File?> backupDatabase() async {
     backupCalled = true;
     if (shouldFail) {
       throw Exception("Simulated backup failure");
+    }
+    if (fileContent != null) {
+      final tempDir = await Directory.systemTemp.createTemp("backup_test_");
+      final file = File("${tempDir.path}/backup.sqlite");
+      await file.writeAsBytes(fileContent!);
+      return file;
     }
     return null;
   }
