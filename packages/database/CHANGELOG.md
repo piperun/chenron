@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## database-v0.8.1 - 2026-02-12
+#### Bug Fixes
+- show user-friendly error messages instead of raw exceptions - (95c525a) - *piperun*
+
+- - -
+
 ## database-v0.8.0 - 2026-02-12
 #### Features
 - add checksum-based backup deduplication - (300a3da) - *piperun*

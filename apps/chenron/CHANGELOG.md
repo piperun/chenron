@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## chenron-v0.12.1 - 2026-02-12
+#### Bug Fixes
+- show user-friendly error messages instead of raw exceptions - (95c525a) - *piperun*
+
+- - -
+
 ## chenron-v0.12.0 - 2026-02-12
 #### Features
 - add item detail dialog with tag and folder management - (e13ca46) - *piperun*
