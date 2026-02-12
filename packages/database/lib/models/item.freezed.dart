@@ -17,6 +17,7 @@ mixin _$FolderItem {
   String? get id;
   String? get itemId;
   DateTime? get createdAt;
+  DateTime? get addedAt;
   List<Tag> get tags;
 
   /// Create a copy of FolderItem
@@ -35,16 +36,17 @@ mixin _$FolderItem {
             (identical(other.itemId, itemId) || other.itemId == itemId) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
+            (identical(other.addedAt, addedAt) || other.addedAt == addedAt) &&
             const DeepCollectionEquality().equals(other.tags, tags));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, id, itemId, createdAt,
+  int get hashCode => Object.hash(runtimeType, id, itemId, createdAt, addedAt,
       const DeepCollectionEquality().hash(tags));
 
   @override
   String toString() {
-    return 'FolderItem(id: $id, itemId: $itemId, createdAt: $createdAt, tags: $tags)';
+    return 'FolderItem(id: $id, itemId: $itemId, createdAt: $createdAt, addedAt: $addedAt, tags: $tags)';
   }
 }
 
@@ -54,7 +56,12 @@ abstract mixin class $FolderItemCopyWith<$Res> {
           FolderItem value, $Res Function(FolderItem) _then) =
       _$FolderItemCopyWithImpl;
   @useResult
-  $Res call({String? id, String? itemId, DateTime? createdAt, List<Tag> tags});
+  $Res call(
+      {String? id,
+      String? itemId,
+      DateTime? createdAt,
+      DateTime? addedAt,
+      List<Tag> tags});
 }
 
 /// @nodoc
@@ -72,6 +79,7 @@ class _$FolderItemCopyWithImpl<$Res> implements $FolderItemCopyWith<$Res> {
     Object? id = freezed,
     Object? itemId = freezed,
     Object? createdAt = freezed,
+    Object? addedAt = freezed,
     Object? tags = null,
   }) {
     return _then(_self.copyWith(
@@ -86,6 +94,10 @@ class _$FolderItemCopyWithImpl<$Res> implements $FolderItemCopyWith<$Res> {
       createdAt: freezed == createdAt
           ? _self.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      addedAt: freezed == addedAt
+          ? _self.addedAt
+          : addedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
       tags: null == tags
           ? _self.tags
@@ -204,8 +216,15 @@ extension FolderItemPatterns on FolderItem {
 
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String? id, String? itemId, String url, String? archiveOrg,
-            String? archiveIs, DateTime? createdAt, List<Tag> tags)?
+    TResult Function(
+            String? id,
+            String? itemId,
+            String url,
+            String? archiveOrg,
+            String? archiveIs,
+            DateTime? createdAt,
+            DateTime? addedAt,
+            List<Tag> tags)?
         link,
     TResult Function(
             String? id,
@@ -217,6 +236,7 @@ extension FolderItemPatterns on FolderItem {
             String? checksum,
             DateTime? createdAt,
             DateTime? updatedAt,
+            DateTime? addedAt,
             List<Tag> tags)?
         document,
     TResult Function(
@@ -227,6 +247,7 @@ extension FolderItemPatterns on FolderItem {
             String? description,
             DateTime? createdAt,
             DateTime? updatedAt,
+            DateTime? addedAt,
             List<Tag> tags)?
         folder,
     required TResult orElse(),
@@ -235,7 +256,7 @@ extension FolderItemPatterns on FolderItem {
     switch (_that) {
       case LinkItem() when link != null:
         return link(_that.id, _that.itemId, _that.url, _that.archiveOrg,
-            _that.archiveIs, _that.createdAt, _that.tags);
+            _that.archiveIs, _that.createdAt, _that.addedAt, _that.tags);
       case DocumentItem() when document != null:
         return document(
             _that.id,
@@ -247,10 +268,19 @@ extension FolderItemPatterns on FolderItem {
             _that.checksum,
             _that.createdAt,
             _that.updatedAt,
+            _that.addedAt,
             _that.tags);
       case FolderItemNested() when folder != null:
-        return folder(_that.id, _that.itemId, _that.folderId, _that.title,
-            _that.description, _that.createdAt, _that.updatedAt, _that.tags);
+        return folder(
+            _that.id,
+            _that.itemId,
+            _that.folderId,
+            _that.title,
+            _that.description,
+            _that.createdAt,
+            _that.updatedAt,
+            _that.addedAt,
+            _that.tags);
       case _:
         return orElse();
     }
@@ -278,6 +308,7 @@ extension FolderItemPatterns on FolderItem {
             String? archiveOrg,
             String? archiveIs,
             DateTime? createdAt,
+            DateTime? addedAt,
             List<Tag> tags)
         link,
     required TResult Function(
@@ -290,6 +321,7 @@ extension FolderItemPatterns on FolderItem {
             String? checksum,
             DateTime? createdAt,
             DateTime? updatedAt,
+            DateTime? addedAt,
             List<Tag> tags)
         document,
     required TResult Function(
@@ -300,6 +332,7 @@ extension FolderItemPatterns on FolderItem {
             String? description,
             DateTime? createdAt,
             DateTime? updatedAt,
+            DateTime? addedAt,
             List<Tag> tags)
         folder,
   }) {
@@ -307,7 +340,7 @@ extension FolderItemPatterns on FolderItem {
     switch (_that) {
       case LinkItem():
         return link(_that.id, _that.itemId, _that.url, _that.archiveOrg,
-            _that.archiveIs, _that.createdAt, _that.tags);
+            _that.archiveIs, _that.createdAt, _that.addedAt, _that.tags);
       case DocumentItem():
         return document(
             _that.id,
@@ -319,10 +352,19 @@ extension FolderItemPatterns on FolderItem {
             _that.checksum,
             _that.createdAt,
             _that.updatedAt,
+            _that.addedAt,
             _that.tags);
       case FolderItemNested():
-        return folder(_that.id, _that.itemId, _that.folderId, _that.title,
-            _that.description, _that.createdAt, _that.updatedAt, _that.tags);
+        return folder(
+            _that.id,
+            _that.itemId,
+            _that.folderId,
+            _that.title,
+            _that.description,
+            _that.createdAt,
+            _that.updatedAt,
+            _that.addedAt,
+            _that.tags);
     }
   }
 
@@ -347,6 +389,7 @@ extension FolderItemPatterns on FolderItem {
             String? archiveOrg,
             String? archiveIs,
             DateTime? createdAt,
+            DateTime? addedAt,
             List<Tag> tags)?
         link,
     TResult? Function(
@@ -359,6 +402,7 @@ extension FolderItemPatterns on FolderItem {
             String? checksum,
             DateTime? createdAt,
             DateTime? updatedAt,
+            DateTime? addedAt,
             List<Tag> tags)?
         document,
     TResult? Function(
@@ -369,6 +413,7 @@ extension FolderItemPatterns on FolderItem {
             String? description,
             DateTime? createdAt,
             DateTime? updatedAt,
+            DateTime? addedAt,
             List<Tag> tags)?
         folder,
   }) {
@@ -376,7 +421,7 @@ extension FolderItemPatterns on FolderItem {
     switch (_that) {
       case LinkItem() when link != null:
         return link(_that.id, _that.itemId, _that.url, _that.archiveOrg,
-            _that.archiveIs, _that.createdAt, _that.tags);
+            _that.archiveIs, _that.createdAt, _that.addedAt, _that.tags);
       case DocumentItem() when document != null:
         return document(
             _that.id,
@@ -388,10 +433,19 @@ extension FolderItemPatterns on FolderItem {
             _that.checksum,
             _that.createdAt,
             _that.updatedAt,
+            _that.addedAt,
             _that.tags);
       case FolderItemNested() when folder != null:
-        return folder(_that.id, _that.itemId, _that.folderId, _that.title,
-            _that.description, _that.createdAt, _that.updatedAt, _that.tags);
+        return folder(
+            _that.id,
+            _that.itemId,
+            _that.folderId,
+            _that.title,
+            _that.description,
+            _that.createdAt,
+            _that.updatedAt,
+            _that.addedAt,
+            _that.tags);
       case _:
         return null;
     }
@@ -408,6 +462,7 @@ class LinkItem extends FolderItem {
       this.archiveOrg,
       this.archiveIs,
       this.createdAt,
+      this.addedAt,
       final List<Tag> tags = const []})
       : _tags = tags,
         super._();
@@ -421,6 +476,8 @@ class LinkItem extends FolderItem {
   final String? archiveIs;
   @override
   final DateTime? createdAt;
+  @override
+  final DateTime? addedAt;
   final List<Tag> _tags;
   @override
   @JsonKey()
@@ -452,16 +509,25 @@ class LinkItem extends FolderItem {
                 other.archiveIs == archiveIs) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
+            (identical(other.addedAt, addedAt) || other.addedAt == addedAt) &&
             const DeepCollectionEquality().equals(other._tags, _tags));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, id, itemId, url, archiveOrg,
-      archiveIs, createdAt, const DeepCollectionEquality().hash(_tags));
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      itemId,
+      url,
+      archiveOrg,
+      archiveIs,
+      createdAt,
+      addedAt,
+      const DeepCollectionEquality().hash(_tags));
 
   @override
   String toString() {
-    return 'FolderItem.link(id: $id, itemId: $itemId, url: $url, archiveOrg: $archiveOrg, archiveIs: $archiveIs, createdAt: $createdAt, tags: $tags)';
+    return 'FolderItem.link(id: $id, itemId: $itemId, url: $url, archiveOrg: $archiveOrg, archiveIs: $archiveIs, createdAt: $createdAt, addedAt: $addedAt, tags: $tags)';
   }
 }
 
@@ -479,6 +545,7 @@ abstract mixin class $LinkItemCopyWith<$Res>
       String? archiveOrg,
       String? archiveIs,
       DateTime? createdAt,
+      DateTime? addedAt,
       List<Tag> tags});
 }
 
@@ -500,6 +567,7 @@ class _$LinkItemCopyWithImpl<$Res> implements $LinkItemCopyWith<$Res> {
     Object? archiveOrg = freezed,
     Object? archiveIs = freezed,
     Object? createdAt = freezed,
+    Object? addedAt = freezed,
     Object? tags = null,
   }) {
     return _then(LinkItem(
@@ -527,6 +595,10 @@ class _$LinkItemCopyWithImpl<$Res> implements $LinkItemCopyWith<$Res> {
           ? _self.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
+      addedAt: freezed == addedAt
+          ? _self.addedAt
+          : addedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
       tags: null == tags
           ? _self._tags
           : tags // ignore: cast_nullable_to_non_nullable
@@ -548,6 +620,7 @@ class DocumentItem extends FolderItem {
       this.checksum,
       this.createdAt,
       this.updatedAt,
+      this.addedAt,
       final List<Tag> tags = const []})
       : _tags = tags,
         super._();
@@ -565,6 +638,8 @@ class DocumentItem extends FolderItem {
   @override
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  @override
+  final DateTime? addedAt;
   final List<Tag> _tags;
   @override
   @JsonKey()
@@ -602,6 +677,7 @@ class DocumentItem extends FolderItem {
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
                 other.updatedAt == updatedAt) &&
+            (identical(other.addedAt, addedAt) || other.addedAt == addedAt) &&
             const DeepCollectionEquality().equals(other._tags, _tags));
   }
 
@@ -617,11 +693,12 @@ class DocumentItem extends FolderItem {
       checksum,
       createdAt,
       updatedAt,
+      addedAt,
       const DeepCollectionEquality().hash(_tags));
 
   @override
   String toString() {
-    return 'FolderItem.document(id: $id, itemId: $itemId, title: $title, filePath: $filePath, fileType: $fileType, fileSize: $fileSize, checksum: $checksum, createdAt: $createdAt, updatedAt: $updatedAt, tags: $tags)';
+    return 'FolderItem.document(id: $id, itemId: $itemId, title: $title, filePath: $filePath, fileType: $fileType, fileSize: $fileSize, checksum: $checksum, createdAt: $createdAt, updatedAt: $updatedAt, addedAt: $addedAt, tags: $tags)';
   }
 }
 
@@ -643,6 +720,7 @@ abstract mixin class $DocumentItemCopyWith<$Res>
       String? checksum,
       DateTime? createdAt,
       DateTime? updatedAt,
+      DateTime? addedAt,
       List<Tag> tags});
 }
 
@@ -667,6 +745,7 @@ class _$DocumentItemCopyWithImpl<$Res> implements $DocumentItemCopyWith<$Res> {
     Object? checksum = freezed,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
+    Object? addedAt = freezed,
     Object? tags = null,
   }) {
     return _then(DocumentItem(
@@ -706,6 +785,10 @@ class _$DocumentItemCopyWithImpl<$Res> implements $DocumentItemCopyWith<$Res> {
           ? _self.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
+      addedAt: freezed == addedAt
+          ? _self.addedAt
+          : addedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
       tags: null == tags
           ? _self._tags
           : tags // ignore: cast_nullable_to_non_nullable
@@ -725,6 +808,7 @@ class FolderItemNested extends FolderItem {
       this.description,
       this.createdAt,
       this.updatedAt,
+      this.addedAt,
       final List<Tag> tags = const []})
       : _tags = tags,
         super._();
@@ -739,6 +823,8 @@ class FolderItemNested extends FolderItem {
   @override
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  @override
+  final DateTime? addedAt;
   final List<Tag> _tags;
   @override
   @JsonKey()
@@ -772,6 +858,7 @@ class FolderItemNested extends FolderItem {
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
                 other.updatedAt == updatedAt) &&
+            (identical(other.addedAt, addedAt) || other.addedAt == addedAt) &&
             const DeepCollectionEquality().equals(other._tags, _tags));
   }
 
@@ -785,11 +872,12 @@ class FolderItemNested extends FolderItem {
       description,
       createdAt,
       updatedAt,
+      addedAt,
       const DeepCollectionEquality().hash(_tags));
 
   @override
   String toString() {
-    return 'FolderItem.folder(id: $id, itemId: $itemId, folderId: $folderId, title: $title, description: $description, createdAt: $createdAt, updatedAt: $updatedAt, tags: $tags)';
+    return 'FolderItem.folder(id: $id, itemId: $itemId, folderId: $folderId, title: $title, description: $description, createdAt: $createdAt, updatedAt: $updatedAt, addedAt: $addedAt, tags: $tags)';
   }
 }
 
@@ -809,6 +897,7 @@ abstract mixin class $FolderItemNestedCopyWith<$Res>
       String? description,
       DateTime? createdAt,
       DateTime? updatedAt,
+      DateTime? addedAt,
       List<Tag> tags});
 }
 
@@ -832,6 +921,7 @@ class _$FolderItemNestedCopyWithImpl<$Res>
     Object? description = freezed,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
+    Object? addedAt = freezed,
     Object? tags = null,
   }) {
     return _then(FolderItemNested(
@@ -862,6 +952,10 @@ class _$FolderItemNestedCopyWithImpl<$Res>
       updatedAt: freezed == updatedAt
           ? _self.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      addedAt: freezed == addedAt
+          ? _self.addedAt
+          : addedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
       tags: null == tags
           ? _self._tags

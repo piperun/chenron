@@ -17,6 +17,7 @@ sealed class FolderItem with _$FolderItem {
     String? archiveOrg,
     String? archiveIs,
     DateTime? createdAt,
+    DateTime? addedAt,
     @Default([]) List<Tag> tags,
   }) = LinkItem;
 
@@ -30,6 +31,7 @@ sealed class FolderItem with _$FolderItem {
     String? checksum,
     DateTime? createdAt,
     DateTime? updatedAt,
+    DateTime? addedAt,
     @Default([]) List<Tag> tags,
   }) = DocumentItem;
 
@@ -41,6 +43,7 @@ sealed class FolderItem with _$FolderItem {
     String? description,
     DateTime? createdAt,
     DateTime? updatedAt,
+    DateTime? addedAt,
     @Default([]) List<Tag> tags,
   }) = FolderItemNested;
 

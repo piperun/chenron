@@ -111,14 +111,25 @@ class _TimeDisplay extends StatelessWidget {
         final timeFormat =
             TimeDisplayFormat.values[controller.timeDisplayFormat.value];
 
+        final addedAt = item.map(
+          link: (linkItem) => linkItem.addedAt,
+          document: (docItem) => docItem.addedAt,
+          folder: (folderItem) => folderItem.addedAt,
+        );
+
         final createdAt = item.map(
           link: (linkItem) => linkItem.createdAt ?? DateTime.now(),
           document: (docItem) => docItem.createdAt ?? DateTime.now(),
           folder: (folderItem) => folderItem.createdAt ?? DateTime.now(),
         );
 
-        final displayText = TimeFormatter.format(createdAt, timeFormat);
-        final tooltipText = TimeFormatter.formatTooltip(createdAt);
+        final date = addedAt ?? createdAt;
+        final prefix = addedAt != null ? "added " : "";
+        final displayText =
+            "$prefix${TimeFormatter.format(date, timeFormat)}";
+        final tooltipText = addedAt != null
+            ? "Added to folder: ${TimeFormatter.formatTooltip(date)}"
+            : TimeFormatter.formatTooltip(date);
 
         return Tooltip(
           message: tooltipText,

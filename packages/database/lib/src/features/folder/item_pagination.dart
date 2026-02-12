@@ -89,17 +89,20 @@ extension FolderItemPaginationExtensions on AppDatabase {
         case 1:
           final link = linkMap[row.itemId];
           if (link != null) {
-            folderItem = link.toFolderItem(row.id, tags: itemTags);
+            folderItem = link.toFolderItem(row.id,
+                tags: itemTags, addedAt: row.createdAt);
           }
         case 2:
           final doc = docMap[row.itemId];
           if (doc != null) {
-            folderItem = doc.toFolderItem(row.id, tags: itemTags);
+            folderItem = doc.toFolderItem(row.id,
+                tags: itemTags, addedAt: row.createdAt);
           }
         case 3:
           final folder = folderMap[row.itemId];
           if (folder != null) {
-            folderItem = folder.toFolderItem(row.id, tags: itemTags);
+            folderItem = folder.toFolderItem(row.id,
+                tags: itemTags, addedAt: row.createdAt);
           }
       }
 

@@ -88,17 +88,20 @@ class FolderResultBuilder implements ResultBuilder<FolderResult> {
       if (item.typeId == FolderItemType.link.dbId) {
         final link = _links[item.itemId];
         if (link != null) {
-          folderItem = link.toFolderItem(itemId, tags: itemTagsList);
+          folderItem = link.toFolderItem(itemId,
+              tags: itemTagsList, addedAt: item.createdAt);
         }
       } else if (item.typeId == FolderItemType.document.dbId) {
         final doc = _documents[item.itemId];
         if (doc != null) {
-          folderItem = doc.toFolderItem(itemId, tags: itemTagsList);
+          folderItem = doc.toFolderItem(itemId,
+              tags: itemTagsList, addedAt: item.createdAt);
         }
       } else if (item.typeId == FolderItemType.folder.dbId) {
         final folder = _folders[item.itemId];
         if (folder != null) {
-          folderItem = folder.toFolderItem(itemId, tags: itemTagsList);
+          folderItem = folder.toFolderItem(itemId,
+              tags: itemTagsList, addedAt: item.createdAt);
         }
       }
 

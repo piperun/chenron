@@ -2,7 +2,8 @@ import "package:database/main.dart";
 import "package:database/models/item.dart";
 
 extension ConvertLinkToItem on Link {
-  FolderItem toFolderItem(String? itemId, {List<Tag> tags = const []}) {
+  FolderItem toFolderItem(String? itemId,
+      {List<Tag> tags = const [], DateTime? addedAt}) {
     return FolderItem.link(
       id: id,
       itemId: itemId,
@@ -10,13 +11,15 @@ extension ConvertLinkToItem on Link {
       archiveOrg: archiveOrgUrl,
       archiveIs: archiveIsUrl,
       createdAt: createdAt,
+      addedAt: addedAt,
       tags: tags,
     );
   }
 }
 
 extension ConvertDocumentToItem on Document {
-  FolderItem toFolderItem(String? itemId, {List<Tag> tags = const []}) {
+  FolderItem toFolderItem(String? itemId,
+      {List<Tag> tags = const [], DateTime? addedAt}) {
     return FolderItem.document(
       id: id,
       itemId: itemId,
@@ -27,13 +30,15 @@ extension ConvertDocumentToItem on Document {
       checksum: checksum,
       createdAt: createdAt,
       updatedAt: updatedAt,
+      addedAt: addedAt,
       tags: tags,
     );
   }
 }
 
 extension ConvertFolderToItem on Folder {
-  FolderItem toFolderItem(String? itemId, {List<Tag> tags = const []}) {
+  FolderItem toFolderItem(String? itemId,
+      {List<Tag> tags = const [], DateTime? addedAt}) {
     return FolderItem.folder(
       id: id,
       itemId: itemId,
@@ -42,6 +47,7 @@ extension ConvertFolderToItem on Folder {
       description: description,
       createdAt: createdAt,
       updatedAt: updatedAt,
+      addedAt: addedAt,
       tags: tags,
     );
   }
