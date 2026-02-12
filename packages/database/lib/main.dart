@@ -435,7 +435,13 @@ class AppDatabase extends _$AppDatabase {
     }
 
     return driftDatabase(
-        name: databaseName, native: DriftNativeOptions(databasePath: dbPath));
+        name: databaseName,
+        native: DriftNativeOptions(
+          databasePath: dbPath,
+          setup: (db) {
+            db.execute("PRAGMA journal_mode=WAL;");
+          },
+        ));
   }
 }
 
@@ -562,6 +568,9 @@ class ConfigDatabase extends _$ConfigDatabase {
         name: databaseName,
         native: DriftNativeOptions(
           databasePath: path,
+          setup: (db) {
+            db.execute("PRAGMA journal_mode=WAL;");
+          },
         ));
   }
 
