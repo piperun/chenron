@@ -1,20 +1,6 @@
-/// Represents a specific validation error with its type and location
-class ValidationError {
-  final ValidationErrorType type;
-  final String message;
-  final int? startIndex;
-  final int? endIndex;
+import "package:freezed_annotation/freezed_annotation.dart";
 
-  const ValidationError({
-    required this.type,
-    required this.message,
-    this.startIndex,
-    this.endIndex,
-  });
-
-  @override
-  String toString() => message;
-}
+part "validation_result.freezed.dart";
 
 /// Types of validation errors that can occur
 enum ValidationErrorType {
@@ -28,23 +14,35 @@ enum ValidationErrorType {
   tagInvalidCharacters,
 }
 
-/// Result of validating a single line of bulk input
-class LineValidationResult {
-  final int lineNumber;
-  final String rawLine;
-  final String? url;
-  final List<String>? tags;
-  final bool isValid;
-  final List<ValidationError> errors;
+/// Represents a specific validation error with its type and location
+@freezed
+abstract class ValidationError with _$ValidationError {
+  const ValidationError._();
 
-  const LineValidationResult({
-    required this.lineNumber,
-    required this.rawLine,
-    this.url,
-    this.tags,
-    required this.isValid,
-    this.errors = const [],
-  });
+  const factory ValidationError({
+    required ValidationErrorType type,
+    required String message,
+    int? startIndex,
+    int? endIndex,
+  }) = _ValidationError;
+
+  @override
+  String toString() => message;
+}
+
+/// Result of validating a single line of bulk input
+@freezed
+abstract class LineValidationResult with _$LineValidationResult {
+  const LineValidationResult._();
+
+  const factory LineValidationResult({
+    required int lineNumber,
+    required String rawLine,
+    String? url,
+    List<String>? tags,
+    required bool isValid,
+    @Default([]) List<ValidationError> errors,
+  }) = _LineValidationResult;
 
   bool get hasErrors => errors.isNotEmpty;
 
@@ -81,4 +79,3 @@ class BulkValidationResult {
     return "BulkValidation: $totalLines total, $validLines valid, $invalidLines invalid";
   }
 }
-

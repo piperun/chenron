@@ -7,7 +7,7 @@ import 'dart:async' as _i5;
 
 import 'package:chenron/features/settings/controller/config_controller.dart'
     as _i3;
-import "package:database/main.dart" as _i4;
+import 'package:database/main.dart' as _i4;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:signals/signals_flutter.dart' as _i2;
 
@@ -24,6 +24,7 @@ import 'package:signals/signals_flutter.dart' as _i2;
 // ignore_for_file: unnecessary_parenthesis
 // ignore_for_file: camel_case_types
 // ignore_for_file: subtype_of_sealed_class
+// ignore_for_file: invalid_use_of_internal_member
 
 class _FakeFlutterSignal_0<T> extends _i1.SmartFake
     implements _i2.FlutterSignal<T> {
@@ -70,6 +71,15 @@ class MockConfigController extends _i1.Mock implements _i3.ConfigController {
           Invocation.getter(#userConfig),
         ),
       ) as _i2.FlutterSignal<_i4.UserConfig?>);
+
+  @override
+  _i2.FlutterSignal<String?> get appDatabasePath => (super.noSuchMethod(
+        Invocation.getter(#appDatabasePath),
+        returnValue: _FakeFlutterSignal_0<String?>(
+          this,
+          Invocation.getter(#appDatabasePath),
+        ),
+      ) as _i2.FlutterSignal<String?>);
 
   @override
   _i2.FlutterSignal<_i3.ThemeChoice?> get selectedThemeChoice =>
@@ -155,6 +165,79 @@ class MockConfigController extends _i1.Mock implements _i3.ConfigController {
       ) as _i2.FlutterSignal<String?>);
 
   @override
+  _i2.FlutterSignal<bool> get showDescription => (super.noSuchMethod(
+        Invocation.getter(#showDescription),
+        returnValue: _FakeFlutterSignal_0<bool>(
+          this,
+          Invocation.getter(#showDescription),
+        ),
+      ) as _i2.FlutterSignal<bool>);
+
+  @override
+  _i2.FlutterSignal<bool> get showImages => (super.noSuchMethod(
+        Invocation.getter(#showImages),
+        returnValue: _FakeFlutterSignal_0<bool>(
+          this,
+          Invocation.getter(#showImages),
+        ),
+      ) as _i2.FlutterSignal<bool>);
+
+  @override
+  _i2.FlutterSignal<bool> get showTags => (super.noSuchMethod(
+        Invocation.getter(#showTags),
+        returnValue: _FakeFlutterSignal_0<bool>(
+          this,
+          Invocation.getter(#showTags),
+        ),
+      ) as _i2.FlutterSignal<bool>);
+
+  @override
+  _i2.FlutterSignal<bool> get showCopyLink => (super.noSuchMethod(
+        Invocation.getter(#showCopyLink),
+        returnValue: _FakeFlutterSignal_0<bool>(
+          this,
+          Invocation.getter(#showCopyLink),
+        ),
+      ) as _i2.FlutterSignal<bool>);
+
+  @override
+  _i2.FlutterSignal<_i4.BackupSetting?> get backupSettings =>
+      (super.noSuchMethod(
+        Invocation.getter(#backupSettings),
+        returnValue: _FakeFlutterSignal_0<_i4.BackupSetting?>(
+          this,
+          Invocation.getter(#backupSettings),
+        ),
+      ) as _i2.FlutterSignal<_i4.BackupSetting?>);
+
+  @override
+  _i2.FlutterSignal<String?> get backupInterval => (super.noSuchMethod(
+        Invocation.getter(#backupInterval),
+        returnValue: _FakeFlutterSignal_0<String?>(
+          this,
+          Invocation.getter(#backupInterval),
+        ),
+      ) as _i2.FlutterSignal<String?>);
+
+  @override
+  _i2.FlutterSignal<String?> get backupPath => (super.noSuchMethod(
+        Invocation.getter(#backupPath),
+        returnValue: _FakeFlutterSignal_0<String?>(
+          this,
+          Invocation.getter(#backupPath),
+        ),
+      ) as _i2.FlutterSignal<String?>);
+
+  @override
+  set savedAppDatabasePath(String? value) => super.noSuchMethod(
+        Invocation.setter(
+          #savedAppDatabasePath,
+          value,
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
   _i5.Future<void> initialize() => (super.noSuchMethod(
         Invocation.method(
           #initialize,
@@ -230,10 +313,77 @@ class MockConfigController extends _i1.Mock implements _i3.ConfigController {
       );
 
   @override
+  void updateAppDatabasePath(String? value) => super.noSuchMethod(
+        Invocation.method(
+          #updateAppDatabasePath,
+          [value],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
   void updateCacheDirectory(String? value) => super.noSuchMethod(
         Invocation.method(
           #updateCacheDirectory,
           [value],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void updateBackupInterval(String? value) => super.noSuchMethod(
+        Invocation.method(
+          #updateBackupInterval,
+          [value],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void updateBackupPath(String? value) => super.noSuchMethod(
+        Invocation.method(
+          #updateBackupPath,
+          [value],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void updateShowDescription({required bool? enabled}) => super.noSuchMethod(
+        Invocation.method(
+          #updateShowDescription,
+          [],
+          {#enabled: enabled},
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void updateShowImages({required bool? enabled}) => super.noSuchMethod(
+        Invocation.method(
+          #updateShowImages,
+          [],
+          {#enabled: enabled},
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void updateShowTags({required bool? enabled}) => super.noSuchMethod(
+        Invocation.method(
+          #updateShowTags,
+          [],
+          {#enabled: enabled},
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void updateShowCopyLink({required bool? enabled}) => super.noSuchMethod(
+        Invocation.method(
+          #updateShowCopyLink,
+          [],
+          {#enabled: enabled},
         ),
         returnValueForMissingStub: null,
       );

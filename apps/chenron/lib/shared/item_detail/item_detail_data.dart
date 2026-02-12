@@ -2,63 +2,46 @@ import "package:database/main.dart";
 import "package:database/models/db_result.dart";
 import "package:database/models/item.dart";
 import "package:database/models/document_file_type.dart";
+import "package:freezed_annotation/freezed_annotation.dart";
+
+part "item_detail_data.freezed.dart";
 
 /// Immutable data holder for the item detail dialog.
 ///
 /// Aggregates item data, tags, and parent folders into a single
 /// object regardless of item type.
-class ItemDetailData {
-  final String itemId;
-  final FolderItemType itemType;
-  final String title;
-  final DateTime? createdAt;
-  final DateTime? updatedAt;
-  final List<Tag> tags;
-  final List<Folder> parentFolders;
+@freezed
+abstract class ItemDetailData with _$ItemDetailData {
+  const factory ItemDetailData({
+    required String itemId,
+    required FolderItemType itemType,
+    required String title,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    @Default([]) List<Tag> tags,
+    @Default([]) List<Folder> parentFolders,
 
-  // Link-specific
-  final String? url;
-  final String? domain;
-  final String? archiveOrgUrl;
-  final String? archiveIsUrl;
-  final String? localArchivePath;
+    // Link-specific
+    String? url,
+    String? domain,
+    String? archiveOrgUrl,
+    String? archiveIsUrl,
+    String? localArchivePath,
 
-  // Document-specific
-  final DocumentFileType? fileType;
-  final int? fileSize;
-  final String? filePath;
+    // Document-specific
+    DocumentFileType? fileType,
+    int? fileSize,
+    String? filePath,
 
-  // Folder-specific
-  final String? description;
-  final int? color;
-  final int linkCount;
-  final int documentCount;
-  final int folderCount;
+    // Folder-specific
+    String? description,
+    int? color,
+    @Default(0) int linkCount,
+    @Default(0) int documentCount,
+    @Default(0) int folderCount,
+  }) = _ItemDetailData;
 
-  const ItemDetailData({
-    required this.itemId,
-    required this.itemType,
-    required this.title,
-    this.createdAt,
-    this.updatedAt,
-    this.tags = const [],
-    this.parentFolders = const [],
-    this.url,
-    this.domain,
-    this.archiveOrgUrl,
-    this.archiveIsUrl,
-    this.localArchivePath,
-    this.fileType,
-    this.fileSize,
-    this.filePath,
-    this.description,
-    this.color,
-    this.linkCount = 0,
-    this.documentCount = 0,
-    this.folderCount = 0,
-  });
-
-  factory ItemDetailData.fromLink(LinkResult result, List<Folder> parents) {
+  static ItemDetailData fromLink(LinkResult result, List<Folder> parents) {
     final link = result.data;
     String? domain;
     try {
@@ -81,7 +64,7 @@ class ItemDetailData {
     );
   }
 
-  factory ItemDetailData.fromDocument(
+  static ItemDetailData fromDocument(
       DocumentResult result, List<Folder> parents) {
     final doc = result.data;
     return ItemDetailData(
@@ -98,7 +81,7 @@ class ItemDetailData {
     );
   }
 
-  factory ItemDetailData.fromFolder(
+  static ItemDetailData fromFolder(
       FolderResult result, List<Folder> parents) {
     final folder = result.data;
 
