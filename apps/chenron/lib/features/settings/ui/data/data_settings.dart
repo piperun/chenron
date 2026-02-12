@@ -9,6 +9,7 @@ import "package:signals/signals_flutter.dart";
 import "package:chenron/features/settings/controller/config_controller.dart";
 import "package:chenron/features/settings/service/data_settings_service.dart";
 import "package:chenron/locator.dart";
+import "package:chenron/shared/errors/error_snack_bar.dart";
 
 enum _DatabasePathMode { defaultMode, custom }
 
@@ -91,16 +92,11 @@ class _DataSettingsState extends State<DataSettings> {
       }
     } catch (e) {
       if (!mounted) return;
-      messenger.showSnackBar(SnackBar(
-        content: Text("Export failed: $e"),
-        backgroundColor: Theme.of(context).colorScheme.error,
-      ));
+      showErrorSnackBar(context, e);
     }
   }
 
   Future<void> _handleImport() async {
-    final messenger = ScaffoldMessenger.of(context);
-
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -148,10 +144,7 @@ class _DataSettingsState extends State<DataSettings> {
       }
     } catch (e) {
       if (!mounted) return;
-      messenger.showSnackBar(SnackBar(
-        content: Text("Import failed: $e"),
-        backgroundColor: Theme.of(context).colorScheme.error,
-      ));
+      showErrorSnackBar(context, e);
     }
   }
 

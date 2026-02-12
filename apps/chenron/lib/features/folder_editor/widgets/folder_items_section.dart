@@ -13,6 +13,7 @@ import "package:chenron/features/folder_editor/widgets/cells/type_cell.dart";
 import "package:chenron/features/folder_editor/widgets/cells/delete_cell.dart";
 import "package:chenron/features/folder_editor/notifiers/folder_editor_notifier.dart";
 import "package:app_logger/app_logger.dart";
+import "package:chenron/shared/errors/error_snack_bar.dart";
 
 /// Widget for displaying and managing folder items in the editor
 class FolderItemsSection extends StatefulWidget {
@@ -67,12 +68,7 @@ class _FolderItemsSectionState extends State<FolderItemsSection> {
       await widget.notifier.loadFolder(widget.folderId);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Failed to refresh items: $e"),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showErrorSnackBar(context, e);
       }
     }
   }
@@ -138,12 +134,7 @@ class _FolderItemsSectionState extends State<FolderItemsSection> {
       loggerGlobal.severe(
           "FolderItemsSection", "Error adding link", e, stackTrace);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Error adding link: $e"),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showErrorSnackBar(context, e);
       }
     }
   }

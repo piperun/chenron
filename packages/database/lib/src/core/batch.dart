@@ -29,7 +29,7 @@ class BatchOperations {
       loggerGlobal.info(
           "BatchOperationInsertIter", "Batch insert completed successfully");
     } catch (e) {
-      loggerGlobal.info(
+      loggerGlobal.warning(
           "BatchOperationInsertIter", "Error during batch insert: $e");
       rethrow;
     }
@@ -50,7 +50,7 @@ class BatchOperations {
       loggerGlobal.info(
           "BatchOperationInsertAll", "Batch insert completed successfully");
     } catch (e) {
-      loggerGlobal.info(
+      loggerGlobal.warning(
           "BatchOperationInsertAll", "Error during batch insert: $e");
       rethrow;
     }
@@ -68,7 +68,7 @@ class BatchOperations {
       loggerGlobal.info(
           "BatchOperationUpdate", "Batch update completed successfully");
     } catch (e) {
-      loggerGlobal.info(
+      loggerGlobal.warning(
           "BatchOperationUpdate", "Error during batch update: $e");
       rethrow;
     }
@@ -85,7 +85,7 @@ class BatchOperations {
       loggerGlobal.info(
           "BatchOperationDelete", "Batch delete completed successfully");
     } catch (e) {
-      loggerGlobal.info(
+      loggerGlobal.warning(
           "BatchOperationDelete", "Error during batch delete: $e");
       rethrow;
     }
@@ -103,7 +103,7 @@ class BatchOperations {
       loggerGlobal.info(
           "BatchOperationDeleteIter", "Batch delete completed successfully");
     } catch (e) {
-      loggerGlobal.info(
+      loggerGlobal.warning(
           "BatchOperationDeleteIter", "Error during batch delete: $e");
       rethrow;
     }

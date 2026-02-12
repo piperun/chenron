@@ -14,6 +14,7 @@ import "package:chenron/shared/infinite_scroll/infinite_scroll_state.dart";
 import "package:chenron/shared/tag_filter/tag_filter_state.dart";
 import "package:chenron/features/folder_editor/pages/folder_editor.dart";
 import "package:app_logger/app_logger.dart";
+import "package:chenron/shared/errors/error_snack_bar.dart";
 import "package:chenron/features/shell/pages/root.dart";
 import "package:chenron/shared/viewer/item_handler.dart";
 
@@ -98,12 +99,7 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
       loggerGlobal.severe(
           "FolderViewer", "Error in folder editor", e, stackTrace);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Error opening editor: $e"),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showErrorSnackBar(context, e);
       }
     }
   }
@@ -147,12 +143,7 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Error deleting folder: $e"),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showErrorSnackBar(context, e);
       }
     }
   }

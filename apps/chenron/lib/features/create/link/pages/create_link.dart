@@ -20,6 +20,8 @@ import "package:chenron/utils/validation/link_validator.dart";
 import "package:chenron/utils/validation/tag_validator.dart";
 import "package:chenron/notifiers/item_table_notifier.dart";
 import "package:app_logger/app_logger.dart";
+import "package:chenron/shared/errors/error_snack_bar.dart";
+import "package:chenron/shared/errors/user_error_message.dart";
 
 class CreateLinkPage extends StatefulWidget {
   final bool hideAppBar;
@@ -275,12 +277,7 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
     } catch (e, stackTrace) {
       loggerGlobal.severe("CreateLink", "Error editing link", e, stackTrace);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Error editing link: $e"),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showErrorSnackBar(context, e);
       }
     }
   }
@@ -329,7 +326,7 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _generalError = "Could not save: $e";
+          _generalError = userErrorMessage(e);
         });
       }
     }

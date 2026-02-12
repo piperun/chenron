@@ -6,6 +6,7 @@ import "package:chenron/shared/viewer/item_deletion_service.dart";
 import "package:database/database.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/services/activity_tracker.dart";
+import "package:chenron/shared/errors/error_snack_bar.dart";
 
 /// Handles item tap by converting FolderItem to ViewerItem and delegating
 /// to the presenter's configurable onItemTap method.
@@ -119,12 +120,7 @@ Future<void> handleItemDeletion(
     }
   } catch (e) {
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Failed to delete items: $e"),
-          backgroundColor: Colors.red,
-        ),
-      );
+      showErrorSnackBar(context, e);
     }
   }
 }

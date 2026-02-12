@@ -4,6 +4,7 @@ import "package:flutter/material.dart";
 import "package:file_picker/file_picker.dart";
 import "package:signals/signals_flutter.dart";
 import "package:chenron/features/settings/controller/config_controller.dart";
+import "package:chenron/shared/errors/error_snack_bar.dart";
 import "package:path_provider/path_provider.dart";
 
 enum CacheDirectoryMode { defaultMode, custom }
@@ -128,12 +129,7 @@ class _CacheSettingsState extends State<CacheSettings> {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Error clearing cache: $e"),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
+        showErrorSnackBar(context, e);
       }
     }
   }
