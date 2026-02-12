@@ -34,34 +34,23 @@ dependencies:
 
   # Remote packages (alphabetically sorted)
   collection: any
-  cron: ^0.6.1
-  crypto: ^3.0.5
-  cuid2: ^3.1.0
   cupertino_icons: ^1.0.6
   drift: ^2.26.0
-  drift_flutter: ^0.2.0
   favicon: ^1.1.2
   file_picker: ^10.3.7
   fl_chart: ^0.70.2
   flex_color_scheme: ^8.3.0
   flutter_cache_manager: ^3.3.0
-  flutter_colorpicker: ^1.1.0
-  flutter_speed_dial: ^7.0.0
   flutter_svg: ^2.0.10+1
-  freezed_annotation: ^3.0.0
   fuzzywuzzy: ^1.2.0
   get_it: ^8.0.0
   go_router: ^16.0.0
-  html: ^0.15.4
   http: ^1.5.0
   intl: ^0.20.2
-  logging: ^1.2.0
   meta: ^1.12.0
   metadata_fetch: ^0.4.2
   path: ^1.9.0
   path_provider: ^2.1.4
-  percent_indicator: ^4.2.3
-  postgres: ^3.2.1
   rxdart: ^0.28.0
   shared_preferences: ^2.5.3
   signals: ^6.0.2
