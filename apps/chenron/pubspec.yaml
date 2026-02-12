@@ -74,7 +74,7 @@ dependencies:
   basedir: ^0.1.0
   cache_manager: ^0.1.0
   core: ^0.0.1
-  database: ^0.7.0
+  database: ^0.8.0
   app_logger: ^0.0.1
   platform_provider: ^0.1.0
   vibe: ^0.1.1
