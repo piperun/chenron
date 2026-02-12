@@ -14,6 +14,7 @@ export "src/features/folder/update.dart";
 export "src/features/folder/remove.dart";
 export "src/features/folder/insert.dart";
 export "src/features/folder/item_pagination.dart";
+export "src/features/folder/item_membership.dart";
 
 // Link operations
 export "src/features/link/create.dart";

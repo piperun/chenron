@@ -13,7 +13,7 @@ import "package:url_launcher/url_launcher.dart";
 import "package:signals/signals_flutter.dart";
 import "package:chenron/features/settings/controller/config_controller.dart";
 import "package:chenron/locator.dart";
-import "package:chenron/shared/item_display/widgets/viewer_item/item_info_modal.dart";
+import "package:chenron/shared/item_detail/item_detail_dialog.dart";
 
 class ViewerPresenter {
   final Signal<Set<String>> selectedItemIds = signal({});
@@ -168,37 +168,8 @@ class ViewerPresenter {
     final action = _configController.itemClickAction.peek();
 
     if (action == 1) {
-      // Show Details
-      // Convert ViewerItem to FolderItem for the modal
-      final folderItem = switch (item.type) {
-        FolderItemType.link => FolderItem.link(
-            id: item.id,
-            itemId: null,
-            url: item.url ?? "",
-            tags: item.tags,
-            createdAt: item.createdAt,
-          ),
-        FolderItemType.document => FolderItem.document(
-            id: item.id,
-            itemId: null,
-            title: item.title,
-            filePath: "", // Will need to be populated from ViewerItem
-            tags: item.tags,
-            createdAt: item.createdAt,
-          ),
-        FolderItemType.folder => FolderItem.folder(
-            id: item.id,
-            itemId: null,
-            folderId: item.id,
-            title: item.title,
-            tags: item.tags,
-          ),
-      };
-
-      unawaited(showDialog(
-        context: context,
-        builder: (context) => ItemInfoModal(item: folderItem),
-      ));
+      showItemDetailDialog(context,
+          itemId: item.id, itemType: item.type);
       return;
     }
 

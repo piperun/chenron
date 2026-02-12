@@ -2,7 +2,7 @@ import "package:flutter/material.dart";
 import "package:database/models/item.dart";
 import "package:chenron/components/favicon_display/favicon.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/item_utils.dart";
-import "package:chenron/shared/item_display/widgets/viewer_item/item_info_modal.dart";
+import "package:chenron/shared/item_detail/item_detail_dialog.dart";
 import "package:chenron/shared/utils/time_formatter.dart";
 import "package:chenron/features/settings/controller/config_controller.dart";
 import "package:chenron/locator.dart";
@@ -54,7 +54,7 @@ class ItemMetaRow extends StatelessWidget {
           _TimeDisplay(item: item),
           const SizedBox(width: 6),
           InkWell(
-            onTap: () => showItemInfoModal(context, item),
+            onTap: () => showItemDetailDialog(context, itemId: item.id!, itemType: item.type),
             borderRadius: BorderRadius.circular(12),
             child: Container(
               padding: const EdgeInsets.all(2),
@@ -78,7 +78,7 @@ class ItemMetaRow extends StatelessWidget {
         _TimeDisplay(item: item),
         const Spacer(),
         InkWell(
-          onTap: () => showItemInfoModal(context, item),
+          onTap: () => showItemDetailDialog(context, itemId: item.id!, itemType: item.type),
           borderRadius: BorderRadius.circular(12),
           child: Container(
             padding: const EdgeInsets.all(2),
