@@ -5,7 +5,7 @@ import "package:signals/signals_flutter.dart";
 import "package:database/database.dart";
 
 /// Initializes the app for testing purposes
-/// This should be called before pumping the MyApp widget
+/// This should be called before pumping the ChenronApp widget
 Future<void> initTestApp() async {
   try {
     // Check if GetIt already has registrations by checking for a known type

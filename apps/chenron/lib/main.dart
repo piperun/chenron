@@ -29,7 +29,7 @@ void main() async {
     loggerGlobal.info("main", "Waiting for locator dependencies...");
     await locator.allReady();
     loggerGlobal.info("main", "Locator ready, running app.");
-    runApp(MyApp(initialThemeMode: initialThemeMode));
+    runApp(ChenronApp(initialThemeMode: initialThemeMode));
   } catch (error, stackTrace) {
     loggerGlobal.severe(
         "Startup", "Failed to initialize app: $error", error, stackTrace);
@@ -37,10 +37,10 @@ void main() async {
   }
 }
 
-class MyApp extends StatelessWidget {
+class ChenronApp extends StatelessWidget {
   final ThemeMode initialThemeMode;
 
-  const MyApp({super.key, required this.initialThemeMode});
+  const ChenronApp({super.key, required this.initialThemeMode});
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +54,7 @@ class MyApp extends StatelessWidget {
       final variants = themeController.currentThemeSignal.value;
 
       loggerGlobal.fine(
-          "MyApp.build", "Building with ThemeMode: $currentMode and dynamic theme");
+          "ChenronApp.build", "Building with ThemeMode: $currentMode and dynamic theme");
 
       return MaterialApp(
         title: "Chenron",

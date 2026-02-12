@@ -718,9 +718,15 @@ class _DetailsTable extends StatelessWidget {
               runSpacing: 6,
               children: [
                 if (data.archiveOrgUrl != null)
-                  const _ArchiveBadge(label: "archive.org"),
+                  _ArchiveBadge(
+                    label: "archive.org",
+                    url: data.archiveOrgUrl,
+                  ),
                 if (data.archiveIsUrl != null)
-                  const _ArchiveBadge(label: "archive.is"),
+                  _ArchiveBadge(
+                    label: "archive.is",
+                    url: data.archiveIsUrl,
+                  ),
                 if (data.localArchivePath != null)
                   const _ArchiveBadge(label: "Local backup"),
               ],
@@ -766,13 +772,22 @@ class _DetailRow extends StatelessWidget {
 
 class _ArchiveBadge extends StatelessWidget {
   final String label;
+  final String? url;
 
-  const _ArchiveBadge({required this.label});
+  const _ArchiveBadge({required this.label, this.url});
+
+  Future<void> _handleTap() async {
+    if (url == null) return;
+    final uri = Uri.tryParse(url!);
+    if (uri != null) {
+      await url_launcher.launchUrl(uri);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Container(
+    final badge = Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: theme.colorScheme.tertiaryContainer.withValues(alpha: 0.5),
@@ -781,15 +796,38 @@ class _ArchiveBadge extends StatelessWidget {
           color: theme.colorScheme.tertiary.withValues(alpha: 0.3),
         ),
       ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w500,
-          color: theme.colorScheme.onTertiaryContainer,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (url != null)
+            Padding(
+              padding: const EdgeInsets.only(right: 4),
+              child: Icon(
+                Icons.open_in_new,
+                size: 11,
+                color: theme.colorScheme.onTertiaryContainer,
+              ),
+            ),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: theme.colorScheme.onTertiaryContainer,
+            ),
+          ),
+        ],
       ),
     );
+
+    if (url != null) {
+      return InkWell(
+        onTap: _handleTap,
+        borderRadius: BorderRadius.circular(4),
+        child: badge,
+      );
+    }
+    return badge;
   }
 }
 
