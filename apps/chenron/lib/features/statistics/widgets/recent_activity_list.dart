@@ -1,7 +1,7 @@
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:database/database.dart";
-import "package:chenron/features/dashboard/widgets/chart_card.dart";
+import "package:chenron/features/statistics/widgets/chart_card.dart";
 import "package:chenron/shared/utils/time_formatter.dart";
 
 class RecentActivityList extends StatelessWidget {

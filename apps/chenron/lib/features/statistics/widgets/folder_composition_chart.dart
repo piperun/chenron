@@ -1,7 +1,7 @@
 import "package:fl_chart/fl_chart.dart";
 import "package:flutter/material.dart";
 import "package:database/database.dart";
-import "package:chenron/features/dashboard/widgets/chart_card.dart";
+import "package:chenron/features/statistics/widgets/chart_card.dart";
 
 class FolderCompositionChart extends StatelessWidget {
   final List<FolderItemCount> folderCounts;

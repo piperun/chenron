@@ -1,13 +1,13 @@
 import "package:flutter/material.dart";
 import "package:chenron/features/viewer/pages/viewer.dart";
-import "package:chenron/features/dashboard/pages/dashboard.dart";
+import "package:chenron/features/statistics/pages/statistics_page.dart";
 
 enum NavigationSection {
-  dashboard(
+  statistics(
     icon: Icons.analytics_outlined,
     selectedIcon: Icons.analytics,
     label: "Statistics",
-    page: DashBoard(padding: 16),
+    page: StatisticsPage(padding: 16),
   ),
   viewer(
     icon: Icons.view_list_outlined,

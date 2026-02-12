@@ -26,7 +26,7 @@ class RootPage extends StatefulWidget {
 }
 
 class _RootPageState extends State<RootPage> {
-  AppPage _currentPage = AppPage.dashboard;
+  AppPage _currentPage = AppPage.statistics;
   AppPage? _previousPage;
   bool _isExtended = true;
   String? _selectedFolderId;
@@ -77,7 +77,7 @@ class _RootPageState extends State<RootPage> {
 
   void _returnToPreviousPage() {
     setState(() {
-      _currentPage = _previousPage ?? AppPage.dashboard;
+      _currentPage = _previousPage ?? AppPage.statistics;
       _previousPage = null;
     });
   }
@@ -96,7 +96,7 @@ class _RootPageState extends State<RootPage> {
       _currentSection = section;
       // Reset to the default page for the section when navigating from settings
       if (_currentPage == AppPage.settings || _currentPage.isCreateFlow) {
-        _currentPage = AppPage.dashboard; // Default page
+        _currentPage = AppPage.statistics; // Default page
       }
     });
   }
@@ -122,7 +122,7 @@ class _RootPageState extends State<RootPage> {
 
   void _returnFromSettings() {
     setState(() {
-      _currentPage = _previousPage ?? AppPage.dashboard;
+      _currentPage = _previousPage ?? AppPage.statistics;
       _previousPage = null;
     });
   }

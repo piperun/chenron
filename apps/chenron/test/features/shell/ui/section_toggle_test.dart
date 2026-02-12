@@ -5,7 +5,7 @@ import "package:chenron/features/shell/ui/sections/navigation_section.dart";
 
 void main() {
   Widget buildToggle({
-    NavigationSection currentSection = NavigationSection.dashboard,
+    NavigationSection currentSection = NavigationSection.statistics,
     void Function(NavigationSection)? onSectionSelected,
   }) {
     return MaterialApp(
@@ -32,12 +32,12 @@ void main() {
 
     testWidgets("shows icons for all sections", (tester) async {
       await tester.pumpWidget(buildToggle(
-        currentSection: NavigationSection.dashboard,
+        currentSection: NavigationSection.statistics,
       ));
       await tester.pumpAndSettle();
 
-      // Dashboard is selected, so it gets selectedIcon
-      expect(find.byIcon(NavigationSection.dashboard.selectedIcon),
+      // Statistics is selected, so it gets selectedIcon
+      expect(find.byIcon(NavigationSection.statistics.selectedIcon),
           findsOneWidget);
       // Viewer is not selected, so it gets normal icon
       expect(find.byIcon(NavigationSection.viewer.icon), findsOneWidget);
@@ -52,8 +52,8 @@ void main() {
       // Viewer is selected - uses selectedIcon
       expect(
           find.byIcon(NavigationSection.viewer.selectedIcon), findsOneWidget);
-      // Dashboard is not selected - uses normal icon
-      expect(find.byIcon(NavigationSection.dashboard.icon), findsOneWidget);
+      // Statistics is not selected - uses normal icon
+      expect(find.byIcon(NavigationSection.statistics.icon), findsOneWidget);
     });
 
     testWidgets("renders SectionButton for each section", (tester) async {
@@ -72,7 +72,7 @@ void main() {
         (tester) async {
       NavigationSection? selected;
       await tester.pumpWidget(buildToggle(
-        currentSection: NavigationSection.dashboard,
+        currentSection: NavigationSection.statistics,
         onSectionSelected: (section) => selected = section,
       ));
       await tester.pumpAndSettle();
@@ -84,13 +84,13 @@ void main() {
     testWidgets("can select already-selected section", (tester) async {
       NavigationSection? selected;
       await tester.pumpWidget(buildToggle(
-        currentSection: NavigationSection.dashboard,
+        currentSection: NavigationSection.statistics,
         onSectionSelected: (section) => selected = section,
       ));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text(NavigationSection.dashboard.label));
-      expect(selected, NavigationSection.dashboard);
+      await tester.tap(find.text(NavigationSection.statistics.label));
+      expect(selected, NavigationSection.statistics);
     });
   });
 
@@ -99,7 +99,7 @@ void main() {
       await tester.pumpWidget(MaterialApp(
         home: Scaffold(
           body: SectionButton(
-            section: NavigationSection.dashboard,
+            section: NavigationSection.statistics,
             isSelected: true,
             onPressed: () {},
           ),
@@ -108,7 +108,7 @@ void main() {
       await tester.pumpAndSettle();
 
       final text = tester.widget<Text>(
-        find.text(NavigationSection.dashboard.label),
+        find.text(NavigationSection.statistics.label),
       );
       expect(text.style?.fontWeight, FontWeight.w600);
     });
@@ -117,7 +117,7 @@ void main() {
       await tester.pumpWidget(MaterialApp(
         home: Scaffold(
           body: SectionButton(
-            section: NavigationSection.dashboard,
+            section: NavigationSection.statistics,
             isSelected: false,
             onPressed: () {},
           ),
@@ -126,7 +126,7 @@ void main() {
       await tester.pumpAndSettle();
 
       final text = tester.widget<Text>(
-        find.text(NavigationSection.dashboard.label),
+        find.text(NavigationSection.statistics.label),
       );
       expect(text.style?.fontWeight, FontWeight.w500);
     });

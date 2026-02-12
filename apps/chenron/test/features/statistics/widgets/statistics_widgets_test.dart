@@ -1,10 +1,10 @@
 import "package:flutter/material.dart";
 import "package:flutter_test/flutter_test.dart";
 import "package:database/database.dart";
-import "package:chenron/features/dashboard/widgets/overview_cards.dart";
-import "package:chenron/features/dashboard/widgets/chart_card.dart";
-import "package:chenron/features/dashboard/widgets/time_range_selector.dart";
-import "package:chenron/features/dashboard/widgets/recent_activity_list.dart";
+import "package:chenron/features/statistics/widgets/overview_cards.dart";
+import "package:chenron/features/statistics/widgets/chart_card.dart";
+import "package:chenron/features/statistics/widgets/time_range_selector.dart";
+import "package:chenron/features/statistics/widgets/recent_activity_list.dart";
 
 void main() {
   group("OverviewCards", () {

@@ -1,6 +1,6 @@
 // Navigation sections that appear in the sidebar
 
-import "package:chenron/features/dashboard/pages/dashboard.dart";
+import "package:chenron/features/statistics/pages/statistics_page.dart";
 import "package:chenron/features/settings/models/settings_category.dart";
 import "package:chenron/features/settings/pages/configuration.dart";
 import "package:chenron/features/shell/ui/sections/navigation_section.dart";
@@ -11,7 +11,7 @@ import "package:chenron/shared/search/search_filter.dart";
 import "package:flutter/material.dart";
 
 enum AppPage {
-  dashboard(NavigationSection.dashboard),
+  statistics(NavigationSection.statistics),
   viewer(NavigationSection.viewer),
   createLink(null),
   createFolder(null),
@@ -31,8 +31,8 @@ enum AppPage {
     SearchFilter? searchFilter,
   }) {
     switch (this) {
-      case AppPage.dashboard:
-        return const DashBoard(padding: 16);
+      case AppPage.statistics:
+        return const StatisticsPage(padding: 16);
       case AppPage.viewer:
         return Viewer(searchFilter: searchFilter);
       case AppPage.createLink:

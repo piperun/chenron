@@ -6,23 +6,23 @@ import "package:database/database.dart";
 import "package:database/main.dart";
 import "package:signals/signals_flutter.dart";
 import "package:chenron/locator.dart";
-import "package:chenron/features/dashboard/widgets/overview_cards.dart";
-import "package:chenron/features/dashboard/widgets/growth_trend_chart.dart";
-import "package:chenron/features/dashboard/widgets/activity_timeline_chart.dart";
-import "package:chenron/features/dashboard/widgets/tag_distribution_chart.dart";
-import "package:chenron/features/dashboard/widgets/folder_composition_chart.dart";
-import "package:chenron/features/dashboard/widgets/recent_activity_list.dart";
-import "package:chenron/features/dashboard/widgets/time_range_selector.dart";
+import "package:chenron/features/statistics/widgets/overview_cards.dart";
+import "package:chenron/features/statistics/widgets/growth_trend_chart.dart";
+import "package:chenron/features/statistics/widgets/activity_timeline_chart.dart";
+import "package:chenron/features/statistics/widgets/tag_distribution_chart.dart";
+import "package:chenron/features/statistics/widgets/folder_composition_chart.dart";
+import "package:chenron/features/statistics/widgets/recent_activity_list.dart";
+import "package:chenron/features/statistics/widgets/time_range_selector.dart";
 
-class DashBoard extends StatefulWidget {
+class StatisticsPage extends StatefulWidget {
   final double padding;
-  const DashBoard({super.key, required this.padding});
+  const StatisticsPage({super.key, required this.padding});
 
   @override
-  State<DashBoard> createState() => _DashBoardState();
+  State<StatisticsPage> createState() => _StatisticsPageState();
 }
 
-class _DashBoardState extends State<DashBoard> {
+class _StatisticsPageState extends State<StatisticsPage> {
   final AppDatabase _db =
       locator.get<Signal<AppDatabaseHandler>>().value.appDatabase;
 
@@ -49,7 +49,7 @@ class _DashBoardState extends State<DashBoard> {
       },
       onError: (Object error) {
         loggerGlobal.warning(
-            "Dashboard", "Activity stream error: $error");
+            "Statistics", "Activity stream error: $error");
       },
     );
   }

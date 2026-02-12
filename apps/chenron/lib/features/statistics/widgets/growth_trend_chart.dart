@@ -2,8 +2,8 @@ import "package:fl_chart/fl_chart.dart";
 import "package:flutter/material.dart";
 import "package:database/main.dart";
 import "package:intl/intl.dart";
-import "package:chenron/features/dashboard/widgets/chart_card.dart";
-import "package:chenron/features/dashboard/widgets/time_range_selector.dart";
+import "package:chenron/features/statistics/widgets/chart_card.dart";
+import "package:chenron/features/statistics/widgets/time_range_selector.dart";
 
 class GrowthTrendChart extends StatefulWidget {
   final List<Statistic> history;
