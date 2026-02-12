@@ -2,6 +2,22 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [v1.0.0](https://github.com/piperun/chenron-flutter/compare/v0.14.0..v1.0.0) - 1970-01-01
+### Packages
+- [database-v0.9.0](packages/database) locked to [database-v0.9.0](https://github.com/piperun/chenron-flutter/tree/database-v0.9.0)
+- [web_archiver-v0.1.0](packages/web_archiver) locked to [web_archiver-v0.1.0](https://github.com/piperun/chenron-flutter/tree/web_archiver-v0.1.0)
+- [platform_provider-v0.1.0](packages/platform_provider) locked to [platform_provider-v0.1.0](https://github.com/piperun/chenron-flutter/tree/platform_provider-v0.1.0)
+- [vibe-v0.1.1](packages/vibe) locked to [vibe-v0.1.1](https://github.com/piperun/chenron-flutter/tree/vibe-v0.1.1)
+- [v0.0.0](packages/core) locked to [v0.0.0](https://github.com/piperun/chenron-flutter/tree/v0.0.0)
+- [v0.0.0](packages/logger) locked to [v0.0.0](https://github.com/piperun/chenron-flutter/tree/v0.0.0)
+- [chenron-v0.13.0](apps/chenron) locked to [chenron-v0.13.0](https://github.com/piperun/chenron-flutter/tree/chenron-v0.13.0)
+- [cache_manager-v0.1.0](packages/cache_manager) locked to [cache_manager-v0.1.0](https://github.com/piperun/chenron-flutter/tree/cache_manager-v0.1.0)
+- [v0.0.0](packages/chenron_mockups) locked to [v0.0.0](https://github.com/piperun/chenron-flutter/tree/v0.0.0)
+- [basedir-v0.1.0](packages/basedir) locked to [basedir-v0.1.0](https://github.com/piperun/chenron-flutter/tree/basedir-v0.1.0)
+### Global changes
+
+- - -
+
 ## [v0.14.0](https://github.com/piperun/chenron-flutter/compare/32308853e62168ec1e43dc3e4b8311e0d74046ba..v0.14.0) - 2026-02-12
 ### Package updates
 - [chenron-v0.13.0](apps/chenron) bumped to [chenron-v0.13.0](https://github.com/piperun/chenron-flutter/compare/chenron-v0.12.1..chenron-v0.13.0)
