@@ -3,7 +3,7 @@ name: release
 on:
   push:
     tags:
-      - 'chenron-v*'
+      - 'v[0-9]*'
 
 permissions:
   contents: write
@@ -21,7 +21,7 @@ jobs:
       - name: Extract version from tag
         id: version
         run: |
-          VERSION="${GITHUB_REF_NAME#chenron-v}"
+          VERSION="${GITHUB_REF_NAME#v}"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Extracted version: $VERSION"
 
