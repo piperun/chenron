@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## database-v0.9.0 - 2026-02-12
+#### Features
+- show 'added' date when viewing items in a folder - (6b9ff34) - *piperun*
+
+- - -
+
 ## database-v0.8.1 - 2026-02-12
 #### Bug Fixes
 - show user-friendly error messages instead of raw exceptions - (95c525a) - *piperun*

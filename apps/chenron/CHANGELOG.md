@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## chenron-v0.13.0 - 2026-02-12
+#### Features
+- show 'added' date when viewing items in a folder - (6b9ff34) - *piperun*
+- redesign item detail dialog and fix card view overflow - (9da72f7) - *piperun*
+#### Bug Fixes
+- eliminate janky dark mode transition - (376fad2) - *piperun*
+#### Refactoring
+- convert LinkEntry, validation models, and ItemDetailData to freezed - (b55c17a) - *piperun*
+
+- - -
+
 ## chenron-v0.12.1 - 2026-02-12
 #### Bug Fixes
 - show user-friendly error messages instead of raw exceptions - (95c525a) - *piperun*
