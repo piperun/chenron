@@ -5,8 +5,9 @@ import "package:chenron/features/theme/state/theme_manager.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/providers/theme_controller_signal.dart";
 
-import "package:flutter/material.dart";
 import "package:chenron/shared/constants/durations.dart";
+import "package:flutter/material.dart";
+
 import "package:shared_preferences/shared_preferences.dart";
 import "package:signals/signals_flutter.dart";
 

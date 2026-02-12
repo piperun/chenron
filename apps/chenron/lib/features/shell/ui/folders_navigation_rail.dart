@@ -94,16 +94,17 @@ class _FoldersNavigationRailState extends State<FoldersNavigationRail> {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       width: widget.isExtended ? 280 : 72,
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        border: Border(
-          right: BorderSide(
-            color: Theme.of(context).dividerColor,
-            width: 1,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          border: Border(
+            right: BorderSide(
+              color: Theme.of(context).dividerColor,
+              width: 1,
+            ),
           ),
         ),
-      ),
-      child: Column(
+        child: Column(
         children: [
           RailHeader(
             isExtended: widget.isExtended,
@@ -134,6 +135,7 @@ class _FoldersNavigationRailState extends State<FoldersNavigationRail> {
             onAddPressed: widget.onAddPressed,
           ),
         ],
+        ),
       ),
     );
   }

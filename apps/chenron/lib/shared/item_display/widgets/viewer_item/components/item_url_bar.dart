@@ -69,8 +69,7 @@ class _ItemUrlBarState extends State<ItemUrlBar> {
           InkWell(
             onTap: _handleCopy,
             borderRadius: BorderRadius.circular(4),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
+            child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
                 color: _copied

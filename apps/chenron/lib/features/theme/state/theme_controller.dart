@@ -12,11 +12,11 @@ import "package:vibe/vibe.dart";
 ThemeServiceDB? _themeService;
 
 class ThemeController {
-  final Signal<ThemeMode> themeModeSignal = Signal<ThemeMode>(ThemeMode.system);
   final Signal<ThemeVariants> currentThemeSignal = Signal<ThemeVariants>((
     light: FlexThemeData.light(scheme: FlexScheme.blueWhale),
     dark: FlexThemeData.dark(scheme: FlexScheme.blueWhale),
   ));
+
   Future<void> initialize() async {
     try {
       await locator.allReady();
@@ -26,7 +26,6 @@ class ThemeController {
 
       _themeService = await ThemeServiceDB.init(database: configDb);
       if (_themeService != null) {
-        themeModeSignal.value = await getThemeMode();
         await setCurrentTheme();
       }
     } catch (error, stackTrace) {
@@ -34,11 +33,6 @@ class ThemeController {
           stackTrace: stackTrace,
           label: "Error initializing ThemeController: $error");
     }
-  }
-
-  Future<void> changeThemeMode({required bool isDark}) async {
-    themeModeSignal.value = isDark ? ThemeMode.dark : ThemeMode.light;
-    await _themeService?.changeThemeMode(isDark: isDark);
   }
 
   Future<void> changeTheme(String themeKey, ThemeType themeType) async {
@@ -123,11 +117,6 @@ class ThemeController {
         );
   }
 
-  Future<ThemeMode> getThemeMode() async {
-    return _themeService?.configData.data.darkMode == true
-        ? ThemeMode.dark
-        : ThemeMode.light;
-  }
 }
 
 /// Builds a FlexColorScheme-based light/dark pair from seed data stored
