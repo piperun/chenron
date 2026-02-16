@@ -3449,7 +3449,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final Index documentTitle = Index(
       'document_title', 'CREATE INDEX document_title ON documents (title)');
   late final Index itemsFolderItemIdx = Index('items_folder_item_idx',
-      'CREATE INDEX items_folder_item_idx ON items (folder_id, item_id)');
+      'CREATE UNIQUE INDEX items_folder_item_idx ON items (folder_id, item_id)');
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();

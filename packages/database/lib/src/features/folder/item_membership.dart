@@ -32,7 +32,9 @@ extension ItemMembershipExtensions on AppDatabase {
         loggerGlobal.fine("ItemMembership",
             "Adding item $itemId to folder $folderId");
 
-        // Guard against duplicates since the composite index isn't unique.
+        // Belt-and-suspenders guard; the unique index on (folder_id, item_id)
+        // enforces this at the DB level, but an explicit check avoids relying
+        // solely on insertOrIgnore semantics.
         final existing = await (select(items)
               ..where((t) =>
                   t.itemId.equals(itemId) & t.folderId.equals(folderId)))
