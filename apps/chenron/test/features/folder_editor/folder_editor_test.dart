@@ -263,7 +263,7 @@ void main() {
         await tester.tap(saveButton);
         await tester.pumpAndSettle();
 
-        expect(find.text("Changes saved successfully"), findsOneWidget);
+        expect(find.text("Changes saved"), findsOneWidget);
       });
 
       testWidgets("onSaved callback triggers", (tester) async {
