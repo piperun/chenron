@@ -7,7 +7,7 @@ import "package:chenron/features/settings/controller/config_controller.dart";
 import "package:chenron/shared/errors/error_snack_bar.dart";
 import "package:path_provider/path_provider.dart";
 
-enum CacheDirectoryMode { defaultMode, custom }
+enum CacheDirectoryMode { defaultMode, appData, custom }
 
 class CacheSettings extends StatefulWidget {
   final ConfigController controller;
@@ -26,10 +26,21 @@ class _CacheSettingsState extends State<CacheSettings> {
   void initState() {
     super.initState();
     final customPath = widget.controller.cacheDirectory.peek();
-    _mode = customPath == null
-        ? CacheDirectoryMode.defaultMode
-        : CacheDirectoryMode.custom;
+    if (customPath == null) {
+      _mode = CacheDirectoryMode.defaultMode;
+    } else {
+      // Detect if the stored path matches appData to show the right radio
+      _mode = CacheDirectoryMode.custom;
+      unawaited(_detectAppDataMode(customPath));
+    }
     _pathController = TextEditingController(text: customPath ?? "");
+  }
+
+  Future<void> _detectAppDataMode(String currentPath) async {
+    final appDataPath = await _getAppDataCachePath();
+    if (currentPath == appDataPath && mounted) {
+      setState(() => _mode = CacheDirectoryMode.appData);
+    }
   }
 
   @override
@@ -41,6 +52,11 @@ class _CacheSettingsState extends State<CacheSettings> {
   Future<String> _getDefaultCachePath() async {
     final tempDir = await getTemporaryDirectory();
     return "${tempDir.path}/chenron_images";
+  }
+
+  Future<String> _getAppDataCachePath() async {
+    final appDir = await getApplicationSupportDirectory();
+    return "${appDir.path}/cache";
   }
 
   Future<void> _pickFolder() async {
@@ -60,16 +76,23 @@ class _CacheSettingsState extends State<CacheSettings> {
       _mode = mode;
     });
 
-    if (mode == CacheDirectoryMode.defaultMode) {
-      widget.controller.updateCacheDirectory(null);
-      _pathController.clear();
-    } else {
-      // When switching to custom, if path is empty, keep it empty
-      // User can type or pick
-      if (_pathController.text.isNotEmpty) {
-        widget.controller.updateCacheDirectory(_pathController.text);
-      }
+    switch (mode) {
+      case CacheDirectoryMode.defaultMode:
+        widget.controller.updateCacheDirectory(null);
+        _pathController.clear();
+      case CacheDirectoryMode.appData:
+        _pathController.clear();
+        unawaited(_applyAppDataPath());
+      case CacheDirectoryMode.custom:
+        if (_pathController.text.isNotEmpty) {
+          widget.controller.updateCacheDirectory(_pathController.text);
+        }
     }
+  }
+
+  Future<void> _applyAppDataPath() async {
+    final path = await _getAppDataCachePath();
+    widget.controller.updateCacheDirectory(path);
   }
 
   void _onPathChanged(String value) {
@@ -186,6 +209,25 @@ class _CacheSettingsState extends State<CacheSettings> {
                   contentPadding: EdgeInsets.zero,
                   subtitle: FutureBuilder<String>(
                     future: _getDefaultCachePath(),
+                    builder: (context, snapshot) {
+                      return Text(
+                        snapshot.data ?? "Loading...",
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.textTheme.bodySmall?.color
+                              ?.withValues(alpha: 0.6),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+
+                // Radio: App Data
+                RadioListTile<CacheDirectoryMode>(
+                  title: const Text("App data"),
+                  value: CacheDirectoryMode.appData,
+                  contentPadding: EdgeInsets.zero,
+                  subtitle: FutureBuilder<String>(
+                    future: _getAppDataCachePath(),
                     builder: (context, snapshot) {
                       return Text(
                         snapshot.data ?? "Loading...",
