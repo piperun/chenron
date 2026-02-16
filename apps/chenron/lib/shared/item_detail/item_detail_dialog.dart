@@ -298,7 +298,8 @@ class _LinkHero extends StatefulWidget {
 }
 
 class _LinkHeroState extends State<_LinkHero> {
-  late final Future<Map<String, dynamic>?> _metadataFuture;
+  late Future<Map<String, dynamic>?> _metadataFuture;
+  bool _isRefreshing = false;
 
   @override
   void initState() {
@@ -306,6 +307,16 @@ class _LinkHeroState extends State<_LinkHero> {
     _metadataFuture = widget.data.url != null
         ? MetadataFactory.getOrFetch(widget.data.url!)
         : Future.value(null);
+  }
+
+  Future<void> _handleRefreshMetadata() async {
+    if (widget.data.url == null || _isRefreshing) return;
+    setState(() {
+      _isRefreshing = true;
+      _metadataFuture = MetadataFactory.forceFetch(widget.data.url!);
+    });
+    await _metadataFuture;
+    if (mounted) setState(() => _isRefreshing = false);
   }
 
   Future<void> _handleOpenLink() async {
@@ -418,6 +429,17 @@ class _LinkHeroState extends State<_LinkHero> {
               onPressed: _handleCopyUrl,
               icon: const Icon(Icons.copy, size: 16),
               label: const Text("Copy URL"),
+            ),
+            OutlinedButton.icon(
+              onPressed: _isRefreshing ? null : _handleRefreshMetadata,
+              icon: _isRefreshing
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.refresh, size: 16),
+              label: const Text("Refresh"),
             ),
           ],
         ),

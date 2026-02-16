@@ -81,23 +81,19 @@ class MetadataCache {
     }
   }
 
-  /// Check if we should retry fetching based on failure history
+  /// Check if we should retry fetching based on failure history.
+  ///
+  /// Uses exponential backoff: 2min, 10min, 1hr, 6hr, 24hr (capped).
+  /// Never permanently gives up — everything eventually retries.
   static bool shouldRetry(String url) {
     if (!_failedAttempts.containsKey(url)) return true;
-    
+
     final lastAttempt = _failedAttempts[url]!;
     final failureCount = _failureCount[url] ?? 0;
-    
-    // After 3 failures, mark as permanently failed
-    if (failureCount >= 3) {
-      return false;
-    }
-    
-    // Exponential backoff: 1min, 5min, 15min
-    final backoffMinutes = [1, 5, 15][failureCount.clamp(0, 2)];
-    final shouldRetry = DateTime.now().difference(lastAttempt).inMinutes >= backoffMinutes;
-    
-    return shouldRetry;
+
+    const backoffMinutes = [2, 10, 60, 360, 1440];
+    final index = failureCount.clamp(0, backoffMinutes.length - 1);
+    return DateTime.now().difference(lastAttempt).inMinutes >= backoffMinutes[index];
   }
 
   /// Record a failed fetch attempt
@@ -120,6 +116,15 @@ class MetadataCache {
 
   /// Mark URL as no longer being fetched
   static void stopFetching(String url) => _fetchingUrls.remove(url);
+
+  /// Remove a single URL from both memory and persistent cache.
+  static Future<void> remove(String url) async {
+    _memoryCache.remove(url);
+    try {
+      final prefs = await _sharedPrefs;
+      await prefs.remove('metadata_$url');
+    } catch (_) {}
+  }
 
   /// Clear all cached metadata
   static Future<void> clearAll() async {
