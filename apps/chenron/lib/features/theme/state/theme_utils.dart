@@ -58,35 +58,41 @@ class _FlexSchemeTheme implements VibeTheme {
   }
 }
 
+bool _isSameHue(Color a, Color b, {double threshold = 30.0}) {
+  final hslA = HSLColor.fromColor(a);
+  final hslB = HSLColor.fromColor(b);
+
+  // Treat very desaturated colors as the same "neutral" group
+  if (hslA.saturation < 0.1 && hslB.saturation < 0.1) return true;
+  if (hslA.saturation < 0.1 || hslB.saturation < 0.1) return false;
+
+  final diff = (hslA.hue - hslB.hue).abs();
+  // Wrap around the 360° color wheel
+  return diff <= threshold || diff >= (360 - threshold);
+}
+
+/// Returns only the visually distinct colors from [primary], [secondary],
+/// [tertiary]. Deduplicates colors that share the same hue (within 30°).
+List<Color> distinctSwatches(
+  Color primary,
+  Color secondary,
+  Color tertiary,
+) {
+  final result = [primary];
+  if (!_isSameHue(primary, secondary)) result.add(secondary);
+  if (!_isSameHue(primary, tertiary) &&
+      (result.length < 2 || !_isSameHue(secondary, tertiary))) {
+    result.add(tertiary);
+  }
+  return result;
+}
+
 /// Counts how many visually distinct hues exist among up to 3 colors.
-///
-/// Two colors are considered the "same hue" if their HSL hue values
-/// are within [threshold] degrees on the color wheel. Very low
-/// saturation colors (greys) are grouped together regardless of hue.
 int countDistinctHues(
   Color primary,
   Color secondary,
-  Color tertiary, {
-  double threshold = 30.0,
-}) {
-  double hue(Color c) => HSLColor.fromColor(c).hue;
-  double sat(Color c) => HSLColor.fromColor(c).saturation;
-
-  bool isSameHue(Color a, Color b) {
-    // Treat very desaturated colors as the same "neutral" group
-    if (sat(a) < 0.1 && sat(b) < 0.1) return true;
-    if (sat(a) < 0.1 || sat(b) < 0.1) return false;
-
-    final diff = (hue(a) - hue(b)).abs();
-    // Wrap around the 360° color wheel
-    return diff <= threshold || diff >= (360 - threshold);
-  }
-
-  int count = 1;
-  if (!isSameHue(primary, secondary)) count++;
-  if (!isSameHue(primary, tertiary) && !isSameHue(secondary, tertiary)) {
-    count++;
-  }
-  return count;
+  Color tertiary,
+) {
+  return distinctSwatches(primary, secondary, tertiary).length;
 }
 

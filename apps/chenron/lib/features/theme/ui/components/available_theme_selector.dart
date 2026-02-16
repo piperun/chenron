@@ -1,5 +1,6 @@
 import "package:flutter/material.dart";
 import "package:signals/signals_flutter.dart";
+import "package:vibe/vibe.dart";
 import "package:chenron/features/settings/controller/config_controller.dart";
 import "package:app_logger/app_logger.dart";
 
@@ -106,6 +107,11 @@ class AvailableThemeSelector extends StatelessWidget {
             label: const Text("Select Theme"),
             expandedInsets: EdgeInsets.zero,
             initialSelection: selected,
+            menuHeight: 300,
+            enableFilter: true,
+            textStyle: theme.textTheme.bodyLarge?.copyWith(
+              color: theme.colorScheme.onSurface,
+            ),
             dropdownMenuEntries: [
               for (final choice in sorted)
                 DropdownMenuEntry<ThemeChoice>(
@@ -128,6 +134,15 @@ class AvailableThemeSelector extends StatelessWidget {
               controller.updateSelectedTheme(newValue);
             },
           ),
+
+          // Theme color preview
+          if (selected != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: _ThemePreview(
+                variants: controller.getPreviewVariants(selected),
+              ),
+            ),
         ],
       ),
     );
@@ -163,6 +178,137 @@ class _ColorSwatches extends StatelessWidget {
           ),
         ],
       ],
+    );
+  }
+}
+
+/// Compact color-role preview for a theme's light and dark variants.
+///
+/// Shows a 4-column × 3-row grid for each mode (Primary, Secondary,
+/// Tertiary, Error) with main, container, and surface rows.
+class _ThemePreview extends StatelessWidget {
+  final ThemeVariants? variants;
+
+  const _ThemePreview({required this.variants});
+
+  @override
+  Widget build(BuildContext context) {
+    if (variants == null) return const SizedBox.shrink();
+
+    final textTheme = Theme.of(context).textTheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _SchemeGrid(label: "Light", scheme: variants!.light.colorScheme),
+        const SizedBox(height: 8),
+        _SchemeGrid(label: "Dark", scheme: variants!.dark.colorScheme),
+        const SizedBox(height: 4),
+        // Column legend (offset by _SchemeGrid._rowLabelWidth)
+        Padding(
+          padding: const EdgeInsets.only(left: _SchemeGrid._rowLabelWidth),
+          child: Row(
+            children: [
+              for (final label in [
+                "Primary",
+                "Secondary",
+                "Tertiary",
+                "Error",
+              ])
+                Expanded(
+                  child: Text(
+                    label,
+                    textAlign: TextAlign.center,
+                    style: textTheme.labelSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SchemeGrid extends StatelessWidget {
+  final String label;
+  final ColorScheme scheme;
+
+  const _SchemeGrid({required this.label, required this.scheme});
+
+  static const double _cellHeight = 24;
+  static const double _gap = 2;
+  static const double _rowLabelWidth = 64;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final labelStyle = theme.textTheme.labelSmall?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(label, style: theme.textTheme.labelSmall),
+        const SizedBox(height: 2),
+        // Row 1: base colors
+        _labeledRow("Base", labelStyle, [
+          _cell(scheme.primary),
+          _cell(scheme.secondary),
+          _cell(scheme.tertiary),
+          _cell(scheme.error),
+        ]),
+        const SizedBox(height: _gap),
+        // Row 2: container colors
+        _labeledRow("Container", labelStyle, [
+          _cell(scheme.primaryContainer),
+          _cell(scheme.secondaryContainer),
+          _cell(scheme.tertiaryContainer),
+          _cell(scheme.errorContainer),
+        ]),
+        const SizedBox(height: _gap),
+        // Row 3: surface / outline
+        _labeledRow("Surface", labelStyle, [
+          _cell(scheme.surface),
+          _cell(scheme.surfaceContainerHighest),
+          _cell(scheme.outline),
+          _cell(scheme.outlineVariant),
+        ]),
+      ],
+    );
+  }
+
+  Widget _labeledRow(
+    String label,
+    TextStyle? style,
+    List<Widget> cells,
+  ) {
+    return Row(
+      children: [
+        SizedBox(
+          width: _rowLabelWidth,
+          child: Text(label, style: style),
+        ),
+        ...cells,
+      ],
+    );
+  }
+
+  Widget _cell(Color color) {
+    return Expanded(
+      child: Container(
+        height: _cellHeight,
+        margin: const EdgeInsets.symmetric(horizontal: 1),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(4),
+        ),
+      ),
     );
   }
 }
