@@ -49,6 +49,7 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
   late CreateLinkNotifier _notifier;
   final ItemTableNotifier<FolderItem> _tableNotifier = ItemTableNotifier<FolderItem>();
   late List<Folder> _selectedFolders;
+  final Map<String, String> _folderNameCache = {};
   String? _singleInputError;
   String? _generalError;
   late final void Function() _disposeEffect;
@@ -58,6 +59,9 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
     super.initState();
     _notifier = CreateLinkNotifier();
     _selectedFolders = List.from(widget.initialFolders ?? []);
+    for (final f in _selectedFolders) {
+      _folderNameCache[f.id] = f.title;
+    }
     if (_selectedFolders.isNotEmpty) {
       _notifier.setSelectedFolders(
         _selectedFolders.map((f) => f.id).toList(),
@@ -123,6 +127,9 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
                         onFoldersChanged: (folders) {
                           setState(() {
                             _selectedFolders = folders;
+                            for (final f in folders) {
+                              _folderNameCache[f.id] = f.title;
+                            }
                             _notifier.setSelectedFolders(
                               folders.map((f) => f.id).toList(),
                             );
@@ -166,11 +173,7 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
                           onDelete: _handleDelete,
                           onDeleteSelected: _handleDeleteSelected,
                           onClearAll: _handleClearAll,
-                          folderNames: _selectedFolders
-                              .fold<Map<String, String>>({}, (map, folder) {
-                            map[folder.id] = folder.title;
-                            return map;
-                          }),
+                          folderNames: _folderNameCache,
                         ),
                       ),
                     ],
@@ -263,15 +266,24 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
         context: context,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
-        builder: (context) => LinkEditBottomSheet(
-          entry: entry,
-          availableFolders: _selectedFolders.isEmpty ? null : _selectedFolders,
-          onSave: (updatedEntry) {
-            _notifier.updateEntry(key, updatedEntry);
-            Navigator.pop(context);
-          },
-          onCancel: () => Navigator.pop(context),
-        ),
+        builder: (context) {
+          // Resolve entry's folderIds to Folder objects using the cache
+          final entryFolders = _selectedFolders
+              .where((f) => entry.folderIds.contains(f.id))
+              .toList();
+          return LinkEditBottomSheet(
+            entry: entry,
+            currentFolders: entryFolders,
+            onSave: (updatedEntry, folders) {
+              for (final f in folders) {
+                _folderNameCache[f.id] = f.title;
+              }
+              _notifier.updateEntry(key, updatedEntry);
+              Navigator.pop(context);
+            },
+            onCancel: () => Navigator.pop(context),
+          );
+        },
       );
       // Modal dismissed - could add post-edit logic here if needed
     } catch (e, stackTrace) {
