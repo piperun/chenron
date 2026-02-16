@@ -173,7 +173,7 @@ void main() {
       expect(find.textContaining("already exists"), findsOneWidget);
     });
 
-    testWidgets("shows error for invalid tag (non-alpha characters)",
+    testWidgets("shows error for invalid tag (special characters)",
         (tester) async {
       bool wasCalled = false;
       await tester.pumpWidget(buildTagSection(
@@ -182,13 +182,43 @@ void main() {
       await tester.pumpAndSettle();
 
       final input = find.byType(TextField);
-      await tester.enterText(input, "tag-with-dashes");
+      await tester.enterText(input, "my-tag");
       await tester.tap(find.text("Add"));
       await tester.pumpAndSettle();
 
       expect(wasCalled, false);
-      // TagValidator shows an error for non-alpha characters
-      expect(find.byType(TextField), findsOneWidget);
+      expect(find.textContaining("letters and numbers"), findsOneWidget);
+    });
+
+    testWidgets("accepts alphanumeric tags", (tester) async {
+      String? addedTag;
+      await tester.pumpWidget(buildTagSection(
+        onTagAdded: (tag) => addedTag = tag,
+      ));
+      await tester.pumpAndSettle();
+
+      final input = find.byType(TextField);
+      await tester.enterText(input, "rule34");
+      await tester.tap(find.text("Add"));
+      await tester.pumpAndSettle();
+
+      expect(addedTag, "rule34");
+    });
+
+    testWidgets("rejects purely numeric tags", (tester) async {
+      bool wasCalled = false;
+      await tester.pumpWidget(buildTagSection(
+        onTagAdded: (_) => wasCalled = true,
+      ));
+      await tester.pumpAndSettle();
+
+      final input = find.byType(TextField);
+      await tester.enterText(input, "12345");
+      await tester.tap(find.text("Add"));
+      await tester.pumpAndSettle();
+
+      expect(wasCalled, false);
+      expect(find.textContaining("at least one letter"), findsOneWidget);
     });
 
     testWidgets("clears input after successful add", (tester) async {
@@ -205,6 +235,71 @@ void main() {
       // Input should be cleared
       final textField = tester.widget<TextField>(input);
       expect(textField.controller!.text, isEmpty);
+    });
+
+    testWidgets("adds multiple tags from comma-separated input",
+        (tester) async {
+      final addedTags = <String>[];
+      await tester.pumpWidget(buildTagSection(
+        onTagAdded: addedTags.add,
+      ));
+      await tester.pumpAndSettle();
+
+      final input = find.byType(TextField);
+      await tester.enterText(input, "flutter, dart, web");
+      await tester.tap(find.text("Add"));
+      await tester.pumpAndSettle();
+
+      expect(addedTags, ["flutter", "dart", "web"]);
+    });
+
+    testWidgets("rejects entire bulk input if one tag is invalid",
+        (tester) async {
+      final addedTags = <String>[];
+      await tester.pumpWidget(buildTagSection(
+        onTagAdded: addedTags.add,
+      ));
+      await tester.pumpAndSettle();
+
+      final input = find.byType(TextField);
+      await tester.enterText(input, "flutter, ab, dart");
+      await tester.tap(find.text("Add"));
+      await tester.pumpAndSettle();
+
+      expect(addedTags, isEmpty);
+      expect(find.textContaining("3-12 characters"), findsOneWidget);
+    });
+
+    testWidgets("rejects bulk input if one tag is duplicate", (tester) async {
+      final addedTags = <String>[];
+      await tester.pumpWidget(buildTagSection(
+        tags: {"flutter"},
+        onTagAdded: addedTags.add,
+      ));
+      await tester.pumpAndSettle();
+
+      final input = find.byType(TextField);
+      await tester.enterText(input, "dart, flutter, web");
+      await tester.tap(find.text("Add"));
+      await tester.pumpAndSettle();
+
+      expect(addedTags, isEmpty);
+      expect(find.textContaining("already exists"), findsOneWidget);
+    });
+
+    testWidgets("handles extra commas in bulk input", (tester) async {
+      final addedTags = <String>[];
+      await tester.pumpWidget(buildTagSection(
+        onTagAdded: addedTags.add,
+      ));
+      await tester.pumpAndSettle();
+
+      final input = find.byType(TextField);
+      await tester.enterText(input, "flutter,,dart,  ,web");
+      await tester.tap(find.text("Add"));
+      await tester.pumpAndSettle();
+
+      expect(addedTags, ["flutter", "dart", "web"]);
     });
 
     testWidgets("clears error when user types again", (tester) async {
