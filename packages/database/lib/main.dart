@@ -63,7 +63,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration {
@@ -296,6 +296,22 @@ class AppDatabase extends _$AppDatabase {
           await customStatement(
               "UPDATE metadata_records SET type_id = 1 WHERE id IN "
               "(SELECT mr.id FROM metadata_records mr INNER JOIN tags t ON mr.metadata_id = t.id)");
+        }
+
+        // Migration v8 to v9: Make the (folder_id, item_id) index unique to
+        // prevent duplicate item-folder associations.
+        if (from < 9) {
+          // Deduplicate: keep earliest row per (folder_id, item_id)
+          await customStatement("""
+            DELETE FROM items WHERE id NOT IN (
+              SELECT MIN(id) FROM items GROUP BY folder_id, item_id
+            )
+          """);
+          // Replace non-unique index with unique one
+          await customStatement(
+              "DROP INDEX IF EXISTS items_folder_item_idx");
+          await customStatement(
+              "CREATE UNIQUE INDEX items_folder_item_idx ON items (folder_id, item_id)");
         }
       },
     );
