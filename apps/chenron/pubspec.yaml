@@ -60,6 +60,7 @@ dependencies:
   trina_grid: ^2.1.1
   url_launcher: ^6.3.0
   validator_dart: ^0.1.0
+  window_manager: ^0.4.3
 
   # Local workspace packages (alphabetically sorted)
   basedir: ^0.1.0
