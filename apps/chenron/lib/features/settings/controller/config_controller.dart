@@ -1,22 +1,32 @@
 import "package:database/main.dart";
 import "package:flex_color_scheme/flex_color_scheme.dart";
-import "package:meta/meta.dart";
+import "package:flutter/material.dart";
 import "package:signals/signals_flutter.dart";
 import "package:chenron/features/settings/service/config_service.dart";
 import "package:chenron/features/settings/service/data_settings_service.dart";
 import "package:chenron/features/theme/state/theme_controller.dart";
+import "package:chenron/features/theme/state/theme_utils.dart";
 import "package:chenron/providers/theme_controller_signal.dart";
 import "package:chenron/locator.dart";
 import "package:app_logger/app_logger.dart";
+
+enum ThemeSortMode { name, colorCount }
 
 @immutable
 class ThemeChoice {
   final String key;
   final String name;
   final ThemeType type;
+  final int colorCount;
+  final List<Color> swatches;
 
-  const ThemeChoice(
-      {required this.key, required this.name, required this.type});
+  const ThemeChoice({
+    required this.key,
+    required this.name,
+    required this.type,
+    this.colorCount = 1,
+    this.swatches = const [],
+  });
 
   @override
   bool operator ==(Object other) =>
@@ -45,6 +55,7 @@ class ConfigController {
 
   final selectedThemeChoice = signal<ThemeChoice?>(null);
   final availableThemes = signal<List<ThemeChoice>>([]);
+  final themeSortMode = signal<ThemeSortMode>(ThemeSortMode.name);
 
   final defaultArchiveIs = signal<bool>(false);
   final defaultArchiveOrg = signal<bool>(false);
@@ -155,28 +166,66 @@ class ConfigController {
   Future<void> _loadAvailableThemes() async {
     final List<ThemeChoice> choices = [];
 
-    choices.add(const ThemeChoice(
-        key: "nier", name: "Nier Automata", type: ThemeType.system));
+    // Nier Automata (custom theme with known swatches)
+    const nierP = Color(0xFFD1CDB7); // canvasBeige
+    const nierS = Color(0xFF454138); // textBrownGrey
+    const nierT = Color(0xFF38AAA1); // hudTeal
+    choices.add(ThemeChoice(
+      key: "nier",
+      name: "Nier Automata",
+      type: ThemeType.system,
+      colorCount: countDistinctHues(nierP, nierS, nierT),
+      swatches: const [nierP, nierS, nierT],
+    ));
 
-    // Example: Add standard FlexScheme themes
-    for (var scheme in FlexScheme.values) {
+    // FlexScheme built-in themes (skip the "custom" placeholder)
+    for (final scheme in FlexScheme.values) {
+      if (scheme == FlexScheme.custom) continue;
+      final data = scheme.data;
+      final p = data.light.primary;
+      final s = data.light.secondary;
+      final t = data.light.tertiary;
+      final count = countDistinctHues(p, s, t);
       choices.add(ThemeChoice(
-          key: scheme.name,
-          name: scheme.name,
-          type: ThemeType.system));
+        key: scheme.name,
+        name: data.name,
+        type: ThemeType.system,
+        colorCount: count,
+        swatches: [p, s, t],
+      ));
     }
 
+    // User-created custom themes
     final customThemes = await _configService.getAllUserThemes();
-    for (var themeResult in customThemes) {
+    for (final themeResult in customThemes) {
+      final d = themeResult.data;
+      final p = Color(d.primaryColor);
+      final s = Color(d.secondaryColor);
+      final t = d.tertiaryColor != null ? Color(d.tertiaryColor!) : s;
+      final count = countDistinctHues(p, s, t);
       choices.add(ThemeChoice(
-          key: themeResult.data.id,
-          name: themeResult.data.name,
-          type: ThemeType.custom));
+        key: d.id,
+        name: d.name,
+        type: ThemeType.custom,
+        colorCount: count,
+        swatches: [p, s, t],
+      ));
     }
 
     availableThemes.value = choices;
     loggerGlobal.info(
         "ConfigController", "Loaded ${choices.length} available themes.");
+  }
+
+  List<ThemeChoice> get sortedThemes {
+    final list = [...availableThemes.value];
+    switch (themeSortMode.value) {
+      case ThemeSortMode.name:
+        list.sort((a, b) => a.name.compareTo(b.name));
+      case ThemeSortMode.colorCount:
+        list.sort((a, b) => b.colorCount.compareTo(a.colorCount));
+    }
+    return list;
   }
 
   // --- UI Interaction Methods ---

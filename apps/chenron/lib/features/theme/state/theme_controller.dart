@@ -13,8 +13,8 @@ ThemeServiceDB? _themeService;
 
 class ThemeController {
   final Signal<ThemeVariants> currentThemeSignal = Signal<ThemeVariants>((
-    light: FlexThemeData.light(scheme: FlexScheme.blueWhale),
-    dark: FlexThemeData.dark(scheme: FlexScheme.blueWhale),
+    light: FlexThemeData.light(scheme: FlexScheme.materialBaseline),
+    dark: FlexThemeData.dark(scheme: FlexScheme.materialBaseline),
   ));
 
   Future<void> initialize() async {
@@ -67,8 +67,8 @@ class ThemeController {
 
     // Ultimate fallback if nothing matched
     currentThemeSignal.value = (
-      light: FlexThemeData.light(scheme: FlexScheme.blueWhale),
-      dark: FlexThemeData.dark(scheme: FlexScheme.blueWhale),
+      light: FlexThemeData.light(scheme: FlexScheme.materialBaseline),
+      dark: FlexThemeData.dark(scheme: FlexScheme.materialBaseline),
     );
   }
 
@@ -83,8 +83,8 @@ class ThemeController {
       loggerGlobal.warning("ThemeController",
           "No persisted theme selection found. Using fallback.");
       currentThemeSignal.value = (
-        light: FlexThemeData.light(scheme: FlexScheme.blueWhale),
-        dark: FlexThemeData.dark(scheme: FlexScheme.blueWhale),
+        light: FlexThemeData.light(scheme: FlexScheme.materialBaseline),
+        dark: FlexThemeData.dark(scheme: FlexScheme.materialBaseline),
       );
       return;
     }
@@ -112,8 +112,8 @@ class ThemeController {
     final variants = getPredefinedTheme(key);
     currentThemeSignal.value = variants ??
         (
-          light: FlexThemeData.light(scheme: FlexScheme.blueWhale),
-          dark: FlexThemeData.dark(scheme: FlexScheme.blueWhale),
+          light: FlexThemeData.light(scheme: FlexScheme.materialBaseline),
+          dark: FlexThemeData.dark(scheme: FlexScheme.materialBaseline),
         );
   }
 
