@@ -8,23 +8,28 @@ class TagValidator {
   /// 
   /// Rules:
   /// - Must be between min and max length (from SchemaRules.tag)
-  /// - Must contain only alphabetic characters (a-z, A-Z)
+  /// - Must contain only alphanumeric characters (a-z, 0-9)
+  /// - Must not be purely numeric (at least one letter required)
   static String? validateTag(String? value) {
     if (value == null || value.isEmpty) {
       return "Tag cannot be empty";
     }
-    
+
     if (!Validator.isLength(value,
         options: LengthOptions(
-            min: SchemaRules.tag.min, 
+            min: SchemaRules.tag.min,
             max: SchemaRules.tag.max))) {
       return "Tag must be ${SchemaRules.tag.min}-${SchemaRules.tag.max} characters";
     }
-    
-    if (!Validator.isAlpha(value)) {
-      return "Tag can only contain alphabetic characters (a-z)";
+
+    if (Validator.isNumeric(value)) {
+      return "Tag must contain at least one letter";
     }
-    
+
+    if (!Validator.isAlphanumeric(value)) {
+      return "Tag can only contain letters and numbers (a-z, 0-9)";
+    }
+
     return null;
   }
   
