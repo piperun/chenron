@@ -5,7 +5,7 @@ import "package:database/database.dart";
 extension StatisticsTracking on AppDatabase {
   /// Records a snapshot of current item counts
   Future<void> recordStatisticsSnapshot() async {
-    final counts = await _getCurrentCounts();
+    final counts = await getCurrentCounts();
     await into(statistics).insert(
       StatisticsCompanion.insert(
         id: generateId(),
@@ -43,8 +43,8 @@ extension StatisticsTracking on AppDatabase {
     return query.get();
   }
 
-  /// Internal helper to count all items
-  Future<_Counts> _getCurrentCounts() async {
+  /// Counts all items in the database right now.
+  Future<ItemCounts> getCurrentCounts() async {
     final links = await (selectOnly(this.links)
           ..addColumns([this.links.id.count()]))
         .getSingle();
@@ -58,7 +58,7 @@ extension StatisticsTracking on AppDatabase {
           ..addColumns([this.folders.id.count()]))
         .getSingle();
 
-    return _Counts(
+    return ItemCounts(
       links: links.read(this.links.id.count()) ?? 0,
       documents: docs.read(documents.id.count()) ?? 0,
       tags: tags.read(this.tags.id.count()) ?? 0,
@@ -67,13 +67,13 @@ extension StatisticsTracking on AppDatabase {
   }
 }
 
-class _Counts {
+class ItemCounts {
   final int links;
   final int documents;
   final int tags;
   final int folders;
 
-  _Counts({
+  ItemCounts({
     required this.links,
     required this.documents,
     required this.tags,

@@ -27,7 +27,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
       locator.get<Signal<AppDatabaseHandler>>().value.appDatabase;
 
   final _timeRange = signal(TimeRange.month);
-  final _latestStats = signal<Statistic?>(null);
+  final _currentCounts = signal<ItemCounts?>(null);
   final _history = signal<List<Statistic>>([]);
   final _dailyCounts = signal<List<DailyActivityCount>>([]);
   final _tagCounts = signal<List<TagCount>>([]);
@@ -58,7 +58,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
   void dispose() {
     unawaited(_activitySubscription?.cancel());
     _timeRange.dispose();
-    _latestStats.dispose();
+    _currentCounts.dispose();
     _history.dispose();
     _dailyCounts.dispose();
     _tagCounts.dispose();
@@ -72,7 +72,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
     final startDate = _timeRange.value.startDate;
     final endDate = DateTime.now();
 
-    final latestStats = await _db.getLatestStatistics();
+    final latestStats = await _db.getCurrentCounts();
     final history = await _db.getStatisticsHistory(
       startDate: startDate,
       endDate: endDate,
@@ -85,7 +85,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
     final folderCounts = await _db.getFolderComposition();
 
     if (mounted) {
-      _latestStats.value = latestStats;
+      _currentCounts.value = latestStats;
       _history.value = history;
       _dailyCounts.value = dailyCounts;
       _tagCounts.value = tagCounts;
@@ -114,10 +114,10 @@ class _StatisticsPageState extends State<StatisticsPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               OverviewCards(
-                totalLinks: _latestStats.value?.totalLinks ?? 0,
-                totalDocuments: _latestStats.value?.totalDocuments ?? 0,
-                totalFolders: _latestStats.value?.totalFolders ?? 0,
-                totalTags: _latestStats.value?.totalTags ?? 0,
+                totalLinks: _currentCounts.value?.links ?? 0,
+                totalDocuments: _currentCounts.value?.documents ?? 0,
+                totalFolders: _currentCounts.value?.folders ?? 0,
+                totalTags: _currentCounts.value?.tags ?? 0,
               ),
               const SizedBox(height: 16),
               GrowthTrendChart(
