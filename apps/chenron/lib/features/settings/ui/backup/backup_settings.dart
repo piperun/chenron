@@ -14,16 +14,16 @@ enum _IntervalUnit { hours, days }
 /// Sentinel value used in the dropdown to indicate "Custom" selection.
 const _customSentinel = "__custom__";
 
-class ScheduleSettings extends StatefulWidget {
+class BackupSettings extends StatefulWidget {
   final ConfigController controller;
 
-  const ScheduleSettings({super.key, required this.controller});
+  const BackupSettings({super.key, required this.controller});
 
   @override
-  State<ScheduleSettings> createState() => _ScheduleSettingsState();
+  State<BackupSettings> createState() => _BackupSettingsState();
 }
 
-class _ScheduleSettingsState extends State<ScheduleSettings> {
+class _BackupSettingsState extends State<BackupSettings> {
   late TextEditingController _pathController;
   late TextEditingController _customAmountController;
   BackupPathMode _mode = BackupPathMode.defaultMode;

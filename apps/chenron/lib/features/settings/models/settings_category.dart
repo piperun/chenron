@@ -13,7 +13,7 @@ enum SettingsCategory {
   appearance,
   cache,
   archive,
-  schedule,
+  backup,
   data,
   // Sub-categories of appearance
   theme,
@@ -25,7 +25,7 @@ enum SettingsCategory {
         display => "Display",
         cache => "Cache",
         archive => "Archive",
-        schedule => "Schedule",
+        backup => "Backup",
         data => "Data",
       };
 
@@ -35,7 +35,7 @@ enum SettingsCategory {
         display => Icons.display_settings_outlined,
         cache => Icons.storage_outlined,
         archive => Icons.archive_outlined,
-        schedule => Icons.schedule_outlined,
+        backup => Icons.backup_outlined,
         data => Icons.folder_outlined,
       };
 
@@ -45,7 +45,7 @@ enum SettingsCategory {
         display => Icons.display_settings,
         cache => Icons.storage,
         archive => Icons.archive,
-        schedule => Icons.schedule,
+        backup => Icons.backup,
         data => Icons.folder,
       };
 
