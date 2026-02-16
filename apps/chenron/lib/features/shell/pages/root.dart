@@ -168,9 +168,7 @@ class _RootPageState extends State<RootPage> {
               switchInCurve: Curves.easeInOut,
               switchOutCurve: Curves.easeInOut,
               child: KeyedSubtree(
-                key: ValueKey(_currentPage == AppPage.settings
-                    ? "settings_${_settingsCategory.name}"
-                    : _currentPage.name),
+                key: ValueKey(_currentPage.name),
                 child: CurrentPageBuilder(
                   currentPage: _currentPage,
                   currentSection: _currentSection,
@@ -191,16 +189,12 @@ class _RootPageState extends State<RootPage> {
     // Return to previous page
     _returnToPreviousPage();
 
-    // Show success snackbar with "Add Another" action
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text("✓ Item saved successfully"),
-          action: SnackBarAction(
-            label: "Add Another",
-            onPressed: _showCreateModal,
-          ),
-          duration: const Duration(seconds: 4),
+          content: const Text("Item saved"),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          duration: const Duration(seconds: 3),
         ),
       );
     }
