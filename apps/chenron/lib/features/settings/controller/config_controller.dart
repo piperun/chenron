@@ -2,6 +2,7 @@ import "package:database/main.dart";
 import "package:flex_color_scheme/flex_color_scheme.dart";
 import "package:flutter/material.dart";
 import "package:signals/signals_flutter.dart";
+import "package:vibe/vibe.dart";
 import "package:chenron/features/settings/service/config_service.dart";
 import "package:chenron/features/settings/service/data_settings_service.dart";
 import "package:chenron/features/theme/state/theme_controller.dart";
@@ -175,7 +176,7 @@ class ConfigController {
       name: "Nier Automata",
       type: ThemeType.system,
       colorCount: countDistinctHues(nierP, nierS, nierT),
-      swatches: const [nierP, nierS, nierT],
+      swatches: distinctSwatches(nierP, nierS, nierT),
     ));
 
     // FlexScheme built-in themes (skip the "custom" placeholder)
@@ -191,7 +192,7 @@ class ConfigController {
         name: data.name,
         type: ThemeType.system,
         colorCount: count,
-        swatches: [p, s, t],
+        swatches: distinctSwatches(p, s, t),
       ));
     }
 
@@ -208,7 +209,7 @@ class ConfigController {
         name: d.name,
         type: ThemeType.custom,
         colorCount: count,
-        swatches: [p, s, t],
+        swatches: distinctSwatches(p, s, t),
       ));
     }
 
@@ -226,6 +227,23 @@ class ConfigController {
         list.sort((a, b) => b.colorCount.compareTo(a.colorCount));
     }
     return list;
+  }
+
+  /// Builds the full light/dark [ThemeVariants] for the given [choice]
+  /// so the UI can show a color-role preview.
+  ThemeVariants? getPreviewVariants(ThemeChoice choice) {
+    if (choice.type == ThemeType.system) {
+      return getPredefinedTheme(choice.key);
+    }
+    // Custom themes: approximate from stored swatches
+    if (choice.swatches.isEmpty) return null;
+    return buildSeededVariants(
+      primary: choice.swatches.first,
+      secondary: choice.swatches.length > 1 ? choice.swatches[1] : null,
+      tertiary: choice.swatches.length > 2 ? choice.swatches[2] : null,
+      useSecondary: choice.swatches.length > 1,
+      useTertiary: choice.swatches.length > 2,
+    );
   }
 
   // --- UI Interaction Methods ---
