@@ -84,7 +84,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text("Tags"), findsOneWidget);
-      expect(find.text("Add tag"), findsOneWidget);
+      expect(find.text("tag1, tag2, tag3"), findsOneWidget);
     });
 
     testWidgets("shows existing tags as chips", (tester) async {
