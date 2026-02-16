@@ -96,7 +96,10 @@ class _CreateExpansionTile extends StatelessWidget {
               title: const Text("Document"),
               onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Document creation coming soon!")),
+                  const SnackBar(
+                    content: Text("Document creation coming soon"),
+                    duration: Duration(seconds: 3),
+                  ),
                 );
               },
             ),

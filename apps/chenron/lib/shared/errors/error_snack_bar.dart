@@ -9,6 +9,7 @@ void showErrorSnackBar(BuildContext context, Object error) {
     SnackBar(
       content: Text(userErrorMessage(error)),
       backgroundColor: Theme.of(context).colorScheme.error,
+      duration: const Duration(seconds: 4),
     ),
   );
 }

@@ -109,9 +109,10 @@ Future<void> handleItemDeletion(
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            "Successfully deleted $deletedCount ${deletedCount == 1 ? 'item' : 'items'}",
+            "Deleted $deletedCount ${deletedCount == 1 ? 'item' : 'items'}",
           ),
-          backgroundColor: Colors.green,
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          duration: const Duration(seconds: 3),
         ),
       );
 

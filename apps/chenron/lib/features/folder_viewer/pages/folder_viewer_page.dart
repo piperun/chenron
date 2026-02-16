@@ -128,15 +128,17 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text("Folder '${folder.title}' deleted successfully"),
-              backgroundColor: Colors.green,
+              content: Text("Folder '${folder.title}' deleted"),
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              duration: const Duration(seconds: 3),
             ),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("Failed to delete folder"),
-              backgroundColor: Colors.red,
+            SnackBar(
+              content: const Text("Failed to delete folder"),
+              backgroundColor: Theme.of(context).colorScheme.error,
+              duration: const Duration(seconds: 4),
             ),
           );
         }

@@ -70,9 +70,10 @@ class _ConfigPageState extends State<ConfigPage> {
     if (mounted) {
       if (success) {
         scaffoldMessenger.showSnackBar(
-          const SnackBar(
-            content: Text("Settings saved successfully!"),
-            duration: Duration(seconds: 2),
+          SnackBar(
+            content: const Text("Settings saved"),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            duration: const Duration(seconds: 3),
           ),
         );
       } else {

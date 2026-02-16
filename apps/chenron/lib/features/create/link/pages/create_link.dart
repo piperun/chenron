@@ -242,10 +242,10 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              "Added ${result.validLines} valid URL(s) successfully"
-              "${result.hasErrors ? '. ${result.invalidLines} invalid URLs remain in input.' : ''}",
+              "Added ${result.validLines} valid URL(s)"
+              "${result.hasErrors ? '. ${result.invalidLines} invalid URLs remain.' : ''}",
             ),
-            backgroundColor: Colors.green,
+            backgroundColor: Theme.of(context).colorScheme.primary,
             duration: const Duration(seconds: 3),
           ),
         );
@@ -310,10 +310,10 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              "Successfully saved $savedCount link(s)",
+              "Saved $savedCount link(s)",
             ),
-            backgroundColor: Colors.green,
-            duration: const Duration(seconds: 2),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            duration: const Duration(seconds: 3),
           ),
         );
 

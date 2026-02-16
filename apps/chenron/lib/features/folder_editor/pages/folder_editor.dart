@@ -49,9 +49,10 @@ class _FolderEditorState extends State<FolderEditor> {
     if (mounted) {
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Changes saved successfully"),
-            backgroundColor: Colors.green,
+          SnackBar(
+            content: const Text("Changes saved"),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            duration: const Duration(seconds: 3),
           ),
         );
 
@@ -65,7 +66,8 @@ class _FolderEditorState extends State<FolderEditor> {
           SnackBar(
             content:
                 Text(_notifier.errorMessage.value ?? "Failed to save changes"),
-            backgroundColor: Colors.red,
+            backgroundColor: Theme.of(context).colorScheme.error,
+            duration: const Duration(seconds: 4),
           ),
         );
       }

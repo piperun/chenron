@@ -89,7 +89,11 @@ class _LinkEditBottomSheetState extends State<LinkEditBottomSheet> {
     final url = _urlController.text.trim();
     if (url.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("URL cannot be empty")),
+        SnackBar(
+          content: const Text("URL cannot be empty"),
+          backgroundColor: Theme.of(context).colorScheme.error,
+          duration: const Duration(seconds: 3),
+        ),
       );
       return;
     }

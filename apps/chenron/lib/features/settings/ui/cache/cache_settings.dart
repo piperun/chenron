@@ -122,8 +122,10 @@ class _CacheSettingsState extends State<CacheSettings> {
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Cache cleared successfully"),
+          SnackBar(
+            content: const Text("Cache cleared"),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            duration: const Duration(seconds: 3),
           ),
         );
       }
