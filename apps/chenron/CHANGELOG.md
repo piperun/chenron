@@ -2,6 +2,27 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## chenron-v1.1.0 - 2026-02-16
+#### Features
+- add window_manager for persistent window sizing - (54a9edc) - *piperun*
+- enhance theme selector with color swatches and sorting - (de58e4f) - *piperun*
+- allow alphanumeric tags with at least one letter - (fc1c467) - *piperun*
+- support comma-separated bulk tag input - (42bf1e5) - *piperun*
+- add app data cache location preset - (9e47e60) - *piperun*
+- add bookmark import/export in Netscape HTML format - (b69b625) - *piperun*
+#### Bug Fixes
+- theme selector swatch mismatch and add color preview - (258a290) - *piperun*
+- update folder editor test for standardized snackbar text - (3bd8d4c) - *piperun*
+- add concurrency limiter and backoff to metadata fetching - (58d3b71) - *piperun*
+- show live item counts on statistics overview cards - (3d3cd2c) - *piperun*
+- standardize snackbar styling and durations - (4f4c92a) - *piperun*
+- eliminate settings jitter when switching categories - (ecffa31) - *piperun*
+#### Refactoring
+- rename Schedule to Backup in settings - (3f19ec6) - *piperun*
+- rename MyApp to ChenronApp and make archive badges tappable - (718f268) - *piperun*
+
+- - -
+
 ## chenron-v0.13.0 - 2026-02-12
 #### Features
 - show 'added' date when viewing items in a folder - (6b9ff34) - *piperun*
