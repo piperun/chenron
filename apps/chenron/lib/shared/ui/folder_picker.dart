@@ -8,11 +8,15 @@ import "package:signals/signals_flutter.dart";
 class FolderPicker extends StatefulWidget {
   final void Function(List<Folder> selectedFolders) onFoldersSelected;
   final List<Folder>? initialFolders;
+  final bool readOnly;
+  final bool allowEmpty;
 
   const FolderPicker({
     super.key,
     required this.onFoldersSelected,
     this.initialFolders,
+    this.readOnly = false,
+    this.allowEmpty = false,
   });
 
   @override
@@ -20,10 +24,18 @@ class FolderPicker extends StatefulWidget {
 }
 
 class _FolderPickerState extends State<FolderPicker> {
-  final AppDatabase _db =
-      locator.get<Signal<AppDatabaseHandler>>().value.appDatabase;
+  late final AppDatabase _db;
   final Set<Folder> _selectedFolders = {};
   bool _isLoading = true;
+  bool _dbInitialized = false;
+
+  AppDatabase _getDb() {
+    if (!_dbInitialized) {
+      _db = locator.get<Signal<AppDatabaseHandler>>().value.appDatabase;
+      _dbInitialized = true;
+    }
+    return _db;
+  }
 
   @override
   void initState() {
@@ -39,7 +51,7 @@ class _FolderPickerState extends State<FolderPicker> {
         return;
       }
 
-      final results = await _db.getAllFolders();
+      final results = await _getDb().getAllFolders();
       if (results.isNotEmpty) {
         setState(() {
           final defaultFolder = results.map((r) => r.data).firstWhere(
@@ -60,8 +72,9 @@ class _FolderPickerState extends State<FolderPicker> {
     unawaited(showDialog(
       context: context,
       builder: (context) => FolderSelectionDialog(
-        db: _db,
+        db: _getDb(),
         selectedFolders: _selectedFolders.toList(),
+        allowEmpty: widget.allowEmpty,
         onSelect: (folders) {
           setState(() {
             _selectedFolders.clear();
@@ -94,20 +107,25 @@ class _FolderPickerState extends State<FolderPicker> {
           spacing: 8,
           runSpacing: 8,
           children: [
-            ..._selectedFolders.map((folder) => Chip(
-                  label: Text(folder.title),
-                  onDeleted: _selectedFolders.length > 1
-                      ? () {
-                          setState(() => _selectedFolders.remove(folder));
-                          widget.onFoldersSelected(_selectedFolders.toList());
-                        }
-                      : null,
-                )),
-            ActionChip(
-              avatar: const Icon(Icons.add),
-              label: const Text("Add Folder"),
-              onPressed: _showFolderSelectionDialog,
-            ),
+            ..._selectedFolders.map((folder) {
+              final canDelete = !widget.readOnly &&
+                  (widget.allowEmpty || _selectedFolders.length > 1);
+              return Chip(
+                label: Text(folder.title),
+                onDeleted: canDelete
+                    ? () {
+                        setState(() => _selectedFolders.remove(folder));
+                        widget.onFoldersSelected(_selectedFolders.toList());
+                      }
+                    : null,
+              );
+            }),
+            if (!widget.readOnly)
+              ActionChip(
+                avatar: const Icon(Icons.add),
+                label: const Text("Add Folder"),
+                onPressed: _showFolderSelectionDialog,
+              ),
           ],
         ),
       ],
@@ -119,12 +137,14 @@ class FolderSelectionDialog extends StatefulWidget {
   final AppDatabase db;
   final List<Folder> selectedFolders;
   final void Function(List<Folder>) onSelect;
+  final bool allowEmpty;
 
   const FolderSelectionDialog({
     super.key,
     required this.db,
     required this.selectedFolders,
     required this.onSelect,
+    this.allowEmpty = false,
   });
 
   @override
@@ -205,7 +225,8 @@ class _FolderSelectionDialogState extends State<FolderSelectionDialog> {
                           if (selected!) {
                             _selectedFolders.add(folder);
                           } else {
-                            if (_selectedFolders.length > 1) {
+                            if (widget.allowEmpty ||
+                                _selectedFolders.length > 1) {
                               _selectedFolders.remove(folder);
                             }
                           }

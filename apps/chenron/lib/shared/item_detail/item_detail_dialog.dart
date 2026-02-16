@@ -15,6 +15,7 @@ import "package:chenron/shared/errors/user_error_message.dart";
 import "package:chenron/shared/item_detail/item_detail_data.dart";
 import "package:chenron/shared/item_detail/item_detail_service.dart";
 import "package:chenron/shared/utils/time_formatter.dart";
+import "package:chenron/shared/ui/folder_picker.dart";
 import "package:chenron/utils/validation/tag_validator.dart";
 
 /// Shows the item detail dialog for any item type.
@@ -173,14 +174,22 @@ class _ItemDetailDialogState extends State<ItemDetailDialog> {
                         onTagRemoved: _handleRemoveTag,
                       ),
                       const SizedBox(height: 12),
-                      _FoldersSection(
-                        parentFolders: _data!.parentFolders,
-                        isEditing: _isEditing,
-                        itemType: widget.itemType,
-                        itemId: widget.itemId,
-                        onAddToFolder: _handleAddToFolder,
-                        onRemoveFromFolder: _handleRemoveFromFolder,
-                        fetchAllFolders: _service.fetchAllFolders,
+                      FolderPicker(
+                        initialFolders: _data!.parentFolders,
+                        readOnly: !_isEditing,
+                        allowEmpty: true,
+                        onFoldersSelected: (folders) {
+                          final currentIds =
+                              _data!.parentFolders.map((f) => f.id).toSet();
+                          final selectedIds =
+                              folders.map((f) => f.id).toSet();
+                          for (final id in selectedIds.difference(currentIds)) {
+                            unawaited(_handleAddToFolder(id));
+                          }
+                          for (final id in currentIds.difference(selectedIds)) {
+                            unawaited(_handleRemoveFromFolder(id));
+                          }
+                        },
                       ),
                     ],
                   ),
@@ -1023,207 +1032,6 @@ class _ReadOnlyTagChip extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Folders section
-// ---------------------------------------------------------------------------
-
-class _FoldersSection extends StatelessWidget {
-  final List<Folder> parentFolders;
-  final bool isEditing;
-  final FolderItemType itemType;
-  final String itemId;
-  final ValueChanged<String> onAddToFolder;
-  final ValueChanged<String> onRemoveFromFolder;
-  final Future<List<Folder>> Function() fetchAllFolders;
-
-  const _FoldersSection({
-    required this.parentFolders,
-    required this.isEditing,
-    required this.itemType,
-    required this.itemId,
-    required this.onAddToFolder,
-    required this.onRemoveFromFolder,
-    required this.fetchAllFolders,
-  });
-
-  Future<void> _handleSelectFolders(BuildContext context) async {
-    final allFolders = await fetchAllFolders();
-
-    // Exclude self for folders to prevent circular reference
-    final available = itemType == FolderItemType.folder
-        ? allFolders.where((f) => f.id != itemId).toList()
-        : allFolders;
-
-    if (!context.mounted) return;
-
-    unawaited(showDialog(
-      context: context,
-      builder: (context) => _FolderMembershipDialog(
-        availableFolders: available,
-        currentFolders: parentFolders,
-        onConfirm: (selected) {
-          final currentIds = parentFolders.map((f) => f.id).toSet();
-          final selectedIds = selected.map((f) => f.id).toSet();
-
-          // Add new
-          for (final id in selectedIds.difference(currentIds)) {
-            onAddToFolder(id);
-          }
-          // Remove old
-          for (final id in currentIds.difference(selectedIds)) {
-            onRemoveFromFolder(id);
-          }
-        },
-      ),
-    ));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return _InfoSection(
-      title: "In Folders",
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (parentFolders.isEmpty)
-            Text(
-              "Not in any folder",
-              style: TextStyle(
-                fontSize: 13,
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-                fontStyle: FontStyle.italic,
-              ),
-            )
-          else
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                ...parentFolders.map((folder) {
-                  if (isEditing) {
-                    return InputChip(
-                      avatar: const Icon(Icons.folder, size: 16),
-                      label: Text(folder.title),
-                      onDeleted: () => onRemoveFromFolder(folder.id),
-                      deleteIconColor: theme.colorScheme.error,
-                    );
-                  }
-                  return Chip(
-                    avatar: const Icon(Icons.folder, size: 16),
-                    label: Text(folder.title),
-                  );
-                }),
-              ],
-            ),
-          if (isEditing) ...[
-            const SizedBox(height: 8),
-            ActionChip(
-              avatar: const Icon(Icons.add, size: 16),
-              label: const Text("Add to folder"),
-              onPressed: () => _handleSelectFolders(context),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _FolderMembershipDialog extends StatefulWidget {
-  final List<Folder> availableFolders;
-  final List<Folder> currentFolders;
-  final ValueChanged<List<Folder>> onConfirm;
-
-  const _FolderMembershipDialog({
-    required this.availableFolders,
-    required this.currentFolders,
-    required this.onConfirm,
-  });
-
-  @override
-  State<_FolderMembershipDialog> createState() =>
-      _FolderMembershipDialogState();
-}
-
-class _FolderMembershipDialogState extends State<_FolderMembershipDialog> {
-  late Set<Folder> _selected;
-  String _searchQuery = "";
-
-  @override
-  void initState() {
-    super.initState();
-    _selected = Set.from(widget.currentFolders);
-  }
-
-  List<Folder> get _filteredFolders {
-    if (_searchQuery.isEmpty) return widget.availableFolders;
-    final query = _searchQuery.toLowerCase();
-    return widget.availableFolders
-        .where((f) => f.title.toLowerCase().contains(query))
-        .toList();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text("Select Folders"),
-      content: SizedBox(
-        width: double.maxFinite,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              decoration: const InputDecoration(
-                prefixIcon: Icon(Icons.search),
-                hintText: "Search folders...",
-              ),
-              onChanged: (value) => setState(() => _searchQuery = value),
-            ),
-            const SizedBox(height: 8),
-            Flexible(
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: _filteredFolders.length,
-                itemBuilder: (context, index) {
-                  final folder = _filteredFolders[index];
-                  return CheckboxListTile(
-                    title: Text(folder.title),
-                    value: _selected.contains(folder),
-                    onChanged: (selected) {
-                      setState(() {
-                        if (selected!) {
-                          _selected.add(folder);
-                        } else {
-                          _selected.remove(folder);
-                        }
-                      });
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text("Cancel"),
-        ),
-        FilledButton(
-          onPressed: () {
-            widget.onConfirm(_selected.toList());
-            Navigator.pop(context);
-          },
-          child: const Text("Done"),
-        ),
-      ],
     );
   }
 }
