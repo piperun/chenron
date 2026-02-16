@@ -3,20 +3,21 @@ import "package:flutter/material.dart";
 import "package:chenron/features/create/link/models/link_entry.dart";
 import "package:chenron/shared/bottom_sheet/bottom_sheet_scaffold.dart";
 import "package:chenron/shared/bottom_sheet/sheet_action_bar.dart";
+import "package:chenron/shared/ui/folder_picker.dart";
 import "package:chenron/utils/validation/tag_validator.dart";
 
 class LinkEditBottomSheet extends StatefulWidget {
   final LinkEntry entry;
-  final ValueChanged<LinkEntry> onSave;
+  final void Function(LinkEntry entry, List<Folder> folders) onSave;
   final VoidCallback onCancel;
-  final List<Folder>? availableFolders;
+  final List<Folder> currentFolders;
 
   const LinkEditBottomSheet({
     super.key,
     required this.entry,
     required this.onSave,
     required this.onCancel,
-    this.availableFolders,
+    required this.currentFolders,
   });
 
   @override
@@ -28,7 +29,7 @@ class _LinkEditBottomSheetState extends State<LinkEditBottomSheet> {
   late TextEditingController _tagsController;
   late bool _isArchived;
   late List<String> _tags;
-  late Set<String> _selectedFolderIds;
+  late List<Folder> _currentFolders;
 
   @override
   void initState() {
@@ -37,7 +38,7 @@ class _LinkEditBottomSheetState extends State<LinkEditBottomSheet> {
     _tags = List.from(widget.entry.tags);
     _tagsController = TextEditingController();
     _isArchived = widget.entry.isArchived;
-    _selectedFolderIds = Set.from(widget.entry.folderIds);
+    _currentFolders = List.from(widget.currentFolders);
   }
 
   @override
@@ -107,10 +108,10 @@ class _LinkEditBottomSheetState extends State<LinkEditBottomSheet> {
       url: url,
       tags: _tags,
       isArchived: _isArchived,
-      folderIds: _selectedFolderIds.toList(),
+      folderIds: _currentFolders.map((f) => f.id).toList(),
     );
 
-    widget.onSave(updatedEntry);
+    widget.onSave(updatedEntry, _currentFolders);
   }
 
   @override
@@ -141,23 +142,13 @@ class _LinkEditBottomSheetState extends State<LinkEditBottomSheet> {
               onRemoveTag: _removeTag,
             ),
             const SizedBox(height: 20),
-            if (widget.availableFolders != null &&
-                widget.availableFolders!.isNotEmpty) ...[
-              _FoldersSection(
-                folders: widget.availableFolders!,
-                selectedFolderIds: _selectedFolderIds,
-                onFolderToggled: (folderId, {required selected}) {
-                  setState(() {
-                    if (selected) {
-                      _selectedFolderIds.add(folderId);
-                    } else {
-                      _selectedFolderIds.remove(folderId);
-                    }
-                  });
-                },
-              ),
-              const SizedBox(height: 20),
-            ],
+            FolderPicker(
+              initialFolders: _currentFolders,
+              onFoldersSelected: (folders) {
+                setState(() => _currentFolders = folders);
+              },
+            ),
+            const SizedBox(height: 20),
             _ArchiveToggle(
               value: _isArchived,
               onChanged: (value) =>
@@ -288,60 +279,6 @@ class _TagsSection extends StatelessWidget {
             }).toList(),
           ),
         ],
-      ],
-    );
-  }
-}
-
-class _FoldersSection extends StatelessWidget {
-  final List<Folder> folders;
-  final Set<String> selectedFolderIds;
-  final void Function(String folderId, {required bool selected}) onFolderToggled;
-
-  const _FoldersSection({
-    required this.folders,
-    required this.selectedFolderIds,
-    required this.onFolderToggled,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "Folders",
-          style: theme.textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: folders.map((folder) {
-            final isSelected = selectedFolderIds.contains(folder.id);
-            return FilterChip(
-              label: Text(folder.title),
-              selected: isSelected,
-              onSelected: (selected) => onFolderToggled(folder.id, selected: selected),
-              backgroundColor: theme.colorScheme.surface,
-              selectedColor: theme.colorScheme.primaryContainer,
-              checkmarkColor: theme.colorScheme.onPrimaryContainer,
-              labelStyle: TextStyle(
-                color: isSelected
-                    ? theme.colorScheme.onPrimaryContainer
-                    : theme.colorScheme.onSurface,
-              ),
-              side: BorderSide(
-                color: isSelected
-                    ? theme.colorScheme.primary
-                    : theme.colorScheme.outline,
-              ),
-            );
-          }).toList(),
-        ),
       ],
     );
   }

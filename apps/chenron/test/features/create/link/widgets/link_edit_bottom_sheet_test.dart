@@ -32,9 +32,9 @@ void main() {
 
   Widget buildSheet({
     LinkEntry? entry,
-    ValueChanged<LinkEntry>? onSave,
+    void Function(LinkEntry, List<Folder>)? onSave,
     VoidCallback? onCancel,
-    List<Folder>? availableFolders,
+    List<Folder>? currentFolders,
   }) {
     final testEntry = entry ?? makeEntry();
     return MaterialApp(
@@ -47,9 +47,9 @@ void main() {
               backgroundColor: Colors.transparent,
               builder: (_) => LinkEditBottomSheet(
                 entry: testEntry,
-                onSave: onSave ?? (_) {},
+                onSave: onSave ?? (_, __) {},
                 onCancel: onCancel ?? () => Navigator.pop(context),
-                availableFolders: availableFolders,
+                currentFolders: currentFolders ?? [],
               ),
             ),
             child: const Text("Open"),
@@ -115,30 +115,21 @@ void main() {
       expect(find.text("Update"), findsOneWidget);
     });
 
-    testWidgets("shows Folders section when availableFolders provided",
+    testWidgets("shows Folders section with FolderPicker",
         (tester) async {
       await tester.pumpWidget(buildSheet(
-        availableFolders: [
+        currentFolders: [
           makeFolder("f1", "Work"),
           makeFolder("f2", "Personal"),
         ],
-        entry: makeEntry(folderIds: ["f1"]),
+        entry: makeEntry(folderIds: ["f1", "f2"]),
       ));
       await tester.tap(find.text("Open"));
       await tester.pumpAndSettle();
 
-      expect(find.text("Folders"), findsOneWidget);
+      expect(find.text("Selected Folders"), findsOneWidget);
       expect(find.text("Work"), findsOneWidget);
       expect(find.text("Personal"), findsOneWidget);
-    });
-
-    testWidgets("hides Folders section when no availableFolders",
-        (tester) async {
-      await tester.pumpWidget(buildSheet(availableFolders: null));
-      await tester.tap(find.text("Open"));
-      await tester.pumpAndSettle();
-
-      expect(find.text("Folders"), findsNothing);
     });
   });
 
@@ -147,7 +138,7 @@ void main() {
       LinkEntry? savedEntry;
       await tester.pumpWidget(buildSheet(
         entry: makeEntry(url: "https://old.com"),
-        onSave: (entry) => savedEntry = entry,
+        onSave: (entry, _) => savedEntry = entry,
       ));
       await tester.tap(find.text("Open"));
       await tester.pumpAndSettle();
@@ -216,7 +207,7 @@ void main() {
       LinkEntry? savedEntry;
       await tester.pumpWidget(buildSheet(
         entry: makeEntry(isArchived: false),
-        onSave: (entry) => savedEntry = entry,
+        onSave: (entry, _) => savedEntry = entry,
       ));
       await tester.tap(find.text("Open"));
       await tester.pumpAndSettle();
@@ -268,11 +259,12 @@ void main() {
                 backgroundColor: Colors.transparent,
                 builder: (_) => LinkEditBottomSheet(
                   entry: makeEntry(),
-                  onSave: (_) {},
+                  onSave: (_, __) {},
                   onCancel: () {
                     wasCancelled = true;
                     Navigator.pop(context);
                   },
+                  currentFolders: const [],
                 ),
               ),
               child: const Text("Open"),
