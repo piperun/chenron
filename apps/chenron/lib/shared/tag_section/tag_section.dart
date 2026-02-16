@@ -36,27 +36,33 @@ class _TagSectionState extends State<TagSection> {
   }
 
   void _addTag() {
-    final tag = _controller.text.trim().toLowerCase();
+    final parts = _controller.text
+        .split(",")
+        .map((s) => s.trim().toLowerCase())
+        .where((s) => s.isNotEmpty)
+        .toList();
 
-    if (tag.isEmpty) {
+    if (parts.isEmpty) {
       setState(() => _errorText = null);
       return;
     }
 
-    // Validate using TagValidator
-    final validationError = TagValidator.validateTag(tag);
-    if (validationError != null) {
-      setState(() => _errorText = validationError);
-      return;
+    // Validate all before adding any
+    for (final tag in parts) {
+      final validationError = TagValidator.validateTag(tag);
+      if (validationError != null) {
+        setState(() => _errorText = validationError);
+        return;
+      }
+      if (widget.tags.contains(tag)) {
+        setState(() => _errorText = "Tag '$tag' already exists");
+        return;
+      }
     }
 
-    // Check for duplicates
-    if (widget.tags.contains(tag)) {
-      setState(() => _errorText = "Tag '$tag' already exists");
-      return;
+    for (final tag in parts) {
+      widget.onTagAdded(tag);
     }
-
-    widget.onTagAdded(tag);
     _controller.clear();
     setState(() => _errorText = null);
   }
@@ -93,7 +99,7 @@ class _TagSectionState extends State<TagSection> {
                     : null,
                 controller: _controller,
                 labelText: "Add tag",
-                hintText: "Enter tag name",
+                hintText: "tag1, tag2, tag3",
                 icon: const Icon(Icons.tag),
                 errorText: _errorText,
                 onSubmitted: (_) => _addTag(),

@@ -48,33 +48,38 @@ class _LinkEditBottomSheetState extends State<LinkEditBottomSheet> {
   }
 
   void _addTag() {
-    final tag = _tagsController.text.trim().toLowerCase();
+    final parts = _tagsController.text
+        .split(",")
+        .map((s) => s.trim().toLowerCase())
+        .where((s) => s.isNotEmpty)
+        .toList();
 
-    if (tag.isEmpty) return;
+    if (parts.isEmpty) return;
 
-    final validationError = TagValidator.validateTag(tag);
-    if (validationError != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(validationError),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-      return;
-    }
-
-    if (_tags.contains(tag)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Tag '$tag' already exists"),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-      return;
+    for (final tag in parts) {
+      final validationError = TagValidator.validateTag(tag);
+      if (validationError != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(validationError),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+        return;
+      }
+      if (_tags.contains(tag)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Tag '$tag' already exists"),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+        return;
+      }
     }
 
     setState(() {
-      _tags.add(tag);
+      _tags.addAll(parts);
       _tagsController.clear();
     });
   }
@@ -243,7 +248,7 @@ class _TagsSection extends StatelessWidget {
               child: TextField(
                 controller: controller,
                 decoration: const InputDecoration(
-                  hintText: "Add tag",
+                  hintText: "tag1, tag2, tag3",
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.tag),
                 ),

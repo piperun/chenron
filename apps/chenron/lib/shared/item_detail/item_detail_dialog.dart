@@ -885,21 +885,28 @@ class _TagsSectionState extends State<_TagsSection> {
   }
 
   void _handleAddTag() {
-    final tag = _controller.text.trim().toLowerCase();
-    if (tag.isEmpty) return;
+    final parts = _controller.text
+        .split(",")
+        .map((s) => s.trim().toLowerCase())
+        .where((s) => s.isNotEmpty)
+        .toList();
+    if (parts.isEmpty) return;
 
-    final validationError = TagValidator.validateTag(tag);
-    if (validationError != null) {
-      setState(() => _errorText = validationError);
-      return;
+    for (final tag in parts) {
+      final validationError = TagValidator.validateTag(tag);
+      if (validationError != null) {
+        setState(() => _errorText = validationError);
+        return;
+      }
+      if (widget.tags.any((t) => t.name == tag)) {
+        setState(() => _errorText = "Tag '$tag' already exists");
+        return;
+      }
     }
 
-    if (widget.tags.any((t) => t.name == tag)) {
-      setState(() => _errorText = "Tag '$tag' already exists");
-      return;
+    for (final tag in parts) {
+      widget.onTagAdded(tag);
     }
-
-    widget.onTagAdded(tag);
     _controller.clear();
     setState(() => _errorText = null);
   }
@@ -920,7 +927,7 @@ class _TagsSectionState extends State<_TagsSection> {
                   child: TextField(
                     controller: _controller,
                     decoration: InputDecoration(
-                      hintText: "Add tag",
+                      hintText: "tag1, tag2, tag3",
                       border: const OutlineInputBorder(),
                       prefixIcon: const Icon(Icons.tag),
                       errorText: _errorText,
