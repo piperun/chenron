@@ -1,6 +1,7 @@
 import "package:flutter/material.dart";
 import "package:cache_manager/cache_manager.dart";
 import "package:flutter_cache_manager/flutter_cache_manager.dart" as fcm;
+import "package:signals/signals_flutter.dart";
 import "package:chenron/components/metadata_factory.dart";
 
 bool _isValidImageUrl(String url) {
@@ -24,15 +25,36 @@ class ItemImageHeader extends StatefulWidget {
 }
 
 class _ItemImageHeaderState extends State<ItemImageHeader> {
-  late final Future<List<dynamic>> _future;
+  late Future<List<dynamic>> _future;
+  void Function()? _disposeEffect;
 
   @override
   void initState() {
     super.initState();
+    _initFuture();
+    _listenForRefresh();
+  }
+
+  void _initFuture() {
     _future = Future.wait([
       MetadataFactory.getOrFetch(widget.url),
       ImageCacheManager.instance,
     ]);
+  }
+
+  void _listenForRefresh() {
+    _disposeEffect = effect(() {
+      final refreshed = MetadataFactory.lastRefreshedUrl.value;
+      if (refreshed == widget.url) {
+        setState(() => _initFuture());
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _disposeEffect?.call();
+    super.dispose();
   }
 
   @override
@@ -97,15 +119,36 @@ class ItemThumbnail extends StatefulWidget {
 }
 
 class _ItemThumbnailState extends State<ItemThumbnail> {
-  late final Future<List<dynamic>> _future;
+  late Future<List<dynamic>> _future;
+  void Function()? _disposeEffect;
 
   @override
   void initState() {
     super.initState();
+    _initFuture();
+    _listenForRefresh();
+  }
+
+  void _initFuture() {
     _future = Future.wait([
       MetadataFactory.getOrFetch(widget.url),
       ImageCacheManager.instance,
     ]);
+  }
+
+  void _listenForRefresh() {
+    _disposeEffect = effect(() {
+      final refreshed = MetadataFactory.lastRefreshedUrl.value;
+      if (refreshed == widget.url) {
+        setState(() => _initFuture());
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _disposeEffect?.call();
+    super.dispose();
   }
 
   @override

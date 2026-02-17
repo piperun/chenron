@@ -3,8 +3,12 @@ import "dart:collection";
 
 import "package:chenron/utils/metadata.dart";
 import "package:cache_manager/cache_manager.dart";
+import "package:signals/signals.dart";
 
 class MetadataFactory {
+  /// Emits the URL of the most recently force-refreshed metadata.
+  static final lastRefreshedUrl = signal<String?>(null);
+
   static const _maxConcurrent = 3;
   static const _domainDelay = Duration(milliseconds: 500);
 
@@ -94,6 +98,10 @@ class MetadataFactory {
     await MetadataCache.remove(url);
 
     await _acquireSlot();
-    return _fetchAndCache(url);
+    final result = await _fetchAndCache(url);
+    if (result != null) {
+      lastRefreshedUrl.value = url;
+    }
+    return result;
   }
 }
