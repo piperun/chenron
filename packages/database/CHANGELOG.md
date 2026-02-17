@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## database-v0.10.0 - 2026-02-17
+#### Features
+- add WebMetadataEntries drift table for persistent metadata cache - (1d183e5) - *piperun*
+- add removeTag and renameTag database operations - (bf78ab6) - *piperun*
+#### Bug Fixes
+- add unique constraint to Items (folderId, itemId) index - (26ea6b0) - *piperun*
+- show live item counts on statistics overview cards - (3d3cd2c) - *piperun*
+#### Refactoring
+- align TagResult with other result types - (0a7d0d6) - *piperun*
+
+- - -
+
 ## database-v0.9.0 - 2026-02-12
 #### Features
 - show 'added' date when viewing items in a folder - (6b9ff34) - *piperun*
