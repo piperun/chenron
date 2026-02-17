@@ -1,21 +1,24 @@
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
+import 'package:cache_manager/src/metadata_persistence.dart';
 import 'package:logging/logging.dart';
 import 'dart:collection';
 
 final _logger = Logger('MetadataCache');
 
-/// Manages persistent caching of metadata using SharedPreferences with LRU eviction
+/// Manages caching of metadata with an in-memory LRU layer and a
+/// pluggable persistent backend ([MetadataPersistence]).
+///
+/// Call [init] once at startup to enable persistent storage.
+/// Without it, only the in-memory LRU cache is active.
 class MetadataCache {
-  static SharedPreferences? _prefs;
+  static MetadataPersistence? _persistence;
   static final _LRUCache<String, Map<String, dynamic>> _memoryCache = _LRUCache(maxSize: 100);
   static final Map<String, DateTime> _failedAttempts = {};
   static final Map<String, int> _failureCount = {};
   static final Set<String> _fetchingUrls = {};
 
-  static Future<SharedPreferences> get _sharedPrefs async {
-    _prefs ??= await SharedPreferences.getInstance();
-    return _prefs!;
+  /// Inject the persistent storage backend. Call once at startup.
+  static void init(MetadataPersistence persistence) {
+    _persistence = persistence;
   }
 
   /// Get metadata from cache (memory first, then persistent)
@@ -35,19 +38,17 @@ class MetadataCache {
     }
 
     // Check persistent cache
+    if (_persistence == null) return null;
     try {
-      final prefs = await _sharedPrefs;
-      final key = 'metadata_$url';
-      final cached = prefs.getString(key);
+      final cached = await _persistence!.get(url);
       if (cached != null) {
-        final json = jsonDecode(cached) as Map<String, dynamic>;
-        if (_isFresh(json)) {
+        if (_isFresh(cached)) {
           // Load into LRU memory cache
-          _memoryCache.put(url, json);
-          _logger.fine('Persistent cache HIT (FRESH) for: $url | Title: ${json['title'] ?? 'N/A'}');
-          return json;
+          _memoryCache.put(url, cached);
+          _logger.fine('Persistent cache HIT (FRESH) for: $url | Title: ${cached['title'] ?? 'N/A'}');
+          return cached;
         } else {
-          _logger.fine('Persistent cache HIT (STALE) for: $url | Title: ${json['title'] ?? 'N/A'} | Needs refetch');
+          _logger.fine('Persistent cache HIT (STALE) for: $url | Title: ${cached['title'] ?? 'N/A'} | Needs refetch');
           return null; // Stale data, return null to trigger refetch
         }
       } else {
@@ -66,16 +67,14 @@ class MetadataCache {
       ...metadata,
       'fetchedAt': DateTime.now().toIso8601String(),
     };
-    
+
     // Store in LRU memory cache (automatically handles eviction)
     _memoryCache.put(url, metadataWithTimestamp);
     _logger.info('Cached metadata for: $url | Title: ${metadata['title'] ?? 'N/A'}');
-    
+
+    if (_persistence == null) return;
     try {
-      final prefs = await _sharedPrefs;
-      final key = 'metadata_$url';
-      final json = jsonEncode(metadataWithTimestamp);
-      await prefs.setString(key, json);
+      await _persistence!.set(url, metadataWithTimestamp);
     } catch (e) {
       _logger.warning('Failed to persist cache for: $url | Error: $e');
     }
@@ -121,8 +120,7 @@ class MetadataCache {
   static Future<void> remove(String url) async {
     _memoryCache.remove(url);
     try {
-      final prefs = await _sharedPrefs;
-      await prefs.remove('metadata_$url');
+      await _persistence?.remove(url);
     } catch (_) {}
   }
 
@@ -132,15 +130,11 @@ class MetadataCache {
     _failedAttempts.clear();
     _failureCount.clear();
     _fetchingUrls.clear();
-    
+
     try {
-      final prefs = await _sharedPrefs;
-      final keys = prefs.getKeys().where((key) => key.startsWith('metadata_'));
-      for (final key in keys) {
-        await prefs.remove(key);
-      }
+      await _persistence?.clearAll();
     } catch (e) {
-      // Log error if needed
+      _logger.warning('Failed to clear persistent cache: $e');
     }
   }
 
@@ -151,7 +145,7 @@ class MetadataCache {
       // Old cache format without timestamp - consider stale
       return false;
     }
-    
+
     try {
       final fetchedAt = DateTime.parse(fetchedAtStr);
       final age = DateTime.now().difference(fetchedAt);
@@ -163,24 +157,15 @@ class MetadataCache {
     }
   }
 
-  /// Get cache size information
-  static Future<int> getCacheSize() async {
+  /// Get the number of persistently cached entries.
+  static Future<int> getCacheEntryCount() async {
     try {
-      final prefs = await _sharedPrefs;
-      final keys = prefs.getKeys().where((key) => key.startsWith('metadata_'));
-      int totalSize = 0;
-      for (final key in keys) {
-        final value = prefs.getString(key);
-        if (value != null) {
-          totalSize += value.length;
-        }
-      }
-      return totalSize;
+      return await _persistence?.count() ?? 0;
     } catch (e) {
       return 0;
     }
   }
-  
+
   /// Get memory cache statistics
   static Map<String, int> getMemoryCacheStats() {
     return {
@@ -194,19 +179,19 @@ class MetadataCache {
 class _LRUCache<K, V> {
   final int maxSize;
   final LinkedHashMap<K, V> _cache = LinkedHashMap();
-  
+
   _LRUCache({required this.maxSize});
-  
+
   /// Get value from cache and update access order
   V? get(K key) {
     if (!_cache.containsKey(key)) return null;
-    
+
     // Move to end (most recently used)
     final value = _cache.remove(key)!;
     _cache[key] = value;
     return value;
   }
-  
+
   /// Put value into cache, evicting LRU entry if necessary
   void put(K key, V value) {
     if (_cache.containsKey(key)) {
@@ -218,20 +203,20 @@ class _LRUCache<K, V> {
     }
     _cache[key] = value;
   }
-  
+
   /// Remove entry from cache
   void remove(K key) {
     _cache.remove(key);
   }
-  
+
   /// Check if key exists in cache
   bool containsKey(K key) {
     return _cache.containsKey(key);
   }
-  
+
   /// Get current cache size
   int get length => _cache.length;
-  
+
   /// Clear all entries
   void clear() {
     _cache.clear();
