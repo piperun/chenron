@@ -115,6 +115,19 @@ class ActivityEvents extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Persistent cache of fetched web metadata (OG title, description, image).
+/// Keyed by URL — this is a cache table, not a relational entity.
+class WebMetadataEntries extends Table {
+  TextColumn get url => text()();
+  TextColumn get title => text().nullable()();
+  TextColumn get description => text().nullable()();
+  TextColumn get image => text().nullable()();
+  DateTimeColumn get fetchedAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {url};
+}
+
 /// Tracks when each item was last accessed (for "recently viewed" features)
 class RecentAccess extends Table {
   TextColumn get entityId => text()();
