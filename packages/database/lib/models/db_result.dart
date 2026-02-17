@@ -1,5 +1,6 @@
 import "package:database/main.dart";
 import "package:database/models/item.dart";
+import "package:drift/drift.dart" show DataClass;
 import "package:freezed_annotation/freezed_annotation.dart";
 part "db_result.freezed.dart";
 
@@ -22,8 +23,7 @@ abstract class DbResult with _$DbResult {
   }) = DocumentResult;
 
   const factory DbResult.tag({
-    required String name,
-    int? color,
+    required Tag data,
     List<String>? relatedFolderIds,
     List<String>? relatedLinkIds,
     List<String>? relatedDocumentIds,

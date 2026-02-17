@@ -14,18 +14,22 @@ T _$identity<T>(T value) => value;
 
 /// @nodoc
 mixin _$DbResult {
+  DataClass get data;
+
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
-        (other.runtimeType == runtimeType && other is DbResult);
+        (other.runtimeType == runtimeType &&
+            other is DbResult &&
+            (identical(other.data, data) || other.data == data));
   }
 
   @override
-  int get hashCode => runtimeType.hashCode;
+  int get hashCode => Object.hash(runtimeType, data);
 
   @override
   String toString() {
-    return 'DbResult()';
+    return 'DbResult(data: $data)';
   }
 }
 
@@ -176,7 +180,7 @@ extension DbResultPatterns on DbResult {
         folder,
     TResult Function(Link data, List<Tag> tags)? link,
     TResult Function(Document data, List<Tag>? tags)? document,
-    TResult Function(String name, int? color, List<String>? relatedFolderIds,
+    TResult Function(Tag data, List<String>? relatedFolderIds,
             List<String>? relatedLinkIds, List<String>? relatedDocumentIds)?
         tag,
     TResult Function(UserConfig data, List<UserTheme>? userThemes,
@@ -196,8 +200,8 @@ extension DbResultPatterns on DbResult {
       case DocumentResult() when document != null:
         return document(_that.data, _that.tags);
       case TagResult() when tag != null:
-        return tag(_that.name, _that.color, _that.relatedFolderIds,
-            _that.relatedLinkIds, _that.relatedDocumentIds);
+        return tag(_that.data, _that.relatedFolderIds, _that.relatedLinkIds,
+            _that.relatedDocumentIds);
       case UserConfigResult() when userConfig != null:
         return userConfig(_that.data, _that.userThemes, _that.backupSettings);
       case UserThemeResult() when userTheme != null:
@@ -227,12 +231,8 @@ extension DbResultPatterns on DbResult {
         folder,
     required TResult Function(Link data, List<Tag> tags) link,
     required TResult Function(Document data, List<Tag>? tags) document,
-    required TResult Function(
-            String name,
-            int? color,
-            List<String>? relatedFolderIds,
-            List<String>? relatedLinkIds,
-            List<String>? relatedDocumentIds)
+    required TResult Function(Tag data, List<String>? relatedFolderIds,
+            List<String>? relatedLinkIds, List<String>? relatedDocumentIds)
         tag,
     required TResult Function(UserConfig data, List<UserTheme>? userThemes,
             BackupSetting? backupSettings)
@@ -250,8 +250,8 @@ extension DbResultPatterns on DbResult {
       case DocumentResult():
         return document(_that.data, _that.tags);
       case TagResult():
-        return tag(_that.name, _that.color, _that.relatedFolderIds,
-            _that.relatedLinkIds, _that.relatedDocumentIds);
+        return tag(_that.data, _that.relatedFolderIds, _that.relatedLinkIds,
+            _that.relatedDocumentIds);
       case UserConfigResult():
         return userConfig(_that.data, _that.userThemes, _that.backupSettings);
       case UserThemeResult():
@@ -279,7 +279,7 @@ extension DbResultPatterns on DbResult {
         folder,
     TResult? Function(Link data, List<Tag> tags)? link,
     TResult? Function(Document data, List<Tag>? tags)? document,
-    TResult? Function(String name, int? color, List<String>? relatedFolderIds,
+    TResult? Function(Tag data, List<String>? relatedFolderIds,
             List<String>? relatedLinkIds, List<String>? relatedDocumentIds)?
         tag,
     TResult? Function(UserConfig data, List<UserTheme>? userThemes,
@@ -298,8 +298,8 @@ extension DbResultPatterns on DbResult {
       case DocumentResult() when document != null:
         return document(_that.data, _that.tags);
       case TagResult() when tag != null:
-        return tag(_that.name, _that.color, _that.relatedFolderIds,
-            _that.relatedLinkIds, _that.relatedDocumentIds);
+        return tag(_that.data, _that.relatedFolderIds, _that.relatedLinkIds,
+            _that.relatedDocumentIds);
       case UserConfigResult() when userConfig != null:
         return userConfig(_that.data, _that.userThemes, _that.backupSettings);
       case UserThemeResult() when userTheme != null:
@@ -320,6 +320,7 @@ class FolderResult implements DbResult {
       : _tags = tags,
         _items = items;
 
+  @override
   final Folder data;
   final List<Tag> _tags;
   List<Tag> get tags {
@@ -413,6 +414,7 @@ class LinkResult implements DbResult {
   const LinkResult({required this.data, required final List<Tag> tags})
       : _tags = tags;
 
+  @override
   final Link data;
   final List<Tag> _tags;
   List<Tag> get tags {
@@ -490,6 +492,7 @@ class DocumentResult implements DbResult {
   const DocumentResult({required this.data, final List<Tag>? tags})
       : _tags = tags;
 
+  @override
   final Document data;
   final List<Tag>? _tags;
   List<Tag>? get tags {
@@ -568,8 +571,7 @@ class _$DocumentResultCopyWithImpl<$Res>
 
 class TagResult implements DbResult {
   const TagResult(
-      {required this.name,
-      this.color,
+      {required this.data,
       final List<String>? relatedFolderIds,
       final List<String>? relatedLinkIds,
       final List<String>? relatedDocumentIds})
@@ -577,8 +579,8 @@ class TagResult implements DbResult {
         _relatedLinkIds = relatedLinkIds,
         _relatedDocumentIds = relatedDocumentIds;
 
-  final String name;
-  final int? color;
+  @override
+  final Tag data;
   final List<String>? _relatedFolderIds;
   List<String>? get relatedFolderIds {
     final value = _relatedFolderIds;
@@ -620,8 +622,7 @@ class TagResult implements DbResult {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is TagResult &&
-            (identical(other.name, name) || other.name == name) &&
-            (identical(other.color, color) || other.color == color) &&
+            (identical(other.data, data) || other.data == data) &&
             const DeepCollectionEquality()
                 .equals(other._relatedFolderIds, _relatedFolderIds) &&
             const DeepCollectionEquality()
@@ -633,15 +634,14 @@ class TagResult implements DbResult {
   @override
   int get hashCode => Object.hash(
       runtimeType,
-      name,
-      color,
+      data,
       const DeepCollectionEquality().hash(_relatedFolderIds),
       const DeepCollectionEquality().hash(_relatedLinkIds),
       const DeepCollectionEquality().hash(_relatedDocumentIds));
 
   @override
   String toString() {
-    return 'DbResult.tag(name: $name, color: $color, relatedFolderIds: $relatedFolderIds, relatedLinkIds: $relatedLinkIds, relatedDocumentIds: $relatedDocumentIds)';
+    return 'DbResult.tag(data: $data, relatedFolderIds: $relatedFolderIds, relatedLinkIds: $relatedLinkIds, relatedDocumentIds: $relatedDocumentIds)';
   }
 }
 
@@ -652,8 +652,7 @@ abstract mixin class $TagResultCopyWith<$Res>
       _$TagResultCopyWithImpl;
   @useResult
   $Res call(
-      {String name,
-      int? color,
+      {Tag data,
       List<String>? relatedFolderIds,
       List<String>? relatedLinkIds,
       List<String>? relatedDocumentIds});
@@ -670,21 +669,16 @@ class _$TagResultCopyWithImpl<$Res> implements $TagResultCopyWith<$Res> {
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   $Res call({
-    Object? name = null,
-    Object? color = freezed,
+    Object? data = null,
     Object? relatedFolderIds = freezed,
     Object? relatedLinkIds = freezed,
     Object? relatedDocumentIds = freezed,
   }) {
     return _then(TagResult(
-      name: null == name
-          ? _self.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String,
-      color: freezed == color
-          ? _self.color
-          : color // ignore: cast_nullable_to_non_nullable
-              as int?,
+      data: null == data
+          ? _self.data
+          : data // ignore: cast_nullable_to_non_nullable
+              as Tag,
       relatedFolderIds: freezed == relatedFolderIds
           ? _self._relatedFolderIds
           : relatedFolderIds // ignore: cast_nullable_to_non_nullable
@@ -710,6 +704,7 @@ class UserConfigResult implements DbResult {
       this.backupSettings})
       : _userThemes = userThemes;
 
+  @override
   final UserConfig data;
   final List<UserTheme>? _userThemes;
   List<UserTheme>? get userThemes {
@@ -806,6 +801,7 @@ class UserThemeResult implements DbResult {
       final List<String>? sharedUserIds})
       : _sharedUserIds = sharedUserIds;
 
+  @override
   final UserTheme data;
 //NOTE: This will most likely be remove in the future when we implement users
   final String? userConfigId;

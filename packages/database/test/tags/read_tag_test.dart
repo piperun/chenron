@@ -34,7 +34,7 @@ void main() {
       final result = await database.getTag(tagId: tagId);
 
       expect(result, isNotNull);
-      expect(result!.name, equals("flutter"));
+      expect(result!.data.name, equals("flutter"));
     });
 
     test("returns null for non-existent tag", () async {
@@ -53,7 +53,7 @@ void main() {
       final results = await database.getAllTags();
 
       expect(results.length, equals(3));
-      final tagNames = results.map((r) => r.name).toSet();
+      final tagNames = results.map((r) => r.data.name).toSet();
       expect(tagNames, equals({"dart", "flutter", "mobile"}));
     });
 
@@ -69,7 +69,7 @@ void main() {
       final results = await database.getAllTags();
 
       expect(results.length, equals(1));
-      expect(results.first.name, equals("solo-tag"));
+      expect(results.first.data.name, equals("solo-tag"));
     });
   });
 
@@ -82,7 +82,7 @@ void main() {
       await expectLater(
         stream,
         emits(predicate<dynamic>((result) {
-          return result != null && result.name == "watch-me";
+          return result != null && result.data.name == "watch-me";
         })),
       );
     });
@@ -110,7 +110,7 @@ void main() {
       await expectLater(
         stream,
         emits(predicate<dynamic>((result) {
-          return result != null && result.name == "new-tag";
+          return result != null && result.data.name == "new-tag";
         })),
       );
     });
@@ -156,7 +156,7 @@ void main() {
       await expectLater(
         stream,
         emits(predicate<List>((results) {
-          return results.length == 1 && results.first.name == "dynamic-tag";
+          return results.length == 1 && results.first.data.name == "dynamic-tag";
         })),
       );
     });
@@ -171,7 +171,7 @@ void main() {
       final results = await database.searchTags(query: "flutter");
 
       expect(results.length, greaterThanOrEqualTo(1));
-      expect(results.any((r) => r.name.contains("flutter")), isTrue);
+      expect(results.any((r) => r.data.name.contains("flutter")), isTrue);
     });
 
     test("returns empty list when no matches", () async {
@@ -199,7 +199,7 @@ void main() {
       final results = await database.searchTags(query: "web");
 
       expect(results.length, greaterThanOrEqualTo(2));
-      expect(results.every((r) => r.name.contains("web")), isTrue);
+      expect(results.every((r) => r.data.name.contains("web")), isTrue);
     });
   });
 }
