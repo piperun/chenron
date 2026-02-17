@@ -1,5 +1,6 @@
 import "package:flutter/material.dart";
 import "package:database/models/item.dart";
+import "package:signals/signals_flutter.dart";
 import "package:chenron/components/metadata_factory.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/item_utils.dart";
 
@@ -22,11 +23,13 @@ class ItemDescription extends StatefulWidget {
 
 class _ItemDescriptionState extends State<ItemDescription> {
   Future<Map<String, dynamic>?>? _metadataFuture;
+  void Function()? _disposeEffect;
 
   @override
   void initState() {
     super.initState();
     _initFuture();
+    _listenForRefresh();
   }
 
   void _initFuture() {
@@ -35,6 +38,24 @@ class _ItemDescriptionState extends State<ItemDescription> {
         widget.url!.isNotEmpty) {
       _metadataFuture = MetadataFactory.getOrFetch(widget.url!);
     }
+  }
+
+  void _listenForRefresh() {
+    if (widget.url == null || widget.url!.isEmpty) return;
+    _disposeEffect = effect(() {
+      final refreshed = MetadataFactory.lastRefreshedUrl.value;
+      if (refreshed == widget.url) {
+        setState(() {
+          _metadataFuture = MetadataFactory.getOrFetch(widget.url!);
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _disposeEffect?.call();
+    super.dispose();
   }
 
   @override
