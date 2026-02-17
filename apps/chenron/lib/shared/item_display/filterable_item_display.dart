@@ -2,7 +2,7 @@ import "dart:async";
 import "package:flutter/material.dart";
 import "package:chenron/shared/item_display/widgets/display_mode/display_mode.dart";
 import "package:chenron/shared/item_display/item_toolbar.dart";
-import "package:chenron/shared/item_display/item_stats_bar.dart";
+import "package:chenron/shared/item_display/select_mode_action_bar.dart";
 import "package:chenron/shared/item_display/item_grid_view.dart";
 import "package:chenron/shared/item_display/item_list_view.dart";
 import "package:chenron/shared/item_display/filterable_item_display_notifier.dart";
@@ -136,6 +136,15 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
     widget.onDeleteRequested?.call(items);
   }
 
+  void _handleSelectAll() {
+    final filtered = _notifier.getFilteredAndSortedItems(
+      items: widget.items,
+      query: _notifier.searchFilter.controller.query.value,
+      enableTagFiltering: widget.enableTagFiltering,
+    );
+    _notifier.selectAll(filtered);
+  }
+
   void _handleItemTap(FolderItem item) {
     if (_notifier.isDeleteMode.value) {
       _notifier.toggleItemSelection(item);
@@ -171,15 +180,12 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
         return const Center(child: CircularProgressIndicator());
       }
 
-      final itemCounts = getItemCounts(widget.items);
-
       return Column(
         children: [
           Watch((context) {
             final includedTags = _notifier.tagFilterState.includedTags.value;
             final excludedTags = _notifier.tagFilterState.excludedTags.value;
             final isDeleteMode = _notifier.isDeleteMode.value;
-            final selectedCount = _notifier.selectedItems.value.length;
 
             return ItemToolbar(
               searchFilter: _notifier.searchFilter,
@@ -204,20 +210,18 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
                   ? _notifier.handleSearchSubmitted
                   : null,
               isDeleteMode: isDeleteMode,
-              selectedCount: selectedCount,
               onDeleteModeToggled: widget.onDeleteRequested != null
                   ? _notifier.toggleDeleteMode
                   : null,
-              onDeletePressed: _handleDeletePressed,
             );
           }),
-          ItemStatsBar(
-            linkCount: itemCounts[FolderItemType.link] ?? 0,
-            documentCount: itemCounts[FolderItemType.document] ?? 0,
-            folderCount: itemCounts[FolderItemType.folder] ?? 0,
-            selectedTypes: _notifier.selectedTypes.value,
-            onFilterChanged: _notifier.setSelectedTypes,
-          ),
+          if (_notifier.isDeleteMode.value)
+            SelectModeActionBar(
+              selectedCount: _notifier.selectedItems.value.length,
+              onSelectAll: _handleSelectAll,
+              onDelete: _handleDeletePressed,
+              onCancel: _notifier.toggleDeleteMode,
+            ),
           Expanded(
             child: Watch((context) {
               final currentQuery =

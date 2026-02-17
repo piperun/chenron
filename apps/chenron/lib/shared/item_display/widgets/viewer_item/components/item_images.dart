@@ -46,7 +46,7 @@ class _ItemImageHeaderState extends State<ItemImageHeader> {
     _disposeEffect = effect(() {
       final refreshed = MetadataFactory.lastRefreshedUrl.value;
       if (refreshed == widget.url) {
-        setState(() => _initFuture());
+        setState(_initFuture);
       }
     });
   }
@@ -140,7 +140,7 @@ class _ItemThumbnailState extends State<ItemThumbnail> {
     _disposeEffect = effect(() {
       final refreshed = MetadataFactory.lastRefreshedUrl.value;
       if (refreshed == widget.url) {
-        setState(() => _initFuture());
+        setState(_initFuture);
       }
     });
   }
