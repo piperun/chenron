@@ -128,6 +128,15 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
   }
 
   @override
+  void didUpdateWidget(FilterableItemDisplay oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(widget.items, oldWidget.items) &&
+        _notifier.isDeleteMode.value) {
+      _notifier.refreshSelectedItems(widget.items);
+    }
+  }
+
+  @override
   void dispose() {
     _disposeDeleteModeEffect();
     _notifier.dispose();

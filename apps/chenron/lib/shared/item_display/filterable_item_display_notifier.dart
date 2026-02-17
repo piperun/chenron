@@ -70,6 +70,22 @@ class FilterableItemDisplayNotifier {
     selectedItems.value = current;
   }
 
+  /// Re-maps selected items against a fresh items list so tag data
+  /// (and any other fields) stay current after a data refresh.
+  void refreshSelectedItems(List<FolderItem> freshItems) {
+    if (selectedItems.value.isEmpty) return;
+    final freshById = <String, FolderItem>{};
+    for (final item in freshItems) {
+      if (item.id != null) freshById[item.id!] = item;
+    }
+    final updated = <String, FolderItem>{};
+    for (final id in selectedItems.value.keys) {
+      final fresh = freshById[id];
+      if (fresh != null) updated[id] = fresh;
+    }
+    selectedItems.value = updated;
+  }
+
   void selectAll(List<FolderItem> items) {
     if (!isDeleteMode.value) return;
     final current = Map<String, FolderItem>.from(selectedItems.value);
