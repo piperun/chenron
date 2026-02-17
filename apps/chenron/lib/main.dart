@@ -1,3 +1,4 @@
+import "dart:async";
 import "dart:io";
 
 import "package:chenron/core/setup/main_setup.dart";
@@ -18,32 +19,27 @@ import "package:window_manager/window_manager.dart";
 import "package:app_logger/app_logger.dart";
 
 void main() async {
-  try {
-    WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized();
 
-    // Read cached preferences before any heavy setup so the first frame
-    // renders with the correct theme and the database opens from the
-    // right location.
-    final prefs = await SharedPreferences.getInstance();
-    final isDark = prefs.getBool("dark_mode") ?? false;
-    final initialThemeMode = isDark ? ThemeMode.dark : ThemeMode.light;
-    final customAppDbPath = prefs.getString("app_database_path");
+  // Read cached preferences before any heavy setup so the first frame
+  // renders with the correct theme and the database opens from the
+  // right location.
+  final prefs = await SharedPreferences.getInstance();
+  final isDark = prefs.getBool("dark_mode") ?? false;
+  final initialThemeMode = isDark ? ThemeMode.dark : ThemeMode.light;
 
-    // Restore persisted window size on desktop platforms
-    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-      await _initWindowManager(prefs);
-    }
-
-    await MainSetup.setup(customAppDbPath: customAppDbPath);
-    loggerGlobal.info("main", "Waiting for locator dependencies...");
-    await locator.allReady();
-    loggerGlobal.info("main", "Locator ready, running app.");
-    runApp(ChenronApp(initialThemeMode: initialThemeMode));
-  } catch (error, stackTrace) {
-    loggerGlobal.severe(
-        "Startup", "Failed to initialize app: $error", error, stackTrace);
-    runApp(ErrorApp(error: error));
+  // Restore persisted window size on desktop platforms
+  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    await _initWindowManager(prefs);
   }
+
+  // Show a loading screen immediately, then initialize in the background.
+  // This eliminates the blank white window that appears while databases,
+  // directories, and services are being set up.
+  runApp(AppBootstrap(
+    initialThemeMode: initialThemeMode,
+    prefs: prefs,
+  ));
 }
 
 Future<void> _initWindowManager(SharedPreferences prefs) async {
@@ -91,6 +87,84 @@ class _WindowSizeListener extends WindowListener {
   Future<void> onWindowClose() async {
     final size = await windowManager.getSize();
     await _service.saveWindowSize(size);
+  }
+}
+
+class AppBootstrap extends StatefulWidget {
+  final ThemeMode initialThemeMode;
+  final SharedPreferences prefs;
+
+  const AppBootstrap({
+    super.key,
+    required this.initialThemeMode,
+    required this.prefs,
+  });
+
+  @override
+  State<AppBootstrap> createState() => _AppBootstrapState();
+}
+
+class _AppBootstrapState extends State<AppBootstrap> {
+  bool _isReady = false;
+  Object? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_initialize());
+  }
+
+  Future<void> _initialize() async {
+    try {
+      final customAppDbPath = widget.prefs.getString("app_database_path");
+      await MainSetup.setup(customAppDbPath: customAppDbPath);
+      loggerGlobal.info("AppBootstrap", "Waiting for locator dependencies...");
+      await locator.allReady();
+      loggerGlobal.info("AppBootstrap", "Locator ready.");
+      if (mounted) setState(() => _isReady = true);
+
+      // Non-critical tasks (backup scheduler, daily snapshot) run after
+      // the UI is visible so the app feels responsive immediately.
+      await MainSetup.runDeferredTasks();
+    } catch (error, stackTrace) {
+      loggerGlobal.severe(
+          "AppBootstrap", "Failed to initialize: $error", error, stackTrace);
+      if (mounted) setState(() => _error = error);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_error != null) return ErrorApp(error: _error!);
+    if (!_isReady) return _LoadingView(themeMode: widget.initialThemeMode);
+    return ChenronApp(initialThemeMode: widget.initialThemeMode);
+  }
+}
+
+class _LoadingView extends StatelessWidget {
+  final ThemeMode themeMode;
+  const _LoadingView({required this.themeMode});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData.light(),
+      darkTheme: ThemeData.dark(),
+      themeMode: themeMode,
+      home: const Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 24),
+              Text("Loading..."),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
