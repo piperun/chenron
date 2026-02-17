@@ -172,8 +172,11 @@ class _BulkTagDialogState extends State<_BulkTagDialog> {
 
     setState(() {
       if (_tagsToAdd.contains(tagName)) {
-        // Add → Neutral (undo the add)
         _tagsToAdd.remove(tagName);
+        // Add → Remove (if some items have it) or Add → Neutral (if none do)
+        if (coverage > 0) {
+          _tagsToRemove.add(tagName);
+        }
       } else if (_tagsToRemove.contains(tagName)) {
         // Remove → Neutral
         _tagsToRemove.remove(tagName);
