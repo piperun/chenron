@@ -6,18 +6,38 @@ import "package:database/database.dart";
 import "package:flutter/material.dart";
 import "package:signals/signals.dart";
 
-/// Shows a tag editor dialog for adding tags to items.
+/// The action the user chose for a given tag.
+enum TagAction { none, add, remove }
+
+/// Captures the user's intent from the bulk tag dialog.
+class BulkTagResult {
+  /// Tag names to add to all target items.
+  final List<String> tagsToAdd;
+
+  /// Tag names to remove from all target items.
+  final List<String> tagsToRemove;
+
+  const BulkTagResult({
+    required this.tagsToAdd,
+    required this.tagsToRemove,
+  });
+
+  bool get isEmpty => tagsToAdd.isEmpty && tagsToRemove.isEmpty;
+}
+
+/// Shows a tag editor dialog for managing tags on items.
 ///
 /// When [items] is non-empty, shows per-tag coverage counts ("2/4 already
-/// have it") so the user knows which tags are fresh vs. redundant.
+/// have it") and supports both adding and removing tags.
 /// When [items] is empty, acts as a standalone tag picker/creator.
 ///
-/// Returns a list of selected tag names, or null if cancelled.
-Future<List<String>?> showBulkTagDialog({
+/// Returns a [BulkTagResult] with tags to add and remove, or null if
+/// cancelled.
+Future<BulkTagResult?> showBulkTagDialog({
   required BuildContext context,
   required List<FolderItem> items,
 }) async {
-  return showDialog<List<String>>(
+  return showDialog<BulkTagResult>(
     context: context,
     builder: (context) => _BulkTagDialog(items: items),
   );
@@ -34,7 +54,8 @@ class _BulkTagDialog extends StatefulWidget {
 
 class _BulkTagDialogState extends State<_BulkTagDialog> {
   final _searchController = TextEditingController();
-  final _selectedTags = <String>{};
+  final _tagsToAdd = <String>{};
+  final _tagsToRemove = <String>{};
 
   /// All tag names from the database.
   List<String> _allTagNames = [];
@@ -92,15 +113,19 @@ class _BulkTagDialogState extends State<_BulkTagDialog> {
             .where((n) => n.toLowerCase().contains(query))
             .toList();
 
-    // Sort: selected first, then alphabetical
+    // Sort: tags with actions first, then alphabetical
     names.sort((a, b) {
-      final aSelected = _selectedTags.contains(a);
-      final bSelected = _selectedTags.contains(b);
-      if (aSelected && !bSelected) return -1;
-      if (!aSelected && bSelected) return 1;
+      final aHasAction =
+          _tagsToAdd.contains(a) || _tagsToRemove.contains(a);
+      final bHasAction =
+          _tagsToAdd.contains(b) || _tagsToRemove.contains(b);
+      if (aHasAction && !bHasAction) return -1;
+      if (!aHasAction && bHasAction) return 1;
       return a.toLowerCase().compareTo(b.toLowerCase());
     });
 
+    // Cap for performance on large tag sets
+    if (names.length > 100) return names.sublist(0, 100);
     return names;
   }
 
@@ -112,7 +137,13 @@ class _BulkTagDialogState extends State<_BulkTagDialog> {
 
   bool get _searchMatchesSelected {
     final query = _searchController.text.trim().toLowerCase();
-    return _selectedTags.contains(query);
+    return _tagsToAdd.contains(query);
+  }
+
+  TagAction _actionFor(String tagName) {
+    if (_tagsToAdd.contains(tagName)) return TagAction.add;
+    if (_tagsToRemove.contains(tagName)) return TagAction.remove;
+    return TagAction.none;
   }
 
   void _handleCreateTag() {
@@ -123,24 +154,56 @@ class _BulkTagDialogState extends State<_BulkTagDialog> {
       return;
     }
     setState(() {
-      _selectedTags.add(name);
+      _tagsToAdd.add(name);
       _createError = null;
       _searchController.clear();
     });
   }
 
   void _toggleTag(String tagName) {
+    final coverage = _tagCoverage[tagName] ?? 0;
+    final itemCount = widget.items.length;
+    final allHaveIt = itemCount > 0 && coverage == itemCount;
+    final someHaveIt = coverage > 0;
+
     setState(() {
-      if (_selectedTags.contains(tagName)) {
-        _selectedTags.remove(tagName);
+      if (_tagsToAdd.contains(tagName)) {
+        // Add → Remove (if some items have it) or Add → Neutral
+        _tagsToAdd.remove(tagName);
+        if (someHaveIt) {
+          _tagsToRemove.add(tagName);
+        }
+      } else if (_tagsToRemove.contains(tagName)) {
+        // Remove → Neutral
+        _tagsToRemove.remove(tagName);
       } else {
-        _selectedTags.add(tagName);
+        // Neutral → Remove (if all have it) or Neutral → Add
+        if (allHaveIt) {
+          _tagsToRemove.add(tagName);
+        } else {
+          _tagsToAdd.add(tagName);
+        }
       }
     });
   }
 
-  void _removeSelected(String tagName) {
-    setState(() => _selectedTags.remove(tagName));
+  void _removeChip(String tagName) {
+    setState(() {
+      _tagsToAdd.remove(tagName);
+      _tagsToRemove.remove(tagName);
+    });
+  }
+
+  bool get _hasChanges => _tagsToAdd.isNotEmpty || _tagsToRemove.isNotEmpty;
+
+  String _buildApplyLabel() {
+    final adds = _tagsToAdd.length;
+    final removes = _tagsToRemove.length;
+    if (adds == 0 && removes == 0) return "Apply";
+    final parts = <String>[];
+    if (adds > 0) parts.add("+$adds");
+    if (removes > 0) parts.add("-$removes");
+    return "Apply (${parts.join(", ")})";
   }
 
   @override
@@ -173,7 +236,7 @@ class _BulkTagDialogState extends State<_BulkTagDialog> {
                   Expanded(
                     child: Text(
                       hasItems
-                          ? "Add tags to $itemCount ${itemCount == 1 ? 'item' : 'items'}"
+                          ? "Manage tags for $itemCount ${itemCount == 1 ? 'item' : 'items'}"
                           : "Tag editor",
                       style: theme.textTheme.titleLarge
                           ?.copyWith(fontWeight: FontWeight.bold),
@@ -206,11 +269,10 @@ class _BulkTagDialogState extends State<_BulkTagDialog> {
                   errorText: _createError,
                 ),
                 onChanged: (_) {
-                  if (_createError != null) {
-                    setState(() => _createError = null);
-                  } else {
-                    setState(() {});
-                  }
+                  // Clear any validation error and rebuild the filtered
+                  // tag list immediately. The list is capped at 100 entries
+                  // so there's no need to debounce the rebuild.
+                  setState(() => _createError = null);
                 },
                 onSubmitted: (_) {
                   if (!_searchMatchesExisting && !_searchMatchesSelected) {
@@ -245,32 +307,50 @@ class _BulkTagDialogState extends State<_BulkTagDialog> {
               },
             ),
 
-            // Selected tags chips
-            if (_selectedTags.isNotEmpty)
+            // Action chips (add + remove)
+            if (_hasChanges)
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
                 child: Wrap(
                   spacing: 6,
                   runSpacing: 6,
-                  children: _selectedTags.map((tag) {
-                    final isNew = !_allTagNames.contains(tag);
-                    return InputChip(
-                      label: Text(isNew ? "#$tag (new)" : "#$tag"),
-                      onDeleted: () => _removeSelected(tag),
-                      deleteIconColor: colorScheme.error,
-                      backgroundColor: colorScheme.primaryContainer,
-                      labelStyle: TextStyle(
-                        color: colorScheme.onPrimaryContainer,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        side: BorderSide(
-                          color:
-                              colorScheme.primary.withValues(alpha: 0.5),
+                  children: [
+                    ..._tagsToAdd.map((tag) {
+                      final isNew = !_allTagNames.contains(tag);
+                      return InputChip(
+                        label: Text(isNew ? "+$tag (new)" : "+$tag"),
+                        onDeleted: () => _removeChip(tag),
+                        deleteIconColor: colorScheme.onPrimaryContainer,
+                        backgroundColor: colorScheme.primaryContainer,
+                        labelStyle: TextStyle(
+                          color: colorScheme.onPrimaryContainer,
                         ),
-                      ),
-                    );
-                  }).toList(),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                          side: BorderSide(
+                            color:
+                                colorScheme.primary.withValues(alpha: 0.5),
+                          ),
+                        ),
+                      );
+                    }),
+                    ..._tagsToRemove.map((tag) => InputChip(
+                          label: Text("-$tag"),
+                          onDeleted: () => _removeChip(tag),
+                          deleteIconColor: colorScheme.onErrorContainer,
+                          backgroundColor: colorScheme.errorContainer,
+                          labelStyle: TextStyle(
+                            color: colorScheme.onErrorContainer,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            side: BorderSide(
+                              color:
+                                  colorScheme.error.withValues(alpha: 0.5),
+                            ),
+                          ),
+                        )),
+                  ],
                 ),
               ),
 
@@ -300,15 +380,13 @@ class _BulkTagDialogState extends State<_BulkTagDialog> {
                   ),
                   const SizedBox(width: 8),
                   FilledButton(
-                    onPressed: _selectedTags.isNotEmpty
-                        ? () => Navigator.of(context)
-                            .pop(_selectedTags.toList())
+                    onPressed: _hasChanges
+                        ? () => Navigator.of(context).pop(BulkTagResult(
+                              tagsToAdd: _tagsToAdd.toList(),
+                              tagsToRemove: _tagsToRemove.toList(),
+                            ))
                         : null,
-                    child: Text(
-                      _selectedTags.isEmpty
-                          ? "Add Tags"
-                          : "Add ${_selectedTags.length} ${_selectedTags.length == 1 ? 'Tag' : 'Tags'}",
-                    ),
+                    child: Text(_buildApplyLabel()),
                   ),
                 ],
               ),
@@ -357,13 +435,13 @@ class _BulkTagDialogState extends State<_BulkTagDialog> {
       itemCount: tagNames.length,
       itemBuilder: (context, index) {
         final name = tagNames[index];
-        final isSelected = _selectedTags.contains(name);
+        final action = _actionFor(name);
         final coverage = _tagCoverage[name] ?? 0;
         final allHaveIt = hasItems && coverage == itemCount;
 
         return _TagRow(
           tagName: name,
-          isSelected: isSelected,
+          action: action,
           coverage: hasItems ? coverage : null,
           itemCount: hasItems ? itemCount : null,
           allHaveIt: allHaveIt,
@@ -376,7 +454,7 @@ class _BulkTagDialogState extends State<_BulkTagDialog> {
 
 class _TagRow extends StatelessWidget {
   final String tagName;
-  final bool isSelected;
+  final TagAction action;
   final int? coverage;
   final int? itemCount;
   final bool allHaveIt;
@@ -384,7 +462,7 @@ class _TagRow extends StatelessWidget {
 
   const _TagRow({
     required this.tagName,
-    required this.isSelected,
+    required this.action,
     required this.coverage,
     required this.itemCount,
     required this.allHaveIt,
@@ -397,6 +475,30 @@ class _TagRow extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final showCoverage = coverage != null && itemCount != null;
 
+    final (IconData icon, Color iconColor, Color bgColor, Color borderColor) =
+        switch (action) {
+      TagAction.add => (
+          Icons.add_circle,
+          colorScheme.primary,
+          colorScheme.primaryContainer.withValues(alpha: 0.4),
+          colorScheme.primary.withValues(alpha: 0.5),
+        ),
+      TagAction.remove => (
+          Icons.remove_circle,
+          colorScheme.error,
+          colorScheme.errorContainer.withValues(alpha: 0.4),
+          colorScheme.error.withValues(alpha: 0.5),
+        ),
+      TagAction.none => (
+          Icons.check_box_outline_blank,
+          colorScheme.outline,
+          Colors.transparent,
+          theme.dividerColor,
+        ),
+    };
+
+    final isActive = action != TagAction.none;
+
     return InkWell(
       onTap: onToggle,
       borderRadius: BorderRadius.circular(8),
@@ -404,34 +506,29 @@ class _TagRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         margin: const EdgeInsets.only(bottom: 4),
         decoration: BoxDecoration(
-          color: isSelected
-              ? colorScheme.primaryContainer.withValues(alpha: 0.4)
-              : Colors.transparent,
+          color: bgColor,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isSelected
-                ? colorScheme.primary.withValues(alpha: 0.5)
-                : theme.dividerColor,
-          ),
+          border: Border.all(color: borderColor),
         ),
         child: Row(
           children: [
-            Icon(
-              isSelected ? Icons.check_box : Icons.check_box_outline_blank,
-              size: 20,
-              color: isSelected ? colorScheme.primary : colorScheme.outline,
-            ),
+            Icon(icon, size: 20, color: iconColor),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 tagName,
                 style: TextStyle(
                   fontSize: 15,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                  color: allHaveIt && !isSelected
-                      ? theme.textTheme.bodyMedium?.color
-                          ?.withValues(alpha: 0.5)
-                      : theme.textTheme.bodyMedium?.color,
+                  fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+                  color: action == TagAction.remove
+                      ? colorScheme.error
+                      : allHaveIt && !isActive
+                          ? theme.textTheme.bodyMedium?.color
+                              ?.withValues(alpha: 0.5)
+                          : theme.textTheme.bodyMedium?.color,
+                  decoration: action == TagAction.remove
+                      ? TextDecoration.lineThrough
+                      : null,
                 ),
               ),
             ),
