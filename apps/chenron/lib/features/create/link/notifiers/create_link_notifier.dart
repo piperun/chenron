@@ -57,13 +57,19 @@ class CreateLinkNotifier {
     }
   }
 
-  /// Adds a new entry and optionally validates it
-  void addEntry({
+  /// Adds a new entry and optionally validates it.
+  /// Returns false if the URL already exists in the entries list.
+  bool addEntry({
     required String url,
     List<String>? tags,
     bool? isArchived,
     bool validateAsync = true,
   }) {
+    final trimmedUrl = url.trim();
+    if (_entries.value.any((e) => e.url == trimmedUrl)) {
+      return false;
+    }
+
     final entryTags = <String>{
       ...?tags,
       ..._globalTags.value,
@@ -71,7 +77,7 @@ class CreateLinkNotifier {
 
     final entry = LinkEntry(
       key: UniqueKey(),
-      url: url.trim(),
+      url: trimmedUrl,
       tags: entryTags,
       folderIds: _selectedFolderIds.value.isEmpty
           ? ["default"]
@@ -85,15 +91,27 @@ class CreateLinkNotifier {
     if (validateAsync) {
       unawaited(_validateEntry(entry.key));
     }
+    return true;
   }
 
-  /// Adds multiple entries (bulk mode) in a single batch
-  void addEntries(List<Map<String, dynamic>> entriesData) {
+  /// Adds multiple entries (bulk mode) in a single batch.
+  /// Returns the number of entries skipped as duplicates.
+  int addEntries(List<Map<String, dynamic>> entriesData) {
     loggerGlobal.info("CreateLinkNotifier",
         "Adding ${entriesData.length} entries in bulk mode");
 
+    final existingUrls = _entries.value.map((e) => e.url).toSet();
+    final seenUrls = <String>{};
     final newEntries = <LinkEntry>[];
+    var skipped = 0;
+
     for (final data in entriesData) {
+      final trimmedUrl = (data["url"] as String).trim();
+      if (existingUrls.contains(trimmedUrl) || !seenUrls.add(trimmedUrl)) {
+        skipped++;
+        continue;
+      }
+
       final entryTags = <String>{
         ...?(data["tags"] as List<String>?),
         ..._globalTags.value,
@@ -101,7 +119,7 @@ class CreateLinkNotifier {
 
       newEntries.add(LinkEntry(
         key: UniqueKey(),
-        url: (data["url"] as String).trim(),
+        url: trimmedUrl,
         tags: entryTags,
         folderIds: _selectedFolderIds.value.isEmpty
             ? ["default"]
@@ -111,12 +129,21 @@ class CreateLinkNotifier {
       ));
     }
 
-    // Single signal update instead of one per entry
-    _entries.value = [..._entries.value, ...newEntries];
+    if (newEntries.isNotEmpty) {
+      // Single signal update instead of one per entry
+      _entries.value = [..._entries.value, ...newEntries];
 
-    loggerGlobal.info("CreateLinkNotifier",
-        "Starting validation for ${entriesData.length} entries");
-    unawaited(validateAllEntries(parallel: true));
+      loggerGlobal.info("CreateLinkNotifier",
+          "Starting validation for ${newEntries.length} entries");
+      unawaited(validateAllEntries(parallel: true));
+    }
+
+    if (skipped > 0) {
+      loggerGlobal.info("CreateLinkNotifier",
+          "Skipped $skipped duplicate URL(s)");
+    }
+
+    return skipped;
   }
 
   /// Updates an existing entry
