@@ -1,7 +1,9 @@
 // lib/initialization/app_setupr.dart
 
 import "package:chenron/locator.dart";
+import "package:chenron/services/drift_metadata_persistence.dart";
 import "package:basedir/directory.dart";
+import "package:cache_manager/cache_manager.dart";
 import "package:database/database.dart";
 import "package:database/main.dart" show ConfigIncludes;
 import "package:app_logger/app_logger.dart";
@@ -173,6 +175,11 @@ class MainSetup {
       );
       appDbHandler.value.databaseLocation = appDatabaseLocation;
       await appDbHandler.value.createDatabase(setupOnInit: true);
+
+      // Connect the metadata cache to the drift database.
+      MetadataCache.init(
+        DriftMetadataPersistence(appDbHandler.value.appDatabase),
+      );
     } catch (e, s) {
       const errorMsg = "Configuration database setup failed.";
       loggerGlobal.severe("MainSetup", errorMsg, e, s);
