@@ -34,7 +34,7 @@ class ImageCacheManager {
     return path.join(tempDir.path, 'chenron_images');
   }
 
-  /// Get the cache manager instance
+  /// Get the cache manager instance (async, initializes if needed)
   static Future<CacheManager> get instance async {
     if (_cacheManager == null) {
       await initialize();
