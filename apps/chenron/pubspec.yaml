@@ -64,7 +64,7 @@ dependencies:
 
   # Local workspace packages (alphabetically sorted)
   basedir: ^0.1.0
-  cache_manager: ^0.1.0
+  cache_manager: ^0.2.0
   core: ^0.0.1
   database: ^0.10.0
   app_logger: ^0.0.1

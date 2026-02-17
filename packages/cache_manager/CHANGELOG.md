@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## cache_manager-v0.2.0 - 2026-02-17
+#### Features
+- replace SharedPreferences with MetadataPersistence interface - (aa99048) - *piperun*
+#### Bug Fixes
+- reset metadata signal before setting URL on refetch - (d1adcbe) - *piperun*
+- add concurrency limiter and backoff to metadata fetching - (58d3b71) - *piperun*
+
+- - -
+
 ## cache_manager-v0.1.0 - 2026-02-07
 #### Features
 - Update flutter_lints dependency to version 6.0.0 across multiple packages - (4915b4f) - *piperun*
