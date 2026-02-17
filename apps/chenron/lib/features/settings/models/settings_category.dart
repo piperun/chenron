@@ -15,6 +15,7 @@ enum SettingsCategory {
   archive,
   backup,
   data,
+  tags,
   // Sub-categories of appearance
   theme,
   display;
@@ -27,6 +28,7 @@ enum SettingsCategory {
         archive => "Archive",
         backup => "Backup",
         data => "Data",
+        tags => "Tags",
       };
 
   IconData get icon => switch (this) {
@@ -37,6 +39,7 @@ enum SettingsCategory {
         archive => Icons.archive_outlined,
         backup => Icons.backup_outlined,
         data => Icons.folder_outlined,
+        tags => Icons.label_outlined,
       };
 
   IconData get selectedIcon => switch (this) {
@@ -47,6 +50,7 @@ enum SettingsCategory {
         archive => Icons.archive,
         backup => Icons.backup,
         data => Icons.folder,
+        tags => Icons.label,
       };
 
   /// Parent category, or null if this is top-level.
