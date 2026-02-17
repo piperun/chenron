@@ -100,6 +100,9 @@ class MetadataFactory {
     await _acquireSlot();
     final result = await _fetchAndCache(url);
     if (result != null) {
+      // Reset to null first so the signal always fires, even when
+      // re-fetching the same URL (signals skip equal values).
+      lastRefreshedUrl.value = null;
       lastRefreshedUrl.value = url;
     }
     return result;
