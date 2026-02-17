@@ -80,6 +80,7 @@ class _ItemImageHeaderState extends State<ItemImageHeader> {
               imageUrl: imageUrl,
               cacheManager: cacheManager,
               fit: BoxFit.cover,
+              filterQuality: FilterQuality.medium,
               placeholder: (context, url) => Container(
                 color: theme.colorScheme.surfaceContainerHighest,
                 child: const Center(
@@ -185,6 +186,7 @@ class _ItemThumbnailState extends State<ItemThumbnail> {
                 imageUrl: imageUrl,
                 cacheManager: cacheManager,
                 fit: BoxFit.cover,
+                filterQuality: FilterQuality.medium,
                 errorWidget: (context, url, error) => _ImagePlaceholder(
                   height: widget.height,
                   width: widget.width,
