@@ -31,6 +31,8 @@ class FilterableItemDisplay extends StatefulWidget {
   final void Function({required bool isDeleteMode, required int selectedCount})?
       onDeleteModeChanged;
   final void Function(List<FolderItem> items)? onDeleteRequested;
+  final void Function(List<FolderItem> items)? onTagRequested;
+  final void Function(List<FolderItem> items)? onRefreshMetadataRequested;
 
   // Infinite scroll support
   final VoidCallback? onLoadMore;
@@ -59,6 +61,8 @@ class FilterableItemDisplay extends StatefulWidget {
     this.onItemTap,
     this.onDeleteModeChanged,
     this.onDeleteRequested,
+    this.onTagRequested,
+    this.onRefreshMetadataRequested,
     this.onLoadMore,
     this.isLoadingMore = false,
     this.hasMore = false,
@@ -134,6 +138,18 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
     final items = _notifier.selectedItems.value.values.toList();
     if (items.isEmpty) return;
     widget.onDeleteRequested?.call(items);
+  }
+
+  void _handleTagPressed() {
+    final items = _notifier.selectedItems.value.values.toList();
+    if (items.isEmpty) return;
+    widget.onTagRequested?.call(items);
+  }
+
+  void _handleRefreshMetadataPressed() {
+    final items = _notifier.selectedItems.value.values.toList();
+    if (items.isEmpty) return;
+    widget.onRefreshMetadataRequested?.call(items);
   }
 
   void _handleSelectAll() {
@@ -215,13 +231,24 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
                   : null,
             );
           }),
-          if (_notifier.isDeleteMode.value)
-            SelectModeActionBar(
-              selectedCount: _notifier.selectedItems.value.length,
+          Watch((context) {
+            if (!_notifier.isDeleteMode.value) {
+              return const SizedBox.shrink();
+            }
+            final selectedItems = _notifier.selectedItems.value;
+            final linkCount = selectedItems.values
+                .where((item) => item.type == FolderItemType.link)
+                .length;
+            return SelectModeActionBar(
+              selectedCount: selectedItems.length,
+              linkCount: linkCount,
               onSelectAll: _handleSelectAll,
+              onTag: _handleTagPressed,
+              onRefreshMetadata: _handleRefreshMetadataPressed,
               onDelete: _handleDeletePressed,
               onCancel: _notifier.toggleDeleteMode,
-            ),
+            );
+          }),
           Expanded(
             child: Watch((context) {
               final currentQuery =

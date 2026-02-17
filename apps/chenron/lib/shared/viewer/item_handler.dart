@@ -1,8 +1,11 @@
 import "package:flutter/material.dart";
+import "package:chenron/components/metadata_factory.dart";
 import "package:chenron/features/viewer/state/viewer_state.dart";
 import "package:chenron/features/viewer/ui/viewer_base_item.dart";
+import "package:chenron/shared/dialogs/bulk_tag_dialog.dart";
 import "package:chenron/shared/dialogs/delete_confirmation_dialog.dart";
 import "package:chenron/shared/viewer/item_deletion_service.dart";
+import "package:chenron/shared/viewer/item_tagging_service.dart";
 import "package:database/database.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/services/activity_tracker.dart";
@@ -123,5 +126,108 @@ Future<void> handleItemDeletion(
     if (context.mounted) {
       showErrorSnackBar(context, e);
     }
+  }
+}
+
+/// Handles bulk tagging of multiple items.
+///
+/// Shows a dialog to enter tag names, applies them to all items,
+/// and calls the refresh callback on success.
+Future<void> handleItemTagging(
+  BuildContext context,
+  List<FolderItem> items,
+  VoidCallback onRefresh,
+) async {
+  if (items.isEmpty) return;
+
+  final tagNames = await showBulkTagDialog(
+    context: context,
+    items: items,
+  );
+  if (tagNames == null || tagNames.isEmpty || !context.mounted) return;
+
+  try {
+    final result =
+        await ItemTaggingService().addTagToItems(items, tagNames);
+
+    if (context.mounted) {
+      final message = _buildTaggingMessage(result);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+      onRefresh();
+    }
+  } catch (e) {
+    if (context.mounted) {
+      showErrorSnackBar(context, e);
+    }
+  }
+}
+
+/// Builds a human-readable snackbar message from a [TaggingResult].
+///
+/// Examples:
+///   "Tagged 4 items: +flutter (2 new), +mobile (4 new)"
+///   "Tagged 3 items (all already had selected tags)"
+String _buildTaggingMessage(TaggingResult result) {
+  final items = result.itemCount;
+  final itemWord = items == 1 ? "item" : "items";
+
+  if (result.totalNew == 0) {
+    return "Tagged $items $itemWord (all already had selected tags)";
+  }
+
+  final parts = result.newCountPerTag.entries
+      .map((e) => "+${e.key} (${e.value} new)")
+      .join(", ");
+  return "Tagged $items $itemWord: $parts";
+}
+
+/// Handles bulk metadata refresh for selected link items.
+///
+/// Filters to link items, force-fetches metadata for each, and shows
+/// progress via snackbars. The UI updates live via MetadataFactory's
+/// lastRefreshedUrl signal.
+Future<void> handleItemMetadataRefresh(
+  BuildContext context,
+  List<FolderItem> items,
+  VoidCallback onRefresh,
+) async {
+  final links = items
+      .whereType<LinkItem>()
+      .where((l) => l.url.isNotEmpty)
+      .toList();
+
+  if (links.isEmpty) return;
+
+  if (context.mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Refreshing metadata for ${links.length} links..."),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  int successCount = 0;
+  for (final link in links) {
+    final result = await MetadataFactory.forceFetch(link.url);
+    if (result != null) successCount++;
+  }
+
+  if (context.mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          "Refreshed $successCount of ${links.length} links",
+        ),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        duration: const Duration(seconds: 3),
+      ),
+    );
   }
 }

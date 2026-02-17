@@ -264,6 +264,16 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
             items,
             _refreshFolderData,
           ),
+          onTagRequested: (items) => handleItemTagging(
+            context,
+            items,
+            _refreshFolderData,
+          ),
+          onRefreshMetadataRequested: (items) => handleItemMetadataRefresh(
+            context,
+            items,
+            _refreshFolderData,
+          ),
           onLoadMore: _infiniteScroll.loadNextPage,
           isLoadingMore: _infiniteScroll.isLoadingMore.value,
           hasMore: _infiniteScroll.hasMore.value,
