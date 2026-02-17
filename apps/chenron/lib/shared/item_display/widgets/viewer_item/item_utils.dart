@@ -77,8 +77,11 @@ class ItemUtils {
       chips.add(
         Builder(builder: (context) {
           final colorScheme = Theme.of(context).colorScheme;
-          final Color baseColor =
-              isIncluded ? colorScheme.primary : colorScheme.secondary;
+          final Color baseColor = tag.color != null
+              ? Color(tag.color!)
+              : isIncluded
+                  ? colorScheme.primary
+                  : colorScheme.secondary;
           return Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(

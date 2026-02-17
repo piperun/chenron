@@ -356,7 +356,7 @@ void main() {
       // Both should reference the same tag
       final allTags = await database.getAllTags();
       final sharedTags =
-          allTags.where((t) => t.name == "shared").toList();
+          allTags.where((t) => t.data.name == "shared").toList();
       expect(sharedTags.length, equals(1));
     });
   });
