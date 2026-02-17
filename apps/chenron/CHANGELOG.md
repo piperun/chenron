@@ -2,6 +2,29 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## chenron-v1.2.0 - 2026-02-17
+#### Features
+- wire MetadataCache to drift via DriftMetadataPersistence - (8101b1b) - *piperun*
+- add tag management settings page - (d9186cb) - *piperun*
+- add colored tags with inline color picker - (251f2a1) - *piperun*
+- extend BulkTagDialog with tag removal support - (3f19edc) - *piperun*
+- add mass tagging and metadata refresh to select mode - (11610b8) - *piperun*
+- replace stats bar with select-mode action bar - (5b17c1e) - *piperun*
+- reuse FolderPicker in edit bottom sheet and detail dialog - (09887ac) - *piperun*
+#### Bug Fixes
+- bulk tag dialog tri-state toggle skips Remove for partial coverage - (b553d6d) - *piperun*
+- improve image anti-aliasing with FilterQuality.medium - (749b5ec) - *piperun*
+- sync selected items after bulk tag operations - (8c1e2a3) - *piperun*
+- reset metadata signal before setting URL on refetch - (d1adcbe) - *piperun*
+- update card metadata when refreshed from detail dialog - (c23d65d) - *piperun*
+- reject duplicate URLs at input level - (ea6f97f) - *piperun*
+- cache folder names to prevent raw ID display after edit - (eb1f59b) - *piperun*
+#### Refactoring
+- parallelize startup and defer non-critical init tasks - (92acaae) - *piperun*
+- simplify SelectableItemWrapper to StatelessWidget - (4994cb7) - *piperun*
+
+- - -
+
 ## chenron-v1.1.0 - 2026-02-16
 #### Features
 - add window_manager for persistent window sizing - (54a9edc) - *piperun*
