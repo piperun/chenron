@@ -28,9 +28,7 @@ class ItemToolbar extends StatelessWidget {
   final VoidCallback? onTagFilterPressed;
   final void Function(String)? onSearchSubmitted;
   final bool isDeleteMode;
-  final int selectedCount;
   final VoidCallback? onDeleteModeToggled;
-  final VoidCallback? onDeletePressed;
 
   const ItemToolbar({
     super.key,
@@ -50,9 +48,7 @@ class ItemToolbar extends StatelessWidget {
     this.onTagFilterPressed,
     this.onSearchSubmitted,
     this.isDeleteMode = false,
-    this.selectedCount = 0,
     this.onDeleteModeToggled,
-    this.onDeletePressed,
   });
 
   @override
@@ -113,9 +109,7 @@ class ItemToolbar extends StatelessWidget {
             const SizedBox(width: 8),
             _DeleteModeButton(
               isDeleteMode: isDeleteMode,
-              selectedCount: selectedCount,
               onToggle: onDeleteModeToggled,
-              onDelete: onDeletePressed,
             ),
           ],
 
@@ -489,15 +483,11 @@ class _TagFilterButton extends StatelessWidget {
 
 class _DeleteModeButton extends StatelessWidget {
   final bool isDeleteMode;
-  final int selectedCount;
   final VoidCallback? onToggle;
-  final VoidCallback? onDelete;
 
   const _DeleteModeButton({
     required this.isDeleteMode,
-    required this.selectedCount,
     required this.onToggle,
-    required this.onDelete,
   });
 
   @override
@@ -505,59 +495,25 @@ class _DeleteModeButton extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    if (!isDeleteMode) {
-      // Normal mode: Show "Select" button
-      return OutlinedButton.icon(
-        onPressed: onToggle,
-        icon: const Icon(Icons.check_box_outlined, size: 16),
-        label: const Text("Select"),
-        style: OutlinedButton.styleFrom(
-          foregroundColor: colorScheme.onSurfaceVariant,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-          side: BorderSide(color: theme.dividerColor),
+    return OutlinedButton.icon(
+      onPressed: onToggle,
+      icon: Icon(
+        isDeleteMode ? Icons.check_box : Icons.check_box_outlined,
+        size: 16,
+      ),
+      label: Text(isDeleteMode ? "Selecting" : "Select"),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: isDeleteMode
+            ? colorScheme.primary
+            : colorScheme.onSurfaceVariant,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
         ),
-      );
-    }
-
-    // Delete mode: Show delete button with count
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Cancel button
-        OutlinedButton.icon(
-          onPressed: onToggle,
-          icon: const Icon(Icons.close, size: 16),
-          label: const Text("Cancel"),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: colorScheme.onSurfaceVariant,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            side: BorderSide(color: theme.dividerColor),
-          ),
+        side: BorderSide(
+          color: isDeleteMode ? colorScheme.primary : theme.dividerColor,
         ),
-        const SizedBox(width: 8),
-        // Delete button
-        FilledButton.icon(
-          onPressed: selectedCount > 0 ? onDelete : null,
-          icon: const Icon(Icons.delete, size: 16),
-          label: Text("Delete selected ($selectedCount)"),
-          style: FilledButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            backgroundColor: colorScheme.error,
-            foregroundColor: colorScheme.onError,
-            disabledBackgroundColor: colorScheme.surfaceContainerHighest,
-            disabledForegroundColor: colorScheme.onSurfaceVariant,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

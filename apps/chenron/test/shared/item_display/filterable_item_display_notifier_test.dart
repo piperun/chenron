@@ -190,6 +190,61 @@ void main() {
     });
   });
 
+  group("selectAll", () {
+    test("selects all items with valid IDs in delete mode", () {
+      notifier.toggleDeleteMode();
+      final items = [
+        _makeLink("1", "https://a.com"),
+        _makeLink("2", "https://b.com"),
+        _makeDocument("3", "Doc"),
+      ];
+      notifier.selectAll(items);
+
+      expect(notifier.selectedItems.value.length, 3);
+      expect(notifier.selectedItems.value.containsKey("1"), true);
+      expect(notifier.selectedItems.value.containsKey("2"), true);
+      expect(notifier.selectedItems.value.containsKey("3"), true);
+    });
+
+    test("skips items with null IDs", () {
+      notifier.toggleDeleteMode();
+      final items = [
+        _makeLink("1", "https://a.com"),
+        FolderItem.link(
+            id: null, url: "https://no-id.com", createdAt: _epoch),
+      ];
+      notifier.selectAll(items);
+
+      expect(notifier.selectedItems.value.length, 1);
+      expect(notifier.selectedItems.value.containsKey("1"), true);
+    });
+
+    test("does nothing outside delete mode", () {
+      final items = [
+        _makeLink("1", "https://a.com"),
+        _makeLink("2", "https://b.com"),
+      ];
+      notifier.selectAll(items);
+
+      expect(notifier.selectedItems.value, isEmpty);
+    });
+
+    test("preserves existing selections when adding more", () {
+      notifier.toggleDeleteMode();
+      final first = _makeLink("1", "https://a.com");
+      notifier.toggleItemSelection(first);
+
+      final moreItems = [
+        _makeLink("2", "https://b.com"),
+        _makeDocument("3", "Doc"),
+      ];
+      notifier.selectAll(moreItems);
+
+      expect(notifier.selectedItems.value.length, 3);
+      expect(notifier.selectedItems.value.containsKey("1"), true);
+    });
+  });
+
   group("getFilteredAndSortedItems", () {
     final items = [
       _makeLink("1", "https://alpha.com"),

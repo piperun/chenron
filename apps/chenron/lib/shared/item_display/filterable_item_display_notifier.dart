@@ -70,6 +70,17 @@ class FilterableItemDisplayNotifier {
     selectedItems.value = current;
   }
 
+  void selectAll(List<FolderItem> items) {
+    if (!isDeleteMode.value) return;
+    final current = Map<String, FolderItem>.from(selectedItems.value);
+    for (final item in items) {
+      if (item.id != null) {
+        current[item.id!] = item;
+      }
+    }
+    selectedItems.value = current;
+  }
+
   void handleSearchSubmitted(String query) {
     final cleanQuery = tagFilterState.parseAndAddFromQuery(query);
     searchFilter.controller.value = cleanQuery;
