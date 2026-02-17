@@ -26,6 +26,8 @@ export "src/features/link/archive.dart";
 // Tag operations
 export "src/features/tag/create.dart";
 export "src/features/tag/read.dart";
+export "src/features/tag/update.dart";
+export "src/features/tag/remove.dart";
 
 // User Config operations
 export "src/features/user_config/create.dart";
