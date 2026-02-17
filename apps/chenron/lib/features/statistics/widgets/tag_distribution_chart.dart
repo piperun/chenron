@@ -2,6 +2,7 @@ import "package:fl_chart/fl_chart.dart";
 import "package:flutter/material.dart";
 import "package:database/database.dart";
 import "package:chenron/features/statistics/widgets/chart_card.dart";
+import "package:chenron/shared/constants/tag_colors.dart";
 
 class TagDistributionChart extends StatelessWidget {
   final List<TagCount> tagCounts;
@@ -10,19 +11,6 @@ class TagDistributionChart extends StatelessWidget {
     super.key,
     required this.tagCounts,
   });
-
-  static const _defaultColors = [
-    Colors.blue,
-    Colors.purple,
-    Colors.orange,
-    Colors.teal,
-    Colors.red,
-    Colors.green,
-    Colors.indigo,
-    Colors.amber,
-    Colors.cyan,
-    Colors.pink,
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -68,7 +56,7 @@ class TagDistributionChart extends StatelessWidget {
         final tag = entry.value;
         final color = tag.tagColor != null
             ? Color(tag.tagColor!)
-            : _defaultColors[entry.key % _defaultColors.length];
+            : kTagColorPalette[entry.key % kTagColorPalette.length];
 
         return PieChartSectionData(
           value: tag.itemCount.toDouble(),
@@ -102,8 +90,7 @@ class _Legend extends StatelessWidget {
         final tag = entry.value;
         final color = tag.tagColor != null
             ? Color(tag.tagColor!)
-            : TagDistributionChart
-                ._defaultColors[entry.key % TagDistributionChart._defaultColors.length];
+            : kTagColorPalette[entry.key % kTagColorPalette.length];
 
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 2),

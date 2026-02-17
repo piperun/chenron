@@ -1,6 +1,7 @@
 import "dart:async";
 
 import "package:chenron/locator.dart";
+import "package:chenron/shared/dialogs/tag_color_picker.dart";
 import "package:chenron/utils/validation/tag_validator.dart";
 import "package:database/database.dart";
 import "package:flutter/material.dart";
@@ -59,6 +60,9 @@ class _BulkTagDialogState extends State<_BulkTagDialog> {
 
   /// All tag names from the database.
   List<String> _allTagNames = [];
+
+  /// Tag name → assigned color (ARGB int), or null if unset.
+  final Map<String, int?> _tagColors = {};
   bool _isLoading = true;
   String? _createError;
 
@@ -96,7 +100,8 @@ class _BulkTagDialogState extends State<_BulkTagDialog> {
       final results = await db.getAllTags();
       if (!mounted) return;
       setState(() {
-        _allTagNames = results.map((r) => r.name).toList();
+        _allTagNames = results.map((r) => r.data.name).toList();
+        _tagColors.addAll({for (final r in results) r.data.name: r.data.color});
         _isLoading = false;
       });
     } catch (_) {
@@ -164,15 +169,11 @@ class _BulkTagDialogState extends State<_BulkTagDialog> {
     final coverage = _tagCoverage[tagName] ?? 0;
     final itemCount = widget.items.length;
     final allHaveIt = itemCount > 0 && coverage == itemCount;
-    final someHaveIt = coverage > 0;
 
     setState(() {
       if (_tagsToAdd.contains(tagName)) {
-        // Add → Remove (if some items have it) or Add → Neutral
+        // Add → Neutral (undo the add)
         _tagsToAdd.remove(tagName);
-        if (someHaveIt) {
-          _tagsToRemove.add(tagName);
-        }
       } else if (_tagsToRemove.contains(tagName)) {
         // Remove → Neutral
         _tagsToRemove.remove(tagName);
@@ -192,6 +193,12 @@ class _BulkTagDialogState extends State<_BulkTagDialog> {
       _tagsToAdd.remove(tagName);
       _tagsToRemove.remove(tagName);
     });
+  }
+
+  Future<void> _handleColorChange(String tagName, int? color) async {
+    setState(() => _tagColors[tagName] = color);
+    final db = locator.get<Signal<AppDatabaseHandler>>().value.appDatabase;
+    await db.updateTagColor(tagName: tagName, color: color);
   }
 
   bool get _hasChanges => _tagsToAdd.isNotEmpty || _tagsToRemove.isNotEmpty;
@@ -307,53 +314,6 @@ class _BulkTagDialogState extends State<_BulkTagDialog> {
               },
             ),
 
-            // Action chips (add + remove)
-            if (_hasChanges)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-                child: Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: [
-                    ..._tagsToAdd.map((tag) {
-                      final isNew = !_allTagNames.contains(tag);
-                      return InputChip(
-                        label: Text(isNew ? "+$tag (new)" : "+$tag"),
-                        onDeleted: () => _removeChip(tag),
-                        deleteIconColor: colorScheme.onPrimaryContainer,
-                        backgroundColor: colorScheme.primaryContainer,
-                        labelStyle: TextStyle(
-                          color: colorScheme.onPrimaryContainer,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                          side: BorderSide(
-                            color:
-                                colorScheme.primary.withValues(alpha: 0.5),
-                          ),
-                        ),
-                      );
-                    }),
-                    ..._tagsToRemove.map((tag) => InputChip(
-                          label: Text("-$tag"),
-                          onDeleted: () => _removeChip(tag),
-                          deleteIconColor: colorScheme.onErrorContainer,
-                          backgroundColor: colorScheme.errorContainer,
-                          labelStyle: TextStyle(
-                            color: colorScheme.onErrorContainer,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                            side: BorderSide(
-                              color:
-                                  colorScheme.error.withValues(alpha: 0.5),
-                            ),
-                          ),
-                        )),
-                  ],
-                ),
-              ),
-
             const SizedBox(height: 12),
 
             // Tag list
@@ -363,7 +323,7 @@ class _BulkTagDialogState extends State<_BulkTagDialog> {
                   : _buildTagList(theme, colorScheme, hasItems, itemCount),
             ),
 
-            // Actions
+            // Action chips + buttons
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -371,22 +331,80 @@ class _BulkTagDialogState extends State<_BulkTagDialog> {
                   top: BorderSide(color: theme.dividerColor),
                 ),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: const Text("Cancel"),
-                  ),
-                  const SizedBox(width: 8),
-                  FilledButton(
-                    onPressed: _hasChanges
-                        ? () => Navigator.of(context).pop(BulkTagResult(
-                              tagsToAdd: _tagsToAdd.toList(),
-                              tagsToRemove: _tagsToRemove.toList(),
-                            ))
-                        : null,
-                    child: Text(_buildApplyLabel()),
+                  if (_hasChanges) ...[
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxHeight: 80),
+                      child: SingleChildScrollView(
+                        child: Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: [
+                        ..._tagsToAdd.map((tag) {
+                          final isNew = !_allTagNames.contains(tag);
+                          return InputChip(
+                            label: Text(isNew ? "+$tag (new)" : "+$tag"),
+                            onDeleted: () => _removeChip(tag),
+                            deleteIconColor:
+                                colorScheme.onPrimaryContainer,
+                            backgroundColor: colorScheme.primaryContainer,
+                            labelStyle: TextStyle(
+                              color: colorScheme.onPrimaryContainer,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              side: BorderSide(
+                                color: colorScheme.primary
+                                    .withValues(alpha: 0.5),
+                              ),
+                            ),
+                          );
+                        }),
+                        ..._tagsToRemove.map((tag) => InputChip(
+                              label: Text("-$tag"),
+                              onDeleted: () => _removeChip(tag),
+                              deleteIconColor:
+                                  colorScheme.onErrorContainer,
+                              backgroundColor: colorScheme.errorContainer,
+                              labelStyle: TextStyle(
+                                color: colorScheme.onErrorContainer,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                                side: BorderSide(
+                                  color: colorScheme.error
+                                      .withValues(alpha: 0.5),
+                                ),
+                              ),
+                            )),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: const Text("Cancel"),
+                      ),
+                      const SizedBox(width: 8),
+                      FilledButton(
+                        onPressed: _hasChanges
+                            ? () =>
+                                Navigator.of(context).pop(BulkTagResult(
+                                  tagsToAdd: _tagsToAdd.toList(),
+                                  tagsToRemove: _tagsToRemove.toList(),
+                                ))
+                            : null,
+                        child: Text(_buildApplyLabel()),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -442,10 +460,12 @@ class _BulkTagDialogState extends State<_BulkTagDialog> {
         return _TagRow(
           tagName: name,
           action: action,
+          tagColor: _tagColors[name],
           coverage: hasItems ? coverage : null,
           itemCount: hasItems ? itemCount : null,
           allHaveIt: allHaveIt,
           onToggle: () => _toggleTag(name),
+          onColorChanged: (color) => _handleColorChange(name, color),
         );
       },
     );
@@ -455,18 +475,22 @@ class _BulkTagDialogState extends State<_BulkTagDialog> {
 class _TagRow extends StatelessWidget {
   final String tagName;
   final TagAction action;
+  final int? tagColor;
   final int? coverage;
   final int? itemCount;
   final bool allHaveIt;
   final VoidCallback onToggle;
+  final ValueChanged<int?> onColorChanged;
 
   const _TagRow({
     required this.tagName,
     required this.action,
+    required this.tagColor,
     required this.coverage,
     required this.itemCount,
     required this.allHaveIt,
     required this.onToggle,
+    required this.onColorChanged,
   });
 
   @override
@@ -514,6 +538,12 @@ class _TagRow extends StatelessWidget {
           children: [
             Icon(icon, size: 20, color: iconColor),
             const SizedBox(width: 12),
+            // Color dot — tap to pick a color
+            _TagColorDot(
+              tagColor: tagColor,
+              onColorChanged: onColorChanged,
+            ),
+            const SizedBox(width: 8),
             Expanded(
               child: Text(
                 tagName,
@@ -522,10 +552,7 @@ class _TagRow extends StatelessWidget {
                   fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
                   color: action == TagAction.remove
                       ? colorScheme.error
-                      : allHaveIt && !isActive
-                          ? theme.textTheme.bodyMedium?.color
-                              ?.withValues(alpha: 0.5)
-                          : theme.textTheme.bodyMedium?.color,
+                      : theme.textTheme.bodyMedium?.color,
                   decoration: action == TagAction.remove
                       ? TextDecoration.lineThrough
                       : null,
@@ -546,6 +573,47 @@ class _TagRow extends StatelessWidget {
               ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _TagColorDot extends StatelessWidget {
+  final int? tagColor;
+  final ValueChanged<int?> onColorChanged;
+
+  const _TagColorDot({
+    required this.tagColor,
+    required this.onColorChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return GestureDetector(
+      onTapUp: (details) async {
+        final overlay =
+            Overlay.of(context).context.findRenderObject()! as RenderBox;
+        final anchor = RelativeRect.fromRect(
+          details.globalPosition & const Size(1, 1),
+          Offset.zero & overlay.size,
+        );
+        final result = await showTagColorPicker(
+          context: context,
+          anchor: anchor,
+          currentColor: tagColor,
+        );
+        if (result != null) {
+          onColorChanged(result.color);
+        }
+      },
+      child: Icon(
+        Icons.sell,
+        size: 18,
+        color: tagColor != null
+            ? Color(tagColor!)
+            : theme.colorScheme.outlineVariant,
       ),
     );
   }

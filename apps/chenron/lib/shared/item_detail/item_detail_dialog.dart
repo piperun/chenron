@@ -1009,7 +1009,8 @@ class _ReadOnlyTagChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final Color baseColor = colorScheme.secondary;
+    final Color baseColor =
+        tag.color != null ? Color(tag.color!) : colorScheme.secondary;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
