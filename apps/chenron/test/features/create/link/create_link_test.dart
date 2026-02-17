@@ -156,6 +156,54 @@ void main() {
       });
     });
 
+    group("Duplicate URL rejection", () {
+      testWidgets("shows error when adding same URL twice", (tester) async {
+        await pumpPage(tester);
+
+        final urlField = find.byKey(const Key("link_input_single_url_field"));
+        final addButton = find.byKey(const Key("link_input_add_button"));
+        if (urlField.evaluate().isEmpty || addButton.evaluate().isEmpty) {
+          return; // skip if keys not found
+        }
+
+        // Add first URL
+        await tester.enterText(urlField, "https://example.com");
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.tap(addButton);
+        await tester.pump(const Duration(milliseconds: 300));
+
+        // Try adding the same URL again
+        await tester.enterText(urlField, "https://example.com");
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.tap(addButton);
+        await tester.pump(const Duration(milliseconds: 300));
+
+        expect(find.text("This URL has already been added"), findsOneWidget);
+      });
+
+      testWidgets("allows adding different URLs", (tester) async {
+        await pumpPage(tester);
+
+        final urlField = find.byKey(const Key("link_input_single_url_field"));
+        final addButton = find.byKey(const Key("link_input_add_button"));
+        if (urlField.evaluate().isEmpty || addButton.evaluate().isEmpty) {
+          return; // skip if keys not found
+        }
+
+        await tester.enterText(urlField, "https://one.com");
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.tap(addButton);
+        await tester.pump(const Duration(milliseconds: 300));
+
+        await tester.enterText(urlField, "https://two.com");
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.tap(addButton);
+        await tester.pump(const Duration(milliseconds: 300));
+
+        expect(find.text("This URL has already been added"), findsNothing);
+      });
+    });
+
     group("Validation callbacks", () {
       testWidgets("onValidationChanged receives false initially",
           (tester) async {

@@ -219,6 +219,26 @@ void main() {
       expect(notifier.entries.first.validationStatus,
           LinkValidationStatus.pending);
     });
+
+    test("rejects duplicate URL", () {
+      final first = notifier.addEntry(
+          url: "https://example.com", validateAsync: false);
+      final second = notifier.addEntry(
+          url: "https://example.com", validateAsync: false);
+
+      expect(first, true);
+      expect(second, false);
+      expect(notifier.entries.length, 1);
+    });
+
+    test("rejects duplicate URL after trimming", () {
+      notifier.addEntry(url: "https://example.com", validateAsync: false);
+      final dup = notifier.addEntry(
+          url: "  https://example.com  ", validateAsync: false);
+
+      expect(dup, false);
+      expect(notifier.entries.length, 1);
+    });
   });
 
   group("bulk entry management", () {
@@ -231,6 +251,29 @@ void main() {
       expect(notifier.entries.length, 2);
       expect(notifier.entries[0].url, "https://one.com");
       expect(notifier.entries[1].url, "https://two.com");
+    });
+
+    test("skips duplicates within the batch", () {
+      final skipped = notifier.addEntries([
+        {"url": "https://one.com", "tags": <String>[]},
+        {"url": "https://one.com", "tags": <String>[]},
+        {"url": "https://two.com", "tags": <String>[]},
+      ]);
+
+      expect(skipped, 1);
+      expect(notifier.entries.length, 2);
+    });
+
+    test("skips duplicates against existing entries", () {
+      notifier.addEntry(url: "https://one.com", validateAsync: false);
+
+      final skipped = notifier.addEntries([
+        {"url": "https://one.com", "tags": <String>[]},
+        {"url": "https://two.com", "tags": <String>[]},
+      ]);
+
+      expect(skipped, 1);
+      expect(notifier.entries.length, 2);
     });
   });
 

@@ -219,10 +219,16 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
       _singleInputError = null;
     });
 
-    _notifier.addEntry(
+    final added = _notifier.addEntry(
       url: parsed.url,
       tags: parsed.tags,
     );
+    if (!added) {
+      setState(() {
+        _singleInputError = "This URL has already been added";
+      });
+      return;
+    }
   }
 
   void _handleAddBulk(String input, BulkValidationResult validationResult) {
@@ -238,16 +244,21 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
               })
           .toList();
 
-      _notifier.addEntries(validEntries);
+      final skipped = _notifier.addEntries(validEntries);
+      final added = result.validLines - skipped;
 
       // Show success message
       if (mounted) {
+        final parts = <String>[];
+        if (added > 0) parts.add("Added $added valid URL(s)");
+        if (skipped > 0) parts.add("$skipped duplicate(s) skipped");
+        if (result.hasErrors) {
+          parts.add("${result.invalidLines} invalid URLs remain");
+        }
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              "Added ${result.validLines} valid URL(s)"
-              "${result.hasErrors ? '. ${result.invalidLines} invalid URLs remain.' : ''}",
-            ),
+            content: Text(parts.join(". ")),
             backgroundColor: Theme.of(context).colorScheme.primary,
             duration: const Duration(seconds: 3),
           ),
