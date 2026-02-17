@@ -2,14 +2,20 @@ import "package:flutter/material.dart";
 
 class SelectModeActionBar extends StatelessWidget {
   final int selectedCount;
+  final int linkCount;
   final VoidCallback onSelectAll;
+  final VoidCallback onTag;
+  final VoidCallback onRefreshMetadata;
   final VoidCallback onDelete;
   final VoidCallback onCancel;
 
   const SelectModeActionBar({
     super.key,
     required this.selectedCount,
+    required this.linkCount,
     required this.onSelectAll,
+    required this.onTag,
+    required this.onRefreshMetadata,
     required this.onDelete,
     required this.onCancel,
   });
@@ -18,6 +24,15 @@ class SelectModeActionBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+
+    final outlinedStyle = OutlinedButton.styleFrom(
+      foregroundColor: colorScheme.onSurfaceVariant,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+      side: BorderSide(color: theme.dividerColor),
+    );
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
@@ -53,15 +68,21 @@ class SelectModeActionBar extends StatelessWidget {
             onPressed: onSelectAll,
             icon: const Icon(Icons.select_all, size: 16),
             label: const Text("Select All"),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: colorScheme.onSurfaceVariant,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              side: BorderSide(color: theme.dividerColor),
-            ),
+            style: outlinedStyle,
+          ),
+          const SizedBox(width: 8),
+          OutlinedButton.icon(
+            onPressed: selectedCount > 0 ? onTag : null,
+            icon: const Icon(Icons.label, size: 16),
+            label: const Text("Tag"),
+            style: outlinedStyle,
+          ),
+          const SizedBox(width: 8),
+          OutlinedButton.icon(
+            onPressed: linkCount > 0 ? onRefreshMetadata : null,
+            icon: const Icon(Icons.refresh, size: 16),
+            label: const Text("Fetch"),
+            style: outlinedStyle,
           ),
           const SizedBox(width: 8),
           FilledButton.icon(
@@ -85,15 +106,7 @@ class SelectModeActionBar extends StatelessWidget {
             onPressed: onCancel,
             icon: const Icon(Icons.close, size: 16),
             label: const Text("Cancel"),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: colorScheme.onSurfaceVariant,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              side: BorderSide(color: theme.dividerColor),
-            ),
+            style: outlinedStyle,
           ),
         ],
       ),
