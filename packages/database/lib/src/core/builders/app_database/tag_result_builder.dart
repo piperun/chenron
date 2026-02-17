@@ -40,8 +40,7 @@ class TagResultBuilder implements ResultBuilder<TagResult> {
   @override
   TagResult build() {
     return TagResult(
-      name: _tag.name,
-      color: _tag.color,
+      data: _tag,
       relatedFolderIds:
           _relatedFolderIds.isEmpty ? null : _relatedFolderIds.toList(),
       relatedLinkIds: _relatedLinkIds.isEmpty ? null : _relatedLinkIds.toList(),
