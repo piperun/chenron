@@ -3429,6 +3429,319 @@ class RecentAccessCompanion extends UpdateCompanion<RecentAccessData> {
   }
 }
 
+class $WebMetadataEntriesTable extends WebMetadataEntries
+    with TableInfo<$WebMetadataEntriesTable, WebMetadataEntry> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $WebMetadataEntriesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _urlMeta = const VerificationMeta('url');
+  @override
+  late final GeneratedColumn<String> url = GeneratedColumn<String>(
+      'url', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+      'title', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _descriptionMeta =
+      const VerificationMeta('description');
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+      'description', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _imageMeta = const VerificationMeta('image');
+  @override
+  late final GeneratedColumn<String> image = GeneratedColumn<String>(
+      'image', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _fetchedAtMeta =
+      const VerificationMeta('fetchedAt');
+  @override
+  late final GeneratedColumn<DateTime> fetchedAt = GeneratedColumn<DateTime>(
+      'fetched_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [url, title, description, image, fetchedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'web_metadata_entries';
+  @override
+  VerificationContext validateIntegrity(Insertable<WebMetadataEntry> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('url')) {
+      context.handle(
+          _urlMeta, url.isAcceptableOrUnknown(data['url']!, _urlMeta));
+    } else if (isInserting) {
+      context.missing(_urlMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+          _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+          _descriptionMeta,
+          description.isAcceptableOrUnknown(
+              data['description']!, _descriptionMeta));
+    }
+    if (data.containsKey('image')) {
+      context.handle(
+          _imageMeta, image.isAcceptableOrUnknown(data['image']!, _imageMeta));
+    }
+    if (data.containsKey('fetched_at')) {
+      context.handle(_fetchedAtMeta,
+          fetchedAt.isAcceptableOrUnknown(data['fetched_at']!, _fetchedAtMeta));
+    } else if (isInserting) {
+      context.missing(_fetchedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {url};
+  @override
+  WebMetadataEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return WebMetadataEntry(
+      url: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}url'])!,
+      title: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}title']),
+      description: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}description']),
+      image: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}image']),
+      fetchedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}fetched_at'])!,
+    );
+  }
+
+  @override
+  $WebMetadataEntriesTable createAlias(String alias) {
+    return $WebMetadataEntriesTable(attachedDatabase, alias);
+  }
+}
+
+class WebMetadataEntry extends DataClass
+    implements Insertable<WebMetadataEntry> {
+  final String url;
+  final String? title;
+  final String? description;
+  final String? image;
+  final DateTime fetchedAt;
+  const WebMetadataEntry(
+      {required this.url,
+      this.title,
+      this.description,
+      this.image,
+      required this.fetchedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['url'] = Variable<String>(url);
+    if (!nullToAbsent || title != null) {
+      map['title'] = Variable<String>(title);
+    }
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    if (!nullToAbsent || image != null) {
+      map['image'] = Variable<String>(image);
+    }
+    map['fetched_at'] = Variable<DateTime>(fetchedAt);
+    return map;
+  }
+
+  WebMetadataEntriesCompanion toCompanion(bool nullToAbsent) {
+    return WebMetadataEntriesCompanion(
+      url: Value(url),
+      title:
+          title == null && nullToAbsent ? const Value.absent() : Value(title),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
+      image:
+          image == null && nullToAbsent ? const Value.absent() : Value(image),
+      fetchedAt: Value(fetchedAt),
+    );
+  }
+
+  factory WebMetadataEntry.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return WebMetadataEntry(
+      url: serializer.fromJson<String>(json['url']),
+      title: serializer.fromJson<String?>(json['title']),
+      description: serializer.fromJson<String?>(json['description']),
+      image: serializer.fromJson<String?>(json['image']),
+      fetchedAt: serializer.fromJson<DateTime>(json['fetchedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'url': serializer.toJson<String>(url),
+      'title': serializer.toJson<String?>(title),
+      'description': serializer.toJson<String?>(description),
+      'image': serializer.toJson<String?>(image),
+      'fetchedAt': serializer.toJson<DateTime>(fetchedAt),
+    };
+  }
+
+  WebMetadataEntry copyWith(
+          {String? url,
+          Value<String?> title = const Value.absent(),
+          Value<String?> description = const Value.absent(),
+          Value<String?> image = const Value.absent(),
+          DateTime? fetchedAt}) =>
+      WebMetadataEntry(
+        url: url ?? this.url,
+        title: title.present ? title.value : this.title,
+        description: description.present ? description.value : this.description,
+        image: image.present ? image.value : this.image,
+        fetchedAt: fetchedAt ?? this.fetchedAt,
+      );
+  WebMetadataEntry copyWithCompanion(WebMetadataEntriesCompanion data) {
+    return WebMetadataEntry(
+      url: data.url.present ? data.url.value : this.url,
+      title: data.title.present ? data.title.value : this.title,
+      description:
+          data.description.present ? data.description.value : this.description,
+      image: data.image.present ? data.image.value : this.image,
+      fetchedAt: data.fetchedAt.present ? data.fetchedAt.value : this.fetchedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WebMetadataEntry(')
+          ..write('url: $url, ')
+          ..write('title: $title, ')
+          ..write('description: $description, ')
+          ..write('image: $image, ')
+          ..write('fetchedAt: $fetchedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(url, title, description, image, fetchedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is WebMetadataEntry &&
+          other.url == this.url &&
+          other.title == this.title &&
+          other.description == this.description &&
+          other.image == this.image &&
+          other.fetchedAt == this.fetchedAt);
+}
+
+class WebMetadataEntriesCompanion extends UpdateCompanion<WebMetadataEntry> {
+  final Value<String> url;
+  final Value<String?> title;
+  final Value<String?> description;
+  final Value<String?> image;
+  final Value<DateTime> fetchedAt;
+  final Value<int> rowid;
+  const WebMetadataEntriesCompanion({
+    this.url = const Value.absent(),
+    this.title = const Value.absent(),
+    this.description = const Value.absent(),
+    this.image = const Value.absent(),
+    this.fetchedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  WebMetadataEntriesCompanion.insert({
+    required String url,
+    this.title = const Value.absent(),
+    this.description = const Value.absent(),
+    this.image = const Value.absent(),
+    required DateTime fetchedAt,
+    this.rowid = const Value.absent(),
+  })  : url = Value(url),
+        fetchedAt = Value(fetchedAt);
+  static Insertable<WebMetadataEntry> custom({
+    Expression<String>? url,
+    Expression<String>? title,
+    Expression<String>? description,
+    Expression<String>? image,
+    Expression<DateTime>? fetchedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (url != null) 'url': url,
+      if (title != null) 'title': title,
+      if (description != null) 'description': description,
+      if (image != null) 'image': image,
+      if (fetchedAt != null) 'fetched_at': fetchedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  WebMetadataEntriesCompanion copyWith(
+      {Value<String>? url,
+      Value<String?>? title,
+      Value<String?>? description,
+      Value<String?>? image,
+      Value<DateTime>? fetchedAt,
+      Value<int>? rowid}) {
+    return WebMetadataEntriesCompanion(
+      url: url ?? this.url,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      image: image ?? this.image,
+      fetchedAt: fetchedAt ?? this.fetchedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (url.present) {
+      map['url'] = Variable<String>(url.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (image.present) {
+      map['image'] = Variable<String>(image.value);
+    }
+    if (fetchedAt.present) {
+      map['fetched_at'] = Variable<DateTime>(fetchedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WebMetadataEntriesCompanion(')
+          ..write('url: $url, ')
+          ..write('title: $title, ')
+          ..write('description: $description, ')
+          ..write('image: $image, ')
+          ..write('fetchedAt: $fetchedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -3444,6 +3757,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $StatisticsTable statistics = $StatisticsTable(this);
   late final $ActivityEventsTable activityEvents = $ActivityEventsTable(this);
   late final $RecentAccessTable recentAccess = $RecentAccessTable(this);
+  late final $WebMetadataEntriesTable webMetadataEntries =
+      $WebMetadataEntriesTable(this);
   late final Index folderTitle =
       Index('folder_title', 'CREATE INDEX folder_title ON folders (title)');
   late final Index documentTitle = Index(
@@ -3466,6 +3781,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         statistics,
         activityEvents,
         recentAccess,
+        webMetadataEntries,
         folderTitle,
         documentTitle,
         itemsFolderItemIdx
@@ -5839,6 +6155,181 @@ typedef $$RecentAccessTableProcessedTableManager = ProcessedTableManager<
     ),
     RecentAccessData,
     PrefetchHooks Function()>;
+typedef $$WebMetadataEntriesTableCreateCompanionBuilder
+    = WebMetadataEntriesCompanion Function({
+  required String url,
+  Value<String?> title,
+  Value<String?> description,
+  Value<String?> image,
+  required DateTime fetchedAt,
+  Value<int> rowid,
+});
+typedef $$WebMetadataEntriesTableUpdateCompanionBuilder
+    = WebMetadataEntriesCompanion Function({
+  Value<String> url,
+  Value<String?> title,
+  Value<String?> description,
+  Value<String?> image,
+  Value<DateTime> fetchedAt,
+  Value<int> rowid,
+});
+
+class $$WebMetadataEntriesTableFilterComposer
+    extends Composer<_$AppDatabase, $WebMetadataEntriesTable> {
+  $$WebMetadataEntriesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get url => $composableBuilder(
+      column: $table.url, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get title => $composableBuilder(
+      column: $table.title, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get image => $composableBuilder(
+      column: $table.image, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get fetchedAt => $composableBuilder(
+      column: $table.fetchedAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$WebMetadataEntriesTableOrderingComposer
+    extends Composer<_$AppDatabase, $WebMetadataEntriesTable> {
+  $$WebMetadataEntriesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get url => $composableBuilder(
+      column: $table.url, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get title => $composableBuilder(
+      column: $table.title, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get image => $composableBuilder(
+      column: $table.image, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get fetchedAt => $composableBuilder(
+      column: $table.fetchedAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$WebMetadataEntriesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $WebMetadataEntriesTable> {
+  $$WebMetadataEntriesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get url =>
+      $composableBuilder(column: $table.url, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => column);
+
+  GeneratedColumn<String> get image =>
+      $composableBuilder(column: $table.image, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get fetchedAt =>
+      $composableBuilder(column: $table.fetchedAt, builder: (column) => column);
+}
+
+class $$WebMetadataEntriesTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $WebMetadataEntriesTable,
+    WebMetadataEntry,
+    $$WebMetadataEntriesTableFilterComposer,
+    $$WebMetadataEntriesTableOrderingComposer,
+    $$WebMetadataEntriesTableAnnotationComposer,
+    $$WebMetadataEntriesTableCreateCompanionBuilder,
+    $$WebMetadataEntriesTableUpdateCompanionBuilder,
+    (
+      WebMetadataEntry,
+      BaseReferences<_$AppDatabase, $WebMetadataEntriesTable, WebMetadataEntry>
+    ),
+    WebMetadataEntry,
+    PrefetchHooks Function()> {
+  $$WebMetadataEntriesTableTableManager(
+      _$AppDatabase db, $WebMetadataEntriesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$WebMetadataEntriesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$WebMetadataEntriesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$WebMetadataEntriesTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> url = const Value.absent(),
+            Value<String?> title = const Value.absent(),
+            Value<String?> description = const Value.absent(),
+            Value<String?> image = const Value.absent(),
+            Value<DateTime> fetchedAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              WebMetadataEntriesCompanion(
+            url: url,
+            title: title,
+            description: description,
+            image: image,
+            fetchedAt: fetchedAt,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String url,
+            Value<String?> title = const Value.absent(),
+            Value<String?> description = const Value.absent(),
+            Value<String?> image = const Value.absent(),
+            required DateTime fetchedAt,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              WebMetadataEntriesCompanion.insert(
+            url: url,
+            title: title,
+            description: description,
+            image: image,
+            fetchedAt: fetchedAt,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$WebMetadataEntriesTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $WebMetadataEntriesTable,
+    WebMetadataEntry,
+    $$WebMetadataEntriesTableFilterComposer,
+    $$WebMetadataEntriesTableOrderingComposer,
+    $$WebMetadataEntriesTableAnnotationComposer,
+    $$WebMetadataEntriesTableCreateCompanionBuilder,
+    $$WebMetadataEntriesTableUpdateCompanionBuilder,
+    (
+      WebMetadataEntry,
+      BaseReferences<_$AppDatabase, $WebMetadataEntriesTable, WebMetadataEntry>
+    ),
+    WebMetadataEntry,
+    PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -5864,6 +6355,8 @@ class $AppDatabaseManager {
       $$ActivityEventsTableTableManager(_db, _db.activityEvents);
   $$RecentAccessTableTableManager get recentAccess =>
       $$RecentAccessTableTableManager(_db, _db.recentAccess);
+  $$WebMetadataEntriesTableTableManager get webMetadataEntries =>
+      $$WebMetadataEntriesTableTableManager(_db, _db.webMetadataEntries);
 }
 
 class $ThemeTypesTable extends ThemeTypes

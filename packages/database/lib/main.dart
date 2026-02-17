@@ -39,6 +39,7 @@ typedef DeleteRelationRecord = ({String id, IdType idType});
   Statistics,
   ActivityEvents,
   RecentAccess,
+  WebMetadataEntries,
 ])
 class AppDatabase extends _$AppDatabase {
   static const int idLength = 30;
@@ -63,7 +64,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration {
@@ -312,6 +313,12 @@ class AppDatabase extends _$AppDatabase {
               "DROP INDEX IF EXISTS items_folder_item_idx");
           await customStatement(
               "CREATE UNIQUE INDEX items_folder_item_idx ON items (folder_id, item_id)");
+        }
+
+        // Migration v9 to v10: Add web_metadata_entries table for
+        // persistent metadata caching (replaces SharedPreferences).
+        if (from < 10) {
+          await migrator.createTable(webMetadataEntries);
         }
       },
     );
