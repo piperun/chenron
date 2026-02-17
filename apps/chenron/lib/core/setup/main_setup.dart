@@ -60,26 +60,25 @@ class MainSetup {
     try {
       _setupLocator();
 
-      // 2. Resolve Base Directories (Critical for subsequent steps)
+      // Resolve base directories first — everything else depends on them.
       final BaseDirectories<ChenronDir> baseDirs =
           await _resolveBaseDirectory();
-      // 4. Setup Logging (Now that config might be ready and dirs are known)
-      await _setupLogging(baseDirs);
-      // Logger should be fully functional now (including file logging if enabled)
-      loggerGlobal.info("MainSetup", "Logging setup complete.");
-      // 3. Setup Configuration Database
-      await _setupConfig(baseDirs, customAppDbPath: customAppDbPath);
-      loggerGlobal.info("MainSetup", "Config database setup complete.");
-      // 4b. Start backup scheduler
-      await _startBackupScheduler();
-      loggerGlobal.info("MainSetup", "Backup scheduler initialized.");
-      // 5. Initialize Theme Registry
+
+      // Logging and database setup are independent — run in parallel.
+      await Future.wait([
+        _setupLogging(baseDirs),
+        _setupConfig(baseDirs, customAppDbPath: customAppDbPath),
+      ]);
+      loggerGlobal.info(
+          "MainSetup", "Logging and database setup complete.");
+
+      // Theme registry is fast and synchronous.
       initializeThemeRegistry();
       loggerGlobal.info("MainSetup", "Theme registry initialized.");
 
       _setupDone = true;
-      loggerGlobal.info(
-          "MainSetup", "Initialization sequence completed successfully.");
+      loggerGlobal.info("MainSetup",
+          "Core initialization complete. Deferred tasks pending.");
     } catch (error, stackTrace) {
       // Catch any error bubbling up from the setup steps
       final errorMsg = "Core application initialization failed.";
@@ -95,6 +94,15 @@ class MainSetup {
       throw InitializationException(errorMsg,
           cause: error, stackTrace: stackTrace);
     }
+  }
+
+  /// Non-critical tasks that run after the UI is visible.
+  /// Both are already guarded with try-catch and marked non-fatal.
+  static Future<void> runDeferredTasks() async {
+    await _startBackupScheduler();
+    final appDbHandler = locator.get<Signal<AppDatabaseHandler>>();
+    await _recordDailySnapshot(appDbHandler.value.appDatabase);
+    loggerGlobal.info("MainSetup", "Deferred tasks complete.");
   }
 
   static void _setupLocator() {
@@ -165,9 +173,6 @@ class MainSetup {
       );
       appDbHandler.value.databaseLocation = appDatabaseLocation;
       await appDbHandler.value.createDatabase(setupOnInit: true);
-
-      // Record a daily statistics snapshot if the last one is older than 24h
-      await _recordDailySnapshot(appDbHandler.value.appDatabase);
     } catch (e, s) {
       const errorMsg = "Configuration database setup failed.";
       loggerGlobal.severe("MainSetup", errorMsg, e, s);
