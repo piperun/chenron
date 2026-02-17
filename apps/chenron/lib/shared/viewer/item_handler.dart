@@ -129,10 +129,10 @@ Future<void> handleItemDeletion(
   }
 }
 
-/// Handles bulk tagging of multiple items.
+/// Handles bulk tag management (add + remove) for multiple items.
 ///
-/// Shows a dialog to enter tag names, applies them to all items,
-/// and calls the refresh callback on success.
+/// Shows the tag dialog, processes the result for both additions and
+/// removals, and calls the refresh callback on success.
 Future<void> handleItemTagging(
   BuildContext context,
   List<FolderItem> items,
@@ -140,21 +140,32 @@ Future<void> handleItemTagging(
 ) async {
   if (items.isEmpty) return;
 
-  final tagNames = await showBulkTagDialog(
+  final result = await showBulkTagDialog(
     context: context,
     items: items,
   );
-  if (tagNames == null || tagNames.isEmpty || !context.mounted) return;
+  if (result == null || result.isEmpty || !context.mounted) return;
 
   try {
-    final result =
-        await ItemTaggingService().addTagToItems(items, tagNames);
+    final service = ItemTaggingService();
+    final messages = <String>[];
+
+    if (result.tagsToAdd.isNotEmpty) {
+      final addResult =
+          await service.addTagToItems(items, result.tagsToAdd);
+      messages.add(_buildTaggingMessage(addResult));
+    }
+
+    if (result.tagsToRemove.isNotEmpty) {
+      final removeResult =
+          await service.removeTagFromItems(items, result.tagsToRemove);
+      messages.add(_buildRemovalMessage(removeResult));
+    }
 
     if (context.mounted) {
-      final message = _buildTaggingMessage(result);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(message),
+          content: Text(messages.join(" | ")),
           backgroundColor: Theme.of(context).colorScheme.primary,
           duration: const Duration(seconds: 3),
         ),
@@ -168,23 +179,29 @@ Future<void> handleItemTagging(
   }
 }
 
-/// Builds a human-readable snackbar message from a [TaggingResult].
-///
-/// Examples:
-///   "Tagged 4 items: +flutter (2 new), +mobile (4 new)"
-///   "Tagged 3 items (all already had selected tags)"
 String _buildTaggingMessage(TaggingResult result) {
   final items = result.itemCount;
   final itemWord = items == 1 ? "item" : "items";
 
   if (result.totalNew == 0) {
-    return "Tagged $items $itemWord (all already had selected tags)";
+    return "+${result.newCountPerTag.keys.join(", +")} ($items $itemWord, all had them)";
   }
 
   final parts = result.newCountPerTag.entries
       .map((e) => "+${e.key} (${e.value} new)")
       .join(", ");
-  return "Tagged $items $itemWord: $parts";
+  return parts;
+}
+
+String _buildRemovalMessage(TagRemovalResult result) {
+  if (result.totalRemoved == 0) {
+    return "Removed 0 tags";
+  }
+
+  return result.removedCountPerTag.entries
+      .where((e) => e.value > 0)
+      .map((e) => "-${e.key} (${e.value})")
+      .join(", ");
 }
 
 /// Handles bulk metadata refresh for selected link items.

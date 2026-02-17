@@ -74,7 +74,7 @@ void main() {
         const FolderItem.link(url: "https://example.com/2"),
       ]);
 
-      expect(find.text("Add tags to 2 items"), findsOneWidget);
+      expect(find.text("Manage tags for 2 items"), findsOneWidget);
     });
 
     testWidgets("shows 'Tag editor' when no items", (tester) async {
@@ -158,17 +158,17 @@ void main() {
   });
 
   group("BulkTagDialog interaction", () {
-    testWidgets("Add Tags button disabled when nothing selected",
+    testWidgets("Apply button disabled when nothing selected",
         (tester) async {
       await openDialog(tester, items: []);
 
-      final addButton = tester.widget<FilledButton>(
-        find.widgetWithText(FilledButton, "Add Tags"),
+      final applyButton = tester.widget<FilledButton>(
+        find.widgetWithText(FilledButton, "Apply"),
       );
-      expect(addButton.onPressed, isNull);
+      expect(applyButton.onPressed, isNull);
     });
 
-    testWidgets("selecting a tag enables Add button", (tester) async {
+    testWidgets("selecting a tag enables Apply button", (tester) async {
       await database.addTag("flutter");
 
       await openDialog(tester, items: []);
@@ -177,11 +177,11 @@ void main() {
       await tester.tap(find.text("flutter"));
       await tester.pump();
 
-      // Button should show "Add 1 Tag" and be enabled
-      final addButton = tester.widget<FilledButton>(
-        find.widgetWithText(FilledButton, "Add 1 Tag"),
+      // Button should show "Apply (+1)" and be enabled
+      final applyButton = tester.widget<FilledButton>(
+        find.widgetWithText(FilledButton, "Apply (+1)"),
       );
-      expect(addButton.onPressed, isNotNull);
+      expect(applyButton.onPressed, isNotNull);
     });
 
     testWidgets("selecting multiple tags updates button text",
@@ -196,7 +196,7 @@ void main() {
       await tester.tap(find.text("dart"));
       await tester.pump();
 
-      expect(find.text("Add 2 Tags"), findsOneWidget);
+      expect(find.text("Apply (+2)"), findsOneWidget);
     });
 
     testWidgets("toggling tag off deselects it", (tester) async {
@@ -207,12 +207,12 @@ void main() {
       // Select
       await tester.tap(find.text("flutter"));
       await tester.pump();
-      expect(find.text("Add 1 Tag"), findsOneWidget);
+      expect(find.text("Apply (+1)"), findsOneWidget);
 
-      // Deselect
+      // Deselect (add → neutral since no items have it)
       await tester.tap(find.text("flutter"));
       await tester.pump();
-      expect(find.text("Add Tags"), findsOneWidget);
+      expect(find.text("Apply"), findsOneWidget);
     });
 
     testWidgets("search filters tags", (tester) async {
@@ -261,8 +261,8 @@ void main() {
       await tester.tap(find.textContaining('Create "newtag"'));
       await tester.pump();
 
-      expect(find.text("#newtag (new)"), findsOneWidget);
-      expect(find.text("Add 1 Tag"), findsOneWidget);
+      expect(find.text("+newtag (new)"), findsOneWidget);
+      expect(find.text("Apply (+1)"), findsOneWidget);
     });
 
     testWidgets("chip can be removed", (tester) async {
@@ -274,13 +274,11 @@ void main() {
       await tester.tap(find.text("flutter"));
       await tester.pump();
 
-      expect(find.text("#flutter"), findsOneWidget);
+      expect(find.text("+flutter"), findsOneWidget);
 
       // Remove the chip by tapping its delete icon.
-      // InputChip wraps the delete icon in a GestureDetector / InkWell;
-      // the safest way to hit it is to find the Icon descendant.
       final chipFinder = find.ancestor(
-        of: find.text("#flutter"),
+        of: find.text("+flutter"),
         matching: find.byType(InputChip),
       );
       final deleteIcon = find.descendant(
@@ -291,12 +289,13 @@ void main() {
       await tester.pump();
 
       // Chip should be gone, button disabled
-      expect(find.text("#flutter"), findsNothing);
-      expect(find.text("Add Tags"), findsOneWidget);
+      expect(find.text("+flutter"), findsNothing);
+      expect(find.text("Apply"), findsOneWidget);
     });
 
     testWidgets("cancel returns null", (tester) async {
-      List<String>? result = const ["sentinel"];
+      BulkTagResult? result;
+      bool wasCalled = false;
       await tester.pumpWidget(buildApp(
         child: Builder(
           builder: (context) => ElevatedButton(
@@ -305,6 +304,7 @@ void main() {
                 context: context,
                 items: const [],
               );
+              wasCalled = true;
             },
             child: const Text("Open"),
           ),
@@ -319,14 +319,16 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
 
+      expect(wasCalled, isTrue);
       expect(result, isNull);
     });
 
-    testWidgets("confirm returns selected tag names", (tester) async {
+    testWidgets("confirm returns BulkTagResult with selected tags",
+        (tester) async {
       await database.addTag("flutter");
       await database.addTag("dart");
 
-      List<String>? result;
+      BulkTagResult? result;
       await tester.pumpWidget(buildApp(
         child: Builder(
           builder: (context) => ElevatedButton(
@@ -350,12 +352,13 @@ void main() {
       await tester.tap(find.text("dart"));
       await tester.pump();
 
-      await tester.tap(find.text("Add 2 Tags"));
+      await tester.tap(find.text("Apply (+2)"));
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
 
       expect(result, isNotNull);
-      expect(result, containsAll(["flutter", "dart"]));
+      expect(result!.tagsToAdd, containsAll(["flutter", "dart"]));
+      expect(result!.tagsToRemove, isEmpty);
     });
 
     testWidgets("validates new tag creation", (tester) async {
@@ -371,6 +374,169 @@ void main() {
 
       // Should show validation error
       expect(find.textContaining("3-12"), findsOneWidget);
+    });
+  });
+
+  group("BulkTagDialog tri-state toggle", () {
+    testWidgets("tag with no coverage: neutral → add → neutral",
+        (tester) async {
+      await database.addTag("flutter");
+
+      // No items have "flutter"
+      await openDialog(tester, items: [
+        const FolderItem.link(url: "https://example.com"),
+      ]);
+
+      // Tap to add
+      await tester.tap(find.text("flutter"));
+      await tester.pump();
+      expect(find.text("+flutter"), findsOneWidget);
+      expect(find.text("Apply (+1)"), findsOneWidget);
+
+      // Tap again → back to neutral (no items have it, so skip remove)
+      await tester.tap(find.text("flutter"));
+      await tester.pump();
+      expect(find.text("+flutter"), findsNothing);
+      expect(find.text("Apply"), findsOneWidget);
+    });
+
+    testWidgets("tag with partial coverage: neutral → add → remove → neutral",
+        (tester) async {
+      await database.addTag("flutter");
+
+      final items = [
+        FolderItem.link(
+          url: "https://example.com/1",
+          tags: [
+            Tag(id: "t1", createdAt: DateTime.now(), name: "flutter"),
+          ],
+        ),
+        const FolderItem.link(url: "https://example.com/2"),
+      ];
+
+      await openDialog(tester, items: items);
+
+      // Tap 1: neutral → add
+      await tester.tap(find.text("flutter"));
+      await tester.pump();
+      expect(find.text("+flutter"), findsOneWidget);
+
+      // Tap 2: add → remove (some items have it)
+      await tester.tap(find.text("flutter"));
+      await tester.pump();
+      expect(find.text("-flutter"), findsOneWidget);
+      expect(find.text("Apply (-1)"), findsOneWidget);
+
+      // Tap 3: remove → neutral
+      await tester.tap(find.text("flutter"));
+      await tester.pump();
+      expect(find.text("-flutter"), findsNothing);
+      expect(find.text("Apply"), findsOneWidget);
+    });
+
+    testWidgets("tag with full coverage: neutral → remove → neutral",
+        (tester) async {
+      await database.addTag("common");
+
+      final items = [
+        FolderItem.link(
+          url: "https://example.com",
+          tags: [
+            Tag(id: "t1", createdAt: DateTime.now(), name: "common"),
+          ],
+        ),
+      ];
+
+      await openDialog(tester, items: items);
+
+      // Tap 1: neutral → remove (all have it)
+      await tester.tap(find.text("common"));
+      await tester.pump();
+      expect(find.text("-common"), findsOneWidget);
+      expect(find.text("Apply (-1)"), findsOneWidget);
+
+      // Tap 2: remove → neutral
+      await tester.tap(find.text("common"));
+      await tester.pump();
+      expect(find.text("-common"), findsNothing);
+      expect(find.text("Apply"), findsOneWidget);
+    });
+
+    testWidgets("mixed add and remove shows combined label",
+        (tester) async {
+      await database.addTag("keep");
+      await database.addTag("remove_me");
+
+      final items = [
+        FolderItem.link(
+          url: "https://example.com",
+          tags: [
+            Tag(id: "t1", createdAt: DateTime.now(), name: "remove_me"),
+          ],
+        ),
+      ];
+
+      await openDialog(tester, items: items);
+
+      // Add "keep"
+      await tester.tap(find.text("keep"));
+      await tester.pump();
+
+      // Remove "remove_me" (all have it → goes to remove)
+      await tester.tap(find.text("remove_me"));
+      await tester.pump();
+
+      expect(find.text("Apply (+1, -1)"), findsOneWidget);
+    });
+
+    testWidgets("confirm returns both adds and removes", (tester) async {
+      await database.addTag("new_tag");
+      await database.addTag("old_tag");
+
+      BulkTagResult? result;
+      final items = [
+        FolderItem.link(
+          url: "https://example.com",
+          tags: [
+            Tag(id: "t1", createdAt: DateTime.now(), name: "old_tag"),
+          ],
+        ),
+      ];
+
+      await tester.pumpWidget(buildApp(
+        child: Builder(
+          builder: (context) => ElevatedButton(
+            onPressed: () async {
+              result = await showBulkTagDialog(
+                context: context,
+                items: items,
+              );
+            },
+            child: const Text("Open"),
+          ),
+        ),
+      ));
+
+      await tester.tap(find.text("Open"));
+      await tester.pump();
+      await tester.pump();
+
+      // Add new_tag
+      await tester.tap(find.text("new_tag"));
+      await tester.pump();
+
+      // Remove old_tag (all have it → remove)
+      await tester.tap(find.text("old_tag"));
+      await tester.pump();
+
+      // Confirm
+      await tester.tap(find.text("Apply (+1, -1)"));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(result, isNotNull);
+      expect(result!.tagsToAdd, ["new_tag"]);
+      expect(result!.tagsToRemove, ["old_tag"]);
     });
   });
 

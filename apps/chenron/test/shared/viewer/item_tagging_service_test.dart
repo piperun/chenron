@@ -360,6 +360,272 @@ void main() {
       expect(sharedTags.length, equals(1));
     });
   });
+
+  group("TagRemovalResult", () {
+    test("totalRemoved sums all per-tag counts", () {
+      const result = TagRemovalResult(
+        itemCount: 5,
+        removedCountPerTag: {"flutter": 3, "dart": 2},
+      );
+      expect(result.totalRemoved, equals(5));
+    });
+
+    test("totalRemoved is 0 when no tags were removed", () {
+      const result = TagRemovalResult(
+        itemCount: 3,
+        removedCountPerTag: {"flutter": 0, "dart": 0},
+      );
+      expect(result.totalRemoved, equals(0));
+    });
+  });
+
+  group("ItemTaggingService.removeTagFromItems()", () {
+    test("removes single tag from single link", () async {
+      final linkResult = await database.createLink(
+        link: "https://example.com",
+        tags: [Metadata(value: "flutter", type: MetadataTypeEnum.tag)],
+      );
+
+      // Get the tag with its ID from the database
+      final link = await database.getLink(
+        linkId: linkResult.linkId,
+        includeOptions: const IncludeOptions({AppDataInclude.tags}),
+      );
+      final tag = link!.tags.first;
+
+      final items = [
+        FolderItem.link(
+          id: linkResult.linkId,
+          itemId: null,
+          url: "https://example.com",
+          tags: [tag],
+        ),
+      ];
+
+      final result = await ItemTaggingService()
+          .removeTagFromItems(items, ["flutter"]);
+
+      expect(result.itemCount, equals(1));
+      expect(result.removedCountPerTag["flutter"], equals(1));
+      expect(result.totalRemoved, equals(1));
+
+      // Verify tag was removed from the link
+      final updatedLink = await database.getLink(
+        linkId: linkResult.linkId,
+        includeOptions: const IncludeOptions({AppDataInclude.tags}),
+      );
+      expect(updatedLink!.tags, isEmpty);
+    });
+
+    test("removes tags from multiple links", () async {
+      final link1 = await database.createLink(
+        link: "https://example.com/1",
+        tags: [Metadata(value: "shared", type: MetadataTypeEnum.tag)],
+      );
+      final link2 = await database.createLink(
+        link: "https://example.com/2",
+        tags: [Metadata(value: "shared", type: MetadataTypeEnum.tag)],
+      );
+
+      // Get tags with IDs
+      final l1 = await database.getLink(
+        linkId: link1.linkId,
+        includeOptions: const IncludeOptions({AppDataInclude.tags}),
+      );
+      final l2 = await database.getLink(
+        linkId: link2.linkId,
+        includeOptions: const IncludeOptions({AppDataInclude.tags}),
+      );
+
+      final items = [
+        FolderItem.link(
+          id: link1.linkId,
+          itemId: null,
+          url: "https://example.com/1",
+          tags: l1!.tags,
+        ),
+        FolderItem.link(
+          id: link2.linkId,
+          itemId: null,
+          url: "https://example.com/2",
+          tags: l2!.tags,
+        ),
+      ];
+
+      final result = await ItemTaggingService()
+          .removeTagFromItems(items, ["shared"]);
+
+      expect(result.itemCount, equals(2));
+      expect(result.removedCountPerTag["shared"], equals(2));
+    });
+
+    test("no-op when item does not have the tag", () async {
+      final linkResult = await database.createLink(
+        link: "https://example.com",
+        tags: [Metadata(value: "flutter", type: MetadataTypeEnum.tag)],
+      );
+
+      final link = await database.getLink(
+        linkId: linkResult.linkId,
+        includeOptions: const IncludeOptions({AppDataInclude.tags}),
+      );
+
+      final items = [
+        FolderItem.link(
+          id: linkResult.linkId,
+          itemId: null,
+          url: "https://example.com",
+          tags: link!.tags,
+        ),
+      ];
+
+      // Try to remove a tag that doesn't exist on the item
+      final result = await ItemTaggingService()
+          .removeTagFromItems(items, ["nonexistent"]);
+
+      expect(result.itemCount, equals(1));
+      expect(result.removedCountPerTag["nonexistent"], equals(0));
+      expect(result.totalRemoved, equals(0));
+
+      // Original tag should still be there
+      final updated = await database.getLink(
+        linkId: linkResult.linkId,
+        includeOptions: const IncludeOptions({AppDataInclude.tags}),
+      );
+      expect(updated!.tags.length, equals(1));
+      expect(updated.tags.first.name, equals("flutter"));
+    });
+
+    test("removes tag from document", () async {
+      final docResult = await database.createDocument(
+        title: "Test Doc",
+        filePath: "/path/to/doc.md",
+        fileType: DocumentFileType.markdown,
+        tags: [Metadata(value: "notes", type: MetadataTypeEnum.tag)],
+      );
+
+      final doc = await database.getDocument(
+        documentId: docResult.documentId,
+        includeOptions: const IncludeOptions({AppDataInclude.tags}),
+      );
+
+      final items = [
+        FolderItem.document(
+          id: docResult.documentId,
+          itemId: null,
+          title: "Test Doc",
+          filePath: "/path/to/doc.md",
+          tags: doc!.tags!,
+        ),
+      ];
+
+      final result = await ItemTaggingService()
+          .removeTagFromItems(items, ["notes"]);
+
+      expect(result.itemCount, equals(1));
+      expect(result.removedCountPerTag["notes"], equals(1));
+
+      final updated = await database.getDocument(
+        documentId: docResult.documentId,
+        includeOptions: const IncludeOptions({AppDataInclude.tags}),
+      );
+      expect(updated!.tags ?? [], isEmpty);
+    });
+
+    test("removes tag from folder", () async {
+      final folderResult = await database.createFolder(
+        folderInfo: FolderDraft(title: "Test Folder", description: ""),
+        tags: [Metadata(value: "archive", type: MetadataTypeEnum.tag)],
+      );
+
+      final folder = await database.getFolder(
+        folderId: folderResult.folderId,
+        includeOptions: const IncludeOptions({AppDataInclude.tags}),
+      );
+
+      final items = [
+        FolderItem.folder(
+          id: folderResult.folderId,
+          itemId: null,
+          folderId: folderResult.folderId,
+          title: "Test Folder",
+          tags: folder!.tags,
+        ),
+      ];
+
+      final result = await ItemTaggingService()
+          .removeTagFromItems(items, ["archive"]);
+
+      expect(result.itemCount, equals(1));
+      expect(result.removedCountPerTag["archive"], equals(1));
+
+      final updated = await database.getFolder(
+        folderId: folderResult.folderId,
+        includeOptions: const IncludeOptions({AppDataInclude.tags}),
+      );
+      expect(updated!.tags, isEmpty);
+    });
+
+    test("handles empty items list", () async {
+      final result = await ItemTaggingService()
+          .removeTagFromItems([], ["flutter"]);
+
+      expect(result.itemCount, equals(0));
+      expect(result.totalRemoved, equals(0));
+    });
+
+    test("skips items with null id", () async {
+      final items = [
+        const FolderItem.link(url: "https://example.com"),
+      ];
+
+      final result = await ItemTaggingService()
+          .removeTagFromItems(items, ["test"]);
+
+      expect(result.itemCount, equals(0));
+    });
+
+    test("removes multiple tags at once", () async {
+      final linkResult = await database.createLink(
+        link: "https://example.com",
+        tags: [
+          Metadata(value: "flutter", type: MetadataTypeEnum.tag),
+          Metadata(value: "dart", type: MetadataTypeEnum.tag),
+          Metadata(value: "mobile", type: MetadataTypeEnum.tag),
+        ],
+      );
+
+      final link = await database.getLink(
+        linkId: linkResult.linkId,
+        includeOptions: const IncludeOptions({AppDataInclude.tags}),
+      );
+
+      final items = [
+        FolderItem.link(
+          id: linkResult.linkId,
+          itemId: null,
+          url: "https://example.com",
+          tags: link!.tags,
+        ),
+      ];
+
+      final result = await ItemTaggingService()
+          .removeTagFromItems(items, ["flutter", "dart"]);
+
+      expect(result.itemCount, equals(1));
+      expect(result.removedCountPerTag["flutter"], equals(1));
+      expect(result.removedCountPerTag["dart"], equals(1));
+      expect(result.totalRemoved, equals(2));
+
+      // "mobile" should remain
+      final updated = await database.getLink(
+        linkId: linkResult.linkId,
+        includeOptions: const IncludeOptions({AppDataInclude.tags}),
+      );
+      expect(updated!.tags.length, equals(1));
+      expect(updated.tags.first.name, equals("mobile"));
+    });
+  });
 }
 
 /// Minimal stub that wraps a test [AppDatabase] for the locator.

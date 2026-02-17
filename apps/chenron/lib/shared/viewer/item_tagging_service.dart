@@ -20,6 +20,24 @@ class TaggingResult {
       newCountPerTag.values.fold(0, (sum, count) => sum + count);
 }
 
+/// Result of a bulk tag removal operation.
+class TagRemovalResult {
+  /// Total items processed.
+  final int itemCount;
+
+  /// Per-tag count of items that had the tag removed.
+  final Map<String, int> removedCountPerTag;
+
+  const TagRemovalResult({
+    required this.itemCount,
+    required this.removedCountPerTag,
+  });
+
+  /// Total number of tag associations removed.
+  int get totalRemoved =>
+      removedCountPerTag.values.fold(0, (sum, count) => sum + count);
+}
+
 class ItemTaggingService {
   /// Adds tags to multiple items.
   ///
@@ -72,6 +90,59 @@ class ItemTaggingService {
     return TaggingResult(
       itemCount: processedCount,
       newCountPerTag: newCountPerTag,
+    );
+  }
+
+  /// Removes tags from multiple items.
+  ///
+  /// Resolves tag names to IDs via each item's existing [FolderItem.tags]
+  /// (which carry [Tag] objects with `.id` and `.name`), then calls the
+  /// appropriate `db.removeTagsFrom*` method.
+  Future<TagRemovalResult> removeTagFromItems(
+    List<FolderItem> items,
+    List<String> tagNames,
+  ) async {
+    final db = locator.get<Signal<AppDatabaseHandler>>().value.appDatabase;
+    final tagNameSet = tagNames.toSet();
+
+    final removedCountPerTag = <String, int>{
+      for (final name in tagNames) name: 0,
+    };
+
+    int processedCount = 0;
+    for (final item in items) {
+      if (item.id == null) continue;
+
+      // Resolve tag names → IDs from this item's tag list.
+      final matchingTags =
+          item.tags.where((t) => tagNameSet.contains(t.name)).toList();
+      final tagIds = matchingTags.map((t) => t.id).toList();
+
+      if (tagIds.isNotEmpty) {
+        switch (item.type) {
+          case FolderItemType.link:
+            await db.removeTagsFromLink(
+                linkId: item.id!, tagIds: tagIds);
+          case FolderItemType.document:
+            await db.removeTagsFromDocument(
+                documentId: item.id!, tagIds: tagIds);
+          case FolderItemType.folder:
+            await db.removeTagsFromFolder(
+                folderId: item.id!, tagIds: tagIds);
+        }
+
+        for (final tag in matchingTags) {
+          removedCountPerTag[tag.name] =
+              (removedCountPerTag[tag.name] ?? 0) + 1;
+        }
+      }
+
+      processedCount++;
+    }
+
+    return TagRemovalResult(
+      itemCount: processedCount,
+      removedCountPerTag: removedCountPerTag,
     );
   }
 }
