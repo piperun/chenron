@@ -1,7 +1,9 @@
 import "dart:async";
 import "package:chenron/shared/constants/durations.dart";
+import "package:chenron/shared/utils/text_highlighter.dart";
 import "package:database/database.dart";
 import "package:flutter/material.dart";
+import "package:flutter/services.dart";
 import "package:chenron/shared/search/search_controller.dart";
 import "package:chenron/shared/search/suggestion_builder.dart";
 import "package:chenron/shared/utils/debouncer.dart";
@@ -9,8 +11,8 @@ import "package:signals/signals_flutter.dart";
 
 /// A custom overlay that shows search suggestions without interfering with typing.
 ///
-/// This widget listens to a SearchBarController with debouncing and displays
-/// suggestions in an overlay positioned below the search bar.
+/// Supports keyboard navigation: Up/Down to move selection, Enter to select,
+/// Escape to dismiss.
 class SuggestionsOverlay extends StatefulWidget {
   final SearchBarController controller;
   final Signal<AppDatabaseHandler> db;
@@ -37,9 +39,11 @@ class SuggestionsOverlay extends StatefulWidget {
 
 class _SuggestionsOverlayState extends State<SuggestionsOverlay> {
   final LayerLink _layerLink = LayerLink();
+  final FocusNode _focusNode = FocusNode();
   OverlayEntry? _overlayEntry;
-  late final Debouncer<List<ListTile>> _debouncer;
-  List<ListTile> _suggestions = [];
+  late final Debouncer<List<SuggestionData>> _debouncer;
+  List<SuggestionData> _suggestions = [];
+  int _selectedIndex = -1;
   bool _isLoading = false;
   String _lastQuery = "";
 
@@ -48,12 +52,16 @@ class _SuggestionsOverlayState extends State<SuggestionsOverlay> {
     super.initState();
     _debouncer = Debouncer(duration: widget.debounceDuration);
 
-    // Listen to query changes with debounce
+    // Listen to query changes with debounce.
+    // Deferred via addPostFrameCallback to avoid calling setState during
+    // TextEditingController's notification dispatch.
     effect(() {
       final query = widget.controller.query.value;
       if (query != _lastQuery) {
         _lastQuery = query;
-        _onQueryChanged(query);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _onQueryChanged(query);
+        });
       }
     });
   }
@@ -62,10 +70,13 @@ class _SuggestionsOverlayState extends State<SuggestionsOverlay> {
   void dispose() {
     _removeOverlay();
     _debouncer.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
   void _onQueryChanged(String query) {
+    _selectedIndex = -1;
+
     if (query.isEmpty) {
       _removeOverlay();
       return;
@@ -92,7 +103,7 @@ class _SuggestionsOverlayState extends State<SuggestionsOverlay> {
     }));
   }
 
-  Future<List<ListTile>> _fetchSuggestions() async {
+  Future<List<SuggestionData>> _fetchSuggestions() async {
     if (!mounted) return [];
 
     final suggestionBuilder = GlobalSuggestionBuilder(
@@ -112,6 +123,32 @@ class _SuggestionsOverlayState extends State<SuggestionsOverlay> {
     return suggestionBuilder.buildSuggestions();
   }
 
+  void _handleKeyEvent(KeyEvent event) {
+    if (event is! KeyDownEvent && event is! KeyRepeatEvent) return;
+    if (_overlayEntry == null || _suggestions.isEmpty) return;
+
+    if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+      setState(() {
+        _selectedIndex =
+            (_selectedIndex + 1).clamp(0, _suggestions.length - 1);
+      });
+      _overlayEntry?.markNeedsBuild();
+    } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+      setState(() {
+        _selectedIndex =
+            (_selectedIndex - 1).clamp(0, _suggestions.length - 1);
+      });
+      _overlayEntry?.markNeedsBuild();
+    } else if (event.logicalKey == LogicalKeyboardKey.enter) {
+      if (_selectedIndex >= 0 && _selectedIndex < _suggestions.length) {
+        _suggestions[_selectedIndex].onTap();
+      }
+    } else if (event.logicalKey == LogicalKeyboardKey.escape) {
+      _removeOverlay();
+      _selectedIndex = -1;
+    }
+  }
+
   void _showOverlay() {
     _removeOverlay();
 
@@ -119,7 +156,7 @@ class _SuggestionsOverlayState extends State<SuggestionsOverlay> {
     final size = renderBox?.size;
 
     _overlayEntry = OverlayEntry(
-      builder: (context) => Positioned(
+      builder: (overlayContext) => Positioned(
         width: size?.width ?? 600,
         child: CompositedTransformFollower(
           link: _layerLink,
@@ -153,7 +190,24 @@ class _SuggestionsOverlayState extends State<SuggestionsOverlay> {
                       shrinkWrap: true,
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       itemCount: _suggestions.length,
-                      itemBuilder: (context, index) => _suggestions[index],
+                      itemBuilder: (_, index) {
+                        final item = _suggestions[index];
+                        final isSelected = index == _selectedIndex;
+                        return ListTile(
+                          leading: Icon(item.icon),
+                          title: RichText(
+                            text: TextSpan(
+                              children: TextHighlighter.highlight(
+                                context,
+                                item.title,
+                                item.searchText,
+                              ),
+                            ),
+                          ),
+                          selected: isSelected,
+                          onTap: item.onTap,
+                        );
+                      },
                     ),
             ),
           ),
@@ -173,7 +227,11 @@ class _SuggestionsOverlayState extends State<SuggestionsOverlay> {
   Widget build(BuildContext context) {
     return CompositedTransformTarget(
       link: _layerLink,
-      child: widget.child,
+      child: KeyboardListener(
+        focusNode: _focusNode,
+        onKeyEvent: _handleKeyEvent,
+        child: widget.child,
+      ),
     );
   }
 }

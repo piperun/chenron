@@ -1,5 +1,4 @@
 import "package:chenron/shared/search/search_matcher.dart";
-import "package:chenron/shared/utils/text_highlighter.dart";
 import "package:chenron/shared/search/search_controller.dart";
 
 import "package:chenron/features/folder_viewer/pages/folder_viewer_page.dart";
@@ -29,7 +28,7 @@ class GlobalSuggestionBuilder {
     this.onItemSelected,
   });
 
-  Future<List<ListTile>> buildSuggestions() async {
+  Future<List<SuggestionData>> buildSuggestions() async {
     final handler = db.value;
     final appDb = handler.appDatabase;
     final query = queryController?.query.value ?? controller?.text ?? "";
@@ -68,12 +67,12 @@ class GlobalSuggestionBuilder {
       // ID-matched results first (exact match is highest relevance)
       for (final folder in idResults.folders)
         if (!seenFolderIds.contains(folder.data.id))
-          suggestionFactory.createFolderSuggestion(folder),
+          suggestionFactory.folderData(folder),
       for (final link in idResults.links)
         if (!seenLinkIds.contains(link.data.id))
-          suggestionFactory.createLinkSuggestion(link),
-      ...matchedFolders.map(suggestionFactory.createFolderSuggestion),
-      ...matchedLinks.map(suggestionFactory.createLinkSuggestion),
+          suggestionFactory.linkData(link),
+      ...matchedFolders.map(suggestionFactory.folderData),
+      ...matchedLinks.map(suggestionFactory.linkData),
     ];
   }
 
@@ -111,39 +110,37 @@ class SuggestionFactory {
     this.onItemSelected,
   );
 
-  ListTile createFolderSuggestion(FolderResult folder) {
-    return SuggestionTile(
+  SuggestionData folderData(FolderResult folder) {
+    return SuggestionData(
       icon: Icons.folder,
       title: folder.data.title,
       searchText: controller?.text ?? "",
-      onTapAction: () => _handleFolderNavigation(
+      onTap: () => _handleFolderNavigation(
         folder.data.id,
         folder.data.title,
       ),
-    ).build(context);
+    );
   }
 
-  ListTile createLinkSuggestion(LinkResult link) {
-    return SuggestionTile(
+  SuggestionData linkData(LinkResult link) {
+    return SuggestionData(
       icon: Icons.link,
       title: link.data.path,
       searchText: controller?.text ?? "",
-      onTapAction: () => _handleUrlLaunch(
+      onTap: () => _handleUrlLaunch(
         link.data.path,
-        link.data.path, // URL as title for links
+        link.data.path,
       ),
-    ).build(context);
+    );
   }
 
   Future<void> _handleFolderNavigation(String folderId, String title) async {
-    // Save to history
     await onItemSelected?.call(
       type: "folder",
       id: folderId,
       title: title,
     );
 
-    // Overlay will be removed by SuggestionsOverlay after selection
     if (context.mounted) {
       Navigator.push(
         context,
@@ -155,14 +152,12 @@ class SuggestionFactory {
   }
 
   Future<void> _handleUrlLaunch(String url, String title) async {
-    // Save to history
     await onItemSelected?.call(
       type: "link",
       id: url,
       title: title,
     );
 
-    // Overlay will be removed by SuggestionsOverlay after selection
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
@@ -180,28 +175,17 @@ class _IdLookupResults {
   });
 }
 
-class SuggestionTile {
+/// Data model for a search suggestion, separating data from presentation.
+class SuggestionData {
   final IconData icon;
   final String title;
   final String searchText;
-  final VoidCallback onTapAction;
+  final VoidCallback onTap;
 
-  const SuggestionTile({
+  const SuggestionData({
     required this.icon,
     required this.title,
     required this.searchText,
-    required this.onTapAction,
+    required this.onTap,
   });
-
-  ListTile build(BuildContext context) {
-    return ListTile(
-      leading: Icon(icon),
-      title: RichText(
-        text: TextSpan(
-          children: TextHighlighter.highlight(context, title, searchText),
-        ),
-      ),
-      onTap: onTapAction,
-    );
-  }
 }
