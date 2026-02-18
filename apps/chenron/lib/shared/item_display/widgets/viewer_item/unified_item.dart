@@ -61,8 +61,12 @@ class _UnifiedItemState extends State<UnifiedItem> {
           ItemTitle(
               item: widget.item, url: url, maxLines: widget.titleLines),
           const SizedBox(height: 4),
-          ItemDescription(
-              item: widget.item, url: url, maxLines: widget.descriptionLines),
+          Flexible(
+            child: ItemDescription(
+                item: widget.item,
+                url: url,
+                maxLines: widget.descriptionLines),
+          ),
         ],
       ),
     );
