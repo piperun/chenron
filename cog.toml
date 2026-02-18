@@ -27,6 +27,7 @@ script = "#!/bin/sh\nset -e\ncog verify --file $1"
 
 [packages.chenron]
 path = "apps/chenron"
+changelog_path = "CHANGELOG.md"
 public_api = true
 pre_bump_hooks = [
   "sed -i 's/^version: .*/version: {{version}}+0/' pubspec.yaml",
