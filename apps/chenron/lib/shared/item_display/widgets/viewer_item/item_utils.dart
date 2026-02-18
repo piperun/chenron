@@ -61,6 +61,7 @@ class ItemUtils {
     int maxTags = 5,
     Set<String> includedTagNames = const {},
     ValueChanged<String>? onTagTap,
+    VoidCallback? onOverflowTap,
   }) {
     final List<Widget> chips = [];
     final tags = item.tags;
@@ -122,7 +123,7 @@ class ItemUtils {
       chips.add(
         Builder(builder: (context) {
           final muted = Theme.of(context).colorScheme.onSurfaceVariant;
-          return Container(
+          final chip = Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
               color: muted.withValues(alpha: 0.12),
@@ -138,6 +139,10 @@ class ItemUtils {
               ),
             ),
           );
+          if (onOverflowTap != null) {
+            return GestureDetector(onTap: onOverflowTap, child: chip);
+          }
+          return chip;
         }),
       );
     }

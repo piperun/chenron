@@ -202,7 +202,7 @@ class _CardFooterState extends State<_CardFooter> {
           const Spacer(),
           if (widget.tagCount > 0) ...[
             _FooterChip(
-              icon: Icons.tag,
+              icon: Icons.sell_outlined,
               label: "${widget.tagCount}",
               tooltip:
                   "${widget.tagCount} tag${widget.tagCount == 1 ? "" : "s"}",
@@ -295,10 +295,10 @@ class _ExpandedTagPanel extends StatelessWidget {
     this.onTagTap,
   });
 
-  // Each tag row ~22px + 4px runSpacing; derive max rows from maxTags
+  // Each tag chip ~28px + 6px runSpacing; derive max rows from maxTags
   double get _maxWrapHeight {
     final rows = maxTags <= 1 ? 1 : (maxTags <= 5 ? 2 : 3);
-    return rows * 22.0 + (rows - 1) * 4.0;
+    return rows * 30.0 + (rows - 1) * 6.0;
   }
 
   @override
@@ -316,15 +316,19 @@ class _ExpandedTagPanel extends StatelessWidget {
         ),
         child: ConstrainedBox(
           constraints: BoxConstraints(maxHeight: _maxWrapHeight),
-          child: SingleChildScrollView(
-            child: Wrap(
-              spacing: 4,
-              runSpacing: 4,
-              children: ItemUtils.buildTags(
-                item,
-                maxTags: maxTags,
-                includedTagNames: includedTagNames,
-                onTagTap: onTagTap,
+          child: Wrap(
+            spacing: 4,
+            runSpacing: 4,
+            clipBehavior: Clip.hardEdge,
+            children: ItemUtils.buildTags(
+              item,
+              maxTags: maxTags,
+              includedTagNames: includedTagNames,
+              onTagTap: onTagTap,
+              onOverflowTap: () => showItemDetailDialog(
+                context,
+                itemId: item.id!,
+                itemType: item.type,
               ),
             ),
           ),
