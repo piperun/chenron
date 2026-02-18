@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## chenron-v1.3.0 - 2026-02-18
+#### Features
+- redesign card footer and improve search - (45a13b0) - *piperun*
+- add keyboard navigation to search suggestions dropdown - (6fa829e) - *piperun*
+#### Bug Fixes
+- polish card tag panel and adjust card sizing - (f40c4ed) - *piperun*
+#### Refactoring
+- deduplicate search bar config and polish aesthetics - (9561641) - *piperun*
+- redesign shell with context-aware app bar and rail navigation - (8e76287) - *piperun*
+
+- - -
+
 ## chenron-v1.2.0 - 2026-02-17
 #### Features
 - wire MetadataCache to drift via DriftMetadataPersistence - (8101b1b) - *piperun*
