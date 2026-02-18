@@ -42,7 +42,7 @@ class CardSection extends StatelessWidget {
           children: [
             if (hasHeader) ...[
               Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   if (sectionIcon != null) ...[
                     Icon(sectionIcon?.icon,

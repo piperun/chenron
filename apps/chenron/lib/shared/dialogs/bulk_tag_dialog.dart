@@ -1,7 +1,7 @@
 import "dart:async";
 
 import "package:chenron/locator.dart";
-import "package:chenron/shared/dialogs/tag_color_picker.dart";
+import "package:chenron/shared/color_picker/color_dot.dart";
 import "package:chenron/utils/validation/tag_validator.dart";
 import "package:database/database.dart";
 import "package:flutter/material.dart";
@@ -542,8 +542,8 @@ class _TagRow extends StatelessWidget {
             Icon(icon, size: 20, color: iconColor),
             const SizedBox(width: 12),
             // Color dot — tap to pick a color
-            _TagColorDot(
-              tagColor: tagColor,
+            ColorDot(
+              currentColor: tagColor,
               onColorChanged: onColorChanged,
             ),
             const SizedBox(width: 8),
@@ -581,43 +581,3 @@ class _TagRow extends StatelessWidget {
   }
 }
 
-class _TagColorDot extends StatelessWidget {
-  final int? tagColor;
-  final ValueChanged<int?> onColorChanged;
-
-  const _TagColorDot({
-    required this.tagColor,
-    required this.onColorChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return GestureDetector(
-      onTapUp: (details) async {
-        final overlay =
-            Overlay.of(context).context.findRenderObject()! as RenderBox;
-        final anchor = RelativeRect.fromRect(
-          details.globalPosition & const Size(1, 1),
-          Offset.zero & overlay.size,
-        );
-        final result = await showTagColorPicker(
-          context: context,
-          anchor: anchor,
-          currentColor: tagColor,
-        );
-        if (result != null) {
-          onColorChanged(result.color);
-        }
-      },
-      child: Icon(
-        Icons.sell,
-        size: 18,
-        color: tagColor != null
-            ? Color(tagColor!)
-            : theme.colorScheme.outlineVariant,
-      ),
-    );
-  }
-}

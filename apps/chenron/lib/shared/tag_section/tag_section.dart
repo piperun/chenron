@@ -86,9 +86,7 @@ class _TagSectionState extends State<TagSection> {
               ),
             )
           : null,
-      sectionIcon: const Icon(
-        Icons.label,
-      ),
+      sectionIcon: const Icon(Icons.sell),
       children: [
         Row(
           children: [

@@ -44,7 +44,7 @@ class _FolderParentSectionState extends State<FolderParentSection> {
     final theme = Theme.of(context);
 
     return CardSection(
-      sectionIcon: const Icon(Icons.folder_open),
+      sectionIcon: const Icon(Icons.folder),
       title: Text(
         "Parent Folders",
         style: theme.textTheme.titleMedium?.copyWith(

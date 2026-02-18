@@ -37,6 +37,7 @@ class FolderPersistenceService {
       folderInfo: FolderDraft(
         title: formData.title,
         description: formData.description,
+        color: formData.color,
       ),
       tags: tags,
     );

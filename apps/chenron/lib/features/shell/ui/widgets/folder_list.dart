@@ -98,14 +98,12 @@ class _FolderRow extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Folder indicator dot
-            Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-                borderRadius: BorderRadius.circular(4),
-              ),
+            Icon(
+              Icons.folder,
+              size: 16,
+              color: folder.data.color != null
+                  ? Color(folder.data.color!)
+                  : Theme.of(context).colorScheme.primary,
             ),
             if (isExtended) ...[
               const SizedBox(width: 8),

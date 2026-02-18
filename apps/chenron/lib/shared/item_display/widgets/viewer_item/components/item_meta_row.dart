@@ -81,9 +81,8 @@ class ItemMetaRow extends StatelessWidget {
     return Row(
       children: [
         ItemIcon(type: item.type),
-        const SizedBox(width: 8),
-        _TimeDisplay(item: item),
         const Spacer(),
+        _TimeDisplay(item: item),
         if (showInfoButton)
           Tooltip(
             message: "Show details",
