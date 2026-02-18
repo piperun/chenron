@@ -106,13 +106,13 @@ class _ItemImageHeaderState extends State<ItemImageHeader> {
 class ItemThumbnail extends StatefulWidget {
   final String url;
   final double width;
-  final double height;
+  final double? height;
 
   const ItemThumbnail({
     super.key,
     required this.url,
     this.width = 120,
-    this.height = 80,
+    this.height,
   });
 
   @override
@@ -154,18 +154,16 @@ class _ItemThumbnailState extends State<ItemThumbnail> {
 
   @override
   Widget build(BuildContext context) {
+    final h = widget.height;
+
     return FutureBuilder<List<dynamic>>(
       future: _future,
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return _ImagePlaceholder(
-            height: widget.height,
+            height: h ?? double.infinity,
             width: widget.width,
             iconSize: 32,
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(12),
-              bottomLeft: Radius.circular(12),
-            ),
           );
         }
 
@@ -174,36 +172,26 @@ class _ItemThumbnailState extends State<ItemThumbnail> {
         final imageUrl = metadata?["image"] as String?;
 
         if (imageUrl != null && _isValidImageUrl(imageUrl)) {
-          return ClipRRect(
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(12),
-              bottomLeft: Radius.circular(12),
-            ),
-            child: SizedBox(
-              width: widget.width,
-              height: widget.height,
-              child: CachedNetworkImage(
-                imageUrl: imageUrl,
-                cacheManager: cacheManager,
-                fit: BoxFit.cover,
-                filterQuality: FilterQuality.medium,
-                errorWidget: (context, url, error) => _ImagePlaceholder(
-                  height: widget.height,
-                  width: widget.width,
-                  iconSize: 32,
-                ),
+          return SizedBox(
+            width: widget.width,
+            height: h,
+            child: CachedNetworkImage(
+              imageUrl: imageUrl,
+              cacheManager: cacheManager,
+              fit: BoxFit.cover,
+              filterQuality: FilterQuality.medium,
+              errorWidget: (context, url, error) => _ImagePlaceholder(
+                height: h ?? double.infinity,
+                width: widget.width,
+                iconSize: 32,
               ),
             ),
           );
         }
         return _ImagePlaceholder(
-          height: widget.height,
+          height: h ?? double.infinity,
           width: widget.width,
           iconSize: 32,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(12),
-            bottomLeft: Radius.circular(12),
-          ),
         );
       },
     );
@@ -214,19 +202,17 @@ class _ImagePlaceholder extends StatelessWidget {
   final double height;
   final double? width;
   final double iconSize;
-  final BorderRadius? borderRadius;
 
   const _ImagePlaceholder({
     required this.height,
     this.width,
     required this.iconSize,
-    this.borderRadius,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final container = Container(
+    return Container(
       height: height,
       width: width ?? double.infinity,
       color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
@@ -238,13 +224,5 @@ class _ImagePlaceholder extends StatelessWidget {
         ),
       ),
     );
-
-    if (borderRadius != null) {
-      return ClipRRect(
-        borderRadius: borderRadius!,
-        child: container,
-      );
-    }
-    return container;
   }
 }
