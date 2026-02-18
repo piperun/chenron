@@ -1,4 +1,3 @@
-import "dart:async";
 import "dart:io";
 
 import "package:flutter/material.dart";
@@ -10,10 +9,9 @@ import "package:chenron/features/settings/controller/config_controller.dart";
 import "package:chenron/features/settings/service/bookmark_export_service.dart";
 import "package:chenron/features/settings/service/bookmark_import_service.dart";
 import "package:chenron/features/settings/service/data_settings_service.dart";
+import "package:chenron/features/settings/ui/shared/path_mode_selector.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/shared/errors/error_snack_bar.dart";
-
-enum _DatabasePathMode { defaultMode, custom }
 
 class DataSettings extends StatefulWidget {
   final ConfigController controller;
@@ -26,57 +24,6 @@ class DataSettings extends StatefulWidget {
 
 class _DataSettingsState extends State<DataSettings> {
   final DataSettingsService _dataService = locator.get<DataSettingsService>();
-  late TextEditingController _pathController;
-  _DatabasePathMode _mode = _DatabasePathMode.defaultMode;
-
-  @override
-  void initState() {
-    super.initState();
-    final customPath = widget.controller.appDatabasePath.peek();
-    _mode = customPath == null
-        ? _DatabasePathMode.defaultMode
-        : _DatabasePathMode.custom;
-    _pathController = TextEditingController(text: customPath ?? "");
-  }
-
-  @override
-  void dispose() {
-    _pathController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _handlePickFolder() async {
-    final result = await FilePicker.platform.getDirectoryPath();
-    if (result != null) {
-      setState(() {
-        _pathController.text = result;
-      });
-      widget.controller.updateAppDatabasePath(result);
-    }
-  }
-
-  void _onModeChanged(_DatabasePathMode? mode) {
-    if (mode == null) return;
-
-    setState(() {
-      _mode = mode;
-    });
-
-    if (mode == _DatabasePathMode.defaultMode) {
-      widget.controller.updateAppDatabasePath(null);
-      _pathController.clear();
-    } else {
-      if (_pathController.text.isNotEmpty) {
-        widget.controller.updateAppDatabasePath(_pathController.text);
-      }
-    }
-  }
-
-  void _onPathChanged(String value) {
-    if (_mode == _DatabasePathMode.custom && value.trim().isNotEmpty) {
-      widget.controller.updateAppDatabasePath(value.trim());
-    }
-  }
 
   Future<void> _handleExport() async {
     final messenger = ScaffoldMessenger.of(context);
@@ -248,62 +195,21 @@ class _DataSettingsState extends State<DataSettings> {
           ),
           const SizedBox(height: 16),
 
-          RadioGroup<_DatabasePathMode>(
-            groupValue: _mode,
-            onChanged: _onModeChanged,
-            child: Column(
-              children: [
-                RadioListTile<_DatabasePathMode>(
-                  title: const Text("Default"),
-                  value: _DatabasePathMode.defaultMode,
-                  contentPadding: EdgeInsets.zero,
-                  subtitle: FutureBuilder<String>(
-                    future: _dataService.getDefaultDatabasePath(),
-                    builder: (context, snapshot) {
-                      return Text(
-                        snapshot.data ?? "Loading...",
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.textTheme.bodySmall?.color
-                              ?.withValues(alpha: 0.6),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                const RadioListTile<_DatabasePathMode>(
-                  title: Text("Custom"),
-                  value: _DatabasePathMode.custom,
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ],
-            ),
-          ),
-
-          if (_mode == _DatabasePathMode.custom)
-            Padding(
-              padding: const EdgeInsets.only(left: 32.0, top: 8.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _pathController,
-                      decoration: const InputDecoration(
-                        labelText: "Database Path",
-                        border: OutlineInputBorder(),
-                        isDense: true,
-                      ),
-                      onChanged: _onPathChanged,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton.filled(
-                    onPressed: _handlePickFolder,
-                    icon: const Icon(Icons.folder_open),
-                    tooltip: "Browse for folder",
-                  ),
-                ],
+          PathModeSelector(
+            currentPath: widget.controller.appDatabasePath.peek(),
+            options: [
+              PathModeOption(
+                label: "Default",
+                resolveSubtitle: _dataService.getDefaultDatabasePath,
               ),
-            ),
+              const PathModeOption(
+                label: "Custom",
+                isCustom: true,
+              ),
+            ],
+            fieldLabel: "Database Path",
+            onPathChanged: widget.controller.updateAppDatabasePath,
+          ),
 
           if (hasPathChanged) ...[
             const SizedBox(height: 16),

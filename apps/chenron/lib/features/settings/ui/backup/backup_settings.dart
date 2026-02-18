@@ -1,13 +1,11 @@
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
-import "package:file_picker/file_picker.dart";
 import "package:signals/signals_flutter.dart";
 import "package:chenron/features/settings/controller/config_controller.dart";
+import "package:chenron/features/settings/ui/shared/path_mode_selector.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/base_dirs/schema.dart";
 import "package:basedir/directory.dart";
-
-enum BackupPathMode { defaultMode, custom }
 
 enum _IntervalUnit { hours, days }
 
@@ -24,9 +22,7 @@ class BackupSettings extends StatefulWidget {
 }
 
 class _BackupSettingsState extends State<BackupSettings> {
-  late TextEditingController _pathController;
   late TextEditingController _customAmountController;
-  BackupPathMode _mode = BackupPathMode.defaultMode;
   bool _isCustomInterval = false;
   _IntervalUnit _customUnit = _IntervalUnit.hours;
 
@@ -68,11 +64,6 @@ class _BackupSettingsState extends State<BackupSettings> {
   @override
   void initState() {
     super.initState();
-    final customPath = widget.controller.backupPath.peek();
-    _mode = customPath == null
-        ? BackupPathMode.defaultMode
-        : BackupPathMode.custom;
-    _pathController = TextEditingController(text: customPath ?? "");
 
     // Determine if current interval is a custom one
     final currentCron = widget.controller.backupInterval.peek();
@@ -93,7 +84,6 @@ class _BackupSettingsState extends State<BackupSettings> {
 
   @override
   void dispose() {
-    _pathController.dispose();
     _customAmountController.dispose();
     super.dispose();
   }
@@ -105,44 +95,11 @@ class _BackupSettingsState extends State<BackupSettings> {
     return baseDirs?.backupAppDir.path ?? "Unknown";
   }
 
-  Future<void> _pickFolder() async {
-    final result = await FilePicker.platform.getDirectoryPath();
-    if (result != null) {
-      setState(() {
-        _pathController.text = result;
-      });
-      widget.controller.updateBackupPath(result);
-    }
-  }
-
-  void _onModeChanged(BackupPathMode? mode) {
-    if (mode == null) return;
-
-    setState(() {
-      _mode = mode;
-    });
-
-    if (mode == BackupPathMode.defaultMode) {
-      widget.controller.updateBackupPath(null);
-      _pathController.clear();
-    } else {
-      if (_pathController.text.isNotEmpty) {
-        widget.controller.updateBackupPath(_pathController.text);
-      }
-    }
-  }
-
   void _applyCustomInterval() {
     final amount = int.tryParse(_customAmountController.text);
     if (amount != null && amount > 0) {
       final cron = _buildCron(amount, _customUnit);
       widget.controller.updateBackupInterval(cron);
-    }
-  }
-
-  void _onPathChanged(String value) {
-    if (_mode == BackupPathMode.custom && value.trim().isNotEmpty) {
-      widget.controller.updateBackupPath(value.trim());
     }
   }
 
@@ -297,64 +254,21 @@ class _BackupSettingsState extends State<BackupSettings> {
           ),
           const SizedBox(height: 16),
 
-          // Radio Group for Mode
-          RadioGroup<BackupPathMode>(
-            groupValue: _mode,
-            onChanged: _onModeChanged,
-            child: Column(
-              children: [
-                RadioListTile<BackupPathMode>(
-                  title: const Text("Default"),
-                  value: BackupPathMode.defaultMode,
-                  contentPadding: EdgeInsets.zero,
-                  subtitle: FutureBuilder<String>(
-                    future: _getDefaultBackupPath(),
-                    builder: (context, snapshot) {
-                      return Text(
-                        snapshot.data ?? "Loading...",
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.textTheme.bodySmall?.color
-                              ?.withValues(alpha: 0.6),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                const RadioListTile<BackupPathMode>(
-                  title: Text("Custom"),
-                  value: BackupPathMode.custom,
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ],
-            ),
-          ),
-
-          // Custom path input
-          if (_mode == BackupPathMode.custom)
-            Padding(
-              padding: const EdgeInsets.only(left: 32.0, top: 8.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _pathController,
-                      decoration: const InputDecoration(
-                        labelText: "Backup Path",
-                        border: OutlineInputBorder(),
-                        isDense: true,
-                      ),
-                      onChanged: _onPathChanged,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton.filled(
-                    onPressed: _pickFolder,
-                    icon: const Icon(Icons.folder_open),
-                    tooltip: "Browse for folder",
-                  ),
-                ],
+          PathModeSelector(
+            currentPath: widget.controller.backupPath.peek(),
+            options: [
+              PathModeOption(
+                label: "Default",
+                resolveSubtitle: _getDefaultBackupPath,
               ),
-            ),
+              const PathModeOption(
+                label: "Custom",
+                isCustom: true,
+              ),
+            ],
+            fieldLabel: "Backup Path",
+            onPathChanged: widget.controller.updateBackupPath,
+          ),
 
           const Divider(height: 32),
 
