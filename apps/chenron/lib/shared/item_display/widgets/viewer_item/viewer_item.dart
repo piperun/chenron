@@ -4,7 +4,6 @@ import "package:database/models/item.dart";
 import "package:chenron/features/settings/controller/config_controller.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/shared/item_display/widgets/display_mode/display_mode.dart";
-import "package:chenron/shared/item_display/widgets/viewer_item/card_view.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/unified_item.dart";
 
 enum PreviewMode {
@@ -65,30 +64,18 @@ class ViewerItem extends StatelessWidget {
       final bool resolvedShowImage =
           showImageOverride ?? (configShowImages && displayMode.showImage);
 
-      return mode == PreviewMode.card
-          ? CardItem(
-              item: item,
-              onTap: onTap,
-              showImage: resolvedShowImage,
-              maxTags: resolvedMaxTags,
-              titleLines: resolvedTitleLines,
-              descriptionLines: resolvedDescriptionLines,
-              includedTagNames: includedTagNames,
-              excludedTagNames: excludedTagNames,
-              onTagFilterTap: onTagFilterTap,
-            )
-          : UnifiedItem(
-              item: item,
-              mode: mode,
-              onTap: onTap,
-              showImage: resolvedShowImage,
-              maxTags: resolvedMaxTags,
-              titleLines: resolvedTitleLines,
-              descriptionLines: resolvedDescriptionLines,
-              includedTagNames: includedTagNames,
-              excludedTagNames: excludedTagNames,
-              onTagFilterTap: onTagFilterTap,
-            );
+      return UnifiedItem(
+        item: item,
+        mode: mode,
+        onTap: onTap,
+        showImage: resolvedShowImage,
+        maxTags: resolvedMaxTags,
+        titleLines: resolvedTitleLines,
+        descriptionLines: resolvedDescriptionLines,
+        includedTagNames: includedTagNames,
+        excludedTagNames: excludedTagNames,
+        onTagFilterTap: onTagFilterTap,
+      );
     });
   }
 }
