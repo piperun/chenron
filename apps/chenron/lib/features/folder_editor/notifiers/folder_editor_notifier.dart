@@ -5,6 +5,7 @@ import "package:chenron/components/forms/folder_form.dart";
 import "package:chenron/locator.dart";
 import "package:signals/signals.dart";
 import "package:collection/collection.dart";
+import "package:drift/drift.dart";
 
 enum FolderEditorState {
   loading,
@@ -83,6 +84,11 @@ class FolderEditorNotifier {
       return true;
     }
 
+    // Check color change
+    if (originalFolder.color != current.color) {
+      return true;
+    }
+
     // Check tags change
     if (!const SetEquality<String>().equals(originalTags, currentTags)) {
       return true;
@@ -144,6 +150,7 @@ class FolderEditorNotifier {
       formData.value = FolderFormData(
         title: folderResult.data.title,
         description: folderResult.data.description,
+        color: folderResult.data.color,
         parentFolderIds: parentFolderIds,
         tags: folderResult.tags.map((t) => t.name).toSet(),
         items: currentItems.value,
@@ -332,6 +339,7 @@ class FolderEditorNotifier {
       formData.value = FolderFormData(
         title: _originalFolder!.data.title,
         description: _originalFolder!.data.description,
+        color: _originalFolder!.data.color,
         parentFolderIds: List.from(_originalParentFolderIds),
         tags: _originalFolder!.tags.map((t) => t.name).toSet(),
         items: originalItems.value,
@@ -367,6 +375,7 @@ class FolderEditorNotifier {
         folderId,
         title: current.title,
         description: current.description,
+        color: Value(current.color),
         tagUpdates: tagUpdates,
         itemUpdates: itemUpdates,
       );

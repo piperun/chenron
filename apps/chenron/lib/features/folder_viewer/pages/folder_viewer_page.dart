@@ -86,7 +86,8 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
         MaterialPageRoute<void>(
           builder: (context) => FolderEditor(
             folderId: widget.folderId,
-            hideAppBar: false,
+            hideAppBar: true,
+            onClose: () => Navigator.pop(context),
           ),
         ),
       );

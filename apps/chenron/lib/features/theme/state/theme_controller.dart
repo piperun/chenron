@@ -1,4 +1,7 @@
+import "dart:async";
+
 import "package:database/database.dart";
+import "package:chenron/features/theme/state/theme_cache.dart";
 import "package:chenron/features/theme/state/theme_service.dart";
 import "package:chenron/features/theme/state/theme_utils.dart";
 import "package:chenron/locator.dart";
@@ -6,6 +9,7 @@ import "package:database/main.dart";
 import "package:app_logger/app_logger.dart";
 import "package:flex_color_scheme/flex_color_scheme.dart";
 import "package:flutter/material.dart";
+import "package:shared_preferences/shared_preferences.dart";
 import "package:signals/signals_flutter.dart";
 import "package:vibe/vibe.dart";
 
@@ -16,6 +20,17 @@ class ThemeController {
     light: FlexThemeData.light(scheme: FlexScheme.materialBaseline),
     dark: FlexThemeData.dark(scheme: FlexScheme.materialBaseline),
   ));
+
+  bool _seeded = false;
+
+  /// Sets the initial theme from the SharedPreferences cache.
+  /// Only applies once — `initialize()` overwrites with the DB value.
+  void seedCachedTheme(ThemeVariants theme) {
+    if (!_seeded) {
+      currentThemeSignal.value = theme;
+      _seeded = true;
+    }
+  }
 
   Future<void> initialize() async {
     try {
@@ -49,18 +64,27 @@ class ThemeController {
           tertiaryColor: theme.data.tertiaryColor,
           seedType: theme.data.seedType,
         );
+        _cacheCustomTheme(
+          key: themeKey,
+          primaryColor: theme.data.primaryColor,
+          secondaryColor: theme.data.secondaryColor,
+          tertiaryColor: theme.data.tertiaryColor,
+          seedType: theme.data.seedType,
+        );
         return;
       }
       // Fallback if custom theme missing: try predefined by key
       final fallback = getPredefinedTheme(themeKey);
       if (fallback != null) {
         currentThemeSignal.value = fallback;
+        _cacheSystemTheme(themeKey);
         return;
       }
     } else {
       final variants = getPredefinedTheme(themeKey);
       if (variants != null) {
         currentThemeSignal.value = variants;
+        _cacheSystemTheme(themeKey);
         return;
       }
     }
@@ -100,6 +124,13 @@ class ThemeController {
           tertiaryColor: theme.data.tertiaryColor,
           seedType: theme.data.seedType,
         );
+        _cacheCustomTheme(
+          key: key,
+          primaryColor: theme.data.primaryColor,
+          secondaryColor: theme.data.secondaryColor,
+          tertiaryColor: theme.data.tertiaryColor,
+          seedType: theme.data.seedType,
+        );
         return;
       }
       // If custom theme missing, fall through to predefined lookup
@@ -115,8 +146,37 @@ class ThemeController {
           light: FlexThemeData.light(scheme: FlexScheme.materialBaseline),
           dark: FlexThemeData.dark(scheme: FlexScheme.materialBaseline),
         );
+    _cacheSystemTheme(key);
   }
 
+  void _cacheSystemTheme(String key) {
+    unawaited(SharedPreferences.getInstance()
+        .then((p) => ThemeCache.cacheSystemTheme(p, key: key))
+        .catchError((Object e) {
+      loggerGlobal.warning("ThemeController", "Failed to cache theme: $e");
+    }));
+  }
+
+  void _cacheCustomTheme({
+    required String key,
+    required int primaryColor,
+    required int secondaryColor,
+    int? tertiaryColor,
+    required int seedType,
+  }) {
+    unawaited(SharedPreferences.getInstance()
+        .then((p) => ThemeCache.cacheCustomTheme(
+              p,
+              key: key,
+              primaryColor: primaryColor,
+              secondaryColor: secondaryColor,
+              tertiaryColor: tertiaryColor,
+              seedType: seedType,
+            ))
+        .catchError((Object e) {
+      loggerGlobal.warning("ThemeController", "Failed to cache theme: $e");
+    }));
+  }
 }
 
 /// Builds a FlexColorScheme-based light/dark pair from seed data stored

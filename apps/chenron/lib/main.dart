@@ -4,6 +4,7 @@ import "dart:io";
 import "package:chenron/core/setup/main_setup.dart";
 import "package:chenron/features/shell/pages/error_page.dart";
 import "package:chenron/features/shell/pages/root.dart";
+import "package:chenron/features/theme/state/theme_cache.dart";
 import "package:chenron/features/theme/state/theme_manager.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/providers/theme_controller_signal.dart";
@@ -14,6 +15,7 @@ import "package:flutter/material.dart";
 
 import "package:shared_preferences/shared_preferences.dart";
 import "package:signals/signals_flutter.dart";
+import "package:vibe/vibe.dart";
 import "package:window_manager/window_manager.dart";
 
 import "package:app_logger/app_logger.dart";
@@ -27,6 +29,7 @@ void main() async {
   final prefs = await SharedPreferences.getInstance();
   final isDark = prefs.getBool("dark_mode") ?? false;
   final initialThemeMode = isDark ? ThemeMode.dark : ThemeMode.light;
+  final cachedTheme = ThemeCache.loadCachedTheme(prefs);
 
   // Restore persisted window size on desktop platforms
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
@@ -38,6 +41,7 @@ void main() async {
   // directories, and services are being set up.
   runApp(AppBootstrap(
     initialThemeMode: initialThemeMode,
+    cachedTheme: cachedTheme,
     prefs: prefs,
   ));
 }
@@ -92,11 +96,13 @@ class _WindowSizeListener extends WindowListener {
 
 class AppBootstrap extends StatefulWidget {
   final ThemeMode initialThemeMode;
+  final ThemeVariants? cachedTheme;
   final SharedPreferences prefs;
 
   const AppBootstrap({
     super.key,
     required this.initialThemeMode,
+    this.cachedTheme,
     required this.prefs,
   });
 
@@ -136,21 +142,30 @@ class _AppBootstrapState extends State<AppBootstrap> {
   @override
   Widget build(BuildContext context) {
     if (_error != null) return ErrorApp(error: _error!);
-    if (!_isReady) return _LoadingView(themeMode: widget.initialThemeMode);
-    return ChenronApp(initialThemeMode: widget.initialThemeMode);
+    if (!_isReady) {
+      return _LoadingView(
+        themeMode: widget.initialThemeMode,
+        cachedTheme: widget.cachedTheme,
+      );
+    }
+    return ChenronApp(
+      initialThemeMode: widget.initialThemeMode,
+      cachedTheme: widget.cachedTheme,
+    );
   }
 }
 
 class _LoadingView extends StatelessWidget {
   final ThemeMode themeMode;
-  const _LoadingView({required this.themeMode});
+  final ThemeVariants? cachedTheme;
+  const _LoadingView({required this.themeMode, this.cachedTheme});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData.light(),
-      darkTheme: ThemeData.dark(),
+      theme: cachedTheme?.light ?? ThemeData.light(),
+      darkTheme: cachedTheme?.dark ?? ThemeData.dark(),
       themeMode: themeMode,
       home: const Scaffold(
         body: Center(
@@ -170,12 +185,24 @@ class _LoadingView extends StatelessWidget {
 
 class ChenronApp extends StatelessWidget {
   final ThemeMode initialThemeMode;
+  final ThemeVariants? cachedTheme;
 
-  const ChenronApp({super.key, required this.initialThemeMode});
+  const ChenronApp({
+    super.key,
+    required this.initialThemeMode,
+    this.cachedTheme,
+  });
 
   @override
   Widget build(BuildContext context) {
     final themeManager = locator.get<ThemeManager>();
+
+    // Seed the controller with cached theme so the first Watch frame
+    // already has the right colors (before initialize() finishes).
+    if (cachedTheme != null) {
+      final controller = themeControllerSignal.value;
+      controller.seedCachedTheme(cachedTheme!);
+    }
 
     return Watch((context) {
       final ThemeMode? currentMode = themeManager.themeModeSignal.value;

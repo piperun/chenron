@@ -1,6 +1,7 @@
 import "dart:async";
 import "package:chenron/shared/folder_input/folder_input_section.dart";
 import "package:chenron/shared/tag_section/tag_section.dart";
+import "package:chenron/shared/color_picker/color_picker_field.dart";
 import "package:chenron/features/create/folder/widgets/folder_parent_section.dart";
 import "package:database/main.dart";
 import "package:flutter/material.dart";
@@ -13,6 +14,7 @@ import "package:signals/signals.dart";
 class FolderFormData {
   final String title;
   final String description;
+  final int? color;
   final List<String> parentFolderIds;
   final Set<String> tags;
   final List<FolderItem> items;
@@ -20,6 +22,7 @@ class FolderFormData {
   const FolderFormData({
     required this.title,
     required this.description,
+    this.color,
     required this.parentFolderIds,
     required this.tags,
     required this.items,
@@ -28,6 +31,7 @@ class FolderFormData {
   FolderFormData copyWith({
     String? title,
     String? description,
+    Object? color = _sentinel,
     List<String>? parentFolderIds,
     Set<String>? tags,
     List<FolderItem>? items,
@@ -35,12 +39,15 @@ class FolderFormData {
     return FolderFormData(
       title: title ?? this.title,
       description: description ?? this.description,
+      color: color == _sentinel ? this.color : color as int?,
       parentFolderIds: parentFolderIds ?? this.parentFolderIds,
       tags: tags ?? this.tags,
       items: items ?? this.items,
     );
   }
 }
+
+const _sentinel = Object();
 
 /// Reusable folder form component that handles both create and edit modes
 class FolderForm extends StatefulWidget {
@@ -74,6 +81,7 @@ class _FolderFormState extends State<FolderForm> {
   late final TextEditingController _descriptionController;
   List<Folder> _selectedParentFolders = [];
   Set<String> _tags = {};
+  int? _color;
   String? _titleError;
   String? _descriptionError;
 
@@ -96,6 +104,7 @@ class _FolderFormState extends State<FolderForm> {
     // Initialize state
     _title.value = initialTitle;
     _description.value = initialDescription;
+    _color = widget.existingFolder?.color;
 
     // Initialize tags if provided
     if (widget.existingTags != null) {
@@ -193,10 +202,16 @@ class _FolderFormState extends State<FolderForm> {
       _titleError == null &&
       _descriptionError == null;
 
+  void _onColorChanged(int? color) {
+    setState(() => _color = color);
+    _validateAndNotify();
+  }
+
   void _validateAndNotify() {
     final formData = FolderFormData(
       title: _title.value,
       description: _description.value,
+      color: _color,
       parentFolderIds: _selectedParentFolders.map((f) => f.id).toList(),
       tags: _tags,
       items: const [],
@@ -230,6 +245,13 @@ class _FolderFormState extends State<FolderForm> {
           titleError: _titleError,
           descriptionError: _descriptionError,
           keyPrefix: widget.keyPrefix,
+          extraChildren: [
+            const SizedBox(height: 16),
+            ColorPickerField(
+              currentColor: _color,
+              onColorChanged: _onColorChanged,
+            ),
+          ],
         ),
         FolderParentSection(
           selectedFolders: _selectedParentFolders,

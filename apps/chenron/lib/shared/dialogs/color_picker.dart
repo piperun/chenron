@@ -1,11 +1,11 @@
-import "package:chenron/shared/constants/tag_colors.dart";
+import "package:chenron/shared/constants/color_palette.dart";
 import "package:flutter/material.dart";
 
 /// Shows a small color picker popup near [anchor].
 ///
 /// Returns a record with the selected color (`null` to clear), or
 /// `null` itself if the menu was dismissed without any selection.
-Future<({int? color})?> showTagColorPicker({
+Future<({int? color})?> showColorPicker({
   required BuildContext context,
   required RelativeRect anchor,
   int? currentColor,
@@ -53,7 +53,7 @@ class _ColorGrid extends StatelessWidget {
             onTap: () => Navigator.of(context).pop(clearSentinel),
           ),
           // Palette colors
-          for (final color in kTagColorPalette)
+          for (final color in kColorPalette)
             _ColorCircle(
               color: color,
               isSelected: currentColor == color.toARGB32(),

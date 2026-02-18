@@ -8,6 +8,7 @@ class FolderInputSection extends StatelessWidget {
   final String? titleError;
   final String? descriptionError;
   final String? keyPrefix;
+  final List<Widget> extraChildren;
 
   const FolderInputSection({
     super.key,
@@ -16,6 +17,7 @@ class FolderInputSection extends StatelessWidget {
     this.titleError,
     this.descriptionError,
     this.keyPrefix,
+    this.extraChildren = const [],
   });
 
   @override
@@ -29,7 +31,7 @@ class FolderInputSection extends StatelessWidget {
           fontWeight: FontWeight.w600,
         ),
       ),
-      sectionIcon: const Icon(Icons.folder_outlined),
+      sectionIcon: const Icon(Icons.folder),
       children: [
         LabeledTextField(
           key: keyPrefix != null
@@ -55,8 +57,8 @@ class FolderInputSection extends StatelessWidget {
           maxLines: 3,
           textInputAction: TextInputAction.done,
         ),
+        ...extraChildren,
       ],
     );
   }
 }
-

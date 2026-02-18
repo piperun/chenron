@@ -2,7 +2,7 @@ import "package:fl_chart/fl_chart.dart";
 import "package:flutter/material.dart";
 import "package:database/database.dart";
 import "package:chenron/features/statistics/widgets/chart_card.dart";
-import "package:chenron/shared/constants/tag_colors.dart";
+import "package:chenron/shared/constants/color_palette.dart";
 
 class TagDistributionChart extends StatelessWidget {
   final List<TagCount> tagCounts;
@@ -56,7 +56,7 @@ class TagDistributionChart extends StatelessWidget {
         final tag = entry.value;
         final color = tag.tagColor != null
             ? Color(tag.tagColor!)
-            : kTagColorPalette[entry.key % kTagColorPalette.length];
+            : kColorPalette[entry.key % kColorPalette.length];
 
         return PieChartSectionData(
           value: tag.itemCount.toDouble(),
@@ -90,7 +90,7 @@ class _Legend extends StatelessWidget {
         final tag = entry.value;
         final color = tag.tagColor != null
             ? Color(tag.tagColor!)
-            : kTagColorPalette[entry.key % kTagColorPalette.length];
+            : kColorPalette[entry.key % kColorPalette.length];
 
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 2),
