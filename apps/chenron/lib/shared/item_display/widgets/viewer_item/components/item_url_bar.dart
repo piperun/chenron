@@ -1,6 +1,5 @@
-import "dart:async";
 import "package:flutter/material.dart";
-import "package:chenron/shared/item_display/widgets/viewer_item/item_utils.dart";
+import "package:chenron/shared/item_display/widgets/viewer_item/components/copy_feedback_mixin.dart";
 
 // URL bar with copy button and feedback animation
 class ItemUrlBar extends StatefulWidget {
@@ -15,24 +14,10 @@ class ItemUrlBar extends StatefulWidget {
   State<ItemUrlBar> createState() => _ItemUrlBarState();
 }
 
-class _ItemUrlBarState extends State<ItemUrlBar> {
-  bool _copied = false;
-  Timer? _resetTimer;
-
-  void _handleCopy() {
-    _resetTimer?.cancel();
-    ItemUtils.copyUrl(widget.url);
-    setState(() => _copied = true);
-    _resetTimer = Timer(const Duration(milliseconds: 1500), () {
-      if (mounted) {
-        setState(() => _copied = false);
-      }
-    });
-  }
-
+class _ItemUrlBarState extends State<ItemUrlBar> with CopyFeedbackMixin {
   @override
   void dispose() {
-    _resetTimer?.cancel();
+    disposeCopyFeedback();
     super.dispose();
   }
 
@@ -67,24 +52,24 @@ class _ItemUrlBarState extends State<ItemUrlBar> {
           ),
           const SizedBox(width: 6),
           InkWell(
-            onTap: _handleCopy,
+            onTap: () => handleCopy(widget.url),
             borderRadius: BorderRadius.circular(4),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
-                color: _copied
+                color: copied
                     ? theme.colorScheme.primaryContainer
                     : theme.cardColor,
                 border: Border.all(
                   color:
-                      _copied ? theme.colorScheme.primary : theme.dividerColor,
+                      copied ? theme.colorScheme.primary : theme.dividerColor,
                 ),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (_copied) ...[
+                  if (copied) ...[
                     Icon(
                       Icons.check,
                       size: 10,
@@ -93,13 +78,13 @@ class _ItemUrlBarState extends State<ItemUrlBar> {
                     const SizedBox(width: 3),
                   ],
                   Text(
-                    _copied ? "copied!" : "copy",
+                    copied ? "copied!" : "copy",
                     style: TextStyle(
                       fontSize: 10,
-                      color: _copied
+                      color: copied
                           ? theme.colorScheme.onPrimaryContainer
                           : theme.colorScheme.onSurfaceVariant,
-                      fontWeight: _copied ? FontWeight.w600 : FontWeight.normal,
+                      fontWeight: copied ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),
                 ],
