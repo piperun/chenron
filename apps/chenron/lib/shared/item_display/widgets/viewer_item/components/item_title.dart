@@ -1,10 +1,9 @@
 import "package:flutter/material.dart";
 import "package:database/models/item.dart";
-import "package:signals/signals_flutter.dart";
 import "package:chenron/components/metadata_factory.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/item_utils.dart";
+import "package:chenron/shared/item_display/widgets/viewer_item/components/metadata_lifecycle_mixin.dart";
 
-// Title widget
 class ItemTitle extends StatefulWidget {
   final FolderItem item;
   final String? url;
@@ -21,15 +20,24 @@ class ItemTitle extends StatefulWidget {
   State<ItemTitle> createState() => _ItemTitleState();
 }
 
-class _ItemTitleState extends State<ItemTitle> {
+class _ItemTitleState extends State<ItemTitle> with MetadataLifecycleMixin {
   Future<Map<String, dynamic>?>? _metadataFuture;
-  void Function()? _disposeEffect;
+
+  @override
+  String? get metadataUrl => widget.url;
+
+  @override
+  void onMetadataRefreshed() {
+    setState(() {
+      _metadataFuture = MetadataFactory.getOrFetch(widget.url!);
+    });
+  }
 
   @override
   void initState() {
     super.initState();
     _initFuture();
-    _listenForRefresh();
+    initMetadataRefreshListener();
   }
 
   void _initFuture() {
@@ -40,21 +48,9 @@ class _ItemTitleState extends State<ItemTitle> {
     }
   }
 
-  void _listenForRefresh() {
-    if (widget.url == null || widget.url!.isEmpty) return;
-    _disposeEffect = effect(() {
-      final refreshed = MetadataFactory.lastRefreshedUrl.value;
-      if (refreshed == widget.url) {
-        setState(() {
-          _metadataFuture = MetadataFactory.getOrFetch(widget.url!);
-        });
-      }
-    });
-  }
-
   @override
   void dispose() {
-    _disposeEffect?.call();
+    disposeMetadataRefreshListener();
     super.dispose();
   }
 
