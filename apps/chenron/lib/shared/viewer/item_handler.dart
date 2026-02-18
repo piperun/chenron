@@ -2,7 +2,7 @@ import "package:flutter/material.dart";
 import "package:chenron/components/metadata_factory.dart";
 import "package:chenron/features/viewer/state/viewer_state.dart";
 import "package:chenron/features/viewer/ui/viewer_base_item.dart";
-import "package:chenron/shared/dialogs/bulk_tag_dialog.dart";
+import "package:chenron/features/bulk_tag/pages/bulk_tag_dialog.dart";
 import "package:chenron/shared/dialogs/delete_confirmation_dialog.dart";
 import "package:chenron/shared/viewer/item_deletion_service.dart";
 import "package:chenron/shared/viewer/item_tagging_service.dart";

@@ -182,8 +182,26 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
 
           return Column(
             children: [
-              _buildCollapsibleHeader(result, parentItems),
-              _buildItemDisplay(parentItems),
+              _CollapsibleHeader(
+                result: result,
+                parentItems: parentItems,
+                infiniteScroll: _infiniteScroll,
+                isHeaderExpanded: _isHeaderExpanded,
+                isHeaderLocked: _isHeaderLocked,
+                onToggleExpanded: () => setState(
+                    () => _isHeaderExpanded = !_isHeaderExpanded),
+                onToggleLock: _toggleHeaderLock,
+                onEdit: _handleEdit,
+                onDelete: () => _handleDelete(result.data),
+              ),
+              Expanded(
+                child: _FolderItemDisplay(
+                  parentItems: parentItems,
+                  infiniteScroll: _infiniteScroll,
+                  tagFilterState: _tagFilterState,
+                  onRefresh: _refreshFolderData,
+                ),
+              ),
             ],
           );
         },
@@ -191,24 +209,44 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
     );
   }
 
-  Widget _buildCollapsibleHeader(
-    FolderResult result,
-    List<FolderItem> parentItems,
-  ) {
+}
+
+class _CollapsibleHeader extends StatelessWidget {
+  final FolderResult result;
+  final List<FolderItem> parentItems;
+  final InfiniteScrollState<FolderItem> infiniteScroll;
+  final bool isHeaderExpanded;
+  final bool isHeaderLocked;
+  final VoidCallback onToggleExpanded;
+  final VoidCallback onToggleLock;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  const _CollapsibleHeader({
+    required this.result,
+    required this.parentItems,
+    required this.infiniteScroll,
+    required this.isHeaderExpanded,
+    required this.isHeaderLocked,
+    required this.onToggleExpanded,
+    required this.onToggleLock,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Watch((context) {
       final totalItems =
-          _infiniteScroll.estimatedTotal + parentItems.length;
+          infiniteScroll.estimatedTotal + parentItems.length;
 
       return GestureDetector(
-        onTap: _isHeaderLocked
-            ? null
-            : () =>
-                setState(() => _isHeaderExpanded = !_isHeaderExpanded),
+        onTap: isHeaderLocked ? null : onToggleExpanded,
         child: AnimatedContainer(
           duration: kDefaultAnimationDuration,
           curve: Curves.easeInOut,
-          height: _isHeaderExpanded ? null : 60,
-          child: _isHeaderExpanded
+          height: isHeaderExpanded ? null : 60,
+          child: isHeaderExpanded
               ? FolderHeader(
                   folder: result.data,
                   tags: result.tags,
@@ -216,11 +254,10 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
                   onBack: () => Navigator.pop(context),
                   onHome: () => Navigator.popUntil(
                       context, (route) => route.isFirst),
-                  isExpanded: _isHeaderExpanded,
-                  onToggle: () => setState(
-                      () => _isHeaderExpanded = !_isHeaderExpanded),
-                  isLocked: _isHeaderLocked,
-                  onToggleLock: _toggleHeaderLock,
+                  isExpanded: isHeaderExpanded,
+                  onToggle: onToggleExpanded,
+                  isLocked: isHeaderLocked,
+                  onToggleLock: onToggleLock,
                   onTagTap: (tagName) {
                     Navigator.pop(context);
                     final searchFilter =
@@ -231,56 +268,69 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
                           ?.call("#$tagName");
                     }
                   },
-                  onEdit: _handleEdit,
-                  onDelete: () => _handleDelete(result.data),
+                  onEdit: onEdit,
+                  onDelete: onDelete,
                 )
               : CollapsedHeader(
                   folder: result.data,
-                  isHeaderLocked: _isHeaderLocked,
-                  isHeaderExpanded: _isHeaderExpanded,
+                  isHeaderLocked: isHeaderLocked,
+                  isHeaderExpanded: isHeaderExpanded,
                   onBack: () => Navigator.pop(context),
                   onHome: () => Navigator.popUntil(
                       context, (route) => route.isFirst),
-                  onToggleLock: _toggleHeaderLock,
+                  onToggleLock: onToggleLock,
                 ),
         ),
       );
     });
   }
+}
 
-  Widget _buildItemDisplay(List<FolderItem> parentItems) {
-    return Expanded(
-      child: Watch((context) {
-        final loadedItems = _infiniteScroll.loadedItems.value;
-        final allItems = [...parentItems, ...loadedItems];
+class _FolderItemDisplay extends StatelessWidget {
+  final List<FolderItem> parentItems;
+  final InfiniteScrollState<FolderItem> infiniteScroll;
+  final TagFilterState tagFilterState;
+  final VoidCallback onRefresh;
 
-        return FilterableItemDisplay(
-          items: allItems,
-          tagFilterState: _tagFilterState,
-          enableTagFiltering: true,
-          displayModeContext: "folder_viewer",
-          onItemTap: (item) => handleItemTap(context, item),
-          onDeleteRequested: (items) => handleItemDeletion(
-            context,
-            items,
-            _refreshFolderData,
-          ),
-          onTagRequested: (items) => handleItemTagging(
-            context,
-            items,
-            _refreshFolderData,
-          ),
-          onRefreshMetadataRequested: (items) => handleItemMetadataRefresh(
-            context,
-            items,
-            _refreshFolderData,
-          ),
-          onLoadMore: _infiniteScroll.loadNextPage,
-          isLoadingMore: _infiniteScroll.isLoadingMore.value,
-          hasMore: _infiniteScroll.hasMore.value,
-          onLoadAllRemaining: _infiniteScroll.loadAll,
-        );
-      }),
-    );
+  const _FolderItemDisplay({
+    required this.parentItems,
+    required this.infiniteScroll,
+    required this.tagFilterState,
+    required this.onRefresh,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Watch((context) {
+      final loadedItems = infiniteScroll.loadedItems.value;
+      final allItems = [...parentItems, ...loadedItems];
+
+      return FilterableItemDisplay(
+        items: allItems,
+        tagFilterState: tagFilterState,
+        enableTagFiltering: true,
+        displayModeContext: "folder_viewer",
+        onItemTap: (item) => handleItemTap(context, item),
+        onDeleteRequested: (items) => handleItemDeletion(
+          context,
+          items,
+          onRefresh,
+        ),
+        onTagRequested: (items) => handleItemTagging(
+          context,
+          items,
+          onRefresh,
+        ),
+        onRefreshMetadataRequested: (items) => handleItemMetadataRefresh(
+          context,
+          items,
+          onRefresh,
+        ),
+        onLoadMore: infiniteScroll.loadNextPage,
+        isLoadingMore: infiniteScroll.isLoadingMore.value,
+        hasMore: infiniteScroll.hasMore.value,
+        onLoadAllRemaining: infiniteScroll.loadAll,
+      );
+    });
   }
 }

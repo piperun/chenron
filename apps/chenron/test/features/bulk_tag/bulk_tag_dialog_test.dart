@@ -1,5 +1,5 @@
 import "package:chenron/locator.dart";
-import "package:chenron/shared/dialogs/bulk_tag_dialog.dart";
+import "package:chenron/features/bulk_tag/pages/bulk_tag_dialog.dart";
 import "package:database/database.dart";
 import "package:database/main.dart";
 import "package:drift/native.dart";
