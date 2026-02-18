@@ -2,6 +2,21 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## chenron-v1.5.1 - 2026-02-18
+#### Bug Fixes
+- remove dead code and unused parameters - (8cadd0a) - *piperun*
+- prevent RenderFlex overflow in card mode content - (7ea6d28) - *piperun*
+#### Refactoring
+- split item_toolbar into focused component files - (a7be8a2) - *piperun*
+- split item_detail_dialog into focused component files - (3e17761) - *piperun*
+- extract PathModeSelector for settings path modes - (d62cfb2) - *piperun*
+- extract CopyFeedbackMixin from footer and URL bar - (2061ea1) - *piperun*
+- extract MetadataLifecycleMixin from viewer components - (b21f5d7) - *piperun*
+- extract shared ItemEmptyState and remove duplicate URL launch - (2a27ebd) - *piperun*
+- unify CardItem into UnifiedItem - (88725d6) - *piperun*
+
+- - -
+
 ## chenron-v1.5.0 - 2026-02-18
 #### Features
 - split cache clearing into images and metadata - (cafc270) - *piperun*
