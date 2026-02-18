@@ -56,7 +56,7 @@ class ItemToolbar extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
       decoration: BoxDecoration(
         color: theme.scaffoldBackgroundColor,
         border: Border(
