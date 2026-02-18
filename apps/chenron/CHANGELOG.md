@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## chenron-v1.4.0 - 2026-02-18
+#### Features
+- persist view mode preference via SharedPreferences - (e004374) - *piperun*
+- add unified item widget with mode-aware layout - (0b85d71) - *piperun*
+- add folder colors, shared color picker, and theme caching - (ca6bde2) - *piperun*
+#### Bug Fixes
+- reduce toolbar horizontal padding for edge alignment - (010bb8e) - *piperun*
+
+- - -
+
 ## chenron-v1.3.0 - 2026-02-18
 #### Features
 - redesign card footer and improve search - (45a13b0) - *piperun*
