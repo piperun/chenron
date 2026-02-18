@@ -321,11 +321,8 @@ class _FolderItemDisplay extends StatelessWidget {
           items,
           onRefresh,
         ),
-        onRefreshMetadataRequested: (items) => handleItemMetadataRefresh(
-          context,
-          items,
-          onRefresh,
-        ),
+        onRefreshMetadataRequested: (items) =>
+            handleItemMetadataRefresh(context, items),
         onLoadMore: infiniteScroll.loadNextPage,
         isLoadingMore: infiniteScroll.isLoadingMore.value,
         hasMore: infiniteScroll.hasMore.value,

@@ -64,7 +64,7 @@ class LinkTableSection extends StatelessWidget {
               const SizedBox(height: 12),
               Expanded(
                 child: entries.isEmpty
-                    ? LinkEmptyState.build(theme)
+                    ? LinkEmptyState.build()
                     : DataGrid(
                         key: ValueKey(entries
                             .map((e) =>

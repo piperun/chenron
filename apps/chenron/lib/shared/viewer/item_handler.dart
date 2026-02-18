@@ -212,7 +212,6 @@ String _buildRemovalMessage(TagRemovalResult result) {
 Future<void> handleItemMetadataRefresh(
   BuildContext context,
   List<FolderItem> items,
-  VoidCallback onRefresh,
 ) async {
   final links = items
       .whereType<LinkItem>()

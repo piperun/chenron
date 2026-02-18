@@ -3,7 +3,7 @@ import "package:chenron/shared/empty_state/empty_state.dart";
 
 /// Empty state display for link tables.
 class LinkEmptyState {
-  static Widget build(ThemeData theme) {
+  static Widget build() {
     return const EmptyState(
       icon: Icons.link_off,
       message: "No links added yet",

@@ -5,7 +5,7 @@ import "package:intl/intl.dart";
 import "package:chenron/features/statistics/widgets/chart_card.dart";
 import "package:chenron/features/statistics/widgets/time_range_selector.dart";
 
-class GrowthTrendChart extends StatefulWidget {
+class GrowthTrendChart extends StatelessWidget {
   final List<Statistic> history;
   final TimeRange timeRange;
   final ValueChanged<TimeRange> onTimeRangeChanged;
@@ -18,23 +18,18 @@ class GrowthTrendChart extends StatefulWidget {
   });
 
   @override
-  State<GrowthTrendChart> createState() => _GrowthTrendChartState();
-}
-
-class _GrowthTrendChartState extends State<GrowthTrendChart> {
-  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return ChartCard(
       title: "Growth Trend",
       trailing: TimeRangeSelector(
-        selected: widget.timeRange,
-        onChanged: widget.onTimeRangeChanged,
+        selected: timeRange,
+        onChanged: onTimeRangeChanged,
       ),
       child: SizedBox(
         height: 250,
-        child: widget.history.isEmpty
+        child: history.isEmpty
             ? Center(
                 child: Text(
                   "No data yet. Statistics snapshots will appear as you use the app.",
@@ -50,7 +45,7 @@ class _GrowthTrendChartState extends State<GrowthTrendChart> {
   }
 
   LineChartData _buildChartData(ThemeData theme) {
-    final sorted = List<Statistic>.from(widget.history)
+    final sorted = List<Statistic>.from(history)
       ..sort((a, b) => a.recordedAt.compareTo(b.recordedAt));
 
     final dateFormat = DateFormat.MMMd();
@@ -127,7 +122,7 @@ class _GrowthTrendChartState extends State<GrowthTrendChart> {
     );
   }
 
-  LineChartBarData _buildLine(
+  static LineChartBarData _buildLine(
     List<Statistic> sorted,
     double Function(Statistic) getValue,
     Color color,
@@ -149,7 +144,7 @@ class _GrowthTrendChartState extends State<GrowthTrendChart> {
     );
   }
 
-  double _calculateInterval(List<Statistic> sorted) {
+  static double _calculateInterval(List<Statistic> sorted) {
     if (sorted.isEmpty) return 1;
     double maxVal = 0;
     for (final s in sorted) {
@@ -167,7 +162,7 @@ class _GrowthTrendChartState extends State<GrowthTrendChart> {
     return (maxVal / 5).ceilToDouble();
   }
 
-  double _xInterval(List<Statistic> sorted) {
+  static double _xInterval(List<Statistic> sorted) {
     if (sorted.length <= 7) return 1;
     return (sorted.length / 6).ceilToDouble();
   }
