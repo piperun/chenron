@@ -17,8 +17,6 @@ class RailHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -34,9 +32,15 @@ class RailHeader extends StatelessWidget {
         children: [
           // Section destinations
           if (isExtended)
-            _buildExtendedSections(colorScheme)
+            _SectionRow(
+              currentSection: currentSection,
+              onSectionSelected: onSectionSelected,
+            )
           else
-            _buildCollapsedSections(colorScheme),
+            _SectionColumn(
+              currentSection: currentSection,
+              onSectionSelected: onSectionSelected,
+            ),
           const SizedBox(height: 8),
           // FOLDERS label + collapse toggle
           Row(
@@ -63,8 +67,20 @@ class RailHeader extends StatelessWidget {
     );
   }
 
-  /// Extended: horizontal row of icon + label buttons
-  Widget _buildExtendedSections(ColorScheme colorScheme) {
+}
+
+/// Extended: horizontal row of icon + label buttons.
+class _SectionRow extends StatelessWidget {
+  final NavigationSection currentSection;
+  final void Function(NavigationSection) onSectionSelected;
+
+  const _SectionRow({
+    required this.currentSection,
+    required this.onSectionSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Row(
       children: NavigationSection.values.map((section) {
         final isSelected = section == currentSection;
@@ -73,16 +89,26 @@ class RailHeader extends StatelessWidget {
             section: section,
             isSelected: isSelected,
             isExtended: true,
-            colorScheme: colorScheme,
             onTap: () => onSectionSelected(section),
           ),
         );
       }).toList(),
     );
   }
+}
 
-  /// Collapsed: vertical column of icon-only buttons
-  Widget _buildCollapsedSections(ColorScheme colorScheme) {
+/// Collapsed: vertical column of icon-only buttons.
+class _SectionColumn extends StatelessWidget {
+  final NavigationSection currentSection;
+  final void Function(NavigationSection) onSectionSelected;
+
+  const _SectionColumn({
+    required this.currentSection,
+    required this.onSectionSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       children: NavigationSection.values.map((section) {
         final isSelected = section == currentSection;
@@ -90,7 +116,6 @@ class RailHeader extends StatelessWidget {
           section: section,
           isSelected: isSelected,
           isExtended: false,
-          colorScheme: colorScheme,
           onTap: () => onSectionSelected(section),
         );
       }).toList(),
@@ -102,19 +127,18 @@ class _SectionDestination extends StatelessWidget {
   final NavigationSection section;
   final bool isSelected;
   final bool isExtended;
-  final ColorScheme colorScheme;
   final VoidCallback onTap;
 
   const _SectionDestination({
     required this.section,
     required this.isSelected,
     required this.isExtended,
-    required this.colorScheme,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final icon = isSelected ? section.selectedIcon : section.icon;
     final color = isSelected
         ? colorScheme.onPrimaryContainer

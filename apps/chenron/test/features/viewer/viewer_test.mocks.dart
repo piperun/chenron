@@ -8,6 +8,7 @@ import 'dart:async' as _i5;
 import 'package:chenron/features/settings/controller/config_controller.dart'
     as _i3;
 import 'package:database/main.dart' as _i4;
+import 'package:flutter/material.dart' as _i6;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:signals/signals_flutter.dart' as _i2;
 
@@ -100,6 +101,15 @@ class MockConfigController extends _i1.Mock implements _i3.ConfigController {
           Invocation.getter(#availableThemes),
         ),
       ) as _i2.FlutterSignal<List<_i3.ThemeChoice>>);
+
+  @override
+  _i2.FlutterSignal<_i3.ThemeSortMode> get themeSortMode => (super.noSuchMethod(
+        Invocation.getter(#themeSortMode),
+        returnValue: _FakeFlutterSignal_0<_i3.ThemeSortMode>(
+          this,
+          Invocation.getter(#themeSortMode),
+        ),
+      ) as _i2.FlutterSignal<_i3.ThemeSortMode>);
 
   @override
   _i2.FlutterSignal<bool> get defaultArchiveIs => (super.noSuchMethod(
@@ -229,6 +239,12 @@ class MockConfigController extends _i1.Mock implements _i3.ConfigController {
       ) as _i2.FlutterSignal<String?>);
 
   @override
+  List<_i3.ThemeChoice> get sortedThemes => (super.noSuchMethod(
+        Invocation.getter(#sortedThemes),
+        returnValue: <_i3.ThemeChoice>[],
+      ) as List<_i3.ThemeChoice>);
+
+  @override
   set savedAppDatabasePath(String? value) => super.noSuchMethod(
         Invocation.setter(
           #savedAppDatabasePath,
@@ -246,6 +262,14 @@ class MockConfigController extends _i1.Mock implements _i3.ConfigController {
         returnValue: _i5.Future<void>.value(),
         returnValueForMissingStub: _i5.Future<void>.value(),
       ) as _i5.Future<void>);
+
+  @override
+  ({_i6.ThemeData dark, _i6.ThemeData light})? getPreviewVariants(
+          _i3.ThemeChoice? choice) =>
+      (super.noSuchMethod(Invocation.method(
+        #getPreviewVariants,
+        [choice],
+      )) as ({_i6.ThemeData dark, _i6.ThemeData light})?);
 
   @override
   void updateSelectedTheme(_i3.ThemeChoice? choice) => super.noSuchMethod(
