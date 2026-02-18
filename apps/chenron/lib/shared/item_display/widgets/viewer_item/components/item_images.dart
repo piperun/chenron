@@ -1,15 +1,14 @@
 import "package:flutter/material.dart";
 import "package:cache_manager/cache_manager.dart";
 import "package:flutter_cache_manager/flutter_cache_manager.dart" as fcm;
-import "package:signals/signals_flutter.dart";
 import "package:chenron/components/metadata_factory.dart";
+import "package:chenron/shared/item_display/widgets/viewer_item/components/metadata_lifecycle_mixin.dart";
 
 bool _isValidImageUrl(String url) {
   final uri = Uri.tryParse(url);
   return uri != null && uri.hasScheme && uri.hasAuthority;
 }
 
-// OG:image header for links
 class ItemImageHeader extends StatefulWidget {
   final String url;
   final double height;
@@ -24,15 +23,21 @@ class ItemImageHeader extends StatefulWidget {
   State<ItemImageHeader> createState() => _ItemImageHeaderState();
 }
 
-class _ItemImageHeaderState extends State<ItemImageHeader> {
+class _ItemImageHeaderState extends State<ItemImageHeader>
+    with MetadataLifecycleMixin {
   late Future<List<dynamic>> _future;
-  void Function()? _disposeEffect;
+
+  @override
+  String? get metadataUrl => widget.url;
+
+  @override
+  void onMetadataRefreshed() => setState(_initFuture);
 
   @override
   void initState() {
     super.initState();
     _initFuture();
-    _listenForRefresh();
+    initMetadataRefreshListener();
   }
 
   void _initFuture() {
@@ -42,18 +47,9 @@ class _ItemImageHeaderState extends State<ItemImageHeader> {
     ]);
   }
 
-  void _listenForRefresh() {
-    _disposeEffect = effect(() {
-      final refreshed = MetadataFactory.lastRefreshedUrl.value;
-      if (refreshed == widget.url) {
-        setState(_initFuture);
-      }
-    });
-  }
-
   @override
   void dispose() {
-    _disposeEffect?.call();
+    disposeMetadataRefreshListener();
     super.dispose();
   }
 
@@ -102,7 +98,6 @@ class _ItemImageHeaderState extends State<ItemImageHeader> {
   }
 }
 
-// Thumbnail image for list view
 class ItemThumbnail extends StatefulWidget {
   final String url;
   final double width;
@@ -119,15 +114,21 @@ class ItemThumbnail extends StatefulWidget {
   State<ItemThumbnail> createState() => _ItemThumbnailState();
 }
 
-class _ItemThumbnailState extends State<ItemThumbnail> {
+class _ItemThumbnailState extends State<ItemThumbnail>
+    with MetadataLifecycleMixin {
   late Future<List<dynamic>> _future;
-  void Function()? _disposeEffect;
+
+  @override
+  String? get metadataUrl => widget.url;
+
+  @override
+  void onMetadataRefreshed() => setState(_initFuture);
 
   @override
   void initState() {
     super.initState();
     _initFuture();
-    _listenForRefresh();
+    initMetadataRefreshListener();
   }
 
   void _initFuture() {
@@ -137,18 +138,9 @@ class _ItemThumbnailState extends State<ItemThumbnail> {
     ]);
   }
 
-  void _listenForRefresh() {
-    _disposeEffect = effect(() {
-      final refreshed = MetadataFactory.lastRefreshedUrl.value;
-      if (refreshed == widget.url) {
-        setState(_initFuture);
-      }
-    });
-  }
-
   @override
   void dispose() {
-    _disposeEffect?.call();
+    disposeMetadataRefreshListener();
     super.dispose();
   }
 
