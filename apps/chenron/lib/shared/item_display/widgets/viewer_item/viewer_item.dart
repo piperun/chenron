@@ -6,6 +6,7 @@ import "package:chenron/locator.dart";
 import "package:chenron/shared/item_display/widgets/display_mode/display_mode.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/card_view.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/row_item.dart";
+import "package:chenron/shared/item_display/widgets/viewer_item/unified_item.dart";
 
 enum PreviewMode {
   card,
@@ -80,16 +81,17 @@ class ViewerItem extends StatelessWidget {
               excludedTagNames: excludedTagNames,
               onTagFilterTap: onTagFilterTap,
             )
-          : RowItem(
+          : UnifiedItem(
               item: item,
+              mode: mode,
               onTap: onTap,
               showImage: resolvedShowImage,
               maxTags: resolvedMaxTags,
               titleLines: resolvedTitleLines,
               descriptionLines: resolvedDescriptionLines,
-              showUrlBar: resolvedShowUrlBar,
               includedTagNames: includedTagNames,
               excludedTagNames: excludedTagNames,
+              onTagFilterTap: onTagFilterTap,
             );
     });
   }
