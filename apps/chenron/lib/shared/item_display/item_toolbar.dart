@@ -5,6 +5,10 @@ import "package:chenron/shared/item_display/widgets/display_mode/display_mode.da
 import "package:chenron/shared/item_display/widgets/display_mode/display_mode_switcher.dart";
 import "package:chenron/shared/search/search_filter.dart";
 import "package:chenron/shared/search/local_searchbar.dart";
+import "package:chenron/shared/item_display/widgets/toolbar/toolbar_button.dart";
+import "package:chenron/shared/item_display/widgets/toolbar/filter_dropdown.dart";
+import "package:chenron/shared/item_display/widgets/toolbar/tag_filter_button.dart";
+import "package:chenron/shared/item_display/widgets/toolbar/toolbar_actions.dart";
 
 // Re-export SortMode from SearchFilter for convenience
 export "package:chenron/shared/search/search_filter.dart";
@@ -79,7 +83,7 @@ class ItemToolbar extends StatelessWidget {
           if (showSearch) const SizedBox(width: 12),
 
           // Filter dropdown with checkboxes
-          _FilterDropdown(
+          FilterDropdown(
             selectedTypes: selectedTypes,
             onFilterChanged: onFilterChanged,
           ),
@@ -88,7 +92,7 @@ class ItemToolbar extends StatelessWidget {
 
           // Sort button
           Builder(
-            builder: (context) => _ToolbarButton(
+            builder: (context) => ToolbarButton(
               label: _getSortLabel(),
               icon: Icons.sort,
               onPressed: () => _showSortMenu(context),
@@ -97,7 +101,7 @@ class ItemToolbar extends StatelessWidget {
 
           if (showTagFilterButton) ...[
             const SizedBox(width: 8),
-            _TagFilterButton(
+            TagFilterButton(
               includedCount: includedTagNames.length,
               excludedCount: excludedTagNames.length,
               onPressed: onTagFilterPressed,
@@ -107,7 +111,7 @@ class ItemToolbar extends StatelessWidget {
           // Delete mode button
           if (onDeleteModeToggled != null) ...[
             const SizedBox(width: 8),
-            _DeleteModeButton(
+            DeleteModeButton(
               isDeleteMode: isDeleteMode,
               onToggle: onDeleteModeToggled,
             ),
@@ -134,14 +138,14 @@ class ItemToolbar extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _ViewToggleButton(
+                ViewToggleButton(
                   icon: Icons.grid_view,
                   label: "Grid",
                   isSelected: viewMode == ViewMode.grid,
                   onPressed: () => onViewModeChanged(ViewMode.grid),
                 ),
                 const SizedBox(width: 4),
-                _ViewToggleButton(
+                ViewToggleButton(
                   icon: Icons.list,
                   label: "List",
                   isSelected: viewMode == ViewMode.list,
@@ -208,365 +212,5 @@ class ItemToolbar extends StatelessWidget {
         onSortChanged(value);
       }
     }));
-  }
-}
-
-class _ToolbarButton extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final VoidCallback? onPressed;
-
-  const _ToolbarButton({
-    required this.label,
-    required this.icon,
-    required this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return OutlinedButton.icon(
-      onPressed: onPressed,
-      icon: Icon(icon, size: 16),
-      label: Text(label),
-      style: OutlinedButton.styleFrom(
-        foregroundColor: theme.colorScheme.onSurfaceVariant,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-        side: BorderSide(color: theme.dividerColor),
-      ),
-    );
-  }
-}
-
-class _FilterDropdown extends StatelessWidget {
-  final Set<FolderItemType> selectedTypes;
-  final ValueChanged<Set<FolderItemType>> onFilterChanged;
-
-  const _FilterDropdown({
-    required this.selectedTypes,
-    required this.onFilterChanged,
-  });
-
-  String _getLabel() {
-    if (selectedTypes.length == 3) {
-      return "All Types";
-    } else if (selectedTypes.length == 1) {
-      final type = selectedTypes.first;
-      switch (type) {
-        case FolderItemType.link:
-          return "Links";
-        case FolderItemType.document:
-          return "Documents";
-        case FolderItemType.folder:
-          return "Folders";
-      }
-    } else {
-      return "${selectedTypes.length} Types";
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return MenuAnchor(
-      builder: (context, controller, child) {
-        return OutlinedButton.icon(
-          onPressed: () {
-            if (controller.isOpen) {
-              controller.close();
-            } else {
-              controller.open();
-            }
-          },
-          icon: const Icon(Icons.filter_alt, size: 16),
-          label: Text(_getLabel()),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: theme.colorScheme.onSurfaceVariant,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            side: BorderSide(color: theme.dividerColor),
-          ),
-        );
-      },
-      menuChildren: [
-        MenuItemButton(
-          onPressed: null,
-          child: _FilterCheckbox(
-            label: "Links",
-            isSelected: selectedTypes.contains(FolderItemType.link),
-            onChanged: (value) {
-              final newTypes = Set<FolderItemType>.from(selectedTypes);
-              if (value) {
-                newTypes.add(FolderItemType.link);
-              } else {
-                newTypes.remove(FolderItemType.link);
-              }
-              if (newTypes.isNotEmpty) {
-                onFilterChanged(newTypes);
-              }
-            },
-          ),
-        ),
-        MenuItemButton(
-          onPressed: null,
-          child: _FilterCheckbox(
-            label: "Documents",
-            isSelected: selectedTypes.contains(FolderItemType.document),
-            onChanged: (value) {
-              final newTypes = Set<FolderItemType>.from(selectedTypes);
-              if (value) {
-                newTypes.add(FolderItemType.document);
-              } else {
-                newTypes.remove(FolderItemType.document);
-              }
-              if (newTypes.isNotEmpty) {
-                onFilterChanged(newTypes);
-              }
-            },
-          ),
-        ),
-        MenuItemButton(
-          onPressed: null,
-          child: _FilterCheckbox(
-            label: "Folders",
-            isSelected: selectedTypes.contains(FolderItemType.folder),
-            onChanged: (value) {
-              final newTypes = Set<FolderItemType>.from(selectedTypes);
-              if (value) {
-                newTypes.add(FolderItemType.folder);
-              } else {
-                newTypes.remove(FolderItemType.folder);
-              }
-              if (newTypes.isNotEmpty) {
-                onFilterChanged(newTypes);
-              }
-            },
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _FilterCheckbox extends StatelessWidget {
-  final String label;
-  final bool isSelected;
-  final ValueChanged<bool> onChanged;
-
-  const _FilterCheckbox({
-    required this.label,
-    required this.isSelected,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () => onChanged(!isSelected),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Checkbox(
-              value: isSelected,
-              onChanged: (value) => onChanged(value ?? false),
-            ),
-            const SizedBox(width: 8),
-            Text(label),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _TagFilterButton extends StatelessWidget {
-  final int includedCount;
-  final int excludedCount;
-  final VoidCallback? onPressed;
-
-  const _TagFilterButton({
-    required this.includedCount,
-    required this.excludedCount,
-    this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final hasFilters = includedCount > 0 || excludedCount > 0;
-
-    return OutlinedButton(
-      onPressed: onPressed,
-      style: OutlinedButton.styleFrom(
-        foregroundColor: theme.colorScheme.onSurfaceVariant,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-        side: BorderSide(
-          color: hasFilters ? theme.colorScheme.secondary : theme.dividerColor,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.local_offer_outlined,
-            size: 16,
-            color: hasFilters ? theme.colorScheme.secondary : null,
-          ),
-          const SizedBox(width: 8),
-          Text(
-            "Tags",
-            style: TextStyle(
-              color: hasFilters ? theme.colorScheme.secondary : null,
-            ),
-          ),
-          if (includedCount > 0 || excludedCount > 0) ...[
-            const SizedBox(width: 8),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (includedCount > 0)
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: Colors.green,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      "+$includedCount",
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                if (includedCount > 0 && excludedCount > 0)
-                  const SizedBox(width: 4),
-                if (excludedCount > 0)
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: Colors.red,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      "-$excludedCount",
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _DeleteModeButton extends StatelessWidget {
-  final bool isDeleteMode;
-  final VoidCallback? onToggle;
-
-  const _DeleteModeButton({
-    required this.isDeleteMode,
-    required this.onToggle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return OutlinedButton.icon(
-      onPressed: onToggle,
-      icon: Icon(
-        isDeleteMode ? Icons.check_box : Icons.check_box_outlined,
-        size: 16,
-      ),
-      label: Text(isDeleteMode ? "Selecting" : "Select"),
-      style: OutlinedButton.styleFrom(
-        foregroundColor: isDeleteMode
-            ? colorScheme.primary
-            : colorScheme.onSurfaceVariant,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-        side: BorderSide(
-          color: isDeleteMode ? colorScheme.primary : theme.dividerColor,
-        ),
-      ),
-    );
-  }
-}
-
-class _ViewToggleButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool isSelected;
-  final VoidCallback onPressed;
-
-  const _ViewToggleButton({
-    required this.icon,
-    required this.label,
-    required this.isSelected,
-    required this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Material(
-      color: isSelected ? theme.colorScheme.primary : Colors.transparent,
-      borderRadius: BorderRadius.circular(6),
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(6),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                size: 18,
-                color: isSelected
-                    ? theme.colorScheme.onPrimary
-                    : theme.colorScheme.onSurface,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: isSelected
-                      ? theme.colorScheme.onPrimary
-                      : theme.colorScheme.onSurface,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }
