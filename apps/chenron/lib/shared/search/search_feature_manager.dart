@@ -72,11 +72,7 @@ class SearchFeatureManager {
   /// Cleanup enabled features
   ///
   /// [controller] The search bar controller to detach listeners from
-  /// [listener] Optional listener to remove (should match the one passed to setup)
-  void dispose(
-    SearchBarController controller, [
-    VoidCallback? listener,
-  ]) {
+  void dispose(SearchBarController controller) {
     if (_debouncer != null) {
       if (_debouncedListener != null) {
         controller.textController.removeListener(_debouncedListener!);

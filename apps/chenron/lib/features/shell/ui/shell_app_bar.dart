@@ -26,7 +26,7 @@ class ShellAppBar extends StatelessWidget implements PreferredSizeWidget {
     if (currentPage.isMainView) {
       return _buildMainAppBar();
     }
-    return _buildContextualAppBar(context);
+    return _buildContextualAppBar();
   }
 
   AppBar _buildMainAppBar() {
@@ -51,7 +51,7 @@ class ShellAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
-  AppBar _buildContextualAppBar(BuildContext context) {
+  AppBar _buildContextualAppBar() {
     return AppBar(
       automaticallyImplyLeading: false,
       leading: IconButton(

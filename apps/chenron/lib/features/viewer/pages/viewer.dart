@@ -122,11 +122,7 @@ class _ViewerState extends State<Viewer> {
                   () => viewerViewModelSignal.value.init(),
                 ),
                 onRefreshMetadataRequested: (items) =>
-                    handleItemMetadataRefresh(
-                  context,
-                  items,
-                  () => viewerViewModelSignal.value.init(),
-                ),
+                    handleItemMetadataRefresh(context, items),
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
