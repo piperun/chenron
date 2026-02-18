@@ -1,4 +1,5 @@
 import "package:flutter_test/flutter_test.dart";
+import "package:shared_preferences/shared_preferences.dart";
 import "package:database/database.dart";
 import "package:database/main.dart";
 import "package:chenron/shared/item_display/filterable_item_display_notifier.dart";
@@ -38,11 +39,14 @@ FolderItem _makeFolder(String id) {
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   late FilterableItemDisplayNotifier notifier;
   late SearchFilter searchFilter;
   late TagFilterState tagFilterState;
 
   setUp(() {
+    SharedPreferences.setMockInitialValues({});
     searchFilter = SearchFilter();
     searchFilter.setup();
     tagFilterState = TagFilterState();
@@ -96,14 +100,14 @@ void main() {
   });
 
   group("setViewMode", () {
-    test("changes view mode to list", () {
-      notifier.setViewMode(ViewMode.list);
+    test("changes view mode to list", () async {
+      await notifier.setViewMode(ViewMode.list);
       expect(notifier.viewMode.value, ViewMode.list);
     });
 
-    test("changes view mode to grid", () {
-      notifier.setViewMode(ViewMode.list);
-      notifier.setViewMode(ViewMode.grid);
+    test("changes view mode to grid", () async {
+      await notifier.setViewMode(ViewMode.list);
+      await notifier.setViewMode(ViewMode.grid);
       expect(notifier.viewMode.value, ViewMode.grid);
     });
   });

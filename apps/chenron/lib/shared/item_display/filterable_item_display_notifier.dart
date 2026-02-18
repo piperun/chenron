@@ -3,6 +3,7 @@ import "package:database/main.dart";
 import "package:signals/signals.dart";
 import "package:chenron/shared/item_display/widgets/display_mode/display_mode.dart";
 import "package:chenron/shared/item_display/widgets/display_mode/display_mode_preference.dart";
+import "package:chenron/shared/item_display/view_mode_preference.dart";
 import "package:chenron/shared/item_display/item_toolbar.dart";
 import "package:chenron/shared/tag_filter/tag_filter_state.dart";
 
@@ -34,7 +35,15 @@ class FilterableItemDisplayNotifier {
         selectedTypes = signal(Set.of(initialSelectedTypes)),
         displayMode = signal(initialDisplayMode);
 
-  void setViewMode(ViewMode mode) => viewMode.value = mode;
+  Future<void> loadViewMode({String? context}) async {
+    final savedMode = await ViewModePreference.getViewMode(context: context);
+    viewMode.value = savedMode;
+  }
+
+  Future<void> setViewMode(ViewMode mode, {String? context}) async {
+    viewMode.value = mode;
+    await ViewModePreference.setViewMode(mode, context: context);
+  }
   void setSortMode(SortMode mode) => sortMode.value = mode;
   void setSelectedTypes(Set<FolderItemType> types) =>
       selectedTypes.value = types;
