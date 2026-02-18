@@ -27,6 +27,7 @@ class ViewerItem extends StatelessWidget {
 
   final Set<String> includedTagNames;
   final Set<String> excludedTagNames;
+  final ValueChanged<String>? onTagFilterTap;
 
   const ViewerItem({
     super.key,
@@ -41,6 +42,7 @@ class ViewerItem extends StatelessWidget {
     this.showUrlBarOverride,
     this.includedTagNames = const {},
     this.excludedTagNames = const {},
+    this.onTagFilterTap,
   });
 
   @override
@@ -74,9 +76,9 @@ class ViewerItem extends StatelessWidget {
               maxTags: resolvedMaxTags,
               titleLines: resolvedTitleLines,
               descriptionLines: resolvedDescriptionLines,
-              showUrlBar: resolvedShowUrlBar,
               includedTagNames: includedTagNames,
               excludedTagNames: excludedTagNames,
+              onTagFilterTap: onTagFilterTap,
             )
           : RowItem(
               item: item,

@@ -60,6 +60,7 @@ class ItemUtils {
     FolderItem item, {
     int maxTags = 5,
     Set<String> includedTagNames = const {},
+    ValueChanged<String>? onTagTap,
   }) {
     final List<Widget> chips = [];
     final tags = item.tags;
@@ -82,7 +83,7 @@ class ItemUtils {
               : isIncluded
                   ? colorScheme.primary
                   : colorScheme.secondary;
-          return Container(
+          final child = Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
               color: baseColor.withValues(alpha: 0.1),
@@ -105,6 +106,13 @@ class ItemUtils {
               ],
             ),
           );
+          if (onTagTap != null) {
+            return GestureDetector(
+              onTap: () => onTagTap(tag.name),
+              child: child,
+            );
+          }
+          return child;
         }),
       );
     }

@@ -12,11 +12,13 @@ import "package:signals/signals_flutter.dart";
 class ItemMetaRow extends StatelessWidget {
   final FolderItem item;
   final String? url;
+  final bool showInfoButton;
 
   const ItemMetaRow({
     super.key,
     required this.item,
     this.url,
+    this.showInfoButton = true,
   });
 
   @override
@@ -52,20 +54,25 @@ class ItemMetaRow extends StatelessWidget {
             ),
           ),
           _TimeDisplay(item: item),
-          const SizedBox(width: 6),
-          InkWell(
-            onTap: () => showItemDetailDialog(context, itemId: item.id!, itemType: item.type),
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              padding: const EdgeInsets.all(2),
-              alignment: Alignment.center,
-              child: Icon(
-                Icons.info_outline,
-                size: 16,
-                color: theme.colorScheme.primary.withValues(alpha: 0.7),
+          if (showInfoButton) ...[
+            const SizedBox(width: 6),
+            Tooltip(
+              message: "Show details",
+              child: InkWell(
+                onTap: () => showItemDetailDialog(context, itemId: item.id!, itemType: item.type),
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.all(2),
+                  alignment: Alignment.center,
+                  child: Icon(
+                    Icons.info_outline,
+                    size: 16,
+                    color: theme.colorScheme.primary.withValues(alpha: 0.7),
+                  ),
+                ),
               ),
             ),
-          ),
+          ],
         ],
       );
     }
@@ -77,19 +84,23 @@ class ItemMetaRow extends StatelessWidget {
         const SizedBox(width: 8),
         _TimeDisplay(item: item),
         const Spacer(),
-        InkWell(
-          onTap: () => showItemDetailDialog(context, itemId: item.id!, itemType: item.type),
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            padding: const EdgeInsets.all(2),
-            alignment: Alignment.center,
-            child: Icon(
-              Icons.info_outline,
-              size: 16,
-              color: theme.colorScheme.primary.withValues(alpha: 0.7),
+        if (showInfoButton)
+          Tooltip(
+            message: "Show details",
+            child: InkWell(
+              onTap: () => showItemDetailDialog(context, itemId: item.id!, itemType: item.type),
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: const EdgeInsets.all(2),
+                alignment: Alignment.center,
+                child: Icon(
+                  Icons.info_outline,
+                  size: 16,
+                  color: theme.colorScheme.primary.withValues(alpha: 0.7),
+                ),
+              ),
             ),
           ),
-        ),
       ],
     );
   }

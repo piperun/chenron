@@ -42,4 +42,14 @@ extension WebMetadataCrudExtensions on AppDatabase {
     final row = await query.getSingle();
     return row.read(count)!;
   }
+
+  /// Search metadata entries by title or description content.
+  Future<List<WebMetadataEntry>> searchWebMetadata(String query) async {
+    final pattern = "%$query%";
+    return (select(webMetadataEntries)
+          ..where(
+            (w) => w.title.like(pattern) | w.description.like(pattern),
+          ))
+        .get();
+  }
 }

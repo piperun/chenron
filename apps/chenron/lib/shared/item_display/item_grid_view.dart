@@ -14,6 +14,7 @@ class ItemGridView extends StatelessWidget {
   final Set<String> includedTagNames;
   final Set<String> excludedTagNames;
   final void Function(FolderItem)? onItemTap;
+  final ValueChanged<String>? onTagFilterTap;
   final bool isDeleteMode;
   final Set<String> selectedItemIds;
 
@@ -30,6 +31,7 @@ class ItemGridView extends StatelessWidget {
     this.includedTagNames = const {},
     this.excludedTagNames = const {},
     this.onItemTap,
+    this.onTagFilterTap,
     this.isDeleteMode = false,
     this.selectedItemIds = const {},
     this.onLoadMore,
@@ -119,6 +121,7 @@ class ItemGridView extends StatelessWidget {
                   displayMode: displayMode,
                   includedTagNames: includedTagNames,
                   excludedTagNames: excludedTagNames,
+                  onTagFilterTap: onTagFilterTap,
                 ),
               ),
             );
