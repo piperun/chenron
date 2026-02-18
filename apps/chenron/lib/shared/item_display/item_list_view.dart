@@ -1,9 +1,9 @@
 import "package:flutter/material.dart";
 import "package:database/models/item.dart";
 import "package:chenron/shared/item_display/widgets/display_mode/display_mode.dart";
+import "package:chenron/shared/item_display/widgets/item_empty_state.dart";
 import "package:chenron/shared/item_display/widgets/selectable_item_wrapper.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/viewer_item.dart";
-import "package:url_launcher/url_launcher.dart";
 
 class ItemListView extends StatelessWidget {
   final List<FolderItem> items;
@@ -33,38 +33,12 @@ class ItemListView extends StatelessWidget {
     this.hasMore = false,
   });
 
-  Future<void> _launchUrl(FolderItem item) async {
-    final url = item.map(
-      link: (linkItem) => linkItem.url,
-      document: (_) => null,
-      folder: (_) => null,
-    );
-
-    if (url != null && url.isNotEmpty) {
-      final uri = Uri.parse(url);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri);
-      }
-    }
-  }
-
-  VoidCallback? _getItemTapHandler(FolderItem item) {
-    if (onItemTap != null) {
-      return () => onItemTap!(item);
-    }
-    // Default behavior: launch links
-    if (item.type == FolderItemType.link) {
-      return () => _launchUrl(item);
-    }
-    return null;
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     if (items.isEmpty) {
-      return _EmptyState();
+      return const ItemEmptyState();
     }
 
     final showLoadingItem = hasMore && onLoadMore != null;
@@ -111,7 +85,7 @@ class ItemListView extends StatelessWidget {
                 child: ViewerItem(
                   item: item,
                   mode: PreviewMode.list,
-                  onTap: _getItemTapHandler(item),
+                  onTap: onItemTap != null ? () => onItemTap!(item) : null,
                   displayMode: displayMode,
                   includedTagNames: includedTagNames,
                   excludedTagNames: excludedTagNames,
@@ -120,43 +94,6 @@ class ItemListView extends StatelessWidget {
             },
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.inbox,
-            size: 64,
-            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            "No items found",
-            style: TextStyle(
-              fontSize: 16,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            "Try adjusting your search or filters",
-            style: TextStyle(
-              fontSize: 14,
-              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
       ),
     );
   }
