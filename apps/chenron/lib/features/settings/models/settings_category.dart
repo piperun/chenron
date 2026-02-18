@@ -39,7 +39,7 @@ enum SettingsCategory {
         archive => Icons.archive_outlined,
         backup => Icons.backup_outlined,
         data => Icons.folder_outlined,
-        tags => Icons.label_outlined,
+        tags => Icons.sell_outlined,
       };
 
   IconData get selectedIcon => switch (this) {
@@ -50,7 +50,7 @@ enum SettingsCategory {
         archive => Icons.archive,
         backup => Icons.backup,
         data => Icons.folder,
-        tags => Icons.label,
+        tags => Icons.sell,
       };
 
   /// Parent category, or null if this is top-level.

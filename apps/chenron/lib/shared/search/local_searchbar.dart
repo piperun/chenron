@@ -32,14 +32,12 @@ class LocalSearchBar extends StatelessWidget {
     final theme = Theme.of(context);
     final hasHistory = filter.hasFeature(SearchFeature.history);
 
-    return Flexible(
-      flex: 2,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(
-          minWidth: 250,
-          maxWidth: 400,
-        ),
-        child: TextField(
+    return ConstrainedBox(
+      constraints: const BoxConstraints(
+        minWidth: 250,
+        maxWidth: 400,
+      ),
+      child: TextField(
           controller: filter.controller.textController,
           onSubmitted: onSubmitted,
           decoration: InputDecoration(
@@ -74,7 +72,6 @@ class LocalSearchBar extends StatelessWidget {
           ),
           style: const TextStyle(fontSize: 14),
         ),
-      ),
     );
   }
 
