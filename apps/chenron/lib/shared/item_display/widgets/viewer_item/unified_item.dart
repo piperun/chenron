@@ -1,9 +1,9 @@
-import "dart:async";
 import "package:flutter/material.dart";
 import "package:database/models/item.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/item_utils.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/item_content.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/viewer_item.dart";
+import "package:chenron/shared/item_display/widgets/viewer_item/components/copy_feedback_mixin.dart";
 import "package:chenron/shared/item_detail/item_detail_dialog.dart";
 
 class UnifiedItem extends StatefulWidget {
@@ -168,23 +168,10 @@ class _CardFooter extends StatefulWidget {
   State<_CardFooter> createState() => _CardFooterState();
 }
 
-class _CardFooterState extends State<_CardFooter> {
-  bool _copied = false;
-  Timer? _resetTimer;
-
-  void _handleCopy() {
-    if (widget.url == null) return;
-    _resetTimer?.cancel();
-    ItemUtils.copyUrl(widget.url!);
-    setState(() => _copied = true);
-    _resetTimer = Timer(const Duration(milliseconds: 1500), () {
-      if (mounted) setState(() => _copied = false);
-    });
-  }
-
+class _CardFooterState extends State<_CardFooter> with CopyFeedbackMixin {
   @override
   void dispose() {
-    _resetTimer?.cancel();
+    disposeCopyFeedback();
     super.dispose();
   }
 
@@ -205,11 +192,13 @@ class _CardFooterState extends State<_CardFooter> {
         children: [
           if (showCopy)
             _FooterChip(
-              icon: _copied ? Icons.check : Icons.copy,
-              label: _copied ? "Copied" : "Copy",
+              icon: copied ? Icons.check : Icons.copy,
+              label: copied ? "Copied" : "Copy",
               tooltip: "Copy URL",
-              onTap: _handleCopy,
-              highlight: _copied,
+              onTap: () {
+                if (widget.url != null) handleCopy(widget.url!);
+              },
+              highlight: copied,
             ),
 
           // Compressed: tag count chip (card mode)
