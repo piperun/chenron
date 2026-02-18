@@ -1,22 +1,21 @@
 import "package:flutter/material.dart";
 import "package:chenron/shared/search/searchbar.dart";
 import "package:chenron/shared/search/search_filter.dart";
-import "package:chenron/features/shell/ui/sections/navigation_section.dart";
-import "package:chenron/features/shell/ui/section_toggle.dart";
+import "package:chenron/features/shell/ui/sections/appbar_section.dart";
 import "package:chenron/shared/ui/dark_mode.dart";
 
 class ShellAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onSettingsPressed;
+  final VoidCallback? onBack;
   final SearchFilter searchFilter;
-  final NavigationSection currentSection;
-  final void Function(NavigationSection) onSectionSelected;
+  final AppPage currentPage;
 
   const ShellAppBar({
     super.key,
     required this.onSettingsPressed,
     required this.searchFilter,
-    required this.currentSection,
-    required this.onSectionSelected,
+    required this.currentPage,
+    this.onBack,
   });
 
   @override
@@ -24,49 +23,51 @@ class ShellAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    if (currentPage.isMainView) {
+      return _buildMainAppBar();
+    }
+    return _buildContextualAppBar(context);
+  }
 
+  AppBar _buildMainAppBar() {
     return AppBar(
-      title: Row(
-        children: [
-          Expanded(
-            child: Center(
-              child: FractionallySizedBox(
-                widthFactor: 0.8,
-                child: GlobalSearchBar(
-                  externalController: searchFilter.controller,
-                ),
-              ),
-            ),
-          ),
-          // Visual separator after search
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 12),
-            width: 1,
-            height: 32,
-            color: colorScheme.outline.withValues(alpha: 0.3),
-          ),
-          // Custom styled button group
-          SectionToggle(
-            currentSection: currentSection,
-            onSectionSelected: onSectionSelected,
-          ),
-        ],
+      automaticallyImplyLeading: false,
+      centerTitle: true,
+      title: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 720),
+        child: GlobalSearchBar(
+          externalController: searchFilter.controller,
+        ),
       ),
       actions: [
-        // Visual separator before actions
-        Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16),
-          width: 1,
-          height: 32,
-          color: colorScheme.outline.withValues(alpha: 0.3),
-        ),
         const DarkModeToggle(),
         IconButton(
           tooltip: "Settings",
           icon: const Icon(Icons.settings_outlined),
           onPressed: onSettingsPressed,
         ),
+        const SizedBox(width: 8),
+      ],
+    );
+  }
+
+  AppBar _buildContextualAppBar(BuildContext context) {
+    return AppBar(
+      automaticallyImplyLeading: false,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back),
+        tooltip: "Back",
+        onPressed: onBack,
+      ),
+      title: Text(
+        currentPage.label,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      actions: const [
+        DarkModeToggle(),
       ],
     );
   }
