@@ -116,6 +116,7 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
     );
 
     unawaited(_notifier.loadDisplayMode(context: widget.displayModeContext));
+    unawaited(_notifier.loadViewMode(context: widget.displayModeContext));
 
     _disposeDeleteModeEffect = effect(() {
       final isDelete = _notifier.isDeleteMode.value;
@@ -219,7 +220,10 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
               sortMode: _notifier.sortMode.value,
               onSortChanged: _notifier.setSortMode,
               viewMode: _notifier.viewMode.value,
-              onViewModeChanged: _notifier.setViewMode,
+              onViewModeChanged: (mode) => _notifier.setViewMode(
+                mode,
+                context: widget.displayModeContext,
+              ),
               displayMode: _notifier.displayMode.value,
               onDisplayModeChanged: (mode) => _notifier.setDisplayMode(
                 mode,

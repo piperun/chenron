@@ -5,7 +5,6 @@ import "package:chenron/features/settings/controller/config_controller.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/shared/item_display/widgets/display_mode/display_mode.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/card_view.dart";
-import "package:chenron/shared/item_display/widgets/viewer_item/row_item.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/unified_item.dart";
 
 enum PreviewMode {
@@ -55,7 +54,6 @@ class ViewerItem extends StatelessWidget {
       final bool configShowImages = config.showImages.value;
       final bool configShowDescription = config.showDescription.value;
       final bool configShowTags = config.showTags.value;
-      final bool configShowCopyLink = config.showCopyLink.value;
 
       // Resolve: explicit override > config preference > displayMode default
       final int resolvedTitleLines =
@@ -66,8 +64,6 @@ class ViewerItem extends StatelessWidget {
           maxTagsOverride ?? (configShowTags ? displayMode.maxTags : 0);
       final bool resolvedShowImage =
           showImageOverride ?? (configShowImages && displayMode.showImage);
-      final bool resolvedShowUrlBar =
-          showUrlBarOverride ?? (configShowCopyLink && displayMode.showUrlBar);
 
       return mode == PreviewMode.card
           ? CardItem(
