@@ -1,7 +1,9 @@
+import "dart:async";
 import "package:flutter/material.dart";
 import "package:database/models/item.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/item_utils.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/item_content.dart";
+import "package:chenron/shared/item_detail/item_detail_dialog.dart";
 
 class CardItem extends StatefulWidget {
   final FolderItem item;
@@ -10,9 +12,9 @@ class CardItem extends StatefulWidget {
   final int maxTags;
   final int titleLines;
   final int descriptionLines;
-  final bool showUrlBar;
   final Set<String> includedTagNames;
   final Set<String> excludedTagNames;
+  final ValueChanged<String>? onTagFilterTap;
 
   const CardItem({
     super.key,
@@ -22,9 +24,9 @@ class CardItem extends StatefulWidget {
     this.maxTags = 5,
     this.titleLines = 2,
     this.descriptionLines = 2,
-    this.showUrlBar = true,
     this.includedTagNames = const {},
     this.excludedTagNames = const {},
+    this.onTagFilterTap,
   });
 
   @override
@@ -60,7 +62,7 @@ class _CardItemState extends State<CardItem> {
           clipBehavior: Clip.antiAlias,
           child: Stack(
             children: [
-              // Card content
+              // Main card content
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -73,12 +75,16 @@ class _CardItemState extends State<CardItem> {
                   // Content section
                   Expanded(
                     child: Padding(
-                      padding: EdgeInsets.all(widget.showImage ? 12 : 8),
+                      padding: EdgeInsets.fromLTRB(
+                        widget.showImage ? 12 : 8,
+                        widget.showImage ? 12 : 8,
+                        widget.showImage ? 12 : 8,
+                        0,
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          ItemMetaRow(item: widget.item, url: url),
+                          ItemMetaRow(item: widget.item, url: url, showInfoButton: false),
                           const SizedBox(height: 4),
                           Flexible(
                             child: ItemTitle(
@@ -93,30 +99,26 @@ class _CardItemState extends State<CardItem> {
                                 url: url,
                                 maxLines: widget.descriptionLines),
                           ),
-                          if (widget.showUrlBar &&
-                              widget.item.type == FolderItemType.link &&
-                              url.isNotEmpty) ...[
-                            const SizedBox(height: 4),
-                            ItemUrlBar(url: url),
-                          ],
                         ],
                       ),
                     ),
                   ),
+
+                  // Footer action bar
+                  _CardFooter(
+                    item: widget.item,
+                    url: widget.item.type == FolderItemType.link
+                        ? url
+                        : null,
+                    tagCount: tagCount,
+                    onTagTap: () =>
+                        setState(() => _tagsExpanded = true),
+                  ),
                 ],
               ),
 
-              // Tag badge or expanded panel
-              if (tagCount > 0 && !_tagsExpanded)
-                Positioned(
-                  right: 8,
-                  bottom: 8,
-                  child: _TagBadge(
-                    tagCount: tagCount,
-                    onTap: () => setState(() => _tagsExpanded = true),
-                  ),
-                ),
-              if (tagCount > 0 && _tagsExpanded)
+              // Expanded tag overlay
+              if (_tagsExpanded)
                 Positioned(
                   left: 0,
                   right: 0,
@@ -125,7 +127,9 @@ class _CardItemState extends State<CardItem> {
                     item: widget.item,
                     maxTags: widget.maxTags,
                     includedTagNames: widget.includedTagNames,
-                    onClose: () => setState(() => _tagsExpanded = false),
+                    onClose: () =>
+                        setState(() => _tagsExpanded = false),
+                    onTagTap: widget.onTagFilterTap,
                   ),
                 ),
             ],
@@ -136,45 +140,140 @@ class _CardItemState extends State<CardItem> {
   }
 }
 
-class _TagBadge extends StatelessWidget {
+class _CardFooter extends StatefulWidget {
+  final FolderItem item;
+  final String? url;
   final int tagCount;
-  final VoidCallback onTap;
+  final VoidCallback onTagTap;
 
-  const _TagBadge({
+  const _CardFooter({
+    required this.item,
+    this.url,
     required this.tagCount,
+    required this.onTagTap,
+  });
+
+  @override
+  State<_CardFooter> createState() => _CardFooterState();
+}
+
+class _CardFooterState extends State<_CardFooter> {
+  bool _copied = false;
+  Timer? _resetTimer;
+
+  void _handleCopy() {
+    if (widget.url == null) return;
+    _resetTimer?.cancel();
+    ItemUtils.copyUrl(widget.url!);
+    setState(() => _copied = true);
+    _resetTimer = Timer(const Duration(milliseconds: 1500), () {
+      if (mounted) setState(() => _copied = false);
+    });
+  }
+
+  @override
+  void dispose() {
+    _resetTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final showCopy = widget.url != null && widget.url!.isNotEmpty;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(color: theme.dividerColor),
+        ),
+      ),
+      child: Row(
+        children: [
+          if (showCopy)
+            _FooterChip(
+              icon: _copied ? Icons.check : Icons.copy,
+              label: _copied ? "Copied" : "Copy",
+              tooltip: "Copy URL",
+              onTap: _handleCopy,
+              highlight: _copied,
+            ),
+          const Spacer(),
+          if (widget.tagCount > 0) ...[
+            _FooterChip(
+              icon: Icons.tag,
+              label: "${widget.tagCount}",
+              tooltip:
+                  "${widget.tagCount} tag${widget.tagCount == 1 ? "" : "s"}",
+              onTap: widget.onTagTap,
+            ),
+            const SizedBox(width: 4),
+          ],
+          _FooterChip(
+            icon: Icons.info_outline,
+            label: "Details",
+            tooltip: "Show details",
+            onTap: () => showItemDetailDialog(
+              context,
+              itemId: widget.item.id!,
+              itemType: widget.item.type,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FooterChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String tooltip;
+  final VoidCallback onTap;
+  final bool highlight;
+
+  const _FooterChip({
+    required this.icon,
+    required this.label,
+    required this.tooltip,
     required this.onTap,
+    this.highlight = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: theme.dividerColor),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.tag,
-              size: 11,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(width: 2),
-            Text(
-              "$tagCount",
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: theme.colorScheme.onSurfaceVariant,
+    final color = highlight
+        ? theme.colorScheme.primary
+        : theme.colorScheme.onSurfaceVariant;
+
+    return Tooltip(
+      message: tooltip,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: theme.dividerColor),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 11, color: color),
+              const SizedBox(width: 3),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: color,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -186,13 +285,21 @@ class _ExpandedTagPanel extends StatelessWidget {
   final int maxTags;
   final Set<String> includedTagNames;
   final VoidCallback onClose;
+  final ValueChanged<String>? onTagTap;
 
   const _ExpandedTagPanel({
     required this.item,
     required this.maxTags,
     required this.includedTagNames,
     required this.onClose,
+    this.onTagTap,
   });
+
+  // Each tag row ~22px + 4px runSpacing; derive max rows from maxTags
+  double get _maxWrapHeight {
+    final rows = maxTags <= 1 ? 1 : (maxTags <= 5 ? 2 : 3);
+    return rows * 22.0 + (rows - 1) * 4.0;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -207,13 +314,19 @@ class _ExpandedTagPanel extends StatelessWidget {
             top: BorderSide(color: theme.dividerColor),
           ),
         ),
-        child: Wrap(
-          spacing: 4,
-          runSpacing: 4,
-          children: ItemUtils.buildTags(
-            item,
-            maxTags: maxTags,
-            includedTagNames: includedTagNames,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: _maxWrapHeight),
+          child: SingleChildScrollView(
+            child: Wrap(
+              spacing: 4,
+              runSpacing: 4,
+              children: ItemUtils.buildTags(
+                item,
+                maxTags: maxTags,
+                includedTagNames: includedTagNames,
+                onTagTap: onTagTap,
+              ),
+            ),
           ),
         ),
       ),

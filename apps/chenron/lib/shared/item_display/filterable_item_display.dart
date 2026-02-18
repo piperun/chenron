@@ -298,6 +298,8 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
                       excludedTagNames:
                           _notifier.tagFilterState.excludedTagNames,
                       onItemTap: _handleItemTap,
+                      onTagFilterTap:
+                          _notifier.tagFilterState.addIncluded,
                       aspectRatio: displayModeVal.aspectRatio,
                       maxCrossAxisExtent: displayModeVal.maxCrossAxisExtent,
                       isDeleteMode: isDeleteMode,

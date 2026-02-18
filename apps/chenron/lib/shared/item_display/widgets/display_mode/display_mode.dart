@@ -63,7 +63,7 @@ enum DisplayMode {
     showImage: true,
     showUrlBar: true,
     maxCrossAxisExtent: 320.0,
-    aspectRatio: 0.85,
+    aspectRatio: 0.95,
   ),
 
   /// Extended mode: Maximum information display
@@ -83,7 +83,7 @@ enum DisplayMode {
     showImage: true,
     showUrlBar: true,
     maxCrossAxisExtent: 380.0,
-    aspectRatio: 0.65,
+    aspectRatio: 0.72,
   );
 
   /// Maximum number of lines to display for the title

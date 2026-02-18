@@ -193,19 +193,52 @@ class _SuggestionsOverlayState extends State<SuggestionsOverlay> {
                       itemBuilder: (_, index) {
                         final item = _suggestions[index];
                         final isSelected = index == _selectedIndex;
-                        return ListTile(
-                          leading: Icon(item.icon),
-                          title: RichText(
-                            text: TextSpan(
-                              children: TextHighlighter.highlight(
-                                context,
-                                item.title,
-                                item.searchText,
+                        final colorScheme =
+                            Theme.of(context).colorScheme;
+                        return Container(
+                          margin: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? colorScheme.primaryContainer
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: ListTile(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            leading: Icon(
+                              item.icon,
+                              color: isSelected
+                                  ? colorScheme.onPrimaryContainer
+                                  : null,
+                            ),
+                            title: RichText(
+                              text: TextSpan(
+                                children: TextHighlighter.highlight(
+                                  context,
+                                  item.title,
+                                  item.searchText,
+                                ),
                               ),
                             ),
+                            subtitle: item.subtitle != null
+                                ? Text(
+                                    item.subtitle!,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color:
+                                          colorScheme.onSurfaceVariant,
+                                    ),
+                                  )
+                                : null,
+                            onTap: item.onTap,
                           ),
-                          selected: isSelected,
-                          onTap: item.onTap,
                         );
                       },
                     ),
