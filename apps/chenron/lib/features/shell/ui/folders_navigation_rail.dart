@@ -5,6 +5,7 @@ import "package:database/database.dart";
 import "package:chenron/locator.dart";
 import "package:signals/signals.dart";
 
+import "package:chenron/features/shell/ui/sections/navigation_section.dart";
 import "package:chenron/features/shell/ui/widgets/rail_header.dart";
 import "package:chenron/features/shell/ui/widgets/rail_quota_bar.dart";
 import "package:chenron/features/shell/ui/widgets/rail_filter.dart";
@@ -22,6 +23,8 @@ class FoldersNavigationRail extends StatefulWidget {
   final bool isExtended;
   final VoidCallback onToggleExtended;
   final VoidCallback onAddPressed;
+  final NavigationSection currentSection;
+  final void Function(NavigationSection) onSectionSelected;
 
   // Feature flags for premium/sync features
   final bool showSyncFeatures;
@@ -35,6 +38,8 @@ class FoldersNavigationRail extends StatefulWidget {
     required this.isExtended,
     required this.onToggleExtended,
     required this.onAddPressed,
+    required this.currentSection,
+    required this.onSectionSelected,
     this.showSyncFeatures = false,
     this.showPlanInfo = false,
     this.showQuotaBar = false,
@@ -109,6 +114,8 @@ class _FoldersNavigationRailState extends State<FoldersNavigationRail> {
           RailHeader(
             isExtended: widget.isExtended,
             onToggleExtended: widget.onToggleExtended,
+            currentSection: widget.currentSection,
+            onSectionSelected: widget.onSectionSelected,
           ),
           if (widget.showQuotaBar) RailQuotaBar(isExtended: widget.isExtended),
           RailFilter(

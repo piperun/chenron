@@ -25,6 +25,20 @@ enum AppPage {
     return this == AppPage.createLink || this == AppPage.createFolder;
   }
 
+  /// Whether the main-view app bar (search + settings) should be shown.
+  bool get isMainView {
+    return this == AppPage.statistics || this == AppPage.viewer;
+  }
+
+  /// Display label for contextual app bar titles.
+  String get label => switch (this) {
+        AppPage.statistics => "Statistics",
+        AppPage.viewer => "Viewer",
+        AppPage.createLink => "New Link",
+        AppPage.createFolder => "New Folder",
+        AppPage.settings => "Settings",
+      };
+
   Widget getPage({
     VoidCallback? onClose,
     VoidCallback? onSaved,

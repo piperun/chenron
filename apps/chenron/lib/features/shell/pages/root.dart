@@ -132,10 +132,10 @@ class _RootPageState extends State<RootPage> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: ShellAppBar(
+        currentPage: _currentPage,
         onSettingsPressed: _navigateToSettings,
+        onBack: _returnToPreviousPage,
         searchFilter: _searchFilter,
-        currentSection: _currentSection,
-        onSectionSelected: _onSectionSelected,
       ),
       body: Row(
         children: [
@@ -157,9 +157,8 @@ class _RootPageState extends State<RootPage> {
               onToggleExtended: () =>
                   setState(() => _isExtended = !_isExtended),
               onAddPressed: _showCreateModal,
-              showSyncFeatures: false,
-              showPlanInfo: false,
-              showQuotaBar: false,
+              currentSection: _currentSection,
+              onSectionSelected: _onSectionSelected,
             ),
           const VerticalDivider(thickness: 1, width: 1),
           Expanded(
