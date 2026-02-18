@@ -80,107 +80,67 @@ class _GlobalSearchBarState extends State<GlobalSearchBar> {
   @override
   Widget build(BuildContext context) {
     final hasSuggestions = _featureManager.has(SearchFeature.suggestions);
-    final db = locator.get<Signal<AppDatabaseHandler>>();
+    final searchBar = _buildSearchBar(context);
 
-    return hasSuggestions
-        ? SuggestionsOverlay(
-            controller: _queryController,
-            db: db,
-            debounceDuration: widget.debounceDuration,
-            onItemSelected: _saveToHistory,
-            child: SearchBar(
-              controller: _queryController.textController,
-              hintText: "Search across all items...",
-              leading: const Icon(Icons.search),
-              onSubmitted: (value) {
-                // Call the external onSubmitted if provided
-                widget.externalController?.onSubmitted?.call(value);
-              },
-              trailing: [
-                Watch(
-                  (context) {
-                    final hasQuery = _queryController.query.value.isNotEmpty;
-                    return hasQuery
-                        ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            tooltip: "Clear search",
-                            onPressed: () {
-                              _queryController.clear();
-                            },
-                          )
-                        : const SizedBox.shrink();
-                  },
-                ),
-              ],
-              onChanged: (value) {
-                // Update query signal - this triggers real-time filtering
-                _queryController.updateSignal(value);
-              },
-              padding: const WidgetStatePropertyAll<EdgeInsets>(
-                EdgeInsets.symmetric(horizontal: 16.0),
-              ),
-              shape: WidgetStatePropertyAll(
-                RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-              elevation: const WidgetStatePropertyAll(0),
-              side: WidgetStatePropertyAll(
-                BorderSide(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .outline
-                      .withValues(alpha: 0.3),
-                ),
-              ),
-            ),
-          )
-        : SearchBar(
-            controller: _queryController.textController,
-            hintText: "Search across all items...",
-            leading: const Icon(Icons.search),
-            onSubmitted: (value) {
-              // Call the external onSubmitted if provided
-              widget.externalController?.onSubmitted?.call(value);
-            },
-            trailing: [
-              Watch(
-                (context) {
-                  final hasQuery = _queryController.query.value.isNotEmpty;
-                  return hasQuery
-                      ? IconButton(
-                          icon: const Icon(Icons.clear),
-                          tooltip: "Clear search",
-                          onPressed: () {
-                            _queryController.clear();
-                          },
-                        )
-                      : const SizedBox.shrink();
-                },
-              ),
-            ],
-            onChanged: (value) {
-              // Update query signal - this triggers real-time filtering
-              _queryController.updateSignal(value);
-            },
-            padding: const WidgetStatePropertyAll<EdgeInsets>(
-              EdgeInsets.symmetric(horizontal: 16.0),
-            ),
-            shape: WidgetStatePropertyAll(
-              RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(4),
-              ),
-            ),
-            elevation: const WidgetStatePropertyAll(0),
-            side: WidgetStatePropertyAll(
-              BorderSide(
-                color: Theme.of(context)
-                    .colorScheme
-                    .outline
-                    .withValues(alpha: 0.3),
-              ),
-            ),
-          );
+    if (!hasSuggestions) return searchBar;
+
+    final db = locator.get<Signal<AppDatabaseHandler>>();
+    return SuggestionsOverlay(
+      controller: _queryController,
+      db: db,
+      debounceDuration: widget.debounceDuration,
+      onItemSelected: _saveToHistory,
+      child: searchBar,
+    );
+  }
+
+  SearchBar _buildSearchBar(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return SearchBar(
+      controller: _queryController.textController,
+      hintText: "Search across all items...",
+      leading: const Icon(Icons.search),
+      onSubmitted: (value) {
+        widget.externalController?.onSubmitted?.call(value);
+      },
+      trailing: [
+        Watch(
+          (context) {
+            final hasQuery = _queryController.query.value.isNotEmpty;
+            return hasQuery
+                ? IconButton(
+                    icon: const Icon(Icons.clear),
+                    tooltip: "Clear search",
+                    onPressed: () {
+                      _queryController.clear();
+                    },
+                  )
+                : const SizedBox.shrink();
+          },
+        ),
+      ],
+      onChanged: (value) {
+        _queryController.updateSignal(value);
+      },
+      padding: const WidgetStatePropertyAll<EdgeInsets>(
+        EdgeInsets.symmetric(horizontal: 16.0),
+      ),
+      shape: WidgetStatePropertyAll(
+        RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+      elevation: const WidgetStatePropertyAll(0),
+      backgroundColor: WidgetStatePropertyAll(
+        colorScheme.surfaceContainerLow,
+      ),
+      side: WidgetStatePropertyAll(
+        BorderSide(
+          color: colorScheme.outline.withValues(alpha: 0.3),
+        ),
+      ),
+    );
   }
 
   Future<void> _saveToHistory({
