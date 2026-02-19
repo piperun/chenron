@@ -1,5 +1,7 @@
 import "dart:io";
 
+import "package:flutter/foundation.dart";
+
 import "package:chenron/locator.dart";
 import "package:database/database.dart";
 import "package:html/dom.dart";
@@ -21,9 +23,18 @@ class BookmarkImportResult {
 }
 
 class BookmarkImportService {
+  late final AppDatabase Function() _resolveDb;
+
+  BookmarkImportService()
+      : _resolveDb = (() =>
+            locator.get<Signal<AppDatabaseHandler>>().value.appDatabase);
+
+  @visibleForTesting
+  BookmarkImportService.withDeps({required AppDatabase appDatabase})
+      : _resolveDb = (() => appDatabase);
+
   Future<BookmarkImportResult> importBookmarks(File sourceFile) async {
-    final appDb =
-        locator.get<Signal<AppDatabaseHandler>>().value.appDatabase;
+    final appDb = _resolveDb();
 
     final content = await sourceFile.readAsString();
     final document = html_parser.parse(content);

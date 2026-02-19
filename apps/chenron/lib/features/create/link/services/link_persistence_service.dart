@@ -1,15 +1,26 @@
+import "package:flutter/foundation.dart";
+
 import "package:database/database.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/features/create/link/models/link_entry.dart";
 import "package:signals/signals.dart";
 
 class LinkPersistenceService {
+  late final AppDatabase Function() _resolveDb;
+
+  LinkPersistenceService()
+      : _resolveDb = (() =>
+            locator.get<Signal<AppDatabaseHandler>>().value.appDatabase);
+
+  @visibleForTesting
+  LinkPersistenceService.withDeps({required AppDatabase appDatabase})
+      : _resolveDb = (() => appDatabase);
+
   Future<int> saveLinks({
     required List<LinkEntry> entries,
     required List<String> folderIds,
   }) async {
-    final db = locator.get<Signal<AppDatabaseHandler>>().value;
-    final appDb = db.appDatabase;
+    final appDb = _resolveDb();
 
     List<String> targetFolders = folderIds;
     if (targetFolders.isEmpty) {

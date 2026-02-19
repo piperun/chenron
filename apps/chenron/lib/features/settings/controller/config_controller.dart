@@ -42,9 +42,23 @@ class ThemeChoice {
 }
 
 class ConfigController {
-  final ConfigService _configService = locator.get<ConfigService>();
-  final DataSettingsService _dataService = locator.get<DataSettingsService>();
-  final ThemeController _themeController = themeControllerSignal.value;
+  late final ConfigService _configService;
+  late final DataSettingsService _dataService;
+  late final ThemeController _themeController;
+
+  ConfigController()
+      : _configService = locator.get<ConfigService>(),
+        _dataService = locator.get<DataSettingsService>(),
+        _themeController = themeControllerSignal.value;
+
+  @visibleForTesting
+  ConfigController.withDeps({
+    required ConfigService configService,
+    required DataSettingsService dataSettingsService,
+    required ThemeController themeController,
+  })  : _configService = configService,
+        _dataService = dataSettingsService,
+        _themeController = themeController;
 
   final isLoading = signal<bool>(true);
   final error = signal<String?>(null);
@@ -374,6 +388,8 @@ class ConfigController {
       }
       final updatedBackup = await _configService.getBackupSettings();
       backupSettings.value = updatedBackup;
+      backupInterval.value = updatedBackup?.backupInterval;
+      backupPath.value = updatedBackup?.backupPath;
 
       loggerGlobal.info("ConfigController", "Settings saved successfully.");
       return true;
