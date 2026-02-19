@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## chenron-v1.5.2 - 2026-02-19
+#### Bug Fixes
+- use sell icon for tags and reject video URLs in og:image - (25216b4) - *piperun*
+#### Performance Improvements
+- optimize cache computation, batch queries, and FutureBuilder - (9ff81d2) - *piperun*
+#### Refactoring
+- decouple shared code from global signals and locator - (f1991f5) - *piperun*
+
+- - -
+
 ## chenron-v1.5.1 - 2026-02-18
 #### Bug Fixes
 - remove dead code and unused parameters - (8cadd0a) - *piperun*
