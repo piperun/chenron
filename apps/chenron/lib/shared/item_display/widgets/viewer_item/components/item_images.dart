@@ -4,9 +4,16 @@ import "package:flutter_cache_manager/flutter_cache_manager.dart" as fcm;
 import "package:chenron/components/metadata_factory.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/components/metadata_lifecycle_mixin.dart";
 
+const _videoExtensions = {".mp4", ".webm", ".mov", ".avi", ".mkv", ".flv"};
+
 bool _isValidImageUrl(String url) {
   final uri = Uri.tryParse(url);
-  return uri != null && uri.hasScheme && uri.hasAuthority;
+  if (uri == null || !uri.hasScheme || !uri.hasAuthority) return false;
+
+  // Some sites put video URLs in og:image — reject those to avoid
+  // downloading entire video files into the image cache.
+  final path = uri.path.toLowerCase();
+  return !_videoExtensions.any(path.endsWith);
 }
 
 class ItemImageHeader extends StatefulWidget {
