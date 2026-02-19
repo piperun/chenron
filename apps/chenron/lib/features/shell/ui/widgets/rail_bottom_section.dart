@@ -25,65 +25,72 @@ class RailBottomSection extends StatelessWidget {
           ),
         ),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Plan info section (hidden by default)
-          if (showPlanInfo)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  if (isExtended)
-                    const Text("Free", style: TextStyle(fontSize: 12)),
-                  TextButton(
-                    onPressed: () => _showUpgradeDialog(context),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 8),
-                      backgroundColor: Colors.transparent,
-                      side: BorderSide(
-                        color: Colors.blue.shade700,
-                        style: BorderStyle.solid,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final showExtended = constraints.maxWidth > 120;
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Plan info section (hidden by default)
+              if (showPlanInfo)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      if (showExtended)
+                        const Text("Free",
+                            style: TextStyle(fontSize: 12)),
+                      TextButton(
+                        onPressed: () => _showUpgradeDialog(context),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 8),
+                          backgroundColor: Colors.transparent,
+                          side: BorderSide(
+                            color: Colors.blue.shade700,
+                            style: BorderStyle.solid,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: Text(
+                          showExtended ? "Upgrade" : "↑",
+                          style: const TextStyle(
+                              color: Colors.blue, fontSize: 12),
+                        ),
                       ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    child: Text(
-                      isExtended ? "Upgrade" : "↑",
-                      style: const TextStyle(color: Colors.blue, fontSize: 12),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          // Add New button (always shown)
-          if (isExtended)
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                onPressed: onAddPressed,
-                icon: const Icon(Icons.add),
-                label: const Text("Add New"),
-                style: FilledButton.styleFrom(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    ],
                   ),
                 ),
-              ),
-            )
-          else
-            FloatingActionButton(
-              onPressed: onAddPressed,
-              tooltip: "Add New",
-              mini: true,
-              child: const Icon(Icons.add),
-            ),
-        ],
+              // Add New button (always shown)
+              if (showExtended)
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: onAddPressed,
+                    icon: const Icon(Icons.add),
+                    label: const Text("Add New"),
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                )
+              else
+                FloatingActionButton(
+                  onPressed: onAddPressed,
+                  tooltip: "Add New",
+                  mini: true,
+                  child: const Icon(Icons.add),
+                ),
+            ],
+          );
+        },
       ),
     );
   }

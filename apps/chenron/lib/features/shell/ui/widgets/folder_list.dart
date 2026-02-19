@@ -1,6 +1,7 @@
 import "package:flutter/material.dart";
 import "package:database/models/db_result.dart";
 import "package:database/models/item.dart";
+import "package:chenron/components/floating_label.dart";
 
 class FolderList extends StatelessWidget {
   final bool isLoading;
@@ -48,8 +49,12 @@ class FolderList extends StatelessWidget {
                 style: TextStyle(
                     color: Theme.of(context).colorScheme.onSurfaceVariant),
               )
-            : Icon(Icons.folder_outlined,
-                color: Theme.of(context).colorScheme.onSurfaceVariant),
+            : Tooltip(
+                message:
+                    filterTerm.isEmpty ? "No folders" : "No matches",
+                child: Icon(Icons.folder_off_outlined,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant),
+              ),
       );
     }
 
@@ -69,7 +74,7 @@ class FolderList extends StatelessWidget {
   }
 }
 
-class _FolderRow extends StatelessWidget {
+class _FolderRow extends StatefulWidget {
   final FolderResult folder;
   final bool isExtended;
   final bool isSelected;
@@ -83,49 +88,78 @@ class _FolderRow extends StatelessWidget {
   });
 
   @override
+  State<_FolderRow> createState() => _FolderRowState();
+}
+
+class _FolderRowState extends State<_FolderRow> {
+  bool _isHovered = false;
+
+  @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        margin: const EdgeInsets.symmetric(vertical: 2),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? Theme.of(context).colorScheme.primaryContainer
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              Icons.folder,
-              size: 16,
-              color: folder.data.color != null
-                  ? Color(folder.data.color!)
-                  : Theme.of(context).colorScheme.primary,
-            ),
-            if (isExtended) ...[
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  folder.data.title,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 14),
-                ),
+    final colorScheme = Theme.of(context).colorScheme;
+    final folderColor = widget.folder.data.color != null
+        ? Color(widget.folder.data.color!)
+        : colorScheme.primary;
+
+    Widget row = MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: InkWell(
+        onTap: widget.onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final showExtended = constraints.maxWidth > 120;
+            return Container(
+              padding: showExtended
+                  ? const EdgeInsets.symmetric(horizontal: 10, vertical: 8)
+                  : const EdgeInsets.symmetric(vertical: 10),
+              margin: const EdgeInsets.symmetric(vertical: 2),
+              decoration: BoxDecoration(
+                color: widget.isSelected
+                    ? colorScheme.primaryContainer
+                    : _isHovered
+                        ? colorScheme.onSurface.withValues(alpha: 0.08)
+                        : Colors.transparent,
+                borderRadius: BorderRadius.circular(10),
               ),
-              // Item count badges by type
-              ..._buildItemBadges(context),
-            ],
-          ],
+              child: showExtended
+                  ? Row(
+                      children: [
+                        Icon(Icons.folder, size: 16, color: folderColor),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            widget.folder.data.title,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                        ),
+                        ..._buildItemBadges(context),
+                      ],
+                    )
+                  : Center(
+                      child: Icon(Icons.folder, size: 22, color: folderColor),
+                    ),
+            );
+          },
         ),
       ),
     );
+
+    if (!widget.isExtended) {
+      row = FloatingLabel(
+        label: widget.folder.data.title,
+        child: row,
+      );
+    }
+
+    return row;
   }
 
   List<Widget> _buildItemBadges(BuildContext context) {
     final counts = <FolderItemType, int>{};
-    for (final item in folder.items) {
+    for (final item in widget.folder.items) {
       counts[item.type] = (counts[item.type] ?? 0) + 1;
     }
 
@@ -171,4 +205,3 @@ class _FolderRow extends StatelessWidget {
     ];
   }
 }
-
