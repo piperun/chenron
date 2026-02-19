@@ -144,7 +144,7 @@ class GlobalSuggestionBuilder {
     final queryController = this.queryController;
     return tags.take(10).map((tag) {
       return SuggestionData(
-        icon: Icons.label_outline,
+        icon: Icons.sell,
         title: tag.data.name,
         searchText: partial,
         onTap: () {
