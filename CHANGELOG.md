@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## chenron-v1.7.0 - 2026-02-19
+#### Features
+- improve collapsed navigation rail UX - (640f799) - *piperun*
+
+- - -
+
 ## chenron-v1.6.0 - 2026-02-19
 #### Features
 - show sub-category icons when settings rail is collapsed - (2f5c3b0) - *piperun*
