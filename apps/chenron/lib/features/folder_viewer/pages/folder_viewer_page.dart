@@ -15,15 +15,25 @@ import "package:chenron/shared/tag_filter/tag_filter_state.dart";
 import "package:chenron/features/folder_editor/pages/folder_editor.dart";
 import "package:app_logger/app_logger.dart";
 import "package:chenron/shared/errors/error_snack_bar.dart";
-import "package:chenron/features/shell/pages/root.dart";
 import "package:chenron/shared/viewer/item_handler.dart";
+import "package:chenron/features/viewer/state/viewer_state.dart";
 
 class FolderViewerPage extends StatefulWidget {
   final String folderId;
 
+  /// Routes an item tap (e.g. open URL, navigate to folder, show details).
+  /// When null, falls back to the global presenter signal.
+  final void Function(BuildContext, FolderItem)? onItemTap;
+
+  /// Called when a tag chip is tapped in the folder header.
+  /// The caller (typically root) uses this to pop and apply a search query.
+  final ValueChanged<String>? onTagSearch;
+
   const FolderViewerPage({
     super.key,
     required this.folderId,
+    this.onItemTap,
+    this.onTagSearch,
   });
 
   @override
@@ -193,6 +203,7 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
                 onToggleLock: _toggleHeaderLock,
                 onEdit: _handleEdit,
                 onDelete: () => _handleDelete(result.data),
+                onTagSearch: widget.onTagSearch,
               ),
               Expanded(
                 child: _FolderItemDisplay(
@@ -200,6 +211,7 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
                   infiniteScroll: _infiniteScroll,
                   tagFilterState: _tagFilterState,
                   onRefresh: _refreshFolderData,
+                  onItemTap: widget.onItemTap,
                 ),
               ),
             ],
@@ -221,6 +233,7 @@ class _CollapsibleHeader extends StatelessWidget {
   final VoidCallback onToggleLock;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final ValueChanged<String>? onTagSearch;
 
   const _CollapsibleHeader({
     required this.result,
@@ -232,6 +245,7 @@ class _CollapsibleHeader extends StatelessWidget {
     required this.onToggleLock,
     required this.onEdit,
     required this.onDelete,
+    this.onTagSearch,
   });
 
   @override
@@ -258,16 +272,12 @@ class _CollapsibleHeader extends StatelessWidget {
                   onToggle: onToggleExpanded,
                   isLocked: isHeaderLocked,
                   onToggleLock: onToggleLock,
-                  onTagTap: (tagName) {
-                    Navigator.pop(context);
-                    final searchFilter =
-                        globalSearchFilterSignal.value;
-                    if (searchFilter != null) {
-                      searchFilter.controller.value = "#$tagName";
-                      searchFilter.controller.onSubmitted
-                          ?.call("#$tagName");
-                    }
-                  },
+                  onTagTap: onTagSearch != null
+                      ? (tagName) {
+                          Navigator.pop(context);
+                          onTagSearch!("#$tagName");
+                        }
+                      : null,
                   onEdit: onEdit,
                   onDelete: onDelete,
                 )
@@ -291,16 +301,21 @@ class _FolderItemDisplay extends StatelessWidget {
   final InfiniteScrollState<FolderItem> infiniteScroll;
   final TagFilterState tagFilterState;
   final VoidCallback onRefresh;
+  final void Function(BuildContext, FolderItem)? onItemTap;
 
   const _FolderItemDisplay({
     required this.parentItems,
     required this.infiniteScroll,
     required this.tagFilterState,
     required this.onRefresh,
+    this.onItemTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    final effectiveOnItemTap =
+        onItemTap ?? viewerViewModelSignal.value.handleFolderItemTap;
+
     return Watch((context) {
       final loadedItems = infiniteScroll.loadedItems.value;
       final allItems = [...parentItems, ...loadedItems];
@@ -310,7 +325,7 @@ class _FolderItemDisplay extends StatelessWidget {
         tagFilterState: tagFilterState,
         enableTagFiltering: true,
         displayModeContext: "folder_viewer",
-        onItemTap: (item) => handleItemTap(context, item),
+        onItemTap: (item) => handleItemTap(context, item, effectiveOnItemTap),
         onDeleteRequested: (items) => handleItemDeletion(
           context,
           items,

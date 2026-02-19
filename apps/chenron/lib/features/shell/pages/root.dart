@@ -12,6 +12,7 @@ import "package:chenron/features/shell/ui/current_page_builder.dart";
 import "package:chenron/features/settings/models/settings_category.dart";
 import "package:chenron/features/settings/ui/settings_navigation_rail.dart";
 import "package:chenron/features/folder_viewer/pages/folder_viewer_page.dart";
+import "package:chenron/features/viewer/state/viewer_state.dart";
 import "package:app_logger/app_logger.dart";
 import "package:signals/signals.dart";
 
@@ -104,10 +105,19 @@ class _RootPageState extends State<RootPage> {
   void _onFolderSelected(String folderId) {
     loggerGlobal.fine("RootPage", "Folder selected: $folderId");
 
+    final presenter = viewerViewModelSignal.value;
+
     // Navigate to the FolderViewerPage to show folder contents
     unawaited(Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => FolderViewerPage(folderId: folderId),
+        builder: (context) => FolderViewerPage(
+          folderId: folderId,
+          onItemTap: presenter.handleFolderItemTap,
+          onTagSearch: (query) {
+            _searchFilter.controller.value = query;
+            _searchFilter.controller.onSubmitted?.call(query);
+          },
+        ),
       ),
     ));
   }

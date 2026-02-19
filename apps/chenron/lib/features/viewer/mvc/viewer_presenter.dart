@@ -79,7 +79,10 @@ class ViewerPresenter {
     unawaited(Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => FolderViewerPage(folderId: folder.data.id),
+        builder: (context) => FolderViewerPage(
+          folderId: folder.data.id,
+          onItemTap: handleFolderItemTap,
+        ),
       ),
     ));
   }
@@ -179,7 +182,10 @@ class ViewerPresenter {
         unawaited(Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => FolderViewerPage(folderId: item.id),
+            builder: (context) => FolderViewerPage(
+              folderId: item.id,
+              onItemTap: handleFolderItemTap,
+            ),
           ),
         ));
       case FolderItemType.link:
@@ -189,6 +195,40 @@ class ViewerPresenter {
         break;
       case FolderItemType.document:
         // Future implementation
+        break;
+    }
+  }
+
+  /// Routes a [FolderItem] tap based on the user's click-action preference.
+  /// Used by callers outside the viewer feature (e.g. FolderViewerPage)
+  /// so they don't need to know about ViewerItem or the presenter signal.
+  void handleFolderItemTap(BuildContext context, FolderItem item) {
+    final action = _configController.itemClickAction.peek();
+
+    if (action == 1) {
+      showItemDetailDialog(context, itemId: item.id!, itemType: item.type);
+      return;
+    }
+
+    switch (item.type) {
+      case FolderItemType.folder:
+        unawaited(Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => FolderViewerPage(
+              folderId: item.id!,
+              onItemTap: handleFolderItemTap,
+            ),
+          ),
+        ));
+      case FolderItemType.link:
+        final url = item.map(
+          link: (l) => l.url,
+          document: (_) => null,
+          folder: (_) => null,
+        );
+        if (url != null && url.isNotEmpty) unawaited(onOpenUrl(url));
+      case FolderItemType.document:
         break;
     }
   }

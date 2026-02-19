@@ -105,7 +105,8 @@ class _ViewerState extends State<Viewer> {
                 enableTagFiltering: true,
                 displayModeContext: "viewer",
                 showSearch: false,
-                onItemTap: (item) => handleItemTap(context, item),
+                onItemTap: (item) => handleItemTap(
+                      context, item, presenter.handleFolderItemTap),
                 onDeleteModeChanged: (
                     {required bool isDeleteMode,
                     required int selectedCount}) {

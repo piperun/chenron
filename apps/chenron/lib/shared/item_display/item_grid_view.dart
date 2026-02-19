@@ -1,5 +1,7 @@
 import "package:flutter/material.dart";
 import "package:database/models/item.dart";
+import "package:chenron/features/settings/controller/config_controller.dart";
+import "package:chenron/locator.dart";
 import "package:chenron/shared/item_display/widgets/display_mode/display_mode.dart";
 import "package:chenron/shared/item_display/widgets/item_empty_state.dart";
 import "package:chenron/shared/item_display/widgets/selectable_item_wrapper.dart";
@@ -42,6 +44,7 @@ class ItemGridView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final config = locator.get<ConfigController>();
 
     if (items.isEmpty) {
       return const ItemEmptyState();
@@ -90,6 +93,7 @@ class ItemGridView extends StatelessWidget {
                 onTap: isDeleteMode ? () => onItemTap?.call(item) : null,
                 child: ViewerItem(
                   item: item,
+                  config: config,
                   mode: PreviewMode.card,
                   onTap: onItemTap != null ? () => onItemTap!(item) : null,
                   displayMode: displayMode,
