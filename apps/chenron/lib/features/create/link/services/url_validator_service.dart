@@ -25,7 +25,7 @@ class UrlValidatorService {
   static bool isValidUrlFormat(String url) {
     try {
       final uri = Uri.parse(url);
-      return uri.hasScheme && uri.hasAuthority;
+      return uri.hasScheme && uri.hasAuthority && uri.host.isNotEmpty;
     } catch (e) {
       return false;
     }
