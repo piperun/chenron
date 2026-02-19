@@ -1,14 +1,25 @@
 import "dart:io";
 
+import "package:flutter/foundation.dart";
+
 import "package:chenron/locator.dart";
 import "package:database/database.dart";
 import "package:database/main.dart";
 import "package:signals/signals.dart";
 
 class BookmarkExportService {
+  late final AppDatabase Function() _resolveDb;
+
+  BookmarkExportService()
+      : _resolveDb = (() =>
+            locator.get<Signal<AppDatabaseHandler>>().value.appDatabase);
+
+  @visibleForTesting
+  BookmarkExportService.withDeps({required AppDatabase appDatabase})
+      : _resolveDb = (() => appDatabase);
+
   Future<File> exportBookmarks(File destination) async {
-    final appDb =
-        locator.get<Signal<AppDatabaseHandler>>().value.appDatabase;
+    final appDb = _resolveDb();
 
     final allFolders = await appDb.getAllFolders(
       includeOptions:

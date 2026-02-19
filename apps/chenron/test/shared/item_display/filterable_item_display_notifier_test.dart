@@ -249,6 +249,106 @@ void main() {
     });
   });
 
+  group("refreshSelectedItems", () {
+    test("updates selected items with fresh data", () {
+      notifier.toggleDeleteMode();
+      final tag = Tag(id: "t1", name: "old", createdAt: _epoch);
+      final item = FolderItem.link(
+        id: "1",
+        url: "https://a.com",
+        tags: [tag],
+        createdAt: _epoch,
+      );
+      notifier.toggleItemSelection(item);
+
+      final freshTag = Tag(id: "t1", name: "new", createdAt: _epoch);
+      final fresh = FolderItem.link(
+        id: "1",
+        url: "https://a.com",
+        tags: [freshTag],
+        createdAt: _epoch,
+      );
+      notifier.refreshSelectedItems([fresh]);
+
+      expect(notifier.selectedItems.value["1"]!.tags.first.name, "new");
+    });
+
+    test("removes items no longer in fresh list", () {
+      notifier.toggleDeleteMode();
+      notifier.toggleItemSelection(_makeLink("1", "https://a.com"));
+      notifier.toggleItemSelection(_makeLink("2", "https://b.com"));
+
+      notifier.refreshSelectedItems([_makeLink("1", "https://a.com")]);
+      expect(notifier.selectedItems.value.length, 1);
+      expect(notifier.selectedItems.value.containsKey("1"), true);
+    });
+
+    test("no-op when selection is empty", () {
+      notifier.refreshSelectedItems([_makeLink("1", "https://a.com")]);
+      expect(notifier.selectedItems.value, isEmpty);
+    });
+  });
+
+  group("handleSearchSubmitted", () {
+    test("parses tags from query and updates controller", () {
+      notifier.handleSearchSubmitted("hello #world -#spam");
+      expect(tagFilterState.includedTagNames, contains("world"));
+      expect(tagFilterState.excludedTagNames, contains("spam"));
+      expect(searchFilter.controller.value, "hello");
+    });
+
+    test("handles query without tags", () {
+      notifier.handleSearchSubmitted("plain query");
+      expect(tagFilterState.includedTagNames, isEmpty);
+      expect(tagFilterState.excludedTagNames, isEmpty);
+      expect(searchFilter.controller.value, "plain query");
+    });
+  });
+
+  group("loadViewMode", () {
+    test("loads saved preference", () async {
+      SharedPreferences.setMockInitialValues(
+          {"view_mode_preference": "list"});
+      await notifier.loadViewMode();
+      expect(notifier.viewMode.value, ViewMode.list);
+    });
+
+    test("defaults to grid when no pref", () async {
+      await notifier.loadViewMode();
+      expect(notifier.viewMode.value, ViewMode.grid);
+    });
+
+    test("uses scoped key with context", () async {
+      SharedPreferences.setMockInitialValues(
+          {"view_mode_preference_viewer": "list"});
+      await notifier.loadViewMode(context: "viewer");
+      expect(notifier.viewMode.value, ViewMode.list);
+    });
+  });
+
+  group("loadDisplayMode / setDisplayMode", () {
+    test("loadDisplayMode reads saved preference", () async {
+      SharedPreferences.setMockInitialValues(
+          {"display_mode_preference": "compact"});
+      await notifier.loadDisplayMode();
+      expect(notifier.displayMode.value, DisplayMode.compact);
+      expect(notifier.isLoadingDisplayMode.value, false);
+    });
+
+    test("loadDisplayMode defaults to standard", () async {
+      await notifier.loadDisplayMode();
+      expect(notifier.displayMode.value, DisplayMode.standard);
+      expect(notifier.isLoadingDisplayMode.value, false);
+    });
+
+    test("setDisplayMode updates signal and persists", () async {
+      await notifier.setDisplayMode(DisplayMode.extended);
+      expect(notifier.displayMode.value, DisplayMode.extended);
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString("display_mode_preference"), "extended");
+    });
+  });
+
   group("getFilteredAndSortedItems", () {
     final items = [
       _makeLink("1", "https://alpha.com"),
