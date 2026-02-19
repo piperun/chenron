@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import "package:chenron/components/floating_label.dart";
 import "package:chenron/features/shell/ui/sections/navigation_section.dart";
 
 class RailHeader extends StatelessWidget {
@@ -27,46 +28,60 @@ class RailHeader extends StatelessWidget {
           ),
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Section destinations
-          if (isExtended)
-            _SectionRow(
-              currentSection: currentSection,
-              onSectionSelected: onSectionSelected,
-            )
-          else
-            _SectionColumn(
-              currentSection: currentSection,
-              onSectionSelected: onSectionSelected,
-            ),
-          const SizedBox(height: 8),
-          // FOLDERS label + collapse toggle
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final showExtended = constraints.maxWidth > 120;
+          return Column(
+            crossAxisAlignment: showExtended
+                ? CrossAxisAlignment.start
+                : CrossAxisAlignment.center,
             children: [
-              if (isExtended)
-                const Text(
-                  "FOLDERS",
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.3,
+              // Section destinations
+              if (showExtended)
+                _SectionRow(
+                  currentSection: currentSection,
+                  onSectionSelected: onSectionSelected,
+                )
+              else
+                _SectionColumn(
+                  currentSection: currentSection,
+                  onSectionSelected: onSectionSelected,
+                ),
+              const SizedBox(height: 8),
+              // FOLDERS label + collapse toggle
+              if (showExtended)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      "FOLDERS",
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.menu_open),
+                      onPressed: onToggleExtended,
+                      tooltip: "Collapse",
+                    ),
+                  ],
+                )
+              else
+                FloatingLabel(
+                  label: "Expand",
+                  child: IconButton(
+                    icon: const Icon(Icons.menu),
+                    onPressed: onToggleExtended,
                   ),
                 ),
-              IconButton(
-                icon: Icon(isExtended ? Icons.menu_open : Icons.menu),
-                onPressed: onToggleExtended,
-                tooltip: isExtended ? "Collapse" : "Expand",
-              ),
             ],
-          ),
-        ],
+          );
+        },
       ),
     );
   }
-
 }
 
 /// Extended: horizontal row of icon + label buttons.
@@ -88,7 +103,6 @@ class _SectionRow extends StatelessWidget {
           child: _SectionDestination(
             section: section,
             isSelected: isSelected,
-            isExtended: true,
             onTap: () => onSectionSelected(section),
           ),
         );
@@ -115,7 +129,7 @@ class _SectionColumn extends StatelessWidget {
         return _SectionDestination(
           section: section,
           isSelected: isSelected,
-          isExtended: false,
+          showLabel: false,
           onTap: () => onSectionSelected(section),
         );
       }).toList(),
@@ -126,13 +140,13 @@ class _SectionColumn extends StatelessWidget {
 class _SectionDestination extends StatelessWidget {
   final NavigationSection section;
   final bool isSelected;
-  final bool isExtended;
+  final bool showLabel;
   final VoidCallback onTap;
 
   const _SectionDestination({
     required this.section,
     required this.isSelected,
-    required this.isExtended,
+    this.showLabel = true,
     required this.onTap,
   });
 
@@ -146,41 +160,62 @@ class _SectionDestination extends StatelessWidget {
     final bgColor =
         isSelected ? colorScheme.primaryContainer : Colors.transparent;
 
-    return Material(
+    Widget destination = Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(8),
-        child: Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: isExtended ? 12 : 8,
-            vertical: 8,
-          ),
-          decoration: BoxDecoration(
-            color: bgColor,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: isExtended ? MainAxisSize.max : MainAxisSize.min,
-            children: [
-              Icon(icon, size: 20, color: color),
-              if (isExtended) ...[
-                const SizedBox(width: 8),
-                Text(
-                  section.label,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight:
-                        isSelected ? FontWeight.w600 : FontWeight.w500,
-                    color: color,
-                  ),
-                ),
-              ],
-            ],
-          ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            // Icon (20) + padding (16/24) + gap (8) + label needs ~90px
+            final canShowLabel =
+                showLabel && constraints.maxWidth > 80;
+            return Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: canShowLabel ? 12 : 8,
+                vertical: 8,
+              ),
+              decoration: BoxDecoration(
+                color: bgColor,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize:
+                    canShowLabel ? MainAxisSize.max : MainAxisSize.min,
+                children: [
+                  Icon(icon, size: 20, color: color),
+                  if (canShowLabel) ...[
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        section.label,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: isSelected
+                              ? FontWeight.w600
+                              : FontWeight.w500,
+                          color: color,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            );
+          },
         ),
       ),
     );
+
+    if (!showLabel) {
+      destination = FloatingLabel(
+        label: section.label,
+        child: destination,
+      );
+    }
+
+    return destination;
   }
 }
