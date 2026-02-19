@@ -88,18 +88,9 @@ class FolderViewerService {
 
       if (parentFolderIds.isEmpty) return [];
 
-      final List<Folder> parentFolders = [];
-      for (final parentId in parentFolderIds) {
-        final folders = db.folders;
-        final folderQuery = db.select(folders)
-          ..where((folder) => folder.id.equals(parentId));
-        final folderResults = await folderQuery.get();
-        if (folderResults.isNotEmpty) {
-          parentFolders.add(folderResults.first);
-        }
-      }
-
-      return parentFolders;
+      final folderQuery = db.select(db.folders)
+        ..where((folder) => folder.id.isIn(parentFolderIds));
+      return await folderQuery.get();
     } catch (e) {
       loggerGlobal.warning("FOLDER_VIEWER", "Error loading parent folders: $e");
       return [];

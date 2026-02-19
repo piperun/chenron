@@ -63,6 +63,7 @@ class PathModeSelector extends StatefulWidget {
 class _PathModeSelectorState extends State<PathModeSelector> {
   late TextEditingController _pathController;
   late int _selectedIndex;
+  late Map<int, Future<String>> _subtitleFutures;
 
   int get _customIndex {
     final idx = widget.options.indexWhere((o) => o.isCustom);
@@ -73,6 +74,7 @@ class _PathModeSelectorState extends State<PathModeSelector> {
   void initState() {
     super.initState();
     _pathController = TextEditingController(text: widget.currentPath ?? "");
+    _subtitleFutures = _buildSubtitleFutures();
 
     if (widget.currentPath == null) {
       _selectedIndex = 0;
@@ -82,6 +84,14 @@ class _PathModeSelectorState extends State<PathModeSelector> {
         unawaited(_detectMode(widget.currentPath!));
       }
     }
+  }
+
+  Map<int, Future<String>> _buildSubtitleFutures() {
+    return {
+      for (var i = 0; i < widget.options.length; i++)
+        if (widget.options[i].resolveSubtitle != null)
+          i: widget.options[i].resolveSubtitle!(),
+    };
   }
 
   Future<void> _detectMode(String path) async {
@@ -181,13 +191,13 @@ class _PathModeSelectorState extends State<PathModeSelector> {
   }
 
   Widget _buildRadioTile(ThemeData theme, int index, PathModeOption option) {
-    if (option.resolveSubtitle != null) {
+    if (_subtitleFutures.containsKey(index)) {
       return RadioListTile<int>(
         title: Text(option.label),
         value: index,
         contentPadding: EdgeInsets.zero,
         subtitle: FutureBuilder<String>(
-          future: option.resolveSubtitle!(),
+          future: _subtitleFutures[index],
           builder: (context, snapshot) {
             return Text(
               snapshot.data ?? "Loading...",

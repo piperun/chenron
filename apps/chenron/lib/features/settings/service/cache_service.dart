@@ -1,5 +1,6 @@
 import "dart:io";
 
+import "package:flutter/foundation.dart";
 import "package:cache_manager/cache_manager.dart";
 
 /// Service for clearing image and metadata caches independently.
@@ -32,26 +33,25 @@ class CacheService {
 
   /// Total bytes used by the image cache directory.
   Future<int> getImageCacheSize() async {
-    try {
-      final path = await _resolveCachePath();
-      final cacheDir = Directory(path);
-      if (!cacheDir.existsSync()) return 0;
+    final path = await _resolveCachePath();
+    return compute(_calculateDirSize, path);
+  }
 
-      int total = 0;
-      await for (final entity
-          in cacheDir.list(recursive: true, followLinks: false)) {
-        if (entity is File) {
-          try {
-            total += entity.statSync().size;
-          } catch (_) {
-            continue;
-          }
+  static int _calculateDirSize(String path) {
+    final dir = Directory(path);
+    if (!dir.existsSync()) return 0;
+
+    int total = 0;
+    for (final entity in dir.listSync(recursive: true, followLinks: false)) {
+      if (entity is File) {
+        try {
+          total += entity.statSync().size;
+        } catch (_) {
+          continue;
         }
       }
-      return total;
-    } catch (_) {
-      return 0;
     }
+    return total;
   }
 
   /// Number of metadata entries in persistent storage.
