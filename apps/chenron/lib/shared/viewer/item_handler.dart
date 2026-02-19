@@ -1,7 +1,5 @@
 import "package:flutter/material.dart";
 import "package:chenron/components/metadata_factory.dart";
-import "package:chenron/features/viewer/state/viewer_state.dart";
-import "package:chenron/features/viewer/ui/viewer_base_item.dart";
 import "package:chenron/features/bulk_tag/pages/bulk_tag_dialog.dart";
 import "package:chenron/shared/dialogs/delete_confirmation_dialog.dart";
 import "package:chenron/shared/viewer/item_deletion_service.dart";
@@ -11,10 +9,16 @@ import "package:chenron/locator.dart";
 import "package:chenron/services/activity_tracker.dart";
 import "package:chenron/shared/errors/error_snack_bar.dart";
 
-/// Handles item tap by converting FolderItem to ViewerItem and delegating
-/// to the presenter's configurable onItemTap method.
-void handleItemTap(BuildContext context, FolderItem item) {
-  final presenter = viewerViewModelSignal.value;
+/// Tracks the item view event and delegates the tap to [onTap].
+///
+/// The caller provides the concrete routing behaviour so this shared
+/// utility has no dependency on the viewer feature's presenter or
+/// global signals.
+void handleItemTap(
+  BuildContext context,
+  FolderItem item,
+  void Function(BuildContext, FolderItem) onTap,
+) {
   final tracker = locator.get<ActivityTracker>();
 
   // Track the view event
@@ -34,38 +38,7 @@ void handleItemTap(BuildContext context, FolderItem item) {
     }
   }
 
-  // Convert FolderItem to ViewerItem format for presenter
-  final viewerItem = item.map(
-    link: (linkItem) => ViewerItem(
-      id: linkItem.id ?? "",
-      type: FolderItemType.link,
-      title: "",
-      description: linkItem.url,
-      url: linkItem.url,
-      tags: linkItem.tags,
-      createdAt: linkItem.createdAt ?? DateTime.now(),
-    ),
-    document: (docItem) => ViewerItem(
-      id: docItem.id ?? "",
-      type: FolderItemType.document,
-      title: docItem.title,
-      description: docItem.filePath,
-      url: null,
-      tags: docItem.tags,
-      createdAt: docItem.createdAt ?? DateTime.now(),
-    ),
-    folder: (folderItem) => ViewerItem(
-      id: folderItem.id ?? "",
-      type: FolderItemType.folder,
-      title: folderItem.folderId,
-      description: "",
-      url: null,
-      tags: folderItem.tags,
-      createdAt: DateTime.now(), // Folders don't have createdAt
-    ),
-  );
-
-  presenter.onItemTap(context, viewerItem);
+  onTap(context, item);
 }
 
 /// Handles deletion of multiple items with confirmation dialog.
@@ -229,11 +202,10 @@ Future<void> handleItemMetadataRefresh(
     );
   }
 
-  int successCount = 0;
-  for (final link in links) {
-    final result = await MetadataFactory.forceFetch(link.url);
-    if (result != null) successCount++;
-  }
+  final results = await Future.wait(
+    links.map((link) => MetadataFactory.forceFetch(link.url)),
+  );
+  final successCount = results.where((r) => r != null).length;
 
   if (context.mounted) {
     ScaffoldMessenger.of(context).showSnackBar(

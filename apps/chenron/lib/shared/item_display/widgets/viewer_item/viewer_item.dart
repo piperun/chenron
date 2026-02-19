@@ -2,7 +2,6 @@ import "package:flutter/material.dart";
 import "package:signals/signals_flutter.dart";
 import "package:database/models/item.dart";
 import "package:chenron/features/settings/controller/config_controller.dart";
-import "package:chenron/locator.dart";
 import "package:chenron/shared/item_display/widgets/display_mode/display_mode.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/unified_item.dart";
 
@@ -16,6 +15,7 @@ class ViewerItem extends StatelessWidget {
   final PreviewMode mode;
   final VoidCallback? onTap;
   final DisplayMode displayMode;
+  final ConfigController config;
 
   // Override parameters (take precedence over displayMode)
   final int? titleLinesOverride;
@@ -31,6 +31,7 @@ class ViewerItem extends StatelessWidget {
   const ViewerItem({
     super.key,
     required this.item,
+    required this.config,
     this.mode = PreviewMode.card,
     this.onTap,
     this.displayMode = DisplayMode.standard,
@@ -46,8 +47,6 @@ class ViewerItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ConfigController config = locator.get<ConfigController>();
-
     return Watch((BuildContext context) {
       // Read config preferences (reactive via Watch)
       final bool configShowImages = config.showImages.value;

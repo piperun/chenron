@@ -16,8 +16,8 @@ class ViewerModel {
     try {
       await _db.removeFolder(folder);
       return true;
-    } catch (e) {
-      loggerGlobal.severe("ViewerModel" "Error deleting folder: $e", e);
+    } catch (e, stackTrace) {
+      loggerGlobal.severe("ViewerModel", "Error deleting folder", e, stackTrace);
       return false;
     }
   }
@@ -26,8 +26,8 @@ class ViewerModel {
     try {
       await _db.removeLink(linkId);
       return true;
-    } catch (e) {
-      loggerGlobal.severe("ViewerModel" "Error deleting link: $e", e);
+    } catch (e, stackTrace) {
+      loggerGlobal.severe("ViewerModel", "Error deleting link", e, stackTrace);
       return false;
     }
   }
@@ -36,8 +36,8 @@ class ViewerModel {
     try {
       await _db.removeDocument(documentId);
       return true;
-    } catch (e) {
-      loggerGlobal.severe("ViewerModel" "Error deleting document: $e", e);
+    } catch (e, stackTrace) {
+      loggerGlobal.severe("ViewerModel", "Error deleting document", e, stackTrace);
       return false;
     }
   }
