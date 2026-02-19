@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## chenron-v1.6.0 - 2026-02-19
+#### Features
+- show sub-category icons when settings rail is collapsed - (2f5c3b0) - *piperun*
+#### Bug Fixes
+- reject scheme-only URLs in isValidUrlFormat - (6b334ed) - *piperun*
+
+- - -
+
 ## chenron-v1.5.2 - 2026-02-19
 #### Bug Fixes
 - use sell icon for tags and reject video URLs in og:image - (25216b4) - *piperun*
