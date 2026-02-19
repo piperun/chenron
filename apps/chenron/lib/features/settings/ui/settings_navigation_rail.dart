@@ -94,14 +94,19 @@ class _SettingsNavigationRailState extends State<SettingsNavigationRail> {
                     isExtended: widget.isExtended,
                     onTap: () => _onCategoryTap(category),
                   ),
-                  if (widget.isExtended &&
-                      _expandedCategories.contains(category))
+                  if (_expandedCategories.contains(category))
                     for (final child in category.children)
-                      _SubCategoryRow(
-                        category: child,
-                        isSelected: child == widget.selectedCategory,
-                        onTap: () => _onCategoryTap(child),
-                      ),
+                      widget.isExtended
+                          ? _SubCategoryRow(
+                              category: child,
+                              isSelected: child == widget.selectedCategory,
+                              onTap: () => _onCategoryTap(child),
+                            )
+                          : _CollapsedSubCategoryRow(
+                              category: child,
+                              isSelected: child == widget.selectedCategory,
+                              onTap: () => _onCategoryTap(child),
+                            ),
                 ],
               ],
             ),
@@ -282,6 +287,47 @@ class _SubCategoryRow extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CollapsedSubCategoryRow extends StatelessWidget {
+  final SettingsCategory category;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _CollapsedSubCategoryRow({
+    required this.category,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Tooltip(
+      message: category.label,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          margin: const EdgeInsets.symmetric(vertical: 1),
+          decoration: BoxDecoration(
+            color:
+                isSelected ? colorScheme.primaryContainer : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(
+            isSelected ? category.selectedIcon : category.icon,
+            size: 18,
+            color: isSelected
+                ? colorScheme.onPrimaryContainer
+                : colorScheme.onSurfaceVariant,
+          ),
         ),
       ),
     );
