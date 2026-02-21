@@ -28,12 +28,20 @@ If that resonates, give it a try.
 
 Chenron v1.0 is the first stable release as a bookmark manager.
 
-As such the current focus is on ensuring stability, in terms of: using it
-daily, finding edge cases, and fixing bugs before adding new features.
+As such the current focus is on ensuring stability, in terms of:
+- Usability
+- Ensuring edge cases are handled
+- Fixing bugs
+- Adding only features to current established 0.x-1.0 features
 
-Future milestones (v1.x) include document support, AI-assisted
-tagging, and JSON import/export for power users.
+Future milestones (v1.x) will focus on adding in new bleeding edge features such as:
+- document support (Markdown)
+- AI-assisted tagging (local or via API)
+- JSON import/export for power users.
 
+These will not be versionned differently from the current focus area.
+
+Once these features are implemented we will transition to 2.x.
 ---
 
 *This project was built with AI assistance.*
