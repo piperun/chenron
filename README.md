@@ -39,9 +39,10 @@ Future milestones (v1.x) will focus on adding in new bleeding edge features such
 - AI-assisted tagging (local or via API)
 - JSON import/export for power users.
 
-These will not be versionned differently from the current focus area.
+These will not be versioned differently from the current focus area.
 
 Once these features are implemented we will transition to 2.x.
+
 ---
 
 *This project was built with AI assistance.*
