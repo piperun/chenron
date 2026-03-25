@@ -49,6 +49,7 @@ export "src/features/web_metadata/crud.dart";
 
 // Archive queue
 export "src/features/archive_queue/crud.dart";
+export "src/features/archive_queue/processor.dart";
 
 // Statistics
 export "src/features/statistics/track.dart";
