@@ -14,6 +14,8 @@ extension WebMetadataCrudExtensions on AppDatabase {
     String? description,
     String? image,
     required DateTime fetchedAt,
+    int consecutiveUnchanged = 0,
+    int ttlDays = 7,
   }) async {
     await into(webMetadataEntries).insertOnConflictUpdate(
       WebMetadataEntriesCompanion.insert(
@@ -22,6 +24,8 @@ extension WebMetadataCrudExtensions on AppDatabase {
         description: Value(description),
         image: Value(image),
         fetchedAt: fetchedAt,
+        consecutiveUnchanged: Value(consecutiveUnchanged),
+        ttlDays: Value(ttlDays),
       ),
     );
   }
@@ -51,5 +55,19 @@ extension WebMetadataCrudExtensions on AppDatabase {
             (w) => w.title.like(pattern) | w.description.like(pattern),
           ))
         .get();
+  }
+
+  /// Return all entries whose TTL has expired.
+  ///
+  /// An entry is expired when `fetchedAt + ttlDays` is in the past.
+  Future<List<WebMetadataEntry>> getExpiredEntries() async {
+    final rows = await customSelect(
+      "SELECT * FROM web_metadata_entries "
+      "WHERE datetime(fetched_at, '+' || ttl_days || ' days') < datetime('now')",
+      readsFrom: {webMetadataEntries},
+    ).get();
+    return rows
+        .map((row) => webMetadataEntries.map(row.data))
+        .toList();
   }
 }

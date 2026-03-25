@@ -211,5 +211,75 @@ void main() {
       expect(await database.getWebMetadata("https://delete.com"), isNull);
       expect(await database.countWebMetadata(), 1);
     });
+
+    test("upsertWebMetadata stores adaptive TTL fields", () async {
+      await database.upsertWebMetadata(
+        url: "https://example.com",
+        title: "Example",
+        description: null,
+        image: null,
+        fetchedAt: DateTime.now(),
+        consecutiveUnchanged: 3,
+        ttlDays: 56,
+      );
+
+      final result = await database.getWebMetadata("https://example.com");
+      expect(result!.consecutiveUnchanged, 3);
+      expect(result.ttlDays, 56);
+    });
+
+    test("upsertWebMetadata defaults TTL fields when omitted", () async {
+      await database.upsertWebMetadata(
+        url: "https://example.com",
+        title: "Example",
+        description: null,
+        image: null,
+        fetchedAt: DateTime.now(),
+      );
+
+      final result = await database.getWebMetadata("https://example.com");
+      expect(result!.consecutiveUnchanged, 0);
+      expect(result.ttlDays, 7);
+    });
+
+    test("getExpiredEntries returns entries past their TTL", () async {
+      final now = DateTime.now();
+      // Fresh entry (fetched today, TTL 7 days) — should NOT be returned
+      await database.upsertWebMetadata(
+        url: "https://fresh.com",
+        title: "Fresh",
+        description: null,
+        image: null,
+        fetchedAt: now,
+        ttlDays: 7,
+      );
+      // Expired entry (fetched 10 days ago, TTL 7 days) — should be returned
+      await database.upsertWebMetadata(
+        url: "https://stale.com",
+        title: "Stale",
+        description: null,
+        image: null,
+        fetchedAt: now.subtract(const Duration(days: 10)),
+        ttlDays: 7,
+        consecutiveUnchanged: 2,
+      );
+      // Barely expired (fetched 8 days ago, TTL 7 days) — should be returned
+      await database.upsertWebMetadata(
+        url: "https://barely.com",
+        title: "Barely",
+        description: null,
+        image: null,
+        fetchedAt: now.subtract(const Duration(days: 8)),
+        ttlDays: 7,
+        consecutiveUnchanged: 0,
+      );
+
+      final expired = await database.getExpiredEntries();
+      final urls = expired.map((e) => e.url).toList();
+
+      expect(urls, contains("https://stale.com"));
+      expect(urls, contains("https://barely.com"));
+      expect(urls, isNot(contains("https://fresh.com")));
+    });
   });
 }
