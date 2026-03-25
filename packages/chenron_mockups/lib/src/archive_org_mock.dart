@@ -139,7 +139,11 @@ class MockArchiveOrgClient extends ArchiveOrgClient {
   }
 
   @override
-  Future<String> waitForCompletion(String jobId, {int pollInterval = 5}) async {
+  Future<String> waitForCompletion(
+    String jobId, {
+    int pollInterval = 5,
+    Duration maxDuration = const Duration(minutes: 5),
+  }) async {
     final status = await checkStatus(jobId);
 
     if (status["status"] == "success") {
