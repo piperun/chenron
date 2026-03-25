@@ -8,6 +8,7 @@ import "package:cache_manager/cache_manager.dart";
 import "package:database/database.dart";
 import "package:database/main.dart" show ConfigIncludes;
 import "package:app_logger/app_logger.dart";
+import "package:web_archiver/web_archiver.dart";
 
 import "package:chenron/features/theme/state/theme_utils.dart";
 import "package:flutter/foundation.dart";
@@ -109,6 +110,9 @@ class MainSetup {
     // Refresh stale metadata entries in the background.
     // Fire-and-forget — doesn't block other deferred tasks.
     MetadataFactory.refreshStaleEntries();
+
+    // Process pending archive jobs in the background.
+    _processArchiveQueue();
 
     loggerGlobal.info("MainSetup", "Deferred tasks complete.");
   }
@@ -295,6 +299,35 @@ class MainSetup {
       // Non-fatal — don't block app startup
       loggerGlobal.warning(
           "MainSetup", "Failed to record statistics snapshot: $e");
+    }
+  }
+
+  static Future<void> _processArchiveQueue() async {
+    try {
+      final appDbHandler = locator.get<Signal<AppDatabaseHandler>>();
+      final configDb = ConfigDatabase();
+      final userConfig = await configDb.getUserConfig();
+      await configDb.close();
+
+      if (userConfig == null) return;
+      final config = userConfig.data;
+
+      final hasKeys = config.archiveOrgS3AccessKey != null &&
+          config.archiveOrgS3AccessKey!.isNotEmpty &&
+          config.archiveOrgS3SecretKey != null &&
+          config.archiveOrgS3SecretKey!.isNotEmpty;
+      if (!hasKeys) return;
+
+      final processor = ArchiveQueueProcessor(
+        database: appDbHandler.value.appDatabase,
+        archiveOrgClientFactory: archiveOrgClientFactory,
+        accessKey: config.archiveOrgS3AccessKey!,
+        secretKey: config.archiveOrgS3SecretKey!,
+      );
+      await processor.processAll();
+    } catch (e, s) {
+      loggerGlobal.warning(
+          "MainSetup", "Archive queue processing failed: $e", e, s);
     }
   }
 }
