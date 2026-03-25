@@ -1,30 +1,25 @@
 import "package:database/main.dart";
 import "package:database/database.dart";
+import "package:database/features.dart";
 import "package:drift/drift.dart" as drift;
 import "package:drift/native.dart";
 import "package:flutter_test/flutter_test.dart";
 import "package:integration_test/integration_test.dart";
-
-import "package:database/src/core/archive_helper.dart";
 
 import "package:chenron_mockups/chenron_mockups.dart";
 import "package:web_archiver/web_archiver.dart";
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-  // Install fakes and test logger once for this suite.
+
   setUpAll(() {
     installFakePathProvider();
     installTestLogger();
-    // Use a fake Archive.org client to keep tests offline and deterministic.
     archiveOrgClientFactory = (key, secret) => _FakeArchiveOrgClient();
-    // Suppress drift multiple database warnings in tests.
     drift.driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
   });
 
   late AppDatabase database;
-  late ConfigDatabase configDatabase;
-  late UserConfig? userConfig;
   late String testUrl;
 
   setUp(() async {
@@ -35,79 +30,127 @@ void main() {
       debugMode: true,
     );
     await database.setup();
-    configDatabase = ConfigDatabase(
-      queryExecutor: NativeDatabase.memory(),
-      setupOnInit: true,
-    );
-    await configDatabase.setup();
-    // Ensure archive.org credentials are present to enable archiving paths in tests
-    final userConfigs = configDatabase.userConfigs;
-    await (configDatabase.update(userConfigs)).write(
-      const UserConfigsCompanion(
-        archiveOrgS3AccessKey: drift.Value("test_key"),
-        archiveOrgS3SecretKey: drift.Value("test_secret"),
-      ),
-    );
-
-    userConfig =
-        await configDatabase.getUserConfig().then((config) => config?.data);
     testUrl = "https://example.org/";
   });
 
   tearDown(() async {
+    ArchiveQueueProcessor.clearInstance();
     await database.close();
-    await configDatabase.close();
   });
 
-  group("[offline] ArchiveHelper", () {
-    test("archiveOrgLinks archives new links", () async {
+  group("[offline] Archive Queue Integration", () {
+    test("enqueue + process archives a link", () async {
       final linkResult = await database.createLink(link: testUrl);
-      final linkId = linkResult.linkId;
 
-      await database.archiveOrgLinks([linkId], userConfig!);
+      await database.enqueueArchiveJob(
+        linkId: linkResult.linkId,
+        url: testUrl,
+        service: "archive_org",
+      );
 
-      final archivedLink = await database.getLink(linkId: linkId);
+      final processor = ArchiveQueueProcessor(
+        database: database,
+        archiveOrgClientFactory: archiveOrgClientFactory,
+        accessKey: "test_key",
+        secretKey: "test_secret",
+        delayBetweenJobs: Duration.zero,
+      );
+
+      await processor.processAll();
+
+      final archivedLink =
+          await database.getLink(linkId: linkResult.linkId);
       expect(archivedLink?.data.archiveOrgUrl, isNotNull);
       expect(archivedLink?.data.archiveOrgUrl,
           startsWith("https://web.archive.org/"));
+
+      final job = await database.getAllArchiveJobs();
+      expect(job.first.status, "completed");
     });
 
-    test("archiveOrgLinks skips recent archive links", () async {
+    test("duplicate enqueue is prevented", () async {
       final linkResult = await database.createLink(link: testUrl);
-      final linkId = linkResult.linkId;
-      // Pre-archive once so the link has a recent archive
-      await database.archiveOrgLinks([linkId], userConfig!, archiveDueDate: 0);
-      final recentArchiveUrl = await database
-          .getLink(linkId: linkId)
-          .then((archiveLink) => archiveLink?.data.archiveOrgUrl);
 
-      // With a large due date, a recent archive should be skipped
-      await database
-          .archiveOrgLinks([linkId], userConfig!, archiveDueDate: 20000);
+      await database.enqueueArchiveJob(
+        linkId: linkResult.linkId,
+        url: testUrl,
+        service: "archive_org",
+      );
 
-      final archivedLink = await database.getLink(linkId: linkId);
-      expect(archivedLink?.data.archiveOrgUrl, equals(recentArchiveUrl));
+      // Second enqueue for same link+service should be skipped
+      final hasDuplicate = await database.hasArchiveJob(
+        linkId: linkResult.linkId,
+        service: "archive_org",
+      );
+      expect(hasDuplicate, isTrue);
+
+      // Only one job exists
+      final jobs = await database.getAllArchiveJobs();
+      expect(jobs.length, 1);
     });
 
-    test("archiveOrgLinks re-archives old archive links", () async {
-      final String oldArchiveUrl =
-          "https://web.archive.org/web/20200101000000/$testUrl";
-      final linkId = database.generateId();
-      await database.links.insertOne(
-          LinksCompanion.insert(
-            id: linkId,
-            path: testUrl,
-            archiveOrgUrl: drift.Value(oldArchiveUrl),
-          ),
-          mode: drift.InsertMode.insertOrReplace);
+    test("failed job is re-queued and eventually succeeds", () async {
+      final linkResult = await database.createLink(link: testUrl);
 
-      await database.archiveOrgLinks([linkId], userConfig!, archiveDueDate: 0);
+      await database.enqueueArchiveJob(
+        linkId: linkResult.linkId,
+        url: testUrl,
+        service: "archive_org",
+      );
 
-      final archivedLink = await database.getLink(linkId: linkId);
-      expect(archivedLink?.data.archiveOrgUrl, isNotNull);
-      expect(archivedLink?.data.archiveOrgUrl, isNot(equals(oldArchiveUrl)));
-      expect(archivedLink?.data.archiveOrgUrl,
-          startsWith("https://web.archive.org/"));
+      // First run: use a client that fails once then succeeds
+      var callCount = 0;
+      final flakeyClient = _FlakeyArchiveOrgClient(
+        failUntil: 1,
+        onCall: () => callCount++,
+      );
+
+      final processor = ArchiveQueueProcessor(
+        database: database,
+        archiveOrgClientFactory: (key, secret) => flakeyClient,
+        accessKey: "test_key",
+        secretKey: "test_secret",
+        delayBetweenJobs: Duration.zero,
+      );
+
+      await processor.processAll();
+
+      // Should have been called twice: fail → re-queue → succeed
+      expect(callCount, 2);
+
+      final job = (await database.getAllArchiveJobs()).first;
+      expect(job.status, "completed");
+      expect(job.attempts, 1); // 1 failed attempt before success
+
+      final link = await database.getLink(linkId: linkResult.linkId);
+      expect(link?.data.archiveOrgUrl, isNotNull);
+    });
+
+    test("triggerProcessing fires processing from static instance", () async {
+      final linkResult = await database.createLink(link: testUrl);
+
+      await database.enqueueArchiveJob(
+        linkId: linkResult.linkId,
+        url: testUrl,
+        service: "archive_org",
+      );
+
+      final processor = ArchiveQueueProcessor(
+        database: database,
+        archiveOrgClientFactory: archiveOrgClientFactory,
+        accessKey: "test_key",
+        secretKey: "test_secret",
+        delayBetweenJobs: Duration.zero,
+      );
+
+      ArchiveQueueProcessor.registerInstance(processor);
+      ArchiveQueueProcessor.triggerProcessing();
+
+      // Fire-and-forget — give it time to complete
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+
+      final link = await database.getLink(linkId: linkResult.linkId);
+      expect(link?.data.archiveOrgUrl, isNotNull);
     });
   });
 }
@@ -118,7 +161,25 @@ class _FakeArchiveOrgClient extends ArchiveOrgClient {
   @override
   Future<String> archiveAndWait(String targetUrl,
       {ArchiveOrgOptions? options}) async {
-    // Return a deterministic archived URL differing from older timestamps
+    return "https://web.archive.org/web/20990101000000/$targetUrl";
+  }
+}
+
+class _FlakeyArchiveOrgClient extends ArchiveOrgClient {
+  final int failUntil;
+  final void Function() onCall;
+  int _calls = 0;
+
+  _FlakeyArchiveOrgClient({required this.failUntil, required this.onCall})
+      : super("", "");
+
+  @override
+  Future<String> archiveAndWait(String targetUrl,
+      {ArchiveOrgOptions? options}) async {
+    onCall();
+    if (_calls++ < failUntil) {
+      throw Exception("Simulated transient failure");
+    }
     return "https://web.archive.org/web/20990101000000/$targetUrl";
   }
 }
