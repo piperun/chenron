@@ -1,6 +1,8 @@
 import "package:drift/drift.dart";
 import "package:database/models/document_file_type.dart";
 
+export "package:database/schema/archive_jobs_schema.dart";
+
 @TableIndex(name: "folder_title", columns: {#title})
 class Folders extends Table {
   TextColumn get id => text().withLength(min: 30, max: 60)();

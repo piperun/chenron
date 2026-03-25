@@ -28,6 +28,7 @@ typedef DeleteRelationRecord = ({String id, IdType idType});
   ActivityEvents,
   RecentAccess,
   WebMetadataEntries,
+  ArchiveJobs,
 ])
 class AppDatabase extends _$AppDatabase {
   static const int idLength = 30;
@@ -52,7 +53,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 12;
+  int get schemaVersion => 13;
 
   @override
   MigrationStrategy get migration {
@@ -327,6 +328,15 @@ class AppDatabase extends _$AppDatabase {
           );
           await customStatement(
             "CREATE INDEX IF NOT EXISTS activity_events_occurred_idx ON activity_events (occurred_at)",
+          );
+        }
+
+        // Migration v12 to v13: Add archive_jobs queue table for
+        // background archive processing.
+        if (from < 13) {
+          await migrator.createTable(archiveJobs);
+          await customStatement(
+            "CREATE INDEX archive_jobs_status_created_idx ON archive_jobs (status, created_at)",
           );
         }
       },
