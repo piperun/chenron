@@ -1,3 +1,4 @@
+import "dart:async";
 import "package:app_logger/app_logger.dart";
 import "package:database/main.dart";
 import "package:database/src/features/archive_queue/crud.dart";
@@ -16,6 +17,20 @@ class ArchiveQueueProcessor {
   final Duration delayBetweenJobs;
 
   static bool _isProcessing = false;
+  static ArchiveQueueProcessor? _instance;
+
+  /// Register a processor instance at startup so it can be triggered
+  /// when new jobs are enqueued mid-session.
+  static void registerInstance(ArchiveQueueProcessor processor) {
+    _instance = processor;
+  }
+
+  /// Trigger processing of queued jobs. Safe to call from anywhere —
+  /// no-ops if already processing or no instance registered.
+  /// Fire-and-forget: does not await completion.
+  static void triggerProcessing() {
+    unawaited(_instance?.processAll());
+  }
 
   ArchiveQueueProcessor({
     required this.database,
