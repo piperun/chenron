@@ -3851,6 +3851,11 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       'document_title', 'CREATE INDEX document_title ON documents (title)');
   late final Index itemsFolderItemIdx = Index('items_folder_item_idx',
       'CREATE UNIQUE INDEX items_folder_item_idx ON items (folder_id, item_id)');
+  late final Index metadataRecordsItemIdx = Index('metadata_records_item_idx',
+      'CREATE INDEX metadata_records_item_idx ON metadata_records (item_id)');
+  late final Index activityEventsOccurredIdx = Index(
+      'activity_events_occurred_idx',
+      'CREATE INDEX activity_events_occurred_idx ON activity_events (occurred_at)');
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3870,7 +3875,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         webMetadataEntries,
         folderTitle,
         documentTitle,
-        itemsFolderItemIdx
+        itemsFolderItemIdx,
+        metadataRecordsItemIdx,
+        activityEventsOccurredIdx
       ];
   @override
   DriftDatabaseOptions get options =>

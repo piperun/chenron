@@ -95,13 +95,11 @@ class SearchFilter {
     Set<String>? includedTags,
     Set<String>? excludedTags,
   }) {
-    var filtered = List<FolderItem>.from(items);
-
     // Parse query for tag patterns (real-time filtering)
     final searchQuery = query ?? this.query;
     final parsed = QueryParser.parseTags(searchQuery);
 
-    // Combine parsed tags with persistent tags
+    // Pre-compute lowercase tag sets once (not per item)
     final allIncludedTags = <String>{
       ...?includedTags,
       ...parsed.includedTags,
@@ -110,51 +108,47 @@ class SearchFilter {
       ...?excludedTags,
       ...parsed.excludedTags,
     };
+    final lowerIncluded = allIncludedTags.map((t) => t.toLowerCase()).toSet();
+    final lowerExcluded = allExcludedTags.map((t) => t.toLowerCase()).toSet();
+    final q = parsed.cleanQuery.toLowerCase();
+    final hasQuery = q.isNotEmpty;
+    final effectiveTypes = types;
+    final hasTypes = effectiveTypes != null && effectiveTypes.isNotEmpty;
+    final hasIncluded = lowerIncluded.isNotEmpty;
+    final hasExcluded = lowerExcluded.isNotEmpty;
 
-    // Type filter
-    if (types != null && types.isNotEmpty) {
-      filtered = filtered.where((item) => types.contains(item.type)).toList();
-    }
+    // Single-pass filter: check all criteria per item without intermediate lists
+    final filtered = <FolderItem>[];
+    for (final item in items) {
+      // Type filter
+      if (hasTypes && !effectiveTypes.contains(item.type)) continue;
 
-    // Tag filters (inclusive - must have at least one of these tags)
-    if (allIncludedTags.isNotEmpty) {
-      filtered = filtered.where((item) {
-        final names = item.tags.map((t) => t.name.toLowerCase()).toSet();
-        final lowerTags = allIncludedTags.map((t) => t.toLowerCase()).toSet();
-        return names.any(lowerTags.contains);
-      }).toList();
-    }
+      // Extract tag names once per item (shared across all tag checks)
+      final needsTags = hasIncluded || hasExcluded || hasQuery;
+      final tagNames = needsTags
+          ? item.tags.map((t) => t.name.toLowerCase()).toSet()
+          : const <String>{};
 
-    // Tag filters (exclusive - must not have any of these tags)
-    if (allExcludedTags.isNotEmpty) {
-      filtered = filtered.where((item) {
-        final names = item.tags.map((t) => t.name.toLowerCase()).toSet();
-        final lowerTags = allExcludedTags.map((t) => t.toLowerCase()).toSet();
-        return !names.any(lowerTags.contains);
-      }).toList();
-    }
+      // Tag filters (inclusive - must have at least one)
+      if (hasIncluded && !tagNames.any(lowerIncluded.contains)) continue;
 
-    // Search by clean query (without tag patterns)
-    final cleanQuery = parsed.cleanQuery;
-    if (cleanQuery.isNotEmpty) {
-      final q = cleanQuery.toLowerCase();
-      filtered = filtered.where((item) {
-        // Search in item-specific content using pattern matching
+      // Tag filters (exclusive - must not have any)
+      if (hasExcluded && tagNames.any(lowerExcluded.contains)) continue;
+
+      // Query filter
+      if (hasQuery) {
         final hasMatch = item.map(
           link: (linkItem) => linkItem.url.toLowerCase().contains(q),
           document: (docItem) =>
               docItem.title.toLowerCase().contains(q) ||
               docItem.filePath.toLowerCase().contains(q),
-          folder: (folderItem) => folderItem.folderId.toLowerCase().contains(q),
+          folder: (folderItem) =>
+              folderItem.folderId.toLowerCase().contains(q),
         );
-        if (hasMatch) return true;
+        if (!hasMatch && !tagNames.any((t) => t.contains(q))) continue;
+      }
 
-        // Search in tags
-        if (item.tags.any((t) => t.name.toLowerCase().contains(q))) {
-          return true;
-        }
-        return false;
-      }).toList();
+      filtered.add(item);
     }
 
     return filtered;
