@@ -159,4 +159,37 @@ class MetadataFactory {
     }
     return result;
   }
+
+  /// Whether a background refresh is currently running.
+  static bool _isRefreshing = false;
+
+  /// Run a background refresh of all expired cache entries.
+  ///
+  /// Called once on app startup. Processes expired entries in priority
+  /// order, rate-limited, using the existing concurrency pool.
+  /// Safe to call multiple times — subsequent calls are no-ops while
+  /// a refresh is already running.
+  static Future<void> refreshStaleEntries() async {
+    if (_isRefreshing) return;
+    _isRefreshing = true;
+
+    try {
+      final persistence = MetadataCache.persistence;
+      if (persistence == null) return;
+
+      await RefreshScheduler.processQueue(
+        persistence: persistence,
+        refreshOne: (url) async {
+          if (MetadataCache.isFetching(url)) return true; // skip, not an error
+          if (!MetadataCache.shouldRetry(url)) return true; // skip failed URLs
+
+          await _acquireSlot();
+          final result = await _fetchAndCache(url);
+          return result != null; // false = probably rate limited, stop
+        },
+      );
+    } finally {
+      _isRefreshing = false;
+    }
+  }
 }

@@ -1,5 +1,6 @@
 // lib/initialization/app_setupr.dart
 
+import "package:chenron/components/metadata_factory.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/services/drift_metadata_persistence.dart";
 import "package:basedir/directory.dart";
@@ -104,6 +105,11 @@ class MainSetup {
     await _startBackupScheduler();
     final appDbHandler = locator.get<Signal<AppDatabaseHandler>>();
     await _recordDailySnapshot(appDbHandler.value.appDatabase);
+
+    // Refresh stale metadata entries in the background.
+    // Fire-and-forget — doesn't block other deferred tasks.
+    MetadataFactory.refreshStaleEntries();
+
     loggerGlobal.info("MainSetup", "Deferred tasks complete.");
   }
 
