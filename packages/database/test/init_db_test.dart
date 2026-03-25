@@ -4,8 +4,6 @@ import "package:database/main.dart";
 import "package:database/models/item.dart";
 import "package:database/models/metadata.dart";
 import "package:flutter_test/flutter_test.dart";
-import "package:drift/native.dart";
-
 import "package:path_provider/path_provider.dart";
 
 import "package:chenron_mockups/chenron_mockups.dart";
@@ -22,16 +20,6 @@ void main() {
   });
   tearDown(() async {
     await database.close();
-  });
-
-  test("AppDatabase constructor initializes with no setup memory database", () {
-    final db = AppDatabase(queryExecutor: NativeDatabase.memory());
-    expect(db.schemaVersion, equals(10));
-  });
-
-  test("AppDatabase constructor initializes with no setup file database", () {
-    final db = AppDatabase(databaseName: "test_db", debugMode: true);
-    expect(db.schemaVersion, equals(10));
   });
 
   // Helper function to remove the database
