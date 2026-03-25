@@ -6,6 +6,7 @@ import "package:chenron/shared/ui/dark_mode.dart";
 
 class ShellAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onSettingsPressed;
+  final VoidCallback onActivityLogPressed;
   final VoidCallback? onBack;
   final SearchFilter searchFilter;
   final AppPage currentPage;
@@ -13,6 +14,7 @@ class ShellAppBar extends StatelessWidget implements PreferredSizeWidget {
   const ShellAppBar({
     super.key,
     required this.onSettingsPressed,
+    required this.onActivityLogPressed,
     required this.searchFilter,
     required this.currentPage,
     this.onBack,
@@ -40,6 +42,11 @@ class ShellAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
       actions: [
+        IconButton(
+          tooltip: "Activity log",
+          icon: const Icon(Icons.history_outlined),
+          onPressed: onActivityLogPressed,
+        ),
         const DarkModeToggle(),
         IconButton(
           tooltip: "Settings",

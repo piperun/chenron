@@ -8,6 +8,8 @@ import "package:chenron/features/shell/ui/sections/navigation_section.dart";
 import "package:chenron/features/shell/ui/sections/appbar_section.dart";
 import "package:chenron/features/shell/ui/folders_navigation_rail.dart";
 import "package:chenron/features/shell/ui/shell_app_bar.dart";
+import "package:database/database.dart";
+import "package:chenron/locator.dart";
 import "package:chenron/features/shell/ui/current_page_builder.dart";
 import "package:chenron/features/settings/models/settings_category.dart";
 import "package:chenron/features/settings/ui/settings_navigation_rail.dart";
@@ -122,6 +124,13 @@ class _RootPageState extends State<RootPage> {
     ));
   }
 
+  void _navigateToActivityLog() {
+    setState(() {
+      _previousPage = _currentPage;
+      _currentPage = AppPage.activityLog;
+    });
+  }
+
   void _navigateToSettings() {
     setState(() {
       _previousPage = _currentPage;
@@ -144,6 +153,7 @@ class _RootPageState extends State<RootPage> {
       appBar: ShellAppBar(
         currentPage: _currentPage,
         onSettingsPressed: _navigateToSettings,
+        onActivityLogPressed: _navigateToActivityLog,
         onBack: _returnToPreviousPage,
         searchFilter: _searchFilter,
       ),
@@ -185,6 +195,10 @@ class _RootPageState extends State<RootPage> {
                   onClose: _returnToPreviousPage,
                   onSaved: _handleSaved,
                   settingsCategory: _settingsCategory,
+                  database: locator
+                      .get<Signal<AppDatabaseHandler>>()
+                      .value
+                      .appDatabase,
                 ),
               ),
             ),

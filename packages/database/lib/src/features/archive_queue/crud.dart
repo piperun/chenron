@@ -75,6 +75,18 @@ extension ArchiveQueueCrudExtensions on AppDatabase {
         .go();
   }
 
+  /// Get all archive jobs, newest first.
+  Future<List<ArchiveJob>> getAllArchiveJobs() async {
+    return (select(archiveJobs)
+          ..orderBy([(j) => OrderingTerm.desc(j.updatedAt)]))
+        .get();
+  }
+
+  /// Retry a failed job by resetting its status to queued.
+  Future<void> retryArchiveJob(String id) async {
+    await updateArchiveJobStatus(id: id, status: "queued");
+  }
+
   /// Check if a job already exists for this link and service.
   Future<bool> hasArchiveJob({
     required String linkId,
