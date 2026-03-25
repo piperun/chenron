@@ -51,18 +51,68 @@ class MetadataFactory {
     _lastDomainFetch[domain] = DateTime.now();
   }
 
-  /// Perform the actual network fetch (caller must hold a slot).
+  /// Perform the actual network fetch, detect content changes, and
+  /// update the adaptive TTL accordingly.
   static Future<Map<String, dynamic>?> _fetchAndCache(String url) async {
     try {
-      await _throttleDomain(url);
       MetadataCache.startFetching(url);
+
+      // Read old entry BEFORE fetching (for change comparison)
+      final oldEntry = await MetadataCache.getStale(url);
+
+      await _throttleDomain(url);
       final fetched = await MetadataFetcher.fetch(url);
+      final newTitle = fetched.title;
+      final newDescription = fetched.description;
+      final newImage = fetched.image;
+
+      // Compute adaptive TTL fields
+      int consecutiveUnchanged = 0;
+      int ttlDays;
+
+      if (oldEntry != null) {
+        final changed = hasContentChanged(
+          oldTitle: oldEntry["title"] as String?,
+          oldDescription: oldEntry["description"] as String?,
+          oldImage: oldEntry["image"] as String?,
+          newTitle: newTitle,
+          newDescription: newDescription,
+          newImage: newImage,
+        );
+
+        if (changed) {
+          // Content changed — reset to initial TTL
+          ttlDays = computeInitialTtl(title: newTitle, url: url);
+        } else {
+          // Content unchanged — escalate TTL.
+          // Always use the initial heuristic TTL as the base, not the
+          // stored ttlDays (which includes prior doubling + jitter).
+          // This ensures clean exponential growth: base * 2^n.
+          consecutiveUnchanged =
+              ((oldEntry["consecutiveUnchanged"] as int?) ?? 0) + 1;
+          final baseDays = computeInitialTtl(title: newTitle, url: url);
+          ttlDays = computeAdaptiveTtl(
+            baseDays: baseDays,
+            consecutiveUnchanged: consecutiveUnchanged,
+          );
+        }
+      } else {
+        // First fetch — compute initial TTL from heuristics
+        ttlDays = computeInitialTtl(title: newTitle, url: url);
+      }
+
+      // Apply jitter to spread out refreshes
+      ttlDays = applyJitter(ttlDays);
+
       final data = <String, dynamic>{
-        "title": fetched.title,
-        "description": fetched.description,
-        "image": fetched.image,
+        "title": newTitle,
+        "description": newDescription,
+        "image": newImage,
         "url": fetched.url ?? url,
+        "consecutiveUnchanged": consecutiveUnchanged,
+        "ttlDays": ttlDays,
       };
+
       await MetadataCache.set(url, data);
       MetadataCache.clearFailure(url);
       return data;
@@ -92,16 +142,18 @@ class MetadataFactory {
 
   /// Force a fresh fetch, ignoring cache and failure history.
   ///
-  /// Used for manual "refresh metadata" actions.
+  /// Used for manual "refresh metadata" actions. Unlike the original
+  /// implementation, this no longer removes old data before fetching —
+  /// `_fetchAndCache` reads the old entry for change comparison to
+  /// update the adaptive TTL. If the fetch fails, the stale entry
+  /// remains in persistence but `_isFresh` will still return false
+  /// for it, so callers won't see stale data.
   static Future<Map<String, dynamic>?> forceFetch(String url) async {
     MetadataCache.clearFailure(url);
-    await MetadataCache.remove(url);
 
     await _acquireSlot();
     final result = await _fetchAndCache(url);
     if (result != null) {
-      // Reset to null first so the signal always fires, even when
-      // re-fetching the same URL (signals skip equal values).
       lastRefreshedUrl.value = null;
       lastRefreshedUrl.value = url;
     }
