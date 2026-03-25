@@ -64,7 +64,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 10;
+  int get schemaVersion => 11;
 
   @override
   MigrationStrategy get migration {
@@ -319,6 +319,17 @@ class AppDatabase extends _$AppDatabase {
         // persistent metadata caching (replaces SharedPreferences).
         if (from < 10) {
           await migrator.createTable(webMetadataEntries);
+        }
+
+        // Migration v10 to v11: Add adaptive TTL columns to
+        // web_metadata_entries for change-tracking and per-entry TTL.
+        if (from < 11) {
+          await customStatement(
+            "ALTER TABLE web_metadata_entries ADD COLUMN consecutive_unchanged INTEGER NOT NULL DEFAULT 0",
+          );
+          await customStatement(
+            "ALTER TABLE web_metadata_entries ADD COLUMN ttl_days INTEGER NOT NULL DEFAULT 7",
+          );
         }
       },
     );

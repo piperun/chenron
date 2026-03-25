@@ -3462,9 +3462,32 @@ class $WebMetadataEntriesTable extends WebMetadataEntries
   late final GeneratedColumn<DateTime> fetchedAt = GeneratedColumn<DateTime>(
       'fetched_at', aliasedName, false,
       type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _consecutiveUnchangedMeta =
+      const VerificationMeta('consecutiveUnchanged');
   @override
-  List<GeneratedColumn> get $columns =>
-      [url, title, description, image, fetchedAt];
+  late final GeneratedColumn<int> consecutiveUnchanged = GeneratedColumn<int>(
+      'consecutive_unchanged', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _ttlDaysMeta =
+      const VerificationMeta('ttlDays');
+  @override
+  late final GeneratedColumn<int> ttlDays = GeneratedColumn<int>(
+      'ttl_days', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(7));
+  @override
+  List<GeneratedColumn> get $columns => [
+        url,
+        title,
+        description,
+        image,
+        fetchedAt,
+        consecutiveUnchanged,
+        ttlDays
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -3501,6 +3524,16 @@ class $WebMetadataEntriesTable extends WebMetadataEntries
     } else if (isInserting) {
       context.missing(_fetchedAtMeta);
     }
+    if (data.containsKey('consecutive_unchanged')) {
+      context.handle(
+          _consecutiveUnchangedMeta,
+          consecutiveUnchanged.isAcceptableOrUnknown(
+              data['consecutive_unchanged']!, _consecutiveUnchangedMeta));
+    }
+    if (data.containsKey('ttl_days')) {
+      context.handle(_ttlDaysMeta,
+          ttlDays.isAcceptableOrUnknown(data['ttl_days']!, _ttlDaysMeta));
+    }
     return context;
   }
 
@@ -3520,6 +3553,10 @@ class $WebMetadataEntriesTable extends WebMetadataEntries
           .read(DriftSqlType.string, data['${effectivePrefix}image']),
       fetchedAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}fetched_at'])!,
+      consecutiveUnchanged: attachedDatabase.typeMapping.read(
+          DriftSqlType.int, data['${effectivePrefix}consecutive_unchanged'])!,
+      ttlDays: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}ttl_days'])!,
     );
   }
 
@@ -3536,12 +3573,16 @@ class WebMetadataEntry extends DataClass
   final String? description;
   final String? image;
   final DateTime fetchedAt;
+  final int consecutiveUnchanged;
+  final int ttlDays;
   const WebMetadataEntry(
       {required this.url,
       this.title,
       this.description,
       this.image,
-      required this.fetchedAt});
+      required this.fetchedAt,
+      required this.consecutiveUnchanged,
+      required this.ttlDays});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -3556,6 +3597,8 @@ class WebMetadataEntry extends DataClass
       map['image'] = Variable<String>(image);
     }
     map['fetched_at'] = Variable<DateTime>(fetchedAt);
+    map['consecutive_unchanged'] = Variable<int>(consecutiveUnchanged);
+    map['ttl_days'] = Variable<int>(ttlDays);
     return map;
   }
 
@@ -3570,6 +3613,8 @@ class WebMetadataEntry extends DataClass
       image:
           image == null && nullToAbsent ? const Value.absent() : Value(image),
       fetchedAt: Value(fetchedAt),
+      consecutiveUnchanged: Value(consecutiveUnchanged),
+      ttlDays: Value(ttlDays),
     );
   }
 
@@ -3582,6 +3627,9 @@ class WebMetadataEntry extends DataClass
       description: serializer.fromJson<String?>(json['description']),
       image: serializer.fromJson<String?>(json['image']),
       fetchedAt: serializer.fromJson<DateTime>(json['fetchedAt']),
+      consecutiveUnchanged:
+          serializer.fromJson<int>(json['consecutiveUnchanged']),
+      ttlDays: serializer.fromJson<int>(json['ttlDays']),
     );
   }
   @override
@@ -3593,6 +3641,8 @@ class WebMetadataEntry extends DataClass
       'description': serializer.toJson<String?>(description),
       'image': serializer.toJson<String?>(image),
       'fetchedAt': serializer.toJson<DateTime>(fetchedAt),
+      'consecutiveUnchanged': serializer.toJson<int>(consecutiveUnchanged),
+      'ttlDays': serializer.toJson<int>(ttlDays),
     };
   }
 
@@ -3601,13 +3651,17 @@ class WebMetadataEntry extends DataClass
           Value<String?> title = const Value.absent(),
           Value<String?> description = const Value.absent(),
           Value<String?> image = const Value.absent(),
-          DateTime? fetchedAt}) =>
+          DateTime? fetchedAt,
+          int? consecutiveUnchanged,
+          int? ttlDays}) =>
       WebMetadataEntry(
         url: url ?? this.url,
         title: title.present ? title.value : this.title,
         description: description.present ? description.value : this.description,
         image: image.present ? image.value : this.image,
         fetchedAt: fetchedAt ?? this.fetchedAt,
+        consecutiveUnchanged: consecutiveUnchanged ?? this.consecutiveUnchanged,
+        ttlDays: ttlDays ?? this.ttlDays,
       );
   WebMetadataEntry copyWithCompanion(WebMetadataEntriesCompanion data) {
     return WebMetadataEntry(
@@ -3617,6 +3671,10 @@ class WebMetadataEntry extends DataClass
           data.description.present ? data.description.value : this.description,
       image: data.image.present ? data.image.value : this.image,
       fetchedAt: data.fetchedAt.present ? data.fetchedAt.value : this.fetchedAt,
+      consecutiveUnchanged: data.consecutiveUnchanged.present
+          ? data.consecutiveUnchanged.value
+          : this.consecutiveUnchanged,
+      ttlDays: data.ttlDays.present ? data.ttlDays.value : this.ttlDays,
     );
   }
 
@@ -3627,13 +3685,16 @@ class WebMetadataEntry extends DataClass
           ..write('title: $title, ')
           ..write('description: $description, ')
           ..write('image: $image, ')
-          ..write('fetchedAt: $fetchedAt')
+          ..write('fetchedAt: $fetchedAt, ')
+          ..write('consecutiveUnchanged: $consecutiveUnchanged, ')
+          ..write('ttlDays: $ttlDays')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(url, title, description, image, fetchedAt);
+  int get hashCode => Object.hash(
+      url, title, description, image, fetchedAt, consecutiveUnchanged, ttlDays);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3642,7 +3703,9 @@ class WebMetadataEntry extends DataClass
           other.title == this.title &&
           other.description == this.description &&
           other.image == this.image &&
-          other.fetchedAt == this.fetchedAt);
+          other.fetchedAt == this.fetchedAt &&
+          other.consecutiveUnchanged == this.consecutiveUnchanged &&
+          other.ttlDays == this.ttlDays);
 }
 
 class WebMetadataEntriesCompanion extends UpdateCompanion<WebMetadataEntry> {
@@ -3651,6 +3714,8 @@ class WebMetadataEntriesCompanion extends UpdateCompanion<WebMetadataEntry> {
   final Value<String?> description;
   final Value<String?> image;
   final Value<DateTime> fetchedAt;
+  final Value<int> consecutiveUnchanged;
+  final Value<int> ttlDays;
   final Value<int> rowid;
   const WebMetadataEntriesCompanion({
     this.url = const Value.absent(),
@@ -3658,6 +3723,8 @@ class WebMetadataEntriesCompanion extends UpdateCompanion<WebMetadataEntry> {
     this.description = const Value.absent(),
     this.image = const Value.absent(),
     this.fetchedAt = const Value.absent(),
+    this.consecutiveUnchanged = const Value.absent(),
+    this.ttlDays = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   WebMetadataEntriesCompanion.insert({
@@ -3666,6 +3733,8 @@ class WebMetadataEntriesCompanion extends UpdateCompanion<WebMetadataEntry> {
     this.description = const Value.absent(),
     this.image = const Value.absent(),
     required DateTime fetchedAt,
+    this.consecutiveUnchanged = const Value.absent(),
+    this.ttlDays = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : url = Value(url),
         fetchedAt = Value(fetchedAt);
@@ -3675,6 +3744,8 @@ class WebMetadataEntriesCompanion extends UpdateCompanion<WebMetadataEntry> {
     Expression<String>? description,
     Expression<String>? image,
     Expression<DateTime>? fetchedAt,
+    Expression<int>? consecutiveUnchanged,
+    Expression<int>? ttlDays,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -3683,6 +3754,9 @@ class WebMetadataEntriesCompanion extends UpdateCompanion<WebMetadataEntry> {
       if (description != null) 'description': description,
       if (image != null) 'image': image,
       if (fetchedAt != null) 'fetched_at': fetchedAt,
+      if (consecutiveUnchanged != null)
+        'consecutive_unchanged': consecutiveUnchanged,
+      if (ttlDays != null) 'ttl_days': ttlDays,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -3693,6 +3767,8 @@ class WebMetadataEntriesCompanion extends UpdateCompanion<WebMetadataEntry> {
       Value<String?>? description,
       Value<String?>? image,
       Value<DateTime>? fetchedAt,
+      Value<int>? consecutiveUnchanged,
+      Value<int>? ttlDays,
       Value<int>? rowid}) {
     return WebMetadataEntriesCompanion(
       url: url ?? this.url,
@@ -3700,6 +3776,8 @@ class WebMetadataEntriesCompanion extends UpdateCompanion<WebMetadataEntry> {
       description: description ?? this.description,
       image: image ?? this.image,
       fetchedAt: fetchedAt ?? this.fetchedAt,
+      consecutiveUnchanged: consecutiveUnchanged ?? this.consecutiveUnchanged,
+      ttlDays: ttlDays ?? this.ttlDays,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -3722,6 +3800,12 @@ class WebMetadataEntriesCompanion extends UpdateCompanion<WebMetadataEntry> {
     if (fetchedAt.present) {
       map['fetched_at'] = Variable<DateTime>(fetchedAt.value);
     }
+    if (consecutiveUnchanged.present) {
+      map['consecutive_unchanged'] = Variable<int>(consecutiveUnchanged.value);
+    }
+    if (ttlDays.present) {
+      map['ttl_days'] = Variable<int>(ttlDays.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -3736,6 +3820,8 @@ class WebMetadataEntriesCompanion extends UpdateCompanion<WebMetadataEntry> {
           ..write('description: $description, ')
           ..write('image: $image, ')
           ..write('fetchedAt: $fetchedAt, ')
+          ..write('consecutiveUnchanged: $consecutiveUnchanged, ')
+          ..write('ttlDays: $ttlDays, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -6162,6 +6248,8 @@ typedef $$WebMetadataEntriesTableCreateCompanionBuilder
   Value<String?> description,
   Value<String?> image,
   required DateTime fetchedAt,
+  Value<int> consecutiveUnchanged,
+  Value<int> ttlDays,
   Value<int> rowid,
 });
 typedef $$WebMetadataEntriesTableUpdateCompanionBuilder
@@ -6171,6 +6259,8 @@ typedef $$WebMetadataEntriesTableUpdateCompanionBuilder
   Value<String?> description,
   Value<String?> image,
   Value<DateTime> fetchedAt,
+  Value<int> consecutiveUnchanged,
+  Value<int> ttlDays,
   Value<int> rowid,
 });
 
@@ -6197,6 +6287,13 @@ class $$WebMetadataEntriesTableFilterComposer
 
   ColumnFilters<DateTime> get fetchedAt => $composableBuilder(
       column: $table.fetchedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get consecutiveUnchanged => $composableBuilder(
+      column: $table.consecutiveUnchanged,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get ttlDays => $composableBuilder(
+      column: $table.ttlDays, builder: (column) => ColumnFilters(column));
 }
 
 class $$WebMetadataEntriesTableOrderingComposer
@@ -6222,6 +6319,13 @@ class $$WebMetadataEntriesTableOrderingComposer
 
   ColumnOrderings<DateTime> get fetchedAt => $composableBuilder(
       column: $table.fetchedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get consecutiveUnchanged => $composableBuilder(
+      column: $table.consecutiveUnchanged,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get ttlDays => $composableBuilder(
+      column: $table.ttlDays, builder: (column) => ColumnOrderings(column));
 }
 
 class $$WebMetadataEntriesTableAnnotationComposer
@@ -6247,6 +6351,12 @@ class $$WebMetadataEntriesTableAnnotationComposer
 
   GeneratedColumn<DateTime> get fetchedAt =>
       $composableBuilder(column: $table.fetchedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get consecutiveUnchanged => $composableBuilder(
+      column: $table.consecutiveUnchanged, builder: (column) => column);
+
+  GeneratedColumn<int> get ttlDays =>
+      $composableBuilder(column: $table.ttlDays, builder: (column) => column);
 }
 
 class $$WebMetadataEntriesTableTableManager extends RootTableManager<
@@ -6282,6 +6392,8 @@ class $$WebMetadataEntriesTableTableManager extends RootTableManager<
             Value<String?> description = const Value.absent(),
             Value<String?> image = const Value.absent(),
             Value<DateTime> fetchedAt = const Value.absent(),
+            Value<int> consecutiveUnchanged = const Value.absent(),
+            Value<int> ttlDays = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               WebMetadataEntriesCompanion(
@@ -6290,6 +6402,8 @@ class $$WebMetadataEntriesTableTableManager extends RootTableManager<
             description: description,
             image: image,
             fetchedAt: fetchedAt,
+            consecutiveUnchanged: consecutiveUnchanged,
+            ttlDays: ttlDays,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -6298,6 +6412,8 @@ class $$WebMetadataEntriesTableTableManager extends RootTableManager<
             Value<String?> description = const Value.absent(),
             Value<String?> image = const Value.absent(),
             required DateTime fetchedAt,
+            Value<int> consecutiveUnchanged = const Value.absent(),
+            Value<int> ttlDays = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               WebMetadataEntriesCompanion.insert(
@@ -6306,6 +6422,8 @@ class $$WebMetadataEntriesTableTableManager extends RootTableManager<
             description: description,
             image: image,
             fetchedAt: fetchedAt,
+            consecutiveUnchanged: consecutiveUnchanged,
+            ttlDays: ttlDays,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
