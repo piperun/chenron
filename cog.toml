@@ -1,3 +1,17 @@
+# ─── VERSIONING RULES ────────────────────────────────────────────────────────
+# Use: cog bump --auto
+#
+# This bumps all packages that have relevant scoped commits since their
+# last tag. Commit scopes must match a package name from [packages.*]:
+#
+#   feat(chenron): ...     → bumps chenron
+#   fix(database): ...     → bumps database
+#   feat(cache_manager):   → bumps cache_manager
+#
+# Unscoped commits (feat: ...) are NOT routed to any package and will
+# be missed by --auto. Use unscoped only for repo-wide chores.
+# ─────────────────────────────────────────────────────────────────────────────
+
 from_latest_tag = true
 ignore_merge_commits = true
 tag_prefix = "v"
