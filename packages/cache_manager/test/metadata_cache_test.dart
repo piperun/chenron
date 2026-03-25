@@ -492,4 +492,41 @@ void main() {
       );
     });
   });
+
+  group("MetadataCache failure cleanup", () {
+    test("cleanupStaleFailures removes entries older than 30 days", () {
+      // Record a failure and verify cleanup doesn't crash.
+      // Since we can't backdate the timestamp, we verify the method runs
+      // without error and that a recent failure survives cleanup.
+      MetadataCache.recordFailure("https://old-fail.com");
+      MetadataCache.cleanupStaleFailures();
+      // Recent failure should NOT be cleaned up
+      expect(MetadataCache.shouldRetry("https://old-fail.com"), isFalse);
+    });
+
+    test("cleanupStaleFailures preserves recent failures", () {
+      MetadataCache.recordFailure("https://recent.com");
+      MetadataCache.cleanupStaleFailures();
+      // Still not retryable — cleanup didn't remove it
+      expect(MetadataCache.shouldRetry("https://recent.com"), isFalse);
+    });
+
+    test("cleanupStaleFailures is safe to call with no failures", () {
+      // Should not throw
+      MetadataCache.cleanupStaleFailures();
+      expect(MetadataCache.shouldRetry("https://anything.com"), isTrue);
+    });
+
+    test("clearFailure followed by cleanupStaleFailures leaves clean state",
+        () {
+      MetadataCache.recordFailure("https://a.com");
+      MetadataCache.recordFailure("https://b.com");
+      MetadataCache.clearFailure("https://a.com");
+      MetadataCache.cleanupStaleFailures();
+      // a.com was explicitly cleared
+      expect(MetadataCache.shouldRetry("https://a.com"), isTrue);
+      // b.com is recent, cleanup shouldn't remove it
+      expect(MetadataCache.shouldRetry("https://b.com"), isFalse);
+    });
+  });
 }

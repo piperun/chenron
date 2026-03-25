@@ -281,5 +281,16 @@ void main() {
       expect(urls, contains("https://barely.com"));
       expect(urls, isNot(contains("https://fresh.com")));
     });
+
+    test("schema v12 indexes exist", () async {
+      final indexes = await database
+          .customSelect(
+            "SELECT name FROM sqlite_master WHERE type='index' AND name IN ('metadata_records_item_idx', 'activity_events_occurred_idx')",
+          )
+          .get();
+      final names = indexes.map((r) => r.data["name"] as String).toSet();
+      expect(names, contains("metadata_records_item_idx"));
+      expect(names, contains("activity_events_occurred_idx"));
+    });
   });
 }
