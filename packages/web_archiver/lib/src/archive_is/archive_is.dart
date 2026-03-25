@@ -10,7 +10,7 @@ class ArchiveIsClient {
       "ChenronFlutterClient/1.0 (https://github.com/piperun/chenron-flutter; dart:http)";
 
   /// Default timeout for requests.
-  final Duration defaultTimeout = const Duration(seconds: 120);
+  final Duration defaultTimeout = const Duration(seconds: 30);
   final _logger = Logger("ArchiveIsClient");
 
   /// Creates a new [ArchiveIsClient].

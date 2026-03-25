@@ -28,6 +28,9 @@ class ArchiveOrgClient {
   /// The base URL for the Archive.org API.
   final String baseUrl = "https://web.archive.org";
 
+  /// Timeout for individual HTTP requests.
+  static const httpTimeout = Duration(seconds: 30);
+
   /// Creates a new [ArchiveOrgClient] with the given [apiKey] and [apiSecret].
   ArchiveOrgClient(this.apiKey, this.apiSecret);
 
@@ -35,7 +38,8 @@ class ArchiveOrgClient {
   ///
   /// Returns `true` if the status code is 200, indicating successful authentication.
   Future<bool> checkAuthentication() async {
-    final response = await http.get(Uri.parse("$baseUrl/save/status/"));
+    final response =
+        await http.get(Uri.parse("$baseUrl/save/status/")).timeout(httpTimeout);
     return response.statusCode == 200;
   }
 
@@ -54,15 +58,18 @@ class ArchiveOrgClient {
         body.addAll(options.toJson());
       }
 
-      final response = await http.post(
-        Uri.parse("$baseUrl/save"),
-        headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-          "Authorization": "LOW $apiKey:$apiSecret",
-        },
-        body: body,
-      );
+      final response = await http
+          .post(
+            Uri.parse("$baseUrl/save"),
+            headers: {
+              "Accept": "application/json",
+              "Content-Type":
+                  "application/x-www-form-urlencoded;charset=UTF-8",
+              "Authorization": "LOW $apiKey:$apiSecret",
+            },
+            body: body,
+          )
+          .timeout(httpTimeout);
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -105,7 +112,9 @@ class ArchiveOrgClient {
   /// Returns a map containing the status information.
   Future<Map<String, dynamic>> checkStatus(String jobId) async {
     try {
-      final response = await http.get(Uri.parse("$baseUrl/save/status/$jobId"));
+      final response = await http
+          .get(Uri.parse("$baseUrl/save/status/$jobId"))
+          .timeout(httpTimeout);
 
       if (response.statusCode == 200) {
         return json.decode(response.body);
@@ -122,11 +131,18 @@ class ArchiveOrgClient {
   ///
   /// [jobId] is the ID of the job to wait for.
   /// [pollInterval] is the number of seconds to wait between status checks (default is 5).
+  /// [maxDuration] is the maximum time to wait before throwing a [TimeoutException].
   ///
   /// Returns the URL of the archived snapshot upon success.
   /// Throws an [Exception] if the archiving fails.
-  Future<String> waitForCompletion(String jobId, {int pollInterval = 5}) async {
-    while (true) {
+  /// Throws a [TimeoutException] if the job does not complete within [maxDuration].
+  Future<String> waitForCompletion(
+    String jobId, {
+    int pollInterval = 5,
+    Duration maxDuration = const Duration(minutes: 5),
+  }) async {
+    final deadline = DateTime.now().add(maxDuration);
+    while (DateTime.now().isBefore(deadline)) {
       await Future.delayed(Duration(seconds: pollInterval));
       try {
         final status = await checkStatus(jobId);
@@ -143,6 +159,10 @@ class ArchiveOrgClient {
         rethrow;
       }
     }
+    throw TimeoutException(
+      'Archiving job $jobId did not complete within $maxDuration',
+      maxDuration,
+    );
   }
 
   /// Archives a URL and waits for the process to complete.
