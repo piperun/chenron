@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## chenron-v1.8.1 - 2026-03-25
+#### Features
+- (**chenron**) add activity log page with filterable archive queue UI - (68a60b6) - *piperun*
+
+- - -
+
 ## chenron-v1.8.0 - 2026-03-25
 #### Features
 - wire archive queue processor into app startup - (2719b38) - *piperun*
