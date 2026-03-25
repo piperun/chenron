@@ -47,33 +47,26 @@ extension FolderItemPaginationExtensions on AppDatabase {
       }
     }
 
-    // Step 3: Batch load entities by type
-    final linkMap = linkIds.isEmpty
-        ? <String, Link>{}
-        : {
-            for (final l
-                in await (select(links)..where((l) => l.id.isIn(linkIds)))
-                    .get())
-              l.id: l,
-          };
+    // Step 3: Batch load entities by type (parallel)
+    final entityResults = await Future.wait([
+      linkIds.isEmpty
+          ? Future.value(<Link>[])
+          : (select(links)..where((l) => l.id.isIn(linkIds))).get(),
+      docIds.isEmpty
+          ? Future.value(<Document>[])
+          : (select(documents)..where((d) => d.id.isIn(docIds))).get(),
+      folderIds.isEmpty
+          ? Future.value(<Folder>[])
+          : (select(folders)..where((f) => f.id.isIn(folderIds))).get(),
+    ]);
 
-    final docMap = docIds.isEmpty
-        ? <String, Document>{}
-        : {
-            for (final d
-                in await (select(documents)..where((d) => d.id.isIn(docIds)))
-                    .get())
-              d.id: d,
-          };
-
-    final folderMap = folderIds.isEmpty
-        ? <String, Folder>{}
-        : {
-            for (final f
-                in await (select(folders)..where((f) => f.id.isIn(folderIds)))
-                    .get())
-              f.id: f,
-          };
+    final linkMap = {for (final l in entityResults[0] as List<Link>) l.id: l};
+    final docMap = {
+      for (final d in entityResults[1] as List<Document>) d.id: d,
+    };
+    final folderMap = {
+      for (final f in entityResults[2] as List<Folder>) f.id: f,
+    };
 
     // Step 4: Batch load tags for all items via metadata_records
     final allItemIds = itemRows.map((r) => r.itemId).toList();

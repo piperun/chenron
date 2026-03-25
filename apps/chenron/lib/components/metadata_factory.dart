@@ -174,6 +174,7 @@ class MetadataFactory {
     _isRefreshing = true;
 
     try {
+      MetadataCache.cleanupStaleFailures();
       final persistence = MetadataCache.persistence;
       if (persistence == null) return;
 

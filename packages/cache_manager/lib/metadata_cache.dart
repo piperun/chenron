@@ -107,6 +107,13 @@ class MetadataCache {
     _failureCount.remove(url);
   }
 
+  /// Remove failure records older than 30 days to prevent unbounded growth.
+  static void cleanupStaleFailures() {
+    final cutoff = DateTime.now().subtract(const Duration(days: 30));
+    _failedAttempts.removeWhere((_, time) => time.isBefore(cutoff));
+    _failureCount.removeWhere((url, _) => !_failedAttempts.containsKey(url));
+  }
+
   /// Check if URL is currently being fetched
   static bool isFetching(String url) => _fetchingUrls.contains(url);
 
