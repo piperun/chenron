@@ -24,6 +24,7 @@ void main() {
   });
 
   tearDown(() async {
+    ArchiveQueueProcessor.clearInstance();
     await database.delete(database.archiveJobs).go();
     await database.delete(database.links).go();
     await database.close();
@@ -157,6 +158,96 @@ void main() {
       expect(fakeClient.archiveCallCount, 2);
     });
   });
+
+  group("ArchiveQueueProcessor static instance + triggerProcessing", () {
+    test("registerInstance stores and triggerProcessing invokes it", () async {
+      final linkResult = await database.createLink(link: "https://trigger.com");
+
+      await database.enqueueArchiveJob(
+        linkId: linkResult.linkId,
+        url: "https://trigger.com",
+        service: "archive_org",
+      );
+
+      final fakeClient = _FakeArchiveOrgClient();
+      final processor = ArchiveQueueProcessor(
+        database: database,
+        archiveOrgClientFactory: (key, secret) => fakeClient,
+        accessKey: "test-key",
+        secretKey: "test-secret",
+        delayBetweenJobs: Duration.zero,
+      );
+
+      ArchiveQueueProcessor.registerInstance(processor);
+      ArchiveQueueProcessor.triggerProcessing();
+
+      // triggerProcessing is fire-and-forget, give it time to complete
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+
+      final jobs = await (database.select(database.archiveJobs)).get();
+      expect(jobs.first.status, "completed");
+      expect(fakeClient.archiveCallCount, 1);
+
+      final link = await database.getLink(linkId: linkResult.linkId);
+      expect(link!.data.archiveOrgUrl, isNotNull);
+    });
+
+    test("triggerProcessing is safe when no instance registered", () {
+      // Should not throw
+      ArchiveQueueProcessor.triggerProcessing();
+    });
+
+    test("triggerProcessing no-ops when already processing", () async {
+      final link1 = await database.createLink(link: "https://slow1.com");
+      final link2 = await database.createLink(link: "https://slow2.com");
+
+      await database.enqueueArchiveJob(
+        linkId: link1.linkId,
+        url: "https://slow1.com",
+        service: "archive_org",
+      );
+      await database.enqueueArchiveJob(
+        linkId: link2.linkId,
+        url: "https://slow2.com",
+        service: "archive_org",
+      );
+
+      final fakeClient = _SlowFakeArchiveOrgClient();
+      final processor = ArchiveQueueProcessor(
+        database: database,
+        archiveOrgClientFactory: (key, secret) => fakeClient,
+        accessKey: "test-key",
+        secretKey: "test-secret",
+        delayBetweenJobs: Duration.zero,
+      );
+
+      ArchiveQueueProcessor.registerInstance(processor);
+
+      // Start processing
+      final firstRun = processor.processAll();
+      // Trigger again while first run is active — should no-op
+      ArchiveQueueProcessor.triggerProcessing();
+
+      await firstRun;
+
+      // Only one run should have happened (2 jobs processed once, not twice)
+      expect(fakeClient.archiveCallCount, 2);
+    });
+  });
+}
+
+class _SlowFakeArchiveOrgClient extends ArchiveOrgClient {
+  int archiveCallCount = 0;
+
+  _SlowFakeArchiveOrgClient() : super("fake", "fake");
+
+  @override
+  Future<String> archiveAndWait(String targetUrl,
+      {ArchiveOrgOptions? options}) async {
+    archiveCallCount++;
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    return "https://web.archive.org/web/fake/$targetUrl";
+  }
 }
 
 class _FakeArchiveOrgClient extends ArchiveOrgClient {

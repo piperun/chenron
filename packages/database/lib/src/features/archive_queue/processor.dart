@@ -32,6 +32,11 @@ class ArchiveQueueProcessor {
     unawaited(_instance?.processAll());
   }
 
+  /// Clear the registered instance. Used in tests.
+  static void clearInstance() {
+    _instance = null;
+  }
+
   ArchiveQueueProcessor({
     required this.database,
     required this.archiveOrgClientFactory,
