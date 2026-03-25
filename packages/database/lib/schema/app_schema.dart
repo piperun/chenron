@@ -123,6 +123,10 @@ class WebMetadataEntries extends Table {
   TextColumn get description => text().nullable()();
   TextColumn get image => text().nullable()();
   DateTimeColumn get fetchedAt => dateTime()();
+  IntColumn get consecutiveUnchanged =>
+      integer().withDefault(const Constant(0))();
+  IntColumn get ttlDays =>
+      integer().withDefault(const Constant(7))();
 
   @override
   Set<Column> get primaryKey => {url};
