@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## chenron-v1.8.0 - 2026-03-25
+#### Features
+- integrate startup refresh scheduler into MetadataFactory - (c502aae) - *piperun*
+- integrate change detection and adaptive TTL into MetadataFactory fetch flow - (9fc51c5) - *piperun*
+- extend persistence interface and bridge for adaptive TTL fields - (47b92a0) - *piperun*
+
+- - -
+
 ## chenron-v1.7.0 - 2026-02-19
 #### Features
 - improve collapsed navigation rail UX - (640f799) - *piperun*
