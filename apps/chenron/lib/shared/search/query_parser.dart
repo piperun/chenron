@@ -1,5 +1,7 @@
 /// Utilities for parsing search queries and extracting special patterns
 class QueryParser {
+  static final _quotePattern = RegExp(r'"([^"]*)"');
+  static final _spacePattern = RegExp(r"\s+");
   /// Parse a search query and extract tag patterns (#tag and -#tag)
   ///
   /// Text within double quotes is treated as literal and not parsed for tags.
@@ -32,16 +34,14 @@ class QueryParser {
     // First, extract quoted strings and replace with placeholders
     final quotedStrings = <String>[];
     var workingQuery = query;
-    final quotePattern = RegExp(r'"([^"]*)"');
-    
-    workingQuery = workingQuery.replaceAllMapped(quotePattern, (match) {
+    workingQuery = workingQuery.replaceAllMapped(_quotePattern, (match) {
       final quotedText = match.group(1) ?? "";
       quotedStrings.add(quotedText);
       return "___QUOTED_${quotedStrings.length - 1}___";
     });
 
     // Now parse the working query for tags
-    final parts = workingQuery.split(RegExp(r"\s+"));
+    final parts = workingQuery.split(_spacePattern);
 
     for (final part in parts) {
       if (part.isEmpty) continue;

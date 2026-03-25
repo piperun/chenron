@@ -38,16 +38,19 @@ class GlobalSuggestionBuilder {
     final tagSuggestions = await _buildTagSuggestions(appDb, query);
     if (tagSuggestions.isNotEmpty) return tagSuggestions;
 
-    final folders = await appDb.searchFolders(query: query);
-    final links = await appDb.searchLinks(query: query);
-    final documents = await appDb.searchDocuments(query: query);
+    final results = await Future.wait([
+      appDb.searchFolders(query: query),
+      appDb.searchLinks(query: query),
+      appDb.searchDocuments(query: query),
+      appDb.searchWebMetadata(query),
+      _lookupById(appDb, query),
+    ]);
 
-    // Also search web metadata (title/description) for links
-    // whose URL didn't match but whose metadata does
-    final metadataMatches = await appDb.searchWebMetadata(query);
-
-    // Also try direct ID lookups so pasted IDs resolve to results
-    final idResults = await _lookupById(appDb, query);
+    final folders = results[0] as List<FolderResult>;
+    final links = results[1] as List<LinkResult>;
+    final documents = results[2] as List<DocumentResult>;
+    final metadataMatches = results[3] as List<WebMetadataEntry>;
+    final idResults = results[4] as _IdLookupResults;
 
     if (!context.mounted) return [];
 
