@@ -5,6 +5,7 @@ import "package:database/models/folder.dart";
 import "package:database/models/item.dart";
 import "package:database/models/metadata.dart";
 import "package:database/src/features/archive_queue/crud.dart";
+import "package:database/src/features/archive_queue/processor.dart";
 import "package:database/src/features/folder/create.dart";
 import "package:database/src/features/folder/update.dart";
 import "package:database/src/features/link/read.dart";
@@ -87,5 +88,8 @@ extension PayloadExtensions on AppDatabase {
     } finally {
       await configDatabase.close();
     }
+
+    // Trigger background processing immediately
+    ArchiveQueueProcessor.triggerProcessing();
   }
 }

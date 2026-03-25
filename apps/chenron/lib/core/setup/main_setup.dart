@@ -324,6 +324,7 @@ class MainSetup {
         accessKey: config.archiveOrgS3AccessKey!,
         secretKey: config.archiveOrgS3SecretKey!,
       );
+      ArchiveQueueProcessor.registerInstance(processor);
       await processor.processAll();
     } catch (e, s) {
       loggerGlobal.warning(
