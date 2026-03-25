@@ -2,6 +2,25 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## database-v0.11.0 - 2026-03-25
+#### Features
+- add ArchiveQueueProcessor for background archive processing - (d2cdb58) - *piperun*
+- add archive queue CRUD operations - (7d939b0) - *piperun*
+- add archive_jobs queue table (schema v13) - (4f53e3f) - *piperun*
+- update CRUD for adaptive TTL fields and add getExpiredEntries query - (45e52e2) - *piperun*
+- add adaptive TTL columns to web_metadata_entries schema (v11 migration) - (873d319) - *piperun*
+- redesign card footer and improve search - (45a13b0) - *piperun*
+#### Bug Fixes
+- update init_db_test to expect schema version 10 - (ba00dd8) - *piperun*
+#### Performance Improvements
+- single-pass filtering and add DB indexes - (1f8a6f5) - *piperun*
+- parallelize DB queries and cache static RegExp - (044b67c) - *piperun*
+#### Refactoring
+- (**database**) split AppDatabase and ConfigDatabase into separate files - (7c54bbf) - *piperun*
+- decouple archiving from folder creation, enqueue instead of await - (a17b50f) - *piperun*
+
+- - -
+
 ## database-v0.10.0 - 2026-02-17
 #### Features
 - add WebMetadataEntries drift table for persistent metadata cache - (1d183e5) - *piperun*
