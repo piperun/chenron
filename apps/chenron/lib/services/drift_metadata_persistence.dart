@@ -18,6 +18,8 @@ class DriftMetadataPersistence implements MetadataPersistence {
       "image": entry.image,
       "url": url,
       "fetchedAt": entry.fetchedAt.toIso8601String(),
+      "consecutiveUnchanged": entry.consecutiveUnchanged,
+      "ttlDays": entry.ttlDays,
     };
   }
 
@@ -29,6 +31,8 @@ class DriftMetadataPersistence implements MetadataPersistence {
       description: metadata["description"] as String?,
       image: metadata["image"] as String?,
       fetchedAt: DateTime.now(),
+      consecutiveUnchanged: (metadata["consecutiveUnchanged"] as int?) ?? 0,
+      ttlDays: (metadata["ttlDays"] as int?) ?? 7,
     );
   }
 
@@ -40,4 +44,20 @@ class DriftMetadataPersistence implements MetadataPersistence {
 
   @override
   Future<int> count() => _db.countWebMetadata();
+
+  @override
+  Future<List<Map<String, dynamic>>> getExpiredEntries() async {
+    final entries = await _db.getExpiredEntries();
+    return entries
+        .map((e) => {
+              "url": e.url,
+              "title": e.title,
+              "description": e.description,
+              "image": e.image,
+              "fetchedAt": e.fetchedAt.toIso8601String(),
+              "consecutiveUnchanged": e.consecutiveUnchanged,
+              "ttlDays": e.ttlDays,
+            })
+        .toList();
+  }
 }

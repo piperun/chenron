@@ -25,6 +25,19 @@ class FakeMetadataPersistence implements MetadataPersistence {
 
   @override
   Future<int> count() async => _store.length;
+
+  @override
+  Future<List<Map<String, dynamic>>> getExpiredEntries() async {
+    final now = DateTime.now();
+    return _store.entries.where((e) {
+      final fetchedAtStr = e.value["fetchedAt"] as String?;
+      if (fetchedAtStr == null) return true;
+      final fetchedAt = DateTime.tryParse(fetchedAtStr);
+      if (fetchedAt == null) return true;
+      final ttlDays = (e.value["ttlDays"] as int?) ?? 7;
+      return now.difference(fetchedAt).inDays >= ttlDays;
+    }).map((e) => {"url": e.key, ...e.value}).toList();
+  }
 }
 
 void main() {

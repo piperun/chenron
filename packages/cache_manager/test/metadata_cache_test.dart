@@ -37,6 +37,20 @@ class FakeMetadataPersistence implements MetadataPersistence {
     return _store.length;
   }
 
+  @override
+  Future<List<Map<String, dynamic>>> getExpiredEntries() async {
+    calls.add("getExpiredEntries");
+    final now = DateTime.now();
+    return _store.entries.where((e) {
+      final fetchedAtStr = e.value["fetchedAt"] as String?;
+      if (fetchedAtStr == null) return true;
+      final fetchedAt = DateTime.tryParse(fetchedAtStr);
+      if (fetchedAt == null) return true;
+      final ttlDays = (e.value["ttlDays"] as int?) ?? 7;
+      return now.difference(fetchedAt).inDays >= ttlDays;
+    }).map((e) => {"url": e.key, ...e.value}).toList();
+  }
+
   /// Directly inject a stale entry (old fetchedAt) into the store,
   /// bypassing MetadataCache's timestamp logic.
   void seedStale(String url, Map<String, dynamic> metadata) {
@@ -60,6 +74,9 @@ class FailingMetadataPersistence implements MetadataPersistence {
       throw Exception("persistence clearAll failed");
   @override
   Future<int> count() async => throw Exception("persistence count failed");
+  @override
+  Future<List<Map<String, dynamic>>> getExpiredEntries() async =>
+      throw Exception("persistence getExpiredEntries failed");
 }
 
 void main() {

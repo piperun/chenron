@@ -9,4 +9,9 @@ abstract class MetadataPersistence {
   Future<void> remove(String url);
   Future<void> clearAll();
   Future<int> count();
+
+  /// Return all entries whose per-entry TTL has expired.
+  /// Each map includes: url, title, description, image, fetchedAt,
+  /// consecutiveUnchanged, ttlDays.
+  Future<List<Map<String, dynamic>>> getExpiredEntries();
 }
