@@ -15,7 +15,8 @@ enum AppPage {
   viewer(NavigationSection.viewer),
   createLink(null),
   createFolder(null),
-  settings(null);
+  settings(null),
+  activityLog(null);
 
   final NavigationSection? navSection;
   const AppPage(this.navSection);
@@ -37,6 +38,7 @@ enum AppPage {
         AppPage.createLink => "New Link",
         AppPage.createFolder => "New Folder",
         AppPage.settings => "Settings",
+        AppPage.activityLog => "Activity Log",
       };
 
   Widget getPage({
@@ -66,6 +68,9 @@ enum AppPage {
         // this fallback uses the default category.
         return ConfigPage(
             selectedCategory: SettingsCategory.defaultSelection);
+      case AppPage.activityLog:
+        // Handled by CurrentPageBuilder in RootPage.
+        return const SizedBox.shrink();
     }
   }
 }
