@@ -3828,6 +3828,507 @@ class WebMetadataEntriesCompanion extends UpdateCompanion<WebMetadataEntry> {
   }
 }
 
+class $ArchiveJobsTable extends ArchiveJobs
+    with TableInfo<$ArchiveJobsTable, ArchiveJob> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ArchiveJobsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 30, maxTextLength: 60),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _linkIdMeta = const VerificationMeta('linkId');
+  @override
+  late final GeneratedColumn<String> linkId = GeneratedColumn<String>(
+      'link_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _urlMeta = const VerificationMeta('url');
+  @override
+  late final GeneratedColumn<String> url = GeneratedColumn<String>(
+      'url', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _serviceMeta =
+      const VerificationMeta('service');
+  @override
+  late final GeneratedColumn<String> service = GeneratedColumn<String>(
+      'service', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+      'status', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant("queued"));
+  static const VerificationMeta _resultUrlMeta =
+      const VerificationMeta('resultUrl');
+  @override
+  late final GeneratedColumn<String> resultUrl = GeneratedColumn<String>(
+      'result_url', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _errorMeta = const VerificationMeta('error');
+  @override
+  late final GeneratedColumn<String> error = GeneratedColumn<String>(
+      'error', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _attemptsMeta =
+      const VerificationMeta('attempts');
+  @override
+  late final GeneratedColumn<int> attempts = GeneratedColumn<int>(
+      'attempts', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+      'updated_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        linkId,
+        url,
+        service,
+        status,
+        resultUrl,
+        error,
+        attempts,
+        createdAt,
+        updatedAt
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'archive_jobs';
+  @override
+  VerificationContext validateIntegrity(Insertable<ArchiveJob> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('link_id')) {
+      context.handle(_linkIdMeta,
+          linkId.isAcceptableOrUnknown(data['link_id']!, _linkIdMeta));
+    } else if (isInserting) {
+      context.missing(_linkIdMeta);
+    }
+    if (data.containsKey('url')) {
+      context.handle(
+          _urlMeta, url.isAcceptableOrUnknown(data['url']!, _urlMeta));
+    } else if (isInserting) {
+      context.missing(_urlMeta);
+    }
+    if (data.containsKey('service')) {
+      context.handle(_serviceMeta,
+          service.isAcceptableOrUnknown(data['service']!, _serviceMeta));
+    } else if (isInserting) {
+      context.missing(_serviceMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(_statusMeta,
+          status.isAcceptableOrUnknown(data['status']!, _statusMeta));
+    }
+    if (data.containsKey('result_url')) {
+      context.handle(_resultUrlMeta,
+          resultUrl.isAcceptableOrUnknown(data['result_url']!, _resultUrlMeta));
+    }
+    if (data.containsKey('error')) {
+      context.handle(
+          _errorMeta, error.isAcceptableOrUnknown(data['error']!, _errorMeta));
+    }
+    if (data.containsKey('attempts')) {
+      context.handle(_attemptsMeta,
+          attempts.isAcceptableOrUnknown(data['attempts']!, _attemptsMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ArchiveJob map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ArchiveJob(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      linkId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}link_id'])!,
+      url: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}url'])!,
+      service: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}service'])!,
+      status: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}status'])!,
+      resultUrl: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}result_url']),
+      error: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}error']),
+      attempts: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}attempts'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
+    );
+  }
+
+  @override
+  $ArchiveJobsTable createAlias(String alias) {
+    return $ArchiveJobsTable(attachedDatabase, alias);
+  }
+}
+
+class ArchiveJob extends DataClass implements Insertable<ArchiveJob> {
+  final String id;
+  final String linkId;
+  final String url;
+  final String service;
+  final String status;
+  final String? resultUrl;
+  final String? error;
+  final int attempts;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const ArchiveJob(
+      {required this.id,
+      required this.linkId,
+      required this.url,
+      required this.service,
+      required this.status,
+      this.resultUrl,
+      this.error,
+      required this.attempts,
+      required this.createdAt,
+      required this.updatedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['link_id'] = Variable<String>(linkId);
+    map['url'] = Variable<String>(url);
+    map['service'] = Variable<String>(service);
+    map['status'] = Variable<String>(status);
+    if (!nullToAbsent || resultUrl != null) {
+      map['result_url'] = Variable<String>(resultUrl);
+    }
+    if (!nullToAbsent || error != null) {
+      map['error'] = Variable<String>(error);
+    }
+    map['attempts'] = Variable<int>(attempts);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  ArchiveJobsCompanion toCompanion(bool nullToAbsent) {
+    return ArchiveJobsCompanion(
+      id: Value(id),
+      linkId: Value(linkId),
+      url: Value(url),
+      service: Value(service),
+      status: Value(status),
+      resultUrl: resultUrl == null && nullToAbsent
+          ? const Value.absent()
+          : Value(resultUrl),
+      error:
+          error == null && nullToAbsent ? const Value.absent() : Value(error),
+      attempts: Value(attempts),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory ArchiveJob.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ArchiveJob(
+      id: serializer.fromJson<String>(json['id']),
+      linkId: serializer.fromJson<String>(json['linkId']),
+      url: serializer.fromJson<String>(json['url']),
+      service: serializer.fromJson<String>(json['service']),
+      status: serializer.fromJson<String>(json['status']),
+      resultUrl: serializer.fromJson<String?>(json['resultUrl']),
+      error: serializer.fromJson<String?>(json['error']),
+      attempts: serializer.fromJson<int>(json['attempts']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'linkId': serializer.toJson<String>(linkId),
+      'url': serializer.toJson<String>(url),
+      'service': serializer.toJson<String>(service),
+      'status': serializer.toJson<String>(status),
+      'resultUrl': serializer.toJson<String?>(resultUrl),
+      'error': serializer.toJson<String?>(error),
+      'attempts': serializer.toJson<int>(attempts),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  ArchiveJob copyWith(
+          {String? id,
+          String? linkId,
+          String? url,
+          String? service,
+          String? status,
+          Value<String?> resultUrl = const Value.absent(),
+          Value<String?> error = const Value.absent(),
+          int? attempts,
+          DateTime? createdAt,
+          DateTime? updatedAt}) =>
+      ArchiveJob(
+        id: id ?? this.id,
+        linkId: linkId ?? this.linkId,
+        url: url ?? this.url,
+        service: service ?? this.service,
+        status: status ?? this.status,
+        resultUrl: resultUrl.present ? resultUrl.value : this.resultUrl,
+        error: error.present ? error.value : this.error,
+        attempts: attempts ?? this.attempts,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+      );
+  ArchiveJob copyWithCompanion(ArchiveJobsCompanion data) {
+    return ArchiveJob(
+      id: data.id.present ? data.id.value : this.id,
+      linkId: data.linkId.present ? data.linkId.value : this.linkId,
+      url: data.url.present ? data.url.value : this.url,
+      service: data.service.present ? data.service.value : this.service,
+      status: data.status.present ? data.status.value : this.status,
+      resultUrl: data.resultUrl.present ? data.resultUrl.value : this.resultUrl,
+      error: data.error.present ? data.error.value : this.error,
+      attempts: data.attempts.present ? data.attempts.value : this.attempts,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ArchiveJob(')
+          ..write('id: $id, ')
+          ..write('linkId: $linkId, ')
+          ..write('url: $url, ')
+          ..write('service: $service, ')
+          ..write('status: $status, ')
+          ..write('resultUrl: $resultUrl, ')
+          ..write('error: $error, ')
+          ..write('attempts: $attempts, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, linkId, url, service, status, resultUrl,
+      error, attempts, createdAt, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ArchiveJob &&
+          other.id == this.id &&
+          other.linkId == this.linkId &&
+          other.url == this.url &&
+          other.service == this.service &&
+          other.status == this.status &&
+          other.resultUrl == this.resultUrl &&
+          other.error == this.error &&
+          other.attempts == this.attempts &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class ArchiveJobsCompanion extends UpdateCompanion<ArchiveJob> {
+  final Value<String> id;
+  final Value<String> linkId;
+  final Value<String> url;
+  final Value<String> service;
+  final Value<String> status;
+  final Value<String?> resultUrl;
+  final Value<String?> error;
+  final Value<int> attempts;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const ArchiveJobsCompanion({
+    this.id = const Value.absent(),
+    this.linkId = const Value.absent(),
+    this.url = const Value.absent(),
+    this.service = const Value.absent(),
+    this.status = const Value.absent(),
+    this.resultUrl = const Value.absent(),
+    this.error = const Value.absent(),
+    this.attempts = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ArchiveJobsCompanion.insert({
+    required String id,
+    required String linkId,
+    required String url,
+    required String service,
+    this.status = const Value.absent(),
+    this.resultUrl = const Value.absent(),
+    this.error = const Value.absent(),
+    this.attempts = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        linkId = Value(linkId),
+        url = Value(url),
+        service = Value(service);
+  static Insertable<ArchiveJob> custom({
+    Expression<String>? id,
+    Expression<String>? linkId,
+    Expression<String>? url,
+    Expression<String>? service,
+    Expression<String>? status,
+    Expression<String>? resultUrl,
+    Expression<String>? error,
+    Expression<int>? attempts,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (linkId != null) 'link_id': linkId,
+      if (url != null) 'url': url,
+      if (service != null) 'service': service,
+      if (status != null) 'status': status,
+      if (resultUrl != null) 'result_url': resultUrl,
+      if (error != null) 'error': error,
+      if (attempts != null) 'attempts': attempts,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ArchiveJobsCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? linkId,
+      Value<String>? url,
+      Value<String>? service,
+      Value<String>? status,
+      Value<String?>? resultUrl,
+      Value<String?>? error,
+      Value<int>? attempts,
+      Value<DateTime>? createdAt,
+      Value<DateTime>? updatedAt,
+      Value<int>? rowid}) {
+    return ArchiveJobsCompanion(
+      id: id ?? this.id,
+      linkId: linkId ?? this.linkId,
+      url: url ?? this.url,
+      service: service ?? this.service,
+      status: status ?? this.status,
+      resultUrl: resultUrl ?? this.resultUrl,
+      error: error ?? this.error,
+      attempts: attempts ?? this.attempts,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (linkId.present) {
+      map['link_id'] = Variable<String>(linkId.value);
+    }
+    if (url.present) {
+      map['url'] = Variable<String>(url.value);
+    }
+    if (service.present) {
+      map['service'] = Variable<String>(service.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (resultUrl.present) {
+      map['result_url'] = Variable<String>(resultUrl.value);
+    }
+    if (error.present) {
+      map['error'] = Variable<String>(error.value);
+    }
+    if (attempts.present) {
+      map['attempts'] = Variable<int>(attempts.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ArchiveJobsCompanion(')
+          ..write('id: $id, ')
+          ..write('linkId: $linkId, ')
+          ..write('url: $url, ')
+          ..write('service: $service, ')
+          ..write('status: $status, ')
+          ..write('resultUrl: $resultUrl, ')
+          ..write('error: $error, ')
+          ..write('attempts: $attempts, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -3845,6 +4346,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $RecentAccessTable recentAccess = $RecentAccessTable(this);
   late final $WebMetadataEntriesTable webMetadataEntries =
       $WebMetadataEntriesTable(this);
+  late final $ArchiveJobsTable archiveJobs = $ArchiveJobsTable(this);
   late final Index folderTitle =
       Index('folder_title', 'CREATE INDEX folder_title ON folders (title)');
   late final Index documentTitle = Index(
@@ -3856,6 +4358,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final Index activityEventsOccurredIdx = Index(
       'activity_events_occurred_idx',
       'CREATE INDEX activity_events_occurred_idx ON activity_events (occurred_at)');
+  late final Index archiveJobsStatusCreatedIdx = Index(
+      'archive_jobs_status_created_idx',
+      'CREATE INDEX archive_jobs_status_created_idx ON archive_jobs (status, created_at)');
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3873,11 +4378,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         activityEvents,
         recentAccess,
         webMetadataEntries,
+        archiveJobs,
         folderTitle,
         documentTitle,
         itemsFolderItemIdx,
         metadataRecordsItemIdx,
-        activityEventsOccurredIdx
+        activityEventsOccurredIdx,
+        archiveJobsStatusCreatedIdx
       ];
   @override
   DriftDatabaseOptions get options =>
@@ -6455,6 +6962,248 @@ typedef $$WebMetadataEntriesTableProcessedTableManager = ProcessedTableManager<
     ),
     WebMetadataEntry,
     PrefetchHooks Function()>;
+typedef $$ArchiveJobsTableCreateCompanionBuilder = ArchiveJobsCompanion
+    Function({
+  required String id,
+  required String linkId,
+  required String url,
+  required String service,
+  Value<String> status,
+  Value<String?> resultUrl,
+  Value<String?> error,
+  Value<int> attempts,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
+typedef $$ArchiveJobsTableUpdateCompanionBuilder = ArchiveJobsCompanion
+    Function({
+  Value<String> id,
+  Value<String> linkId,
+  Value<String> url,
+  Value<String> service,
+  Value<String> status,
+  Value<String?> resultUrl,
+  Value<String?> error,
+  Value<int> attempts,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
+
+class $$ArchiveJobsTableFilterComposer
+    extends Composer<_$AppDatabase, $ArchiveJobsTable> {
+  $$ArchiveJobsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get linkId => $composableBuilder(
+      column: $table.linkId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get url => $composableBuilder(
+      column: $table.url, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get service => $composableBuilder(
+      column: $table.service, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get resultUrl => $composableBuilder(
+      column: $table.resultUrl, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get error => $composableBuilder(
+      column: $table.error, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get attempts => $composableBuilder(
+      column: $table.attempts, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$ArchiveJobsTableOrderingComposer
+    extends Composer<_$AppDatabase, $ArchiveJobsTable> {
+  $$ArchiveJobsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get linkId => $composableBuilder(
+      column: $table.linkId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get url => $composableBuilder(
+      column: $table.url, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get service => $composableBuilder(
+      column: $table.service, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get resultUrl => $composableBuilder(
+      column: $table.resultUrl, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get error => $composableBuilder(
+      column: $table.error, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get attempts => $composableBuilder(
+      column: $table.attempts, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$ArchiveJobsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ArchiveJobsTable> {
+  $$ArchiveJobsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get linkId =>
+      $composableBuilder(column: $table.linkId, builder: (column) => column);
+
+  GeneratedColumn<String> get url =>
+      $composableBuilder(column: $table.url, builder: (column) => column);
+
+  GeneratedColumn<String> get service =>
+      $composableBuilder(column: $table.service, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get resultUrl =>
+      $composableBuilder(column: $table.resultUrl, builder: (column) => column);
+
+  GeneratedColumn<String> get error =>
+      $composableBuilder(column: $table.error, builder: (column) => column);
+
+  GeneratedColumn<int> get attempts =>
+      $composableBuilder(column: $table.attempts, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$ArchiveJobsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $ArchiveJobsTable,
+    ArchiveJob,
+    $$ArchiveJobsTableFilterComposer,
+    $$ArchiveJobsTableOrderingComposer,
+    $$ArchiveJobsTableAnnotationComposer,
+    $$ArchiveJobsTableCreateCompanionBuilder,
+    $$ArchiveJobsTableUpdateCompanionBuilder,
+    (ArchiveJob, BaseReferences<_$AppDatabase, $ArchiveJobsTable, ArchiveJob>),
+    ArchiveJob,
+    PrefetchHooks Function()> {
+  $$ArchiveJobsTableTableManager(_$AppDatabase db, $ArchiveJobsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ArchiveJobsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ArchiveJobsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ArchiveJobsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> linkId = const Value.absent(),
+            Value<String> url = const Value.absent(),
+            Value<String> service = const Value.absent(),
+            Value<String> status = const Value.absent(),
+            Value<String?> resultUrl = const Value.absent(),
+            Value<String?> error = const Value.absent(),
+            Value<int> attempts = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              ArchiveJobsCompanion(
+            id: id,
+            linkId: linkId,
+            url: url,
+            service: service,
+            status: status,
+            resultUrl: resultUrl,
+            error: error,
+            attempts: attempts,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required String linkId,
+            required String url,
+            required String service,
+            Value<String> status = const Value.absent(),
+            Value<String?> resultUrl = const Value.absent(),
+            Value<String?> error = const Value.absent(),
+            Value<int> attempts = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              ArchiveJobsCompanion.insert(
+            id: id,
+            linkId: linkId,
+            url: url,
+            service: service,
+            status: status,
+            resultUrl: resultUrl,
+            error: error,
+            attempts: attempts,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$ArchiveJobsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $ArchiveJobsTable,
+    ArchiveJob,
+    $$ArchiveJobsTableFilterComposer,
+    $$ArchiveJobsTableOrderingComposer,
+    $$ArchiveJobsTableAnnotationComposer,
+    $$ArchiveJobsTableCreateCompanionBuilder,
+    $$ArchiveJobsTableUpdateCompanionBuilder,
+    (ArchiveJob, BaseReferences<_$AppDatabase, $ArchiveJobsTable, ArchiveJob>),
+    ArchiveJob,
+    PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -6482,4 +7231,6 @@ class $AppDatabaseManager {
       $$RecentAccessTableTableManager(_db, _db.recentAccess);
   $$WebMetadataEntriesTableTableManager get webMetadataEntries =>
       $$WebMetadataEntriesTableTableManager(_db, _db.webMetadataEntries);
+  $$ArchiveJobsTableTableManager get archiveJobs =>
+      $$ArchiveJobsTableTableManager(_db, _db.archiveJobs);
 }
