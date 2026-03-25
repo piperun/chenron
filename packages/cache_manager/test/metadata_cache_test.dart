@@ -392,6 +392,83 @@ void main() {
     });
   });
 
+  group("MetadataCache adaptive TTL freshness", () {
+    test("respects per-entry ttlDays instead of hardcoded 7", () async {
+      await MetadataCache.clearAll();
+
+      // Seed entry with 30-day TTL, fetched 10 days ago — should be fresh
+      fakePersistence.seedStale("https://long-ttl.com", {
+        "title": "Long TTL",
+        "fetchedAt":
+            DateTime.now().subtract(const Duration(days: 10)).toIso8601String(),
+        "ttlDays": 30,
+        "consecutiveUnchanged": 2,
+      });
+
+      final result = await MetadataCache.get("https://long-ttl.com");
+      expect(result, isNotNull);
+      expect(result!["title"], "Long TTL");
+    });
+
+    test("entry with short TTL expires sooner", () async {
+      await MetadataCache.clearAll();
+
+      // Seed entry with 3-day TTL, fetched 4 days ago — should be stale
+      fakePersistence.seedStale("https://short-ttl.com", {
+        "title": "Short TTL",
+        "fetchedAt":
+            DateTime.now().subtract(const Duration(days: 4)).toIso8601String(),
+        "ttlDays": 3,
+        "consecutiveUnchanged": 0,
+      });
+
+      final result = await MetadataCache.get("https://short-ttl.com");
+      expect(result, isNull);
+    });
+
+    test("missing ttlDays falls back to 7 days", () async {
+      await MetadataCache.clearAll();
+
+      fakePersistence.seedStale("https://legacy.com", {
+        "title": "Legacy",
+        "fetchedAt":
+            DateTime.now().subtract(const Duration(days: 5)).toIso8601String(),
+        // No ttlDays key — old format
+      });
+
+      final result = await MetadataCache.get("https://legacy.com");
+      expect(result, isNotNull);
+    });
+
+    test("getStale returns stale entry without removing it", () async {
+      await MetadataCache.clearAll();
+
+      fakePersistence.seedStale("https://old.com", {
+        "title": "Old Title",
+        "fetchedAt":
+            DateTime.now().subtract(const Duration(days: 10)).toIso8601String(),
+        "ttlDays": 7,
+        "consecutiveUnchanged": 1,
+      });
+
+      // Regular get should return null (stale)
+      final fresh = await MetadataCache.get("https://old.com");
+      expect(fresh, isNull);
+
+      // getStale should return the data regardless of freshness
+      final stale = await MetadataCache.getStale("https://old.com");
+      expect(stale, isNotNull);
+      expect(stale!["title"], "Old Title");
+      expect(stale["consecutiveUnchanged"], 1);
+      expect(stale["ttlDays"], 7);
+    });
+
+    test("getStale returns null for unknown URL", () async {
+      final result = await MetadataCache.getStale("https://unknown.com");
+      expect(result, isNull);
+    });
+  });
+
   group("MetadataCache LRU eviction", () {
     test("memory cache evicts oldest entry when full", () async {
       // The LRU cache has maxSize 100. Fill it, then add one more.

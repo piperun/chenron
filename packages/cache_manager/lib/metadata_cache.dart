@@ -138,24 +138,46 @@ class MetadataCache {
     }
   }
 
-  /// Check if cached metadata is fresh (less than 7 days old)
+  /// Check if cached metadata is fresh based on its per-entry TTL.
+  ///
+  /// Falls back to 7 days if the entry has no ttlDays field (pre-migration
+  /// data).
   static bool _isFresh(Map<String, dynamic> metadata) {
     final fetchedAtStr = metadata['fetchedAt'] as String?;
-    if (fetchedAtStr == null) {
-      // Old cache format without timestamp - consider stale
-      return false;
-    }
+    if (fetchedAtStr == null) return false;
 
     try {
       final fetchedAt = DateTime.parse(fetchedAtStr);
+      final ttlDays = (metadata['ttlDays'] as int?) ?? 7;
       final age = DateTime.now().difference(fetchedAt);
-      final isFresh = age.inDays < 7;
-      return isFresh;
+      return age.inDays < ttlDays;
     } catch (e) {
-      // Invalid timestamp - consider stale
       return false;
     }
   }
+
+  /// Read cached metadata regardless of freshness.
+  ///
+  /// Used for change comparison during refresh — we need the old data
+  /// to decide whether to escalate or reset the adaptive TTL.
+  /// Does NOT promote into memory cache (the entry is stale).
+  static Future<Map<String, dynamic>?> getStale(String url) async {
+    // Check memory cache (may have been evicted or removed as stale)
+    final memCached = _memoryCache.get(url);
+    if (memCached != null) return memCached;
+
+    if (_persistence == null) return null;
+    try {
+      return await _persistence!.get(url);
+    } catch (e) {
+      _logger.warning('getStale error for: $url | Error: $e');
+      return null;
+    }
+  }
+
+  /// Access the persistence backend (for use by RefreshScheduler).
+  /// Returns null if [init] has not been called.
+  static MetadataPersistence? get persistence => _persistence;
 
   /// Get the number of persistently cached entries.
   static Future<int> getCacheEntryCount() async {
