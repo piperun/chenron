@@ -71,6 +71,7 @@ class ItemTypes extends Table {
   TextColumn get name => text().unique()();
 }
 
+@TableIndex(name: "metadata_records_item_idx", columns: {#itemId})
 class MetadataRecords extends Table {
   TextColumn get id => text().withLength(min: 30, max: 60)();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
@@ -103,6 +104,7 @@ class Statistics extends Table {
 }
 
 /// Tracks individual user activity events (create, delete, view, edit, archive)
+@TableIndex(name: "activity_events_occurred_idx", columns: {#occurredAt})
 class ActivityEvents extends Table {
   TextColumn get id => text().withLength(min: 30, max: 60)();
   DateTimeColumn get occurredAt =>

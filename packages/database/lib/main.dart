@@ -64,7 +64,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 11;
+  int get schemaVersion => 12;
 
   @override
   MigrationStrategy get migration {
@@ -329,6 +329,16 @@ class AppDatabase extends _$AppDatabase {
           );
           await customStatement(
             "ALTER TABLE web_metadata_entries ADD COLUMN ttl_days INTEGER NOT NULL DEFAULT 7",
+          );
+        }
+
+        // Migration v11 to v12: Add indexes on frequently queried columns.
+        if (from < 12) {
+          await customStatement(
+            "CREATE INDEX IF NOT EXISTS metadata_records_item_idx ON metadata_records (item_id)",
+          );
+          await customStatement(
+            "CREATE INDEX IF NOT EXISTS activity_events_occurred_idx ON activity_events (occurred_at)",
           );
         }
       },
