@@ -2,16 +2,6 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
-## database-v0.11.0 - 2026-03-25
-#### Features
-- update CRUD for adaptive TTL fields and add getExpiredEntries query - (066a7ca) - *piperun*
-- add adaptive TTL columns to web_metadata_entries schema (v11 migration) - (cbabe16) - *piperun*
-- redesign card footer and improve search - (45a13b0) - *piperun*
-#### Bug Fixes
-- update init_db_test to expect schema version 10 - (ba00dd8) - *piperun*
-
-- - -
-
 ## database-v0.10.0 - 2026-02-17
 #### Features
 - add WebMetadataEntries drift table for persistent metadata cache - (1d183e5) - *piperun*

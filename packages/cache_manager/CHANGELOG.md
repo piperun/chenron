@@ -2,15 +2,6 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
-## cache_manager-v0.3.0 - 2026-03-25
-#### Features
-- add RefreshScheduler with priority queue and rate-limited processing - (2f7a28d) - *piperun*
-- implement adaptive per-entry TTL freshness and stale reads in MetadataCache - (d1390c6) - *piperun*
-- extend persistence interface and bridge for adaptive TTL fields - (47b92a0) - *piperun*
-- add TTL strategy with adaptive TTL, default-title detection, URL classification, and jitter - (fb0a007) - *piperun*
-
-- - -
-
 ## cache_manager-v0.2.0 - 2026-02-17
 #### Features
 - replace SharedPreferences with MetadataPersistence interface - (aa99048) - *piperun*
