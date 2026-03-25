@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file. See [conven
 - - -
 ## chenron-v1.8.0 - 2026-03-25
 #### Features
+- wire archive queue processor into app startup - (2719b38) - *piperun*
+- integrate startup refresh scheduler into MetadataFactory - (3f17f00) - *piperun*
+- integrate change detection and adaptive TTL into MetadataFactory fetch flow - (aaaf197) - *piperun*
+- extend persistence interface and bridge for adaptive TTL fields - (18c69a3) - *piperun*
+#### Performance Improvements
+- single-pass filtering and add DB indexes - (1f8a6f5) - *piperun*
+- parallelize DB queries and cache static RegExp - (044b67c) - *piperun*
+
+- - -
+
+## chenron-v1.8.0 - 2026-03-25
+#### Features
 - integrate startup refresh scheduler into MetadataFactory - (c502aae) - *piperun*
 - integrate change detection and adaptive TTL into MetadataFactory fetch flow - (9fc51c5) - *piperun*
 - extend persistence interface and bridge for adaptive TTL fields - (47b92a0) - *piperun*
