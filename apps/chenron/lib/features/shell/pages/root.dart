@@ -2,7 +2,6 @@ import "package:flutter/material.dart";
 import "dart:async";
 import "package:chenron/shared/constants/durations.dart";
 import "package:chenron/shared/search/search_filter.dart";
-import "package:core/patterns/include_options.dart";
 import "package:chenron/features/shell/widgets/add_item_modal.dart";
 import "package:chenron/features/shell/ui/sections/navigation_section.dart";
 import "package:chenron/features/shell/ui/sections/appbar_section.dart";
