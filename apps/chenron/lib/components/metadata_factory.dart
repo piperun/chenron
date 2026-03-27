@@ -3,7 +3,10 @@ import "dart:collection";
 
 import "package:chenron/utils/metadata.dart";
 import "package:cache_manager/cache_manager.dart";
+import "package:app_logger/app_logger.dart";
 import "package:signals/signals.dart";
+
+const _tag = "MetadataFactory";
 
 class MetadataFactory {
   /// Emits the URL of the most recently force-refreshed metadata.
@@ -83,6 +86,8 @@ class MetadataFactory {
         if (changed) {
           // Content changed — reset to initial TTL
           ttlDays = computeInitialTtl(title: newTitle, url: url);
+          loggerGlobal.fine(_tag,
+              "Content CHANGED for: $url | TTL reset to ${ttlDays}d");
         } else {
           // Content unchanged — escalate TTL.
           // Always use the initial heuristic TTL as the base, not the
@@ -95,10 +100,14 @@ class MetadataFactory {
             baseDays: baseDays,
             consecutiveUnchanged: consecutiveUnchanged,
           );
+          loggerGlobal.fine(_tag,
+              "Content unchanged for: $url | streak=$consecutiveUnchanged | TTL escalated to ${ttlDays}d");
         }
       } else {
         // First fetch — compute initial TTL from heuristics
         ttlDays = computeInitialTtl(title: newTitle, url: url);
+        loggerGlobal.fine(_tag,
+            "First fetch for: $url | initial TTL=${ttlDays}d");
       }
 
       // Apply jitter to spread out refreshes
@@ -118,6 +127,8 @@ class MetadataFactory {
       return data;
     } catch (e) {
       MetadataCache.recordFailure(url);
+      loggerGlobal.warning(_tag,
+          "Fetch failed for: $url | failures=${MetadataCache.getFailureCount(url)}");
       return null;
     } finally {
       MetadataCache.stopFetching(url);
@@ -133,8 +144,15 @@ class MetadataFactory {
     final cached = await MetadataCache.get(url);
     if (cached != null) return cached;
 
-    if (MetadataCache.isFetching(url)) return null;
-    if (!MetadataCache.shouldRetry(url)) return null;
+    if (MetadataCache.isFetching(url)) {
+      loggerGlobal.fine(_tag, "Skipped (already fetching): $url");
+      return null;
+    }
+    if (!MetadataCache.shouldRetry(url)) {
+      loggerGlobal.fine(_tag,
+          "Skipped (backoff): $url | failures=${MetadataCache.getFailureCount(url)}");
+      return null;
+    }
 
     await _acquireSlot();
     return _fetchAndCache(url);
@@ -149,6 +167,7 @@ class MetadataFactory {
   /// remains in persistence but `_isFresh` will still return false
   /// for it, so callers won't see stale data.
   static Future<Map<String, dynamic>?> forceFetch(String url) async {
+    loggerGlobal.info(_tag, "Force refresh requested: $url");
     MetadataCache.clearFailure(url);
 
     await _acquireSlot();
@@ -172,13 +191,14 @@ class MetadataFactory {
   static Future<void> refreshStaleEntries() async {
     if (_isRefreshing) return;
     _isRefreshing = true;
+    loggerGlobal.info(_tag, "Background refresh started");
 
     try {
       MetadataCache.cleanupStaleFailures();
       final persistence = MetadataCache.persistence;
       if (persistence == null) return;
 
-      await RefreshScheduler.processQueue(
+      final refreshed = await RefreshScheduler.processQueue(
         persistence: persistence,
         refreshOne: (url) async {
           if (MetadataCache.isFetching(url)) return true; // skip, not an error
@@ -189,6 +209,7 @@ class MetadataFactory {
           return result != null; // false = probably rate limited, stop
         },
       );
+      loggerGlobal.info(_tag, "Background refresh complete | $refreshed entries processed");
     } finally {
       _isRefreshing = false;
     }

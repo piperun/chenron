@@ -101,6 +101,9 @@ class MetadataCache {
     _failureCount[url] = (_failureCount[url] ?? 0) + 1;
   }
 
+  /// Number of consecutive failures recorded for [url].
+  static int getFailureCount(String url) => _failureCount[url] ?? 0;
+
   /// Clear failure record on successful fetch
   static void clearFailure(String url) {
     _failedAttempts.remove(url);
