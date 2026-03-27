@@ -39,6 +39,9 @@ username = "piperun"
 [git_hooks.pre-commit]
 script = "#!/bin/sh\nset -e\nexec scripts/pre-commit.sh"
 
+[git_hooks.pre-push]
+script = "#!/bin/sh\nset -e\nexec scripts/pre-push.sh \"$@\""
+
 [git_hooks.commit-msg]
 script = "#!/bin/sh\nset -e\ncog verify --file $1"
 
