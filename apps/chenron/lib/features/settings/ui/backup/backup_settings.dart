@@ -130,34 +130,32 @@ class _BackupSettingsState extends State<BackupSettings> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Watch((context) {
-      final interval = widget.controller.backupInterval.value;
-      final backup = widget.controller.backupSettings.value;
-
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Backup Schedule Section
-          Text(
-            "Backup Schedule",
-            style: theme.textTheme.titleMedium,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Backup Schedule Section
+        Text(
+          "Backup Schedule",
+          style: theme.textTheme.titleMedium,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          "Automatically back up your database at regular intervals.",
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
           ),
-          const SizedBox(height: 8),
-          Text(
-            "Automatically back up your database at regular intervals.",
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
-            ),
-          ),
-          const SizedBox(height: 16),
+        ),
+        const SizedBox(height: 16),
 
-          // Interval dropdown
-          Row(
-            children: [
-              Text("Frequency:", style: theme.textTheme.bodyMedium),
-              const SizedBox(width: 16),
-              DropdownButton<String>(
+        // Interval dropdown — only this part reacts to the signal
+        Row(
+          children: [
+            Text("Frequency:", style: theme.textTheme.bodyMedium),
+            const SizedBox(width: 16),
+            Watch((context) {
+              final interval = widget.controller.backupInterval.value;
+              return DropdownButton<String>(
                 value: _isCustomInterval
                     ? _customSentinel
                     : (interval ?? ""),
@@ -184,101 +182,104 @@ class _BackupSettingsState extends State<BackupSettings> {
                     child: Text("Custom"),
                   ),
                 ],
-              ),
-            ],
-          ),
+              );
+            }),
+          ],
+        ),
 
-          // Custom interval picker
-          if (_isCustomInterval)
-            Padding(
-              padding: const EdgeInsets.only(top: 12.0),
-              child: Row(
-                children: [
-                  const Text("Every "),
-                  SizedBox(
-                    width: 64,
-                    child: TextField(
-                      controller: _customAmountController,
-                      keyboardType: TextInputType.number,
-                      textAlign: TextAlign.center,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        isDense: true,
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 10,
-                        ),
-                      ),
-                      onChanged: (_) => _applyCustomInterval(),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  DropdownButton<_IntervalUnit>(
-                    value: _customUnit,
-                    onChanged: (value) {
-                      if (value == null) return;
-                      setState(() => _customUnit = value);
-                      _applyCustomInterval();
-                    },
-                    items: const [
-                      DropdownMenuItem(
-                        value: _IntervalUnit.hours,
-                        child: Text("hours"),
-                      ),
-                      DropdownMenuItem(
-                        value: _IntervalUnit.days,
-                        child: Text("days"),
-                      ),
+        // Custom interval picker
+        if (_isCustomInterval)
+          Padding(
+            padding: const EdgeInsets.only(top: 12.0),
+            child: Row(
+              children: [
+                const Text("Every "),
+                SizedBox(
+                  width: 64,
+                  child: TextField(
+                    controller: _customAmountController,
+                    keyboardType: TextInputType.number,
+                    textAlign: TextAlign.center,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
                     ],
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 10,
+                      ),
+                    ),
+                    onChanged: (_) => _applyCustomInterval(),
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 8),
+                DropdownButton<_IntervalUnit>(
+                  value: _customUnit,
+                  onChanged: (value) {
+                    if (value == null) return;
+                    setState(() => _customUnit = value);
+                    _applyCustomInterval();
+                  },
+                  items: const [
+                    DropdownMenuItem(
+                      value: _IntervalUnit.hours,
+                      child: Text("hours"),
+                    ),
+                    DropdownMenuItem(
+                      value: _IntervalUnit.days,
+                      child: Text("days"),
+                    ),
+                  ],
+                ),
+              ],
             ),
-
-          const Divider(height: 32),
-
-          // Backup Location Section
-          Text(
-            "Backup Location",
-            style: theme.textTheme.titleMedium,
           ),
-          const SizedBox(height: 8),
-          Text(
-            "Where database backups are stored.",
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+
+        const Divider(height: 32),
+
+        // Backup Location Section
+        Text(
+          "Backup Location",
+          style: theme.textTheme.titleMedium,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          "Where database backups are stored.",
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        PathModeSelector(
+          currentPath: widget.controller.backupPath.peek(),
+          options: [
+            PathModeOption(
+              label: "Default",
+              resolveSubtitle: _getDefaultBackupPath,
             ),
-          ),
-          const SizedBox(height: 16),
+            const PathModeOption(
+              label: "Custom",
+              isCustom: true,
+            ),
+          ],
+          fieldLabel: "Backup Path",
+          onPathChanged: widget.controller.updateBackupPath,
+        ),
 
-          PathModeSelector(
-            currentPath: widget.controller.backupPath.peek(),
-            options: [
-              PathModeOption(
-                label: "Default",
-                resolveSubtitle: _getDefaultBackupPath,
-              ),
-              const PathModeOption(
-                label: "Custom",
-                isCustom: true,
-              ),
-            ],
-            fieldLabel: "Backup Path",
-            onPathChanged: widget.controller.updateBackupPath,
-          ),
+        const Divider(height: 32),
 
-          const Divider(height: 32),
-
-          // Last Backup Info
-          Text(
-            "Backup Status",
-            style: theme.textTheme.titleMedium,
-          ),
-          const SizedBox(height: 12),
-          Row(
+        // Backup Status — only this part reacts to backupSettings
+        Text(
+          "Backup Status",
+          style: theme.textTheme.titleMedium,
+        ),
+        const SizedBox(height: 12),
+        Watch((context) {
+          final backup = widget.controller.backupSettings.value;
+          return Row(
             children: [
               Icon(
                 Icons.history,
@@ -332,9 +333,9 @@ class _BackupSettingsState extends State<BackupSettings> {
                 ],
               ),
             ],
-          ),
-        ],
-      );
-    });
+          );
+        }),
+      ],
+    );
   }
 }

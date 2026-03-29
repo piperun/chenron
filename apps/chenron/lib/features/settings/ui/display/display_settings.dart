@@ -140,8 +140,8 @@ class DisplaySettings extends StatelessWidget {
                     controller.updateShowTags(enabled: value),
               ),
               SwitchListTile(
-                title: const Text("Show Copy Link"),
-                subtitle: const Text("Display the URL bar on cards"),
+                title: const Text("Show Copy Button"),
+                subtitle: const Text("Display the copy button on cards"),
                 value: controller.showCopyLink.value,
                 onChanged: (value) =>
                     controller.updateShowCopyLink(enabled: value),

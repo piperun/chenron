@@ -53,6 +53,8 @@ class ViewerItem extends StatelessWidget {
       final bool configShowDescription = config.showDescription.value;
       final bool configShowTags = config.showTags.value;
 
+      final bool configShowCopyLink = config.showCopyLink.value;
+
       // Resolve: explicit override > config preference > displayMode default
       final int resolvedTitleLines =
           titleLinesOverride ?? displayMode.titleLines;
@@ -62,12 +64,15 @@ class ViewerItem extends StatelessWidget {
           maxTagsOverride ?? (configShowTags ? displayMode.maxTags : 0);
       final bool resolvedShowImage =
           showImageOverride ?? (configShowImages && displayMode.showImage);
+      final bool resolvedShowCopyLink =
+          showUrlBarOverride ?? configShowCopyLink;
 
       return UnifiedItem(
         item: item,
         mode: mode,
         onTap: onTap,
         showImage: resolvedShowImage,
+        showCopyLink: resolvedShowCopyLink,
         maxTags: resolvedMaxTags,
         titleLines: resolvedTitleLines,
         descriptionLines: resolvedDescriptionLines,

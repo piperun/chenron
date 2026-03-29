@@ -14,6 +14,7 @@ class SettingsContentPanel extends StatelessWidget {
   final ConfigController controller;
   final VoidCallback onSave;
   final bool isSaving;
+  final bool hasUnsavedChanges;
 
   const SettingsContentPanel({
     super.key,
@@ -21,6 +22,7 @@ class SettingsContentPanel extends StatelessWidget {
     required this.controller,
     required this.onSave,
     required this.isSaving,
+    required this.hasUnsavedChanges,
   });
 
   @override
@@ -48,7 +50,7 @@ class SettingsContentPanel extends StatelessWidget {
             padding: const EdgeInsets.only(top: 16, bottom: 8),
             child: Center(
               child: ElevatedButton(
-                onPressed: isSaving ? null : onSave,
+                onPressed: isSaving || !hasUnsavedChanges ? null : onSave,
                 child: const Text("Save Settings"),
               ),
             ),
