@@ -68,7 +68,7 @@ class BackupSettingsJoins implements RowJoins<BackupSettings, BackupSetting> {
   List<Join> createJoins(Expression<String> relationId) {
     return [
       leftOuterJoin(
-          db.backupSettings, db.backupSettings.id.equalsExp(relationId)),
+          db.backupSettings, db.backupSettings.userConfigId.equalsExp(relationId)),
     ];
   }
 }

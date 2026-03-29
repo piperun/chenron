@@ -1,7 +1,9 @@
+import "package:database/database.dart";
 import "package:database/main.dart";
 import "package:database/src/features/user_config/create.dart";
 import "package:database/src/features/backup_settings/read.dart";
 import "package:database/src/features/backup_settings/update.dart";
+import "package:database/src/features/user_config/read.dart";
 import "package:flutter_test/flutter_test.dart";
 
 import "package:chenron_mockups/chenron_mockups.dart";
@@ -204,5 +206,74 @@ void main() {
       expect(settings2!.backupInterval, equals("0 0 */12 * * *"));
     });
 
+  });
+
+  group("getUserConfig with backupSettings include", () {
+    test("returns backup settings via include join path", () async {
+      // Create backup settings with a known interval
+      await database.createBackupSettings(
+        backupSetting: BackupSetting(
+          id: "",
+          userConfigId: userConfigId,
+          backupFilename: null,
+          backupPath: null,
+          backupInterval: "0 0 */8 * * *",
+          lastBackupTimestamp: null,
+        ),
+        userConfigId: userConfigId,
+      );
+
+      // Read via the include/join path (same path ConfigService uses)
+      final result = await database.getUserConfig(
+        includeOptions:
+            const IncludeOptions({ConfigIncludes.backupSettings}),
+      );
+
+      expect(result, isNotNull);
+      expect(result!.backupSettings, isNotNull,
+          reason: "backupSettings should be populated via join");
+      expect(result.backupSettings!.backupInterval, equals("0 0 */8 * * *"));
+      expect(result.backupSettings!.userConfigId, equals(userConfigId));
+    });
+
+    test("returns null backupSettings when none exist via include", () async {
+      final result = await database.getUserConfig(
+        includeOptions:
+            const IncludeOptions({ConfigIncludes.backupSettings}),
+      );
+
+      expect(result, isNotNull);
+      expect(result!.backupSettings, isNull);
+    });
+
+    test("persists updated interval via include join path", () async {
+      final created = await database.createBackupSettings(
+        backupSetting: BackupSetting(
+          id: "",
+          userConfigId: userConfigId,
+          backupFilename: null,
+          backupPath: null,
+          backupInterval: null,
+          lastBackupTimestamp: null,
+        ),
+        userConfigId: userConfigId,
+      );
+
+      // Update the interval
+      await database.updateBackupSettings(
+        id: created.backupSettingsId,
+        backupInterval: "0 0 */12 * * *",
+      );
+
+      // Verify via include/join path
+      final result = await database.getUserConfig(
+        includeOptions:
+            const IncludeOptions({ConfigIncludes.backupSettings}),
+      );
+
+      expect(result, isNotNull);
+      expect(result!.backupSettings, isNotNull);
+      expect(result.backupSettings!.backupInterval, equals("0 0 */12 * * *"));
+    });
   });
 }
