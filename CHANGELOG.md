@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## chenron-v1.9.0 - 2026-03-29
+#### Features
+- (**chenron**) add activity log page with filterable archive queue UI - (68a60b6) - *piperun*
+- (**database**) trigger archive queue processing on enqueue - (7f6b48d) - *piperun*
+- add cache logging to MetadataFactory - (4583086) - *piperun*
+#### Bug Fixes
+- display toggle popup, save button reactivity, and showCopyLink wiring - (5005f50) - *piperun*
+- swap back and home button order in folder viewer - (9410bdb) - *piperun*
+
+- - -
+
 ## chenron-v1.8.1 - 2026-03-25
 #### Features
 - (**chenron**) add activity log page with filterable archive queue UI - (68a60b6) - *piperun*
