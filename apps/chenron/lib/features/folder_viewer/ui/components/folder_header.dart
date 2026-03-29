@@ -1,9 +1,7 @@
 import "package:database/main.dart";
 import "package:flutter/material.dart";
 import "package:intl/intl.dart";
-import "package:signals/signals_flutter.dart";
-import "package:chenron/features/settings/controller/config_controller.dart";
-import "package:chenron/locator.dart";
+import "package:chenron/shared/item_display/widgets/toolbar/display_toggle_popup.dart";
 
 class FolderHeader extends StatelessWidget {
   final Folder folder;
@@ -166,12 +164,12 @@ class _ActionRow extends StatelessWidget {
           color: foreground.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(6),
           child: InkWell(
-            onTap: onHome,
+            onTap: onBack,
             borderRadius: BorderRadius.circular(6),
             child: Padding(
               padding: const EdgeInsets.all(8),
               child: Icon(
-                Icons.home,
+                Icons.arrow_back,
                 size: 18,
                 color: foreground.withValues(alpha: 0.8),
               ),
@@ -183,12 +181,12 @@ class _ActionRow extends StatelessWidget {
           color: foreground.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(6),
           child: InkWell(
-            onTap: onBack,
+            onTap: onHome,
             borderRadius: BorderRadius.circular(6),
             child: Padding(
               padding: const EdgeInsets.all(8),
               child: Icon(
-                Icons.arrow_back,
+                Icons.home,
                 size: 18,
                 color: foreground.withValues(alpha: 0.8),
               ),
@@ -232,7 +230,7 @@ class _ActionRow extends StatelessWidget {
             ),
           ),
         if (onDelete != null) const SizedBox(width: 8),
-        const _DisplayTogglePopup(),
+        const DisplayTogglePopup.icon(),
         const SizedBox(width: 8),
         Material(
           color: foreground.withValues(alpha: 0.08),
@@ -282,68 +280,6 @@ class _ActionRow extends StatelessWidget {
         ),
       ],
     );
-  }
-}
-
-class _DisplayTogglePopup extends StatelessWidget {
-  const _DisplayTogglePopup();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final foreground = theme.colorScheme.onSurface;
-    final ConfigController config = locator.get<ConfigController>();
-
-    return Watch((context) {
-      return PopupMenuButton<void>(
-        tooltip: "Card display options",
-        position: PopupMenuPosition.under,
-        icon: Icon(
-          Icons.tune,
-          size: 20,
-          color: foreground.withValues(alpha: 0.8),
-        ),
-        style: ButtonStyle(
-          backgroundColor: WidgetStatePropertyAll(
-            foreground.withValues(alpha: 0.08),
-          ),
-          shape: WidgetStatePropertyAll(
-            RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(6),
-            ),
-          ),
-          padding: const WidgetStatePropertyAll(EdgeInsets.all(8)),
-          minimumSize: const WidgetStatePropertyAll(Size(36, 36)),
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        ),
-        itemBuilder: (context) => [
-          CheckedPopupMenuItem<void>(
-            checked: config.showImages.value,
-            onTap: () =>
-                config.updateShowImages(enabled: !config.showImages.peek()),
-            child: const Text("Images"),
-          ),
-          CheckedPopupMenuItem<void>(
-            checked: config.showDescription.value,
-            onTap: () => config.updateShowDescription(
-                enabled: !config.showDescription.peek()),
-            child: const Text("Description"),
-          ),
-          CheckedPopupMenuItem<void>(
-            checked: config.showTags.value,
-            onTap: () =>
-                config.updateShowTags(enabled: !config.showTags.peek()),
-            child: const Text("Tags"),
-          ),
-          CheckedPopupMenuItem<void>(
-            checked: config.showCopyLink.value,
-            onTap: () =>
-                config.updateShowCopyLink(enabled: !config.showCopyLink.peek()),
-            child: const Text("URL Bar"),
-          ),
-        ],
-      );
-    });
   }
 }
 

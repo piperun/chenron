@@ -37,12 +37,12 @@ class CollapsedHeader extends StatelessWidget {
       child: Row(
         children: [
           IconButton(
-            icon: Icon(Icons.home, color: foreground),
-            onPressed: onHome,
-          ),
-          IconButton(
             icon: Icon(Icons.arrow_back, color: foreground),
             onPressed: onBack,
+          ),
+          IconButton(
+            icon: Icon(Icons.home, color: foreground),
+            onPressed: onHome,
           ),
           const SizedBox(width: 8),
           Expanded(
