@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## database-v0.12.0 - 2026-03-29
+#### Features
+- (**chenron**) add activity log page with filterable archive queue UI - (68a60b6) - *piperun*
+- (**database**) trigger archive queue processing on enqueue - (7f6b48d) - *piperun*
+#### Bug Fixes
+- (**database**) join backup_settings on userConfigId instead of id - (1234634) - *piperun*
+
+- - -
+
 ## database-v0.11.0 - 2026-03-25
 #### Features
 - add ArchiveQueueProcessor for background archive processing - (d2cdb58) - *piperun*
