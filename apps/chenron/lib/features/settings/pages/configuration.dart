@@ -91,51 +91,52 @@ class _ConfigPageState extends State<ConfigPage> {
 
   @override
   Widget build(BuildContext context) {
-    final hasChanges = _controller.hasUnsavedChanges();
+    return Watch((context) {
+      final hasChanges = _controller.hasUnsavedChanges();
+      final isLoading = _controller.isLoading.value;
+      final error = _controller.error.value;
 
-    return PopScope(
-      canPop: !hasChanges,
-      onPopInvokedWithResult: (bool didPop, dynamic result) async {
-        if (didPop) {
-          loggerGlobal.fine("ConfigPage", "Pop allowed as no unsaved changes.");
-          return;
-        }
-
-        final navigator = Navigator.of(context);
-        loggerGlobal.fine("ConfigPage",
-            "Pop prevented due to unsaved changes. Showing dialog.");
-        final confirmDiscard = await _showDiscardDialog(context);
-
-        if (confirmDiscard) {
-          loggerGlobal.info("ConfigPage", "User confirmed discard via dialog.");
-          await _controller.initialize();
-          if (mounted) {
-            navigator.pop();
+      return PopScope(
+        canPop: !hasChanges,
+        onPopInvokedWithResult: (bool didPop, dynamic result) async {
+          if (didPop) {
+            loggerGlobal.fine(
+                "ConfigPage", "Pop allowed as no unsaved changes.");
+            return;
           }
-        } else {
-          loggerGlobal.fine(
-              "ConfigPage", "User cancelled discard via dialog. Staying.");
-        }
-      },
-      child: Scaffold(
-        body: Watch(
-          (context) {
-            if (_controller.isLoading.value) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (_controller.error.value != null) {
-              return Center(child: Text("Error: ${_controller.error.value}"));
-            } else {
-              return SettingsContentPanel(
-                category: widget.selectedCategory,
-                controller: _controller,
-                onSave: _save,
-                isSaving: _controller.isLoading.value,
-              );
+
+          final navigator = Navigator.of(context);
+          loggerGlobal.fine("ConfigPage",
+              "Pop prevented due to unsaved changes. Showing dialog.");
+          final confirmDiscard = await _showDiscardDialog(context);
+
+          if (confirmDiscard) {
+            loggerGlobal.info(
+                "ConfigPage", "User confirmed discard via dialog.");
+            await _controller.initialize();
+            if (mounted) {
+              navigator.pop();
             }
-          },
+          } else {
+            loggerGlobal.fine(
+                "ConfigPage", "User cancelled discard via dialog. Staying.");
+          }
+        },
+        child: Scaffold(
+          body: isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : error != null
+                  ? Center(child: Text("Error: $error"))
+                  : SettingsContentPanel(
+                      category: widget.selectedCategory,
+                      controller: _controller,
+                      onSave: _save,
+                      isSaving: isLoading,
+                      hasUnsavedChanges: hasChanges,
+                    ),
         ),
-      ),
-    );
+      );
+    });
   }
 
   @override

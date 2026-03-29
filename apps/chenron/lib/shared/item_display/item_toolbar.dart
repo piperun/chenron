@@ -9,6 +9,7 @@ import "package:chenron/shared/item_display/widgets/toolbar/toolbar_button.dart"
 import "package:chenron/shared/item_display/widgets/toolbar/filter_dropdown.dart";
 import "package:chenron/shared/item_display/widgets/toolbar/tag_filter_button.dart";
 import "package:chenron/shared/item_display/widgets/toolbar/toolbar_actions.dart";
+import "package:chenron/shared/item_display/widgets/toolbar/display_toggle_popup.dart";
 
 // Re-export SortMode from SearchFilter for convenience
 export "package:chenron/shared/search/search_filter.dart";
@@ -116,6 +117,10 @@ class ItemToolbar extends StatelessWidget {
               onToggle: onDeleteModeToggled,
             ),
           ],
+
+          const SizedBox(width: 8),
+
+          const DisplayTogglePopup(),
 
           const SizedBox(width: 8),
           const Spacer(),

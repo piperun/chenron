@@ -11,6 +11,7 @@ class UnifiedItem extends StatefulWidget {
   final PreviewMode mode;
   final VoidCallback? onTap;
   final bool showImage;
+  final bool showCopyLink;
   final int maxTags;
   final int titleLines;
   final int descriptionLines;
@@ -24,6 +25,7 @@ class UnifiedItem extends StatefulWidget {
     this.mode = PreviewMode.card,
     this.onTap,
     this.showImage = true,
+    this.showCopyLink = true,
     this.maxTags = 5,
     this.titleLines = 2,
     this.descriptionLines = 2,
@@ -60,13 +62,15 @@ class _UnifiedItemState extends State<UnifiedItem> {
           const SizedBox(height: 4),
           ItemTitle(
               item: widget.item, url: url, maxLines: widget.titleLines),
-          const SizedBox(height: 4),
-          Flexible(
-            child: ItemDescription(
-                item: widget.item,
-                url: url,
-                maxLines: widget.descriptionLines),
-          ),
+          if (widget.descriptionLines > 0) ...[
+            const SizedBox(height: 4),
+            Flexible(
+              child: ItemDescription(
+                  item: widget.item,
+                  url: url,
+                  maxLines: widget.descriptionLines),
+            ),
+          ],
         ],
       ),
     );
@@ -74,6 +78,7 @@ class _UnifiedItemState extends State<UnifiedItem> {
     final footer = _CardFooter(
       item: widget.item,
       url: widget.item.type == FolderItemType.link ? url : null,
+      showCopyLink: widget.showCopyLink,
       maxTags: widget.maxTags,
       includedTagNames: widget.includedTagNames,
       onTagFilterTap: widget.onTagFilterTap,
@@ -152,6 +157,7 @@ class _UnifiedItemState extends State<UnifiedItem> {
 class _CardFooter extends StatefulWidget {
   final FolderItem item;
   final String? url;
+  final bool showCopyLink;
   final int maxTags;
   final Set<String> includedTagNames;
   final ValueChanged<String>? onTagFilterTap;
@@ -161,6 +167,7 @@ class _CardFooter extends StatefulWidget {
   const _CardFooter({
     required this.item,
     this.url,
+    this.showCopyLink = true,
     this.maxTags = 5,
     this.includedTagNames = const {},
     this.onTagFilterTap,
@@ -182,7 +189,8 @@ class _CardFooterState extends State<_CardFooter> with CopyFeedbackMixin {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final showCopy = widget.url != null && widget.url!.isNotEmpty;
+    final showCopy =
+        widget.showCopyLink && widget.url != null && widget.url!.isNotEmpty;
     final tagCount = widget.item.tags.length;
 
     return Container(
