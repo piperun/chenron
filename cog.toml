@@ -2,7 +2,7 @@
 # Use: cog bump --auto
 #
 # This bumps all packages that have relevant scoped commits since their
-# last tag. Commit scopes must match a package name from [packages.*]:
+# last tag. Commit scopes must match a package name from [monorepo.packages.*]:
 #
 #   feat(chenron): ...     → bumps chenron
 #   fix(database): ...     → bumps database
@@ -45,7 +45,7 @@ script = "#!/bin/sh\nset -e\nexec scripts/pre-push.sh \"$@\""
 [git_hooks.commit-msg]
 script = "#!/bin/sh\nset -e\ncog verify --file $1"
 
-[packages.chenron]
+[monorepo.packages.chenron]
 path = "apps/chenron"
 changelog_path = "CHANGELOG.md"
 public_api = true
@@ -54,7 +54,7 @@ pre_bump_hooks = [
   "grep -rl '  chenron:' ../.. --include=pubspec.yaml | xargs -r sed -i 's/  chenron: \\^.*/  chenron: ^{{version}}/'",
 ]
 
-[packages.database]
+[monorepo.packages.database]
 path = "packages/database"
 public_api = true
 pre_bump_hooks = [
@@ -62,7 +62,7 @@ pre_bump_hooks = [
   "grep -rl '  database:' ../.. --include=pubspec.yaml | xargs -r sed -i 's/  database: \\^.*/  database: ^{{version}}/'",
 ]
 
-[packages.core]
+[monorepo.packages.core]
 path = "packages/core"
 public_api = true
 pre_bump_hooks = [
@@ -70,7 +70,7 @@ pre_bump_hooks = [
   "grep -rl '  core:' ../.. --include=pubspec.yaml | xargs -r sed -i 's/  core: \\^.*/  core: ^{{version}}/'",
 ]
 
-[packages.basedir]
+[monorepo.packages.basedir]
 path = "packages/basedir"
 public_api = false
 pre_bump_hooks = [
@@ -78,7 +78,7 @@ pre_bump_hooks = [
   "grep -rl '  basedir:' ../.. --include=pubspec.yaml | xargs -r sed -i 's/  basedir: \\^.*/  basedir: ^{{version}}/'",
 ]
 
-[packages.cache_manager]
+[monorepo.packages.cache_manager]
 path = "packages/cache_manager"
 public_api = false
 pre_bump_hooks = [
@@ -86,7 +86,7 @@ pre_bump_hooks = [
   "grep -rl '  cache_manager:' ../.. --include=pubspec.yaml | xargs -r sed -i 's/  cache_manager: \\^.*/  cache_manager: ^{{version}}/'",
 ]
 
-[packages.logger]
+[monorepo.packages.logger]
 path = "packages/logger"
 public_api = false
 pre_bump_hooks = [
@@ -94,7 +94,7 @@ pre_bump_hooks = [
   "grep -rl '  logger:' ../.. --include=pubspec.yaml | xargs -r sed -i 's/  logger: \\^.*/  logger: ^{{version}}/'",
 ]
 
-[packages.vibe]
+[monorepo.packages.vibe]
 path = "packages/vibe"
 public_api = false
 pre_bump_hooks = [
@@ -102,7 +102,7 @@ pre_bump_hooks = [
   "grep -rl '  vibe:' ../.. --include=pubspec.yaml | xargs -r sed -i 's/  vibe: \\^.*/  vibe: ^{{version}}/'",
 ]
 
-[packages.web_archiver]
+[monorepo.packages.web_archiver]
 path = "packages/web_archiver"
 public_api = false
 pre_bump_hooks = [
@@ -110,7 +110,7 @@ pre_bump_hooks = [
   "grep -rl '  web_archiver:' ../.. --include=pubspec.yaml | xargs -r sed -i 's/  web_archiver: \\^.*/  web_archiver: ^{{version}}/'",
 ]
 
-[packages.platform_provider]
+[monorepo.packages.platform_provider]
 path = "packages/platform_provider"
 public_api = false
 pre_bump_hooks = [
@@ -118,7 +118,7 @@ pre_bump_hooks = [
   "grep -rl '  platform_provider:' ../.. --include=pubspec.yaml | xargs -r sed -i 's/  platform_provider: \\^.*/  platform_provider: ^{{version}}/'",
 ]
 
-[packages.chenron_mockups]
+[monorepo.packages.chenron_mockups]
 path = "packages/chenron_mockups"
 public_api = false
 pre_bump_hooks = [
