@@ -1,12 +1,34 @@
 import "dart:async";
 import "dart:collection";
 
+import "package:chenron/locator.dart";
 import "package:chenron/utils/metadata.dart";
 import "package:cache_manager/cache_manager.dart";
 import "package:app_logger/app_logger.dart";
+import "package:database/database.dart";
 import "package:signals/signals.dart";
 
 const _tag = "MetadataFactory";
+
+/// Best-effort write of a metadata-fetch entry into the BackgroundJobs
+/// table for the activity log. Catches and swallows all errors — a missing
+/// locator (in unit tests) or DB hiccup must never break a fetch.
+Future<void> _logMetadataFetch({
+  required String url,
+  required bool succeeded,
+  String? error,
+}) async {
+  try {
+    final db = locator.get<Signal<AppDatabaseHandler>>().value.appDatabase;
+    await db.recordMetadataFetch(
+      url: url,
+      succeeded: succeeded,
+      error: error,
+    );
+  } catch (e) {
+    loggerGlobal.fine(_tag, "Failed to log metadata fetch for $url: $e");
+  }
+}
 
 class MetadataFactory {
   /// Emits the URL of the most recently force-refreshed metadata.
@@ -57,11 +79,13 @@ class MetadataFactory {
   /// Perform the actual network fetch, detect content changes, and
   /// update the adaptive TTL accordingly.
   static Future<Map<String, dynamic>?> _fetchAndCache(String url) async {
+    bool isFirstFetch = false;
     try {
       MetadataCache.startFetching(url);
 
       // Read old entry BEFORE fetching (for change comparison)
       final oldEntry = await MetadataCache.getStale(url);
+      isFirstFetch = oldEntry == null;
 
       await _throttleDomain(url);
       final fetched = await MetadataFetcher.fetch(url);
@@ -124,11 +148,22 @@ class MetadataFactory {
 
       await MetadataCache.set(url, data);
       MetadataCache.clearFailure(url);
+      // Per the activity-log policy: log every initial fetch, and only
+      // failures for subsequent fetches.
+      if (isFirstFetch) {
+        unawaited(_logMetadataFetch(url: url, succeeded: true));
+      }
       return data;
     } catch (e) {
       MetadataCache.recordFailure(url);
       loggerGlobal.warning(_tag,
           "Fetch failed for: $url | failures=${MetadataCache.getFailureCount(url)}");
+      // Failures are always logged (initial or subsequent).
+      unawaited(_logMetadataFetch(
+        url: url,
+        succeeded: false,
+        error: e.toString(),
+      ));
       return null;
     } finally {
       MetadataCache.stopFetching(url);
