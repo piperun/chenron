@@ -47,9 +47,9 @@ export "src/features/user_theme/remove.dart";
 // Web metadata cache
 export "src/features/web_metadata/crud.dart";
 
-// Archive queue
-export "src/features/archive_queue/crud.dart";
-export "src/features/archive_queue/processor.dart";
+// Background jobs (archive queue + metadata fetch logging)
+export "src/features/background_jobs/crud.dart";
+export "src/features/background_jobs/processor.dart";
 
 // Statistics
 export "src/features/statistics/track.dart";
