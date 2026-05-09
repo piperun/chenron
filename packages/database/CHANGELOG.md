@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## database-v0.13.0 - 2026-05-09
+#### Refactoring
+- generalize archive_jobs table into background_jobs - (0a99b8d) - *piperun*
+
+- - -
+
 ## database-v0.12.0 - 2026-03-29
 #### Features
 - (**chenron**) add activity log page with filterable archive queue UI - (68a60b6) - *piperun*
