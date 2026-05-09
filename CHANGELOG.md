@@ -2,6 +2,30 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## chenron-v1.10.0 - 2026-05-09
+#### Features
+- (**chenron**) log metadata fetches to the activity log - (4372553) - *piperun*
+- (**chenron**) UX cleanups across activity log icon, search, settings, link creation - (4388c30) - *piperun*
+#### Refactoring
+- generalize archive_jobs table into background_jobs - (0a99b8d) - *piperun*
+
+- - -
+
+## [v1.1.0](https://github.com/piperun/chenron-flutter/compare/70f692f96e3e3337d8f7b1daae37df4cc7f162bc..v1.1.0) - 2026-05-09
+### Package updates
+- [chenron-v1.10.0](apps/chenron) bumped to [chenron-v1.10.0](https://github.com/piperun/chenron-flutter/compare/chenron-v1.9.0..chenron-v1.10.0)
+- [cache_manager-v0.4.0](packages/cache_manager) bumped to [cache_manager-v0.4.0](https://github.com/piperun/chenron-flutter/compare/cache_manager-v0.3.0..cache_manager-v0.4.0)
+### Global changes
+#### Features
+- add window_manager for persistent window sizing - ([54a9edc](https://github.com/piperun/chenron-flutter/commit/54a9edc1539bc0a18824b4ab66327929f7563830)) - [@piperun](https://github.com/piperun)
+#### Bug Fixes
+- update folder editor test for standardized snackbar text - ([3bd8d4c](https://github.com/piperun/chenron-flutter/commit/3bd8d4c2288bd2ea2442e3927945c338b8585332)) - [@piperun](https://github.com/piperun)
+#### Documentation
+- add versioning rules comment to cog.toml - ([f8c48fc](https://github.com/piperun/chenron-flutter/commit/f8c48fc673b8ce5bae0414657d21bcc8689ddc85)) - [@piperun](https://github.com/piperun)
+- add README - ([70f692f](https://github.com/piperun/chenron-flutter/commit/70f692f96e3e3337d8f7b1daae37df4cc7f162bc)) - [@piperun](https://github.com/piperun)
+
+- - -
+
 ## chenron-v1.9.0 - 2026-03-29
 #### Features
 - (**chenron**) add activity log page with filterable archive queue UI - (68a60b6) - *piperun*
