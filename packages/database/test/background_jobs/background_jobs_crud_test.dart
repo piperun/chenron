@@ -1,5 +1,5 @@
 import "package:database/main.dart";
-import "package:database/src/features/archive_queue/crud.dart";
+import "package:database/src/features/background_jobs/crud.dart";
 import "package:flutter_test/flutter_test.dart";
 import "package:chenron_mockups/chenron_mockups.dart";
 
@@ -20,7 +20,7 @@ void main() {
   });
 
   tearDown(() async {
-    await database.delete(database.archiveJobs).go();
+    await database.delete(database.backgroundJobs).go();
     await database.close();
   });
 
@@ -33,7 +33,7 @@ void main() {
       );
 
       expect(id, isNotEmpty);
-      final job = await database.getArchiveJob(id);
+      final job = await database.getBackgroundJob(id);
       expect(job, isNotNull);
       expect(job!.status, "queued");
       expect(job.linkId, "link-123");
@@ -55,7 +55,7 @@ void main() {
         service: "archive_org",
       );
 
-      final next = await database.getNextQueuedJob();
+      final next = await database.getNextQueuedArchiveJob();
       expect(next, isNotNull);
       expect(next!.url, "https://first.com");
     });
@@ -66,14 +66,14 @@ void main() {
         url: "https://in-progress.com",
         service: "archive_org",
       );
-      await database.updateArchiveJobStatus(id: id1, status: "in_progress");
+      await database.updateBackgroundJobStatus(id: id1, status: "in_progress");
 
       final id2 = await database.enqueueArchiveJob(
         linkId: "link-2",
         url: "https://completed.com",
         service: "archive_org",
       );
-      await database.updateArchiveJobStatus(
+      await database.updateBackgroundJobStatus(
         id: id2,
         status: "completed",
         resultUrl: "https://archive.org/web/...",
@@ -85,12 +85,12 @@ void main() {
         service: "archive_org",
       );
 
-      final next = await database.getNextQueuedJob();
+      final next = await database.getNextQueuedArchiveJob();
       expect(next!.url, "https://queued.com");
     });
 
     test("getNextQueuedJob returns null when queue is empty", () async {
-      final next = await database.getNextQueuedJob();
+      final next = await database.getNextQueuedArchiveJob();
       expect(next, isNull);
     });
 
@@ -101,13 +101,13 @@ void main() {
         service: "archive_org",
       );
 
-      await database.updateArchiveJobStatus(
+      await database.updateBackgroundJobStatus(
         id: id,
         status: "completed",
         resultUrl: "https://web.archive.org/web/123/https://example.com",
       );
 
-      final job = await database.getArchiveJob(id);
+      final job = await database.getBackgroundJob(id);
       expect(job!.status, "completed");
       expect(
         job.resultUrl,
@@ -123,14 +123,14 @@ void main() {
         service: "archive_org",
       );
 
-      await database.updateArchiveJobStatus(
+      await database.updateBackgroundJobStatus(
         id: id,
         status: "failed",
         error: "Timeout after 5 minutes",
         incrementAttempts: true,
       );
 
-      final job = await database.getArchiveJob(id);
+      final job = await database.getBackgroundJob(id);
       expect(job!.status, "failed");
       expect(job.error, "Timeout after 5 minutes");
       expect(job.attempts, 1);
@@ -143,16 +143,16 @@ void main() {
         service: "archive_org",
       );
 
-      await database.updateArchiveJobStatus(
+      await database.updateBackgroundJobStatus(
         id: id,
         status: "failed",
         error: "Temporary error",
         incrementAttempts: true,
       );
 
-      await database.updateArchiveJobStatus(id: id, status: "queued");
+      await database.updateBackgroundJobStatus(id: id, status: "queued");
 
-      final job = await database.getArchiveJob(id);
+      final job = await database.getBackgroundJob(id);
       expect(job!.status, "queued");
       expect(job.attempts, 1);
     });
@@ -178,7 +178,7 @@ void main() {
         url: "https://done.com",
         service: "archive_org",
       );
-      await database.updateArchiveJobStatus(id: id1, status: "completed");
+      await database.updateBackgroundJobStatus(id: id1, status: "completed");
 
       await database.enqueueArchiveJob(
         linkId: "link-2",
@@ -186,10 +186,10 @@ void main() {
         service: "archive_org",
       );
 
-      await database.clearCompletedArchiveJobs();
+      await database.clearCompletedBackgroundJobs();
 
       expect(await database.getPendingArchiveJobCount(), 1);
-      expect(await database.getArchiveJob(id1), isNull);
+      expect(await database.getBackgroundJob(id1), isNull);
     });
 
     test("hasArchiveJob prevents duplicate enqueue", () async {
@@ -207,6 +207,90 @@ void main() {
         await database.hasArchiveJob(linkId: "link-1", service: "archive_is"),
         isFalse,
       );
+    });
+  });
+
+  group("recordMetadataFetch", () {
+    test("writes a completed entry on success", () async {
+      final id = await database.recordMetadataFetch(
+        url: "https://example.com",
+        succeeded: true,
+        linkId: "link-1",
+      );
+
+      final job = await database.getBackgroundJob(id);
+      expect(job, isNotNull);
+      expect(job!.service, BackgroundJobService.metadataFetch);
+      expect(job.status, BackgroundJobStatus.completed);
+      expect(job.url, "https://example.com");
+      expect(job.linkId, "link-1");
+      expect(job.error, isNull);
+    });
+
+    test("writes a failed entry with error on failure", () async {
+      final id = await database.recordMetadataFetch(
+        url: "https://broken.com",
+        succeeded: false,
+        linkId: "link-2",
+        error: "HTTP 503",
+      );
+
+      final job = await database.getBackgroundJob(id);
+      expect(job!.status, BackgroundJobStatus.failed);
+      expect(job.error, "HTTP 503");
+    });
+
+    test("permits null linkId for orphan fetches (background refresh)", () async {
+      final id = await database.recordMetadataFetch(
+        url: "https://orphan.com",
+        succeeded: false,
+        error: "Timeout",
+      );
+
+      final job = await database.getBackgroundJob(id);
+      expect(job!.linkId, isNull);
+      expect(job.url, "https://orphan.com");
+    });
+
+    test("metadata fetches are NOT picked up by the archive processor",
+        () async {
+      // Failed metadata entries shouldn't be queued — they are audit logs.
+      // getNextQueuedArchiveJob filters by service, so it should ignore them
+      // even if a metadata entry somehow ends up with status="queued".
+      await database.recordMetadataFetch(
+        url: "https://meta.com",
+        succeeded: false,
+        error: "boom",
+      );
+
+      // No archive jobs in the queue.
+      final next = await database.getNextQueuedArchiveJob();
+      expect(next, isNull);
+
+      // Pending archive count excludes metadata fetches.
+      expect(await database.getPendingArchiveJobCount(), 0);
+    });
+
+    test("getAllBackgroundJobs surfaces both archive jobs and metadata fetches",
+        () async {
+      await database.enqueueArchiveJob(
+        linkId: "link-1",
+        url: "https://archived.com",
+        service: BackgroundJobService.archiveOrg,
+      );
+      await database.recordMetadataFetch(
+        url: "https://fetched.com",
+        succeeded: true,
+        linkId: "link-1",
+      );
+
+      final all = await database.getAllBackgroundJobs();
+      expect(all.length, 2);
+      final services = all.map((j) => j.service).toSet();
+      expect(services, containsAll([
+        BackgroundJobService.archiveOrg,
+        BackgroundJobService.metadataFetch,
+      ]));
     });
   });
 }

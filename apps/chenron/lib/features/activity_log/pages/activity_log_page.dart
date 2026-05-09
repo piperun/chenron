@@ -21,7 +21,7 @@ class ActivityLogPage extends StatefulWidget {
 }
 
 class _ActivityLogPageState extends State<ActivityLogPage> {
-  List<ArchiveJob> _allJobs = [];
+  List<BackgroundJob> _allJobs = [];
   bool _loading = true;
 
   // Filters
@@ -36,7 +36,7 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
   }
 
   Future<void> _loadJobs() async {
-    final jobs = await widget.database.getAllArchiveJobs();
+    final jobs = await widget.database.getAllBackgroundJobs();
     if (!mounted) return;
     setState(() {
       _allJobs = jobs;
@@ -44,7 +44,7 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
     });
   }
 
-  List<ArchiveJob> get _filteredJobs {
+  List<BackgroundJob> get _filteredJobs {
     return _allJobs.where((job) {
       if (_activeStatuses.isNotEmpty && !_activeStatuses.contains(job.status)) {
         return false;
@@ -98,13 +98,13 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
     });
   }
 
-  Future<void> _handleRetry(ArchiveJob job) async {
+  Future<void> _handleRetry(BackgroundJob job) async {
     await widget.database.retryArchiveJob(job.id);
     await _loadJobs();
   }
 
   Future<void> _handleClearCompleted() async {
-    await widget.database.clearCompletedArchiveJobs();
+    await widget.database.clearCompletedBackgroundJobs();
     await _loadJobs();
   }
 
@@ -259,7 +259,7 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
     );
   }
 
-  Widget _buildResultsBar(ThemeData theme, List<ArchiveJob> filtered) {
+  Widget _buildResultsBar(ThemeData theme, List<BackgroundJob> filtered) {
     final total = _allJobs.length;
     final shown = filtered.length;
     final hasCompleted = _allJobs.any((j) => j.status == "completed");
@@ -285,7 +285,7 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
     );
   }
 
-  Widget _buildBody(ThemeData theme, List<ArchiveJob> filtered) {
+  Widget _buildBody(ThemeData theme, List<BackgroundJob> filtered) {
     if (_loading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -391,8 +391,8 @@ class _LogFilterChip extends StatelessWidget {
 }
 
 class _LogEntryTile extends StatelessWidget {
-  final ArchiveJob job;
-  final Future<void> Function(ArchiveJob) onRetry;
+  final BackgroundJob job;
+  final Future<void> Function(BackgroundJob) onRetry;
 
   const _LogEntryTile({required this.job, required this.onRetry});
 

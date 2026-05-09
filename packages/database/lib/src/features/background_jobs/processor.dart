@@ -1,13 +1,17 @@
 import "dart:async";
 import "package:app_logger/app_logger.dart";
 import "package:database/main.dart";
-import "package:database/src/features/archive_queue/crud.dart";
+import "package:database/src/features/background_jobs/crud.dart";
 import "package:drift/drift.dart";
 import "package:web_archiver/web_archiver.dart";
 
 const _source = "ArchiveQueueProcessor";
 
-/// Processes archive jobs from the queue in the background.
+/// Processes archive jobs from the background queue.
+///
+/// Only operates on entries with service ∈ {archive_org, archive_is}; the
+/// metadata-fetch entries that share the table are audit-log style and
+/// never end up in the queued state.
 class ArchiveQueueProcessor {
   final AppDatabase database;
   final ArchiveOrgClientFactory archiveOrgClientFactory;
@@ -48,27 +52,34 @@ class ArchiveQueueProcessor {
 
   /// Process the next queued job. Returns true if a job was found, false if empty.
   Future<bool> processNext() async {
-    final job = await database.getNextQueuedJob();
+    final job = await database.getNextQueuedArchiveJob();
     if (job == null) return false;
 
     // Mark in-progress
-    await database.updateArchiveJobStatus(id: job.id, status: "in_progress");
+    await database.updateBackgroundJobStatus(
+      id: job.id,
+      status: BackgroundJobStatus.inProgress,
+    );
 
     try {
       final client = archiveOrgClientFactory(accessKey, secretKey);
       final archivedUrl = await client.archiveAndWait(job.url);
 
       // Update job as completed
-      await database.updateArchiveJobStatus(
+      await database.updateBackgroundJobStatus(
         id: job.id,
-        status: "completed",
+        status: BackgroundJobStatus.completed,
         resultUrl: archivedUrl,
       );
 
-      // Update the link's archive URL
-      await (database.update(database.links)
-            ..where((l) => l.id.equals(job.linkId)))
-          .write(LinksCompanion(archiveOrgUrl: Value(archivedUrl)));
+      // Update the link's archive URL. linkId is nullable on the table now,
+      // but archive jobs always have one (set at enqueue time).
+      final linkId = job.linkId;
+      if (linkId != null) {
+        await (database.update(database.links)
+              ..where((l) => l.id.equals(linkId)))
+            .write(LinksCompanion(archiveOrgUrl: Value(archivedUrl)));
+      }
 
       loggerGlobal.info(_source, "Archived ${job.url} → $archivedUrl");
     } catch (e) {
@@ -76,17 +87,17 @@ class ArchiveQueueProcessor {
       final newAttempts = job.attempts + 1;
       if (newAttempts >= maxAttempts) {
         // Permanently failed — exceeded retry limit
-        await database.updateArchiveJobStatus(
+        await database.updateBackgroundJobStatus(
           id: job.id,
-          status: "failed",
+          status: BackgroundJobStatus.failed,
           error: "Exceeded $maxAttempts attempts. Last error: $e",
           incrementAttempts: true,
         );
       } else {
         // Re-queue for retry
-        await database.updateArchiveJobStatus(
+        await database.updateBackgroundJobStatus(
           id: job.id,
-          status: "queued",
+          status: BackgroundJobStatus.queued,
           error: e.toString(),
           incrementAttempts: true,
         );

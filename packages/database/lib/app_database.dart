@@ -28,7 +28,7 @@ typedef DeleteRelationRecord = ({String id, IdType idType});
   ActivityEvents,
   RecentAccess,
   WebMetadataEntries,
-  ArchiveJobs,
+  BackgroundJobs,
 ])
 class AppDatabase extends _$AppDatabase {
   static const int idLength = 30;
@@ -53,7 +53,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 13;
+  int get schemaVersion => 14;
 
   @override
   MigrationStrategy get migration {
@@ -331,13 +331,37 @@ class AppDatabase extends _$AppDatabase {
           );
         }
 
-        // Migration v12 to v13: Add archive_jobs queue table for
-        // background archive processing.
+        // Migration v12 to v13: Add the background jobs queue table for
+        // background archive (and later metadata) processing. Originally
+        // named archive_jobs; renamed in v14. Users migrating directly from
+        // v12 to v14+ get the new name from the start (skipping the rename
+        // dance below).
         if (from < 13) {
-          await migrator.createTable(archiveJobs);
-          await customStatement(
-            "CREATE INDEX archive_jobs_status_created_idx ON archive_jobs (status, created_at)",
-          );
+          await migrator.createTable(backgroundJobs);
+        }
+
+        // Migration v13 to v14: Rename archive_jobs -> background_jobs and
+        // make link_id nullable (so metadata fetches not tied to a specific
+        // link can be logged). For users coming from v12 in one shot, the
+        // v13 step already created background_jobs and this is a no-op.
+        if (from < 14) {
+          final legacy = await customSelect(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='archive_jobs'",
+          ).get();
+          if (legacy.isNotEmpty) {
+            await customStatement(
+                "DROP INDEX IF EXISTS archive_jobs_status_created_idx");
+            await customStatement(
+                "ALTER TABLE archive_jobs RENAME TO background_jobs_old");
+            await migrator.createTable(backgroundJobs);
+            await customStatement(
+              "INSERT INTO background_jobs "
+              "(id, link_id, url, service, status, result_url, error, attempts, created_at, updated_at) "
+              "SELECT id, link_id, url, service, status, result_url, error, attempts, created_at, updated_at "
+              "FROM background_jobs_old",
+            );
+            await customStatement("DROP TABLE background_jobs_old");
+          }
         }
       },
     );

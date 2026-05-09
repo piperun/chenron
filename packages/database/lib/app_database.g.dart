@@ -3828,12 +3828,12 @@ class WebMetadataEntriesCompanion extends UpdateCompanion<WebMetadataEntry> {
   }
 }
 
-class $ArchiveJobsTable extends ArchiveJobs
-    with TableInfo<$ArchiveJobsTable, ArchiveJob> {
+class $BackgroundJobsTable extends BackgroundJobs
+    with TableInfo<$BackgroundJobsTable, BackgroundJob> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $ArchiveJobsTable(this.attachedDatabase, [this._alias]);
+  $BackgroundJobsTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
@@ -3845,8 +3845,8 @@ class $ArchiveJobsTable extends ArchiveJobs
   static const VerificationMeta _linkIdMeta = const VerificationMeta('linkId');
   @override
   late final GeneratedColumn<String> linkId = GeneratedColumn<String>(
-      'link_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+      'link_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _urlMeta = const VerificationMeta('url');
   @override
   late final GeneratedColumn<String> url = GeneratedColumn<String>(
@@ -3917,9 +3917,9 @@ class $ArchiveJobsTable extends ArchiveJobs
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'archive_jobs';
+  static const String $name = 'background_jobs';
   @override
-  VerificationContext validateIntegrity(Insertable<ArchiveJob> instance,
+  VerificationContext validateIntegrity(Insertable<BackgroundJob> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
@@ -3931,8 +3931,6 @@ class $ArchiveJobsTable extends ArchiveJobs
     if (data.containsKey('link_id')) {
       context.handle(_linkIdMeta,
           linkId.isAcceptableOrUnknown(data['link_id']!, _linkIdMeta));
-    } else if (isInserting) {
-      context.missing(_linkIdMeta);
     }
     if (data.containsKey('url')) {
       context.handle(
@@ -3976,13 +3974,13 @@ class $ArchiveJobsTable extends ArchiveJobs
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  ArchiveJob map(Map<String, dynamic> data, {String? tablePrefix}) {
+  BackgroundJob map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return ArchiveJob(
+    return BackgroundJob(
       id: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
       linkId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}link_id'])!,
+          .read(DriftSqlType.string, data['${effectivePrefix}link_id']),
       url: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}url'])!,
       service: attachedDatabase.typeMapping
@@ -4003,14 +4001,14 @@ class $ArchiveJobsTable extends ArchiveJobs
   }
 
   @override
-  $ArchiveJobsTable createAlias(String alias) {
-    return $ArchiveJobsTable(attachedDatabase, alias);
+  $BackgroundJobsTable createAlias(String alias) {
+    return $BackgroundJobsTable(attachedDatabase, alias);
   }
 }
 
-class ArchiveJob extends DataClass implements Insertable<ArchiveJob> {
+class BackgroundJob extends DataClass implements Insertable<BackgroundJob> {
   final String id;
-  final String linkId;
+  final String? linkId;
   final String url;
   final String service;
   final String status;
@@ -4019,9 +4017,9 @@ class ArchiveJob extends DataClass implements Insertable<ArchiveJob> {
   final int attempts;
   final DateTime createdAt;
   final DateTime updatedAt;
-  const ArchiveJob(
+  const BackgroundJob(
       {required this.id,
-      required this.linkId,
+      this.linkId,
       required this.url,
       required this.service,
       required this.status,
@@ -4034,7 +4032,9 @@ class ArchiveJob extends DataClass implements Insertable<ArchiveJob> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
-    map['link_id'] = Variable<String>(linkId);
+    if (!nullToAbsent || linkId != null) {
+      map['link_id'] = Variable<String>(linkId);
+    }
     map['url'] = Variable<String>(url);
     map['service'] = Variable<String>(service);
     map['status'] = Variable<String>(status);
@@ -4050,10 +4050,11 @@ class ArchiveJob extends DataClass implements Insertable<ArchiveJob> {
     return map;
   }
 
-  ArchiveJobsCompanion toCompanion(bool nullToAbsent) {
-    return ArchiveJobsCompanion(
+  BackgroundJobsCompanion toCompanion(bool nullToAbsent) {
+    return BackgroundJobsCompanion(
       id: Value(id),
-      linkId: Value(linkId),
+      linkId:
+          linkId == null && nullToAbsent ? const Value.absent() : Value(linkId),
       url: Value(url),
       service: Value(service),
       status: Value(status),
@@ -4068,12 +4069,12 @@ class ArchiveJob extends DataClass implements Insertable<ArchiveJob> {
     );
   }
 
-  factory ArchiveJob.fromJson(Map<String, dynamic> json,
+  factory BackgroundJob.fromJson(Map<String, dynamic> json,
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return ArchiveJob(
+    return BackgroundJob(
       id: serializer.fromJson<String>(json['id']),
-      linkId: serializer.fromJson<String>(json['linkId']),
+      linkId: serializer.fromJson<String?>(json['linkId']),
       url: serializer.fromJson<String>(json['url']),
       service: serializer.fromJson<String>(json['service']),
       status: serializer.fromJson<String>(json['status']),
@@ -4089,7 +4090,7 @@ class ArchiveJob extends DataClass implements Insertable<ArchiveJob> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
-      'linkId': serializer.toJson<String>(linkId),
+      'linkId': serializer.toJson<String?>(linkId),
       'url': serializer.toJson<String>(url),
       'service': serializer.toJson<String>(service),
       'status': serializer.toJson<String>(status),
@@ -4101,9 +4102,9 @@ class ArchiveJob extends DataClass implements Insertable<ArchiveJob> {
     };
   }
 
-  ArchiveJob copyWith(
+  BackgroundJob copyWith(
           {String? id,
-          String? linkId,
+          Value<String?> linkId = const Value.absent(),
           String? url,
           String? service,
           String? status,
@@ -4112,9 +4113,9 @@ class ArchiveJob extends DataClass implements Insertable<ArchiveJob> {
           int? attempts,
           DateTime? createdAt,
           DateTime? updatedAt}) =>
-      ArchiveJob(
+      BackgroundJob(
         id: id ?? this.id,
-        linkId: linkId ?? this.linkId,
+        linkId: linkId.present ? linkId.value : this.linkId,
         url: url ?? this.url,
         service: service ?? this.service,
         status: status ?? this.status,
@@ -4124,8 +4125,8 @@ class ArchiveJob extends DataClass implements Insertable<ArchiveJob> {
         createdAt: createdAt ?? this.createdAt,
         updatedAt: updatedAt ?? this.updatedAt,
       );
-  ArchiveJob copyWithCompanion(ArchiveJobsCompanion data) {
-    return ArchiveJob(
+  BackgroundJob copyWithCompanion(BackgroundJobsCompanion data) {
+    return BackgroundJob(
       id: data.id.present ? data.id.value : this.id,
       linkId: data.linkId.present ? data.linkId.value : this.linkId,
       url: data.url.present ? data.url.value : this.url,
@@ -4141,7 +4142,7 @@ class ArchiveJob extends DataClass implements Insertable<ArchiveJob> {
 
   @override
   String toString() {
-    return (StringBuffer('ArchiveJob(')
+    return (StringBuffer('BackgroundJob(')
           ..write('id: $id, ')
           ..write('linkId: $linkId, ')
           ..write('url: $url, ')
@@ -4162,7 +4163,7 @@ class ArchiveJob extends DataClass implements Insertable<ArchiveJob> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is ArchiveJob &&
+      (other is BackgroundJob &&
           other.id == this.id &&
           other.linkId == this.linkId &&
           other.url == this.url &&
@@ -4175,9 +4176,9 @@ class ArchiveJob extends DataClass implements Insertable<ArchiveJob> {
           other.updatedAt == this.updatedAt);
 }
 
-class ArchiveJobsCompanion extends UpdateCompanion<ArchiveJob> {
+class BackgroundJobsCompanion extends UpdateCompanion<BackgroundJob> {
   final Value<String> id;
-  final Value<String> linkId;
+  final Value<String?> linkId;
   final Value<String> url;
   final Value<String> service;
   final Value<String> status;
@@ -4187,7 +4188,7 @@ class ArchiveJobsCompanion extends UpdateCompanion<ArchiveJob> {
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
-  const ArchiveJobsCompanion({
+  const BackgroundJobsCompanion({
     this.id = const Value.absent(),
     this.linkId = const Value.absent(),
     this.url = const Value.absent(),
@@ -4200,9 +4201,9 @@ class ArchiveJobsCompanion extends UpdateCompanion<ArchiveJob> {
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  ArchiveJobsCompanion.insert({
+  BackgroundJobsCompanion.insert({
     required String id,
-    required String linkId,
+    this.linkId = const Value.absent(),
     required String url,
     required String service,
     this.status = const Value.absent(),
@@ -4213,10 +4214,9 @@ class ArchiveJobsCompanion extends UpdateCompanion<ArchiveJob> {
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
-        linkId = Value(linkId),
         url = Value(url),
         service = Value(service);
-  static Insertable<ArchiveJob> custom({
+  static Insertable<BackgroundJob> custom({
     Expression<String>? id,
     Expression<String>? linkId,
     Expression<String>? url,
@@ -4244,9 +4244,9 @@ class ArchiveJobsCompanion extends UpdateCompanion<ArchiveJob> {
     });
   }
 
-  ArchiveJobsCompanion copyWith(
+  BackgroundJobsCompanion copyWith(
       {Value<String>? id,
-      Value<String>? linkId,
+      Value<String?>? linkId,
       Value<String>? url,
       Value<String>? service,
       Value<String>? status,
@@ -4256,7 +4256,7 @@ class ArchiveJobsCompanion extends UpdateCompanion<ArchiveJob> {
       Value<DateTime>? createdAt,
       Value<DateTime>? updatedAt,
       Value<int>? rowid}) {
-    return ArchiveJobsCompanion(
+    return BackgroundJobsCompanion(
       id: id ?? this.id,
       linkId: linkId ?? this.linkId,
       url: url ?? this.url,
@@ -4312,7 +4312,7 @@ class ArchiveJobsCompanion extends UpdateCompanion<ArchiveJob> {
 
   @override
   String toString() {
-    return (StringBuffer('ArchiveJobsCompanion(')
+    return (StringBuffer('BackgroundJobsCompanion(')
           ..write('id: $id, ')
           ..write('linkId: $linkId, ')
           ..write('url: $url, ')
@@ -4346,7 +4346,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $RecentAccessTable recentAccess = $RecentAccessTable(this);
   late final $WebMetadataEntriesTable webMetadataEntries =
       $WebMetadataEntriesTable(this);
-  late final $ArchiveJobsTable archiveJobs = $ArchiveJobsTable(this);
+  late final $BackgroundJobsTable backgroundJobs = $BackgroundJobsTable(this);
   late final Index folderTitle =
       Index('folder_title', 'CREATE INDEX folder_title ON folders (title)');
   late final Index documentTitle = Index(
@@ -4358,9 +4358,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final Index activityEventsOccurredIdx = Index(
       'activity_events_occurred_idx',
       'CREATE INDEX activity_events_occurred_idx ON activity_events (occurred_at)');
-  late final Index archiveJobsStatusCreatedIdx = Index(
-      'archive_jobs_status_created_idx',
-      'CREATE INDEX archive_jobs_status_created_idx ON archive_jobs (status, created_at)');
+  late final Index backgroundJobsStatusCreatedIdx = Index(
+      'background_jobs_status_created_idx',
+      'CREATE INDEX background_jobs_status_created_idx ON background_jobs (status, created_at)');
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -4378,13 +4378,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         activityEvents,
         recentAccess,
         webMetadataEntries,
-        archiveJobs,
+        backgroundJobs,
         folderTitle,
         documentTitle,
         itemsFolderItemIdx,
         metadataRecordsItemIdx,
         activityEventsOccurredIdx,
-        archiveJobsStatusCreatedIdx
+        backgroundJobsStatusCreatedIdx
       ];
   @override
   DriftDatabaseOptions get options =>
@@ -6962,10 +6962,10 @@ typedef $$WebMetadataEntriesTableProcessedTableManager = ProcessedTableManager<
     ),
     WebMetadataEntry,
     PrefetchHooks Function()>;
-typedef $$ArchiveJobsTableCreateCompanionBuilder = ArchiveJobsCompanion
+typedef $$BackgroundJobsTableCreateCompanionBuilder = BackgroundJobsCompanion
     Function({
   required String id,
-  required String linkId,
+  Value<String?> linkId,
   required String url,
   required String service,
   Value<String> status,
@@ -6976,10 +6976,10 @@ typedef $$ArchiveJobsTableCreateCompanionBuilder = ArchiveJobsCompanion
   Value<DateTime> updatedAt,
   Value<int> rowid,
 });
-typedef $$ArchiveJobsTableUpdateCompanionBuilder = ArchiveJobsCompanion
+typedef $$BackgroundJobsTableUpdateCompanionBuilder = BackgroundJobsCompanion
     Function({
   Value<String> id,
-  Value<String> linkId,
+  Value<String?> linkId,
   Value<String> url,
   Value<String> service,
   Value<String> status,
@@ -6991,9 +6991,9 @@ typedef $$ArchiveJobsTableUpdateCompanionBuilder = ArchiveJobsCompanion
   Value<int> rowid,
 });
 
-class $$ArchiveJobsTableFilterComposer
-    extends Composer<_$AppDatabase, $ArchiveJobsTable> {
-  $$ArchiveJobsTableFilterComposer({
+class $$BackgroundJobsTableFilterComposer
+    extends Composer<_$AppDatabase, $BackgroundJobsTable> {
+  $$BackgroundJobsTableFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -7031,9 +7031,9 @@ class $$ArchiveJobsTableFilterComposer
       column: $table.updatedAt, builder: (column) => ColumnFilters(column));
 }
 
-class $$ArchiveJobsTableOrderingComposer
-    extends Composer<_$AppDatabase, $ArchiveJobsTable> {
-  $$ArchiveJobsTableOrderingComposer({
+class $$BackgroundJobsTableOrderingComposer
+    extends Composer<_$AppDatabase, $BackgroundJobsTable> {
+  $$BackgroundJobsTableOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -7071,9 +7071,9 @@ class $$ArchiveJobsTableOrderingComposer
       column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
 }
 
-class $$ArchiveJobsTableAnnotationComposer
-    extends Composer<_$AppDatabase, $ArchiveJobsTable> {
-  $$ArchiveJobsTableAnnotationComposer({
+class $$BackgroundJobsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $BackgroundJobsTable> {
+  $$BackgroundJobsTableAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -7111,31 +7111,35 @@ class $$ArchiveJobsTableAnnotationComposer
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 }
 
-class $$ArchiveJobsTableTableManager extends RootTableManager<
+class $$BackgroundJobsTableTableManager extends RootTableManager<
     _$AppDatabase,
-    $ArchiveJobsTable,
-    ArchiveJob,
-    $$ArchiveJobsTableFilterComposer,
-    $$ArchiveJobsTableOrderingComposer,
-    $$ArchiveJobsTableAnnotationComposer,
-    $$ArchiveJobsTableCreateCompanionBuilder,
-    $$ArchiveJobsTableUpdateCompanionBuilder,
-    (ArchiveJob, BaseReferences<_$AppDatabase, $ArchiveJobsTable, ArchiveJob>),
-    ArchiveJob,
+    $BackgroundJobsTable,
+    BackgroundJob,
+    $$BackgroundJobsTableFilterComposer,
+    $$BackgroundJobsTableOrderingComposer,
+    $$BackgroundJobsTableAnnotationComposer,
+    $$BackgroundJobsTableCreateCompanionBuilder,
+    $$BackgroundJobsTableUpdateCompanionBuilder,
+    (
+      BackgroundJob,
+      BaseReferences<_$AppDatabase, $BackgroundJobsTable, BackgroundJob>
+    ),
+    BackgroundJob,
     PrefetchHooks Function()> {
-  $$ArchiveJobsTableTableManager(_$AppDatabase db, $ArchiveJobsTable table)
+  $$BackgroundJobsTableTableManager(
+      _$AppDatabase db, $BackgroundJobsTable table)
       : super(TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $$ArchiveJobsTableFilterComposer($db: db, $table: table),
+              $$BackgroundJobsTableFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
-              $$ArchiveJobsTableOrderingComposer($db: db, $table: table),
+              $$BackgroundJobsTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
-              $$ArchiveJobsTableAnnotationComposer($db: db, $table: table),
+              $$BackgroundJobsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
-            Value<String> linkId = const Value.absent(),
+            Value<String?> linkId = const Value.absent(),
             Value<String> url = const Value.absent(),
             Value<String> service = const Value.absent(),
             Value<String> status = const Value.absent(),
@@ -7146,7 +7150,7 @@ class $$ArchiveJobsTableTableManager extends RootTableManager<
             Value<DateTime> updatedAt = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
-              ArchiveJobsCompanion(
+              BackgroundJobsCompanion(
             id: id,
             linkId: linkId,
             url: url,
@@ -7161,7 +7165,7 @@ class $$ArchiveJobsTableTableManager extends RootTableManager<
           ),
           createCompanionCallback: ({
             required String id,
-            required String linkId,
+            Value<String?> linkId = const Value.absent(),
             required String url,
             required String service,
             Value<String> status = const Value.absent(),
@@ -7172,7 +7176,7 @@ class $$ArchiveJobsTableTableManager extends RootTableManager<
             Value<DateTime> updatedAt = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
-              ArchiveJobsCompanion.insert(
+              BackgroundJobsCompanion.insert(
             id: id,
             linkId: linkId,
             url: url,
@@ -7192,17 +7196,20 @@ class $$ArchiveJobsTableTableManager extends RootTableManager<
         ));
 }
 
-typedef $$ArchiveJobsTableProcessedTableManager = ProcessedTableManager<
+typedef $$BackgroundJobsTableProcessedTableManager = ProcessedTableManager<
     _$AppDatabase,
-    $ArchiveJobsTable,
-    ArchiveJob,
-    $$ArchiveJobsTableFilterComposer,
-    $$ArchiveJobsTableOrderingComposer,
-    $$ArchiveJobsTableAnnotationComposer,
-    $$ArchiveJobsTableCreateCompanionBuilder,
-    $$ArchiveJobsTableUpdateCompanionBuilder,
-    (ArchiveJob, BaseReferences<_$AppDatabase, $ArchiveJobsTable, ArchiveJob>),
-    ArchiveJob,
+    $BackgroundJobsTable,
+    BackgroundJob,
+    $$BackgroundJobsTableFilterComposer,
+    $$BackgroundJobsTableOrderingComposer,
+    $$BackgroundJobsTableAnnotationComposer,
+    $$BackgroundJobsTableCreateCompanionBuilder,
+    $$BackgroundJobsTableUpdateCompanionBuilder,
+    (
+      BackgroundJob,
+      BaseReferences<_$AppDatabase, $BackgroundJobsTable, BackgroundJob>
+    ),
+    BackgroundJob,
     PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
@@ -7231,6 +7238,6 @@ class $AppDatabaseManager {
       $$RecentAccessTableTableManager(_db, _db.recentAccess);
   $$WebMetadataEntriesTableTableManager get webMetadataEntries =>
       $$WebMetadataEntriesTableTableManager(_db, _db.webMetadataEntries);
-  $$ArchiveJobsTableTableManager get archiveJobs =>
-      $$ArchiveJobsTableTableManager(_db, _db.archiveJobs);
+  $$BackgroundJobsTableTableManager get backgroundJobs =>
+      $$BackgroundJobsTableTableManager(_db, _db.backgroundJobs);
 }

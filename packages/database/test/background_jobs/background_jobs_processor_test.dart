@@ -1,6 +1,6 @@
 import "package:database/main.dart";
-import "package:database/src/features/archive_queue/crud.dart";
-import "package:database/src/features/archive_queue/processor.dart";
+import "package:database/src/features/background_jobs/crud.dart";
+import "package:database/src/features/background_jobs/processor.dart";
 import "package:database/src/features/link/create.dart";
 import "package:database/src/features/link/read.dart";
 import "package:web_archiver/web_archiver.dart";
@@ -25,7 +25,7 @@ void main() {
 
   tearDown(() async {
     ArchiveQueueProcessor.clearInstance();
-    await database.delete(database.archiveJobs).go();
+    await database.delete(database.backgroundJobs).go();
     await database.delete(database.links).go();
     await database.close();
   });
@@ -51,7 +51,7 @@ void main() {
       final processed = await processor.processNext();
       expect(processed, isTrue);
 
-      final jobs = await (database.select(database.archiveJobs)).get();
+      final jobs = await (database.select(database.backgroundJobs)).get();
       expect(jobs.first.status, "completed");
       expect(jobs.first.resultUrl, isNotNull);
 
@@ -80,7 +80,7 @@ void main() {
       expect(processed, isTrue);
 
       // With default maxAttempts=3, first failure re-queues for retry
-      final jobs = await (database.select(database.archiveJobs)).get();
+      final jobs = await (database.select(database.backgroundJobs)).get();
       expect(jobs.first.status, "queued");
       expect(jobs.first.error, isNotNull);
       expect(jobs.first.attempts, 1);
@@ -123,7 +123,7 @@ void main() {
       // gets re-queued, until the 3rd attempt permanently fails it
       await processor.processAll();
 
-      final jobs = await (database.select(database.archiveJobs)).get();
+      final jobs = await (database.select(database.backgroundJobs)).get();
       expect(jobs.first.status, "failed");
       expect(jobs.first.attempts, 3);
       expect(jobs.first.error, contains("Exceeded 3 attempts"));
@@ -184,7 +184,7 @@ void main() {
       // triggerProcessing is fire-and-forget, give it time to complete
       await Future<void>.delayed(const Duration(milliseconds: 500));
 
-      final jobs = await (database.select(database.archiveJobs)).get();
+      final jobs = await (database.select(database.backgroundJobs)).get();
       expect(jobs.first.status, "completed");
       expect(fakeClient.archiveCallCount, 1);
 

@@ -4,7 +4,7 @@
 library;
 
 // Core database classes
-export "main.dart" show AppDatabase, ConfigDatabase, WebMetadataEntry, ArchiveJob;
+export "main.dart" show AppDatabase, ConfigDatabase, WebMetadataEntry, BackgroundJob;
 
 // Models (data classes)
 export "models.dart";

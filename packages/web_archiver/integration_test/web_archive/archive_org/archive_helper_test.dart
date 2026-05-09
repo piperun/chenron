@@ -62,7 +62,7 @@ void main() {
       expect(archivedLink?.data.archiveOrgUrl,
           startsWith("https://web.archive.org/"));
 
-      final job = await database.getAllArchiveJobs();
+      final job = await database.getAllBackgroundJobs();
       expect(job.first.status, "completed");
     });
 
@@ -83,7 +83,7 @@ void main() {
       expect(hasDuplicate, isTrue);
 
       // Only one job exists
-      final jobs = await database.getAllArchiveJobs();
+      final jobs = await database.getAllBackgroundJobs();
       expect(jobs.length, 1);
     });
 
@@ -116,7 +116,7 @@ void main() {
       // Should have been called twice: fail → re-queue → succeed
       expect(callCount, 2);
 
-      final job = (await database.getAllArchiveJobs()).first;
+      final job = (await database.getAllBackgroundJobs()).first;
       expect(job.status, "completed");
       expect(job.attempts, 1); // 1 failed attempt before success
 
