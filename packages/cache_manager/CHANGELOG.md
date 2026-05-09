@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## cache_manager-v0.4.0 - 2026-03-27
+#### Features
+- add cache logging to MetadataFactory - (4583086) - *piperun*
+
+- - -
+
 ## cache_manager-v0.3.0 - 2026-03-25
 #### Features
 - add RefreshScheduler with priority queue and rate-limited processing - (71e1d26) - *piperun*
