@@ -40,12 +40,18 @@ class SuggestionsOverlay extends StatefulWidget {
 class _SuggestionsOverlayState extends State<SuggestionsOverlay> {
   final LayerLink _layerLink = LayerLink();
   final FocusNode _focusNode = FocusNode();
+  // Shared TapRegion id so taps inside either the search bar or the overlay
+  // don't count as "outside".
+  final Object _tapGroup = Object();
   OverlayEntry? _overlayEntry;
   late final Debouncer<List<SuggestionData>> _debouncer;
   List<SuggestionData> _suggestions = [];
   int _selectedIndex = -1;
   bool _isLoading = false;
   String _lastQuery = "";
+  // When set, suggestions stay hidden as long as the query equals this value.
+  // Cleared as soon as the user types something different or empties the field.
+  String? _dismissedQuery;
 
   @override
   void initState() {
@@ -78,6 +84,17 @@ class _SuggestionsOverlayState extends State<SuggestionsOverlay> {
     _selectedIndex = -1;
 
     if (query.isEmpty) {
+      _dismissedQuery = null;
+      _removeOverlay();
+      return;
+    }
+
+    // Different query than what was dismissed: re-enable suggestions.
+    if (_dismissedQuery != null && query != _dismissedQuery) {
+      _dismissedQuery = null;
+    }
+
+    if (_dismissedQuery == query) {
       _removeOverlay();
       return;
     }
@@ -129,14 +146,12 @@ class _SuggestionsOverlayState extends State<SuggestionsOverlay> {
 
     if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
       setState(() {
-        _selectedIndex =
-            (_selectedIndex + 1).clamp(0, _suggestions.length - 1);
+        _selectedIndex = (_selectedIndex + 1).clamp(0, _suggestions.length - 1);
       });
       _overlayEntry?.markNeedsBuild();
     } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
       setState(() {
-        _selectedIndex =
-            (_selectedIndex - 1).clamp(0, _suggestions.length - 1);
+        _selectedIndex = (_selectedIndex - 1).clamp(0, _suggestions.length - 1);
       });
       _overlayEntry?.markNeedsBuild();
     } else if (event.logicalKey == LogicalKeyboardKey.enter) {
@@ -144,6 +159,7 @@ class _SuggestionsOverlayState extends State<SuggestionsOverlay> {
         _suggestions[_selectedIndex].onTap();
       }
     } else if (event.logicalKey == LogicalKeyboardKey.escape) {
+      _dismissedQuery = _lastQuery;
       _removeOverlay();
       _selectedIndex = -1;
     }
@@ -164,84 +180,85 @@ class _SuggestionsOverlayState extends State<SuggestionsOverlay> {
           targetAnchor: Alignment.bottomLeft,
           followerAnchor: Alignment.topLeft,
           offset: const Offset(0, 8),
-          child: Material(
-            elevation: 8,
-            borderRadius: BorderRadius.circular(8),
-            child: Container(
-              constraints: const BoxConstraints(maxHeight: 400),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .outline
-                      .withValues(alpha: 0.2),
+          child: TapRegion(
+            groupId: _tapGroup,
+            child: Material(
+              elevation: 8,
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                constraints: const BoxConstraints(maxHeight: 400),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .outline
+                        .withValues(alpha: 0.2),
+                  ),
                 ),
-              ),
-              child: _isLoading
-                  ? const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: CircularProgressIndicator(),
-                      ),
-                    )
-                  : ListView.builder(
-                      shrinkWrap: true,
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      itemCount: _suggestions.length,
-                      itemBuilder: (_, index) {
-                        final item = _suggestions[index];
-                        final isSelected = index == _selectedIndex;
-                        final colorScheme =
-                            Theme.of(context).colorScheme;
-                        return Container(
-                          margin: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? colorScheme.primaryContainer
-                                : Colors.transparent,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: ListTile(
-                            shape: RoundedRectangleBorder(
+                child: _isLoading
+                    ? const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: CircularProgressIndicator(),
+                        ),
+                      )
+                    : ListView.builder(
+                        shrinkWrap: true,
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        itemCount: _suggestions.length,
+                        itemBuilder: (_, index) {
+                          final item = _suggestions[index];
+                          final isSelected = index == _selectedIndex;
+                          final colorScheme = Theme.of(context).colorScheme;
+                          return Container(
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? colorScheme.primaryContainer
+                                  : Colors.transparent,
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            leading: Icon(
-                              item.icon,
-                              color: isSelected
-                                  ? colorScheme.onPrimaryContainer
-                                  : null,
-                            ),
-                            title: RichText(
-                              text: TextSpan(
-                                children: TextHighlighter.highlight(
-                                  context,
-                                  item.title,
-                                  item.searchText,
+                            child: ListTile(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              leading: Icon(
+                                item.icon,
+                                color: isSelected
+                                    ? colorScheme.onPrimaryContainer
+                                    : null,
+                              ),
+                              title: RichText(
+                                text: TextSpan(
+                                  children: TextHighlighter.highlight(
+                                    context,
+                                    item.title,
+                                    item.searchText,
+                                  ),
                                 ),
                               ),
+                              subtitle: item.subtitle != null
+                                  ? Text(
+                                      item.subtitle!,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: colorScheme.onSurfaceVariant,
+                                      ),
+                                    )
+                                  : null,
+                              onTap: item.onTap,
                             ),
-                            subtitle: item.subtitle != null
-                                ? Text(
-                                    item.subtitle!,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color:
-                                          colorScheme.onSurfaceVariant,
-                                    ),
-                                  )
-                                : null,
-                            onTap: item.onTap,
-                          ),
-                        );
-                      },
-                    ),
+                          );
+                        },
+                      ),
+              ),
             ),
           ),
         ),
@@ -258,12 +275,21 @@ class _SuggestionsOverlayState extends State<SuggestionsOverlay> {
 
   @override
   Widget build(BuildContext context) {
-    return CompositedTransformTarget(
-      link: _layerLink,
-      child: KeyboardListener(
-        focusNode: _focusNode,
-        onKeyEvent: _handleKeyEvent,
-        child: widget.child,
+    return TapRegion(
+      groupId: _tapGroup,
+      onTapOutside: (_) {
+        if (_overlayEntry != null) {
+          _dismissedQuery = _lastQuery;
+          _removeOverlay();
+        }
+      },
+      child: CompositedTransformTarget(
+        link: _layerLink,
+        child: KeyboardListener(
+          focusNode: _focusNode,
+          onKeyEvent: _handleKeyEvent,
+          child: widget.child,
+        ),
       ),
     );
   }

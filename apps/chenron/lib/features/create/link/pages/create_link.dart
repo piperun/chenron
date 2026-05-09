@@ -174,6 +174,7 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
                           onDeleteSelected: _handleDeleteSelected,
                           onClearAll: _handleClearAll,
                           folderNames: _folderNameCache,
+                          globalTags: _notifier.globalTags,
                         ),
                       ),
                     ],
@@ -327,6 +328,7 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
       final savedCount = await LinkPersistenceService().saveLinks(
         entries: _notifier.entries,
         folderIds: _selectedFolders.map((f) => f.id).toList(),
+        globalTags: _notifier.globalTags,
       );
 
       if (mounted) {

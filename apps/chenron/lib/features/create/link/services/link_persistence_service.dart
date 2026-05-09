@@ -19,6 +19,7 @@ class LinkPersistenceService {
   Future<int> saveLinks({
     required List<LinkEntry> entries,
     required List<String> folderIds,
+    Set<String> globalTags = const {},
   }) async {
     final appDb = _resolveDb();
 
@@ -33,8 +34,9 @@ class LinkPersistenceService {
     var savedCount = 0;
     for (final folderId in targetFolders) {
       for (final entry in entries) {
-        final tags = entry.tags.isNotEmpty
-            ? entry.tags
+        final mergedTags = <String>{...entry.tags, ...globalTags};
+        final tags = mergedTags.isNotEmpty
+            ? mergedTags
                 .map((tag) => Metadata(
                       value: tag,
                       type: MetadataTypeEnum.tag,

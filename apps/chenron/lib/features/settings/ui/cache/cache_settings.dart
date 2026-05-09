@@ -4,6 +4,7 @@ import "package:signals/signals_flutter.dart";
 import "package:chenron/features/settings/controller/config_controller.dart";
 import "package:chenron/features/settings/service/cache_service.dart";
 import "package:chenron/features/settings/ui/shared/path_mode_selector.dart";
+import "package:chenron/features/settings/ui/shared/stats_action_row.dart";
 import "package:chenron/shared/errors/error_snack_bar.dart";
 import "package:path_provider/path_provider.dart";
 
@@ -36,7 +37,6 @@ class _CacheSettingsState extends State<CacheSettings> {
 
   late final CacheService _cacheService;
   Future<int>? _imageCacheSizeFuture;
-  Future<int>? _metadataCountFuture;
 
   void _initCacheService() {
     _cacheService = widget.cacheService ??
@@ -51,7 +51,6 @@ class _CacheSettingsState extends State<CacheSettings> {
 
   void _refreshCacheStats() {
     _imageCacheSizeFuture = _cacheService.getImageCacheSize();
-    _metadataCountFuture = _cacheService.getMetadataCacheEntryCount();
   }
 
   Future<void> _handleClearImages(BuildContext context) async {
@@ -61,26 +60,6 @@ class _CacheSettingsState extends State<CacheSettings> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text("Image cache cleared"),
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            duration: const Duration(seconds: 3),
-          ),
-        );
-      }
-      setState(_refreshCacheStats);
-    } catch (e) {
-      if (context.mounted) {
-        showErrorSnackBar(context, e);
-      }
-    }
-  }
-
-  Future<void> _handleClearMetadata(BuildContext context) async {
-    try {
-      await _cacheService.clearMetadataCache();
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text("Metadata cache cleared"),
             backgroundColor: Theme.of(context).colorScheme.primary,
             duration: const Duration(seconds: 3),
           ),
@@ -165,7 +144,7 @@ class _CacheSettingsState extends State<CacheSettings> {
           const SizedBox(height: 12),
 
           // Image Cache Row
-          _CacheRow(
+          StatsActionRow(
             icon: Icons.image_outlined,
             label: "Image Cache",
             future: _imageCacheSizeFuture!,
@@ -197,109 +176,8 @@ class _CacheSettingsState extends State<CacheSettings> {
               ));
             },
           ),
-
-          const SizedBox(height: 12),
-
-          // Metadata Cache Row
-          _CacheRow(
-            icon: Icons.description_outlined,
-            label: "Metadata Cache",
-            future: _metadataCountFuture!,
-            formatValue: (count) =>
-                "$count ${count == 1 ? "entry" : "entries"}",
-            buttonLabel: "Clear Metadata",
-            onClear: () {
-              unawaited(showDialog(
-                context: context,
-                builder: (ctx) => AlertDialog(
-                  title: const Text("Clear Metadata Cache"),
-                  content: const Text(
-                    "Clear cached page info? "
-                    "Titles and descriptions will be refetched.",
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(ctx),
-                      child: const Text("Cancel"),
-                    ),
-                    FilledButton(
-                      onPressed: () {
-                        Navigator.pop(ctx);
-                        unawaited(_handleClearMetadata(context));
-                      },
-                      child: const Text("Clear"),
-                    ),
-                  ],
-                ),
-              ));
-            },
-          ),
         ],
       );
     });
-  }
-}
-
-class _CacheRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final Future<int> future;
-  final String Function(int value) formatValue;
-  final String buttonLabel;
-  final VoidCallback onClear;
-
-  const _CacheRow({
-    required this.icon,
-    required this.label,
-    required this.future,
-    required this.formatValue,
-    required this.buttonLabel,
-    required this.onClear,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Row(
-      children: [
-        Icon(icon, size: 20, color: theme.colorScheme.primary),
-        const SizedBox(width: 8),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              label,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.textTheme.bodySmall?.color
-                    ?.withValues(alpha: 0.7),
-              ),
-            ),
-            FutureBuilder<int>(
-              future: future,
-              builder: (context, snapshot) {
-                final value = snapshot.data;
-                return Text(
-                  value != null ? formatValue(value) : "...",
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-        const Spacer(),
-        OutlinedButton.icon(
-          onPressed: onClear,
-          icon: const Icon(Icons.delete_outline, size: 18),
-          label: Text(buttonLabel),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: theme.colorScheme.error,
-          ),
-        ),
-      ],
-    );
   }
 }
