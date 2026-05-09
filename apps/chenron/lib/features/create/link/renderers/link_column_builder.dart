@@ -16,6 +16,7 @@ class LinkColumnBuilder {
     required ThemeData theme,
     required BuildContext context,
     required Map<String, String> folderNames,
+    required Set<String> globalTags,
     required ValueChanged<Key> onEdit,
     required ValueChanged<Key> onDelete,
   }) {
@@ -44,7 +45,10 @@ class LinkColumnBuilder {
         enableEditingMode: false,
         renderer: (rendererContext) {
           final entry = _findEntry(entries, rendererContext.row.key);
-          return TagsRenderer.build(entry.tags, theme);
+          final merged = globalTags.isEmpty
+              ? entry.tags
+              : <String>{...entry.tags, ...globalTags}.toList();
+          return TagsRenderer.build(merged, theme);
         },
       ),
       TrinaColumn(

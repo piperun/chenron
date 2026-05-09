@@ -1,5 +1,7 @@
+import "dart:async";
 import "dart:io";
 
+import "package:cache_manager/cache_manager.dart";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:file_picker/file_picker.dart";
@@ -10,6 +12,7 @@ import "package:chenron/features/settings/service/bookmark_export_service.dart";
 import "package:chenron/features/settings/service/bookmark_import_service.dart";
 import "package:chenron/features/settings/service/data_settings_service.dart";
 import "package:chenron/features/settings/ui/shared/path_mode_selector.dart";
+import "package:chenron/features/settings/ui/shared/stats_action_row.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/shared/errors/error_snack_bar.dart";
 
@@ -24,6 +27,37 @@ class DataSettings extends StatefulWidget {
 
 class _DataSettingsState extends State<DataSettings> {
   final DataSettingsService _dataService = locator.get<DataSettingsService>();
+  Future<int>? _metadataCountFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshMetadataCount();
+  }
+
+  void _refreshMetadataCount() {
+    _metadataCountFuture = MetadataCache.getCacheEntryCount();
+  }
+
+  Future<void> _handleClearMetadata(BuildContext context) async {
+    try {
+      await MetadataCache.clearAll();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text("Metadata cache cleared"),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+      setState(_refreshMetadataCount);
+    } catch (e) {
+      if (context.mounted) {
+        showErrorSnackBar(context, e);
+      }
+    }
+  }
 
   Future<void> _handleExport() async {
     final messenger = ScaffoldMessenger.of(context);
@@ -189,8 +223,7 @@ class _DataSettingsState extends State<DataSettings> {
           Text(
             "Where the application database is stored.",
             style: theme.textTheme.bodySmall?.copyWith(
-              color:
-                  theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+              color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
             ),
           ),
           const SizedBox(height: 16),
@@ -219,6 +252,54 @@ class _DataSettingsState extends State<DataSettings> {
               label: const Text("Apply & Restart"),
             ),
           ],
+
+          const Divider(height: 32),
+
+          // --- Metadata Cache ---
+          // Lives in the app database (above), not the image cache directory.
+          Text("Metadata Cache", style: theme.textTheme.titleMedium),
+          const SizedBox(height: 8),
+          Text(
+            "Cached page titles, descriptions, and preview images stored "
+            "in the app database. Clearing forces a refetch on next view.",
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+            ),
+          ),
+          const SizedBox(height: 16),
+          StatsActionRow(
+            icon: Icons.description_outlined,
+            label: "Metadata Cache",
+            future: _metadataCountFuture!,
+            formatValue: (count) =>
+                "$count ${count == 1 ? "entry" : "entries"}",
+            buttonLabel: "Clear Metadata",
+            onClear: () {
+              unawaited(showDialog(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: const Text("Clear Metadata Cache"),
+                  content: const Text(
+                    "Clear cached page info? "
+                    "Titles and descriptions will be refetched.",
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: const Text("Cancel"),
+                    ),
+                    FilledButton(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        unawaited(_handleClearMetadata(context));
+                      },
+                      child: const Text("Clear"),
+                    ),
+                  ],
+                ),
+              ));
+            },
+          ),
 
           const Divider(height: 32),
 
@@ -252,8 +333,7 @@ class _DataSettingsState extends State<DataSettings> {
             "Export or import bookmarks in standard HTML format, "
             "compatible with all major browsers.",
             style: theme.textTheme.bodySmall?.copyWith(
-              color:
-                  theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+              color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
             ),
           ),
           const SizedBox(height: 12),

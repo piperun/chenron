@@ -119,5 +119,33 @@ void main() {
           await service.saveLinks(entries: [], folderIds: [folderId]);
       expect(count, 0);
     });
+
+    test("merges globalTags into the persisted tags for each entry", () async {
+      // Globals are now applied at persist time; per-entry tags + globals
+      // must end up tagged on the saved link, deduplicated.
+      final entries = [
+        const LinkEntry(
+          key: ValueKey("k1"),
+          url: "https://merged.com",
+          tags: ["inline", "shared"],
+        ),
+      ];
+
+      final count = await service.saveLinks(
+        entries: entries,
+        folderIds: [folderId],
+        globalTags: const {"shared", "global"},
+      );
+      expect(count, 1);
+
+      final folder = await mockDb.getFolder(folderId);
+      final link = folder!.items
+          .whereType<LinkItem>()
+          .firstWhere((i) => i.url == "https://merged.com");
+      final tagNames = link.tags.map((t) => t.name).toSet();
+      expect(tagNames, containsAll(["inline", "shared", "global"]));
+      // No duplicate "shared".
+      expect(link.tags.where((t) => t.name == "shared").length, 1);
+    });
   });
 }

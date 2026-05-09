@@ -169,7 +169,10 @@ void main() {
       expect(notifier.entries.first.tags, contains("tag2"));
     });
 
-    test("merges global tags with inline tags", () {
+    test("does not merge global tags into entry.tags", () {
+      // Globals are now a session-wide overlay, not stored on the entry.
+      // This lets them apply retroactively to entries added before the
+      // global tag was created.
       notifier.addGlobalTag("global");
       notifier.addEntry(
         url: "https://example.com",
@@ -177,8 +180,66 @@ void main() {
         validateAsync: false,
       );
 
-      expect(notifier.entries.first.tags, contains("global"));
-      expect(notifier.entries.first.tags, contains("inline"));
+      expect(notifier.entries.first.tags, ["inline"]);
+      expect(notifier.entries.first.tags, isNot(contains("global")));
+    });
+
+    test("effectiveTagsFor merges per-entry tags with current globals", () {
+      notifier.addEntry(
+        url: "https://example.com",
+        tags: ["inline"],
+        validateAsync: false,
+      );
+      notifier.addGlobalTag("global");
+
+      final effective = notifier.effectiveTagsFor(notifier.entries.first);
+      expect(effective, containsAll(["inline", "global"]));
+    });
+
+    test(
+        "effectiveTagsFor reflects global tags added AFTER the entry was created",
+        () {
+      // The original bug: adding a global tag after entries existed left
+      // them visually untagged. effectiveTagsFor must surface the new tag.
+      notifier.addEntry(url: "https://a.com", validateAsync: false);
+      notifier.addEntry(url: "https://b.com", validateAsync: false);
+
+      notifier.addGlobalTag("retro");
+
+      for (final entry in notifier.entries) {
+        expect(notifier.effectiveTagsFor(entry), contains("retro"));
+      }
+    });
+
+    test("effectiveTagsFor reflects global tag removal", () {
+      notifier.addGlobalTag("temp");
+      notifier.addEntry(url: "https://example.com", validateAsync: false);
+
+      expect(
+        notifier.effectiveTagsFor(notifier.entries.first),
+        contains("temp"),
+      );
+
+      notifier.removeGlobalTag("temp");
+
+      expect(
+        notifier.effectiveTagsFor(notifier.entries.first),
+        isNot(contains("temp")),
+      );
+    });
+
+    test("effectiveTagsFor deduplicates if a tag is both inline and global",
+        () {
+      notifier.addGlobalTag("dup");
+      notifier.addEntry(
+        url: "https://example.com",
+        tags: ["dup", "other"],
+        validateAsync: false,
+      );
+
+      final effective = notifier.effectiveTagsFor(notifier.entries.first);
+      expect(effective.where((t) => t == "dup").length, 1);
+      expect(effective, containsAll(["dup", "other"]));
     });
 
     test("uses selected folder IDs", () {

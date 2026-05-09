@@ -59,6 +59,10 @@ class CreateLinkNotifier {
 
   /// Adds a new entry and optionally validates it.
   /// Returns false if the URL already exists in the entries list.
+  ///
+  /// Global tags are NOT merged into [LinkEntry.tags] — they live on the
+  /// notifier and are merged at render and persist time so they apply to
+  /// every entry regardless of when the tag or entry was added.
   bool addEntry({
     required String url,
     List<String>? tags,
@@ -70,15 +74,10 @@ class CreateLinkNotifier {
       return false;
     }
 
-    final entryTags = <String>{
-      ...?tags,
-      ..._globalTags.value,
-    }.toList();
-
     final entry = LinkEntry(
       key: UniqueKey(),
       url: trimmedUrl,
-      tags: entryTags,
+      tags: tags == null ? const [] : List.of(tags),
       folderIds: _selectedFolderIds.value.isEmpty
           ? ["default"]
           : List.of(_selectedFolderIds.value),
@@ -92,6 +91,13 @@ class CreateLinkNotifier {
       unawaited(_validateEntry(entry.key));
     }
     return true;
+  }
+
+  /// Effective tags shown for an entry: per-entry tags + current global tags.
+  /// Order: entry tags first, then globals, deduplicated.
+  List<String> effectiveTagsFor(LinkEntry entry) {
+    if (_globalTags.value.isEmpty) return entry.tags;
+    return <String>{...entry.tags, ..._globalTags.value}.toList();
   }
 
   /// Adds multiple entries (bulk mode) in a single batch.
@@ -112,15 +118,13 @@ class CreateLinkNotifier {
         continue;
       }
 
-      final entryTags = <String>{
-        ...?(data["tags"] as List<String>?),
-        ..._globalTags.value,
-      }.toList();
+      // Per-entry tags only; globals are merged at render/persist time.
+      final inlineTags = (data["tags"] as List<String>?) ?? const [];
 
       newEntries.add(LinkEntry(
         key: UniqueKey(),
         url: trimmedUrl,
-        tags: entryTags,
+        tags: List.of(inlineTags),
         folderIds: _selectedFolderIds.value.isEmpty
             ? ["default"]
             : List.of(_selectedFolderIds.value),

@@ -105,15 +105,19 @@ void main() {
     );
   }
 
-  testWidgets("renders image cache size and metadata entry count",
-      (tester) async {
+  // The Metadata Cache row used to live here too. It was moved to
+  // DataSettings (under "Database Location"), since metadata is a table
+  // inside the app database, not a file in the cache directory.
+  // CacheSettings is now images-only.
+
+  testWidgets("renders image cache size", (tester) async {
     await tester.pumpWidget(buildWidget());
     await tester.pumpAndSettle();
 
     expect(find.text("Image Cache"), findsOneWidget);
-    expect(find.text("Metadata Cache"), findsOneWidget);
     expect(find.text("500.0 KB"), findsOneWidget);
-    expect(find.text("42 entries"), findsOneWidget);
+    // Metadata Cache row no longer in this page.
+    expect(find.text("Metadata Cache"), findsNothing);
   });
 
   testWidgets("Clear Images button shows confirmation dialog", (tester) async {
@@ -127,19 +131,6 @@ void main() {
     expect(find.text("Remove downloaded images? "
         "They will be re-downloaded on next view."), findsOneWidget);
     expect(find.text("Cancel"), findsOneWidget);
-  });
-
-  testWidgets("Clear Metadata button shows confirmation dialog",
-      (tester) async {
-    await tester.pumpWidget(buildWidget());
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text("Clear Metadata"));
-    await tester.pumpAndSettle();
-
-    expect(find.text("Clear Metadata Cache"), findsOneWidget);
-    expect(find.text("Clear cached page info? "
-        "Titles and descriptions will be refetched."), findsOneWidget);
   });
 
   testWidgets("confirming image clear calls service and refreshes display",
@@ -159,23 +150,6 @@ void main() {
     expect(find.text("0 B"), findsOneWidget);
   });
 
-  testWidgets("confirming metadata clear calls service and refreshes display",
-      (tester) async {
-    await tester.pumpWidget(buildWidget());
-    await tester.pumpAndSettle();
-
-    // Open dialog
-    await tester.tap(find.text("Clear Metadata"));
-    await tester.pumpAndSettle();
-
-    // Confirm
-    await tester.tap(find.text("Clear"));
-    await tester.pumpAndSettle();
-
-    expect(fakeCacheService.clearMetadataCalls, 1);
-    expect(find.text("0 entries"), findsOneWidget);
-  });
-
   testWidgets("cancelling dialog does not clear cache", (tester) async {
     await tester.pumpWidget(buildWidget());
     await tester.pumpAndSettle();
@@ -190,17 +164,5 @@ void main() {
 
     expect(fakeCacheService.clearImageCalls, 0);
     expect(find.text("500.0 KB"), findsOneWidget);
-  });
-
-  testWidgets("singular entry count uses correct grammar", (tester) async {
-    final singleEntryService = FakeCacheService(
-      imageCacheSize: 0,
-      metadataEntryCount: 1,
-    );
-
-    await tester.pumpWidget(buildWidget(service: singleEntryService));
-    await tester.pumpAndSettle();
-
-    expect(find.text("1 entry"), findsOneWidget);
   });
 }

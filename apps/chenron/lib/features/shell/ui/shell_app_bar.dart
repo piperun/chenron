@@ -44,7 +44,7 @@ class ShellAppBar extends StatelessWidget implements PreferredSizeWidget {
       actions: [
         IconButton(
           tooltip: "Activity log",
-          icon: const Icon(Icons.history_outlined),
+          icon: const Icon(Icons.text_snippet_outlined),
           onPressed: onActivityLogPressed,
         ),
         const DarkModeToggle(),

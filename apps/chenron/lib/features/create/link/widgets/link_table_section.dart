@@ -16,6 +16,7 @@ class LinkTableSection extends StatelessWidget {
   final VoidCallback onDeleteSelected;
   final VoidCallback onClearAll;
   final Map<String, String> folderNames;
+  final Set<String> globalTags;
 
   const LinkTableSection({
     super.key,
@@ -26,6 +27,7 @@ class LinkTableSection extends StatelessWidget {
     required this.onDeleteSelected,
     required this.onClearAll,
     required this.folderNames,
+    this.globalTags = const {},
   });
 
   bool get hasSelectedRows =>
@@ -66,15 +68,17 @@ class LinkTableSection extends StatelessWidget {
                 child: entries.isEmpty
                     ? LinkEmptyState.build()
                     : DataGrid(
-                        key: ValueKey(entries
-                            .map((e) =>
-                                "${e.key}_${e.validationStatus}_${e.validationStatusCode ?? 0}_${e.tags.join(',')}_${e.folderIds.join(',')}_${e.isArchived}")
-                            .join("|")),
+                        key: ValueKey([
+                          ...entries.map((e) =>
+                              "${e.key}_${e.validationStatus}_${e.validationStatusCode ?? 0}_${e.tags.join(',')}_${e.folderIds.join(',')}_${e.isArchived}"),
+                          "globals:${globalTags.join(',')}",
+                        ].join("|")),
                         columns: LinkColumnBuilder.build(
                           entries: entries,
                           theme: theme,
                           context: context,
                           folderNames: folderNames,
+                          globalTags: globalTags,
                           onEdit: onEdit,
                           onDelete: onDelete,
                         ),
