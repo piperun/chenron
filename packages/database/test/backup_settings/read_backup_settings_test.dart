@@ -1,9 +1,5 @@
 import "package:database/database.dart";
 import "package:database/main.dart";
-import "package:database/src/features/user_config/create.dart";
-import "package:database/src/features/backup_settings/read.dart";
-import "package:database/src/features/backup_settings/update.dart";
-import "package:database/src/features/user_config/read.dart";
 import "package:flutter_test/flutter_test.dart";
 
 import "package:chenron_mockups/chenron_mockups.dart";
@@ -39,10 +35,10 @@ void main() {
       selectedThemeType: 0,
       timeDisplayFormat: 0,
       itemClickAction: 0,
-        showDescription: true,
-        showImages: true,
-        showTags: true,
-        showCopyLink: true,
+      showDescription: true,
+      showImages: true,
+      showTags: true,
+      showCopyLink: true,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
     );
@@ -145,8 +141,7 @@ void main() {
       expect(result, isNull);
     });
 
-    test("returns correct settings when multiple user configs exist",
-        () async {
+    test("returns correct settings when multiple user configs exist", () async {
       // Create a second user config
       final userConfig2 = UserConfig(
         id: "",
@@ -205,7 +200,6 @@ void main() {
       expect(settings2, isNotNull);
       expect(settings2!.backupInterval, equals("0 0 */12 * * *"));
     });
-
   });
 
   group("getUserConfig with backupSettings include", () {
@@ -225,8 +219,7 @@ void main() {
 
       // Read via the include/join path (same path ConfigService uses)
       final result = await database.getUserConfig(
-        includeOptions:
-            const IncludeOptions({ConfigIncludes.backupSettings}),
+        includeOptions: const IncludeOptions({ConfigIncludes.backupSettings}),
       );
 
       expect(result, isNotNull);
@@ -238,8 +231,7 @@ void main() {
 
     test("returns null backupSettings when none exist via include", () async {
       final result = await database.getUserConfig(
-        includeOptions:
-            const IncludeOptions({ConfigIncludes.backupSettings}),
+        includeOptions: const IncludeOptions({ConfigIncludes.backupSettings}),
       );
 
       expect(result, isNotNull);
@@ -267,8 +259,7 @@ void main() {
 
       // Verify via include/join path
       final result = await database.getUserConfig(
-        includeOptions:
-            const IncludeOptions({ConfigIncludes.backupSettings}),
+        includeOptions: const IncludeOptions({ConfigIncludes.backupSettings}),
       );
 
       expect(result, isNotNull);
