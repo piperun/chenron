@@ -247,6 +247,12 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
           selected: _activeTypes.contains("archive_org"),
           onSelected: () => _toggleType("archive_org"),
         ),
+        _LogFilterChip(
+          label: "Metadata",
+          icon: Icons.description_outlined,
+          selected: _activeTypes.contains("metadata_fetch"),
+          onSelected: () => _toggleType("metadata_fetch"),
+        ),
         // Future: network, download, etc.
         if (_hasActiveFilters) ...[
           const SizedBox(width: 4),
@@ -296,7 +302,7 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              Icons.history_outlined,
+              Icons.text_snippet_outlined,
               size: 64,
               color:
                   theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
@@ -461,7 +467,10 @@ class _LogEntryTile extends StatelessWidget {
   }
 
   Widget? _buildTrailing(ThemeData theme) {
-    if (job.status == "failed") {
+    // Retry button only makes sense for queued archive jobs that re-run via
+    // the processor. Metadata fetch entries are audit-log style and would
+    // need the URL re-fetched directly — not supported here.
+    if (job.status == "failed" && job.service != "metadata_fetch") {
       return IconButton(
         icon: const Icon(Icons.replay),
         tooltip: "Retry",
@@ -475,6 +484,7 @@ class _LogEntryTile extends StatelessWidget {
     return switch (service) {
       "archive_org" => "archive.org",
       "archive_is" => "archive.is",
+      "metadata_fetch" => "metadata",
       _ => service,
     };
   }
