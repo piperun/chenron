@@ -3,6 +3,7 @@ import "dart:async";
 import "package:chenron/locator.dart";
 import "package:chenron/shared/color_picker/color_dot.dart";
 import "package:chenron/shared/errors/error_snack_bar.dart";
+import "package:chenron/utils/safe_async.dart";
 import "package:chenron/utils/validation/tag_validator.dart";
 import "package:database/database.dart";
 import "package:flutter/material.dart";
@@ -26,25 +27,36 @@ class _TagManagementSettingsState extends State<TagManagementSettings> {
   @override
   void initState() {
     super.initState();
-    _subscription = _db.watchAllTags().listen((tags) {
-      if (!mounted) return;
-      final sorted = List<TagResult>.from(tags)
-        ..sort((a, b) => a.data.name.compareTo(b.data.name));
-      setState(() {
-        _tags = sorted;
-        _isLoading = false;
-      });
-    });
+    _subscription = safeWatch<List<TagResult>>(
+      _db.watchAllTags(),
+      tag: "TagManagementSettings",
+      onData: (tags) {
+        if (!mounted) return;
+        final sorted = List<TagResult>.from(tags)
+          ..sort((a, b) => a.data.name.compareTo(b.data.name));
+        setState(() {
+          _tags = sorted;
+          _isLoading = false;
+        });
+      },
+      onUiError: (_) {
+        if (mounted) setState(() => _isLoading = false);
+      },
+    );
+  }
+
+  Future<void> _handleColorChange(String tagName, int? color) async {
+    await safeAwait<void>(
+      tag: "TagManagementSettings",
+      operation: "update tag color",
+      action: () => _db.updateTagColor(tagName: tagName, color: color),
+    );
   }
 
   @override
   void dispose() {
     unawaited(_subscription?.cancel());
     super.dispose();
-  }
-
-  Future<void> _handleColorChange(String tagName, int? color) async {
-    await _db.updateTagColor(tagName: tagName, color: color);
   }
 
   Future<void> _handleRename(String currentName) async {

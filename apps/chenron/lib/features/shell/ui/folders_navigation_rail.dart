@@ -1,7 +1,9 @@
 import "dart:async";
+import "package:app_logger/app_logger.dart";
 import "package:flutter/material.dart";
 import "package:database/database.dart";
 import "package:chenron/locator.dart";
+import "package:chenron/utils/safe_async.dart";
 import "package:signals/signals.dart";
 
 import "package:chenron/features/shell/ui/sections/navigation_section.dart";
@@ -67,28 +69,33 @@ class _FoldersNavigationRailState extends State<FoldersNavigationRail> {
   }
 
   void _watchFolders() {
+    final AppDatabase appDb;
     try {
-      final appDb =
-          locator.get<Signal<AppDatabaseHandler>>().value.appDatabase;
+      appDb = locator.get<Signal<AppDatabaseHandler>>().value.appDatabase;
+    } catch (e, s) {
+      loggerGlobal.severe(
+          "FoldersNavigationRail", "Locator missing AppDatabaseHandler", e, s);
+      if (mounted) setState(() => _isLoading = false);
+      return;
+    }
 
-      // Count-only stream: re-fires when folders/items change, but does
-      // NOT join the link/document/metadata/tag tree.
-      _foldersSubscription =
-          appDb.watchFoldersWithItemCounts().listen((folders) {
+    // Count-only stream: re-fires when folders/items change, but does
+    // NOT join the link/document/metadata/tag tree.
+    _foldersSubscription = safeWatch<List<FolderItemCounts>>(
+      appDb.watchFoldersWithItemCounts(),
+      tag: "FoldersNavigationRail",
+      onData: (folders) {
         if (mounted) {
           setState(() {
             _folders = folders;
             _isLoading = false;
           });
         }
-      });
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
+      },
+      onUiError: (_) {
+        if (mounted) setState(() => _isLoading = false);
+      },
+    );
   }
 
   @override
