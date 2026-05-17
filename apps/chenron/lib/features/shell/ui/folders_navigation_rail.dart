@@ -1,5 +1,4 @@
 import "dart:async";
-import "package:database/main.dart";
 import "package:flutter/material.dart";
 import "package:database/database.dart";
 import "package:chenron/locator.dart";
@@ -51,9 +50,9 @@ class FoldersNavigationRail extends StatefulWidget {
 
 class _FoldersNavigationRailState extends State<FoldersNavigationRail> {
   String _filterTerm = "";
-  List<FolderResult> _folders = [];
+  List<FolderItemCounts> _folders = [];
   bool _isLoading = true;
-  StreamSubscription<List<FolderResult>>? _foldersSubscription;
+  StreamSubscription<List<FolderItemCounts>>? _foldersSubscription;
 
   @override
   void initState() {
@@ -72,12 +71,10 @@ class _FoldersNavigationRailState extends State<FoldersNavigationRail> {
       final appDb =
           locator.get<Signal<AppDatabaseHandler>>().value.appDatabase;
 
-      _foldersSubscription = appDb
-          .watchAllFolders(
-        includeOptions:
-            const IncludeOptions<AppDataInclude>({AppDataInclude.items}),
-      )
-          .listen((folders) {
+      // Count-only stream: re-fires when folders/items change, but does
+      // NOT join the link/document/metadata/tag tree.
+      _foldersSubscription =
+          appDb.watchFoldersWithItemCounts().listen((folders) {
         if (mounted) {
           setState(() {
             _folders = folders;

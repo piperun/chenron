@@ -1,11 +1,10 @@
 import "package:flutter/material.dart";
-import "package:database/models/db_result.dart";
-import "package:database/models/item.dart";
+import "package:database/database.dart";
 import "package:chenron/components/floating_label.dart";
 
 class FolderList extends StatelessWidget {
   final bool isLoading;
-  final List<FolderResult> folders;
+  final List<FolderItemCounts> folders;
   final String filterTerm;
   final bool isExtended;
   final String? selectedFolderId;
@@ -33,9 +32,8 @@ class FolderList extends StatelessWidget {
     final filteredFolders = filterTerm.isEmpty
         ? folders
         : folders
-            .where((folder) => folder.data.title
-                .toLowerCase()
-                .contains(filterTerm.toLowerCase()))
+            .where((folder) =>
+                folder.title.toLowerCase().contains(filterTerm.toLowerCase()))
             .toList();
 
     if (filteredFolders.isEmpty) {
@@ -66,8 +64,8 @@ class FolderList extends StatelessWidget {
         return _FolderRow(
           folder: folder,
           isExtended: isExtended,
-          isSelected: folder.data.id == selectedFolderId,
-          onTap: () => onFolderSelected(folder.data.id),
+          isSelected: folder.id == selectedFolderId,
+          onTap: () => onFolderSelected(folder.id),
         );
       },
     );
@@ -75,7 +73,7 @@ class FolderList extends StatelessWidget {
 }
 
 class _FolderRow extends StatefulWidget {
-  final FolderResult folder;
+  final FolderItemCounts folder;
   final bool isExtended;
   final bool isSelected;
   final VoidCallback onTap;
@@ -97,8 +95,8 @@ class _FolderRowState extends State<_FolderRow> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final folderColor = widget.folder.data.color != null
-        ? Color(widget.folder.data.color!)
+    final folderColor = widget.folder.color != null
+        ? Color(widget.folder.color!)
         : colorScheme.primary;
 
     Widget row = MouseRegion(
@@ -130,7 +128,7 @@ class _FolderRowState extends State<_FolderRow> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            widget.folder.data.title,
+                            widget.folder.title,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(fontSize: 14),
                           ),
@@ -149,7 +147,7 @@ class _FolderRowState extends State<_FolderRow> {
 
     if (!widget.isExtended) {
       row = FloatingLabel(
-        label: widget.folder.data.title,
+        label: widget.folder.title,
         child: row,
       );
     }
@@ -158,16 +156,15 @@ class _FolderRowState extends State<_FolderRow> {
   }
 
   List<Widget> _buildItemBadges(BuildContext context) {
-    final counts = <FolderItemType, int>{};
-    for (final item in widget.folder.items) {
-      counts[item.type] = (counts[item.type] ?? 0) + 1;
-    }
+    final counts = widget.folder.counts;
 
     final colorScheme = Theme.of(context).colorScheme;
     final badgeConfig = {
       FolderItemType.link: (icon: Icons.link, color: colorScheme.primary),
-      FolderItemType.document: (icon: Icons.description, color: colorScheme.tertiary),
-      FolderItemType.folder: (icon: Icons.folder, color: colorScheme.secondary),
+      FolderItemType.document:
+          (icon: Icons.description, color: colorScheme.tertiary),
+      FolderItemType.folder:
+          (icon: Icons.folder, color: colorScheme.secondary),
     };
 
     return [
