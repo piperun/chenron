@@ -7,6 +7,7 @@ import "package:chenron/features/folder_editor/item_picker/widgets/picker_search
 import "package:chenron/shared/bottom_sheet/bottom_sheet_scaffold.dart";
 import "package:chenron/shared/bottom_sheet/sheet_action_bar.dart";
 import "package:chenron/shared/empty_state/empty_state.dart";
+import "package:chenron/utils/safe_async.dart";
 
 /// A generic picker sheet that loads items, lets the user search and select,
 /// then returns the selected items.
@@ -90,18 +91,23 @@ class _ItemPickerSheetState<T, R> extends State<ItemPickerSheet<T, R>> {
   }
 
   Future<void> _load() async {
-    final items = await widget.loadItems();
-    if (mounted) {
-      setState(() {
+    final items = await safeAwait<List<T>>(
+      tag: "ItemPickerSheet",
+      operation: "load items",
+      action: widget.loadItems,
+    );
+    if (!mounted) return;
+    setState(() {
+      if (items != null) {
         _allItems = items;
         _lowercasedTitles = {
           for (final item in items)
             widget.itemId(item): widget.itemTitle(item).toLowerCase(),
         };
         _filteredItems = items;
-        _isLoading = false;
-      });
-    }
+      }
+      _isLoading = false;
+    });
   }
 
   void _onSearchChanged(String query) {

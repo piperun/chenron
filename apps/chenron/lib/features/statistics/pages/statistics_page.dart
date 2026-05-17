@@ -1,6 +1,5 @@
 import "dart:async";
 
-import "package:app_logger/app_logger.dart";
 import "package:flutter/material.dart";
 import "package:database/database.dart";
 import "package:database/main.dart";
@@ -13,6 +12,7 @@ import "package:chenron/features/statistics/widgets/tag_distribution_chart.dart"
 import "package:chenron/features/statistics/widgets/folder_composition_chart.dart";
 import "package:chenron/features/statistics/widgets/recent_activity_list.dart";
 import "package:chenron/features/statistics/widgets/time_range_selector.dart";
+import "package:chenron/utils/safe_async.dart";
 
 class StatisticsPage extends StatefulWidget {
   final double padding;
@@ -41,15 +41,11 @@ class _StatisticsPageState extends State<StatisticsPage> {
   void initState() {
     super.initState();
     unawaited(_loadData());
-    _activitySubscription = _db.watchRecentActivityWithNames().listen(
-      (events) {
-        if (mounted) {
-          _recentActivity.value = events;
-        }
-      },
-      onError: (Object error) {
-        loggerGlobal.warning(
-            "Statistics", "Activity stream error: $error");
+    _activitySubscription = safeWatch<List<EnrichedActivityEvent>>(
+      _db.watchRecentActivityWithNames(),
+      tag: "StatisticsPage",
+      onData: (events) {
+        if (mounted) _recentActivity.value = events;
       },
     );
   }
@@ -72,26 +68,34 @@ class _StatisticsPageState extends State<StatisticsPage> {
     final startDate = _timeRange.value.startDate;
     final endDate = DateTime.now();
 
-    final latestStats = await _db.getCurrentCounts();
-    final history = await _db.getStatisticsHistory(
-      startDate: startDate,
-      endDate: endDate,
-    );
-    final dailyCounts = await _db.getDailyActivityCounts(
-      startDate: startDate ?? DateTime(2000),
-      endDate: endDate,
-    );
-    final tagCounts = await _db.getTagDistribution();
-    final folderCounts = await _db.getFolderComposition();
+    await safeAwait<void>(
+      tag: "StatisticsPage",
+      operation: "load statistics",
+      action: () async {
+        final latestStats = await _db.getCurrentCounts();
+        final history = await _db.getStatisticsHistory(
+          startDate: startDate,
+          endDate: endDate,
+        );
+        final dailyCounts = await _db.getDailyActivityCounts(
+          startDate: startDate ?? DateTime(2000),
+          endDate: endDate,
+        );
+        final tagCounts = await _db.getTagDistribution();
+        final folderCounts = await _db.getFolderComposition();
 
-    if (mounted) {
-      _currentCounts.value = latestStats;
-      _history.value = history;
-      _dailyCounts.value = dailyCounts;
-      _tagCounts.value = tagCounts;
-      _folderCounts.value = folderCounts;
-      _isLoading.value = false;
-    }
+        if (!mounted) return;
+        _currentCounts.value = latestStats;
+        _history.value = history;
+        _dailyCounts.value = dailyCounts;
+        _tagCounts.value = tagCounts;
+        _folderCounts.value = folderCounts;
+      },
+    );
+
+    // Clear the spinner regardless of success/failure so the user sees
+    // either the populated charts or the snackbar-explained empty page.
+    if (mounted) _isLoading.value = false;
   }
 
   void _onTimeRangeChanged(TimeRange range) {
