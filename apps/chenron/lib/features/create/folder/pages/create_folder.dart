@@ -2,6 +2,7 @@
 import "package:flutter/material.dart";
 
 import "package:chenron/features/create/folder/services/folder_persistence_service.dart";
+import "package:chenron/utils/safe_async.dart";
 
 class CreateFolderPage extends StatefulWidget {
   final bool hideAppBar;
@@ -125,14 +126,19 @@ class _CreateFolderPageState extends State<CreateFolderPage> {
   Future<void> _saveFolder() async {
     if (!_isFormValid || _currentFormData == null) return;
 
-    await FolderPersistenceService().saveFolder(_currentFormData!);
-
-    if (mounted) {
-      if (widget.onSaved != null) {
-        widget.onSaved!();
-      } else {
-        Navigator.pop(context);
-      }
+    final ok = await safeAwait<bool>(
+      tag: "CreateFolderPage",
+      operation: "save folder",
+      action: () async {
+        await FolderPersistenceService().saveFolder(_currentFormData!);
+        return true;
+      },
+    );
+    if (!mounted || ok != true) return;
+    if (widget.onSaved != null) {
+      widget.onSaved!();
+    } else {
+      Navigator.pop(context);
     }
   }
 }

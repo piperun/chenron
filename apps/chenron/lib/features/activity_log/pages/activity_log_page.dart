@@ -2,6 +2,7 @@ import "dart:async";
 import "dart:convert";
 import "dart:io";
 
+import "package:chenron/utils/safe_async.dart";
 import "package:database/database.dart";
 import "package:file_picker/file_picker.dart";
 import "package:flutter/material.dart";
@@ -36,10 +37,14 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
   }
 
   Future<void> _loadJobs() async {
-    final jobs = await widget.database.getAllBackgroundJobs();
+    final jobs = await safeAwait<List<BackgroundJob>>(
+      tag: "ActivityLogPage",
+      operation: "load background jobs",
+      action: widget.database.getAllBackgroundJobs,
+    );
     if (!mounted) return;
     setState(() {
-      _allJobs = jobs;
+      if (jobs != null) _allJobs = jobs;
       _loading = false;
     });
   }
@@ -99,13 +104,27 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
   }
 
   Future<void> _handleRetry(BackgroundJob job) async {
-    await widget.database.retryArchiveJob(job.id);
-    await _loadJobs();
+    final ok = await safeAwait<bool>(
+      tag: "ActivityLogPage",
+      operation: "retry archive job",
+      action: () async {
+        await widget.database.retryArchiveJob(job.id);
+        return true;
+      },
+    );
+    if (ok == true) await _loadJobs();
   }
 
   Future<void> _handleClearCompleted() async {
-    await widget.database.clearCompletedBackgroundJobs();
-    await _loadJobs();
+    final ok = await safeAwait<bool>(
+      tag: "ActivityLogPage",
+      operation: "clear completed jobs",
+      action: () async {
+        await widget.database.clearCompletedBackgroundJobs();
+        return true;
+      },
+    );
+    if (ok == true) await _loadJobs();
   }
 
   Future<void> _handleExport() async {

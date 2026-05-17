@@ -9,6 +9,7 @@ import "package:chenron/shared/errors/user_error_message.dart";
 import "package:chenron/shared/item_detail/item_detail_data.dart";
 import "package:chenron/shared/item_detail/item_detail_service.dart";
 import "package:chenron/shared/ui/folder_picker.dart";
+import "package:chenron/utils/safe_async.dart";
 import "package:chenron/shared/item_detail/components/detail_header.dart";
 import "package:chenron/shared/item_detail/components/hero_section.dart";
 import "package:chenron/shared/item_detail/components/details_table.dart";
@@ -81,24 +82,52 @@ class _ItemDetailDialogState extends State<ItemDetailDialog> {
   }
 
   Future<void> _handleAddTag(String tagName) async {
-    await _service.addTag(widget.itemId, widget.itemType, tagName);
-    await _loadData();
+    final ok = await safeAwait<bool>(
+      tag: "ItemDetailDialog",
+      operation: "add tag",
+      action: () async {
+        await _service.addTag(widget.itemId, widget.itemType, tagName);
+        return true;
+      },
+    );
+    if (ok == true) await _loadData();
   }
 
   Future<void> _handleRemoveTag(String tagId) async {
-    await _service.removeTag(widget.itemId, widget.itemType, tagId);
-    await _loadData();
+    final ok = await safeAwait<bool>(
+      tag: "ItemDetailDialog",
+      operation: "remove tag",
+      action: () async {
+        await _service.removeTag(widget.itemId, widget.itemType, tagId);
+        return true;
+      },
+    );
+    if (ok == true) await _loadData();
   }
 
   Future<void> _handleAddToFolder(String folderId) async {
-    await _service.addToFolder(
-        widget.itemId, widget.itemType, folderId);
-    await _loadData();
+    final ok = await safeAwait<bool>(
+      tag: "ItemDetailDialog",
+      operation: "add to folder",
+      action: () async {
+        await _service.addToFolder(
+            widget.itemId, widget.itemType, folderId);
+        return true;
+      },
+    );
+    if (ok == true) await _loadData();
   }
 
   Future<void> _handleRemoveFromFolder(String folderId) async {
-    await _service.removeFromFolder(widget.itemId, folderId);
-    await _loadData();
+    final ok = await safeAwait<bool>(
+      tag: "ItemDetailDialog",
+      operation: "remove from folder",
+      action: () async {
+        await _service.removeFromFolder(widget.itemId, folderId);
+        return true;
+      },
+    );
+    if (ok == true) await _loadData();
   }
 
   @override
