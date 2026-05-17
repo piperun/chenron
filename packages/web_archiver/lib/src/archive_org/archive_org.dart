@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:app_logger/app_logger.dart';
 import 'package:http/http.dart' as http;
-import 'package:logging/logging.dart';
 import 'package:web_archiver/src/archive_org/archive_org_options.dart';
 
 /// Factory definition for creating an [ArchiveOrgClient].
@@ -12,7 +12,7 @@ typedef ArchiveOrgClientFactory = ArchiveOrgClient Function(
 ArchiveOrgClientFactory archiveOrgClientFactory =
     (apiKey, apiSecret) => ArchiveOrgClient(apiKey, apiSecret);
 
-final _logger = Logger('ArchiveOrgClient');
+const _source = 'ArchiveOrgClient';
 
 /// A client for interacting with the Archive.org Wayback Machine API.
 ///
@@ -63,8 +63,7 @@ class ArchiveOrgClient {
             Uri.parse("$baseUrl/save"),
             headers: {
               "Accept": "application/json",
-              "Content-Type":
-                  "application/x-www-form-urlencoded;charset=UTF-8",
+              "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
               "Authorization": "LOW $apiKey:$apiSecret",
             },
             body: body,
@@ -75,32 +74,32 @@ class ArchiveOrgClient {
         final data = json.decode(response.body);
         switch (data["status"]) {
           case "success":
-            _logger.info(
+            loggerGlobal.info(_source,
                 'Archiving succeeded for $targetUrl. Archived URL: ${data['archived_snapshots']['closest']['url']}');
             return data["archived_snapshots"]["closest"]["url"];
           case "error":
-            _logger.warning(
+            loggerGlobal.warning(_source,
                 'Archiving failed for $targetUrl: \n message: ${data['message']} \n ${data['status_ext']}');
             throw Exception('Archiving failed: ${data['message']}');
           case "pending":
-            _logger.info(
+            loggerGlobal.info(_source,
                 'Archiving in progress for $targetUrl. Job ID: ${data['job_id']}');
             return data["job_id"];
           default:
             if (data["job_id"].isNotEmpty) {
-              _logger.info(
+              loggerGlobal.info(_source,
                   'Archiving in progress for $targetUrl. Job ID: ${data['job_id']}');
               return data["job_id"];
             }
-            _logger
-                .severe('Unexpected status for $targetUrl: ${data['status']}');
+            loggerGlobal.severe(
+                _source, 'Unexpected status for $targetUrl: ${data['status']}');
             throw Exception('Unexpected status: ${data['status']}');
         }
       } else {
         throw Exception("Failed to start archiving: ${response.body}");
       }
     } catch (e) {
-      _logger.severe("Error in archiveUrl", e);
+      loggerGlobal.severe(_source, "Error in archiveUrl", e);
       rethrow;
     }
   }
@@ -122,7 +121,7 @@ class ArchiveOrgClient {
         throw Exception("Failed to check status: ${response.body}");
       }
     } catch (e) {
-      _logger.severe("Error in checkStatus", e);
+      loggerGlobal.severe(_source, "Error in checkStatus", e);
       rethrow;
     }
   }
@@ -153,9 +152,9 @@ class ArchiveOrgClient {
           throw Exception('Archiving failed: ${status['message']}');
         }
 
-        _logger.info("Wait, still capturing...");
+        loggerGlobal.info(_source, "Wait, still capturing...");
       } catch (e) {
-        _logger.severe("Error in waitForCompletion", e);
+        loggerGlobal.severe(_source, "Error in waitForCompletion", e);
         rethrow;
       }
     }
@@ -177,10 +176,10 @@ class ArchiveOrgClient {
       {ArchiveOrgOptions? options}) async {
     try {
       final jobId = await archiveUrl(targetUrl, options: options);
-      _logger.info("Capture started, job id: $jobId");
+      loggerGlobal.info(_source, "Capture started, job id: $jobId");
       return await waitForCompletion(jobId);
     } catch (e) {
-      _logger.severe("Error in archiveAndWait", e);
+      loggerGlobal.severe(_source, "Error in archiveAndWait", e);
       rethrow;
     }
   }
