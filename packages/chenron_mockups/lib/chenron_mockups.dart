@@ -14,4 +14,3 @@ export 'src/link_factory.dart' hide MetadataFactory;
 
 // Test Utilities
 export 'src/logger_setup.dart';
-export 'src/test_app.dart';
