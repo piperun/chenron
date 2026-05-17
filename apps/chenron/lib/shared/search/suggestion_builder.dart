@@ -59,12 +59,16 @@ class GlobalSuggestionBuilder {
     for (final entry in metadataMatches) {
       metadataByUrl[entry.url] = entry;
     }
-    // Also fetch metadata for links found by URL search
-    for (final link in links) {
-      if (!metadataByUrl.containsKey(link.data.path)) {
-        final meta = await appDb.getWebMetadata(link.data.path);
-        if (meta != null) metadataByUrl[link.data.path] = meta;
-      }
+    // Also fetch metadata for links found by URL search — batched into
+    // one round-trip instead of one query per matched link (the old loop
+    // fired N+1 queries on every typed character).
+    final missingUrls = [
+      for (final link in links)
+        if (!metadataByUrl.containsKey(link.data.path)) link.data.path
+    ];
+    if (missingUrls.isNotEmpty) {
+      final fetched = await appDb.getWebMetadataForUrls(missingUrls);
+      metadataByUrl.addAll(fetched);
     }
 
     if (!context.mounted) return [];
