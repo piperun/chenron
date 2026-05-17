@@ -51,11 +51,6 @@ class _CreateFolderPageState extends State<CreateFolderPage> {
   }
 
   @override
-  void dispose() {
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
