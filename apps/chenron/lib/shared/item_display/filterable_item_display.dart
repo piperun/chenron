@@ -113,6 +113,8 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
       ownsSearchFilter: ownsSearchFilter,
       tagFilterState: tagFilterState,
       ownsTagFilterState: ownsTagFilterState,
+      initialItems: widget.items,
+      enableTagFiltering: widget.enableTagFiltering,
     );
 
     unawaited(_notifier.loadDisplayMode(context: widget.displayModeContext));
@@ -131,9 +133,11 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
   @override
   void didUpdateWidget(FilterableItemDisplay oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!identical(widget.items, oldWidget.items) &&
-        _notifier.isDeleteMode.value) {
-      _notifier.refreshSelectedItems(widget.items);
+    if (!identical(widget.items, oldWidget.items)) {
+      _notifier.setItems(widget.items);
+      if (_notifier.isDeleteMode.value) {
+        _notifier.refreshSelectedItems(widget.items);
+      }
     }
   }
 
@@ -163,12 +167,7 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
   }
 
   void _handleSelectAll() {
-    final filtered = _notifier.getFilteredAndSortedItems(
-      items: widget.items,
-      query: _notifier.searchFilter.controller.query.value,
-      enableTagFiltering: widget.enableTagFiltering,
-    );
-    _notifier.selectAll(filtered);
+    _notifier.selectAll(_notifier.filteredAndSortedItems.value);
   }
 
   void _handleItemTap(FolderItem item) {
@@ -281,11 +280,8 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
                 widget.onLoadAllRemaining?.call();
               }
 
-              final filtered = _notifier.getFilteredAndSortedItems(
-                items: widget.items,
-                query: currentQuery,
-                enableTagFiltering: widget.enableTagFiltering,
-              );
+              // Memoized: only recomputes when actual filter inputs change.
+              final filtered = _notifier.filteredAndSortedItems.value;
 
               // Disable lazy loading while filtering (all items loaded).
               final VoidCallback? loadMore =
