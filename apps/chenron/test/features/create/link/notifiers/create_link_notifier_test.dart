@@ -338,6 +338,38 @@ void main() {
     });
   });
 
+  group("disposal safety", () {
+    test("dispose mid-validation does not throw signal-disposed errors",
+        () async {
+      // Regression: addEntries fires async _validateEntry for each row.
+      // If dispose() runs before those validations resolve, the late
+      // signal writes used to throw "Signal written after disposed".
+      notifier.addEntries([
+        {"url": "https://race-1.com", "tags": <String>[]},
+        {"url": "https://race-2.com", "tags": <String>[]},
+        {"url": "https://race-3.com", "tags": <String>[]},
+      ]);
+
+      notifier.dispose();
+      // Re-create so tearDown's idempotent dispose() doesn't error out
+      // on the explicitly-disposed instance.
+      notifier = CreateLinkNotifier();
+
+      // Allow any orphaned validation futures to settle. If a write to a
+      // disposed signal fires, signals_core throws and the test reports it
+      // as an uncaught async error.
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+    });
+
+    test("dispose() is idempotent", () {
+      notifier.dispose();
+      // Should not throw.
+      notifier.dispose();
+      // Re-create so tearDown stays clean.
+      notifier = CreateLinkNotifier();
+    });
+  });
+
   group("entry updates", () {
     test("updates an entry by key", () {
       notifier.addEntry(url: "https://old.com", validateAsync: false);
