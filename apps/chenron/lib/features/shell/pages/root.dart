@@ -65,13 +65,13 @@ class _RootPageState extends State<RootPage> {
     ));
   }
 
-  void _navigateToCreatePage(ItemType type) {
+  void _navigateToCreatePage(FolderItemType type) {
     setState(() {
       _previousPage = _currentPage;
       _currentPage = switch (type) {
-        ItemType.link => AppPage.createLink,
-        ItemType.folder => AppPage.createFolder,
-        ItemType.document =>
+        FolderItemType.link => AppPage.createLink,
+        FolderItemType.folder => AppPage.createFolder,
+        FolderItemType.document =>
           AppPage.createFolder, // TODO: Update when document page exists
       };
     });
