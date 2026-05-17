@@ -1,13 +1,14 @@
 import "package:flutter/material.dart";
-import "package:signals/signals_flutter.dart";
 import "package:chenron/components/metadata_factory.dart";
 
-/// Mixin that manages a signal-based metadata refresh listener.
+/// Mixin that wakes the host State when metadata for [metadataUrl] is
+/// refreshed externally.
 ///
-/// Watches [MetadataFactory.lastRefreshedUrl] and calls
-/// [onMetadataRefreshed] when the tracked URL is refreshed.
+/// Routes through [MetadataFactory.refreshDispatcher] so each State
+/// pays for exactly one subscription against its own URL — refreshing
+/// one card no longer wakes every other card in the grid.
 mixin MetadataLifecycleMixin<T extends StatefulWidget> on State<T> {
-  void Function()? _metadataDisposeEffect;
+  void Function()? _disposeSubscription;
 
   /// The URL to track for metadata refreshes.
   String? get metadataUrl;
@@ -19,15 +20,14 @@ mixin MetadataLifecycleMixin<T extends StatefulWidget> on State<T> {
   void initMetadataRefreshListener() {
     final url = metadataUrl;
     if (url == null || url.isEmpty) return;
-    _metadataDisposeEffect = effect(() {
-      final refreshed = MetadataFactory.lastRefreshedUrl.value;
-      if (refreshed == url) {
-        onMetadataRefreshed();
-      }
-    });
+    _disposeSubscription = MetadataFactory.refreshDispatcher.subscribe(
+      url,
+      onMetadataRefreshed,
+    );
   }
 
   void disposeMetadataRefreshListener() {
-    _metadataDisposeEffect?.call();
+    _disposeSubscription?.call();
+    _disposeSubscription = null;
   }
 }

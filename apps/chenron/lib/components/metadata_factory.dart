@@ -1,6 +1,7 @@
 import "dart:async";
 import "dart:collection";
 
+import "package:chenron/components/metadata_refresh_dispatcher.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/utils/metadata.dart";
 import "package:cache_manager/cache_manager.dart";
@@ -31,8 +32,9 @@ Future<void> _logMetadataFetch({
 }
 
 class MetadataFactory {
-  /// Emits the URL of the most recently force-refreshed metadata.
-  static final lastRefreshedUrl = signal<String?>(null);
+  /// Routes per-URL metadata refresh notifications to subscribers
+  /// (e.g. [MetadataLifecycleMixin]).
+  static final refreshDispatcher = MetadataRefreshDispatcher();
 
   static const _maxConcurrent = 3;
   static const _domainDelay = Duration(milliseconds: 500);
@@ -208,8 +210,7 @@ class MetadataFactory {
     await _acquireSlot();
     final result = await _fetchAndCache(url);
     if (result != null) {
-      lastRefreshedUrl.value = null;
-      lastRefreshedUrl.value = url;
+      refreshDispatcher.dispatch(url);
     }
     return result;
   }
