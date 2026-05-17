@@ -16,10 +16,24 @@ class FilterableItemDisplayNotifier {
   final Signal<bool> isDeleteMode = signal(false);
   final Signal<Map<String, FolderItem>> selectedItems = signal({});
 
+  /// The source list. The owning State pushes updates here via [setItems]
+  /// so the cached [filteredAndSortedItems] memoization can react.
+  final Signal<List<FolderItem>> items;
+
+  final bool enableTagFiltering;
+
   final SearchFilter searchFilter;
   final bool ownsSearchFilter;
   final TagFilterState tagFilterState;
   final bool ownsTagFilterState;
+
+  /// Memoized filter+sort pipeline.
+  ///
+  /// Only recomputes when one of its actual inputs changes
+  /// ([items], search query, [selectedTypes], tag filters, [sortMode]).
+  /// Unrelated UI signal changes ([isDeleteMode], [selectedItems],
+  /// [viewMode], [displayMode]) no longer trigger a full O(N) filter+sort.
+  late final Computed<List<FolderItem>> filteredAndSortedItems;
 
   FilterableItemDisplayNotifier({
     required ViewMode initialViewMode,
@@ -30,10 +44,33 @@ class FilterableItemDisplayNotifier {
     required this.ownsSearchFilter,
     required this.tagFilterState,
     required this.ownsTagFilterState,
+    List<FolderItem> initialItems = const [],
+    this.enableTagFiltering = true,
   })  : viewMode = signal(initialViewMode),
         sortMode = signal(initialSortMode),
         selectedTypes = signal(Set.of(initialSelectedTypes)),
-        displayMode = signal(initialDisplayMode);
+        displayMode = signal(initialDisplayMode),
+        items = signal(initialItems) {
+    filteredAndSortedItems = computed(() {
+      return searchFilter.filterAndSort(
+        items: items.value,
+        query: searchFilter.controller.query.value,
+        types: selectedTypes.value,
+        includedTags:
+            enableTagFiltering ? tagFilterState.includedTags.value : null,
+        excludedTags:
+            enableTagFiltering ? tagFilterState.excludedTags.value : null,
+        sortMode: sortMode.value,
+      );
+    });
+  }
+
+  /// Update the source items list. Triggers the [filteredAndSortedItems]
+  /// computed only when identity changes.
+  void setItems(List<FolderItem> newItems) {
+    if (identical(items.value, newItems)) return;
+    items.value = newItems;
+  }
 
   Future<void> loadViewMode({String? context}) async {
     final savedMode = await ViewModePreference.getViewMode(context: context);
@@ -129,6 +166,8 @@ class FilterableItemDisplayNotifier {
   }
 
   void dispose() {
+    filteredAndSortedItems.dispose();
+    items.dispose();
     viewMode.dispose();
     sortMode.dispose();
     selectedTypes.dispose();

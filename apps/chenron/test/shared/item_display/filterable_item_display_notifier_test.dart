@@ -413,6 +413,101 @@ void main() {
     });
   });
 
+  group("filteredAndSortedItems memoization", () {
+    late FilterableItemDisplayNotifier memoNotifier;
+    late SearchFilter memoSearch;
+    late TagFilterState memoTagState;
+
+    final seedItems = [
+      _makeLink("1", "https://alpha.com"),
+      _makeLink("2", "https://beta.com"),
+    ];
+
+    setUp(() {
+      memoSearch = SearchFilter();
+      memoSearch.setup();
+      memoTagState = TagFilterState();
+      memoNotifier = FilterableItemDisplayNotifier(
+        initialViewMode: ViewMode.grid,
+        initialSortMode: SortMode.nameAsc,
+        initialSelectedTypes: {
+          FolderItemType.link,
+          FolderItemType.document,
+          FolderItemType.folder,
+        },
+        initialDisplayMode: DisplayMode.standard,
+        searchFilter: memoSearch,
+        ownsSearchFilter: false,
+        tagFilterState: memoTagState,
+        ownsTagFilterState: false,
+        initialItems: seedItems,
+        enableTagFiltering: true,
+      );
+    });
+
+    tearDown(() {
+      memoNotifier.dispose();
+      memoSearch.dispose();
+      memoTagState.dispose();
+    });
+
+    test("returns identical instance when unrelated signal changes", () {
+      // Regression: previously the filter+sort ran inline inside a Watch
+      // that also subscribed to isDeleteMode and selectedItems, so every
+      // delete-mode toggle re-ran the full O(N) pipeline. After hoisting
+      // into a Computed, only filter inputs invalidate the cache.
+      final first = memoNotifier.filteredAndSortedItems.value;
+
+      memoNotifier.isDeleteMode.value = true;
+      final afterDeleteToggle = memoNotifier.filteredAndSortedItems.value;
+      expect(identical(first, afterDeleteToggle), isTrue);
+
+      memoNotifier.viewMode.value = ViewMode.list;
+      final afterViewMode = memoNotifier.filteredAndSortedItems.value;
+      expect(identical(first, afterViewMode), isTrue);
+
+      memoNotifier.displayMode.value = DisplayMode.compact;
+      final afterDisplayMode = memoNotifier.filteredAndSortedItems.value;
+      expect(identical(first, afterDisplayMode), isTrue);
+    });
+
+    test("recomputes when selectedTypes changes", () {
+      final first = memoNotifier.filteredAndSortedItems.value;
+      expect(first.length, 2);
+
+      memoNotifier.setSelectedTypes({FolderItemType.document});
+      final second = memoNotifier.filteredAndSortedItems.value;
+
+      expect(identical(first, second), isFalse);
+      expect(second, isEmpty);
+    });
+
+    test("recomputes when sortMode changes", () {
+      final first = memoNotifier.filteredAndSortedItems.value;
+
+      memoNotifier.setSortMode(SortMode.nameDesc);
+      final second = memoNotifier.filteredAndSortedItems.value;
+
+      expect(identical(first, second), isFalse);
+      expect(second.first.id, "2");
+    });
+
+    test("setItems with new identity recomputes; same identity does not", () {
+      final first = memoNotifier.filteredAndSortedItems.value;
+
+      // Same reference -> setItems is a no-op.
+      memoNotifier.setItems(seedItems);
+      expect(identical(first, memoNotifier.filteredAndSortedItems.value),
+          isTrue);
+
+      // New reference -> recompute.
+      memoNotifier.setItems([_makeLink("99", "https://gamma.com")]);
+      final third = memoNotifier.filteredAndSortedItems.value;
+      expect(identical(first, third), isFalse);
+      expect(third, hasLength(1));
+    });
+  });
+
   group("getItemCounts", () {
     test("counts items by type", () {
       final items = [
