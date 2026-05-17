@@ -1,8 +1,9 @@
 ﻿import "dart:async";
+import "package:chenron/locator.dart";
+import "package:chenron/utils/safe_async.dart";
+import "package:database/database.dart";
 import "package:database/main.dart";
 import "package:flutter/material.dart";
-import "package:database/database.dart";
-import "package:chenron/locator.dart";
 import "package:signals/signals_flutter.dart";
 
 class FolderPicker extends StatefulWidget {
@@ -44,28 +45,31 @@ class _FolderPickerState extends State<FolderPicker> {
   }
 
   Future<void> _loadInitialFolder() async {
-    try {
-      if (widget.initialFolders != null && widget.initialFolders!.isNotEmpty) {
-        _selectedFolders.addAll(widget.initialFolders!);
-        _isLoading = false;
-        return;
-      }
-
-      final results = await _getDb().getAllFolders();
-      if (results.isNotEmpty) {
-        setState(() {
-          final defaultFolder = results.map((r) => r.data).firstWhere(
-                (f) => f.title == "default",
-                orElse: () => results.first.data,
-              );
-          _selectedFolders.add(defaultFolder);
-          _isLoading = false;
-        });
-        widget.onFoldersSelected(_selectedFolders.toList());
-      }
-    } catch (e) {
-      setState(() => _isLoading = false);
+    if (widget.initialFolders != null && widget.initialFolders!.isNotEmpty) {
+      _selectedFolders.addAll(widget.initialFolders!);
+      if (mounted) setState(() => _isLoading = false);
+      return;
     }
+
+    final results = await safeAwait<List<FolderResult>>(
+      tag: "FolderPicker",
+      operation: "load default folder",
+      action: () async => _getDb().getAllFolders(),
+      // This is a background auto-select; the user gets a UI snackbar
+      // if they actually open the folder picker dialog and that load
+      // fails. Logging the failure is enough here.
+      showSnackBarOnError: false,
+    );
+    if (!mounted) return;
+    if (results != null && results.isNotEmpty) {
+      final defaultFolder = results.map((r) => r.data).firstWhere(
+            (f) => f.title == "default",
+            orElse: () => results.first.data,
+          );
+      _selectedFolders.add(defaultFolder);
+      widget.onFoldersSelected(_selectedFolders.toList());
+    }
+    setState(() => _isLoading = false);
   }
 
   void _showFolderSelectionDialog() {
@@ -167,16 +171,19 @@ class _FolderSelectionDialogState extends State<FolderSelectionDialog> {
   }
 
   Future<void> _loadFolders() async {
-    try {
-      final results = await widget.db.getAllFolders();
-      setState(() {
+    final results = await safeAwait<List<FolderResult>>(
+      tag: "FolderSelectionDialog",
+      operation: "load folders",
+      action: widget.db.getAllFolders,
+    );
+    if (!mounted) return;
+    setState(() {
+      if (results != null) {
         _allFolders = results.map((r) => r.data).toList();
         _cachedFilteredFolders = null;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() => _isLoading = false);
-    }
+      }
+      _isLoading = false;
+    });
   }
 
   List<Folder> get _filteredFolders {
