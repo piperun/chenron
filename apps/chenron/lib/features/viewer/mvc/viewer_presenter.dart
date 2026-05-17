@@ -6,6 +6,7 @@ import "package:chenron/features/viewer/mvc/viewer_model.dart";
 import "package:chenron/features/viewer/ui/viewer_base_item.dart";
 
 import "package:chenron/shared/item_display/item_toolbar.dart";
+import "package:chenron/utils/safe_async.dart";
 import "package:database/database.dart";
 
 import "package:flutter/material.dart";
@@ -30,6 +31,7 @@ class ViewerPresenter {
   final ViewerModel _model;
   final ConfigController _configController = locator.get<ConfigController>();
   Stream<List<ViewerItem>>? _allItemsStream;
+  StreamSubscription<List<ViewerItem>>? _allItemsSubscription;
   List<ViewerItem> _currentItems = [];
 
   Map<String, ViewerItem> get _currentItemsById =>
@@ -45,7 +47,16 @@ class ViewerPresenter {
 
   Future<void> init() async {
     _allItemsStream = _model.watchAllItems();
-    _allItemsStream!.listen(_processItems);
+    _allItemsSubscription = safeWatch<List<ViewerItem>>(
+      _allItemsStream!,
+      tag: "ViewerPresenter",
+      onData: _processItems,
+      onUiError: (_) {
+        // Push an empty list so the viewer renders the empty-state
+        // widget instead of stalling on the last successful payload.
+        if (!_itemsController.isClosed) _itemsController.add(const []);
+      },
+    );
   }
 
   void clearSelectedItems() {
@@ -145,6 +156,7 @@ class ViewerPresenter {
   }
 
   void dispose() {
+    unawaited(_allItemsSubscription?.cancel());
     searchController.removeListener(_onSearchChanged);
     searchController.dispose();
     unawaited(_itemsController.close());
