@@ -370,23 +370,29 @@ class FolderEditorNotifier {
       final parentFolderUpdates =
           _buildParentFolderUpdates(folderId, current.title);
 
-      // Update folder metadata and items
-      await appDb.updateFolder(
-        folderId,
-        title: current.title,
-        description: current.description,
-        color: Value(current.color),
-        tagUpdates: tagUpdates,
-        itemUpdates: itemUpdates,
-      );
-
-      // Handle parent folder changes
-      for (final update in parentFolderUpdates) {
+      // Single transaction for the main folder update + every parent
+      // folder update. Previously each parent update was its own
+      // serial round-trip with its own implicit commit — a folder
+      // with N parent changes shipped N+1 commits to SQLite. The
+      // transaction also gives all-or-nothing semantics: a failed
+      // parent update no longer leaves the main folder half-saved.
+      await appDb.transaction(() async {
         await appDb.updateFolder(
-          update.parentFolderId,
-          itemUpdates: update.changes,
+          folderId,
+          title: current.title,
+          description: current.description,
+          color: Value(current.color),
+          tagUpdates: tagUpdates,
+          itemUpdates: itemUpdates,
         );
-      }
+
+        for (final update in parentFolderUpdates) {
+          await appDb.updateFolder(
+            update.parentFolderId,
+            itemUpdates: update.changes,
+          );
+        }
+      });
 
       await loadFolder(folderId);
 
