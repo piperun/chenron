@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import "package:signals/signals_flutter.dart";
 import "package:database/models/item.dart";
 import "package:chenron/features/settings/controller/config_controller.dart";
 import "package:chenron/locator.dart";
@@ -63,40 +64,60 @@ class ItemListView extends StatelessWidget {
             }
             return false;
           },
-          child: ListView.separated(
-            shrinkWrap: false,
-            itemCount: totalCount,
-            separatorBuilder: (context, index) => const SizedBox(height: 8),
-            itemBuilder: (context, index) {
-              if (index >= items.length) {
-                return const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  child: Center(child: CircularProgressIndicator()),
+          child: Watch((context) {
+            // Read config preferences once per config change. Resolved values
+            // are then passed as primitives to each cell — no per-cell Watch.
+            final showImages = config.showImages.value;
+            final showDescription = config.showDescription.value;
+            final showTags = config.showTags.value;
+            final showCopyLink = config.showCopyLink.value;
+
+            final titleLines = displayMode.titleLines;
+            final descriptionLines =
+                showDescription ? displayMode.descriptionLines : 0;
+            final maxTags = showTags ? displayMode.maxTags : 0;
+            final showImage = showImages && displayMode.showImage;
+
+            return ListView.separated(
+              shrinkWrap: false,
+              itemCount: totalCount,
+              separatorBuilder: (context, index) => const SizedBox(height: 8),
+              itemBuilder: (context, index) {
+                if (index >= items.length) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                }
+
+                final item = items[index];
+                final isSelected = isDeleteMode &&
+                    item.id != null &&
+                    selectedItemIds.contains(item.id);
+
+                return RepaintBoundary(
+                  key: ValueKey(item.id ?? index),
+                  child: SelectableItemWrapper(
+                    isDeleteMode: isDeleteMode,
+                    isSelected: isSelected,
+                    onTap: isDeleteMode ? () => onItemTap?.call(item) : null,
+                    child: ViewerItem(
+                      item: item,
+                      mode: PreviewMode.list,
+                      onTap: onItemTap != null ? () => onItemTap!(item) : null,
+                      showImage: showImage,
+                      showCopyLink: showCopyLink,
+                      maxTags: maxTags,
+                      titleLines: titleLines,
+                      descriptionLines: descriptionLines,
+                      includedTagNames: includedTagNames,
+                      excludedTagNames: excludedTagNames,
+                    ),
+                  ),
                 );
-              }
-
-              final item = items[index];
-              final isSelected = isDeleteMode &&
-                  item.id != null &&
-                  selectedItemIds.contains(item.id);
-
-              return SelectableItemWrapper(
-                key: ValueKey(item.id ?? index),
-                isDeleteMode: isDeleteMode,
-                isSelected: isSelected,
-                onTap: isDeleteMode ? () => onItemTap?.call(item) : null,
-                child: ViewerItem(
-                  item: item,
-                  config: config,
-                  mode: PreviewMode.list,
-                  onTap: onItemTap != null ? () => onItemTap!(item) : null,
-                  displayMode: displayMode,
-                  includedTagNames: includedTagNames,
-                  excludedTagNames: excludedTagNames,
-                ),
-              );
-            },
-          ),
+              },
+            );
+          }),
         ),
       ),
     );

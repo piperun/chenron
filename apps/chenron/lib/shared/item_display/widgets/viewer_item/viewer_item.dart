@@ -1,8 +1,5 @@
 import "package:flutter/material.dart";
-import "package:signals/signals_flutter.dart";
 import "package:database/models/item.dart";
-import "package:chenron/features/settings/controller/config_controller.dart";
-import "package:chenron/shared/item_display/widgets/display_mode/display_mode.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/unified_item.dart";
 
 enum PreviewMode {
@@ -10,19 +7,22 @@ enum PreviewMode {
   list,
 }
 
+/// A single item cell.
+///
+/// Pure widget: all display preferences arrive as resolved primitives.
+/// The parent ([ItemGridView] / [ItemListView]) reads the config signals
+/// once per visible window — this keeps reactive subscriptions out of the
+/// per-cell build path.
 class ViewerItem extends StatelessWidget {
   final FolderItem item;
   final PreviewMode mode;
   final VoidCallback? onTap;
-  final DisplayMode displayMode;
-  final ConfigController config;
 
-  // Override parameters (take precedence over displayMode)
-  final int? titleLinesOverride;
-  final int? descriptionLinesOverride;
-  final int? maxTagsOverride;
-  final bool? showImageOverride;
-  final bool? showUrlBarOverride;
+  final bool showImage;
+  final bool showCopyLink;
+  final int maxTags;
+  final int titleLines;
+  final int descriptionLines;
 
   final Set<String> includedTagNames;
   final Set<String> excludedTagNames;
@@ -31,15 +31,13 @@ class ViewerItem extends StatelessWidget {
   const ViewerItem({
     super.key,
     required this.item,
-    required this.config,
     this.mode = PreviewMode.card,
     this.onTap,
-    this.displayMode = DisplayMode.standard,
-    this.titleLinesOverride,
-    this.descriptionLinesOverride,
-    this.maxTagsOverride,
-    this.showImageOverride,
-    this.showUrlBarOverride,
+    required this.showImage,
+    required this.showCopyLink,
+    required this.maxTags,
+    required this.titleLines,
+    required this.descriptionLines,
     this.includedTagNames = const {},
     this.excludedTagNames = const {},
     this.onTagFilterTap,
@@ -47,40 +45,18 @@ class ViewerItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Watch((BuildContext context) {
-      // Read config preferences (reactive via Watch)
-      final bool configShowImages = config.showImages.value;
-      final bool configShowDescription = config.showDescription.value;
-      final bool configShowTags = config.showTags.value;
-
-      final bool configShowCopyLink = config.showCopyLink.value;
-
-      // Resolve: explicit override > config preference > displayMode default
-      final int resolvedTitleLines =
-          titleLinesOverride ?? displayMode.titleLines;
-      final int resolvedDescriptionLines = descriptionLinesOverride ??
-          (configShowDescription ? displayMode.descriptionLines : 0);
-      final int resolvedMaxTags =
-          maxTagsOverride ?? (configShowTags ? displayMode.maxTags : 0);
-      final bool resolvedShowImage =
-          showImageOverride ?? (configShowImages && displayMode.showImage);
-      final bool resolvedShowCopyLink =
-          showUrlBarOverride ?? configShowCopyLink;
-
-      return UnifiedItem(
-        item: item,
-        mode: mode,
-        onTap: onTap,
-        showImage: resolvedShowImage,
-        showCopyLink: resolvedShowCopyLink,
-        maxTags: resolvedMaxTags,
-        titleLines: resolvedTitleLines,
-        descriptionLines: resolvedDescriptionLines,
-        includedTagNames: includedTagNames,
-        excludedTagNames: excludedTagNames,
-        onTagFilterTap: onTagFilterTap,
-      );
-    });
+    return UnifiedItem(
+      item: item,
+      mode: mode,
+      onTap: onTap,
+      showImage: showImage,
+      showCopyLink: showCopyLink,
+      maxTags: maxTags,
+      titleLines: titleLines,
+      descriptionLines: descriptionLines,
+      includedTagNames: includedTagNames,
+      excludedTagNames: excludedTagNames,
+      onTagFilterTap: onTagFilterTap,
+    );
   }
 }
-
