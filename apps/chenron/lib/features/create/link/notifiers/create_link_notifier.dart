@@ -14,6 +14,13 @@ class CreateLinkNotifier {
   final Signal<List<String>> _selectedFolderIds = signal([]);
   final Signal<bool> _isArchiveMode = signal(false);
 
+  /// True once [dispose] has run. `_validateEntry` may still be awaiting
+  /// network IO when the notifier is torn down (e.g. test tearDown firing
+  /// before `Future.wait` resolves) — in that window we must not write to
+  /// the signals or read their values, or signals_core asserts that the
+  /// signal "was written after being disposed".
+  bool _disposed = false;
+
   late final Computed<bool> hasEntries = computed(() => _entries.value.isNotEmpty);
 
   InputMode get inputMode => _inputMode.value;
@@ -189,6 +196,7 @@ class CreateLinkNotifier {
 
   /// Validates a specific entry asynchronously
   Future<void> _validateEntry(Key key) async {
+    if (_disposed) return;
     final current = _entries.value;
     final index = current.indexWhere((e) => e.key == key);
     if (index == -1) return;
@@ -208,6 +216,9 @@ class CreateLinkNotifier {
     try {
       // Perform validation
       final result = await UrlValidatorService.validateUrl(entry.url);
+
+      // Notifier may have been disposed while the network call was in flight.
+      if (_disposed) return;
 
       loggerGlobal.info("CreateLinkNotifier",
           "Validation completed for ${entry.url}: isValid=${result.isValid}, isReachable=${result.isReachable}, message=${result.message}");
@@ -240,6 +251,7 @@ class CreateLinkNotifier {
         _entries.value = list2;
       }
     } catch (e, stackTrace) {
+      if (_disposed) return;
       loggerGlobal.severe("CreateLinkNotifier",
           "Validation error for ${entry.url}: $e", e, stackTrace);
 
@@ -293,6 +305,8 @@ class CreateLinkNotifier {
   }
 
   void dispose() {
+    if (_disposed) return;
+    _disposed = true;
     _inputMode.dispose();
     _entries.dispose();
     _globalTags.dispose();
