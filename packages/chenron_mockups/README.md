@@ -17,7 +17,6 @@ Test support utilities, mocks, and fixtures for Chenron project.
 
 ### Utilities
 - `logger_setup.dart` - Logger setup for tests
-- `test_app.dart` - Test app wrapper
 
 ## Usage
 
