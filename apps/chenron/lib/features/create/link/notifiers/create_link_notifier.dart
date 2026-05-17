@@ -1,5 +1,6 @@
 import "package:flutter/foundation.dart";
 import "dart:async";
+import "package:http/http.dart" as http;
 import "package:signals/signals.dart";
 import "package:chenron/features/create/link/models/link_entry.dart";
 import "package:chenron/features/create/link/services/url_validator_service.dart";
@@ -195,7 +196,12 @@ class CreateLinkNotifier {
   }
 
   /// Validates a specific entry asynchronously
-  Future<void> _validateEntry(Key key) async {
+  ///
+  /// Pass [client] when running this as part of a bulk batch — the
+  /// caller owns the shared client so the connection pool can be reused
+  /// across many URLs. A single call (e.g. revalidation) leaves [client]
+  /// null and a throw-away client is used implicitly.
+  Future<void> _validateEntry(Key key, {http.Client? client}) async {
     if (_disposed) return;
     final current = _entries.value;
     final index = current.indexWhere((e) => e.key == key);
@@ -215,7 +221,8 @@ class CreateLinkNotifier {
 
     try {
       // Perform validation
-      final result = await UrlValidatorService.validateUrl(entry.url);
+      final result =
+          await UrlValidatorService.validateUrl(entry.url, client: client);
 
       // Notifier may have been disposed while the network call was in flight.
       if (_disposed) return;
@@ -270,7 +277,13 @@ class CreateLinkNotifier {
   }
 
   /// Validates all entries with a configurable strategy
+  ///
+  /// Parallel mode uses a single shared [http.Client] and processes
+  /// entries in chunks of [UrlValidatorService.defaultConcurrency] — keeps
+  /// the bulk-import path from spawning one HTTP client (and one socket
+  /// connection) per row.
   Future<void> validateAllEntries({bool parallel = true}) async {
+    if (_disposed) return;
     loggerGlobal.info("CreateLinkNotifier",
         "Starting ${parallel ? 'parallel' : 'sequential'} validation for ${_entries.value.length} entries");
     final startTime = DateTime.now();
@@ -278,9 +291,23 @@ class CreateLinkNotifier {
     final keys = _entries.value.map((e) => e.key).toList(growable: false);
 
     if (parallel) {
-      await Future.wait(keys.map(_validateEntry));
+      final client = http.Client();
+      try {
+        const concurrency = UrlValidatorService.defaultConcurrency;
+        for (var i = 0; i < keys.length; i += concurrency) {
+          if (_disposed) break;
+          final end =
+              (i + concurrency < keys.length) ? i + concurrency : keys.length;
+          final chunk = keys.sublist(i, end);
+          await Future.wait(
+              chunk.map((k) => _validateEntry(k, client: client)));
+        }
+      } finally {
+        client.close();
+      }
     } else {
       for (final key in keys) {
+        if (_disposed) break;
         await _validateEntry(key);
       }
     }
