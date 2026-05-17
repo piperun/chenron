@@ -1,10 +1,11 @@
 import "package:flutter/material.dart";
 import "package:flutter_test/flutter_test.dart";
 import "package:chenron/features/shell/widgets/add_item_modal.dart";
+import "package:database/models/item.dart";
 
 void main() {
   Widget buildModal({
-    ValueChanged<ItemType>? onTypeSelected,
+    ValueChanged<FolderItemType>? onTypeSelected,
   }) {
     return MaterialApp(
       home: Scaffold(
@@ -27,7 +28,7 @@ void main() {
   /// Uses a narrow width so the modal gets height-proportional sizing (60%
   /// of viewport) instead of the fixed 480px that overflows by 2px.
   Future<void> openModal(WidgetTester tester,
-      {ValueChanged<ItemType>? onTypeSelected}) async {
+      {ValueChanged<FolderItemType>? onTypeSelected}) async {
     tester.view.physicalSize = const Size(600, 1000);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(() {
@@ -88,38 +89,38 @@ void main() {
   group("AddItemModal type selector with callback", () {
     testWidgets("calls onTypeSelected with link when Link tapped",
         (tester) async {
-      ItemType? selectedType;
+      FolderItemType? selectedType;
       await openModal(tester,
           onTypeSelected: (type) => selectedType = type);
 
       await tester.tap(find.text("Link"));
       await tester.pumpAndSettle();
 
-      expect(selectedType, ItemType.link);
+      expect(selectedType, FolderItemType.link);
     });
 
     testWidgets("calls onTypeSelected with folder when Folder tapped",
         (tester) async {
-      ItemType? selectedType;
+      FolderItemType? selectedType;
       await openModal(tester,
           onTypeSelected: (type) => selectedType = type);
 
       await tester.tap(find.text("Folder"));
       await tester.pumpAndSettle();
 
-      expect(selectedType, ItemType.folder);
+      expect(selectedType, FolderItemType.folder);
     });
 
     testWidgets("calls onTypeSelected with document when Document tapped",
         (tester) async {
-      ItemType? selectedType;
+      FolderItemType? selectedType;
       await openModal(tester,
           onTypeSelected: (type) => selectedType = type);
 
       await tester.tap(find.text("Document"));
       await tester.pumpAndSettle();
 
-      expect(selectedType, ItemType.document);
+      expect(selectedType, FolderItemType.document);
     });
 
     testWidgets("closes modal after type selection with callback",

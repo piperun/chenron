@@ -3,19 +3,14 @@ import "package:chenron/shared/constants/durations.dart";
 import "package:chenron/features/create/folder/pages/create_folder.dart";
 import "package:chenron/features/create/link/pages/create_link.dart";
 import "package:chenron/responsible_design/breakpoints.dart";
-
-enum ItemType {
-  link,
-  folder,
-  document,
-}
+import "package:database/models/item.dart";
 
 /// A modal that allows users to select an item type.
 ///
 /// When used standalone, shows type selector and form.
 /// When used with callback, just shows type selector and calls callback.
 class AddItemModal extends StatefulWidget {
-  final ValueChanged<ItemType>? onTypeSelected;
+  final ValueChanged<FolderItemType>? onTypeSelected;
 
   const AddItemModal({
     super.key,
@@ -27,9 +22,9 @@ class AddItemModal extends StatefulWidget {
 }
 
 class _AddItemModalState extends State<AddItemModal> {
-  ItemType? _selectedType;
+  FolderItemType? _selectedType;
 
-  void _onTypeSelected(ItemType type) {
+  void _onTypeSelected(FolderItemType type) {
     // If callback provided, call it and close modal
     if (widget.onTypeSelected != null) {
       widget.onTypeSelected!(type);
@@ -113,7 +108,7 @@ class _AddItemModalState extends State<AddItemModal> {
 
 /// Type selector view - shows cards for Link, Folder, Document
 class _TypeSelectorView extends StatelessWidget {
-  final ValueChanged<ItemType> onTypeSelected;
+  final ValueChanged<FolderItemType> onTypeSelected;
 
   const _TypeSelectorView({
     super.key,
@@ -160,21 +155,21 @@ class _TypeSelectorView extends StatelessWidget {
                 icon: Icons.link,
                 title: "Link",
                 subtitle: "Add a link or bookmark",
-                onTap: () => onTypeSelected(ItemType.link),
+                onTap: () => onTypeSelected(FolderItemType.link),
               ),
               const SizedBox(height: 12),
               _TypeCard(
                 icon: Icons.folder_outlined,
                 title: "Folder",
                 subtitle: "Create a new folder",
-                onTap: () => onTypeSelected(ItemType.folder),
+                onTap: () => onTypeSelected(FolderItemType.folder),
               ),
               const SizedBox(height: 12),
               _TypeCard(
                 icon: Icons.description_outlined,
                 title: "Document",
                 subtitle: "Upload a document",
-                onTap: () => onTypeSelected(ItemType.document),
+                onTap: () => onTypeSelected(FolderItemType.document),
               ),
             ],
           ),
@@ -274,7 +269,7 @@ class _TypeCard extends StatelessWidget {
 
 /// Wrapper for the actual form pages
 class _FormWrapperView extends StatefulWidget {
-  final ItemType type;
+  final FolderItemType type;
   final VoidCallback onBack;
 
   const _FormWrapperView({
@@ -336,18 +331,18 @@ class _FormWrapperViewState extends State<_FormWrapperView> {
 
   String _getTitle() {
     switch (widget.type) {
-      case ItemType.link:
+      case FolderItemType.link:
         return "Add Link";
-      case ItemType.folder:
+      case FolderItemType.folder:
         return "Create Folder";
-      case ItemType.document:
+      case FolderItemType.document:
         return "Add Document";
     }
   }
 }
 
 class _FormContent extends StatelessWidget {
-  final ItemType type;
+  final FolderItemType type;
   final ValueChanged<VoidCallback> onSaveCallbackReady;
   final ValueChanged<bool> onValidationChanged;
 
@@ -360,19 +355,19 @@ class _FormContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     switch (type) {
-      case ItemType.link:
+      case FolderItemType.link:
         return CreateLinkPage(
           hideAppBar: true,
           onSaveCallbackReady: onSaveCallbackReady,
           onValidationChanged: onValidationChanged,
         );
-      case ItemType.folder:
+      case FolderItemType.folder:
         return CreateFolderPage(
           hideAppBar: true,
           onSaveCallbackReady: onSaveCallbackReady,
           onValidationChanged: onValidationChanged,
         );
-      case ItemType.document:
+      case FolderItemType.document:
         return const _DocumentPlaceholder();
     }
   }
