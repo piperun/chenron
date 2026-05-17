@@ -1,10 +1,10 @@
 ﻿import "dart:async";
-import "package:database/main.dart";
-import "package:flutter/material.dart";
-import "package:database/database.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/shared/section_card/section_card.dart";
-
+import "package:chenron/utils/safe_async.dart";
+import "package:database/database.dart";
+import "package:database/main.dart";
+import "package:flutter/material.dart";
 import "package:signals/signals_flutter.dart";
 
 class FolderParentSection extends StatefulWidget {
@@ -115,15 +115,18 @@ class _FolderSelectionDialogState extends State<_FolderSelectionDialog> {
   }
 
   Future<void> _loadFolders() async {
-    try {
-      final results = await widget.db.getAllFolders();
-      setState(() {
+    final results = await safeAwait<List<FolderResult>>(
+      tag: "FolderParentSection",
+      operation: "load folders",
+      action: widget.db.getAllFolders,
+    );
+    if (!mounted) return;
+    setState(() {
+      if (results != null) {
         _allFolders = results.map((r) => r.data).toList();
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() => _isLoading = false);
-    }
+      }
+      _isLoading = false;
+    });
   }
 
   List<Folder> get _filteredFolders => _allFolders.where((f) {

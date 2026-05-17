@@ -3,6 +3,7 @@ import "dart:async";
 import "package:chenron/features/bulk_tag/models/bulk_tag_result.dart";
 import "package:chenron/features/bulk_tag/widgets/tag_list.dart";
 import "package:chenron/locator.dart";
+import "package:chenron/utils/safe_async.dart";
 import "package:chenron/utils/validation/tag_validator.dart";
 import "package:database/database.dart";
 import "package:flutter/material.dart";
@@ -79,20 +80,24 @@ class _BulkTagDialogState extends State<_BulkTagDialog> {
   }
 
   Future<void> _loadTags() async {
-    try {
-      final db =
-          locator.get<Signal<AppDatabaseHandler>>().value.appDatabase;
-      final results = await db.getAllTags();
-      if (!mounted) return;
-      setState(() {
+    final results = await safeAwait<List<TagResult>>(
+      tag: "BulkTagDialog",
+      operation: "load tags",
+      action: () async {
+        final db =
+            locator.get<Signal<AppDatabaseHandler>>().value.appDatabase;
+        return db.getAllTags();
+      },
+    );
+    if (!mounted) return;
+    setState(() {
+      if (results != null) {
         _allTagNames = results.map((r) => r.data.name).toList();
-        _tagColors.addAll({for (final r in results) r.data.name: r.data.color});
-        _isLoading = false;
-      });
-    } catch (_) {
-      if (!mounted) return;
-      setState(() => _isLoading = false);
-    }
+        _tagColors.addAll(
+            {for (final r in results) r.data.name: r.data.color});
+      }
+      _isLoading = false;
+    });
   }
 
   List<String> get _filteredTagNames {
@@ -185,8 +190,15 @@ class _BulkTagDialogState extends State<_BulkTagDialog> {
 
   Future<void> _handleColorChange(String tagName, int? color) async {
     setState(() => _tagColors[tagName] = color);
-    final db = locator.get<Signal<AppDatabaseHandler>>().value.appDatabase;
-    await db.updateTagColor(tagName: tagName, color: color);
+    await safeAwait<void>(
+      tag: "BulkTagDialog",
+      operation: "update tag color",
+      action: () async {
+        final db =
+            locator.get<Signal<AppDatabaseHandler>>().value.appDatabase;
+        await db.updateTagColor(tagName: tagName, color: color);
+      },
+    );
   }
 
   bool get _hasChanges => _tagsToAdd.isNotEmpty || _tagsToRemove.isNotEmpty;
