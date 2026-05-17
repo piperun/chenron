@@ -11,7 +11,7 @@ Archive.org client and helpers extracted into a reusable Dart package.
 - ArchiveOrgClientFactory indirection for easy test mocking
 - ArchiveOrgOptions to control capture parameters
 - parseArchiveDate() helper to parse timestamps from archived URLs
-- Uses package:logging (no dependency on app-specific loggers)
+- Routes logs through `app_logger` (shared logging stack)
 
 ## Install (workspace)
 
