@@ -282,6 +282,45 @@ void main() {
       expect(urls, isNot(contains("https://fresh.com")));
     });
 
+    test("getWebMetadataForUrls returns map keyed by URL for known entries",
+        () async {
+      final now = DateTime.now();
+      await database.upsertWebMetadata(
+        url: "https://a.com",
+        title: "A",
+        description: null,
+        image: null,
+        fetchedAt: now,
+      );
+      await database.upsertWebMetadata(
+        url: "https://b.com",
+        title: "B",
+        description: null,
+        image: null,
+        fetchedAt: now,
+      );
+
+      final result = await database.getWebMetadataForUrls([
+        "https://a.com",
+        "https://b.com",
+        "https://missing.com",
+      ]);
+
+      expect(result.keys, containsAll(["https://a.com", "https://b.com"]));
+      expect(result.containsKey("https://missing.com"), isFalse);
+      expect(result["https://a.com"]!.title, "A");
+      expect(result["https://b.com"]!.title, "B");
+    });
+
+    test("getWebMetadataForUrls returns empty map for empty input",
+        () async {
+      // Regression: must not issue a SQL query at all for empty input —
+      // the suggestion-builder hot path frequently has nothing to fetch
+      // after the parallel search already filled metadataByUrl.
+      final result = await database.getWebMetadataForUrls(const []);
+      expect(result, isEmpty);
+    });
+
     test("schema v12 indexes exist", () async {
       final indexes = await database
           .customSelect(

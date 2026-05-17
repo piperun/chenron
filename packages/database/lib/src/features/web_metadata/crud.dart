@@ -8,6 +8,25 @@ extension WebMetadataCrudExtensions on AppDatabase {
         .getSingleOrNull();
   }
 
+  /// Fetch metadata entries for many URLs in one round-trip.
+  ///
+  /// Returns a `url → entry` map containing only the URLs that had
+  /// stored metadata; absent URLs are simply missing from the map.
+  /// Replaces per-URL `getWebMetadata` loops on hot paths like the
+  /// search-bar suggestion builder.
+  Future<Map<String, WebMetadataEntry>> getWebMetadataForUrls(
+    Iterable<String> urls,
+  ) async {
+    final urlList = urls.toList(growable: false);
+    if (urlList.isEmpty) return const {};
+
+    final rows = await (select(webMetadataEntries)
+          ..where((t) => t.url.isIn(urlList)))
+        .get();
+
+    return {for (final row in rows) row.url: row};
+  }
+
   Future<void> upsertWebMetadata({
     required String url,
     String? title,
