@@ -180,8 +180,9 @@ String _buildRemovalMessage(TagRemovalResult result) {
 /// Handles bulk metadata refresh for selected link items.
 ///
 /// Filters to link items, force-fetches metadata for each, and shows
-/// progress via snackbars. The UI updates live via MetadataFactory's
-/// lastRefreshedUrl signal.
+/// progress via snackbars. The UI updates live via
+/// MetadataFactory.refreshDispatcher, which routes per-URL events to
+/// the cards subscribed to that URL.
 Future<void> handleItemMetadataRefresh(
   BuildContext context,
   List<FolderItem> items,
