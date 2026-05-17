@@ -43,7 +43,6 @@ export "src/features/backup_settings/update.dart";
 // User Theme operations
 export "src/features/user_theme/create.dart";
 export "src/features/user_theme/remove.dart";
-//export 'src/features/user_theme/read.dart';
 
 // Web metadata cache
 export "src/features/web_metadata/crud.dart";
