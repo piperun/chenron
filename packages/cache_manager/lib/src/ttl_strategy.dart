@@ -155,9 +155,7 @@ TtlTier classifyUrlTtlTier(String url) {
 
   // Check long prefixes — also match compound forms like "terms-of-service".
   for (final prefix in _longPrefixes) {
-    if (first == prefix ||
-        first.startsWith(prefix) ||
-        first.endsWith(prefix)) {
+    if (first == prefix || first.startsWith(prefix) || first.endsWith(prefix)) {
       return TtlTier.long;
     }
   }
