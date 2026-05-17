@@ -45,13 +45,21 @@ script = "#!/bin/sh\nset -e\nexec scripts/pre-push.sh \"$@\""
 [git_hooks.commit-msg]
 script = "#!/bin/sh\nset -e\ncog verify --file $1"
 
+# NOTE on pre_bump_hooks:
+# Workspace-internal dependencies use `any` constraints in every consumer
+# pubspec — Dart pub workspaces resolve from the workspace root, so the
+# pinned `^X.Y.Z` lines that used to live in consumer pubspecs were just
+# rewrite-targets for the old cross-pubspec sed hooks. Removing them
+# eliminates the manual-coupling foot-gun: a bump of one package no
+# longer forces edits in every other pubspec.
+# Each hook now just rewrites the local `version:` field.
+
 [monorepo.packages.chenron]
 path = "apps/chenron"
 changelog_path = "CHANGELOG.md"
 public_api = true
 pre_bump_hooks = [
   "sed -i 's/^version: .*/version: {{version}}+0/' pubspec.yaml",
-  "grep -rl '  chenron:' ../.. --include=pubspec.yaml | xargs -r sed -i 's/  chenron: \\^.*/  chenron: ^{{version}}/'",
 ]
 
 [monorepo.packages.database]
@@ -59,7 +67,6 @@ path = "packages/database"
 public_api = true
 pre_bump_hooks = [
   "sed -i 's/^version: .*/version: {{version}}/' pubspec.yaml",
-  "grep -rl '  database:' ../.. --include=pubspec.yaml | xargs -r sed -i 's/  database: \\^.*/  database: ^{{version}}/'",
 ]
 
 [monorepo.packages.core]
@@ -67,7 +74,6 @@ path = "packages/core"
 public_api = true
 pre_bump_hooks = [
   "sed -i 's/^version: .*/version: {{version}}/' pubspec.yaml",
-  "grep -rl '  core:' ../.. --include=pubspec.yaml | xargs -r sed -i 's/  core: \\^.*/  core: ^{{version}}/'",
 ]
 
 [monorepo.packages.basedir]
@@ -75,7 +81,6 @@ path = "packages/basedir"
 public_api = false
 pre_bump_hooks = [
   "sed -i 's/^version: .*/version: {{version}}/' pubspec.yaml",
-  "grep -rl '  basedir:' ../.. --include=pubspec.yaml | xargs -r sed -i 's/  basedir: \\^.*/  basedir: ^{{version}}/'",
 ]
 
 [monorepo.packages.cache_manager]
@@ -83,7 +88,6 @@ path = "packages/cache_manager"
 public_api = false
 pre_bump_hooks = [
   "sed -i 's/^version: .*/version: {{version}}/' pubspec.yaml",
-  "grep -rl '  cache_manager:' ../.. --include=pubspec.yaml | xargs -r sed -i 's/  cache_manager: \\^.*/  cache_manager: ^{{version}}/'",
 ]
 
 [monorepo.packages.logger]
@@ -91,7 +95,6 @@ path = "packages/logger"
 public_api = false
 pre_bump_hooks = [
   "sed -i 's/^version: .*/version: {{version}}/' pubspec.yaml",
-  "grep -rl '  logger:' ../.. --include=pubspec.yaml | xargs -r sed -i 's/  logger: \\^.*/  logger: ^{{version}}/'",
 ]
 
 [monorepo.packages.vibe]
@@ -99,7 +102,6 @@ path = "packages/vibe"
 public_api = false
 pre_bump_hooks = [
   "sed -i 's/^version: .*/version: {{version}}/' pubspec.yaml",
-  "grep -rl '  vibe:' ../.. --include=pubspec.yaml | xargs -r sed -i 's/  vibe: \\^.*/  vibe: ^{{version}}/'",
 ]
 
 [monorepo.packages.web_archiver]
@@ -107,7 +109,6 @@ path = "packages/web_archiver"
 public_api = false
 pre_bump_hooks = [
   "sed -i 's/^version: .*/version: {{version}}/' pubspec.yaml",
-  "grep -rl '  web_archiver:' ../.. --include=pubspec.yaml | xargs -r sed -i 's/  web_archiver: \\^.*/  web_archiver: ^{{version}}/'",
 ]
 
 [monorepo.packages.platform_provider]
@@ -115,7 +116,6 @@ path = "packages/platform_provider"
 public_api = false
 pre_bump_hooks = [
   "sed -i 's/^version: .*/version: {{version}}/' pubspec.yaml",
-  "grep -rl '  platform_provider:' ../.. --include=pubspec.yaml | xargs -r sed -i 's/  platform_provider: \\^.*/  platform_provider: ^{{version}}/'",
 ]
 
 [monorepo.packages.chenron_mockups]
@@ -123,5 +123,4 @@ path = "packages/chenron_mockups"
 public_api = false
 pre_bump_hooks = [
   "sed -i 's/^version: .*/version: {{version}}/' pubspec.yaml",
-  "grep -rl '  chenron_mockups:' ../.. --include=pubspec.yaml | xargs -r sed -i 's/  chenron_mockups: \\^.*/  chenron_mockups: ^{{version}}/'",
 ]
