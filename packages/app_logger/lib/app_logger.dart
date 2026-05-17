@@ -92,11 +92,11 @@ final class LoggerImpl {
         "Logger setup complete. Log directory: ${logDir.path}. File logging in debug: $logToFileInDebug");
   }
 
+  /// Get a logger for the given [source].
+  ///
+  /// Safe to call before [setupLogging]; the returned [Logger] will accept
+  /// records but they go nowhere until a listener is attached.
   Logger getLogger(String source) {
-    if (!_isSetup) {
-      throw StateError(
-          "Logger has not been initialized. Call setupLogging() before attempting to log.");
-    }
     return _loggers.putIfAbsent(source, () => Logger(source));
   }
 

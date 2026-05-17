@@ -1,8 +1,8 @@
+import 'package:app_logger/app_logger.dart';
 import 'package:cache_manager/src/metadata_persistence.dart';
-import 'package:logging/logging.dart';
 import 'dart:collection';
 
-final _logger = Logger('MetadataCache');
+const _source = 'MetadataCache';
 
 /// Manages caching of metadata with an in-memory LRU layer and a
 /// pluggable persistent backend ([MetadataPersistence]).
@@ -11,7 +11,8 @@ final _logger = Logger('MetadataCache');
 /// Without it, only the in-memory LRU cache is active.
 class MetadataCache {
   static MetadataPersistence? _persistence;
-  static final _LRUCache<String, Map<String, dynamic>> _memoryCache = _LRUCache(maxSize: 100);
+  static final _LRUCache<String, Map<String, dynamic>> _memoryCache =
+      _LRUCache(maxSize: 100);
   static final Map<String, DateTime> _failedAttempts = {};
   static final Map<String, int> _failureCount = {};
   static final Set<String> _fetchingUrls = {};
@@ -27,10 +28,12 @@ class MetadataCache {
     final cachedData = _memoryCache.get(url);
     if (cachedData != null) {
       if (_isFresh(cachedData)) {
-        _logger.fine('Memory cache HIT (FRESH) for: $url | Title: ${cachedData['title'] ?? 'N/A'}');
+        loggerGlobal.fine(_source,
+            'Memory cache HIT (FRESH) for: $url | Title: ${cachedData['title'] ?? 'N/A'}');
         return cachedData;
       } else {
-        _logger.fine('Memory cache HIT (STALE) for: $url | Title: ${cachedData['title'] ?? 'N/A'}');
+        loggerGlobal.fine(_source,
+            'Memory cache HIT (STALE) for: $url | Title: ${cachedData['title'] ?? 'N/A'}');
         // Remove stale entry from memory cache
         _memoryCache.remove(url);
         return null; // Stale data, return null to trigger refetch
@@ -45,17 +48,19 @@ class MetadataCache {
         if (_isFresh(cached)) {
           // Load into LRU memory cache
           _memoryCache.put(url, cached);
-          _logger.fine('Persistent cache HIT (FRESH) for: $url | Title: ${cached['title'] ?? 'N/A'}');
+          loggerGlobal.fine(_source,
+              'Persistent cache HIT (FRESH) for: $url | Title: ${cached['title'] ?? 'N/A'}');
           return cached;
         } else {
-          _logger.fine('Persistent cache HIT (STALE) for: $url | Title: ${cached['title'] ?? 'N/A'} | Needs refetch');
+          loggerGlobal.fine(_source,
+              'Persistent cache HIT (STALE) for: $url | Title: ${cached['title'] ?? 'N/A'} | Needs refetch');
           return null; // Stale data, return null to trigger refetch
         }
       } else {
-        _logger.fine('Cache MISS for: $url');
+        loggerGlobal.fine(_source, 'Cache MISS for: $url');
       }
     } catch (e) {
-      _logger.warning('Cache error for: $url | Error: $e');
+      loggerGlobal.warning(_source, 'Cache error for: $url | Error: $e');
     }
     return null;
   }
@@ -70,13 +75,15 @@ class MetadataCache {
 
     // Store in LRU memory cache (automatically handles eviction)
     _memoryCache.put(url, metadataWithTimestamp);
-    _logger.info('Cached metadata for: $url | Title: ${metadata['title'] ?? 'N/A'}');
+    loggerGlobal.info(_source,
+        'Cached metadata for: $url | Title: ${metadata['title'] ?? 'N/A'}');
 
     if (_persistence == null) return;
     try {
       await _persistence!.set(url, metadataWithTimestamp);
     } catch (e) {
-      _logger.warning('Failed to persist cache for: $url | Error: $e');
+      loggerGlobal.warning(
+          _source, 'Failed to persist cache for: $url | Error: $e');
     }
   }
 
@@ -92,7 +99,8 @@ class MetadataCache {
 
     const backoffMinutes = [2, 10, 60, 360, 1440];
     final index = failureCount.clamp(0, backoffMinutes.length - 1);
-    return DateTime.now().difference(lastAttempt).inMinutes >= backoffMinutes[index];
+    return DateTime.now().difference(lastAttempt).inMinutes >=
+        backoffMinutes[index];
   }
 
   /// Record a failed fetch attempt
@@ -144,7 +152,7 @@ class MetadataCache {
     try {
       await _persistence?.clearAll();
     } catch (e) {
-      _logger.warning('Failed to clear persistent cache: $e');
+      loggerGlobal.warning(_source, 'Failed to clear persistent cache: $e');
     }
   }
 
@@ -180,7 +188,7 @@ class MetadataCache {
     try {
       return await _persistence!.get(url);
     } catch (e) {
-      _logger.warning('getStale error for: $url | Error: $e');
+      loggerGlobal.warning(_source, 'getStale error for: $url | Error: $e');
       return null;
     }
   }

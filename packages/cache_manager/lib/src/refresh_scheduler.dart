@@ -1,9 +1,9 @@
 import "dart:async";
 
+import "package:app_logger/app_logger.dart";
 import "package:cache_manager/src/metadata_persistence.dart";
-import "package:logging/logging.dart";
 
-final _logger = Logger("RefreshScheduler");
+const _source = "RefreshScheduler";
 
 /// Compute refresh priority for a cached entry.
 ///
@@ -47,8 +47,7 @@ class RefreshScheduler {
       if (fetchedAt == null) continue;
 
       final ttlDays = (entry["ttlDays"] as int?) ?? 7;
-      final consecutiveUnchanged =
-          (entry["consecutiveUnchanged"] as int?) ?? 0;
+      final consecutiveUnchanged = (entry["consecutiveUnchanged"] as int?) ?? 0;
 
       final priority = computeRefreshPriority(
         fetchedAt: fetchedAt,
@@ -80,29 +79,31 @@ class RefreshScheduler {
     try {
       expired = await persistence.getExpiredEntries();
     } catch (e) {
-      _logger.warning("Failed to query expired entries: $e");
+      loggerGlobal.warning(_source, "Failed to query expired entries: $e");
       return 0;
     }
 
     final queue = buildQueue(expired);
     if (queue.isEmpty) {
-      _logger.info("No expired entries to refresh.");
+      loggerGlobal.info(_source, "No expired entries to refresh.");
       return 0;
     }
 
-    _logger.info("Refresh queue: ${queue.length} expired entries to process.");
+    loggerGlobal.info(
+        _source, "Refresh queue: ${queue.length} expired entries to process.");
 
     var refreshed = 0;
     for (final entry in queue) {
       if (shouldStop?.call() ?? false) {
-        _logger.info("Refresh stopped early after $refreshed entries.");
+        loggerGlobal.info(
+            _source, "Refresh stopped early after $refreshed entries.");
         break;
       }
 
       final url = entry["url"] as String;
       final success = await refreshOne(url);
       if (!success) {
-        _logger.info(
+        loggerGlobal.info(_source,
             "Refresh halted (rate limit or error) after $refreshed entries.");
         break;
       }
@@ -113,7 +114,8 @@ class RefreshScheduler {
       }
     }
 
-    _logger.info("Refresh complete: $refreshed entries refreshed.");
+    loggerGlobal.info(
+        _source, "Refresh complete: $refreshed entries refreshed.");
     return refreshed;
   }
 }
