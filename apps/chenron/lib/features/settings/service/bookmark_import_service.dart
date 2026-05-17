@@ -8,6 +8,12 @@ import "package:html/dom.dart";
 import "package:html/parser.dart" as html_parser;
 import "package:signals/signals.dart";
 
+/// Top-level helper for `compute(...)`. Must NOT close over any state.
+/// Chrome bookmark exports can hit tens of megabytes; parsing on the UI
+/// isolate freezes the frame loop for the duration. `compute` moves
+/// the parse to a background isolate.
+Document _parseBookmarkHtml(String content) => html_parser.parse(content);
+
 class BookmarkImportResult {
   final int foldersCreated;
   final int linksImported;
@@ -37,7 +43,7 @@ class BookmarkImportService {
     final appDb = _resolveDb();
 
     final content = await sourceFile.readAsString();
-    final document = html_parser.parse(content);
+    final document = await compute(_parseBookmarkHtml, content);
 
     final rootDl = document.querySelector("dl");
     if (rootDl == null) {
