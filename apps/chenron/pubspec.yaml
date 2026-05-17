@@ -63,14 +63,17 @@ dependencies:
   window_manager: ^0.4.3
 
   # Local workspace packages (alphabetically sorted)
-  basedir: ^0.1.0
-  cache_manager: ^0.4.0
-  core: ^0.0.1
-  database: ^0.13.0
-  app_logger: ^0.0.1
-  platform_provider: ^0.1.0
-  vibe: ^0.1.1
-  web_archiver: ^0.1.0
+  # Constraint is `any` — Dart pub workspaces resolve from the workspace
+  # root, so version pins here would just have to be rewritten on every
+  # `cog bump` without affecting resolution.
+  basedir: any
+  cache_manager: any
+  core: any
+  database: any
+  app_logger: any
+  platform_provider: any
+  vibe: any
+  web_archiver: any
 dev_dependencies:
   drift_dev: ^2.20.0
   build_runner: ^2.4.15
@@ -97,7 +100,7 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
   plugin_platform_interface: any
-  chenron_mockups: ^0.0.1
+  chenron_mockups: any
   mockito: ^5.6.1
   flutter_driver:
     sdk: flutter

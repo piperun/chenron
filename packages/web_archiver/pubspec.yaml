@@ -11,15 +11,15 @@ dependencies:
   app_logger: any
   http: ^1.2.2
   path_provider: ^2.1.4
-  platform_provider: ^0.1.0
+  platform_provider: any
   html: ^0.15.4
 
 dev_dependencies:
-  database: ^0.13.0
+  database: any
   flutter_test:
     sdk: flutter
   integration_test:
     sdk: flutter
   flutter_lints: ^6.0.0
-  chenron_mockups: ^0.0.1
+  chenron_mockups: any
   drift: ^2.28.2

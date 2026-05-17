@@ -23,7 +23,7 @@ dependencies:
   get_it: ^9.2.0
   intl: ^0.20.2
   path: ^1.9.0
-  web_archiver: ^0.1.0
+  web_archiver: any
   crypto: ^3.0.7
 
 dev_dependencies:
