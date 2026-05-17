@@ -21,6 +21,14 @@ class UrlValidationResult {
 class UrlValidatorService {
   static const Duration _timeout = Duration(seconds: 3);
 
+  /// Default in-flight cap for [validateUrls]. Bulk-import flows used to
+  /// fire `Future.wait` across every URL at once, which spun up a fresh
+  /// HTTP connection per row (top-level `http.head` / `http.get` allocate
+  /// a one-shot Client). 8 is a safe ceiling for residential connections
+  /// — large enough to keep latency low, small enough to avoid storming
+  /// remote hosts or exhausting local sockets.
+  static const int defaultConcurrency = 8;
+
   /// Validates URL format
   static bool isValidUrlFormat(String url) {
     try {
@@ -31,8 +39,15 @@ class UrlValidatorService {
     }
   }
 
-  /// Performs async validation: checks DNS resolution and HTTP status
-  static Future<UrlValidationResult> validateUrl(String url) async {
+  /// Performs async validation: checks DNS resolution and HTTP status.
+  ///
+  /// Pass [client] to reuse one HTTP client across many validations
+  /// (lets the underlying socket pool kick in). When omitted a throw-away
+  /// client is implicit via the top-level `http.head`/`http.get` helpers.
+  static Future<UrlValidationResult> validateUrl(
+    String url, {
+    http.Client? client,
+  }) async {
     if (!isValidUrlFormat(url)) {
       return UrlValidationResult(
         isValid: false,
@@ -60,12 +75,12 @@ class UrlValidatorService {
 
       // Check HTTP status
       try {
-        final response = await http
-            .head(uri)
+        final response = await _head(uri, client)
             .timeout(_timeout)
-            .catchError((_) => http.get(uri).timeout(_timeout));
+            .catchError((_) => _get(uri, client).timeout(_timeout));
 
-        final isReachable = response.statusCode >= 200 && response.statusCode < 400;
+        final isReachable =
+            response.statusCode >= 200 && response.statusCode < 400;
 
         return UrlValidationResult(
           isValid: true,
@@ -109,19 +124,42 @@ class UrlValidatorService {
     }
   }
 
-  /// Batch validate multiple URLs
+  static Future<http.Response> _head(Uri uri, http.Client? client) =>
+      client != null ? client.head(uri) : http.head(uri);
+
+  static Future<http.Response> _get(Uri uri, http.Client? client) =>
+      client != null ? client.get(uri) : http.get(uri);
+
+  /// Batch validate multiple URLs with bounded concurrency and a single
+  /// shared HTTP client.
+  ///
+  /// At most [concurrency] requests are in flight at any time. Pass a
+  /// [client] to bring your own — useful for tests with `MockClient`,
+  /// and for batched callers (e.g. bulk import) that already own a
+  /// client. Otherwise an internal one is created and closed in a
+  /// `finally`.
   static Future<Map<String, UrlValidationResult>> validateUrls(
-    List<String> urls,
-  ) async {
+    List<String> urls, {
+    int concurrency = defaultConcurrency,
+    http.Client? client,
+  }) async {
     final results = <String, UrlValidationResult>{};
+    if (urls.isEmpty) return results;
 
-    await Future.wait(
-      urls.map((url) async {
-        results[url] = await validateUrl(url);
-      }),
-    );
-
-    return results;
+    final ownedClient = client == null ? http.Client() : null;
+    final activeClient = client ?? ownedClient!;
+    try {
+      for (var i = 0; i < urls.length; i += concurrency) {
+        final end =
+            (i + concurrency < urls.length) ? i + concurrency : urls.length;
+        final chunk = urls.sublist(i, end);
+        await Future.wait(chunk.map((url) async {
+          results[url] = await validateUrl(url, client: activeClient);
+        }));
+      }
+      return results;
+    } finally {
+      ownedClient?.close();
+    }
   }
 }
-
