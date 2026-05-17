@@ -10,6 +10,7 @@ environment:
 dependencies:
   app_logger: any
   http: ^1.2.2
+  meta: ^1.12.0
   path_provider: ^2.1.4
   platform_provider: any
   html: ^0.15.4
