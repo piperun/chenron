@@ -45,6 +45,7 @@ class _SuggestionsOverlayState extends State<SuggestionsOverlay> {
   final Object _tapGroup = Object();
   OverlayEntry? _overlayEntry;
   late final Debouncer<List<SuggestionData>> _debouncer;
+  late final void Function() _disposeQueryEffect;
   List<SuggestionData> _suggestions = [];
   int _selectedIndex = -1;
   bool _isLoading = false;
@@ -61,7 +62,7 @@ class _SuggestionsOverlayState extends State<SuggestionsOverlay> {
     // Listen to query changes with debounce.
     // Deferred via addPostFrameCallback to avoid calling setState during
     // TextEditingController's notification dispatch.
-    effect(() {
+    _disposeQueryEffect = effect(() {
       final query = widget.controller.query.value;
       if (query != _lastQuery) {
         _lastQuery = query;
@@ -74,6 +75,7 @@ class _SuggestionsOverlayState extends State<SuggestionsOverlay> {
 
   @override
   void dispose() {
+    _disposeQueryEffect();
     _removeOverlay();
     _debouncer.dispose();
     _focusNode.dispose();
