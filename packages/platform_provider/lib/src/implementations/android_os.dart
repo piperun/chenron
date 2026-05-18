@@ -17,7 +17,7 @@ class AndroidOS extends OperatingSystem {
 
 class AndroidResources extends PlatformResources {
   @override
-  String get cacheDirectoryHint => '/data/user/0/com.example.chenron/cache';
+  String get cacheDirectoryHint => '/data/user/0/com.example.yourapp/cache';
 
   @override
   String get monolithExecutableName =>

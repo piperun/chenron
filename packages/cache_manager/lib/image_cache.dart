@@ -5,20 +5,31 @@ import 'package:path_provider/path_provider.dart';
 
 /// Manages image caching using flutter_cache_manager
 class ImageCacheManager {
+  /// Default cache namespace key passed to `flutter_cache_manager`. Apps
+  /// embedding this package can override via [initialize] to keep their
+  /// caches isolated from a generic `images` namespace.
+  static const String defaultCacheKey = "chenron_images";
+
   static CacheManager? _cacheManager;
   static String? _currentCachePath;
+  static String _currentCacheKey = defaultCacheKey;
 
-  /// Initialize or update the cache manager with a custom path
-  /// If [customPath] is null, uses system temp directory
-  static Future<void> initialize({String? customPath}) async {
-    final cachePath = customPath ?? await _getDefaultCachePath();
+  /// Initialize or update the cache manager with a custom path and/or
+  /// namespace key. If [customPath] is null, uses the system temp
+  /// directory under [cacheKey].
+  static Future<void> initialize({
+    String? customPath,
+    String cacheKey = defaultCacheKey,
+  }) async {
+    final cachePath = customPath ?? await _getDefaultCachePath(cacheKey);
 
-    // Only recreate if path changed
-    if (_currentCachePath != cachePath) {
+    // Only recreate if path or key changed
+    if (_currentCachePath != cachePath || _currentCacheKey != cacheKey) {
       _currentCachePath = cachePath;
+      _currentCacheKey = cacheKey;
       _cacheManager = CacheManager(
         Config(
-          'chenron_images',
+          cacheKey,
           stalePeriod: const Duration(days: 30),
           maxNrOfCacheObjects: 200,
           fileService: HttpFileService(),
@@ -28,10 +39,10 @@ class ImageCacheManager {
     }
   }
 
-  /// Get default cache path (system temp directory)
-  static Future<String> _getDefaultCachePath() async {
+  /// Get default cache path (system temp directory under [cacheKey])
+  static Future<String> _getDefaultCachePath(String cacheKey) async {
     final tempDir = await getTemporaryDirectory();
-    return path.join(tempDir.path, 'chenron_images');
+    return path.join(tempDir.path, cacheKey);
   }
 
   /// Get the cache manager instance (async, initializes if needed)
