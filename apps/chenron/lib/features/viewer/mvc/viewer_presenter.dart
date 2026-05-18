@@ -180,9 +180,10 @@ class ViewerPresenter {
   }
 
   void onItemTap(BuildContext context, ViewerItem item) {
-    final action = _configController.itemClickAction.peek();
+    final action =
+        ItemClickAction.values[_configController.itemClickAction.peek()];
 
-    if (action == 1) {
+    if (action == ItemClickAction.showDetails) {
       showItemDetailDialog(context,
           itemId: item.id, itemType: item.type);
       return;
@@ -215,9 +216,10 @@ class ViewerPresenter {
   /// Used by callers outside the viewer feature (e.g. FolderViewerPage)
   /// so they don't need to know about ViewerItem or the presenter signal.
   void handleFolderItemTap(BuildContext context, FolderItem item) {
-    final action = _configController.itemClickAction.peek();
+    final action =
+        ItemClickAction.values[_configController.itemClickAction.peek()];
 
-    if (action == 1) {
+    if (action == ItemClickAction.showDetails) {
       showItemDetailDialog(context, itemId: item.id!, itemType: item.type);
       return;
     }

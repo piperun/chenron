@@ -230,26 +230,26 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
         _LogFilterChip(
           label: "Queued",
           icon: Icons.schedule,
-          selected: _activeStatuses.contains("queued"),
-          onSelected: () => _toggleStatus("queued"),
+          selected: _activeStatuses.contains(BackgroundJobStatus.queued),
+          onSelected: () => _toggleStatus(BackgroundJobStatus.queued),
         ),
         _LogFilterChip(
           label: "In Progress",
           icon: Icons.sync,
-          selected: _activeStatuses.contains("in_progress"),
-          onSelected: () => _toggleStatus("in_progress"),
+          selected: _activeStatuses.contains(BackgroundJobStatus.inProgress),
+          onSelected: () => _toggleStatus(BackgroundJobStatus.inProgress),
         ),
         _LogFilterChip(
           label: "Completed",
           icon: Icons.check_circle_outline,
-          selected: _activeStatuses.contains("completed"),
-          onSelected: () => _toggleStatus("completed"),
+          selected: _activeStatuses.contains(BackgroundJobStatus.completed),
+          onSelected: () => _toggleStatus(BackgroundJobStatus.completed),
         ),
         _LogFilterChip(
           label: "Failed",
           icon: Icons.error_outline,
-          selected: _activeStatuses.contains("failed"),
-          onSelected: () => _toggleStatus("failed"),
+          selected: _activeStatuses.contains(BackgroundJobStatus.failed),
+          onSelected: () => _toggleStatus(BackgroundJobStatus.failed),
           color: theme.colorScheme.error,
         ),
         SizedBox(
@@ -263,14 +263,16 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
         _LogFilterChip(
           label: "Archive",
           icon: Icons.archive_outlined,
-          selected: _activeTypes.contains("archive_org"),
-          onSelected: () => _toggleType("archive_org"),
+          selected: _activeTypes.contains(BackgroundJobService.archiveOrg),
+          onSelected: () => _toggleType(BackgroundJobService.archiveOrg),
         ),
         _LogFilterChip(
           label: "Metadata",
           icon: Icons.description_outlined,
-          selected: _activeTypes.contains("metadata_fetch"),
-          onSelected: () => _toggleType("metadata_fetch"),
+          selected:
+              _activeTypes.contains(BackgroundJobService.metadataFetch),
+          onSelected: () =>
+              _toggleType(BackgroundJobService.metadataFetch),
         ),
         // Future: network, download, etc.
         if (_hasActiveFilters) ...[
@@ -287,7 +289,8 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
   Widget _buildResultsBar(ThemeData theme, List<BackgroundJob> filtered) {
     final total = _allJobs.length;
     final shown = filtered.length;
-    final hasCompleted = _allJobs.any((j) => j.status == "completed");
+    final hasCompleted =
+        _allJobs.any((j) => j.status == BackgroundJobStatus.completed);
 
     return Row(
       children: [
@@ -460,16 +463,16 @@ class _LogEntryTile extends StatelessWidget {
 
     // Status-specific detail
     final detail = switch (job.status) {
-      "failed" => job.error ?? "Unknown error",
-      "completed" => job.resultUrl ?? "Archived",
-      "in_progress" => "Archiving...",
-      "queued" => "Waiting in queue",
+      BackgroundJobStatus.failed => job.error ?? "Unknown error",
+      BackgroundJobStatus.completed => job.resultUrl ?? "Archived",
+      BackgroundJobStatus.inProgress => "Archiving...",
+      BackgroundJobStatus.queued => "Waiting in queue",
       _ => "",
     };
 
     final detailColor = switch (job.status) {
-      "failed" => theme.colorScheme.error,
-      "completed" => theme.colorScheme.primary,
+      BackgroundJobStatus.failed => theme.colorScheme.error,
+      BackgroundJobStatus.completed => theme.colorScheme.primary,
       _ => theme.colorScheme.onSurfaceVariant,
     };
 
@@ -489,7 +492,8 @@ class _LogEntryTile extends StatelessWidget {
     // Retry button only makes sense for queued archive jobs that re-run via
     // the processor. Metadata fetch entries are audit-log style and would
     // need the URL re-fetched directly — not supported here.
-    if (job.status == "failed" && job.service != "metadata_fetch") {
+    if (job.status == BackgroundJobStatus.failed &&
+        job.service != BackgroundJobService.metadataFetch) {
       return IconButton(
         icon: const Icon(Icons.replay),
         tooltip: "Retry",
@@ -501,19 +505,23 @@ class _LogEntryTile extends StatelessWidget {
 
   static String _serviceLabel(String service) {
     return switch (service) {
-      "archive_org" => "archive.org",
-      "archive_is" => "archive.is",
-      "metadata_fetch" => "metadata",
+      BackgroundJobService.archiveOrg => "archive.org",
+      BackgroundJobService.archiveIs => "archive.is",
+      BackgroundJobService.metadataFetch => "metadata",
       _ => service,
     };
   }
 
   (IconData, Color) _statusVisual(ThemeData theme) {
     return switch (job.status) {
-      "queued" => (Icons.schedule, theme.colorScheme.onSurfaceVariant),
-      "in_progress" => (Icons.sync, theme.colorScheme.primary),
-      "completed" => (Icons.check_circle, theme.colorScheme.primary),
-      "failed" => (Icons.error_outline, theme.colorScheme.error),
+      BackgroundJobStatus.queued =>
+        (Icons.schedule, theme.colorScheme.onSurfaceVariant),
+      BackgroundJobStatus.inProgress =>
+        (Icons.sync, theme.colorScheme.primary),
+      BackgroundJobStatus.completed =>
+        (Icons.check_circle, theme.colorScheme.primary),
+      BackgroundJobStatus.failed =>
+        (Icons.error_outline, theme.colorScheme.error),
       _ => (Icons.help_outline, theme.colorScheme.onSurfaceVariant),
     };
   }
