@@ -1,8 +1,10 @@
+import "package:app_logger/app_logger.dart";
 import "package:database/database.dart";
 import "package:database/main.dart";
 import "package:chenron/components/forms/folder_form.dart";
 
 import "package:chenron/locator.dart";
+import "package:chenron/shared/errors/user_error_message.dart";
 import "package:signals/signals.dart";
 import "package:collection/collection.dart";
 import "package:drift/drift.dart";
@@ -157,9 +159,10 @@ class FolderEditorNotifier {
       );
 
       state.value = FolderEditorState.loaded;
-    } catch (e) {
+    } catch (e, s) {
+      loggerGlobal.severe("FolderEditor", "Failed to load folder", e, s);
       state.value = FolderEditorState.error;
-      errorMessage.value = e.toString();
+      errorMessage.value = userErrorMessage(e);
     }
   }
 
@@ -397,9 +400,10 @@ class FolderEditorNotifier {
       await loadFolder(folderId);
 
       return true;
-    } catch (e) {
+    } catch (e, s) {
+      loggerGlobal.severe("FolderEditor", "Failed to save changes", e, s);
       state.value = FolderEditorState.error;
-      errorMessage.value = "Failed to save changes: $e";
+      errorMessage.value = "Failed to save changes: ${userErrorMessage(e)}";
       return false;
     }
   }

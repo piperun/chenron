@@ -1,4 +1,5 @@
 import "dart:async";
+import "package:app_logger/app_logger.dart";
 import "package:chenron/shared/constants/durations.dart";
 import "package:chenron/shared/utils/text_highlighter.dart";
 import "package:database/database.dart";
@@ -139,7 +140,18 @@ class _SuggestionsOverlayState extends State<SuggestionsOverlay> {
       },
     );
 
-    return suggestionBuilder.buildSuggestions();
+    try {
+      return await suggestionBuilder.buildSuggestions();
+    } catch (e, s) {
+      // Search-bar background fetch. The user is mid-keystroke — a
+      // snackbar here would be noisy, so just log and return an empty
+      // result set. The caller clears the spinner and removes the
+      // overlay, exactly the same outcome as "no matches" — but the
+      // failure is captured for diagnosis.
+      loggerGlobal.severe(
+          "SuggestionsOverlay", "Failed to build suggestions", e, s);
+      return [];
+    }
   }
 
   void _handleKeyEvent(KeyEvent event) {
