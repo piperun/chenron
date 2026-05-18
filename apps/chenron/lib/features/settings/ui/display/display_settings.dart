@@ -3,10 +3,10 @@ import "package:signals/signals_flutter.dart";
 import "package:chenron/features/settings/controller/config_controller.dart";
 import "package:chenron/shared/utils/time_formatter.dart";
 
-class DisplaySettings extends StatelessWidget {
+class DisplaySettingsPanel extends StatelessWidget {
   final ConfigController controller;
 
-  const DisplaySettings({super.key, required this.controller});
+  const DisplaySettingsPanel({super.key, required this.controller});
 
   @override
   Widget build(BuildContext context) {
