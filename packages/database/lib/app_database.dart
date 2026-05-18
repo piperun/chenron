@@ -347,6 +347,8 @@ class AppDatabase extends _$AppDatabase {
         // dance below).
         if (from < 13) {
           await migrator.createTable(backgroundJobs);
+          // @TableIndex annotations are separate DDL.
+          await migrator.createIndex(backgroundJobsStatusCreatedIdx);
         }
 
         // Migration v13 to v14: Rename archive_jobs -> background_jobs and
@@ -370,17 +372,26 @@ class AppDatabase extends _$AppDatabase {
               "FROM background_jobs_old",
             );
             await customStatement("DROP TABLE background_jobs_old");
+            // `createTable` doesn't materialize @TableIndex annotations
+            // — they're separate DDL. Recreate the index that was
+            // dropped above so the v12 -> v15 path matches the schema.
+            await migrator.createIndex(backgroundJobsStatusCreatedIdx);
           }
         }
 
         // v14 -> v15: replace `item_types` / `metadata_types` lookup
         // tables with `intEnum<T>()` columns. Existing `type_id` values
         // were 1-based (autoincrement); Drift's intEnum is 0-based, so
-        // shift down by one before the lookup tables go away.
+        // shift down by one. The FK constraint on `type_id` lives in
+        // the CREATE TABLE definition and SQLite can't ALTER it away,
+        // so we use migrator.alterTable to rebuild the tables from the
+        // current schema (which no longer has `.references()`).
         if (from < 15) {
           await customStatement("UPDATE items SET type_id = type_id - 1");
           await customStatement(
               "UPDATE metadata_records SET type_id = type_id - 1");
+          await migrator.alterTable(TableMigration(items));
+          await migrator.alterTable(TableMigration(metadataRecords));
           await customStatement("DROP TABLE IF EXISTS item_types");
           await customStatement("DROP TABLE IF EXISTS metadata_types");
         }

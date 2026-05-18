@@ -1,21 +1,46 @@
 import "package:database/app_database.dart";
+import "package:database/config_database.dart";
 import "package:drift_dev/api/migrations_native.dart";
 import "package:flutter_test/flutter_test.dart";
 
-import "generated_migrations/schema.dart";
+import "generated_migrations/schema.dart" as app;
+import "generated_migrations_config/schema.dart" as config;
 
 void main() {
-  late SchemaVerifier verifier;
+  group("AppDatabase schema verification", () {
+    late SchemaVerifier verifier;
 
-  setUpAll(() {
-    verifier = SchemaVerifier(GeneratedHelper());
+    setUpAll(() {
+      verifier = SchemaVerifier(app.GeneratedHelper());
+    });
+
+    test("migrating from v12 produces the current v15 schema", () async {
+      final connection = await verifier.schemaAt(12);
+      final db = AppDatabase(queryExecutor: connection.newConnection());
+      await verifier.migrateAndValidate(db, 15);
+      await db.close();
+    });
+
+    test("migrating from v14 produces the current v15 schema", () async {
+      final connection = await verifier.schemaAt(14);
+      final db = AppDatabase(queryExecutor: connection.newConnection());
+      await verifier.migrateAndValidate(db, 15);
+      await db.close();
+    });
   });
 
-  test("fresh database (onCreate) matches expected v12 schema", () async {
-    final connection = await verifier.schemaAt(12);
+  group("ConfigDatabase schema verification", () {
+    late SchemaVerifier verifier;
 
-    final db = AppDatabase(queryExecutor: connection.newConnection());
-    await verifier.migrateAndValidate(db, 12);
-    await db.close();
+    setUpAll(() {
+      verifier = SchemaVerifier(config.GeneratedHelper());
+    });
+
+    test("fresh database matches the v5 schema", () async {
+      final connection = await verifier.schemaAt(5);
+      final db = ConfigDatabase(queryExecutor: connection.newConnection());
+      await verifier.migrateAndValidate(db, 5);
+      await db.close();
+    });
   });
 }
