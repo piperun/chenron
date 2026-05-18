@@ -86,7 +86,7 @@ class ViewerPresenter {
     _filterAndAddItems(_currentItems);
   }
 
-  void onFolderTap(BuildContext context, FolderResult folder) {
+  void handleFolderTap(BuildContext context, FolderResult folder) {
     unawaited(Navigator.push(
       context,
       MaterialPageRoute(
@@ -98,7 +98,7 @@ class ViewerPresenter {
     ));
   }
 
-  void onEditTap(BuildContext context, String folderId) {
+  void handleEditTap(BuildContext context, String folderId) {
     unawaited(Navigator.push(
       context,
       MaterialPageRoute(
@@ -179,7 +179,7 @@ class ViewerPresenter {
     }).toList();
   }
 
-  void onItemTap(BuildContext context, ViewerItem item) {
+  void handleItemTap(BuildContext context, ViewerItem item) {
     final action =
         ItemClickAction.values[_configController.itemClickAction.peek()];
 
@@ -254,7 +254,7 @@ class ViewerPresenter {
     }
   }
 
-  Future<void> onDeleteSelected() async {
+  Future<void> handleDeleteSelected() async {
     if (selectedItemIds.value.isEmpty) return;
 
     final itemById = _currentItemsById;

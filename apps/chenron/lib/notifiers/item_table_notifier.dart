@@ -18,7 +18,7 @@ class ItemTableNotifier<T> {
     _stateManager = stateManager;
   }
 
-  void onRowChecked(TrinaGridOnRowCheckedEvent event) {
+  void handleRowChecked(TrinaGridOnRowCheckedEvent event) {
     hasCheckedRows.value = event.isChecked!;
   }
 

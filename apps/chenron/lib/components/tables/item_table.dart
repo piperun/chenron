@@ -24,7 +24,7 @@ class DataGrid extends StatelessWidget {
       onLoaded: (TrinaGridOnLoadedEvent event) {
         notifier.setStateManager(event.stateManager);
       },
-      onRowChecked: notifier.onRowChecked,
+      onRowChecked: notifier.handleRowChecked,
       configuration: TrinaGridConfiguration(
         columnSize: const TrinaGridColumnSizeConfig(
           autoSizeMode: TrinaAutoSizeMode.scale,

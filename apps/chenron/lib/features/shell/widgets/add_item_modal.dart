@@ -24,7 +24,7 @@ class AddItemModal extends StatefulWidget {
 class _AddItemModalState extends State<AddItemModal> {
   FolderItemType? _selectedType;
 
-  void _onTypeSelected(FolderItemType type) {
+  void _handleTypeSelected(FolderItemType type) {
     // If callback provided, call it and close modal
     if (widget.onTypeSelected != null) {
       widget.onTypeSelected!(type);
@@ -36,7 +36,7 @@ class _AddItemModalState extends State<AddItemModal> {
     setState(() => _selectedType = type);
   }
 
-  void _onBack() {
+  void _handleBack() {
     setState(() => _selectedType = null);
   }
 
@@ -93,12 +93,12 @@ class _AddItemModalState extends State<AddItemModal> {
           child: _selectedType == null
               ? _TypeSelectorView(
                   key: const ValueKey("selector"),
-                  onTypeSelected: _onTypeSelected,
+                  onTypeSelected: _handleTypeSelected,
                 )
               : _FormWrapperView(
                   key: ValueKey(_selectedType),
                   type: _selectedType!,
-                  onBack: _onBack,
+                  onBack: _handleBack,
                 ),
         ),
       ),
