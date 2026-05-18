@@ -53,11 +53,14 @@ class AppDatabase extends _$AppDatabase {
                 customPath: customPath,
                 debugMode: debugMode));
 
-  Future<void> setup() async {
-    if (setupOnInit) {
-      await setupEnumTypes();
-    }
-  }
+  /// No-op kept for API compatibility.
+  ///
+  /// The enum-table and default-folder seeding moved entirely into
+  /// [migration]'s `onCreate` (gated on [setupOnInit]) so it runs once
+  /// per database creation, not on every app launch. Callers that
+  /// previously invoked `setup()` after construction can drop the call
+  /// — there's nothing left to do.
+  Future<void> setup() async {}
 
   @override
   int get schemaVersion => 14;
