@@ -166,7 +166,6 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final filtered = _filteredJobs;
 
     return Padding(
@@ -174,19 +173,60 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSearchBar(theme),
+          _SearchBar(
+            query: _searchQuery,
+            onChanged: (value) => setState(() => _searchQuery = value),
+            canExport: filtered.isNotEmpty,
+            onExport: _handleExport,
+          ),
           const SizedBox(height: 12),
-          _buildFilterChips(theme),
+          _FilterChipsRow(
+            activeStatuses: _activeStatuses,
+            activeTypes: _activeTypes,
+            hasActiveFilters: _hasActiveFilters,
+            onToggleStatus: _toggleStatus,
+            onToggleType: _toggleType,
+            onClearFilters: _clearFilters,
+          ),
           const SizedBox(height: 16),
-          _buildResultsBar(theme, filtered),
+          _ResultsBar(
+            shown: filtered.length,
+            total: _allJobs.length,
+            hasActiveFilters: _hasActiveFilters,
+            hasCompleted: _allJobs
+                .any((j) => j.status == BackgroundJobStatus.completed),
+            onClearCompleted: _handleClearCompleted,
+          ),
           const SizedBox(height: 8),
-          Expanded(child: _buildBody(theme, filtered)),
+          Expanded(
+            child: _LogBody(
+              loading: _loading,
+              allEmpty: _allJobs.isEmpty,
+              filtered: filtered,
+              onRetry: _handleRetry,
+            ),
+          ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildSearchBar(ThemeData theme) {
+class _SearchBar extends StatelessWidget {
+  final String query;
+  final ValueChanged<String> onChanged;
+  final bool canExport;
+  final Future<void> Function() onExport;
+
+  const _SearchBar({
+    required this.query,
+    required this.onChanged,
+    required this.canExport,
+    required this.onExport,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Row(
       children: [
         Expanded(
@@ -194,10 +234,10 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
             decoration: InputDecoration(
               hintText: "Search log entries...",
               prefixIcon: const Icon(Icons.search, size: 20),
-              suffixIcon: _searchQuery.isNotEmpty
+              suffixIcon: query.isNotEmpty
                   ? IconButton(
                       icon: const Icon(Icons.clear, size: 18),
-                      onPressed: () => setState(() => _searchQuery = ""),
+                      onPressed: () => onChanged(""),
                     )
                   : null,
               isDense: true,
@@ -207,49 +247,68 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            onChanged: (value) => setState(() => _searchQuery = value),
+            onChanged: onChanged,
           ),
         ),
         const SizedBox(width: 12),
         OutlinedButton.icon(
-          onPressed: _filteredJobs.isEmpty ? null : _handleExport,
+          onPressed: canExport ? () => unawaited(onExport()) : null,
           icon: const Icon(Icons.download, size: 18),
           label: const Text("Export"),
         ),
       ],
     );
   }
+}
 
-  Widget _buildFilterChips(ThemeData theme) {
+class _FilterChipsRow extends StatelessWidget {
+  final Set<String> activeStatuses;
+  final Set<String> activeTypes;
+  final bool hasActiveFilters;
+  final ValueChanged<String> onToggleStatus;
+  final ValueChanged<String> onToggleType;
+  final VoidCallback onClearFilters;
+
+  const _FilterChipsRow({
+    required this.activeStatuses,
+    required this.activeTypes,
+    required this.hasActiveFilters,
+    required this.onToggleStatus,
+    required this.onToggleType,
+    required this.onClearFilters,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Wrap(
       spacing: 8,
       runSpacing: 8,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        // Status filters
         _LogFilterChip(
           label: "Queued",
           icon: Icons.schedule,
-          selected: _activeStatuses.contains(BackgroundJobStatus.queued),
-          onSelected: () => _toggleStatus(BackgroundJobStatus.queued),
+          selected: activeStatuses.contains(BackgroundJobStatus.queued),
+          onSelected: () => onToggleStatus(BackgroundJobStatus.queued),
         ),
         _LogFilterChip(
           label: "In Progress",
           icon: Icons.sync,
-          selected: _activeStatuses.contains(BackgroundJobStatus.inProgress),
-          onSelected: () => _toggleStatus(BackgroundJobStatus.inProgress),
+          selected: activeStatuses.contains(BackgroundJobStatus.inProgress),
+          onSelected: () => onToggleStatus(BackgroundJobStatus.inProgress),
         ),
         _LogFilterChip(
           label: "Completed",
           icon: Icons.check_circle_outline,
-          selected: _activeStatuses.contains(BackgroundJobStatus.completed),
-          onSelected: () => _toggleStatus(BackgroundJobStatus.completed),
+          selected: activeStatuses.contains(BackgroundJobStatus.completed),
+          onSelected: () => onToggleStatus(BackgroundJobStatus.completed),
         ),
         _LogFilterChip(
           label: "Failed",
           icon: Icons.error_outline,
-          selected: _activeStatuses.contains(BackgroundJobStatus.failed),
-          onSelected: () => _toggleStatus(BackgroundJobStatus.failed),
+          selected: activeStatuses.contains(BackgroundJobStatus.failed),
+          onSelected: () => onToggleStatus(BackgroundJobStatus.failed),
           color: theme.colorScheme.error,
         ),
         SizedBox(
@@ -259,43 +318,52 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
             color: theme.colorScheme.outlineVariant,
           ),
         ),
-        // Type filters
         _LogFilterChip(
           label: "Archive",
           icon: Icons.archive_outlined,
-          selected: _activeTypes.contains(BackgroundJobService.archiveOrg),
-          onSelected: () => _toggleType(BackgroundJobService.archiveOrg),
+          selected: activeTypes.contains(BackgroundJobService.archiveOrg),
+          onSelected: () => onToggleType(BackgroundJobService.archiveOrg),
         ),
         _LogFilterChip(
           label: "Metadata",
           icon: Icons.description_outlined,
-          selected:
-              _activeTypes.contains(BackgroundJobService.metadataFetch),
-          onSelected: () =>
-              _toggleType(BackgroundJobService.metadataFetch),
+          selected: activeTypes.contains(BackgroundJobService.metadataFetch),
+          onSelected: () => onToggleType(BackgroundJobService.metadataFetch),
         ),
-        // Future: network, download, etc.
-        if (_hasActiveFilters) ...[
+        if (hasActiveFilters) ...[
           const SizedBox(width: 4),
           TextButton(
-            onPressed: _clearFilters,
+            onPressed: onClearFilters,
             child: const Text("Clear All"),
           ),
         ],
       ],
     );
   }
+}
 
-  Widget _buildResultsBar(ThemeData theme, List<BackgroundJob> filtered) {
-    final total = _allJobs.length;
-    final shown = filtered.length;
-    final hasCompleted =
-        _allJobs.any((j) => j.status == BackgroundJobStatus.completed);
+class _ResultsBar extends StatelessWidget {
+  final int shown;
+  final int total;
+  final bool hasActiveFilters;
+  final bool hasCompleted;
+  final Future<void> Function() onClearCompleted;
 
+  const _ResultsBar({
+    required this.shown,
+    required this.total,
+    required this.hasActiveFilters,
+    required this.hasCompleted,
+    required this.onClearCompleted,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Row(
       children: [
         Text(
-          _hasActiveFilters
+          hasActiveFilters
               ? "$shown Results of $total total entries"
               : "$total entries",
           style: theme.textTheme.bodySmall?.copyWith(
@@ -305,79 +373,109 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
         const Spacer(),
         if (hasCompleted)
           TextButton.icon(
-            onPressed: _handleClearCompleted,
+            onPressed: () => unawaited(onClearCompleted()),
             icon: const Icon(Icons.clear_all, size: 18),
             label: const Text("Clear completed"),
           ),
       ],
     );
   }
+}
 
-  Widget _buildBody(ThemeData theme, List<BackgroundJob> filtered) {
-    if (_loading) {
+class _LogBody extends StatelessWidget {
+  final bool loading;
+  final bool allEmpty;
+  final List<BackgroundJob> filtered;
+  final Future<void> Function(BackgroundJob) onRetry;
+
+  const _LogBody({
+    required this.loading,
+    required this.allEmpty,
+    required this.filtered,
+    required this.onRetry,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    if (loading) {
       return const Center(child: CircularProgressIndicator());
     }
-
-    if (_allJobs.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.text_snippet_outlined,
-              size: 64,
-              color:
-                  theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              "No activity yet",
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              "Background jobs will appear here as they run.",
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant
-                    .withValues(alpha: 0.7),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    if (filtered.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.filter_list_off,
-              size: 48,
-              color:
-                  theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              "No entries match current filters",
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
+    if (allEmpty) return _EmptyState.noActivity(theme: theme);
+    if (filtered.isEmpty) return _EmptyState.noMatches(theme: theme);
 
     return ListView.separated(
       itemCount: filtered.length,
       separatorBuilder: (_, __) => const Divider(height: 1, indent: 56),
       itemBuilder: (context, index) => _LogEntryTile(
         job: filtered[index],
-        onRetry: _handleRetry,
+        onRetry: onRetry,
+      ),
+    );
+  }
+}
+
+class _EmptyState extends StatelessWidget {
+  final IconData icon;
+  final double iconSize;
+  final String title;
+  final String? subtitle;
+  final ThemeData theme;
+
+  const _EmptyState({
+    required this.icon,
+    required this.iconSize,
+    required this.title,
+    required this.theme,
+    this.subtitle,
+  });
+
+  factory _EmptyState.noActivity({required ThemeData theme}) {
+    return _EmptyState(
+      icon: Icons.text_snippet_outlined,
+      iconSize: 64,
+      title: "No activity yet",
+      subtitle: "Background jobs will appear here as they run.",
+      theme: theme,
+    );
+  }
+
+  factory _EmptyState.noMatches({required ThemeData theme}) {
+    return _EmptyState(
+      icon: Icons.filter_list_off,
+      iconSize: 48,
+      title: "No entries match current filters",
+      theme: theme,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final dimmed =
+        theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.3);
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: iconSize, color: dimmed),
+          SizedBox(height: subtitle == null ? 12 : 16),
+          Text(
+            title,
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          if (subtitle != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              subtitle!,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant
+                    .withValues(alpha: 0.7),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
