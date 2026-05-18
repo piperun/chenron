@@ -12,6 +12,7 @@ import "package:chenron/features/settings/service/bookmark_export_service.dart";
 import "package:chenron/features/settings/service/bookmark_import_service.dart";
 import "package:chenron/features/settings/service/data_settings_service.dart";
 import "package:chenron/features/settings/ui/shared/path_mode_selector.dart";
+import "package:chenron/features/settings/ui/shared/settings_section_header.dart";
 import "package:chenron/features/settings/ui/shared/stats_action_row.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/shared/errors/error_snack_bar.dart";
@@ -218,15 +219,10 @@ class _DataSettingsState extends State<DataSettings> {
         mainAxisSize: MainAxisSize.min,
         children: [
           // --- Database Location ---
-          Text("Database Location", style: theme.textTheme.titleMedium),
-          const SizedBox(height: 8),
-          Text(
-            "Where the application database is stored.",
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
-            ),
+          const SettingsSectionHeader(
+            title: "Database Location",
+            description: "Where the application database is stored.",
           ),
-          const SizedBox(height: 16),
 
           PathModeSelector(
             currentPath: widget.controller.appDatabasePath.peek(),
@@ -257,16 +253,12 @@ class _DataSettingsState extends State<DataSettings> {
 
           // --- Metadata Cache ---
           // Lives in the app database (above), not the image cache directory.
-          Text("Metadata Cache", style: theme.textTheme.titleMedium),
-          const SizedBox(height: 8),
-          Text(
-            "Cached page titles, descriptions, and preview images stored "
-            "in the app database. Clearing forces a refetch on next view.",
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
-            ),
+          const SettingsSectionHeader(
+            title: "Metadata Cache",
+            description:
+                "Cached page titles, descriptions, and preview images stored "
+                "in the app database. Clearing forces a refetch on next view.",
           ),
-          const SizedBox(height: 16),
           StatsActionRow(
             icon: Icons.description_outlined,
             label: "Metadata Cache",
@@ -327,16 +319,13 @@ class _DataSettingsState extends State<DataSettings> {
           const Divider(height: 32),
 
           // --- Bookmarks ---
-          Text("Bookmarks", style: theme.textTheme.titleMedium),
-          const SizedBox(height: 8),
-          Text(
-            "Export or import bookmarks in standard HTML format, "
-            "compatible with all major browsers.",
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
-            ),
+          const SettingsSectionHeader(
+            title: "Bookmarks",
+            description:
+                "Export or import bookmarks in standard HTML format, "
+                "compatible with all major browsers.",
+            gapAfter: 12,
           ),
-          const SizedBox(height: 12),
 
           Wrap(
             spacing: 12,

@@ -1,5 +1,6 @@
 import "dart:async";
 
+import "package:chenron/features/settings/ui/shared/settings_section_header.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/shared/color_picker/color_dot.dart";
 import "package:chenron/shared/errors/error_snack_bar.dart";
@@ -186,15 +187,10 @@ class _TagManagementSettingsState extends State<TagManagementSettings> {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text("All Tags", style: theme.textTheme.titleMedium),
-        const SizedBox(height: 8),
-        Text(
-          "Manage your tags — rename, delete, or change colors.",
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
-          ),
+        const SettingsSectionHeader(
+          title: "All Tags",
+          description: "Manage your tags — rename, delete, or change colors.",
         ),
-        const SizedBox(height: 16),
         if (_isLoading)
           const Center(child: CircularProgressIndicator())
         else if (_tags.isEmpty)
