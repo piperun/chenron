@@ -2,12 +2,12 @@ import "dart:io";
 
 import "package:database/file_operations.dart";
 import "package:database/main.dart";
-import "package:database/test_support/locator.dart";
+import "package:database/locator.dart";
 import "package:basedir/directory.dart";
 import "package:app_logger/app_logger.dart";
 import "package:path/path.dart" as p;
 
-import "package:database/test_support/schema.dart";
+import "package:database/dir_schema.dart";
 
 class DatabaseLocation {
   /// This only returns the directory

@@ -1,7 +1,7 @@
 ﻿import "package:database/main.dart";
 import "package:database/src/core/handlers/database_file_handler.dart";
 import "package:database/src/features/tag/create.dart";
-import "package:database/test_support/locator.dart";
+import "package:database/locator.dart";
 import "package:basedir/directory.dart";
 import "package:flutter_test/flutter_test.dart";
 
@@ -9,7 +9,7 @@ import "package:path/path.dart" as p;
 import "dart:io";
 
 import "package:chenron_mockups/chenron_mockups.dart";
-import "package:database/test_support/schema.dart";
+import "package:database/dir_schema.dart";
 
 Future<void> setUpFakeData(AppDatabase database, {int len = 5}) async {
   for (int i = 0; i < len; i++) {
