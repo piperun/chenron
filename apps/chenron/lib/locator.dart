@@ -9,7 +9,6 @@ import "package:database/database.dart";
 import "package:chenron/features/settings/coordinator/settings_coordinator.dart";
 import "package:chenron/features/settings/service/config_service.dart";
 import "package:chenron/features/settings/service/data_settings_service.dart";
-import "package:chenron/features/settings/controller/config_controller.dart";
 import "package:chenron/providers/theme_notifier_signal.dart";
 import "package:chenron/base_dirs/schema.dart";
 import "package:chenron/services/activity_tracker.dart";
@@ -39,16 +38,12 @@ void locatorSetup() {
   locator.registerLazySingleton<DataSettingsService>(DataSettingsService.new);
 
   // Register SettingsCoordinator (composes the five per-section notifiers).
-  // ConfigController bridges to this; future settings UIs will consume it
-  // directly via the section notifiers.
+  // Settings UIs read from / write to its section notifiers directly.
   locator.registerLazySingleton<SettingsCoordinator>(() => SettingsCoordinator(
         configService: locator.get<ConfigService>(),
         dataService: locator.get<DataSettingsService>(),
         themeApplier: themeNotifierSignal.value,
       ));
-
-  // Register ConfigController (legacy bridge to the coordinator).
-  locator.registerLazySingleton<ConfigController>(ConfigController.new);
 
   // Register AppFileService (depends on the app database lifecycle)
   locator.registerLazySingleton<AppFileService>(() {

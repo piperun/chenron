@@ -4,7 +4,6 @@ import "package:flutter/material.dart";
 import "package:flutter_test/flutter_test.dart";
 import "package:get_it/get_it.dart";
 import "package:signals/signals.dart";
-import "package:chenron/features/settings/controller/config_controller.dart";
 import "package:chenron/features/settings/coordinator/settings_coordinator.dart";
 import "package:chenron/features/settings/service/config_service.dart";
 import "package:chenron/features/settings/service/data_settings_service.dart";
@@ -51,7 +50,6 @@ void main() {
           dataService: GetIt.I.get<DataSettingsService>(),
           themeApplier: ThemeNotifier(),
         ));
-    GetIt.I.registerLazySingleton<ConfigController>(ConfigController.new);
   });
 
   tearDown(() async {

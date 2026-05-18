@@ -1,17 +1,13 @@
+import "package:app_logger/app_logger.dart";
+import "package:chenron/features/settings/coordinator/settings_coordinator.dart";
+import "package:chenron/features/settings/state/theme_choice.dart";
+import "package:chenron/locator.dart";
 import "package:flutter/material.dart";
 import "package:signals/signals_flutter.dart";
 import "package:vibe/vibe.dart";
-import "package:chenron/features/settings/controller/config_controller.dart";
-import "package:chenron/features/settings/state/theme_choice.dart";
-import "package:app_logger/app_logger.dart";
 
 class AvailableThemeSelector extends StatelessWidget {
-  final ConfigController controller;
-
-  const AvailableThemeSelector({
-    super.key,
-    required this.controller,
-  });
+  const AvailableThemeSelector({super.key});
 
   static const EdgeInsets _contentPadding = EdgeInsets.all(16.0);
   static const EdgeInsets _dropdownPadding =
@@ -20,45 +16,18 @@ class AvailableThemeSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     loggerGlobal.fine("AvailableThemeSelector", "Build method called.");
+    final notifier = locator.get<SettingsCoordinator>().theme;
 
-    controller.availableThemes.watch(context);
-    final selected = controller.selectedThemeChoice.watch(context);
-    final isLoading = controller.isLoading.watch(context);
-    final error = controller.error.watch(context);
-    final sortMode = controller.themeSortMode.watch(context);
-    final sorted = controller.sortedThemes;
-
-    if (isLoading && sorted.isEmpty) {
-      return const Padding(
-        padding: _contentPadding,
-        child: Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    if (error != null) {
-      loggerGlobal.warning(
-          "AvailableThemeSelector", "Rendering Error state: $error");
-      return Padding(
-        padding: _contentPadding,
-        child: Center(
-          child: Text(
-            "Error loading themes: $error",
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Theme.of(context).colorScheme.error),
-          ),
-        ),
-      );
-    }
+    // Subscribe to all the signals this widget renders against.
+    notifier.availableThemes.watch(context);
+    final selected = notifier.selectedChoice.watch(context);
+    final sortMode = notifier.sortMode.watch(context);
+    final sorted = notifier.sortedThemes.value;
 
     if (sorted.isEmpty) {
       return const Padding(
         padding: _contentPadding,
-        child: Center(
-          child: Text(
-            "No themes available.",
-            textAlign: TextAlign.center,
-          ),
-        ),
+        child: Center(child: CircularProgressIndicator()),
       );
     }
 
@@ -70,7 +39,6 @@ class AvailableThemeSelector extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Sort toggle
           Row(
             children: [
               Text("Sort by", style: theme.textTheme.bodySmall),
@@ -88,7 +56,7 @@ class AvailableThemeSelector extends StatelessWidget {
                 ],
                 selected: {sortMode},
                 onSelectionChanged: (values) {
-                  controller.themeSortMode.value = values.first;
+                  notifier.setSortMode(values.first);
                 },
                 showSelectedIcon: false,
                 style: ButtonStyle(
@@ -102,8 +70,6 @@ class AvailableThemeSelector extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-
-          // Theme dropdown
           DropdownMenu<ThemeChoice>(
             label: const Text("Select Theme"),
             expandedInsets: EdgeInsets.zero,
@@ -132,16 +98,14 @@ class AvailableThemeSelector extends StatelessWidget {
             onSelected: (ThemeChoice? newValue) {
               loggerGlobal.info("AvailableThemeSelector",
                   "DropdownMenu onSelected: ${newValue?.key}");
-              controller.updateSelectedTheme(newValue);
+              notifier.select(newValue);
             },
           ),
-
-          // Theme color preview
           if (selected != null)
             Padding(
               padding: const EdgeInsets.only(top: 12),
               child: _ThemePreview(
-                variants: controller.getPreviewVariants(selected),
+                variants: notifier.getPreviewVariants(selected),
               ),
             ),
         ],
@@ -184,9 +148,6 @@ class _ColorSwatches extends StatelessWidget {
 }
 
 /// Compact color-role preview for a theme's light and dark variants.
-///
-/// Shows a 4-column × 3-row grid for each mode (Primary, Secondary,
-/// Tertiary, Error) with main, container, and surface rows.
 class _ThemePreview extends StatelessWidget {
   final ThemeVariants? variants;
 
@@ -206,7 +167,6 @@ class _ThemePreview extends StatelessWidget {
         const SizedBox(height: 8),
         _SchemeGrid(label: "Dark", scheme: variants!.dark.colorScheme),
         const SizedBox(height: 4),
-        // Column legend (offset by _SchemeGrid._rowLabelWidth)
         Padding(
           padding: const EdgeInsets.only(left: _SchemeGrid._rowLabelWidth),
           child: Row(
@@ -257,7 +217,6 @@ class _SchemeGrid extends StatelessWidget {
       children: [
         Text(label, style: theme.textTheme.labelSmall),
         const SizedBox(height: 2),
-        // Row 1: base colors
         _labeledRow("Base", labelStyle, [
           _cell(scheme.primary),
           _cell(scheme.secondary),
@@ -265,7 +224,6 @@ class _SchemeGrid extends StatelessWidget {
           _cell(scheme.error),
         ]),
         const SizedBox(height: _gap),
-        // Row 2: container colors
         _labeledRow("Container", labelStyle, [
           _cell(scheme.primaryContainer),
           _cell(scheme.secondaryContainer),
@@ -273,7 +231,6 @@ class _SchemeGrid extends StatelessWidget {
           _cell(scheme.errorContainer),
         ]),
         const SizedBox(height: _gap),
-        // Row 3: surface / outline
         _labeledRow("Surface", labelStyle, [
           _cell(scheme.surface),
           _cell(scheme.surfaceContainerHighest),
