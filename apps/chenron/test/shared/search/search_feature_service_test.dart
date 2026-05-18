@@ -2,7 +2,7 @@ import "package:core/patterns/include_options.dart";
 import "package:flutter_test/flutter_test.dart";
 
 import "package:chenron/shared/search/search_controller.dart";
-import "package:chenron/shared/search/search_feature_manager.dart";
+import "package:chenron/shared/search/search_feature_service.dart";
 import "package:chenron/shared/search/search_features.dart";
 
 void main() {

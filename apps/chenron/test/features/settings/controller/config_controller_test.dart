@@ -7,7 +7,7 @@ import "package:mockito/mockito.dart";
 import "package:chenron/features/settings/controller/config_controller.dart";
 import "package:chenron/features/settings/service/config_service.dart";
 import "package:chenron/features/settings/service/data_settings_service.dart";
-import "package:chenron/features/theme/state/theme_controller.dart";
+import "package:chenron/features/theme/state/theme_notifier.dart";
 
 import "package:chenron_mockups/chenron_mockups.dart";
 

@@ -4,7 +4,7 @@ import "package:signals/signals_flutter.dart";
 import "package:trina_grid/trina_grid.dart";
 import "package:database/models/item.dart";
 import "package:chenron/notifiers/item_table_notifier.dart";
-import "package:chenron/features/folder_editor/widgets/item_section/item_section_controller.dart";
+import "package:chenron/features/folder_editor/widgets/item_section/item_section_notifier.dart";
 import "package:chenron/features/folder_editor/widgets/item_table_section/item_table_filter.dart";
 import "package:chenron/features/folder_editor/widgets/item_table_section/item_table_view.dart";
 

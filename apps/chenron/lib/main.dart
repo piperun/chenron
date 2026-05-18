@@ -7,7 +7,7 @@ import "package:chenron/features/shell/pages/root.dart";
 import "package:chenron/features/theme/state/theme_cache.dart";
 import "package:chenron/features/theme/state/theme_manager.dart";
 import "package:chenron/locator.dart";
-import "package:chenron/providers/theme_controller_signal.dart";
+import "package:chenron/providers/theme_notifier_signal.dart";
 import "package:chenron/services/window_service.dart";
 
 import "package:chenron/shared/constants/durations.dart";

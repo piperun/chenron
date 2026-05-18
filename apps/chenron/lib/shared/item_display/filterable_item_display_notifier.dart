@@ -5,7 +5,7 @@ import "package:chenron/shared/item_display/widgets/display_mode/display_mode.da
 import "package:chenron/shared/item_display/widgets/display_mode/display_mode_preference.dart";
 import "package:chenron/shared/item_display/view_mode_preference.dart";
 import "package:chenron/shared/item_display/item_toolbar.dart";
-import "package:chenron/shared/tag_filter/tag_filter_state.dart";
+import "package:chenron/shared/tag_filter/tag_filter_notifier.dart";
 
 class FilterableItemDisplayNotifier {
   final Signal<ViewMode> viewMode;

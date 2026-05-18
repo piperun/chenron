@@ -1,6 +1,6 @@
 // ignore_for_file: avoid_print
 
-import "package:chenron/shared/tag_filter/tag_filter_state.dart";
+import "package:chenron/shared/tag_filter/tag_filter_notifier.dart";
 import "package:chenron/shared/search/query_parser.dart";
 import "package:flutter_test/flutter_test.dart";
 

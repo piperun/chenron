@@ -3,7 +3,7 @@ import "package:chenron/shared/constants/durations.dart";
 import "package:core/patterns/include_options.dart";
 import "package:chenron/shared/search/search_features.dart";
 import "package:chenron/shared/search/search_controller.dart";
-import "package:chenron/shared/search/search_feature_manager.dart";
+import "package:chenron/shared/search/search_feature_service.dart";
 import "package:chenron/shared/search/search_history.dart";
 import "package:chenron/shared/search/query_parser.dart";
 

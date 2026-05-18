@@ -5,9 +5,9 @@ import "package:signals/signals_flutter.dart";
 import "package:vibe/vibe.dart";
 import "package:chenron/features/settings/service/config_service.dart";
 import "package:chenron/features/settings/service/data_settings_service.dart";
-import "package:chenron/features/theme/state/theme_controller.dart";
+import "package:chenron/features/theme/state/theme_notifier.dart";
 import "package:chenron/features/theme/state/theme_utils.dart";
-import "package:chenron/providers/theme_controller_signal.dart";
+import "package:chenron/providers/theme_notifier_signal.dart";
 import "package:chenron/locator.dart";
 import "package:app_logger/app_logger.dart";
 
