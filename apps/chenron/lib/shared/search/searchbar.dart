@@ -79,10 +79,12 @@ class _GlobalSearchBarState extends State<GlobalSearchBar> {
 
   @override
   Widget build(BuildContext context) {
-    final hasSuggestions = _featureManager.has(SearchFeature.suggestions);
-    final searchBar = _buildSearchBar(context);
+    final searchBar = _GlobalSearchBarView(
+      controller: _queryController,
+      onSubmittedExternal: widget.externalController?.onSubmitted,
+    );
 
-    if (!hasSuggestions) return searchBar;
+    if (!_featureManager.has(SearchFeature.suggestions)) return searchBar;
 
     final db = locator.get<Signal<AppDatabaseHandler>>();
     return SuggestionsOverlay(
@@ -91,55 +93,6 @@ class _GlobalSearchBarState extends State<GlobalSearchBar> {
       debounceDuration: widget.debounceDuration,
       onItemSelected: _saveToHistory,
       child: searchBar,
-    );
-  }
-
-  SearchBar _buildSearchBar(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return SearchBar(
-      controller: _queryController.textController,
-      hintText: "Search across all items...",
-      leading: const Icon(Icons.search),
-      onSubmitted: (value) {
-        widget.externalController?.onSubmitted?.call(value);
-      },
-      trailing: [
-        Watch(
-          (context) {
-            final hasQuery = _queryController.query.value.isNotEmpty;
-            return hasQuery
-                ? IconButton(
-                    icon: const Icon(Icons.clear),
-                    tooltip: "Clear search",
-                    onPressed: () {
-                      _queryController.clear();
-                    },
-                  )
-                : const SizedBox.shrink();
-          },
-        ),
-      ],
-      onChanged: (value) {
-        _queryController.updateSignal(value);
-      },
-      padding: const WidgetStatePropertyAll<EdgeInsets>(
-        EdgeInsets.symmetric(horizontal: 16.0),
-      ),
-      shape: WidgetStatePropertyAll(
-        RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-      ),
-      elevation: const WidgetStatePropertyAll(0),
-      backgroundColor: WidgetStatePropertyAll(
-        colorScheme.surfaceContainerLow,
-      ),
-      side: WidgetStatePropertyAll(
-        BorderSide(
-          color: colorScheme.outline.withValues(alpha: 0.3),
-        ),
-      ),
     );
   }
 
@@ -155,5 +108,51 @@ class _GlobalSearchBarState extends State<GlobalSearchBar> {
         title: title,
       );
     }
+  }
+}
+
+class _GlobalSearchBarView extends StatelessWidget {
+  final SearchBarController controller;
+  final ValueChanged<String>? onSubmittedExternal;
+
+  const _GlobalSearchBarView({
+    required this.controller,
+    required this.onSubmittedExternal,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return SearchBar(
+      controller: controller.textController,
+      hintText: "Search across all items...",
+      leading: const Icon(Icons.search),
+      onSubmitted: (value) => onSubmittedExternal?.call(value),
+      trailing: [
+        Watch((context) {
+          final hasQuery = controller.query.value.isNotEmpty;
+          return hasQuery
+              ? IconButton(
+                  icon: const Icon(Icons.clear),
+                  tooltip: "Clear search",
+                  onPressed: controller.clear,
+                )
+              : const SizedBox.shrink();
+        }),
+      ],
+      onChanged: controller.updateSignal,
+      padding: const WidgetStatePropertyAll<EdgeInsets>(
+        EdgeInsets.symmetric(horizontal: 16.0),
+      ),
+      shape: WidgetStatePropertyAll(
+        RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+      elevation: const WidgetStatePropertyAll(0),
+      backgroundColor:
+          WidgetStatePropertyAll(colorScheme.surfaceContainerLow),
+      side: WidgetStatePropertyAll(
+        BorderSide(color: colorScheme.outline.withValues(alpha: 0.3)),
+      ),
+    );
   }
 }
