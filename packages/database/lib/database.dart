@@ -1,20 +1,15 @@
-/// Chenron Database Package
+/// Chenron Database Package — canonical public entry point.
 ///
-/// Provides database operations for documents, folders, links, tags, and user configuration.
+/// Provides database operations for documents, folders, links, tags, and
+/// user configuration. Prefer this import over `package:database/main.dart`,
+/// which now forwards here for backwards compatibility.
 library;
 
-// Core database classes + public config enums
-export "main.dart"
-    show
-        AppDatabase,
-        ConfigDatabase,
-        WebMetadataEntry,
-        BackgroundJob,
-        ConfigIncludes,
-        ThemeType,
-        TimeDisplayFormat,
-        ItemClickAction,
-        SeedType;
+// Generated Drift database classes + public config enums (formerly
+// reached via main.dart; main.dart is now a deprecated alias).
+export "package:database/app_database.dart";
+export "package:database/config_database.dart";
+export "package:database/find_extensions.dart";
 
 // Models (data classes)
 export "models.dart";
@@ -29,5 +24,6 @@ export "src/core/handlers/relation_handler.dart";
 export "src/core/handlers/read_handler.dart";
 export "src/core/handlers/database_backup_scheduler.dart";
 
-// Export IncludeOptions from shared patterns for backward compatibility
+// Shared cross-package types — exposed here so callers don't need to
+// reach into `package:core/patterns/...` directly.
 export "package:core/patterns/include_options.dart";
