@@ -46,7 +46,7 @@ class LinkStatusRenderer {
       ),
       LinkValidationStatus.valid => _StatusInfo(
         icon: Icons.check_circle,
-        color: Colors.green,
+        color: theme.colorScheme.tertiary,
         tooltip: "Valid & reachable",
       ),
       LinkValidationStatus.invalid => _StatusInfo(
@@ -56,6 +56,7 @@ class LinkStatusRenderer {
       ),
       LinkValidationStatus.unreachable => _StatusInfo(
         icon: Icons.warning,
+        // No canonical "warning" slot in Material colorScheme — keep raw.
         color: Colors.orange,
         tooltip: entry.validationMessage ?? "URL unreachable",
       ),

@@ -155,12 +155,12 @@ class _AvailableTagItem extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 4),
       decoration: BoxDecoration(
         color: hasFilter
-            ? (isIncluded ? Colors.green : Colors.red).withValues(alpha: 0.05)
+            ? (isIncluded ? theme.colorScheme.tertiary : theme.colorScheme.error).withValues(alpha: 0.05)
             : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
         border: hasFilter
             ? Border.all(
-                color: (isIncluded ? Colors.green : Colors.red)
+                color: (isIncluded ? theme.colorScheme.tertiary : theme.colorScheme.error)
                     .withValues(alpha: 0.3))
             : Border.all(color: theme.dividerColor),
       ),
@@ -172,7 +172,7 @@ class _AvailableTagItem extends StatelessWidget {
                 : Icons.local_offer_outlined,
             size: 18,
             color: hasFilter
-                ? (isIncluded ? Colors.green : Colors.red)
+                ? (isIncluded ? theme.colorScheme.tertiary : theme.colorScheme.error)
                 : theme.iconTheme.color?.withValues(alpha: 0.5),
           ),
           const SizedBox(width: 12),
@@ -183,7 +183,7 @@ class _AvailableTagItem extends StatelessWidget {
                 fontSize: 15,
                 fontWeight: hasFilter ? FontWeight.w600 : FontWeight.normal,
                 color: hasFilter
-                    ? (isIncluded ? Colors.green : Colors.red)
+                    ? (isIncluded ? theme.colorScheme.tertiary : theme.colorScheme.error)
                     : theme.textTheme.bodyMedium?.color,
               ),
             ),
@@ -191,12 +191,14 @@ class _AvailableTagItem extends StatelessWidget {
           if (!hasFilter) ...[
             IconButton(
               tooltip: "Include",
-              icon: const Icon(Icons.add_circle_outline, color: Colors.green),
+              icon: Icon(Icons.add_circle_outline,
+                  color: theme.colorScheme.tertiary),
               onPressed: onInclude,
             ),
             IconButton(
               tooltip: "Exclude",
-              icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
+              icon: Icon(Icons.remove_circle_outline,
+                  color: theme.colorScheme.error),
               onPressed: onExclude,
             ),
           ] else ...[

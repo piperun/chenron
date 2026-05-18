@@ -54,14 +54,14 @@ class TagFilterButton extends StatelessWidget {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
-                      color: Colors.green,
+                      color: theme.colorScheme.tertiary,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
                       "+$includedCount",
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
-                        color: Colors.white,
+                        color: theme.colorScheme.onTertiary,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -73,14 +73,14 @@ class TagFilterButton extends StatelessWidget {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
-                      color: Colors.red,
+                      color: theme.colorScheme.error,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
                       "-$excludedCount",
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
-                        color: Colors.white,
+                        color: theme.colorScheme.onError,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
