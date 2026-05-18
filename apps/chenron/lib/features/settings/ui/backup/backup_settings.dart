@@ -3,6 +3,7 @@ import "package:flutter/services.dart";
 import "package:signals/signals_flutter.dart";
 import "package:chenron/features/settings/controller/config_controller.dart";
 import "package:chenron/features/settings/ui/shared/path_mode_selector.dart";
+import "package:chenron/features/settings/ui/shared/settings_section_header.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/base_dirs/schema.dart";
 import "package:basedir/directory.dart";
@@ -135,18 +136,11 @@ class _BackupSettingsState extends State<BackupSettings> {
       mainAxisSize: MainAxisSize.min,
       children: [
         // Backup Schedule Section
-        Text(
-          "Backup Schedule",
-          style: theme.textTheme.titleMedium,
+        const SettingsSectionHeader(
+          title: "Backup Schedule",
+          description:
+              "Automatically back up your database at regular intervals.",
         ),
-        const SizedBox(height: 8),
-        Text(
-          "Automatically back up your database at regular intervals.",
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
-          ),
-        ),
-        const SizedBox(height: 16),
 
         // Interval dropdown — only this part reacts to the signal
         Row(
@@ -240,18 +234,10 @@ class _BackupSettingsState extends State<BackupSettings> {
         const Divider(height: 32),
 
         // Backup Location Section
-        Text(
-          "Backup Location",
-          style: theme.textTheme.titleMedium,
+        const SettingsSectionHeader(
+          title: "Backup Location",
+          description: "Where database backups are stored.",
         ),
-        const SizedBox(height: 8),
-        Text(
-          "Where database backups are stored.",
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
-          ),
-        ),
-        const SizedBox(height: 16),
 
         PathModeSelector(
           currentPath: widget.controller.backupPath.peek(),

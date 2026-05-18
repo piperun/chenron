@@ -4,6 +4,7 @@ import "package:signals/signals_flutter.dart";
 import "package:chenron/features/settings/controller/config_controller.dart";
 import "package:chenron/features/settings/service/cache_service.dart";
 import "package:chenron/features/settings/ui/shared/path_mode_selector.dart";
+import "package:chenron/features/settings/ui/shared/settings_section_header.dart";
 import "package:chenron/features/settings/ui/shared/stats_action_row.dart";
 import "package:chenron/shared/errors/error_snack_bar.dart";
 import "package:path_provider/path_provider.dart";
@@ -96,18 +97,10 @@ class _CacheSettingsState extends State<CacheSettings> {
         mainAxisSize: MainAxisSize.min,
         children: [
           // Cache Directory Section
-          Text(
-            "Cache Directory",
-            style: theme.textTheme.titleMedium,
+          const SettingsSectionHeader(
+            title: "Cache Directory",
+            description: "Location where cached images are stored.",
           ),
-          const SizedBox(height: 8),
-          Text(
-            "Location where cached images are stored.",
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
-            ),
-          ),
-          const SizedBox(height: 16),
 
           PathModeSelector(
             currentPath: widget.controller.cacheDirectory.peek(),
