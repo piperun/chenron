@@ -3,8 +3,18 @@
 /// Provides database operations for documents, folders, links, tags, and user configuration.
 library;
 
-// Core database classes
-export "main.dart" show AppDatabase, ConfigDatabase, WebMetadataEntry, BackgroundJob;
+// Core database classes + public config enums
+export "main.dart"
+    show
+        AppDatabase,
+        ConfigDatabase,
+        WebMetadataEntry,
+        BackgroundJob,
+        ConfigIncludes,
+        ThemeType,
+        TimeDisplayFormat,
+        ItemClickAction,
+        SeedType;
 
 // Models (data classes)
 export "models.dart";

@@ -76,8 +76,11 @@ class ConfigController {
   final defaultArchiveOrg = signal<bool>(false);
   final archiveOrgS3AccessKey = signal<String?>(null);
   final archiveOrgS3SecretKey = signal<String?>(null);
-  final timeDisplayFormat = signal<int>(0); // 0 = relative, 1 = absolute
-  final itemClickAction = signal<int>(0); // 0 = Open URL, 1 = Show Details
+  // Stored as `int` to match the DB FK; the int is the enum's index.
+  // See `TimeDisplayFormat` and `ItemClickAction` enums in the database
+  // package for the named values.
+  final timeDisplayFormat = signal<int>(0);
+  final itemClickAction = signal<int>(0);
   final cacheDirectory = signal<String?>(null); // null = use default temp dir
 
   // Viewer display preferences
