@@ -52,7 +52,7 @@ extension ItemMembershipExtensions on AppDatabase {
             id: id,
             folderId: folderId,
             itemId: itemId,
-            typeId: type.dbId,
+            typeId: type,
           ),
         );
 

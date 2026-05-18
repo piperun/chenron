@@ -142,7 +142,7 @@ void main() {
               id: database.generateId(),
               folderId: "test_folder_id",
               itemId: result.linkId,
-              typeId: FolderItemType.link.dbId,
+              typeId: FolderItemType.link,
             ),
           );
 

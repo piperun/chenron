@@ -6,6 +6,7 @@ import "package:basedir/directory.dart";
 import "dart:io";
 import "package:path/path.dart" as path;
 import "package:database/models/document_file_type.dart";
+import "package:database/models/enums.dart";
 
 part "app_database.g.dart";
 
@@ -21,9 +22,7 @@ typedef DeleteRelationRecord = ({String id, IdType idType});
   Documents,
   Tags,
   Items,
-  ItemTypes,
   MetadataRecords,
-  MetadataTypes,
   Statistics,
   ActivityEvents,
   RecentAccess,
@@ -63,7 +62,7 @@ class AppDatabase extends _$AppDatabase {
   Future<void> setup() async {}
 
   @override
-  int get schemaVersion => 14;
+  int get schemaVersion => 15;
 
   @override
   MigrationStrategy get migration {
@@ -71,7 +70,7 @@ class AppDatabase extends _$AppDatabase {
       onCreate: (migrator) async {
         await migrator.createAll();
         if (setupOnInit) {
-          await setupEnumTypes();
+          await setupDefaultFolder();
         }
         // Create triggers for auto-updating timestamps on new databases
         await _createUpdateTriggers();
@@ -372,6 +371,18 @@ class AppDatabase extends _$AppDatabase {
             );
             await customStatement("DROP TABLE background_jobs_old");
           }
+        }
+
+        // v14 -> v15: replace `item_types` / `metadata_types` lookup
+        // tables with `intEnum<T>()` columns. Existing `type_id` values
+        // were 1-based (autoincrement); Drift's intEnum is 0-based, so
+        // shift down by one before the lookup tables go away.
+        if (from < 15) {
+          await customStatement("UPDATE items SET type_id = type_id - 1");
+          await customStatement(
+              "UPDATE metadata_records SET type_id = type_id - 1");
+          await customStatement("DROP TABLE IF EXISTS item_types");
+          await customStatement("DROP TABLE IF EXISTS metadata_types");
         }
       },
     );

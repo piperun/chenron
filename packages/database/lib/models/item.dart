@@ -4,6 +4,8 @@ import "package:database/models/document_file_type.dart";
 import "package:drift/drift.dart" hide JsonKey;
 import "package:freezed_annotation/freezed_annotation.dart";
 
+export "package:database/models/enums.dart" show FolderItemType;
+
 part "item.freezed.dart";
 
 @freezed
@@ -60,7 +62,7 @@ sealed class FolderItem with _$FolderItem {
       id: id ?? "",
       folderId: folderId,
       itemId: itemId ?? "",
-      typeId: type.dbId,
+      typeId: type,
     );
   }
 
@@ -90,11 +92,4 @@ sealed class FolderItem with _$FolderItem {
   }
 }
 
-enum FolderItemType {
-  link,
-  document,
-  folder;
-
-  /// Database ID (1-based, matching item_types seed table).
-  int get dbId => index + 1;
-}
+// FolderItemType is defined in `models/enums.dart` and re-exported above.

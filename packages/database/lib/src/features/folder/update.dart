@@ -60,7 +60,7 @@ extension FolderUpdateExtensions on AppDatabase {
           final existingMetadata = await (select(metadataRecords)
                 ..where((tbl) =>
                     tbl.itemId.equals(folderId) &
-                    tbl.typeId.equals(MetadataTypeEnum.tag.dbId)))
+                    tbl.typeId.equalsValue(MetadataTypeEnum.tag)))
               .get();
 
           final tagId = await addTag(tag.value);
@@ -74,7 +74,7 @@ extension FolderUpdateExtensions on AppDatabase {
                 id: generateId(),
                 itemId: folderId,
                 metadataId: tagId,
-                typeId: MetadataTypeEnum.tag.dbId,
+                typeId: MetadataTypeEnum.tag,
               ),
             );
             addedTagIds.add(tagId);
@@ -106,7 +106,7 @@ extension FolderUpdateExtensions on AppDatabase {
               ..where((tbl) =>
                   tbl.itemId.equals(folderId) &
                   tbl.metadataId.isIn(tagIds) &
-                  tbl.typeId.equals(MetadataTypeEnum.tag.dbId)))
+                  tbl.typeId.equalsValue(MetadataTypeEnum.tag)))
             .go();
 
         loggerGlobal.fine(

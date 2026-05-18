@@ -1442,185 +1442,6 @@ class TagsCompanion extends UpdateCompanion<Tag> {
   }
 }
 
-class $ItemTypesTable extends ItemTypes
-    with TableInfo<$ItemTypesTable, ItemType> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $ItemTypesTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
-      'id', aliasedName, false,
-      hasAutoIncrement: true,
-      type: DriftSqlType.int,
-      requiredDuringInsert: false,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
-  static const VerificationMeta _nameMeta = const VerificationMeta('name');
-  @override
-  late final GeneratedColumn<String> name = GeneratedColumn<String>(
-      'name', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'));
-  @override
-  List<GeneratedColumn> get $columns => [id, name];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'item_types';
-  @override
-  VerificationContext validateIntegrity(Insertable<ItemType> instance,
-      {bool isInserting = false}) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    }
-    if (data.containsKey('name')) {
-      context.handle(
-          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
-    } else if (isInserting) {
-      context.missing(_nameMeta);
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  ItemType map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return ItemType(
-      id: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
-      name: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
-    );
-  }
-
-  @override
-  $ItemTypesTable createAlias(String alias) {
-    return $ItemTypesTable(attachedDatabase, alias);
-  }
-}
-
-class ItemType extends DataClass implements Insertable<ItemType> {
-  final int id;
-  final String name;
-  const ItemType({required this.id, required this.name});
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
-    map['name'] = Variable<String>(name);
-    return map;
-  }
-
-  ItemTypesCompanion toCompanion(bool nullToAbsent) {
-    return ItemTypesCompanion(
-      id: Value(id),
-      name: Value(name),
-    );
-  }
-
-  factory ItemType.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return ItemType(
-      id: serializer.fromJson<int>(json['id']),
-      name: serializer.fromJson<String>(json['name']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
-      'name': serializer.toJson<String>(name),
-    };
-  }
-
-  ItemType copyWith({int? id, String? name}) => ItemType(
-        id: id ?? this.id,
-        name: name ?? this.name,
-      );
-  ItemType copyWithCompanion(ItemTypesCompanion data) {
-    return ItemType(
-      id: data.id.present ? data.id.value : this.id,
-      name: data.name.present ? data.name.value : this.name,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('ItemType(')
-          ..write('id: $id, ')
-          ..write('name: $name')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(id, name);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is ItemType && other.id == this.id && other.name == this.name);
-}
-
-class ItemTypesCompanion extends UpdateCompanion<ItemType> {
-  final Value<int> id;
-  final Value<String> name;
-  const ItemTypesCompanion({
-    this.id = const Value.absent(),
-    this.name = const Value.absent(),
-  });
-  ItemTypesCompanion.insert({
-    this.id = const Value.absent(),
-    required String name,
-  }) : name = Value(name);
-  static Insertable<ItemType> custom({
-    Expression<int>? id,
-    Expression<String>? name,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (name != null) 'name': name,
-    });
-  }
-
-  ItemTypesCompanion copyWith({Value<int>? id, Value<String>? name}) {
-    return ItemTypesCompanion(
-      id: id ?? this.id,
-      name: name ?? this.name,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<int>(id.value);
-    }
-    if (name.present) {
-      map['name'] = Variable<String>(name.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('ItemTypesCompanion(')
-          ..write('id: $id, ')
-          ..write('name: $name')
-          ..write(')'))
-        .toString();
-  }
-}
-
 class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -1656,14 +1477,11 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
   late final GeneratedColumn<String> itemId = GeneratedColumn<String>(
       'item_id', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _typeIdMeta = const VerificationMeta('typeId');
   @override
-  late final GeneratedColumn<int> typeId = GeneratedColumn<int>(
-      'type_id', aliasedName, false,
-      type: DriftSqlType.int,
-      requiredDuringInsert: true,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('REFERENCES item_types (id)'));
+  late final GeneratedColumnWithTypeConverter<FolderItemType, int> typeId =
+      GeneratedColumn<int>('type_id', aliasedName, false,
+              type: DriftSqlType.int, requiredDuringInsert: true)
+          .withConverter<FolderItemType>($ItemsTable.$convertertypeId);
   @override
   List<GeneratedColumn> get $columns =>
       [id, createdAt, folderId, itemId, typeId];
@@ -1698,12 +1516,6 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
     } else if (isInserting) {
       context.missing(_itemIdMeta);
     }
-    if (data.containsKey('type_id')) {
-      context.handle(_typeIdMeta,
-          typeId.isAcceptableOrUnknown(data['type_id']!, _typeIdMeta));
-    } else if (isInserting) {
-      context.missing(_typeIdMeta);
-    }
     return context;
   }
 
@@ -1721,8 +1533,8 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
           .read(DriftSqlType.string, data['${effectivePrefix}folder_id'])!,
       itemId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}item_id'])!,
-      typeId: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}type_id'])!,
+      typeId: $ItemsTable.$convertertypeId.fromSql(attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}type_id'])!),
     );
   }
 
@@ -1730,6 +1542,9 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
   $ItemsTable createAlias(String alias) {
     return $ItemsTable(attachedDatabase, alias);
   }
+
+  static JsonTypeConverter2<FolderItemType, int, int> $convertertypeId =
+      const EnumIndexConverter<FolderItemType>(FolderItemType.values);
 }
 
 class Item extends DataClass implements Insertable<Item> {
@@ -1737,7 +1552,7 @@ class Item extends DataClass implements Insertable<Item> {
   final DateTime createdAt;
   final String folderId;
   final String itemId;
-  final int typeId;
+  final FolderItemType typeId;
   const Item(
       {required this.id,
       required this.createdAt,
@@ -1751,7 +1566,10 @@ class Item extends DataClass implements Insertable<Item> {
     map['created_at'] = Variable<DateTime>(createdAt);
     map['folder_id'] = Variable<String>(folderId);
     map['item_id'] = Variable<String>(itemId);
-    map['type_id'] = Variable<int>(typeId);
+    {
+      map['type_id'] =
+          Variable<int>($ItemsTable.$convertertypeId.toSql(typeId));
+    }
     return map;
   }
 
@@ -1773,7 +1591,8 @@ class Item extends DataClass implements Insertable<Item> {
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       folderId: serializer.fromJson<String>(json['folderId']),
       itemId: serializer.fromJson<String>(json['itemId']),
-      typeId: serializer.fromJson<int>(json['typeId']),
+      typeId: $ItemsTable.$convertertypeId
+          .fromJson(serializer.fromJson<int>(json['typeId'])),
     );
   }
   @override
@@ -1784,7 +1603,8 @@ class Item extends DataClass implements Insertable<Item> {
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'folderId': serializer.toJson<String>(folderId),
       'itemId': serializer.toJson<String>(itemId),
-      'typeId': serializer.toJson<int>(typeId),
+      'typeId':
+          serializer.toJson<int>($ItemsTable.$convertertypeId.toJson(typeId)),
     };
   }
 
@@ -1793,7 +1613,7 @@ class Item extends DataClass implements Insertable<Item> {
           DateTime? createdAt,
           String? folderId,
           String? itemId,
-          int? typeId}) =>
+          FolderItemType? typeId}) =>
       Item(
         id: id ?? this.id,
         createdAt: createdAt ?? this.createdAt,
@@ -1841,7 +1661,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
   final Value<DateTime> createdAt;
   final Value<String> folderId;
   final Value<String> itemId;
-  final Value<int> typeId;
+  final Value<FolderItemType> typeId;
   final Value<int> rowid;
   const ItemsCompanion({
     this.id = const Value.absent(),
@@ -1856,7 +1676,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
     this.createdAt = const Value.absent(),
     required String folderId,
     required String itemId,
-    required int typeId,
+    required FolderItemType typeId,
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         folderId = Value(folderId),
@@ -1885,7 +1705,7 @@ class ItemsCompanion extends UpdateCompanion<Item> {
       Value<DateTime>? createdAt,
       Value<String>? folderId,
       Value<String>? itemId,
-      Value<int>? typeId,
+      Value<FolderItemType>? typeId,
       Value<int>? rowid}) {
     return ItemsCompanion(
       id: id ?? this.id,
@@ -1913,7 +1733,8 @@ class ItemsCompanion extends UpdateCompanion<Item> {
       map['item_id'] = Variable<String>(itemId.value);
     }
     if (typeId.present) {
-      map['type_id'] = Variable<int>(typeId.value);
+      map['type_id'] =
+          Variable<int>($ItemsTable.$convertertypeId.toSql(typeId.value));
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -1930,185 +1751,6 @@ class ItemsCompanion extends UpdateCompanion<Item> {
           ..write('itemId: $itemId, ')
           ..write('typeId: $typeId, ')
           ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
-class $MetadataTypesTable extends MetadataTypes
-    with TableInfo<$MetadataTypesTable, MetadataType> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $MetadataTypesTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
-      'id', aliasedName, false,
-      hasAutoIncrement: true,
-      type: DriftSqlType.int,
-      requiredDuringInsert: false,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
-  static const VerificationMeta _nameMeta = const VerificationMeta('name');
-  @override
-  late final GeneratedColumn<String> name = GeneratedColumn<String>(
-      'name', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'));
-  @override
-  List<GeneratedColumn> get $columns => [id, name];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'metadata_types';
-  @override
-  VerificationContext validateIntegrity(Insertable<MetadataType> instance,
-      {bool isInserting = false}) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    }
-    if (data.containsKey('name')) {
-      context.handle(
-          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
-    } else if (isInserting) {
-      context.missing(_nameMeta);
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  MetadataType map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return MetadataType(
-      id: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
-      name: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
-    );
-  }
-
-  @override
-  $MetadataTypesTable createAlias(String alias) {
-    return $MetadataTypesTable(attachedDatabase, alias);
-  }
-}
-
-class MetadataType extends DataClass implements Insertable<MetadataType> {
-  final int id;
-  final String name;
-  const MetadataType({required this.id, required this.name});
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
-    map['name'] = Variable<String>(name);
-    return map;
-  }
-
-  MetadataTypesCompanion toCompanion(bool nullToAbsent) {
-    return MetadataTypesCompanion(
-      id: Value(id),
-      name: Value(name),
-    );
-  }
-
-  factory MetadataType.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return MetadataType(
-      id: serializer.fromJson<int>(json['id']),
-      name: serializer.fromJson<String>(json['name']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
-      'name': serializer.toJson<String>(name),
-    };
-  }
-
-  MetadataType copyWith({int? id, String? name}) => MetadataType(
-        id: id ?? this.id,
-        name: name ?? this.name,
-      );
-  MetadataType copyWithCompanion(MetadataTypesCompanion data) {
-    return MetadataType(
-      id: data.id.present ? data.id.value : this.id,
-      name: data.name.present ? data.name.value : this.name,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('MetadataType(')
-          ..write('id: $id, ')
-          ..write('name: $name')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(id, name);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is MetadataType && other.id == this.id && other.name == this.name);
-}
-
-class MetadataTypesCompanion extends UpdateCompanion<MetadataType> {
-  final Value<int> id;
-  final Value<String> name;
-  const MetadataTypesCompanion({
-    this.id = const Value.absent(),
-    this.name = const Value.absent(),
-  });
-  MetadataTypesCompanion.insert({
-    this.id = const Value.absent(),
-    required String name,
-  }) : name = Value(name);
-  static Insertable<MetadataType> custom({
-    Expression<int>? id,
-    Expression<String>? name,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (name != null) 'name': name,
-    });
-  }
-
-  MetadataTypesCompanion copyWith({Value<int>? id, Value<String>? name}) {
-    return MetadataTypesCompanion(
-      id: id ?? this.id,
-      name: name ?? this.name,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<int>(id.value);
-    }
-    if (name.present) {
-      map['name'] = Variable<String>(name.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('MetadataTypesCompanion(')
-          ..write('id: $id, ')
-          ..write('name: $name')
           ..write(')'))
         .toString();
   }
@@ -2136,14 +1778,12 @@ class $MetadataRecordsTable extends MetadataRecords
       type: DriftSqlType.dateTime,
       requiredDuringInsert: false,
       defaultValue: currentDateAndTime);
-  static const VerificationMeta _typeIdMeta = const VerificationMeta('typeId');
   @override
-  late final GeneratedColumn<int> typeId = GeneratedColumn<int>(
-      'type_id', aliasedName, false,
-      type: DriftSqlType.int,
-      requiredDuringInsert: true,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('REFERENCES metadata_types (id)'));
+  late final GeneratedColumnWithTypeConverter<MetadataTypeEnum, int> typeId =
+      GeneratedColumn<int>('type_id', aliasedName, false,
+              type: DriftSqlType.int, requiredDuringInsert: true)
+          .withConverter<MetadataTypeEnum>(
+              $MetadataRecordsTable.$convertertypeId);
   static const VerificationMeta _itemIdMeta = const VerificationMeta('itemId');
   @override
   late final GeneratedColumn<String> itemId = GeneratedColumn<String>(
@@ -2182,12 +1822,6 @@ class $MetadataRecordsTable extends MetadataRecords
       context.handle(_createdAtMeta,
           createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
     }
-    if (data.containsKey('type_id')) {
-      context.handle(_typeIdMeta,
-          typeId.isAcceptableOrUnknown(data['type_id']!, _typeIdMeta));
-    } else if (isInserting) {
-      context.missing(_typeIdMeta);
-    }
     if (data.containsKey('item_id')) {
       context.handle(_itemIdMeta,
           itemId.isAcceptableOrUnknown(data['item_id']!, _itemIdMeta));
@@ -2219,8 +1853,9 @@ class $MetadataRecordsTable extends MetadataRecords
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
       createdAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
-      typeId: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}type_id'])!,
+      typeId: $MetadataRecordsTable.$convertertypeId.fromSql(attachedDatabase
+          .typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}type_id'])!),
       itemId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}item_id'])!,
       metadataId: attachedDatabase.typeMapping
@@ -2234,12 +1869,15 @@ class $MetadataRecordsTable extends MetadataRecords
   $MetadataRecordsTable createAlias(String alias) {
     return $MetadataRecordsTable(attachedDatabase, alias);
   }
+
+  static JsonTypeConverter2<MetadataTypeEnum, int, int> $convertertypeId =
+      const EnumIndexConverter<MetadataTypeEnum>(MetadataTypeEnum.values);
 }
 
 class MetadataRecord extends DataClass implements Insertable<MetadataRecord> {
   final String id;
   final DateTime createdAt;
-  final int typeId;
+  final MetadataTypeEnum typeId;
   final String itemId;
   final String metadataId;
   final String? value;
@@ -2255,7 +1893,10 @@ class MetadataRecord extends DataClass implements Insertable<MetadataRecord> {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     map['created_at'] = Variable<DateTime>(createdAt);
-    map['type_id'] = Variable<int>(typeId);
+    {
+      map['type_id'] =
+          Variable<int>($MetadataRecordsTable.$convertertypeId.toSql(typeId));
+    }
     map['item_id'] = Variable<String>(itemId);
     map['metadata_id'] = Variable<String>(metadataId);
     if (!nullToAbsent || value != null) {
@@ -2282,7 +1923,8 @@ class MetadataRecord extends DataClass implements Insertable<MetadataRecord> {
     return MetadataRecord(
       id: serializer.fromJson<String>(json['id']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
-      typeId: serializer.fromJson<int>(json['typeId']),
+      typeId: $MetadataRecordsTable.$convertertypeId
+          .fromJson(serializer.fromJson<int>(json['typeId'])),
       itemId: serializer.fromJson<String>(json['itemId']),
       metadataId: serializer.fromJson<String>(json['metadataId']),
       value: serializer.fromJson<String?>(json['value']),
@@ -2294,7 +1936,8 @@ class MetadataRecord extends DataClass implements Insertable<MetadataRecord> {
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
       'createdAt': serializer.toJson<DateTime>(createdAt),
-      'typeId': serializer.toJson<int>(typeId),
+      'typeId': serializer
+          .toJson<int>($MetadataRecordsTable.$convertertypeId.toJson(typeId)),
       'itemId': serializer.toJson<String>(itemId),
       'metadataId': serializer.toJson<String>(metadataId),
       'value': serializer.toJson<String?>(value),
@@ -2304,7 +1947,7 @@ class MetadataRecord extends DataClass implements Insertable<MetadataRecord> {
   MetadataRecord copyWith(
           {String? id,
           DateTime? createdAt,
-          int? typeId,
+          MetadataTypeEnum? typeId,
           String? itemId,
           String? metadataId,
           Value<String?> value = const Value.absent()}) =>
@@ -2359,7 +2002,7 @@ class MetadataRecord extends DataClass implements Insertable<MetadataRecord> {
 class MetadataRecordsCompanion extends UpdateCompanion<MetadataRecord> {
   final Value<String> id;
   final Value<DateTime> createdAt;
-  final Value<int> typeId;
+  final Value<MetadataTypeEnum> typeId;
   final Value<String> itemId;
   final Value<String> metadataId;
   final Value<String?> value;
@@ -2376,7 +2019,7 @@ class MetadataRecordsCompanion extends UpdateCompanion<MetadataRecord> {
   MetadataRecordsCompanion.insert({
     required String id,
     this.createdAt = const Value.absent(),
-    required int typeId,
+    required MetadataTypeEnum typeId,
     required String itemId,
     required String metadataId,
     this.value = const Value.absent(),
@@ -2408,7 +2051,7 @@ class MetadataRecordsCompanion extends UpdateCompanion<MetadataRecord> {
   MetadataRecordsCompanion copyWith(
       {Value<String>? id,
       Value<DateTime>? createdAt,
-      Value<int>? typeId,
+      Value<MetadataTypeEnum>? typeId,
       Value<String>? itemId,
       Value<String>? metadataId,
       Value<String?>? value,
@@ -2434,7 +2077,8 @@ class MetadataRecordsCompanion extends UpdateCompanion<MetadataRecord> {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
     if (typeId.present) {
-      map['type_id'] = Variable<int>(typeId.value);
+      map['type_id'] = Variable<int>(
+          $MetadataRecordsTable.$convertertypeId.toSql(typeId.value));
     }
     if (itemId.present) {
       map['item_id'] = Variable<String>(itemId.value);
@@ -4336,9 +3980,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $LinksTable links = $LinksTable(this);
   late final $DocumentsTable documents = $DocumentsTable(this);
   late final $TagsTable tags = $TagsTable(this);
-  late final $ItemTypesTable itemTypes = $ItemTypesTable(this);
   late final $ItemsTable items = $ItemsTable(this);
-  late final $MetadataTypesTable metadataTypes = $MetadataTypesTable(this);
   late final $MetadataRecordsTable metadataRecords =
       $MetadataRecordsTable(this);
   late final $StatisticsTable statistics = $StatisticsTable(this);
@@ -4370,9 +4012,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         links,
         documents,
         tags,
-        itemTypes,
         items,
-        metadataTypes,
         metadataRecords,
         statistics,
         activityEvents,
@@ -5197,211 +4837,12 @@ typedef $$TagsTableProcessedTableManager = ProcessedTableManager<
     (Tag, BaseReferences<_$AppDatabase, $TagsTable, Tag>),
     Tag,
     PrefetchHooks Function()>;
-typedef $$ItemTypesTableCreateCompanionBuilder = ItemTypesCompanion Function({
-  Value<int> id,
-  required String name,
-});
-typedef $$ItemTypesTableUpdateCompanionBuilder = ItemTypesCompanion Function({
-  Value<int> id,
-  Value<String> name,
-});
-
-final class $$ItemTypesTableReferences
-    extends BaseReferences<_$AppDatabase, $ItemTypesTable, ItemType> {
-  $$ItemTypesTableReferences(super.$_db, super.$_table, super.$_typedResult);
-
-  static MultiTypedResultKey<$ItemsTable, List<Item>> _itemsRefsTable(
-          _$AppDatabase db) =>
-      MultiTypedResultKey.fromTable(db.items,
-          aliasName: $_aliasNameGenerator(db.itemTypes.id, db.items.typeId));
-
-  $$ItemsTableProcessedTableManager get itemsRefs {
-    final manager = $$ItemsTableTableManager($_db, $_db.items)
-        .filter((f) => f.typeId.id.sqlEquals($_itemColumn<int>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(_itemsRefsTable($_db));
-    return ProcessedTableManager(
-        manager.$state.copyWith(prefetchedData: cache));
-  }
-}
-
-class $$ItemTypesTableFilterComposer
-    extends Composer<_$AppDatabase, $ItemTypesTable> {
-  $$ItemTypesTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<int> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get name => $composableBuilder(
-      column: $table.name, builder: (column) => ColumnFilters(column));
-
-  Expression<bool> itemsRefs(
-      Expression<bool> Function($$ItemsTableFilterComposer f) f) {
-    final $$ItemsTableFilterComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.id,
-        referencedTable: $db.items,
-        getReferencedColumn: (t) => t.typeId,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$ItemsTableFilterComposer(
-              $db: $db,
-              $table: $db.items,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return f(composer);
-  }
-}
-
-class $$ItemTypesTableOrderingComposer
-    extends Composer<_$AppDatabase, $ItemTypesTable> {
-  $$ItemTypesTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<int> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get name => $composableBuilder(
-      column: $table.name, builder: (column) => ColumnOrderings(column));
-}
-
-class $$ItemTypesTableAnnotationComposer
-    extends Composer<_$AppDatabase, $ItemTypesTable> {
-  $$ItemTypesTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<int> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get name =>
-      $composableBuilder(column: $table.name, builder: (column) => column);
-
-  Expression<T> itemsRefs<T extends Object>(
-      Expression<T> Function($$ItemsTableAnnotationComposer a) f) {
-    final $$ItemsTableAnnotationComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.id,
-        referencedTable: $db.items,
-        getReferencedColumn: (t) => t.typeId,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$ItemsTableAnnotationComposer(
-              $db: $db,
-              $table: $db.items,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return f(composer);
-  }
-}
-
-class $$ItemTypesTableTableManager extends RootTableManager<
-    _$AppDatabase,
-    $ItemTypesTable,
-    ItemType,
-    $$ItemTypesTableFilterComposer,
-    $$ItemTypesTableOrderingComposer,
-    $$ItemTypesTableAnnotationComposer,
-    $$ItemTypesTableCreateCompanionBuilder,
-    $$ItemTypesTableUpdateCompanionBuilder,
-    (ItemType, $$ItemTypesTableReferences),
-    ItemType,
-    PrefetchHooks Function({bool itemsRefs})> {
-  $$ItemTypesTableTableManager(_$AppDatabase db, $ItemTypesTable table)
-      : super(TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$ItemTypesTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$ItemTypesTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$ItemTypesTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<int> id = const Value.absent(),
-            Value<String> name = const Value.absent(),
-          }) =>
-              ItemTypesCompanion(
-            id: id,
-            name: name,
-          ),
-          createCompanionCallback: ({
-            Value<int> id = const Value.absent(),
-            required String name,
-          }) =>
-              ItemTypesCompanion.insert(
-            id: id,
-            name: name,
-          ),
-          withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable(table),
-                    $$ItemTypesTableReferences(db, table, e)
-                  ))
-              .toList(),
-          prefetchHooksCallback: ({itemsRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [if (itemsRefs) db.items],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (itemsRefs)
-                    await $_getPrefetchedData<ItemType, $ItemTypesTable, Item>(
-                        currentTable: table,
-                        referencedTable:
-                            $$ItemTypesTableReferences._itemsRefsTable(db),
-                        managerFromTypedResult: (p0) =>
-                            $$ItemTypesTableReferences(db, table, p0).itemsRefs,
-                        referencedItemsForCurrentItem: (item,
-                                referencedItems) =>
-                            referencedItems.where((e) => e.typeId == item.id),
-                        typedResults: items)
-                ];
-              },
-            );
-          },
-        ));
-}
-
-typedef $$ItemTypesTableProcessedTableManager = ProcessedTableManager<
-    _$AppDatabase,
-    $ItemTypesTable,
-    ItemType,
-    $$ItemTypesTableFilterComposer,
-    $$ItemTypesTableOrderingComposer,
-    $$ItemTypesTableAnnotationComposer,
-    $$ItemTypesTableCreateCompanionBuilder,
-    $$ItemTypesTableUpdateCompanionBuilder,
-    (ItemType, $$ItemTypesTableReferences),
-    ItemType,
-    PrefetchHooks Function({bool itemsRefs})>;
 typedef $$ItemsTableCreateCompanionBuilder = ItemsCompanion Function({
   required String id,
   Value<DateTime> createdAt,
   required String folderId,
   required String itemId,
-  required int typeId,
+  required FolderItemType typeId,
   Value<int> rowid,
 });
 typedef $$ItemsTableUpdateCompanionBuilder = ItemsCompanion Function({
@@ -5409,7 +4850,7 @@ typedef $$ItemsTableUpdateCompanionBuilder = ItemsCompanion Function({
   Value<DateTime> createdAt,
   Value<String> folderId,
   Value<String> itemId,
-  Value<int> typeId,
+  Value<FolderItemType> typeId,
   Value<int> rowid,
 });
 
@@ -5426,20 +4867,6 @@ final class $$ItemsTableReferences
     final manager = $$FoldersTableTableManager($_db, $_db.folders)
         .filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_folderIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-        manager.$state.copyWith(prefetchedData: [item]));
-  }
-
-  static $ItemTypesTable _typeIdTable(_$AppDatabase db) => db.itemTypes
-      .createAlias($_aliasNameGenerator(db.items.typeId, db.itemTypes.id));
-
-  $$ItemTypesTableProcessedTableManager get typeId {
-    final $_column = $_itemColumn<int>('type_id')!;
-
-    final manager = $$ItemTypesTableTableManager($_db, $_db.itemTypes)
-        .filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_typeIdTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
         manager.$state.copyWith(prefetchedData: [item]));
@@ -5463,6 +4890,11 @@ class $$ItemsTableFilterComposer extends Composer<_$AppDatabase, $ItemsTable> {
   ColumnFilters<String> get itemId => $composableBuilder(
       column: $table.itemId, builder: (column) => ColumnFilters(column));
 
+  ColumnWithTypeConverterFilters<FolderItemType, FolderItemType, int>
+      get typeId => $composableBuilder(
+          column: $table.typeId,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
   $$FoldersTableFilterComposer get folderId {
     final $$FoldersTableFilterComposer composer = $composerBuilder(
         composer: this,
@@ -5475,26 +4907,6 @@ class $$ItemsTableFilterComposer extends Composer<_$AppDatabase, $ItemsTable> {
             $$FoldersTableFilterComposer(
               $db: $db,
               $table: $db.folders,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return composer;
-  }
-
-  $$ItemTypesTableFilterComposer get typeId {
-    final $$ItemTypesTableFilterComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.typeId,
-        referencedTable: $db.itemTypes,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$ItemTypesTableFilterComposer(
-              $db: $db,
-              $table: $db.itemTypes,
               $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
               joinBuilder: joinBuilder,
               $removeJoinBuilderFromRootComposer:
@@ -5522,6 +4934,9 @@ class $$ItemsTableOrderingComposer
   ColumnOrderings<String> get itemId => $composableBuilder(
       column: $table.itemId, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<int> get typeId => $composableBuilder(
+      column: $table.typeId, builder: (column) => ColumnOrderings(column));
+
   $$FoldersTableOrderingComposer get folderId {
     final $$FoldersTableOrderingComposer composer = $composerBuilder(
         composer: this,
@@ -5534,26 +4949,6 @@ class $$ItemsTableOrderingComposer
             $$FoldersTableOrderingComposer(
               $db: $db,
               $table: $db.folders,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return composer;
-  }
-
-  $$ItemTypesTableOrderingComposer get typeId {
-    final $$ItemTypesTableOrderingComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.typeId,
-        referencedTable: $db.itemTypes,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$ItemTypesTableOrderingComposer(
-              $db: $db,
-              $table: $db.itemTypes,
               $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
               joinBuilder: joinBuilder,
               $removeJoinBuilderFromRootComposer:
@@ -5581,6 +4976,9 @@ class $$ItemsTableAnnotationComposer
   GeneratedColumn<String> get itemId =>
       $composableBuilder(column: $table.itemId, builder: (column) => column);
 
+  GeneratedColumnWithTypeConverter<FolderItemType, int> get typeId =>
+      $composableBuilder(column: $table.typeId, builder: (column) => column);
+
   $$FoldersTableAnnotationComposer get folderId {
     final $$FoldersTableAnnotationComposer composer = $composerBuilder(
         composer: this,
@@ -5593,26 +4991,6 @@ class $$ItemsTableAnnotationComposer
             $$FoldersTableAnnotationComposer(
               $db: $db,
               $table: $db.folders,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return composer;
-  }
-
-  $$ItemTypesTableAnnotationComposer get typeId {
-    final $$ItemTypesTableAnnotationComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.typeId,
-        referencedTable: $db.itemTypes,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$ItemTypesTableAnnotationComposer(
-              $db: $db,
-              $table: $db.itemTypes,
               $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
               joinBuilder: joinBuilder,
               $removeJoinBuilderFromRootComposer:
@@ -5633,7 +5011,7 @@ class $$ItemsTableTableManager extends RootTableManager<
     $$ItemsTableUpdateCompanionBuilder,
     (Item, $$ItemsTableReferences),
     Item,
-    PrefetchHooks Function({bool folderId, bool typeId})> {
+    PrefetchHooks Function({bool folderId})> {
   $$ItemsTableTableManager(_$AppDatabase db, $ItemsTable table)
       : super(TableManagerState(
           db: db,
@@ -5649,7 +5027,7 @@ class $$ItemsTableTableManager extends RootTableManager<
             Value<DateTime> createdAt = const Value.absent(),
             Value<String> folderId = const Value.absent(),
             Value<String> itemId = const Value.absent(),
-            Value<int> typeId = const Value.absent(),
+            Value<FolderItemType> typeId = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               ItemsCompanion(
@@ -5665,7 +5043,7 @@ class $$ItemsTableTableManager extends RootTableManager<
             Value<DateTime> createdAt = const Value.absent(),
             required String folderId,
             required String itemId,
-            required int typeId,
+            required FolderItemType typeId,
             Value<int> rowid = const Value.absent(),
           }) =>
               ItemsCompanion.insert(
@@ -5680,7 +5058,7 @@ class $$ItemsTableTableManager extends RootTableManager<
               .map((e) =>
                   (e.readTable(table), $$ItemsTableReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback: ({folderId = false, typeId = false}) {
+          prefetchHooksCallback: ({folderId = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
@@ -5706,15 +5084,6 @@ class $$ItemsTableTableManager extends RootTableManager<
                         $$ItemsTableReferences._folderIdTable(db).id,
                   ) as T;
                 }
-                if (typeId) {
-                  state = state.withJoin(
-                    currentTable: table,
-                    currentColumn: table.typeId,
-                    referencedTable: $$ItemsTableReferences._typeIdTable(db),
-                    referencedColumn:
-                        $$ItemsTableReferences._typeIdTable(db).id,
-                  ) as T;
-                }
 
                 return state;
               },
@@ -5737,220 +5106,12 @@ typedef $$ItemsTableProcessedTableManager = ProcessedTableManager<
     $$ItemsTableUpdateCompanionBuilder,
     (Item, $$ItemsTableReferences),
     Item,
-    PrefetchHooks Function({bool folderId, bool typeId})>;
-typedef $$MetadataTypesTableCreateCompanionBuilder = MetadataTypesCompanion
-    Function({
-  Value<int> id,
-  required String name,
-});
-typedef $$MetadataTypesTableUpdateCompanionBuilder = MetadataTypesCompanion
-    Function({
-  Value<int> id,
-  Value<String> name,
-});
-
-final class $$MetadataTypesTableReferences
-    extends BaseReferences<_$AppDatabase, $MetadataTypesTable, MetadataType> {
-  $$MetadataTypesTableReferences(
-      super.$_db, super.$_table, super.$_typedResult);
-
-  static MultiTypedResultKey<$MetadataRecordsTable, List<MetadataRecord>>
-      _metadataRecordsRefsTable(_$AppDatabase db) =>
-          MultiTypedResultKey.fromTable(db.metadataRecords,
-              aliasName: $_aliasNameGenerator(
-                  db.metadataTypes.id, db.metadataRecords.typeId));
-
-  $$MetadataRecordsTableProcessedTableManager get metadataRecordsRefs {
-    final manager =
-        $$MetadataRecordsTableTableManager($_db, $_db.metadataRecords)
-            .filter((f) => f.typeId.id.sqlEquals($_itemColumn<int>('id')!));
-
-    final cache =
-        $_typedResult.readTableOrNull(_metadataRecordsRefsTable($_db));
-    return ProcessedTableManager(
-        manager.$state.copyWith(prefetchedData: cache));
-  }
-}
-
-class $$MetadataTypesTableFilterComposer
-    extends Composer<_$AppDatabase, $MetadataTypesTable> {
-  $$MetadataTypesTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<int> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get name => $composableBuilder(
-      column: $table.name, builder: (column) => ColumnFilters(column));
-
-  Expression<bool> metadataRecordsRefs(
-      Expression<bool> Function($$MetadataRecordsTableFilterComposer f) f) {
-    final $$MetadataRecordsTableFilterComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.id,
-        referencedTable: $db.metadataRecords,
-        getReferencedColumn: (t) => t.typeId,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$MetadataRecordsTableFilterComposer(
-              $db: $db,
-              $table: $db.metadataRecords,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return f(composer);
-  }
-}
-
-class $$MetadataTypesTableOrderingComposer
-    extends Composer<_$AppDatabase, $MetadataTypesTable> {
-  $$MetadataTypesTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<int> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get name => $composableBuilder(
-      column: $table.name, builder: (column) => ColumnOrderings(column));
-}
-
-class $$MetadataTypesTableAnnotationComposer
-    extends Composer<_$AppDatabase, $MetadataTypesTable> {
-  $$MetadataTypesTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<int> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get name =>
-      $composableBuilder(column: $table.name, builder: (column) => column);
-
-  Expression<T> metadataRecordsRefs<T extends Object>(
-      Expression<T> Function($$MetadataRecordsTableAnnotationComposer a) f) {
-    final $$MetadataRecordsTableAnnotationComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.id,
-        referencedTable: $db.metadataRecords,
-        getReferencedColumn: (t) => t.typeId,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$MetadataRecordsTableAnnotationComposer(
-              $db: $db,
-              $table: $db.metadataRecords,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return f(composer);
-  }
-}
-
-class $$MetadataTypesTableTableManager extends RootTableManager<
-    _$AppDatabase,
-    $MetadataTypesTable,
-    MetadataType,
-    $$MetadataTypesTableFilterComposer,
-    $$MetadataTypesTableOrderingComposer,
-    $$MetadataTypesTableAnnotationComposer,
-    $$MetadataTypesTableCreateCompanionBuilder,
-    $$MetadataTypesTableUpdateCompanionBuilder,
-    (MetadataType, $$MetadataTypesTableReferences),
-    MetadataType,
-    PrefetchHooks Function({bool metadataRecordsRefs})> {
-  $$MetadataTypesTableTableManager(_$AppDatabase db, $MetadataTypesTable table)
-      : super(TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$MetadataTypesTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$MetadataTypesTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$MetadataTypesTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<int> id = const Value.absent(),
-            Value<String> name = const Value.absent(),
-          }) =>
-              MetadataTypesCompanion(
-            id: id,
-            name: name,
-          ),
-          createCompanionCallback: ({
-            Value<int> id = const Value.absent(),
-            required String name,
-          }) =>
-              MetadataTypesCompanion.insert(
-            id: id,
-            name: name,
-          ),
-          withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable(table),
-                    $$MetadataTypesTableReferences(db, table, e)
-                  ))
-              .toList(),
-          prefetchHooksCallback: ({metadataRecordsRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [
-                if (metadataRecordsRefs) db.metadataRecords
-              ],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (metadataRecordsRefs)
-                    await $_getPrefetchedData<MetadataType, $MetadataTypesTable, MetadataRecord>(
-                        currentTable: table,
-                        referencedTable: $$MetadataTypesTableReferences
-                            ._metadataRecordsRefsTable(db),
-                        managerFromTypedResult: (p0) =>
-                            $$MetadataTypesTableReferences(db, table, p0)
-                                .metadataRecordsRefs,
-                        referencedItemsForCurrentItem: (item,
-                                referencedItems) =>
-                            referencedItems.where((e) => e.typeId == item.id),
-                        typedResults: items)
-                ];
-              },
-            );
-          },
-        ));
-}
-
-typedef $$MetadataTypesTableProcessedTableManager = ProcessedTableManager<
-    _$AppDatabase,
-    $MetadataTypesTable,
-    MetadataType,
-    $$MetadataTypesTableFilterComposer,
-    $$MetadataTypesTableOrderingComposer,
-    $$MetadataTypesTableAnnotationComposer,
-    $$MetadataTypesTableCreateCompanionBuilder,
-    $$MetadataTypesTableUpdateCompanionBuilder,
-    (MetadataType, $$MetadataTypesTableReferences),
-    MetadataType,
-    PrefetchHooks Function({bool metadataRecordsRefs})>;
+    PrefetchHooks Function({bool folderId})>;
 typedef $$MetadataRecordsTableCreateCompanionBuilder = MetadataRecordsCompanion
     Function({
   required String id,
   Value<DateTime> createdAt,
-  required int typeId,
+  required MetadataTypeEnum typeId,
   required String itemId,
   required String metadataId,
   Value<String?> value,
@@ -5960,33 +5121,12 @@ typedef $$MetadataRecordsTableUpdateCompanionBuilder = MetadataRecordsCompanion
     Function({
   Value<String> id,
   Value<DateTime> createdAt,
-  Value<int> typeId,
+  Value<MetadataTypeEnum> typeId,
   Value<String> itemId,
   Value<String> metadataId,
   Value<String?> value,
   Value<int> rowid,
 });
-
-final class $$MetadataRecordsTableReferences extends BaseReferences<
-    _$AppDatabase, $MetadataRecordsTable, MetadataRecord> {
-  $$MetadataRecordsTableReferences(
-      super.$_db, super.$_table, super.$_typedResult);
-
-  static $MetadataTypesTable _typeIdTable(_$AppDatabase db) =>
-      db.metadataTypes.createAlias(
-          $_aliasNameGenerator(db.metadataRecords.typeId, db.metadataTypes.id));
-
-  $$MetadataTypesTableProcessedTableManager get typeId {
-    final $_column = $_itemColumn<int>('type_id')!;
-
-    final manager = $$MetadataTypesTableTableManager($_db, $_db.metadataTypes)
-        .filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_typeIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-        manager.$state.copyWith(prefetchedData: [item]));
-  }
-}
 
 class $$MetadataRecordsTableFilterComposer
     extends Composer<_$AppDatabase, $MetadataRecordsTable> {
@@ -6003,6 +5143,11 @@ class $$MetadataRecordsTableFilterComposer
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnFilters(column));
 
+  ColumnWithTypeConverterFilters<MetadataTypeEnum, MetadataTypeEnum, int>
+      get typeId => $composableBuilder(
+          column: $table.typeId,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
   ColumnFilters<String> get itemId => $composableBuilder(
       column: $table.itemId, builder: (column) => ColumnFilters(column));
 
@@ -6011,26 +5156,6 @@ class $$MetadataRecordsTableFilterComposer
 
   ColumnFilters<String> get value => $composableBuilder(
       column: $table.value, builder: (column) => ColumnFilters(column));
-
-  $$MetadataTypesTableFilterComposer get typeId {
-    final $$MetadataTypesTableFilterComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.typeId,
-        referencedTable: $db.metadataTypes,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$MetadataTypesTableFilterComposer(
-              $db: $db,
-              $table: $db.metadataTypes,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return composer;
-  }
 }
 
 class $$MetadataRecordsTableOrderingComposer
@@ -6048,6 +5173,9 @@ class $$MetadataRecordsTableOrderingComposer
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<int> get typeId => $composableBuilder(
+      column: $table.typeId, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get itemId => $composableBuilder(
       column: $table.itemId, builder: (column) => ColumnOrderings(column));
 
@@ -6056,26 +5184,6 @@ class $$MetadataRecordsTableOrderingComposer
 
   ColumnOrderings<String> get value => $composableBuilder(
       column: $table.value, builder: (column) => ColumnOrderings(column));
-
-  $$MetadataTypesTableOrderingComposer get typeId {
-    final $$MetadataTypesTableOrderingComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.typeId,
-        referencedTable: $db.metadataTypes,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$MetadataTypesTableOrderingComposer(
-              $db: $db,
-              $table: $db.metadataTypes,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return composer;
-  }
 }
 
 class $$MetadataRecordsTableAnnotationComposer
@@ -6093,6 +5201,9 @@ class $$MetadataRecordsTableAnnotationComposer
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
+  GeneratedColumnWithTypeConverter<MetadataTypeEnum, int> get typeId =>
+      $composableBuilder(column: $table.typeId, builder: (column) => column);
+
   GeneratedColumn<String> get itemId =>
       $composableBuilder(column: $table.itemId, builder: (column) => column);
 
@@ -6101,26 +5212,6 @@ class $$MetadataRecordsTableAnnotationComposer
 
   GeneratedColumn<String> get value =>
       $composableBuilder(column: $table.value, builder: (column) => column);
-
-  $$MetadataTypesTableAnnotationComposer get typeId {
-    final $$MetadataTypesTableAnnotationComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.typeId,
-        referencedTable: $db.metadataTypes,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$MetadataTypesTableAnnotationComposer(
-              $db: $db,
-              $table: $db.metadataTypes,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return composer;
-  }
 }
 
 class $$MetadataRecordsTableTableManager extends RootTableManager<
@@ -6132,9 +5223,12 @@ class $$MetadataRecordsTableTableManager extends RootTableManager<
     $$MetadataRecordsTableAnnotationComposer,
     $$MetadataRecordsTableCreateCompanionBuilder,
     $$MetadataRecordsTableUpdateCompanionBuilder,
-    (MetadataRecord, $$MetadataRecordsTableReferences),
+    (
+      MetadataRecord,
+      BaseReferences<_$AppDatabase, $MetadataRecordsTable, MetadataRecord>
+    ),
     MetadataRecord,
-    PrefetchHooks Function({bool typeId})> {
+    PrefetchHooks Function()> {
   $$MetadataRecordsTableTableManager(
       _$AppDatabase db, $MetadataRecordsTable table)
       : super(TableManagerState(
@@ -6149,7 +5243,7 @@ class $$MetadataRecordsTableTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
-            Value<int> typeId = const Value.absent(),
+            Value<MetadataTypeEnum> typeId = const Value.absent(),
             Value<String> itemId = const Value.absent(),
             Value<String> metadataId = const Value.absent(),
             Value<String?> value = const Value.absent(),
@@ -6167,7 +5261,7 @@ class $$MetadataRecordsTableTableManager extends RootTableManager<
           createCompanionCallback: ({
             required String id,
             Value<DateTime> createdAt = const Value.absent(),
-            required int typeId,
+            required MetadataTypeEnum typeId,
             required String itemId,
             required String metadataId,
             Value<String?> value = const Value.absent(),
@@ -6183,46 +5277,9 @@ class $$MetadataRecordsTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable(table),
-                    $$MetadataRecordsTableReferences(db, table, e)
-                  ))
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback: ({typeId = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [],
-              addJoins: <
-                  T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic>>(state) {
-                if (typeId) {
-                  state = state.withJoin(
-                    currentTable: table,
-                    currentColumn: table.typeId,
-                    referencedTable:
-                        $$MetadataRecordsTableReferences._typeIdTable(db),
-                    referencedColumn:
-                        $$MetadataRecordsTableReferences._typeIdTable(db).id,
-                  ) as T;
-                }
-
-                return state;
-              },
-              getPrefetchedDataCallback: (items) async {
-                return [];
-              },
-            );
-          },
+          prefetchHooksCallback: null,
         ));
 }
 
@@ -6235,9 +5292,12 @@ typedef $$MetadataRecordsTableProcessedTableManager = ProcessedTableManager<
     $$MetadataRecordsTableAnnotationComposer,
     $$MetadataRecordsTableCreateCompanionBuilder,
     $$MetadataRecordsTableUpdateCompanionBuilder,
-    (MetadataRecord, $$MetadataRecordsTableReferences),
+    (
+      MetadataRecord,
+      BaseReferences<_$AppDatabase, $MetadataRecordsTable, MetadataRecord>
+    ),
     MetadataRecord,
-    PrefetchHooks Function({bool typeId})>;
+    PrefetchHooks Function()>;
 typedef $$StatisticsTableCreateCompanionBuilder = StatisticsCompanion Function({
   required String id,
   Value<DateTime> recordedAt,
@@ -7222,12 +6282,8 @@ class $AppDatabaseManager {
   $$DocumentsTableTableManager get documents =>
       $$DocumentsTableTableManager(_db, _db.documents);
   $$TagsTableTableManager get tags => $$TagsTableTableManager(_db, _db.tags);
-  $$ItemTypesTableTableManager get itemTypes =>
-      $$ItemTypesTableTableManager(_db, _db.itemTypes);
   $$ItemsTableTableManager get items =>
       $$ItemsTableTableManager(_db, _db.items);
-  $$MetadataTypesTableTableManager get metadataTypes =>
-      $$MetadataTypesTableTableManager(_db, _db.metadataTypes);
   $$MetadataRecordsTableTableManager get metadataRecords =>
       $$MetadataRecordsTableTableManager(_db, _db.metadataRecords);
   $$StatisticsTableTableManager get statistics =>
