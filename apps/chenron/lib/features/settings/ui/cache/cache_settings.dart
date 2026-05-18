@@ -6,6 +6,7 @@ import "package:chenron/features/settings/service/cache_service.dart";
 import "package:chenron/features/settings/ui/shared/path_mode_selector.dart";
 import "package:chenron/features/settings/ui/shared/settings_section_header.dart";
 import "package:chenron/features/settings/ui/shared/stats_action_row.dart";
+import "package:chenron/shared/dialogs/confirm_dialog.dart";
 import "package:chenron/shared/errors/error_snack_bar.dart";
 import "package:path_provider/path_provider.dart";
 
@@ -54,7 +55,16 @@ class _CacheSettingsState extends State<CacheSettings> {
     _imageCacheSizeFuture = _cacheService.getImageCacheSize();
   }
 
-  Future<void> _handleClearImages(BuildContext context) async {
+  Future<void> _confirmAndClearImages(BuildContext context) async {
+    final confirmed = await showConfirmDialog(
+      context,
+      title: "Clear Image Cache",
+      message: "Remove downloaded images? "
+          "They will be re-downloaded on next view.",
+      confirmLabel: "Clear",
+    );
+    if (!confirmed || !context.mounted) return;
+
     try {
       await _cacheService.clearImageCache();
       if (context.mounted) {
@@ -143,31 +153,7 @@ class _CacheSettingsState extends State<CacheSettings> {
             future: _imageCacheSizeFuture!,
             formatValue: _formatBytes,
             buttonLabel: "Clear Images",
-            onClear: () {
-              unawaited(showDialog(
-                context: context,
-                builder: (ctx) => AlertDialog(
-                  title: const Text("Clear Image Cache"),
-                  content: const Text(
-                    "Remove downloaded images? "
-                    "They will be re-downloaded on next view.",
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(ctx),
-                      child: const Text("Cancel"),
-                    ),
-                    FilledButton(
-                      onPressed: () {
-                        Navigator.pop(ctx);
-                        unawaited(_handleClearImages(context));
-                      },
-                      child: const Text("Clear"),
-                    ),
-                  ],
-                ),
-              ));
-            },
+            onClear: () => unawaited(_confirmAndClearImages(context)),
           ),
         ],
       );

@@ -15,6 +15,7 @@ import "package:chenron/features/settings/ui/shared/path_mode_selector.dart";
 import "package:chenron/features/settings/ui/shared/settings_section_header.dart";
 import "package:chenron/features/settings/ui/shared/stats_action_row.dart";
 import "package:chenron/locator.dart";
+import "package:chenron/shared/dialogs/confirm_dialog.dart";
 import "package:chenron/shared/errors/error_snack_bar.dart";
 
 class DataSettings extends StatefulWidget {
@@ -40,7 +41,16 @@ class _DataSettingsState extends State<DataSettings> {
     _metadataCountFuture = MetadataCache.getCacheEntryCount();
   }
 
-  Future<void> _handleClearMetadata(BuildContext context) async {
+  Future<void> _confirmAndClearMetadata(BuildContext context) async {
+    final confirmed = await showConfirmDialog(
+      context,
+      title: "Clear Metadata Cache",
+      message: "Clear cached page info? "
+          "Titles and descriptions will be refetched.",
+      confirmLabel: "Clear",
+    );
+    if (!confirmed || !context.mounted) return;
+
     try {
       await MetadataCache.clearAll();
       if (context.mounted) {
@@ -81,28 +91,14 @@ class _DataSettingsState extends State<DataSettings> {
   }
 
   Future<void> _handleImport() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Import Database"),
-        content: const Text(
-          "This will replace your current data with the imported database. "
-          "The app will need to restart after importing. Continue?",
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text("Cancel"),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text("Import"),
-          ),
-        ],
-      ),
+    final confirmed = await showConfirmDialog(
+      context,
+      title: "Import Database",
+      message: "This will replace your current data with the imported "
+          "database. The app will need to restart after importing. Continue?",
+      confirmLabel: "Import",
     );
-
-    if (confirmed != true) return;
+    if (!confirmed) return;
 
     final picked = await FilePicker.platform.pickFiles(
       type: FileType.custom,
@@ -266,31 +262,7 @@ class _DataSettingsState extends State<DataSettings> {
             formatValue: (count) =>
                 "$count ${count == 1 ? "entry" : "entries"}",
             buttonLabel: "Clear Metadata",
-            onClear: () {
-              unawaited(showDialog(
-                context: context,
-                builder: (ctx) => AlertDialog(
-                  title: const Text("Clear Metadata Cache"),
-                  content: const Text(
-                    "Clear cached page info? "
-                    "Titles and descriptions will be refetched.",
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(ctx),
-                      child: const Text("Cancel"),
-                    ),
-                    FilledButton(
-                      onPressed: () {
-                        Navigator.pop(ctx);
-                        unawaited(_handleClearMetadata(context));
-                      },
-                      child: const Text("Clear"),
-                    ),
-                  ],
-                ),
-              ));
-            },
+            onClear: () => unawaited(_confirmAndClearMetadata(context)),
           ),
 
           const Divider(height: 32),
