@@ -6,6 +6,7 @@ import "package:chenron/features/settings/controller/config_controller.dart";
 import "package:chenron/features/settings/models/settings_category.dart";
 import "package:chenron/features/settings/ui/settings_content_panel.dart";
 import "package:chenron/locator.dart";
+import "package:chenron/shared/dialogs/confirm_dialog.dart";
 import "package:app_logger/app_logger.dart";
 
 class ConfigPage extends StatefulWidget {
@@ -30,29 +31,17 @@ class _ConfigPageState extends State<ConfigPage> {
     loggerGlobal.info("ConfigPage", "Initialized ConfigController.");
   }
 
-  Future<bool> _showDiscardDialog(BuildContext context) async {
-    final shouldDiscard = await showDialog<bool>(
-      context: context,
+  Future<bool> _showDiscardDialog(BuildContext context) {
+    return showConfirmDialog(
+      context,
+      title: "Discard Unsaved Changes?",
+      message: "You have unsaved changes. Do you want to discard them and "
+          "leave this page?",
+      cancelLabel: "Stay",
+      confirmLabel: "Discard",
+      destructive: true,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: const Text("Discard Unsaved Changes?"),
-        content: const Text(
-            "You have unsaved changes. Do you want to discard them and leave this page?"),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text("Stay"),
-          ),
-          TextButton(
-            style: TextButton.styleFrom(
-                foregroundColor: Theme.of(context).colorScheme.error),
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text("Discard"),
-          ),
-        ],
-      ),
     );
-    return shouldDiscard ?? false;
   }
 
   Future<void> _save() async {

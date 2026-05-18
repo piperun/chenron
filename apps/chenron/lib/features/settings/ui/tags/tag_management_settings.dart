@@ -3,6 +3,7 @@ import "dart:async";
 import "package:chenron/features/settings/ui/shared/settings_section_header.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/shared/color_picker/color_dot.dart";
+import "package:chenron/shared/dialogs/confirm_dialog.dart";
 import "package:chenron/shared/errors/error_snack_bar.dart";
 import "package:chenron/utils/safe_async.dart";
 import "package:chenron/utils/validation/tag_validator.dart";
@@ -137,31 +138,16 @@ class _TagManagementSettingsState extends State<TagManagementSettings> {
     if (tag == null) return;
     final tagName = tag.data.name;
 
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text("Delete tag '$tagName'?"),
-        content: const Text(
-          "This will remove the tag from all items. "
+    final confirmed = await showConfirmDialog(
+      context,
+      title: "Delete tag '$tagName'?",
+      message: "This will remove the tag from all items. "
           "This action cannot be undone.",
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text("Cancel"),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
-            child: const Text("Delete"),
-          ),
-        ],
-      ),
+      confirmLabel: "Delete",
+      destructive: true,
     );
 
-    if (confirmed != true) return;
+    if (!confirmed) return;
 
     try {
       await _db.removeTag(tagId);
