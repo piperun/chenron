@@ -11,7 +11,7 @@ import "package:signals/signals_flutter.dart";
 import "package:url_launcher/url_launcher.dart";
 
 class GlobalSuggestionBuilder {
-  final Signal<AppDatabaseHandler> db;
+  final Signal<AppDatabaseLifecycle> db;
   final BuildContext context;
   final SearchController? controller;
   final SearchBarController? queryController;

@@ -25,8 +25,8 @@ void main() {
     await database.setup();
 
     await locator.reset();
-    locator.registerSingleton<Signal<AppDatabaseHandler>>(
-      signal(_TestAppDatabaseHandler(database)),
+    locator.registerSingleton<Signal<AppDatabaseLifecycle>>(
+      signal(_TestAppDatabaseLifecycle(database)),
     );
   });
 
@@ -553,10 +553,10 @@ void main() {
   });
 }
 
-class _TestAppDatabaseHandler extends AppDatabaseHandler {
+class _TestAppDatabaseLifecycle extends AppDatabaseLifecycle {
   final AppDatabase _testDb;
 
-  _TestAppDatabaseHandler(this._testDb);
+  _TestAppDatabaseLifecycle(this._testDb);
 
   @override
   AppDatabase get appDatabase => _testDb;

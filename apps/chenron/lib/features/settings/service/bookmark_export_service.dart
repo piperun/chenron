@@ -12,7 +12,7 @@ class BookmarkExportService {
 
   BookmarkExportService()
       : _resolveDb = (() =>
-            locator.get<Signal<AppDatabaseHandler>>().value.appDatabase);
+            locator.get<Signal<AppDatabaseLifecycle>>().value.appDatabase);
 
   @visibleForTesting
   BookmarkExportService.withDeps({required AppDatabase appDatabase})

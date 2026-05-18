@@ -35,7 +35,7 @@ class BookmarkImportService {
 
   BookmarkImportService()
       : _resolveDb = (() =>
-            locator.get<Signal<AppDatabaseHandler>>().value.appDatabase);
+            locator.get<Signal<AppDatabaseLifecycle>>().value.appDatabase);
 
   @visibleForTesting
   BookmarkImportService.withDeps({required AppDatabase appDatabase})

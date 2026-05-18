@@ -1,13 +1,13 @@
 import "package:cron/cron.dart";
 import "package:crypto/crypto.dart";
-import "package:database/src/core/handlers/config_file_handler.dart";
-import "package:database/src/core/handlers/database_file_handler.dart";
+import "package:database/src/core/handlers/app_file_service.dart";
+import "package:database/src/core/handlers/database_lifecycle.dart";
 import "package:database/src/features/backup_settings/update.dart";
 import "package:app_logger/app_logger.dart";
 
 class DatabaseBackupScheduler {
-  final AppDatabaseHandler databaseHandler;
-  final ConfigDatabaseFileHandler configHandler;
+  final AppFileService fileService;
+  final ConfigDatabaseLifecycle configLifecycle;
 
   Cron? _cron;
   String? _currentInterval;
@@ -15,8 +15,8 @@ class DatabaseBackupScheduler {
   String? _lastBackupChecksum;
 
   DatabaseBackupScheduler({
-    required this.databaseHandler,
-    required this.configHandler,
+    required this.fileService,
+    required this.configLifecycle,
   });
 
   bool get isRunning => _cron != null;
@@ -55,24 +55,22 @@ class DatabaseBackupScheduler {
   /// backup file is deleted to avoid accumulating identical copies.
   Future<void> runBackup() async {
     try {
-      final backupFile = await databaseHandler.backupDatabase();
+      final backupFile = await fileService.backupDatabase();
 
-      if (backupFile != null) {
-        final bytes = await backupFile.readAsBytes();
-        final checksum = sha256.convert(bytes).toString();
+      final bytes = await backupFile.readAsBytes();
+      final checksum = sha256.convert(bytes).toString();
 
-        if (checksum == _lastBackupChecksum) {
-          await backupFile.delete();
-          loggerGlobal.info("DatabaseBackupScheduler",
-              "Backup skipped — database unchanged since last backup.");
-          return;
-        }
-
-        _lastBackupChecksum = checksum;
+      if (checksum == _lastBackupChecksum) {
+        await backupFile.delete();
+        loggerGlobal.info("DatabaseBackupScheduler",
+            "Backup skipped — database unchanged since last backup.");
+        return;
       }
 
+      _lastBackupChecksum = checksum;
+
       if (_backupSettingsId != null) {
-        await configHandler.configDatabase.updateBackupSettings(
+        await configLifecycle.configDatabase.updateBackupSettings(
           id: _backupSettingsId!,
           lastBackupTimestamp: DateTime.now(),
         );

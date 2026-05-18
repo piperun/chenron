@@ -20,7 +20,7 @@ Future<void> _logMetadataFetch({
   String? error,
 }) async {
   try {
-    final db = locator.get<Signal<AppDatabaseHandler>>().value.appDatabase;
+    final db = locator.get<Signal<AppDatabaseLifecycle>>().value.appDatabase;
     await db.recordMetadataFetch(
       url: url,
       succeeded: succeeded,

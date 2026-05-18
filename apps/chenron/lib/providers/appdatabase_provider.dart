@@ -1,10 +1,10 @@
 import "package:database/database.dart";
 import "package:signals/signals.dart";
 
-final appDatabaseAccessorSignal = signal(initializeAppDatabaseAccessor());
+final appDatabaseAccessorSignal = signal(_buildLifecycle());
 
-AppDatabaseHandler initializeAppDatabaseAccessor() {
-  // Database location will be set later during main_setup
-  // Similar to how ConfigDatabase works
-  return AppDatabaseHandler();
+AppDatabaseLifecycle _buildLifecycle() {
+  // Database location is assigned in MainSetup once base directories
+  // resolve — mirrors the ConfigDatabase wiring.
+  return AppDatabaseLifecycle();
 }

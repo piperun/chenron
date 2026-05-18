@@ -40,7 +40,7 @@ class MainSetup {
   static Future<void> setup({String? customAppDbPath}) async {
     // Check if GetIt was reset (indicates test scenario requiring re-init)
     final getItWasReset =
-        _setupDone && !locator.isRegistered<Signal<AppDatabaseHandler>>();
+        _setupDone && !locator.isRegistered<Signal<AppDatabaseLifecycle>>();
 
     if (_setupDone && !getItWasReset) {
       loggerGlobal.warning(
@@ -103,7 +103,7 @@ class MainSetup {
   /// Both are already guarded with try-catch and marked non-fatal.
   static Future<void> runDeferredTasks() async {
     await _startBackupScheduler();
-    final appDbHandler = locator.get<Signal<AppDatabaseHandler>>();
+    final appDbHandler = locator.get<Signal<AppDatabaseLifecycle>>();
     await _recordDailySnapshot(appDbHandler.value.appDatabase);
 
     // Refresh stale metadata entries in the background.
@@ -154,17 +154,17 @@ class MainSetup {
     String? customAppDbPath,
   }) async {
     try {
-      final configHandler = locator.get<Signal<ConfigDatabaseFileHandler>>();
+      final configHandler = locator.get<Signal<ConfigDatabaseLifecycle>>();
       final databaseLocation = DatabaseLocation(
         databaseDirectory: baseDirs.dir(ChenronDir.database),
         databaseFilename: "config.sqlite",
       );
       configHandler.value.databaseLocation = databaseLocation;
-      configHandler.value.createDatabase(setupOnInit: true);
+      await configHandler.value.createDatabase(setupOnInit: true);
 
       // Initialize AppDatabase — use custom path if provided and valid,
       // otherwise fall back to the default base directory.
-      final appDbHandler = locator.get<Signal<AppDatabaseHandler>>();
+      final appDbHandler = locator.get<Signal<AppDatabaseLifecycle>>();
       final Directory appDbDir;
       if (customAppDbPath != null &&
           Directory(customAppDbPath).existsSync()) {
@@ -222,7 +222,7 @@ class MainSetup {
 
   static Future<void> _startBackupScheduler() async {
     try {
-      final configHandler = locator.get<Signal<ConfigDatabaseFileHandler>>();
+      final configHandler = locator.get<Signal<ConfigDatabaseLifecycle>>();
       final configDb = configHandler.value.configDatabase;
 
       final configResult = await configDb.getUserConfig(
@@ -303,7 +303,7 @@ class MainSetup {
 
   static Future<void> _processArchiveQueue() async {
     try {
-      final appDbHandler = locator.get<Signal<AppDatabaseHandler>>();
+      final appDbHandler = locator.get<Signal<AppDatabaseLifecycle>>();
       final configDb = ConfigDatabase();
       final userConfig = await configDb.getUserConfig();
       await configDb.close();

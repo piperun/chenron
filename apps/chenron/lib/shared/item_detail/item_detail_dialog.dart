@@ -55,7 +55,7 @@ class _ItemDetailDialogState extends State<ItemDetailDialog> {
   void initState() {
     super.initState();
     final db =
-        locator.get<Signal<AppDatabaseHandler>>().value.appDatabase;
+        locator.get<Signal<AppDatabaseLifecycle>>().value.appDatabase;
     _service = ItemDetailService(db);
     unawaited(_loadData());
   }

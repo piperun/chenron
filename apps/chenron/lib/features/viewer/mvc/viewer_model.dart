@@ -10,7 +10,7 @@ import "package:signals/signals.dart";
 
 class ViewerModel {
   AppDatabase get _db =>
-      locator.get<Signal<AppDatabaseHandler>>().value.appDatabase;
+      locator.get<Signal<AppDatabaseLifecycle>>().value.appDatabase;
 
   Future<bool> removeFolder(String folder) async {
     try {

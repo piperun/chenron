@@ -9,7 +9,7 @@ class FolderViewerService {
   static const _lockKey = "folder_viewer_header_locked";
 
   AppDatabase get _db =>
-      locator.get<Signal<AppDatabaseHandler>>().value.appDatabase;
+      locator.get<Signal<AppDatabaseLifecycle>>().value.appDatabase;
 
   /// Loads folder metadata (data + tags) and parent folder items.
   /// Does NOT load the folder's own items — those come via pagination.

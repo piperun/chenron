@@ -18,8 +18,8 @@ export "models.dart";
 export "features.dart";
 
 // Core handlers
-export "src/core/handlers/database_file_handler.dart";
-export "src/core/handlers/config_file_handler.dart";
+export "src/core/handlers/database_lifecycle.dart";
+export "src/core/handlers/app_file_service.dart";
 export "src/core/handlers/relation_handler.dart";
 export "src/core/handlers/read_handler.dart";
 export "src/core/handlers/database_backup_scheduler.dart";

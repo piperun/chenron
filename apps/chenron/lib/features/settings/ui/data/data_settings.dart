@@ -78,12 +78,10 @@ class _DataSettingsState extends State<DataSettings> {
 
     try {
       final result = await _dataService.exportDatabase(Directory(destination));
-      if (result != null) {
-        messenger.showSnackBar(SnackBar(
-          content: Text("Database exported to ${result.path}"),
-          duration: const Duration(seconds: 3),
-        ));
-      }
+      messenger.showSnackBar(SnackBar(
+        content: Text("Database exported to ${result.path}"),
+        duration: const Duration(seconds: 3),
+      ));
     } catch (e) {
       if (!mounted) return;
       showErrorSnackBar(context, e);

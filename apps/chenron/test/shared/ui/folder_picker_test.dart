@@ -6,40 +6,25 @@ import "package:database/database.dart";
 import "package:chenron_mockups/chenron_mockups.dart";
 import "package:signals/signals.dart";
 import "package:get_it/get_it.dart";
-import "dart:io";
 
-class _MockAppDatabaseHandler implements AppDatabaseHandler {
-  @override
-  final AppDatabase appDatabase;
+class _MockAppDatabaseLifecycle extends AppDatabaseLifecycle {
+  final AppDatabase _injected;
 
-  _MockAppDatabaseHandler(this.appDatabase);
+  _MockAppDatabaseLifecycle(this._injected);
 
   @override
-  DatabaseLocation? databaseLocation;
+  AppDatabase get database => _injected;
 
   @override
-  Future<File?> backupDatabase() => throw UnimplementedError();
+  AppDatabase get appDatabase => _injected;
 
   @override
-  Future<void> closeDatabase() async {}
-
-  @override
-  Future<void> createDatabase(
-      {String? databaseName,
-      File? databasePath,
-      bool setupOnInit = false}) async {}
-
-  @override
-  Future<File?> exportDatabase(Directory exportPath) =>
-      throw UnimplementedError();
-
-  @override
-  Future<File?> importDatabase(File dbFile,
-          {required bool copyImport, bool setupOnInit = true}) =>
-      throw UnimplementedError();
-
-  @override
-  Future<void> reloadDatabase() async {}
+  AppDatabase buildDatabase({
+    required String databaseName,
+    required String customPath,
+    required bool setupOnInit,
+  }) =>
+      throw UnimplementedError("Mock does not build databases");
 }
 
 void main() {
@@ -51,19 +36,19 @@ void main() {
     mockDb = MockDatabaseHelper();
     await mockDb.setup(setupOnInit: true);
 
-    if (GetIt.I.isRegistered<Signal<AppDatabaseHandler>>()) {
+    if (GetIt.I.isRegistered<Signal<AppDatabaseLifecycle>>()) {
       await GetIt.I.reset();
     }
 
-    final mockHandler = _MockAppDatabaseHandler(mockDb.database);
-    GetIt.I.registerSingleton<Signal<AppDatabaseHandler>>(
-      signal<AppDatabaseHandler>(mockHandler),
+    final mockHandler = _MockAppDatabaseLifecycle(mockDb.database);
+    GetIt.I.registerSingleton<Signal<AppDatabaseLifecycle>>(
+      signal<AppDatabaseLifecycle>(mockHandler),
     );
   });
 
   tearDown(() async {
     await mockDb.dispose();
-    if (GetIt.I.isRegistered<Signal<AppDatabaseHandler>>()) {
+    if (GetIt.I.isRegistered<Signal<AppDatabaseLifecycle>>()) {
       await GetIt.I.reset();
     }
   });

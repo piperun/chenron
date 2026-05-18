@@ -195,7 +195,7 @@ class _RootPageState extends State<RootPage> {
                   onSaved: _handleSaved,
                   settingsCategory: _settingsCategory,
                   database: locator
-                      .get<Signal<AppDatabaseHandler>>()
+                      .get<Signal<AppDatabaseLifecycle>>()
                       .value
                       .appDatabase,
                 ),

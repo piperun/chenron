@@ -85,7 +85,7 @@ class _BulkTagDialogState extends State<_BulkTagDialog> {
       operation: "load tags",
       action: () async {
         final db =
-            locator.get<Signal<AppDatabaseHandler>>().value.appDatabase;
+            locator.get<Signal<AppDatabaseLifecycle>>().value.appDatabase;
         return db.getAllTags();
       },
     );
@@ -195,7 +195,7 @@ class _BulkTagDialogState extends State<_BulkTagDialog> {
       operation: "update tag color",
       action: () async {
         final db =
-            locator.get<Signal<AppDatabaseHandler>>().value.appDatabase;
+            locator.get<Signal<AppDatabaseLifecycle>>().value.appDatabase;
         await db.updateTagColor(tagName: tagName, color: color);
       },
     );

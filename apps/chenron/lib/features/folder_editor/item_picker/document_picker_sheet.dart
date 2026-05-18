@@ -20,7 +20,7 @@ class DocumentPickerSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppDatabase db =
-        locator.get<Signal<AppDatabaseHandler>>().value.appDatabase;
+        locator.get<Signal<AppDatabaseLifecycle>>().value.appDatabase;
     final service = ItemPickerService(db);
 
     return ItemPickerSheet<Document, FolderItem>(

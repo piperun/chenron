@@ -48,7 +48,7 @@ class ItemTaggingService {
     List<FolderItem> items,
     List<String> tagNames,
   ) async {
-    final db = locator.get<Signal<AppDatabaseHandler>>().value.appDatabase;
+    final db = locator.get<Signal<AppDatabaseLifecycle>>().value.appDatabase;
     final tags = tagNames
         .map((name) => Metadata(value: name, type: MetadataTypeEnum.tag))
         .toList();
@@ -102,7 +102,7 @@ class ItemTaggingService {
     List<FolderItem> items,
     List<String> tagNames,
   ) async {
-    final db = locator.get<Signal<AppDatabaseHandler>>().value.appDatabase;
+    final db = locator.get<Signal<AppDatabaseLifecycle>>().value.appDatabase;
     final tagNameSet = tagNames.toSet();
 
     final removedCountPerTag = <String, int>{

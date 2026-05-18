@@ -24,7 +24,7 @@ class StatisticsPage extends StatefulWidget {
 
 class _StatisticsPageState extends State<StatisticsPage> {
   final AppDatabase _db =
-      locator.get<Signal<AppDatabaseHandler>>().value.appDatabase;
+      locator.get<Signal<AppDatabaseLifecycle>>().value.appDatabase;
 
   final _timeRange = signal(TimeRange.month);
   final _currentCounts = signal<ItemCounts?>(null);

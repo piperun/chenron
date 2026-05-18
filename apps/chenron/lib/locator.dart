@@ -16,16 +16,16 @@ final locator = GetIt.I;
 
 void locatorSetup() {
   locator
-      .registerSingleton<Signal<AppDatabaseHandler>>(appDatabaseAccessorSignal);
-  locator.registerSingleton<Signal<ConfigDatabaseFileHandler>>(
-      signal(initializeConfigDatabaseFileHandler()));
+      .registerSingleton<Signal<AppDatabaseLifecycle>>(appDatabaseAccessorSignal);
+  locator.registerSingleton<Signal<ConfigDatabaseLifecycle>>(
+      signal(initializeConfigDatabaseLifecycle()));
 
   locator.registerSingleton<Signal<Future<BaseDirectories<ChenronDir>?>>>(
       baseDirsSignal);
 
   locator.registerLazySingleton<ThemeManager>(() {
-    final configHandlerSignal = locator<Signal<ConfigDatabaseFileHandler>>();
-    final ConfigDatabaseFileHandler configHandler = configHandlerSignal.value;
+    final configHandlerSignal = locator<Signal<ConfigDatabaseLifecycle>>();
+    final ConfigDatabaseLifecycle configHandler = configHandlerSignal.value;
     final ConfigDatabase configDb = configHandler.configDatabase;
     return ThemeManager(configDb);
   });
@@ -39,20 +39,26 @@ void locatorSetup() {
   // Register ConfigController
   locator.registerLazySingleton<ConfigController>(ConfigController.new);
 
+  // Register AppFileService (depends on the app database lifecycle)
+  locator.registerLazySingleton<AppFileService>(() {
+    final lifecycle = locator.get<Signal<AppDatabaseLifecycle>>().value;
+    return AppFileService(lifecycle: lifecycle);
+  });
+
   // Register DatabaseBackupScheduler
   locator.registerLazySingleton<DatabaseBackupScheduler>(() {
-    final appDbHandler = locator.get<Signal<AppDatabaseHandler>>().value;
-    final configHandler =
-        locator.get<Signal<ConfigDatabaseFileHandler>>().value;
+    final fileService = locator.get<AppFileService>();
+    final configLifecycle =
+        locator.get<Signal<ConfigDatabaseLifecycle>>().value;
     return DatabaseBackupScheduler(
-      databaseHandler: appDbHandler,
-      configHandler: configHandler,
+      fileService: fileService,
+      configLifecycle: configLifecycle,
     );
   });
 
   // Register ActivityTracker
   locator.registerLazySingleton<ActivityTracker>(() {
-    final db = locator.get<Signal<AppDatabaseHandler>>().value.appDatabase;
+    final db = locator.get<Signal<AppDatabaseLifecycle>>().value.appDatabase;
     return ActivityTracker(db);
   });
 }

@@ -39,17 +39,15 @@ class DataSettingsService {
     }
   }
 
-  Future<File?> exportDatabase(Directory destination) async {
-    final appDbHandler = locator.get<Signal<AppDatabaseHandler>>().value;
-    return appDbHandler.exportDatabase(destination);
+  Future<File> exportDatabase(Directory destination) {
+    return locator.get<AppFileService>().exportDatabase(destination);
   }
 
-  Future<File?> importDatabase(File sourceFile) async {
-    final appDbHandler = locator.get<Signal<AppDatabaseHandler>>().value;
-    return appDbHandler.importDatabase(
-      sourceFile,
-      copyImport: true,
-      setupOnInit: true,
-    );
+  Future<File> importDatabase(File sourceFile) {
+    return locator.get<AppFileService>().importDatabase(
+          sourceFile,
+          copyImport: true,
+          setupOnInit: true,
+        );
   }
 }
