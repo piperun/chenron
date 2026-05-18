@@ -14,35 +14,36 @@ class ActivityTracker {
 
   ActivityTracker(this._db);
 
-  void trackLinkViewed(String linkId) {
-    _record(_db.recordActivity(
-      eventType: "link_viewed",
-      entityType: "link",
-      entityId: linkId,
-    ));
-    _record(_db.recordItemAccess(entityId: linkId, entityType: "link"));
-  }
+  void trackLinkViewed(String linkId) =>
+      _trackView(eventType: "link_viewed", entityType: "link", entityId: linkId);
 
-  void trackDocumentViewed(String docId) {
-    _record(_db.recordActivity(
+  void trackDocumentViewed(String docId) => _trackView(
       eventType: "document_viewed",
       entityType: "document",
-      entityId: docId,
-    ));
-    _record(_db.recordItemAccess(entityId: docId, entityType: "document"));
-  }
+      entityId: docId);
 
-  void trackFolderViewed(String folderId) {
-    _record(_db.recordActivity(
+  void trackFolderViewed(String folderId) => _trackView(
       eventType: "folder_viewed",
       entityType: "folder",
-      entityId: folderId,
-    ));
-    _record(_db.recordItemAccess(entityId: folderId, entityType: "folder"));
-  }
+      entityId: folderId);
 
-  void _record(Future<void> future) {
-    unawaited(future.catchError((Object error) {
+  /// Records both the activity event and the recent-access bump for a
+  /// single view in one transaction. Previously each view fired two
+  /// independent DB writes — fine in isolation but doubles the per-view
+  /// fsync count on a hot path (item taps).
+  void _trackView({
+    required String eventType,
+    required String entityType,
+    required String entityId,
+  }) {
+    unawaited(_db.transaction(() async {
+      await _db.recordActivity(
+        eventType: eventType,
+        entityType: entityType,
+        entityId: entityId,
+      );
+      await _db.recordItemAccess(entityId: entityId, entityType: entityType);
+    }).catchError((Object error) {
       loggerGlobal.warning(
           "ActivityTracker", "Failed to record activity: $error");
     }));
