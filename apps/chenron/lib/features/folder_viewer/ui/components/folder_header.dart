@@ -157,128 +157,98 @@ class _ActionRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final foreground = theme.colorScheme.onSurface;
+    final neutralBg = foreground.withValues(alpha: 0.08);
+    final neutralIcon = foreground.withValues(alpha: 0.8);
 
     return Row(
       children: [
-        Material(
-          color: foreground.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(6),
-          child: InkWell(
-            onTap: onBack,
-            borderRadius: BorderRadius.circular(6),
-            child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: Icon(
-                Icons.arrow_back,
-                size: 18,
-                color: foreground.withValues(alpha: 0.8),
-              ),
-            ),
-          ),
+        _ChromeIconButton(
+          backgroundColor: neutralBg,
+          onTap: onBack,
+          child: Icon(Icons.arrow_back, size: 18, color: neutralIcon),
         ),
         const SizedBox(width: 8),
-        Material(
-          color: foreground.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(6),
-          child: InkWell(
-            onTap: onHome,
-            borderRadius: BorderRadius.circular(6),
-            child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: Icon(
-                Icons.home,
-                size: 18,
-                color: foreground.withValues(alpha: 0.8),
-              ),
-            ),
-          ),
+        _ChromeIconButton(
+          backgroundColor: neutralBg,
+          onTap: onHome,
+          child: Icon(Icons.home, size: 18, color: neutralIcon),
         ),
         const Spacer(),
-        if (onEdit != null)
-          Material(
-            color: foreground.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(6),
-            child: InkWell(
-              onTap: onEdit,
-              borderRadius: BorderRadius.circular(6),
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: Icon(
-                  Icons.edit,
-                  size: 20,
-                  color: foreground.withValues(alpha: 0.8),
-                ),
-              ),
-            ),
+        if (onEdit != null) ...[
+          _ChromeIconButton(
+            backgroundColor: neutralBg,
+            onTap: onEdit,
+            child: Icon(Icons.edit, size: 20, color: neutralIcon),
           ),
-        if (onEdit != null) const SizedBox(width: 8),
-        if (onDelete != null)
-          Material(
-            color: Theme.of(context).colorScheme.error.withValues(alpha: 0.2),
-            borderRadius: BorderRadius.circular(6),
-            child: InkWell(
-              onTap: onDelete,
-              borderRadius: BorderRadius.circular(6),
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: Icon(
-                  Icons.delete,
-                  size: 20,
-                  color: Theme.of(context).colorScheme.error,
-                ),
-              ),
-            ),
+          const SizedBox(width: 8),
+        ],
+        if (onDelete != null) ...[
+          _ChromeIconButton(
+            backgroundColor: theme.colorScheme.error.withValues(alpha: 0.2),
+            onTap: onDelete,
+            child: Icon(Icons.delete,
+                size: 20, color: theme.colorScheme.error),
           ),
-        if (onDelete != null) const SizedBox(width: 8),
+          const SizedBox(width: 8),
+        ],
         const DisplayTogglePopup.icon(),
         const SizedBox(width: 8),
-        Material(
-          color: foreground.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(6),
-          child: InkWell(
-            onTap: onToggleLock,
-            borderRadius: BorderRadius.circular(6),
-            child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 200),
-                transitionBuilder: (child, animation) {
-                  return FadeTransition(
-                    opacity: animation,
-                    child: ScaleTransition(
-                      scale: animation,
-                      child: child,
-                    ),
-                  );
-                },
-                child: Icon(
-                  isLocked ? Icons.lock : Icons.lock_open,
-                  key: ValueKey<bool>(isLocked),
-                  size: 20,
-                  color: foreground.withValues(alpha: 0.8),
-                ),
-              ),
+        _ChromeIconButton(
+          backgroundColor: neutralBg,
+          onTap: onToggleLock,
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            transitionBuilder: (child, animation) => FadeTransition(
+              opacity: animation,
+              child: ScaleTransition(scale: animation, child: child),
+            ),
+            child: Icon(
+              isLocked ? Icons.lock : Icons.lock_open,
+              key: ValueKey<bool>(isLocked),
+              size: 20,
+              color: neutralIcon,
             ),
           ),
         ),
         const SizedBox(width: 8),
-        Material(
-          color: foreground.withValues(alpha: isLocked ? 0.04 : 0.08),
-          borderRadius: BorderRadius.circular(6),
-          child: InkWell(
-            onTap: isLocked ? null : onToggle,
-            borderRadius: BorderRadius.circular(6),
-            child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: Icon(
-                isExpanded ? Icons.expand_less : Icons.expand_more,
-                size: 20,
-                color: foreground.withValues(alpha: isLocked ? 0.4 : 0.95),
-              ),
-            ),
+        _ChromeIconButton(
+          backgroundColor: foreground.withValues(alpha: isLocked ? 0.04 : 0.08),
+          onTap: isLocked ? null : onToggle,
+          child: Icon(
+            isExpanded ? Icons.expand_less : Icons.expand_more,
+            size: 20,
+            color: foreground.withValues(alpha: isLocked ? 0.4 : 0.95),
           ),
         ),
       ],
+    );
+  }
+}
+
+class _ChromeIconButton extends StatelessWidget {
+  final Widget child;
+  final Color backgroundColor;
+  final VoidCallback? onTap;
+
+  const _ChromeIconButton({
+    required this.child,
+    required this.backgroundColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: backgroundColor,
+      borderRadius: BorderRadius.circular(6),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(6),
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: child,
+        ),
+      ),
     );
   }
 }
