@@ -1,7 +1,7 @@
+import "package:chenron/features/settings/coordinator/settings_coordinator.dart";
+import "package:chenron/locator.dart";
 import "package:flutter/material.dart";
 import "package:signals/signals_flutter.dart";
-import "package:chenron/features/settings/controller/config_controller.dart";
-import "package:chenron/locator.dart";
 
 class DisplayTogglePopup extends StatelessWidget {
   final bool _iconOnly;
@@ -16,7 +16,7 @@ class DisplayTogglePopup extends StatelessWidget {
     final foreground = _iconOnly
         ? theme.colorScheme.onSurface
         : theme.colorScheme.onSurfaceVariant;
-    final ConfigController config = locator.get<ConfigController>();
+    final notifier = locator.get<SettingsCoordinator>().display;
 
     return MenuAnchor(
       builder: (context, controller, child) {
@@ -68,32 +68,36 @@ class DisplayTogglePopup extends StatelessWidget {
           onPressed: null,
           child: Watch((context) => _DisplayToggleCheckbox(
                 label: "Images",
-                isSelected: config.showImages.value,
-                onChanged: (v) => config.updateShowImages(enabled: v),
+                isSelected: notifier.current.value.showImages,
+                onChanged: (v) =>
+                    notifier.update((s) => s.copyWith(showImages: v)),
               )),
         ),
         MenuItemButton(
           onPressed: null,
           child: Watch((context) => _DisplayToggleCheckbox(
                 label: "Description",
-                isSelected: config.showDescription.value,
-                onChanged: (v) => config.updateShowDescription(enabled: v),
+                isSelected: notifier.current.value.showDescription,
+                onChanged: (v) =>
+                    notifier.update((s) => s.copyWith(showDescription: v)),
               )),
         ),
         MenuItemButton(
           onPressed: null,
           child: Watch((context) => _DisplayToggleCheckbox(
                 label: "Tags",
-                isSelected: config.showTags.value,
-                onChanged: (v) => config.updateShowTags(enabled: v),
+                isSelected: notifier.current.value.showTags,
+                onChanged: (v) =>
+                    notifier.update((s) => s.copyWith(showTags: v)),
               )),
         ),
         MenuItemButton(
           onPressed: null,
           child: Watch((context) => _DisplayToggleCheckbox(
                 label: "Copy",
-                isSelected: config.showCopyLink.value,
-                onChanged: (v) => config.updateShowCopyLink(enabled: v),
+                isSelected: notifier.current.value.showCopyLink,
+                onChanged: (v) =>
+                    notifier.update((s) => s.copyWith(showCopyLink: v)),
               )),
         ),
       ],

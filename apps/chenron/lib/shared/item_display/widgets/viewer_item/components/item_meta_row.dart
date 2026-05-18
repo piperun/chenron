@@ -4,7 +4,7 @@ import "package:chenron/components/favicon_display/favicon.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/item_utils.dart";
 import "package:chenron/shared/item_detail/item_detail_dialog.dart";
 import "package:chenron/shared/utils/time_formatter.dart";
-import "package:chenron/features/settings/controller/config_controller.dart";
+import "package:chenron/features/settings/coordinator/settings_coordinator.dart";
 import "package:chenron/locator.dart";
 import "package:signals/signals_flutter.dart";
 
@@ -114,12 +114,12 @@ class _TimeDisplay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final controller = locator.get<ConfigController>();
+    final displayNotifier = locator.get<SettingsCoordinator>().display;
 
     return Watch(
       (context) {
-        final timeFormat =
-            TimeDisplayFormat.values[controller.timeDisplayFormat.value];
+        final timeFormat = TimeDisplayFormat
+            .values[displayNotifier.current.value.timeDisplayFormat];
 
         final addedAt = item.map(
           link: (linkItem) => linkItem.addedAt,
