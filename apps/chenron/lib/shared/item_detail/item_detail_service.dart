@@ -1,5 +1,6 @@
 import "package:database/database.dart";
-import "package:database/main.dart";
+import "package:core/patterns/include_options.dart";
+import "package:database/features.dart";
 import "package:chenron/shared/item_detail/item_detail_data.dart";
 
 /// Handles all DB interactions for the item detail dialog.

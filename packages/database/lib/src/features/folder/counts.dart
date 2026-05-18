@@ -1,5 +1,4 @@
-import "package:database/main.dart";
-import "package:database/models/item.dart";
+import "package:database/database.dart";
 import "package:drift/drift.dart";
 
 /// A lightweight projection of a folder row alongside per-type item

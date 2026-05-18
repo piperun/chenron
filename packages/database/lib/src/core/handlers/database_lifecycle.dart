@@ -1,6 +1,6 @@
 import "dart:io";
 
-import "package:database/main.dart";
+import "package:database/database.dart";
 import "package:drift/drift.dart";
 import "package:meta/meta.dart";
 import "package:path/path.dart" as p;

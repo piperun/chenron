@@ -1,4 +1,4 @@
-import "package:database/main.dart";
+import "package:database/database.dart";
 
 extension DocumentRemoveExtensions on AppDatabase {
   Future<bool> removeDocument(String documentId) async {

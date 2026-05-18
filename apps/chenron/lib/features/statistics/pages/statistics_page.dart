@@ -2,7 +2,7 @@ import "dart:async";
 
 import "package:flutter/material.dart";
 import "package:database/database.dart";
-import "package:database/main.dart";
+import "package:database/features.dart";
 import "package:signals/signals_flutter.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/features/statistics/widgets/overview_cards.dart";

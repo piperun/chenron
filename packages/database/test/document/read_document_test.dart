@@ -1,10 +1,7 @@
 // ignore_for_file: avoid_print
 
 import "package:core/patterns/include_options.dart";
-import "package:database/main.dart";
-import "package:database/models/db_result.dart";
-import "package:database/models/document_file_type.dart";
-import "package:database/models/metadata.dart";
+import "package:database/database.dart";
 import "package:flutter_test/flutter_test.dart";
 
 import "package:database/src/features/document/read.dart";

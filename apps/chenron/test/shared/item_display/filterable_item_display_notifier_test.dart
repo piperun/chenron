@@ -1,7 +1,6 @@
 import "package:flutter_test/flutter_test.dart";
 import "package:shared_preferences/shared_preferences.dart";
 import "package:database/database.dart";
-import "package:database/main.dart";
 import "package:chenron/shared/item_display/filterable_item_display_notifier.dart";
 import "package:chenron/shared/item_display/widgets/display_mode/display_mode.dart";
 import "package:chenron/shared/item_display/item_toolbar.dart";

@@ -1,5 +1,4 @@
-import "package:database/main.dart";
-import "package:database/models/db_result.dart";
+import "package:database/database.dart";
 import "package:database/src/core/builders/result_builder.dart";
 import "package:database/src/core/builders/config_database/user_config_result_builder.dart";
 import "package:database/src/core/builders/config_database/user_theme_result_builder.dart";

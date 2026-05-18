@@ -1,4 +1,4 @@
-import "package:database/main.dart";
+import "package:database/database.dart";
 import "package:drift/drift.dart";
 
 /// Shared tag-collection logic for result builders.

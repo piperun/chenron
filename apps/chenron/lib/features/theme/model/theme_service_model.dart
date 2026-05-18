@@ -1,5 +1,4 @@
 import "package:database/database.dart";
-import "package:database/main.dart";
 
 abstract class ThemeService {
   Future<void> changeThemeMode({required bool isDark});

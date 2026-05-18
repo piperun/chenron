@@ -1,5 +1,4 @@
-import "package:database/main.dart";
-import "package:database/models/item.dart";
+import "package:database/database.dart";
 
 extension ConvertLinkToItem on Link {
   FolderItem toFolderItem(String? itemId,

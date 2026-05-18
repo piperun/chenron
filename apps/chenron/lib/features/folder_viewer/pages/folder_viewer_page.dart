@@ -1,4 +1,3 @@
-import "package:database/main.dart";
 import "package:database/database.dart";
 import "package:flutter/material.dart";
 import "dart:async";

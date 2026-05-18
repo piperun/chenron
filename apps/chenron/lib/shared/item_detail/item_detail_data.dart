@@ -1,7 +1,4 @@
-import "package:database/main.dart";
-import "package:database/models/db_result.dart";
-import "package:database/models/item.dart";
-import "package:database/models/document_file_type.dart";
+import "package:database/database.dart";
 import "package:freezed_annotation/freezed_annotation.dart";
 
 part "item_detail_data.freezed.dart";

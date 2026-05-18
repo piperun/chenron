@@ -1,9 +1,4 @@
-import "package:database/main.dart";
-import "package:database/models/created_ids.dart";
-import "package:database/models/document_file_type.dart";
-import "package:database/models/folder.dart";
-import "package:database/models/item.dart";
-import "package:database/models/metadata.dart";
+import "package:database/database.dart";
 import "package:database/src/features/folder/create.dart";
 import "package:database/src/features/folder/remove.dart";
 import "package:flutter_test/flutter_test.dart";

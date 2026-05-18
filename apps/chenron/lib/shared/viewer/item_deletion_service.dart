@@ -1,4 +1,5 @@
 import "package:database/database.dart";
+import "package:database/features.dart";
 import "package:chenron/locator.dart";
 import "package:signals/signals.dart";
 

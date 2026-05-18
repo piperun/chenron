@@ -4,6 +4,7 @@ import "package:chenron/shared/search/search_controller.dart";
 import "package:chenron/features/folder_viewer/pages/folder_viewer_page.dart";
 import "package:chenron/shared/item_detail/item_detail_dialog.dart";
 import "package:database/database.dart";
+import "package:database/features.dart";
 
 import "package:flutter/material.dart";
 

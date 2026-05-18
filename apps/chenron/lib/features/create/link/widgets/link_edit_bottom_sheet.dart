@@ -1,4 +1,4 @@
-import "package:database/main.dart";
+import "package:database/database.dart";
 import "package:flutter/material.dart";
 import "package:chenron/features/create/link/models/link_entry.dart";
 import "package:chenron/shared/bottom_sheet/bottom_sheet_scaffold.dart";

@@ -1,5 +1,5 @@
 import "package:database/database.dart";
-import "package:database/main.dart";
+import "package:database/features.dart";
 import "package:drift/drift.dart";
 
 extension ActivityTracking on AppDatabase {

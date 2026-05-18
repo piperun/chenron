@@ -1,8 +1,7 @@
 // ignore_for_file: deprecated_member_use_from_same_package
 
 import "package:core/patterns/include_options.dart";
-import "package:database/main.dart";
-import "package:database/models/metadata.dart";
+import "package:database/database.dart";
 import "package:flutter_test/flutter_test.dart";
 
 import "package:database/src/features/link/create.dart";

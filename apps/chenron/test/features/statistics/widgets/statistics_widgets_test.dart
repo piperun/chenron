@@ -1,6 +1,6 @@
 import "package:flutter/material.dart";
 import "package:flutter_test/flutter_test.dart";
-import "package:database/database.dart";
+import "package:database/features.dart";
 import "package:chenron/features/statistics/widgets/overview_cards.dart";
 import "package:chenron/features/statistics/widgets/chart_card.dart";
 import "package:chenron/features/statistics/widgets/time_range_selector.dart";

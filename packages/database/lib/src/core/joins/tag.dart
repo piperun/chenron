@@ -1,4 +1,4 @@
-import "package:database/main.dart";
+import "package:database/database.dart";
 import "package:database/src/core/builders/base_query_builder.dart";
 import "package:database/schema/app_schema.dart";
 import "package:drift/drift.dart";

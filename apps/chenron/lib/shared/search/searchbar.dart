@@ -4,6 +4,7 @@ import "package:chenron/shared/search/search_features.dart";
 import "package:chenron/shared/search/search_feature_service.dart";
 import "package:chenron/shared/search/suggestions_overlay.dart";
 import "package:database/database.dart";
+import "package:core/patterns/include_options.dart";
 import "package:flutter/material.dart";
 import "package:chenron/locator.dart";
 import "package:signals/signals_flutter.dart";

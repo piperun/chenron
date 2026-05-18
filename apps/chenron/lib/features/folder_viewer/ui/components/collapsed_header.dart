@@ -1,5 +1,5 @@
 import "package:flutter/material.dart";
-import "package:database/main.dart";
+import "package:database/database.dart";
 
 class CollapsedHeader extends StatelessWidget {
   final Folder folder;

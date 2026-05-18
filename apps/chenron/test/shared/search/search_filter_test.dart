@@ -1,6 +1,5 @@
 import "package:chenron/shared/search/search_filter.dart";
-import "package:database/main.dart";
-import "package:database/models/item.dart";
+import "package:database/database.dart";
 import "package:flutter_test/flutter_test.dart";
 
 /// Helper to build a [Tag] for testing.

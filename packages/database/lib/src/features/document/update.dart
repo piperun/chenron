@@ -1,5 +1,4 @@
-import "package:database/main.dart";
-import "package:database/models/metadata.dart";
+import "package:database/database.dart";
 import "package:database/src/core/id.dart";
 import "package:database/src/features/document/handlers/document_update_vepr.dart";
 import "package:database/src/features/tag/create.dart";

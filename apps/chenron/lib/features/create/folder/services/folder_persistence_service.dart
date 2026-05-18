@@ -1,7 +1,7 @@
 import "package:flutter/foundation.dart";
 
 import "package:database/database.dart";
-import "package:database/main.dart";
+import "package:database/features.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/components/forms/folder_form.dart";
 import "package:signals/signals.dart";

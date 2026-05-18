@@ -1,5 +1,6 @@
 import "package:cache_manager/cache_manager.dart";
 import "package:database/database.dart";
+import "package:database/features.dart";
 
 /// Bridges [MetadataPersistence] to the drift [AppDatabase],
 /// storing web metadata in the [WebMetadataEntries] table.

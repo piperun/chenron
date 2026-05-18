@@ -7,6 +7,7 @@ import "package:chenron/utils/metadata.dart";
 import "package:cache_manager/cache_manager.dart";
 import "package:app_logger/app_logger.dart";
 import "package:database/database.dart";
+import "package:database/features.dart";
 import "package:signals/signals.dart";
 
 const _tag = "MetadataFactory";

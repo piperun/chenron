@@ -1,5 +1,4 @@
 import "package:database/database.dart";
-import "package:database/main.dart";
 import "package:cuid2/cuid2.dart";
 
 class LinkTestData {

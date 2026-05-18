@@ -1,7 +1,6 @@
-import "package:database/main.dart";
+import "package:database/database.dart";
 import "package:flutter_test/flutter_test.dart";
 import "package:chenron/shared/search/search_matcher.dart";
-import "package:database/database.dart";
 
 void main() {
   group("SearchMatcher URL Tests", () {

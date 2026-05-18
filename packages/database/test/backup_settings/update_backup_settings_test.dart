@@ -1,4 +1,4 @@
-import "package:database/main.dart";
+import "package:database/database.dart";
 import "package:database/src/features/user_config/create.dart";
 import "package:database/src/features/backup_settings/read.dart";
 import "package:database/src/features/backup_settings/update.dart";

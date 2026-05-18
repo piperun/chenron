@@ -4,6 +4,7 @@ import "dart:io";
 
 import "package:chenron/utils/safe_async.dart";
 import "package:database/database.dart";
+import "package:database/features.dart";
 import "package:file_picker/file_picker.dart";
 import "package:flutter/material.dart";
 

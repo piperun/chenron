@@ -1,4 +1,4 @@
-import "package:database/main.dart";
+import "package:database/database.dart";
 import "package:database/src/features/tag/handlers/tag_create_vepr.dart";
 
 extension TagExtensions on AppDatabase {

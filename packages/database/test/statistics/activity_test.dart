@@ -1,4 +1,4 @@
-import "package:database/main.dart";
+import "package:database/database.dart";
 import "package:database/src/features/statistics/activity.dart";
 import "package:flutter_test/flutter_test.dart" as matcher;
 import "package:flutter_test/flutter_test.dart";

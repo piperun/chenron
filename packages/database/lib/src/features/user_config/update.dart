@@ -1,5 +1,4 @@
-import "package:database/main.dart";
-import "package:database/models/cud.dart";
+import "package:database/database.dart";
 import "package:database/src/features/user_config/handlers/user_config_update_vepr.dart";
 
 extension UserConfigUpdateExtensions on ConfigDatabase {

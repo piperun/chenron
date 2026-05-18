@@ -2,6 +2,7 @@ import "dart:async";
 
 import "package:app_logger/app_logger.dart";
 import "package:database/database.dart";
+import "package:database/features.dart";
 
 /// App-level service for recording view/access activity events.
 ///

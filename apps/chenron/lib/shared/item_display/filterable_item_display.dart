@@ -8,7 +8,7 @@ import "package:chenron/shared/item_display/item_list_view.dart";
 import "package:chenron/shared/item_display/filterable_item_display_notifier.dart";
 import "package:chenron/features/folder_viewer/ui/components/tag_filter_modal.dart";
 import "package:database/database.dart";
-import "package:database/main.dart";
+import "package:core/patterns/include_options.dart";
 import "package:chenron/shared/search/search_features.dart";
 import "package:chenron/shared/tag_filter/tag_filter_notifier.dart";
 import "package:signals/signals_flutter.dart";

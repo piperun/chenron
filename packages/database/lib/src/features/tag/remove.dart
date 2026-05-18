@@ -1,4 +1,4 @@
-import "package:database/main.dart";
+import "package:database/database.dart";
 
 extension TagRemoveExtensions on AppDatabase {
   Future<bool> removeTag(String tagId) async {

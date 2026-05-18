@@ -8,6 +8,7 @@ import "package:chenron/shared/errors/error_snack_bar.dart";
 import "package:chenron/utils/safe_async.dart";
 import "package:chenron/utils/validation/tag_validator.dart";
 import "package:database/database.dart";
+import "package:database/features.dart";
 import "package:flutter/material.dart";
 import "package:signals/signals.dart";
 

@@ -1,5 +1,4 @@
-import "package:database/main.dart";
-import "package:database/models/item.dart";
+import "package:database/database.dart";
 import "package:database/src/core/convert.dart";
 import "package:drift/drift.dart";
 
