@@ -27,7 +27,7 @@ abstract class ThemeSettings with _$ThemeSettings {
 
   factory ThemeSettings.fromUserConfig(UserConfig config) => ThemeSettings(
         selectedKey: config.selectedThemeKey,
-        selectedType: ThemeType.values[config.selectedThemeType],
+        selectedType: config.selectedThemeType,
       );
 }
 

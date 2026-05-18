@@ -38,9 +38,9 @@ void main() {
   UserConfigResult stubConfigResult({
     String id = "cfg-1",
     bool defaultArchiveOrg = false,
-    int timeDisplayFormat = 0,
+    TimeDisplayFormat timeDisplayFormat = TimeDisplayFormat.relative,
     String? selectedThemeKey = "materialBaseline",
-    int selectedThemeType = 1,
+    ThemeType selectedThemeType = ThemeType.system,
   }) {
     return UserConfigResult(
       data: UserConfig(
@@ -54,7 +54,7 @@ void main() {
         selectedThemeKey: selectedThemeKey,
         selectedThemeType: selectedThemeType,
         timeDisplayFormat: timeDisplayFormat,
-        itemClickAction: 0,
+        itemClickAction: ItemClickAction.openItem,
         showDescription: true,
         showImages: true,
         showTags: true,
@@ -69,7 +69,7 @@ void main() {
     when(configService.getUserConfig())
         .thenAnswer((_) async => stubConfigResult(
               defaultArchiveOrg: true,
-              timeDisplayFormat: 1,
+              timeDisplayFormat: TimeDisplayFormat.absolute,
             ));
 
     await coordinator.initialize();

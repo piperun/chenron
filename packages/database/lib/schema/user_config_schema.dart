@@ -1,4 +1,5 @@
 import "package:drift/drift.dart";
+import "package:database/models/enums.dart";
 
 class UserConfigs extends Table {
   TextColumn get id => text().withLength(min: 30, max: 60)();
@@ -15,16 +16,14 @@ class UserConfigs extends Table {
   TextColumn get archiveOrgS3SecretKey => text().nullable()();
 
   TextColumn get selectedThemeKey => text().nullable()();
-  IntColumn get selectedThemeType =>
-      integer().references(ThemeTypes, #id).withDefault(const Constant(0))();
+  Column<int> get selectedThemeType =>
+      intEnum<ThemeType>().withDefault(const Constant(0))();
 
-  IntColumn get timeDisplayFormat => integer()
-      .references(TimeDisplayFormats, #id)
-      .withDefault(const Constant(0))();
+  Column<int> get timeDisplayFormat =>
+      intEnum<TimeDisplayFormat>().withDefault(const Constant(0))();
 
-  IntColumn get itemClickAction => integer()
-      .references(ItemClickActions, #id)
-      .withDefault(const Constant(0))();
+  Column<int> get itemClickAction =>
+      intEnum<ItemClickAction>().withDefault(const Constant(0))();
 
   // Path to cache directory for images (null = use system temp directory)
   TextColumn get cacheDirectory => text().nullable()();
@@ -52,8 +51,8 @@ class UserThemes extends Table {
   IntColumn get primaryColor => integer()();
   IntColumn get secondaryColor => integer()();
   IntColumn get tertiaryColor => integer().nullable()();
-  IntColumn get seedType =>
-      integer().references(SeedTypes, #id).withDefault(const Constant(0))();
+  Column<int> get seedType =>
+      intEnum<SeedType>().withDefault(const Constant(0))();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -72,27 +71,8 @@ class BackupSettings extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-// Enum type tables
-@DataClassName("ThemeTypeEntity")
-class ThemeTypes extends Table {
-  IntColumn get id => integer().autoIncrement()();
-  TextColumn get name => text().unique()();
-}
-
-@DataClassName("TimeDisplayFormatEntity")
-class TimeDisplayFormats extends Table {
-  IntColumn get id => integer().autoIncrement()();
-  TextColumn get name => text().unique()();
-}
-
-@DataClassName("ItemClickActionEntity")
-class ItemClickActions extends Table {
-  IntColumn get id => integer().autoIncrement()();
-  TextColumn get name => text().unique()();
-}
-
-@DataClassName("SeedTypeEntity")
-class SeedTypes extends Table {
-  IntColumn get id => integer().autoIncrement()();
-  TextColumn get name => text().unique()();
-}
+// Enum lookup tables (ThemeTypes, TimeDisplayFormats, ItemClickActions,
+// SeedTypes) used to live here. They were replaced with `intEnum<T>()`
+// columns referencing the matching Dart enums in `models/enums.dart`;
+// the v4 -> v5 migration drops the tables and shifts the existing
+// 1-based values down by 1 to match Drift's 0-based intEnum storage.

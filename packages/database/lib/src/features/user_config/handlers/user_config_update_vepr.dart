@@ -128,13 +128,13 @@ class UserConfigUpdateVEPR extends VEPROperation<
               : Value(input.selectedThemeKey))
           : const Value.absent(),
       selectedThemeType: input.selectedThemeType != null
-          ? Value(input.selectedThemeType!.index)
+          ? Value(input.selectedThemeType!)
           : const Value.absent(),
       timeDisplayFormat: input.timeDisplayFormat != null
-          ? Value(input.timeDisplayFormat!)
+          ? Value(TimeDisplayFormat.values[input.timeDisplayFormat!])
           : const Value.absent(),
       itemClickAction: input.itemClickAction != null
-          ? Value(input.itemClickAction!)
+          ? Value(ItemClickAction.values[input.itemClickAction!])
           : const Value.absent(),
       cacheDirectory: input.cacheDirectory != null
           ? (input.cacheDirectory!.isEmpty

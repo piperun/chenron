@@ -33,9 +33,9 @@ void main() {
       copyOnImport: false,
       defaultArchiveIs: false,
       defaultArchiveOrg: false,
-      selectedThemeType: 0,
-      timeDisplayFormat: 0,
-      itemClickAction: 0,
+      selectedThemeType: ThemeType.custom,
+      timeDisplayFormat: TimeDisplayFormat.relative,
+      itemClickAction: ItemClickAction.openItem,
         showDescription: true,
         showImages: true,
         showTags: true,
@@ -109,27 +109,27 @@ void main() {
       );
 
       final config = await database.getUserConfig();
-      expect(config!.data.selectedThemeType, equals(ThemeType.system.index));
+      expect(config!.data.selectedThemeType, equals(ThemeType.system));
     });
 
     test("updates timeDisplayFormat", () async {
       await database.updateUserConfig(
         id: userConfigId,
-        timeDisplayFormat: 24,
+        timeDisplayFormat: TimeDisplayFormat.absolute.index,
       );
 
       final config = await database.getUserConfig();
-      expect(config!.data.timeDisplayFormat, equals(24));
+      expect(config!.data.timeDisplayFormat, equals(TimeDisplayFormat.absolute));
     });
 
     test("updates itemClickAction", () async {
       await database.updateUserConfig(
         id: userConfigId,
-        itemClickAction: 2,
+        itemClickAction: ItemClickAction.showDetails.index,
       );
 
       final config = await database.getUserConfig();
-      expect(config!.data.itemClickAction, equals(2));
+      expect(config!.data.itemClickAction, equals(ItemClickAction.showDetails));
     });
 
     test("updates cacheDirectory", () async {
@@ -180,7 +180,7 @@ void main() {
         primaryColor: 0xFFFF0000,
         secondaryColor: 0xFF00FF00,
         tertiaryColor: null,
-        seedType: 0,
+        seedType: SeedType.none,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
@@ -212,7 +212,7 @@ void main() {
               name: "To Delete",
               primaryColor: 0xFF000000,
               secondaryColor: 0xFFFFFFFF,
-              seedType: const Value(0),
+              seedType: const Value(SeedType.none),
             ),
           );
 
