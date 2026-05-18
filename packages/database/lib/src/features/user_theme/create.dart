@@ -1,5 +1,4 @@
-import "package:database/main.dart";
-import "package:database/models/created_ids.dart";
+import "package:database/database.dart";
 import "package:database/src/features/user_theme/handlers/user_theme_create_vepr.dart";
 
 extension UserThemeCreateExtension on ConfigDatabase {

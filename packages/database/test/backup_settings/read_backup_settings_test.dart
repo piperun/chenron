@@ -1,5 +1,6 @@
 import "package:database/database.dart";
-import "package:database/main.dart";
+import "package:core/patterns/include_options.dart";
+import "package:database/features.dart";
 import "package:flutter_test/flutter_test.dart";
 
 import "package:chenron_mockups/chenron_mockups.dart";

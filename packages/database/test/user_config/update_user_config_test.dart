@@ -1,5 +1,4 @@
-import "package:database/main.dart";
-import "package:database/models/cud.dart";
+import "package:database/database.dart";
 
 import "package:flutter_test/flutter_test.dart";
 

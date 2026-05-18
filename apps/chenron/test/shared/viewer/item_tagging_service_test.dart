@@ -1,7 +1,8 @@
 import "package:chenron/locator.dart";
 import "package:chenron/shared/viewer/item_tagging_service.dart";
 import "package:database/database.dart";
-import "package:database/main.dart";
+import "package:core/patterns/include_options.dart";
+import "package:database/features.dart";
 import "package:drift/native.dart";
 import "package:flutter_test/flutter_test.dart";
 import "package:signals/signals.dart";

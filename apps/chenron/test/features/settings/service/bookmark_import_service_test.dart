@@ -3,7 +3,7 @@ import "dart:io";
 import "package:flutter_test/flutter_test.dart";
 
 import "package:chenron_mockups/chenron_mockups.dart";
-import "package:database/database.dart";
+import "package:database/features.dart";
 import "package:chenron/features/settings/service/bookmark_import_service.dart";
 
 /// Minimal Netscape bookmark HTML for testing

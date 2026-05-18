@@ -1,6 +1,6 @@
 import "package:fl_chart/fl_chart.dart";
 import "package:flutter/material.dart";
-import "package:database/database.dart";
+import "package:database/features.dart";
 import "package:chenron/features/statistics/widgets/chart_card.dart";
 import "package:chenron/shared/constants/color_palette.dart";
 

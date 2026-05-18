@@ -1,8 +1,6 @@
 import "package:core/patterns/include_options.dart";
-import "package:database/main.dart";
-import "package:database/models/db_result.dart";
+import "package:database/database.dart";
 import "package:database/src/core/builders/base_query_builder.dart";
-import "package:database/src/core/handlers/read_handler.dart";
 
 extension DocumentReadExtensions on AppDatabase {
   Future<DocumentResult?> getDocument({

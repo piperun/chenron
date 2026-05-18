@@ -1,6 +1,5 @@
 import "package:core/patterns/include_options.dart";
-import "package:database/main.dart";
-import "package:database/models/db_result.dart";
+import "package:database/database.dart";
 import "package:database/src/core/builders/result_builder.dart";
 import "package:database/src/core/builders/result_builder_factory.dart";
 import "package:database/src/core/joins/relation_builder.dart";

@@ -1,6 +1,6 @@
 import "dart:async";
 import "package:app_logger/app_logger.dart";
-import "package:database/main.dart";
+import "package:database/database.dart";
 import "package:database/src/features/background_jobs/crud.dart";
 import "package:drift/drift.dart";
 import "package:web_archiver/web_archiver.dart";

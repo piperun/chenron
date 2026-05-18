@@ -1,7 +1,4 @@
-import "package:database/main.dart";
-import "package:database/models/created_ids.dart";
-import "package:database/models/document_file_type.dart";
-import "package:database/models/metadata.dart";
+import "package:database/database.dart";
 import "package:database/src/features/document/handlers/document_create_vepr.dart";
 
 extension DocumentCreateExtensions on AppDatabase {

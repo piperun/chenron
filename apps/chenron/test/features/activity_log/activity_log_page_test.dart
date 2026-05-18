@@ -3,7 +3,7 @@ import "package:flutter_test/flutter_test.dart";
 
 import "package:chenron_mockups/chenron_mockups.dart";
 import "package:chenron/features/activity_log/pages/activity_log_page.dart";
-import "package:database/database.dart";
+import "package:database/features.dart";
 
 void main() {
   late MockDatabaseHelper mockDb;

@@ -1,6 +1,6 @@
 import "dart:math";
 
-import "package:database/main.dart";
+import "package:database/database.dart";
 import "package:fuzzywuzzy/fuzzywuzzy.dart";
 
 class SearchMatcher {

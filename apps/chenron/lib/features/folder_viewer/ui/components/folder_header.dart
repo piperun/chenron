@@ -1,4 +1,4 @@
-import "package:database/main.dart";
+import "package:database/database.dart";
 import "package:flutter/material.dart";
 import "package:intl/intl.dart";
 import "package:chenron/shared/item_display/widgets/toolbar/display_toggle_popup.dart";

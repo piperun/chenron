@@ -6,6 +6,7 @@ import "package:chenron/locator.dart";
 // Hide Drift's generated `Document` (documents table data class) — this
 // file uses Document from `package:html/dom.dart`.
 import "package:database/database.dart" hide Document;
+import "package:database/features.dart";
 import "package:html/dom.dart";
 import "package:html/parser.dart" as html_parser;
 import "package:signals/signals.dart";

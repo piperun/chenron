@@ -1,5 +1,4 @@
-import "package:database/main.dart";
-import "package:database/models/metadata.dart";
+import "package:database/database.dart";
 import "package:database/src/features/document/update.dart";
 import "package:database/src/features/folder/read.dart";
 import "package:database/src/features/folder/update.dart";

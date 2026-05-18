@@ -1,5 +1,5 @@
 import "package:chenron/services/drift_metadata_persistence.dart";
-import "package:database/main.dart";
+import "package:database/database.dart";
 import "package:flutter_test/flutter_test.dart";
 
 import "package:chenron_mockups/chenron_mockups.dart";

@@ -1,7 +1,7 @@
 import "package:chenron/locator.dart";
 import "package:chenron/features/bulk_tag/pages/bulk_tag_dialog.dart";
 import "package:database/database.dart";
-import "package:database/main.dart";
+import "package:database/features.dart";
 import "package:drift/native.dart";
 import "package:flutter/material.dart";
 import "package:flutter_test/flutter_test.dart";

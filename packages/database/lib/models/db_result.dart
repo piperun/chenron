@@ -1,5 +1,4 @@
-import "package:database/main.dart";
-import "package:database/models/item.dart";
+import "package:database/database.dart";
 import "package:drift/drift.dart" show DataClass;
 import "package:freezed_annotation/freezed_annotation.dart";
 part "db_result.freezed.dart";

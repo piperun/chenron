@@ -1,4 +1,4 @@
-import "package:database/main.dart";
+import "package:database/database.dart";
 import "package:database/src/features/tag/create.dart";
 import "package:flutter_test/flutter_test.dart";
 

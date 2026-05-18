@@ -1,4 +1,4 @@
-import "package:database/main.dart";
+import "package:database/database.dart";
 import "package:database/src/features/background_jobs/crud.dart";
 import "package:database/src/features/background_jobs/processor.dart";
 import "package:database/src/features/link/create.dart";

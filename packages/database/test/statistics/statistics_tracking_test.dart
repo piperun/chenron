@@ -1,6 +1,4 @@
-import "package:database/main.dart";
-import "package:database/models/document_file_type.dart";
-import "package:database/models/folder.dart";
+import "package:database/database.dart";
 import "package:database/src/features/statistics/track.dart";
 import "package:database/src/features/link/create.dart";
 import "package:database/src/features/folder/create.dart";

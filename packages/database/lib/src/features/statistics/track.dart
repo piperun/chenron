@@ -1,6 +1,6 @@
-import "package:database/main.dart";
-import "package:drift/drift.dart";
 import "package:database/database.dart";
+import "package:database/features.dart";
+import "package:drift/drift.dart";
 
 extension StatisticsTracking on AppDatabase {
   /// Records a snapshot of current item counts

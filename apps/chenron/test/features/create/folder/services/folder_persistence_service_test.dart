@@ -2,6 +2,7 @@ import "package:flutter_test/flutter_test.dart";
 
 import "package:chenron_mockups/chenron_mockups.dart";
 import "package:database/database.dart";
+import "package:database/features.dart";
 import "package:chenron/features/create/folder/services/folder_persistence_service.dart";
 import "package:chenron/components/forms/folder_form.dart";
 

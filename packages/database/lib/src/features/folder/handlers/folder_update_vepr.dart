@@ -1,9 +1,4 @@
-import "package:database/main.dart";
-import "package:database/models/created_ids.dart";
-import "package:database/models/cud.dart";
-import "package:database/models/item.dart";
-import "package:database/models/metadata.dart";
-import "package:database/src/core/handlers/relation_handler.dart";
+import "package:database/database.dart";
 import "package:database/src/core/handlers/vepr_operation.dart";
 import "package:database/src/features/folder/insert.dart";
 import "package:database/src/features/tag/handlers/insert_handler.dart";

@@ -4,6 +4,7 @@ import "package:flutter_test/flutter_test.dart";
 
 import "package:chenron_mockups/chenron_mockups.dart";
 import "package:database/database.dart";
+import "package:database/features.dart";
 import "package:chenron/features/settings/service/bookmark_export_service.dart";
 
 void main() {

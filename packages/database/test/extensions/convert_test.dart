@@ -1,8 +1,6 @@
-import "package:database/models/document_file_type.dart";
-import "package:database/models/item.dart";
 import "package:database/src/core/convert.dart";
 import "package:flutter_test/flutter_test.dart";
-import "package:database/main.dart";
+import "package:database/database.dart";
 import "package:chenron_mockups/chenron_mockups.dart";
 
 void main() {

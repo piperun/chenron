@@ -3,7 +3,7 @@ import "package:chenron/locator.dart";
 import "package:chenron/shared/section_card/section_card.dart";
 import "package:chenron/utils/safe_async.dart";
 import "package:database/database.dart";
-import "package:database/main.dart";
+import "package:database/features.dart";
 import "package:flutter/material.dart";
 import "package:signals/signals_flutter.dart";
 

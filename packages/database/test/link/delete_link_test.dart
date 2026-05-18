@@ -1,7 +1,5 @@
 import "package:core/patterns/include_options.dart";
-import "package:database/main.dart";
-import "package:database/models/item.dart";
-import "package:database/models/metadata.dart";
+import "package:database/database.dart";
 import "package:database/src/core/id.dart";
 import "package:flutter_test/flutter_test.dart";
 

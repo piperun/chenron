@@ -8,6 +8,7 @@ import "package:chenron/features/shell/ui/sections/appbar_section.dart";
 import "package:chenron/features/shell/ui/folders_navigation_rail.dart";
 import "package:chenron/features/shell/ui/shell_app_bar.dart";
 import "package:database/database.dart";
+import "package:core/patterns/include_options.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/features/shell/ui/current_page_builder.dart";
 import "package:chenron/features/settings/models/settings_category.dart";

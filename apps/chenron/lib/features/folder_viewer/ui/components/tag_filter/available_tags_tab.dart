@@ -1,4 +1,4 @@
-import "package:database/main.dart";
+import "package:database/database.dart";
 import "package:flutter/material.dart";
 
 class AvailableTagsTab extends StatelessWidget {

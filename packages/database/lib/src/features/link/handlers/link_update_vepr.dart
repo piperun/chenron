@@ -1,4 +1,4 @@
-import "package:database/main.dart";
+import "package:database/database.dart";
 import "package:database/src/core/handlers/vepr_operation.dart";
 import "package:database/src/features/link/read.dart";
 import "package:drift/drift.dart";

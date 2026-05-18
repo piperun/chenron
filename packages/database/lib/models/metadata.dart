@@ -1,4 +1,4 @@
-import "package:database/main.dart";
+import "package:database/database.dart";
 import "package:drift/drift.dart";
 
 export "package:database/models/enums.dart" show MetadataTypeEnum;

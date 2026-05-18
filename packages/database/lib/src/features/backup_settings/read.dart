@@ -1,4 +1,4 @@
-import "package:database/main.dart";
+import "package:database/database.dart";
 
 extension BackupSettingsReadExtensions on ConfigDatabase {
   Future<BackupSetting?> getBackupSettings({
