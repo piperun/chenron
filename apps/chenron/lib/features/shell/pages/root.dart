@@ -84,7 +84,7 @@ class _RootPageState extends State<RootPage> {
     });
   }
 
-  void _onSectionSelected(NavigationSection section) {
+  void _handleSectionSelected(NavigationSection section) {
     if (_currentSection == section && _currentPage != AppPage.settings) {
       loggerGlobal.fine(
         "RootPage",
@@ -103,7 +103,7 @@ class _RootPageState extends State<RootPage> {
     });
   }
 
-  void _onFolderSelected(String folderId) {
+  void _handleFolderSelected(String folderId) {
     loggerGlobal.fine("RootPage", "Folder selected: $folderId");
 
     final presenter = viewerViewModelSignal.value;
@@ -171,13 +171,13 @@ class _RootPageState extends State<RootPage> {
           else
             FoldersNavigationRail(
               selectedFolderId: _selectedFolderId,
-              onFolderSelected: _onFolderSelected,
+              onFolderSelected: _handleFolderSelected,
               isExtended: _isExtended,
               onToggleExtended: () =>
                   setState(() => _isExtended = !_isExtended),
               onAddPressed: _showCreateModal,
               currentSection: _currentSection,
-              onSectionSelected: _onSectionSelected,
+              onSectionSelected: _handleSectionSelected,
             ),
           const VerticalDivider(thickness: 1, width: 1),
           Expanded(
