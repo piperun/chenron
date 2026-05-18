@@ -1,4 +1,4 @@
-import "package:chenron/features/theme/state/theme_controller.dart";
+import "package:chenron/features/theme/state/theme_notifier.dart";
 import "package:flex_color_scheme/flex_color_scheme.dart";
 import "package:shared_preferences/shared_preferences.dart";
 import "package:vibe/vibe.dart";

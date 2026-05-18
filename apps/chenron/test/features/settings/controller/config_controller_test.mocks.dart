@@ -9,7 +9,7 @@ import 'dart:io' as _i9;
 import 'package:chenron/features/settings/service/config_service.dart' as _i3;
 import 'package:chenron/features/settings/service/data_settings_service.dart'
     as _i7;
-import 'package:chenron/features/theme/state/theme_controller.dart' as _i10;
+import 'package:chenron/features/theme/state/theme_notifier.dart' as _i10;
 import 'package:database/database.dart' as _i5;
 import 'package:database/main.dart' as _i6;
 import 'package:flutter/material.dart' as _i11;

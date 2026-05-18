@@ -1,5 +1,5 @@
 import "dart:async";
-import "package:chenron/features/theme/state/theme_controller.dart";
+import "package:chenron/features/theme/state/theme_notifier.dart";
 import "package:signals/signals.dart";
 
 final Signal<ThemeNotifier> themeNotifierSignal =

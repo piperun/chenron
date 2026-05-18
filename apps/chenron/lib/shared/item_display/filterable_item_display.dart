@@ -10,7 +10,7 @@ import "package:chenron/features/folder_viewer/ui/components/tag_filter_modal.da
 import "package:database/database.dart";
 import "package:database/main.dart";
 import "package:chenron/shared/search/search_features.dart";
-import "package:chenron/shared/tag_filter/tag_filter_state.dart";
+import "package:chenron/shared/tag_filter/tag_filter_notifier.dart";
 import "package:signals/signals_flutter.dart";
 
 class FilterableItemDisplay extends StatefulWidget {

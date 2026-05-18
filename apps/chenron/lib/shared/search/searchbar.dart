@@ -1,7 +1,7 @@
 import "package:chenron/shared/constants/durations.dart";
 import "package:chenron/shared/search/search_controller.dart";
 import "package:chenron/shared/search/search_features.dart";
-import "package:chenron/shared/search/search_feature_manager.dart";
+import "package:chenron/shared/search/search_feature_service.dart";
 import "package:chenron/shared/search/suggestions_overlay.dart";
 import "package:database/database.dart";
 import "package:flutter/material.dart";

@@ -1,6 +1,6 @@
 import "package:flutter/material.dart";
 import "package:signals/signals_flutter.dart";
-import "package:chenron/features/folder_editor/widgets/item_section/item_section_controller.dart";
+import "package:chenron/features/folder_editor/widgets/item_section/item_section_notifier.dart";
 
 class ItemTableFilter extends StatelessWidget {
   final ItemSectionNotifier controller;

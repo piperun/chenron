@@ -9,9 +9,9 @@ import "package:chenron/features/folder_viewer/ui/components/collapsed_header.da
 import "package:chenron/shared/item_display/filterable_item_display.dart";
 import "package:chenron/shared/dialogs/delete_confirmation_dialog.dart";
 import "package:chenron/features/folder_viewer/services/folder_viewer_service.dart";
-import "package:chenron/shared/infinite_scroll/infinite_scroll_state.dart";
+import "package:chenron/shared/infinite_scroll/infinite_scroll_notifier.dart";
 
-import "package:chenron/shared/tag_filter/tag_filter_state.dart";
+import "package:chenron/shared/tag_filter/tag_filter_notifier.dart";
 import "package:chenron/features/folder_editor/pages/folder_editor.dart";
 import "package:app_logger/app_logger.dart";
 import "package:chenron/shared/errors/error_snack_bar.dart";

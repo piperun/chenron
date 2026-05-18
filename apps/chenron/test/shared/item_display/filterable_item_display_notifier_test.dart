@@ -5,7 +5,7 @@ import "package:database/main.dart";
 import "package:chenron/shared/item_display/filterable_item_display_notifier.dart";
 import "package:chenron/shared/item_display/widgets/display_mode/display_mode.dart";
 import "package:chenron/shared/item_display/item_toolbar.dart";
-import "package:chenron/shared/tag_filter/tag_filter_state.dart";
+import "package:chenron/shared/tag_filter/tag_filter_notifier.dart";
 
 final _epoch = DateTime(2024, 1, 1);
 

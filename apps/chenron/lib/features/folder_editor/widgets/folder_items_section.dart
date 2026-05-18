@@ -8,7 +8,7 @@ import "package:chenron/features/folder_editor/item_picker/document_picker_sheet
 import "package:chenron/features/folder_editor/item_picker/link_picker_sheet.dart";
 import "package:chenron/features/folder_editor/widgets/item_section/item_section.dart";
 import "package:chenron/features/folder_editor/widgets/item_section/item_section_content.dart";
-import "package:chenron/features/folder_editor/widgets/item_section/item_section_controller.dart";
+import "package:chenron/features/folder_editor/widgets/item_section/item_section_notifier.dart";
 import "package:chenron/features/folder_editor/widgets/cells/type_cell.dart";
 import "package:chenron/features/folder_editor/widgets/cells/delete_cell.dart";
 import "package:chenron/features/folder_editor/notifiers/folder_editor_notifier.dart";
