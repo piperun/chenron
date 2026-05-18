@@ -14,11 +14,29 @@ extension ConfigDatabaseInit on ConfigDatabase {
   /// from a [FormatException] by wiping and re-inserting (defensive
   /// against schema drift between launches).
   Future<UserConfigResultIds> setupUserConfig() async {
+    await _repairLegacyEnumIndices();
     final result = await _setupUserConfigEntry();
     if (result.userConfigId.isNotEmpty) {
       await _setupBackupConfig(result.userConfigId);
     }
     return result;
+  }
+
+  /// The v5 migration originally did `column = column - 1` without
+  /// clamping. A v3-era row whose FK was never set carried the int
+  /// default 0; the migration turned that into -1 and intEnum then
+  /// crashed at read with `RangeError: -1`. The migration itself is
+  /// now clamped, but already-migrated databases still hold the -1.
+  /// Repair them here on every startup — idempotent on healthy rows.
+  Future<void> _repairLegacyEnumIndices() async {
+    await customStatement(
+        "UPDATE user_configs SET selected_theme_type = 0 WHERE selected_theme_type < 0");
+    await customStatement(
+        "UPDATE user_configs SET time_display_format = 0 WHERE time_display_format < 0");
+    await customStatement(
+        "UPDATE user_configs SET item_click_action = 0 WHERE item_click_action < 0");
+    await customStatement(
+        "UPDATE user_themes SET seed_type = 0 WHERE seed_type < 0");
   }
 
   Future<UserConfigResultIds> _setupUserConfigEntry() async {

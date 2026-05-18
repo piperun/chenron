@@ -81,14 +81,18 @@ class ConfigDatabase extends _$ConfigDatabase {
             "'item_click_actions','seed_types')",
           ).get();
           if (hasLegacyTables.isNotEmpty) {
+            // Clamp at 0: a v3-era row that never had its FK set kept the
+            // default int value 0, which wasn't a valid lookup-table id
+            // (those were 1-indexed autoincrement). Naively subtracting
+            // one produces -1, which intEnum then crashes on at read.
             await customStatement(
-                "UPDATE user_configs SET selected_theme_type = selected_theme_type - 1");
+                "UPDATE user_configs SET selected_theme_type = MAX(0, selected_theme_type - 1)");
             await customStatement(
-                "UPDATE user_configs SET time_display_format = time_display_format - 1");
+                "UPDATE user_configs SET time_display_format = MAX(0, time_display_format - 1)");
             await customStatement(
-                "UPDATE user_configs SET item_click_action = item_click_action - 1");
+                "UPDATE user_configs SET item_click_action = MAX(0, item_click_action - 1)");
             await customStatement(
-                "UPDATE user_themes SET seed_type = seed_type - 1");
+                "UPDATE user_themes SET seed_type = MAX(0, seed_type - 1)");
             await customStatement("DROP TABLE IF EXISTS theme_types");
             await customStatement(
                 "DROP TABLE IF EXISTS time_display_formats");
