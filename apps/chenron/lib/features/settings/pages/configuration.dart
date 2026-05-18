@@ -1,13 +1,13 @@
-import "package:flutter/material.dart";
 import "dart:async";
-import "package:signals/signals_flutter.dart";
 
-import "package:chenron/features/settings/controller/config_controller.dart";
+import "package:app_logger/app_logger.dart";
+import "package:chenron/features/settings/coordinator/settings_coordinator.dart";
 import "package:chenron/features/settings/models/settings_category.dart";
 import "package:chenron/features/settings/ui/settings_content_panel.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/shared/dialogs/confirm_dialog.dart";
-import "package:app_logger/app_logger.dart";
+import "package:flutter/material.dart";
+import "package:signals/signals_flutter.dart";
 
 class ConfigPage extends StatefulWidget {
   final SettingsCategory selectedCategory;
@@ -22,13 +22,13 @@ class ConfigPage extends StatefulWidget {
 }
 
 class _ConfigPageState extends State<ConfigPage> {
-  final ConfigController _controller = locator.get<ConfigController>();
+  final SettingsCoordinator _coordinator = locator.get<SettingsCoordinator>();
 
   @override
   void initState() {
     super.initState();
-    unawaited(_controller.initialize());
-    loggerGlobal.info("ConfigPage", "Initialized ConfigController.");
+    unawaited(_coordinator.initialize());
+    loggerGlobal.info("ConfigPage", "Initialized SettingsCoordinator.");
   }
 
   Future<bool> _showDiscardDialog(BuildContext context) {
@@ -50,7 +50,7 @@ class _ConfigPageState extends State<ConfigPage> {
     scaffoldMessenger.showSnackBar(const SnackBar(
         content: Text("Saving..."), duration: Duration(seconds: 60)));
 
-    final success = await _controller.saveSettings();
+    final success = await _coordinator.saveAll();
 
     scaffoldMessenger.hideCurrentSnackBar();
 
@@ -69,7 +69,7 @@ class _ConfigPageState extends State<ConfigPage> {
         scaffoldMessenger.showSnackBar(
           SnackBar(
             content: Text(
-                "Error saving settings: ${_controller.error.peek() ?? 'Unknown error'}"),
+                "Error saving settings: ${_coordinator.error.peek() ?? 'Unknown error'}"),
             backgroundColor: Theme.of(context).colorScheme.error,
             duration: const Duration(seconds: 4),
           ),
@@ -81,9 +81,9 @@ class _ConfigPageState extends State<ConfigPage> {
   @override
   Widget build(BuildContext context) {
     return Watch((context) {
-      final hasChanges = _controller.hasUnsavedChanges();
-      final isLoading = _controller.isLoading.value;
-      final error = _controller.error.value;
+      final hasChanges = _coordinator.hasUnsavedChanges;
+      final isLoading = _coordinator.isLoading.value;
+      final error = _coordinator.error.value;
 
       return PopScope(
         canPop: !hasChanges,
@@ -102,7 +102,7 @@ class _ConfigPageState extends State<ConfigPage> {
           if (confirmDiscard) {
             loggerGlobal.info(
                 "ConfigPage", "User confirmed discard via dialog.");
-            await _controller.initialize();
+            await _coordinator.initialize();
             if (mounted) {
               navigator.pop();
             }
@@ -118,7 +118,6 @@ class _ConfigPageState extends State<ConfigPage> {
                   ? Center(child: Text("Error: $error"))
                   : SettingsContentPanel(
                       category: widget.selectedCategory,
-                      controller: _controller,
                       onSave: _save,
                       isSaving: isLoading,
                       hasUnsavedChanges: hasChanges,
