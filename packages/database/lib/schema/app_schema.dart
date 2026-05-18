@@ -1,5 +1,6 @@
 import "package:drift/drift.dart";
 import "package:database/models/document_file_type.dart";
+import "package:database/models/enums.dart";
 
 export "package:database/schema/background_jobs_schema.dart";
 
@@ -62,33 +63,23 @@ class Items extends Table {
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   TextColumn get folderId => text().references(Folders, #id)();
   TextColumn get itemId => text()();
-  IntColumn get typeId => integer().references(ItemTypes, #id)();
+  Column<int> get typeId => intEnum<FolderItemType>()();
 
   @override
   Set<Column> get primaryKey => {id};
-}
-
-class ItemTypes extends Table {
-  IntColumn get id => integer().autoIncrement()();
-  TextColumn get name => text().unique()();
 }
 
 @TableIndex(name: "metadata_records_item_idx", columns: {#itemId})
 class MetadataRecords extends Table {
   TextColumn get id => text().withLength(min: 30, max: 60)();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
-  IntColumn get typeId => integer().references(MetadataTypes, #id)();
+  Column<int> get typeId => intEnum<MetadataTypeEnum>()();
   TextColumn get itemId => text()();
   TextColumn get metadataId => text()();
   TextColumn get value => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
-}
-
-class MetadataTypes extends Table {
-  IntColumn get id => integer().autoIncrement()();
-  TextColumn get name => text().unique()();
 }
 
 class Statistics extends Table {

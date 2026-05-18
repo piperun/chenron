@@ -24,13 +24,21 @@ extension DerivedStatistics on AppDatabase {
 
   /// Gets folder composition: count of items per folder, grouped by item type
   Future<List<FolderItemCount>> getFolderComposition() async {
+    // Map item.type_id (0/1/2) back to the enum name in SQL so the
+    // shape of the returned rows stays stable now that the
+    // `item_types` lookup table is gone (replaced by `intEnum<T>`).
     final query = customSelect(
-      "SELECT f.title AS folder_title, it.name AS item_type, COUNT(i.id) AS item_count "
+      "SELECT f.title AS folder_title, "
+      "CASE i.type_id "
+      "WHEN ${FolderItemType.link.index} THEN '${FolderItemType.link.name}' "
+      "WHEN ${FolderItemType.document.index} THEN '${FolderItemType.document.name}' "
+      "WHEN ${FolderItemType.folder.index} THEN '${FolderItemType.folder.name}' "
+      "END AS item_type, "
+      "COUNT(i.id) AS item_count "
       "FROM folders f "
       "LEFT JOIN items i ON i.folder_id = f.id "
-      "LEFT JOIN item_types it ON it.id = i.type_id "
-      "GROUP BY f.id, it.name ORDER BY item_count DESC",
-      readsFrom: {folders, items, itemTypes},
+      "GROUP BY f.id, item_type ORDER BY item_count DESC",
+      readsFrom: {folders, items},
     );
 
     final rows = await query.get();

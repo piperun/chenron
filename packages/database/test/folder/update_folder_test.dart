@@ -93,10 +93,10 @@ void main() {
           .get();
 
       final folderLinks = folderItemsResult
-          .where((item) => item.typeId == FolderItemType.link.dbId)
+          .where((item) => item.typeId == FolderItemType.link)
           .toList();
       final folderDocuments = folderItemsResult
-          .where((item) => item.typeId == FolderItemType.document.dbId)
+          .where((item) => item.typeId == FolderItemType.document)
           .toList();
 
       expect(folderLinks.length, equals(1));

@@ -52,7 +52,7 @@ extension DocumentUpdateExtensions on AppDatabase {
           final existingMetadata = await (select(metadataRecords)
                 ..where((tbl) =>
                     tbl.itemId.equals(documentId) &
-                    tbl.typeId.equals(MetadataTypeEnum.tag.dbId)))
+                    tbl.typeId.equalsValue(MetadataTypeEnum.tag)))
               .get();
 
           // Get or create the tag
@@ -69,7 +69,7 @@ extension DocumentUpdateExtensions on AppDatabase {
                 id: generateId(),
                 itemId: documentId,
                 metadataId: tagId,
-                typeId: MetadataTypeEnum.tag.dbId,
+                typeId: MetadataTypeEnum.tag,
               ),
             );
             addedTagIds.add(tagId);
@@ -101,7 +101,7 @@ extension DocumentUpdateExtensions on AppDatabase {
               ..where((tbl) =>
                   tbl.itemId.equals(documentId) &
                   tbl.metadataId.isIn(tagIds) &
-                  tbl.typeId.equals(MetadataTypeEnum.tag.dbId)))
+                  tbl.typeId.equalsValue(MetadataTypeEnum.tag)))
             .go();
 
         loggerGlobal.fine(

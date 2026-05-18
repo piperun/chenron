@@ -132,7 +132,7 @@ class FolderUpdateVEPR extends VEPROperation<AppDatabase, FolderUpdateInput,
               (tbl) =>
                   tbl.metadataId.equals(tagId) &
                   tbl.itemId.equals(folderId) &
-                  tbl.typeId.equals(MetadataTypeEnum.tag.dbId),
+                  tbl.typeId.equalsValue(MetadataTypeEnum.tag),
             );
           }
         });

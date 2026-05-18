@@ -419,7 +419,7 @@ void main() {
       final itemsTable = database.items;
       final items = await database.select(itemsTable).get();
       expect(items.length, equals(1));
-      expect(items.first.typeId, equals(FolderItemType.link.dbId));
+      expect(items.first.typeId, equals(FolderItemType.link));
     });
 
     test("inserts document item relation", () async {
@@ -461,7 +461,7 @@ void main() {
 
       final itemsTable = database.items;
       final items = await database.select(itemsTable).get();
-      expect(items.first.typeId, equals(FolderItemType.document.dbId));
+      expect(items.first.typeId, equals(FolderItemType.document));
     });
   });
 
@@ -500,7 +500,7 @@ void main() {
       expect(metadata.length, equals(1));
       expect(metadata.first.itemId, equals(itemId));
       expect(metadata.first.metadataId, equals(tagId));
-      expect(metadata.first.typeId, equals(MetadataTypeEnum.tag.dbId));
+      expect(metadata.first.typeId, equals(MetadataTypeEnum.tag));
     });
 
     test("inserts metadata relation with value", () async {

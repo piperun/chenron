@@ -38,11 +38,11 @@ extension FolderItemPaginationExtensions on AppDatabase {
     final folderIds = <String>[];
     for (final row in itemRows) {
       switch (row.typeId) {
-        case 1:
+        case FolderItemType.link:
           linkIds.add(row.itemId);
-        case 2:
+        case FolderItemType.document:
           docIds.add(row.itemId);
-        case 3:
+        case FolderItemType.folder:
           folderIds.add(row.itemId);
       }
     }
@@ -79,19 +79,19 @@ extension FolderItemPaginationExtensions on AppDatabase {
       FolderItem? folderItem;
 
       switch (row.typeId) {
-        case 1:
+        case FolderItemType.link:
           final link = linkMap[row.itemId];
           if (link != null) {
             folderItem = link.toFolderItem(row.id,
                 tags: itemTags, addedAt: row.createdAt);
           }
-        case 2:
+        case FolderItemType.document:
           final doc = docMap[row.itemId];
           if (doc != null) {
             folderItem = doc.toFolderItem(row.id,
                 tags: itemTags, addedAt: row.createdAt);
           }
-        case 3:
+        case FolderItemType.folder:
           final folder = folderMap[row.itemId];
           if (folder != null) {
             folderItem = folder.toFolderItem(row.id,

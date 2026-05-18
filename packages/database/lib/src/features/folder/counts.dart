@@ -60,9 +60,9 @@ LEFT JOIN items i ON i.folder_id = f.id
 GROUP BY f.id
 """,
       variables: [
-        Variable<int>(FolderItemType.link.dbId),
-        Variable<int>(FolderItemType.document.dbId),
-        Variable<int>(FolderItemType.folder.dbId),
+        Variable<int>(FolderItemType.link.index),
+        Variable<int>(FolderItemType.document.index),
+        Variable<int>(FolderItemType.folder.index),
       ],
       readsFrom: {folders, items},
     ).watch().map((rows) {
