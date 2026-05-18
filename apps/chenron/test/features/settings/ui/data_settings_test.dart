@@ -2,13 +2,13 @@ import "package:cache_manager/cache_manager.dart";
 import "package:flutter/material.dart";
 import "package:flutter_test/flutter_test.dart";
 import "package:mockito/annotations.dart";
-import "package:mockito/mockito.dart";
-import "package:signals/signals_flutter.dart";
 
-import "package:chenron/features/settings/controller/config_controller.dart";
+import "package:chenron/features/settings/coordinator/settings_coordinator.dart";
 import "package:chenron/features/settings/models/settings_category.dart";
+import "package:chenron/features/settings/service/config_service.dart";
 import "package:chenron/features/settings/service/data_settings_service.dart";
 import "package:chenron/features/settings/ui/data/data_settings.dart";
+import "package:chenron/features/theme/state/theme_notifier.dart";
 import "package:chenron/locator.dart";
 
 import "data_settings_test.mocks.dart";
@@ -53,7 +53,7 @@ class FakeDataSettingsService extends Fake implements DataSettingsService {
   }
 }
 
-@GenerateMocks([ConfigController])
+@GenerateMocks([ConfigService, DataSettingsService, ThemeNotifier])
 void main() {
   group("SettingsCategory.data", () {
     test("is a top-level category", () {
@@ -82,38 +82,44 @@ void main() {
   });
 
   group("DataSettings widget — Metadata Cache section", () {
-    late MockConfigController mockController;
     late FakeMetadataPersistence fakePersistence;
 
     setUp(() async {
       TestWidgetsFlutterBinding.ensureInitialized();
 
-      // Register service that DataSettings reads from the locator.
       if (locator.isRegistered<DataSettingsService>()) {
         await locator.unregister<DataSettingsService>();
       }
       locator.registerSingleton<DataSettingsService>(FakeDataSettingsService());
 
+      if (locator.isRegistered<SettingsCoordinator>()) {
+        await locator.unregister<SettingsCoordinator>();
+      }
+      locator.registerSingleton<SettingsCoordinator>(SettingsCoordinator(
+        configService: MockConfigService(),
+        dataService: locator.get<DataSettingsService>(),
+        themeApplier: MockThemeNotifier(),
+      ));
+
       fakePersistence = FakeMetadataPersistence();
       MetadataCache.init(fakePersistence);
-
-      mockController = MockConfigController();
-      when(mockController.appDatabasePath).thenReturn(signal<String?>(null));
-      when(mockController.savedAppDatabasePath).thenReturn(null);
     });
 
     tearDown(() async {
       await MetadataCache.clearAll();
+      if (locator.isRegistered<SettingsCoordinator>()) {
+        await locator.unregister<SettingsCoordinator>();
+      }
       if (locator.isRegistered<DataSettingsService>()) {
         await locator.unregister<DataSettingsService>();
       }
     });
 
     Widget buildPage() {
-      return MaterialApp(
+      return const MaterialApp(
         home: Scaffold(
           body: SingleChildScrollView(
-            child: DataSettings(controller: mockController),
+            child: DataSettings(),
           ),
         ),
       );
