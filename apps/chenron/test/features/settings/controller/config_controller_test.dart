@@ -90,19 +90,19 @@ void stubHappyPath(
 // Tests
 // ---------------------------------------------------------------------------
 
-@GenerateMocks([ConfigService, DataSettingsService, ThemeController])
+@GenerateMocks([ConfigService, DataSettingsService, ThemeNotifier])
 void main() {
   setUpAll(installTestLogger);
 
   late MockConfigService mockConfig;
   late MockDataSettingsService mockData;
-  late MockThemeController mockTheme;
+  late MockThemeNotifier mockTheme;
   late ConfigController controller;
 
   setUp(() {
     mockConfig = MockConfigService();
     mockData = MockDataSettingsService();
-    mockTheme = MockThemeController();
+    mockTheme = MockThemeNotifier();
     controller = ConfigController.withDeps(
       configService: mockConfig,
       dataSettingsService: mockData,

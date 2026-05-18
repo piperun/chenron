@@ -2,11 +2,11 @@ import "dart:async";
 import "package:chenron/features/theme/state/theme_controller.dart";
 import "package:signals/signals.dart";
 
-final Signal<ThemeController> themeControllerSignal =
-    signal(initializeThemeController());
+final Signal<ThemeNotifier> themeNotifierSignal =
+    signal(initializeThemeNotifier());
 
-ThemeController initializeThemeController() {
-  final ThemeController controller = ThemeController();
+ThemeNotifier initializeThemeNotifier() {
+  final ThemeNotifier controller = ThemeNotifier();
   unawaited(controller.initialize());
   return controller;
 }

@@ -20,7 +20,7 @@ class Viewer extends StatefulWidget {
 }
 
 class _ViewerState extends State<Viewer> {
-  late final TagFilterState _tagFilterState;
+  late final TagFilterNotifier _tagFilterState;
 
   FolderItem _viewerItemToFolderItem(ViewerItem viewerItem) {
     return switch (viewerItem.type) {
@@ -54,7 +54,7 @@ class _ViewerState extends State<Viewer> {
   @override
   void initState() {
     super.initState();
-    _tagFilterState = TagFilterState();
+    _tagFilterState = TagFilterNotifier();
     final presenter = viewerViewModelSignal.value;
     unawaited(presenter.init());
 

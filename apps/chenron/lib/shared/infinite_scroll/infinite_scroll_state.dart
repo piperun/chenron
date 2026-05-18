@@ -1,7 +1,7 @@
 import "dart:math";
 import "package:signals/signals.dart";
 
-class InfiniteScrollState<T> {
+class InfiniteScrollNotifier<T> {
   final Signal<List<T>> loadedItems = signal([]);
   final Signal<bool> hasMore = signal(true);
   final Signal<bool> isLoadingMore = signal(false);
@@ -12,7 +12,7 @@ class InfiniteScrollState<T> {
   final Future<int> Function()? _countLoader;
   int _currentOffset = 0;
 
-  InfiniteScrollState({
+  InfiniteScrollNotifier({
     required Future<List<T>> Function(int limit, int offset) loader,
     Future<int> Function()? countLoader,
     this.pageSize = 50,

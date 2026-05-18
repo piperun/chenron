@@ -85,7 +85,7 @@ void main() {
     }
 
     // Note: FolderHeader requires ConfigController in GetIt (deep
-    // dependency chain: ConfigService, ThemeController, SharedPreferences).
+    // dependency chain: ConfigService, ThemeNotifier, SharedPreferences).
     // Tests below only exercise the loading/pre-header states to avoid
     // that chain. Full header rendering is covered by integration tests.
 

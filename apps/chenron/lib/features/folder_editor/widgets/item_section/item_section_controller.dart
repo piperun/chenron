@@ -1,14 +1,14 @@
 import "package:signals/signals.dart";
 import "package:database/models/item.dart";
 
-class ItemSectionController {
+class ItemSectionNotifier {
   final searchQuery = signal("");
   final allItems = signal<List<FolderItem>>([]);
 
   // Computed signal for filtered items
   late final ReadonlySignal<List<FolderItem>> filteredItems;
 
-  ItemSectionController() {
+  ItemSectionNotifier() {
     filteredItems = computed(() {
       var items = allItems.value;
 

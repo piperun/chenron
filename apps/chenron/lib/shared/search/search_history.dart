@@ -31,7 +31,7 @@ class SearchHistoryItem {
   }
 }
 
-class SearchHistoryManager {
+class SearchHistoryService {
   static const String _key = "recent_searches";
   static const int _maxHistorySize = 10;
 

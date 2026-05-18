@@ -22,7 +22,7 @@ class FilterableItemDisplay extends StatefulWidget {
   final String? displayModeContext;
   final IncludeOptions<SearchFeature> searchFeatures;
   final SearchFilter? externalSearchFilter;
-  final TagFilterState? tagFilterState;
+  final TagFilterNotifier? tagFilterState;
 
   final bool showTags;
   final bool showSearch;
@@ -94,14 +94,14 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
       ownsSearchFilter = true;
     }
 
-    final TagFilterState tagFilterState;
-    final bool ownsTagFilterState;
+    final TagFilterNotifier tagFilterState;
+    final bool ownsTagFilterNotifier;
     if (widget.tagFilterState != null) {
       tagFilterState = widget.tagFilterState!;
-      ownsTagFilterState = false;
+      ownsTagFilterNotifier = false;
     } else {
-      tagFilterState = TagFilterState();
-      ownsTagFilterState = true;
+      tagFilterState = TagFilterNotifier();
+      ownsTagFilterNotifier = true;
     }
 
     _notifier = FilterableItemDisplayNotifier(
@@ -112,7 +112,7 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
       searchFilter: searchFilter,
       ownsSearchFilter: ownsSearchFilter,
       tagFilterState: tagFilterState,
-      ownsTagFilterState: ownsTagFilterState,
+      ownsTagFilterNotifier: ownsTagFilterNotifier,
       initialItems: widget.items,
       enableTagFiltering: widget.enableTagFiltering,
     );

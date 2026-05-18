@@ -15,7 +15,7 @@ import "package:flutter/material.dart";
 ///
 /// Example usage:
 /// ```dart
-/// final manager = SearchFeatureManager(
+/// final manager = SearchFeatureService(
 ///   features: const SearchFeatures({SearchFeature.debounce}),
 ///   debounceDuration: Duration(milliseconds: 500),
 /// );
@@ -24,17 +24,17 @@ import "package:flutter/material.dart";
 /// // ...later
 /// manager.dispose(controller, _onDebouncedChange);
 /// ```
-class SearchFeatureManager {
+class SearchFeatureService {
   final IncludeOptions<SearchFeature> features;
   final Duration debounceDuration;
   final String? historyKey;
   final int maxHistoryItems;
 
   Debouncer<void>? _debouncer;
-  SearchHistoryManager? _historyManager;
+  SearchHistoryService? _historyManager;
   VoidCallback? _debouncedListener;
 
-  SearchFeatureManager({
+  SearchFeatureService({
     required this.features,
     this.debounceDuration = kDefaultDebounceDuration,
     this.historyKey,
@@ -65,7 +65,7 @@ class SearchFeatureManager {
 
     // Setup history
     if (has(SearchFeature.history)) {
-      _historyManager = SearchHistoryManager();
+      _historyManager = SearchHistoryService();
     }
   }
 
@@ -85,7 +85,7 @@ class SearchFeatureManager {
   bool has(SearchFeature feature) => features.options.contains(feature);
 
   /// Get the history manager (if history feature is enabled)
-  SearchHistoryManager? get historyManager => _historyManager;
+  SearchHistoryService? get historyManager => _historyManager;
 
   /// Save a query to history (if history feature is enabled)
   Future<void> saveQuery({

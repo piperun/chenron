@@ -14,7 +14,7 @@ import "package:vibe/vibe.dart";
 
 ThemeServiceDB? _themeService;
 
-class ThemeController {
+class ThemeNotifier {
   final Signal<ThemeVariants> currentThemeSignal = Signal<ThemeVariants>((
     light: FlexThemeData.light(scheme: FlexScheme.materialBaseline),
     dark: FlexThemeData.dark(scheme: FlexScheme.materialBaseline),
@@ -45,7 +45,7 @@ class ThemeController {
     } catch (error, stackTrace) {
       debugPrintStack(
           stackTrace: stackTrace,
-          label: "Error initializing ThemeController: $error");
+          label: "Error initializing ThemeNotifier: $error");
     }
   }
 
@@ -97,13 +97,13 @@ class ThemeController {
 
   Future<void> setCurrentTheme() async {
     loggerGlobal.info(
-        "ThemeController", "Applying theme from persisted config...");
+        "ThemeNotifier", "Applying theme from persisted config...");
     final String? key = _themeService?.configData.data.selectedThemeKey;
     final int? typeIndex = _themeService?.configData.data.selectedThemeType;
 
     // Fallback if config incomplete
     if (key == null || typeIndex == null) {
-      loggerGlobal.warning("ThemeController",
+      loggerGlobal.warning("ThemeNotifier",
           "No persisted theme selection found. Using fallback.");
       currentThemeSignal.value = (
         light: FlexThemeData.light(scheme: FlexScheme.materialBaseline),
@@ -114,7 +114,7 @@ class ThemeController {
 
     if (typeIndex == ThemeType.custom.index) {
       loggerGlobal.fine(
-          "ThemeController", "Persisted theme type: custom, key=$key");
+          "ThemeNotifier", "Persisted theme type: custom, key=$key");
       final UserThemeResult? theme = await _themeService?.getThemeByKey(key);
       if (theme != null) {
         currentThemeSignal.value = generateSeedTheme(
@@ -133,12 +133,12 @@ class ThemeController {
         return;
       }
       // If custom theme missing, fall through to predefined lookup
-      loggerGlobal.warning("ThemeController",
+      loggerGlobal.warning("ThemeNotifier",
           "Custom theme $key not found. Falling back to predefined mapping.");
     }
 
     loggerGlobal.fine(
-        "ThemeController", "Persisted theme type: system, key=$key");
+        "ThemeNotifier", "Persisted theme type: system, key=$key");
     final variants = getPredefinedTheme(key);
     currentThemeSignal.value = variants ??
         (
@@ -152,7 +152,7 @@ class ThemeController {
     unawaited(SharedPreferences.getInstance()
         .then((p) => ThemeCache.cacheSystemTheme(p, key: key))
         .catchError((Object e) {
-      loggerGlobal.warning("ThemeController", "Failed to cache theme: $e");
+      loggerGlobal.warning("ThemeNotifier", "Failed to cache theme: $e");
     }));
   }
 
@@ -173,7 +173,7 @@ class ThemeController {
               seedType: seedType,
             ))
         .catchError((Object e) {
-      loggerGlobal.warning("ThemeController", "Failed to cache theme: $e");
+      loggerGlobal.warning("ThemeNotifier", "Failed to cache theme: $e");
     }));
   }
 }

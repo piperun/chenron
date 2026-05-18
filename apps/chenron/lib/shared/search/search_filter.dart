@@ -36,7 +36,7 @@ import "package:chenron/shared/search/query_parser.dart";
 /// ```
 class SearchFilter {
   final SearchBarController _controller;
-  final SearchFeatureManager _featureManager;
+  final SearchFeatureService _featureManager;
 
   SearchFilter({
     IncludeOptions<SearchFeature> features = const IncludeOptions.empty(),
@@ -44,7 +44,7 @@ class SearchFilter {
     String? historyKey,
     int maxHistoryItems = 10,
   })  : _controller = SearchBarController(),
-        _featureManager = SearchFeatureManager(
+        _featureManager = SearchFeatureService(
           features: features,
           debounceDuration: debounceDuration,
           historyKey: historyKey,

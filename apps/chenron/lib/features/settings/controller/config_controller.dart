@@ -44,18 +44,18 @@ class ThemeChoice {
 class ConfigController {
   late final ConfigService _configService;
   late final DataSettingsService _dataService;
-  late final ThemeController _themeController;
+  late final ThemeNotifier _themeController;
 
   ConfigController()
       : _configService = locator.get<ConfigService>(),
         _dataService = locator.get<DataSettingsService>(),
-        _themeController = themeControllerSignal.value;
+        _themeController = themeNotifierSignal.value;
 
   @visibleForTesting
   ConfigController.withDeps({
     required ConfigService configService,
     required DataSettingsService dataSettingsService,
-    required ThemeController themeController,
+    required ThemeNotifier themeController,
   })  : _configService = configService,
         _dataService = dataSettingsService,
         _themeController = themeController;

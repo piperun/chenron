@@ -24,8 +24,8 @@ class FilterableItemDisplayNotifier {
 
   final SearchFilter searchFilter;
   final bool ownsSearchFilter;
-  final TagFilterState tagFilterState;
-  final bool ownsTagFilterState;
+  final TagFilterNotifier tagFilterState;
+  final bool ownsTagFilterNotifier;
 
   /// Memoized filter+sort pipeline.
   ///
@@ -43,7 +43,7 @@ class FilterableItemDisplayNotifier {
     required this.searchFilter,
     required this.ownsSearchFilter,
     required this.tagFilterState,
-    required this.ownsTagFilterState,
+    required this.ownsTagFilterNotifier,
     List<FolderItem> initialItems = const [],
     this.enableTagFiltering = true,
   })  : viewMode = signal(initialViewMode),
@@ -176,7 +176,7 @@ class FilterableItemDisplayNotifier {
     isDeleteMode.dispose();
     selectedItems.dispose();
     if (ownsSearchFilter) searchFilter.dispose();
-    if (ownsTagFilterState) tagFilterState.dispose();
+    if (ownsTagFilterNotifier) tagFilterState.dispose();
   }
 }
 

@@ -208,11 +208,11 @@ class MockDataSettingsService extends _i1.Mock
       ) as _i4.Future<_i9.File?>);
 }
 
-/// A class which mocks [ThemeController].
+/// A class which mocks [ThemeNotifier].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockThemeController extends _i1.Mock implements _i10.ThemeController {
-  MockThemeController() {
+class MockThemeNotifier extends _i1.Mock implements _i10.ThemeNotifier {
+  MockThemeNotifier() {
     _i1.throwOnMissingStub(this);
   }
 

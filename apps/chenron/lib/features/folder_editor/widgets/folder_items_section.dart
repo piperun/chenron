@@ -34,14 +34,14 @@ class FolderItemsSection extends StatefulWidget {
 
 class _FolderItemsSectionState extends State<FolderItemsSection> {
   late final ItemTableNotifier<FolderItem> _tableNotifier;
-  late final ItemSectionController _controller;
+  late final ItemSectionNotifier _controller;
   late final List<TrinaColumn> _columns;
 
   @override
   void initState() {
     super.initState();
     _tableNotifier = ItemTableNotifier<FolderItem>();
-    _controller = ItemSectionController();
+    _controller = ItemSectionNotifier();
     _columns = _buildColumns();
 
     // Initialize controller with current items
@@ -202,7 +202,7 @@ class _FolderItemsSectionState extends State<FolderItemsSection> {
     return items.asMap().entries.map((entry) {
       final index = entry.key;
       final item = entry.value;
-      final title = ItemSectionController.getTitleFromItem(item);
+      final title = ItemSectionNotifier.getTitleFromItem(item);
 
       return TrinaRow<dynamic>(
         key: ValueKey(item.id ?? "item_new_$index"),

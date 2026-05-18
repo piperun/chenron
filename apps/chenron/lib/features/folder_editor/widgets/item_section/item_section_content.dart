@@ -9,7 +9,7 @@ import "package:chenron/features/folder_editor/widgets/item_table_section/item_t
 import "package:chenron/features/folder_editor/widgets/item_table_section/item_table_view.dart";
 
 class ItemSectionContent extends StatelessWidget {
-  final ItemSectionController controller;
+  final ItemSectionNotifier controller;
   final VoidCallback onAddLink;
   final VoidCallback onAddDocument;
   final VoidCallback onDeleteSelected;
