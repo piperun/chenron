@@ -151,6 +151,60 @@ class MockConfigService extends _i1.Mock implements _i4.ConfigService {
         returnValue: _i5.Future<void>.value(),
         returnValueForMissingStub: _i5.Future<void>.value(),
       ) as _i5.Future<void>);
+
+  @override
+  _i5.Future<void> updateArchiveSection({
+    required String? configId,
+    required bool? defaultArchiveIs,
+    required bool? defaultArchiveOrg,
+    required String? archiveOrgS3AccessKey,
+    required String? archiveOrgS3SecretKey,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateArchiveSection,
+          [],
+          {
+            #configId: configId,
+            #defaultArchiveIs: defaultArchiveIs,
+            #defaultArchiveOrg: defaultArchiveOrg,
+            #archiveOrgS3AccessKey: archiveOrgS3AccessKey,
+            #archiveOrgS3SecretKey: archiveOrgS3SecretKey,
+          },
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
+
+  @override
+  _i5.Future<void> updateDisplaySection({
+    required String? configId,
+    required int? timeDisplayFormat,
+    required int? itemClickAction,
+    required String? cacheDirectory,
+    required bool? showDescription,
+    required bool? showImages,
+    required bool? showTags,
+    required bool? showCopyLink,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateDisplaySection,
+          [],
+          {
+            #configId: configId,
+            #timeDisplayFormat: timeDisplayFormat,
+            #itemClickAction: itemClickAction,
+            #cacheDirectory: cacheDirectory,
+            #showDescription: showDescription,
+            #showImages: showImages,
+            #showTags: showTags,
+            #showCopyLink: showCopyLink,
+          },
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
 }
 
 /// A class which mocks [DataSettingsService].
