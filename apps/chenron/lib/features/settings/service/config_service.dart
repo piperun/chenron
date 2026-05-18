@@ -97,4 +97,57 @@ class ConfigService {
       ),
     );
   }
+
+  // --- Per-section updates ---
+  //
+  // The underlying [ConfigDatabase.updateUserConfig] treats `null` as
+  // "don't touch this column", so we can write only the fields a
+  // section owns. This lets the settings coordinator save dirty
+  // sections independently without clobbering unrelated columns.
+
+  Future<void> updateArchiveSection({
+    required String configId,
+    required bool defaultArchiveIs,
+    required bool defaultArchiveOrg,
+    required String? archiveOrgS3AccessKey,
+    required String? archiveOrgS3SecretKey,
+  }) {
+    return runLogged(
+      tag: "ConfigService",
+      operation: "Updating archive section for ID: $configId",
+      action: () => _db.updateUserConfig(
+        id: configId,
+        defaultArchiveIs: defaultArchiveIs,
+        defaultArchiveOrg: defaultArchiveOrg,
+        archiveOrgS3AccessKey: archiveOrgS3AccessKey,
+        archiveOrgS3SecretKey: archiveOrgS3SecretKey,
+      ),
+    );
+  }
+
+  Future<void> updateDisplaySection({
+    required String configId,
+    required int timeDisplayFormat,
+    required int itemClickAction,
+    required String? cacheDirectory,
+    required bool showDescription,
+    required bool showImages,
+    required bool showTags,
+    required bool showCopyLink,
+  }) {
+    return runLogged(
+      tag: "ConfigService",
+      operation: "Updating display section for ID: $configId",
+      action: () => _db.updateUserConfig(
+        id: configId,
+        timeDisplayFormat: timeDisplayFormat,
+        itemClickAction: itemClickAction,
+        cacheDirectory: cacheDirectory,
+        showDescription: showDescription,
+        showImages: showImages,
+        showTags: showTags,
+        showCopyLink: showCopyLink,
+      ),
+    );
+  }
 }
