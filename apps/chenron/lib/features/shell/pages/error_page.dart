@@ -20,7 +20,8 @@ class ErrorApp extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.error_outline, color: Colors.red, size: 48.0),
+                Icon(Icons.error_outline,
+                    color: Theme.of(context).colorScheme.error, size: 48.0),
                 const SizedBox(height: 16.0),
                 Text(
                   "Fatal Error During Startup",

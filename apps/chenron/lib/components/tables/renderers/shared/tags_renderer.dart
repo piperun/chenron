@@ -6,7 +6,8 @@ import "package:flutter/material.dart";
 class TagsRenderer {
   static Widget build(List<String> tags, ThemeData theme) {
     if (tags.isEmpty) {
-      return const Text("-", style: TextStyle(color: Colors.grey));
+      return Text("-",
+          style: TextStyle(color: theme.colorScheme.onSurfaceVariant));
     }
     
     return Wrap(

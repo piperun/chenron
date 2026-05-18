@@ -67,8 +67,10 @@ class LinkValidationDialog {
     return switch (status) {
       LinkValidationStatus.pending => theme.colorScheme.onSurfaceVariant,
       LinkValidationStatus.validating => theme.colorScheme.primary,
-      LinkValidationStatus.valid => Colors.green,
+      LinkValidationStatus.valid => theme.colorScheme.tertiary,
       LinkValidationStatus.invalid => theme.colorScheme.error,
+      // Warning state — Material has no canonical "warning" colorScheme
+      // slot, so the orange stays raw here.
       LinkValidationStatus.unreachable => Colors.orange,
     };
   }
@@ -168,7 +170,7 @@ class _CheckItem extends StatelessWidget {
         Icon(
           passed ? Icons.check_circle : Icons.cancel,
           size: 18,
-          color: passed ? Colors.green : theme.colorScheme.error,
+          color: passed ? theme.colorScheme.tertiary : theme.colorScheme.error,
         ),
         const SizedBox(width: 8),
         Expanded(

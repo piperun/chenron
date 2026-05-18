@@ -127,7 +127,7 @@ class _ActiveFiltersTabState extends State<ActiveFiltersTab> {
                     // Included section header
                     _SectionHeader(
                       leadingIcon: Icons.add_circle_outline,
-                      leadingColor: Colors.green,
+                      leadingColor: theme.colorScheme.tertiary,
                       title: "Included Tags (${filteredIncluded.length})",
                       collapsed: _includedCollapsed,
                       onToggle: () => setState(
@@ -145,7 +145,7 @@ class _ActiveFiltersTabState extends State<ActiveFiltersTab> {
                           children: filteredIncluded.map((tag) {
                             return _ActiveFilterChip(
                               tag: tag,
-                              color: Colors.green,
+                              color: theme.colorScheme.tertiary,
                               onRemove: () => widget.onRemoveIncluded(tag),
                             );
                           }).toList(),
@@ -155,7 +155,7 @@ class _ActiveFiltersTabState extends State<ActiveFiltersTab> {
                     // Excluded section header
                     _SectionHeader(
                       leadingIcon: Icons.remove_circle_outline,
-                      leadingColor: Colors.red,
+                      leadingColor: theme.colorScheme.error,
                       title: "Excluded Tags (${filteredExcluded.length})",
                       collapsed: _excludedCollapsed,
                       onToggle: () => setState(
@@ -173,7 +173,7 @@ class _ActiveFiltersTabState extends State<ActiveFiltersTab> {
                           children: filteredExcluded.map((tag) {
                             return _ActiveFilterChip(
                               tag: tag,
-                              color: Colors.red,
+                              color: theme.colorScheme.error,
                               onRemove: () => widget.onRemoveExcluded(tag),
                             );
                           }).toList(),
