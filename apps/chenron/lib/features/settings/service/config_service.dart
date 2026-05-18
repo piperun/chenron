@@ -150,4 +150,20 @@ class ConfigService {
       ),
     );
   }
+
+  Future<void> updateThemeSection({
+    required String configId,
+    required String selectedThemeKey,
+    required ThemeType selectedThemeType,
+  }) {
+    return runLogged(
+      tag: "ConfigService",
+      operation: "Updating theme section for ID: $configId",
+      action: () => _db.updateUserConfig(
+        id: configId,
+        selectedThemeKey: selectedThemeKey,
+        selectedThemeType: selectedThemeType,
+      ),
+    );
+  }
 }
