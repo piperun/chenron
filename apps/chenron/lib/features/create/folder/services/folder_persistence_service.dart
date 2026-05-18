@@ -18,18 +18,12 @@ class FolderPersistenceService {
       : _resolveDb = (() => appDatabase);
 
   /// Loads folders by their IDs, skipping any that don't exist.
-  Future<List<Folder>> loadFoldersByIds(List<String> folderIds) async {
+  ///
+  /// Uses `getFoldersByIds` for a single `WHERE id IN (...)` round-trip
+  /// rather than one query per id.
+  Future<List<Folder>> loadFoldersByIds(List<String> folderIds) {
     final appDb = _resolveDb();
-    final folders = <Folder>[];
-
-    for (final folderId in folderIds) {
-      final result = await appDb.getFolder(folderId: folderId);
-      if (result != null) {
-        folders.add(result.data);
-      }
-    }
-
-    return folders;
+    return appDb.getFoldersByIds(folderIds);
   }
 
   Future<void> saveFolder(FolderFormData formData) async {

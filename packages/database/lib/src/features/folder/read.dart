@@ -22,6 +22,19 @@ extension FolderReadExtensions on AppDatabase {
         .getAll(includeOptions: includeOptions);
   }
 
+  /// Fetch the raw [Folder] rows for the given [ids] in a single
+  /// `WHERE id IN (...)` query. Missing ids are silently skipped, so
+  /// the returned list may be shorter than the input. Order is
+  /// undefined — callers that need a specific order should sort by
+  /// [ids] themselves.
+  ///
+  /// Use this in place of looping `getFolder(folderId: ...)` to avoid
+  /// the N round-trips the loop would otherwise produce.
+  Future<List<Folder>> getFoldersByIds(List<String> ids) async {
+    if (ids.isEmpty) return const [];
+    return (select(folders)..where((f) => f.id.isIn(ids))).get();
+  }
+
   Stream<FolderResult?> watchFolder({
     required String folderId,
     IncludeOptions<AppDataInclude> includeOptions = const IncludeOptions<AppDataInclude>.empty(),
