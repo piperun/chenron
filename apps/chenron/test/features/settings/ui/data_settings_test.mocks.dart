@@ -3,15 +3,18 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i6;
+import 'dart:async' as _i5;
+import 'dart:io' as _i2;
 
-import 'package:chenron/features/settings/controller/config_controller.dart'
-    as _i3;
-import 'package:chenron/features/settings/state/theme_choice.dart' as _i5;
-import 'package:database/main.dart' as _i4;
-import 'package:flutter/material.dart' as _i7;
+import 'package:chenron/features/settings/service/config_service.dart' as _i4;
+import 'package:chenron/features/settings/service/data_settings_service.dart'
+    as _i7;
+import 'package:chenron/features/theme/state/theme_notifier.dart' as _i9;
+import 'package:database/database.dart' as _i6;
+import 'package:flutter/material.dart' as _i10;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:signals/signals_flutter.dart' as _i2;
+import 'package:mockito/src/dummies.dart' as _i8;
+import 'package:signals/signals_flutter.dart' as _i3;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -28,9 +31,8 @@ import 'package:signals/signals_flutter.dart' as _i2;
 // ignore_for_file: subtype_of_sealed_class
 // ignore_for_file: invalid_use_of_internal_member
 
-class _FakeFlutterSignal_0<T> extends _i1.SmartFake
-    implements _i2.FlutterSignal<T> {
-  _FakeFlutterSignal_0(
+class _FakeFile_0 extends _i1.SmartFake implements _i2.File {
+  _FakeFile_0(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -39,191 +41,331 @@ class _FakeFlutterSignal_0<T> extends _i1.SmartFake
         );
 }
 
-/// A class which mocks [ConfigController].
+class _FakeSignal_1<T> extends _i1.SmartFake implements _i3.Signal<T> {
+  _FakeSignal_1(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+/// A class which mocks [ConfigService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockConfigController extends _i1.Mock implements _i3.ConfigController {
-  MockConfigController() {
+class MockConfigService extends _i1.Mock implements _i4.ConfigService {
+  MockConfigService() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i2.FlutterSignal<bool> get isLoading => (super.noSuchMethod(
-        Invocation.getter(#isLoading),
-        returnValue: _FakeFlutterSignal_0<bool>(
-          this,
-          Invocation.getter(#isLoading),
+  _i5.Future<_i6.UserConfigResult?> getUserConfig() => (super.noSuchMethod(
+        Invocation.method(
+          #getUserConfig,
+          [],
         ),
-      ) as _i2.FlutterSignal<bool>);
+        returnValue: _i5.Future<_i6.UserConfigResult?>.value(),
+      ) as _i5.Future<_i6.UserConfigResult?>);
 
   @override
-  _i2.FlutterSignal<String?> get error => (super.noSuchMethod(
-        Invocation.getter(#error),
-        returnValue: _FakeFlutterSignal_0<String?>(
-          this,
-          Invocation.getter(#error),
-        ),
-      ) as _i2.FlutterSignal<String?>);
-
-  @override
-  _i2.FlutterSignal<_i4.UserConfig?> get userConfig => (super.noSuchMethod(
-        Invocation.getter(#userConfig),
-        returnValue: _FakeFlutterSignal_0<_i4.UserConfig?>(
-          this,
-          Invocation.getter(#userConfig),
-        ),
-      ) as _i2.FlutterSignal<_i4.UserConfig?>);
-
-  @override
-  _i2.FlutterSignal<String?> get appDatabasePath => (super.noSuchMethod(
-        Invocation.getter(#appDatabasePath),
-        returnValue: _FakeFlutterSignal_0<String?>(
-          this,
-          Invocation.getter(#appDatabasePath),
-        ),
-      ) as _i2.FlutterSignal<String?>);
-
-  @override
-  _i2.FlutterSignal<_i5.ThemeChoice?> get selectedThemeChoice =>
+  _i5.Future<List<_i6.UserThemeResult>> getAllUserThemes() =>
       (super.noSuchMethod(
-        Invocation.getter(#selectedThemeChoice),
-        returnValue: _FakeFlutterSignal_0<_i5.ThemeChoice?>(
-          this,
-          Invocation.getter(#selectedThemeChoice),
+        Invocation.method(
+          #getAllUserThemes,
+          [],
         ),
-      ) as _i2.FlutterSignal<_i5.ThemeChoice?>);
+        returnValue: _i5.Future<List<_i6.UserThemeResult>>.value(
+            <_i6.UserThemeResult>[]),
+      ) as _i5.Future<List<_i6.UserThemeResult>>);
 
   @override
-  _i2.FlutterSignal<List<_i5.ThemeChoice>> get availableThemes =>
+  _i5.Future<_i6.BackupSetting?> getBackupSettings() => (super.noSuchMethod(
+        Invocation.method(
+          #getBackupSettings,
+          [],
+        ),
+        returnValue: _i5.Future<_i6.BackupSetting?>.value(),
+      ) as _i5.Future<_i6.BackupSetting?>);
+
+  @override
+  _i5.Future<void> updateBackupSettings({
+    required String? id,
+    String? backupInterval,
+    String? backupPath,
+    bool? clearInterval = false,
+  }) =>
       (super.noSuchMethod(
-        Invocation.getter(#availableThemes),
-        returnValue: _FakeFlutterSignal_0<List<_i5.ThemeChoice>>(
-          this,
-          Invocation.getter(#availableThemes),
+        Invocation.method(
+          #updateBackupSettings,
+          [],
+          {
+            #id: id,
+            #backupInterval: backupInterval,
+            #backupPath: backupPath,
+            #clearInterval: clearInterval,
+          },
         ),
-      ) as _i2.FlutterSignal<List<_i5.ThemeChoice>>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
 
   @override
-  _i2.FlutterSignal<_i5.ThemeSortMode> get themeSortMode => (super.noSuchMethod(
-        Invocation.getter(#themeSortMode),
-        returnValue: _FakeFlutterSignal_0<_i5.ThemeSortMode>(
-          this,
-          Invocation.getter(#themeSortMode),
-        ),
-      ) as _i2.FlutterSignal<_i5.ThemeSortMode>);
-
-  @override
-  _i2.FlutterSignal<_i4.BackupSetting?> get backupSettings =>
+  _i5.Future<void> updateUserConfig({
+    required String? configId,
+    required bool? defaultArchiveIs,
+    required bool? defaultArchiveOrg,
+    required String? archiveOrgS3AccessKey,
+    required String? archiveOrgS3SecretKey,
+    required String? selectedThemeKey,
+    required _i6.ThemeType? selectedThemeType,
+    required int? timeDisplayFormat,
+    required int? itemClickAction,
+    String? cacheDirectory,
+    required bool? showDescription,
+    required bool? showImages,
+    required bool? showTags,
+    required bool? showCopyLink,
+  }) =>
       (super.noSuchMethod(
-        Invocation.getter(#backupSettings),
-        returnValue: _FakeFlutterSignal_0<_i4.BackupSetting?>(
-          this,
-          Invocation.getter(#backupSettings),
+        Invocation.method(
+          #updateUserConfig,
+          [],
+          {
+            #configId: configId,
+            #defaultArchiveIs: defaultArchiveIs,
+            #defaultArchiveOrg: defaultArchiveOrg,
+            #archiveOrgS3AccessKey: archiveOrgS3AccessKey,
+            #archiveOrgS3SecretKey: archiveOrgS3SecretKey,
+            #selectedThemeKey: selectedThemeKey,
+            #selectedThemeType: selectedThemeType,
+            #timeDisplayFormat: timeDisplayFormat,
+            #itemClickAction: itemClickAction,
+            #cacheDirectory: cacheDirectory,
+            #showDescription: showDescription,
+            #showImages: showImages,
+            #showTags: showTags,
+            #showCopyLink: showCopyLink,
+          },
         ),
-      ) as _i2.FlutterSignal<_i4.BackupSetting?>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
 
   @override
-  _i2.FlutterSignal<String?> get backupInterval => (super.noSuchMethod(
-        Invocation.getter(#backupInterval),
-        returnValue: _FakeFlutterSignal_0<String?>(
-          this,
-          Invocation.getter(#backupInterval),
+  _i5.Future<void> updateArchiveSection({
+    required String? configId,
+    required bool? defaultArchiveIs,
+    required bool? defaultArchiveOrg,
+    required String? archiveOrgS3AccessKey,
+    required String? archiveOrgS3SecretKey,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateArchiveSection,
+          [],
+          {
+            #configId: configId,
+            #defaultArchiveIs: defaultArchiveIs,
+            #defaultArchiveOrg: defaultArchiveOrg,
+            #archiveOrgS3AccessKey: archiveOrgS3AccessKey,
+            #archiveOrgS3SecretKey: archiveOrgS3SecretKey,
+          },
         ),
-      ) as _i2.FlutterSignal<String?>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
 
   @override
-  _i2.FlutterSignal<String?> get backupPath => (super.noSuchMethod(
-        Invocation.getter(#backupPath),
-        returnValue: _FakeFlutterSignal_0<String?>(
-          this,
-          Invocation.getter(#backupPath),
+  _i5.Future<void> updateDisplaySection({
+    required String? configId,
+    required int? timeDisplayFormat,
+    required int? itemClickAction,
+    required String? cacheDirectory,
+    required bool? showDescription,
+    required bool? showImages,
+    required bool? showTags,
+    required bool? showCopyLink,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateDisplaySection,
+          [],
+          {
+            #configId: configId,
+            #timeDisplayFormat: timeDisplayFormat,
+            #itemClickAction: itemClickAction,
+            #cacheDirectory: cacheDirectory,
+            #showDescription: showDescription,
+            #showImages: showImages,
+            #showTags: showTags,
+            #showCopyLink: showCopyLink,
+          },
         ),
-      ) as _i2.FlutterSignal<String?>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
 
   @override
-  List<_i5.ThemeChoice> get sortedThemes => (super.noSuchMethod(
-        Invocation.getter(#sortedThemes),
-        returnValue: <_i5.ThemeChoice>[],
-      ) as List<_i5.ThemeChoice>);
+  _i5.Future<void> updateThemeSection({
+    required String? configId,
+    required String? selectedThemeKey,
+    required _i6.ThemeType? selectedThemeType,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateThemeSection,
+          [],
+          {
+            #configId: configId,
+            #selectedThemeKey: selectedThemeKey,
+            #selectedThemeType: selectedThemeType,
+          },
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
+}
+
+/// A class which mocks [DataSettingsService].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockDataSettingsService extends _i1.Mock
+    implements _i7.DataSettingsService {
+  MockDataSettingsService() {
+    _i1.throwOnMissingStub(this);
+  }
 
   @override
-  set savedAppDatabasePath(String? value) => super.noSuchMethod(
-        Invocation.setter(
-          #savedAppDatabasePath,
-          value,
+  _i5.Future<String> getDefaultDatabasePath() => (super.noSuchMethod(
+        Invocation.method(
+          #getDefaultDatabasePath,
+          [],
+        ),
+        returnValue: _i5.Future<String>.value(_i8.dummyValue<String>(
+          this,
+          Invocation.method(
+            #getDefaultDatabasePath,
+            [],
+          ),
+        )),
+      ) as _i5.Future<String>);
+
+  @override
+  _i5.Future<String?> getCustomDatabasePath() => (super.noSuchMethod(
+        Invocation.method(
+          #getCustomDatabasePath,
+          [],
+        ),
+        returnValue: _i5.Future<String?>.value(),
+      ) as _i5.Future<String?>);
+
+  @override
+  _i5.Future<void> setCustomDatabasePath(String? path) => (super.noSuchMethod(
+        Invocation.method(
+          #setCustomDatabasePath,
+          [path],
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
+
+  @override
+  _i5.Future<_i2.File> exportDatabase(_i2.Directory? destination) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #exportDatabase,
+          [destination],
+        ),
+        returnValue: _i5.Future<_i2.File>.value(_FakeFile_0(
+          this,
+          Invocation.method(
+            #exportDatabase,
+            [destination],
+          ),
+        )),
+      ) as _i5.Future<_i2.File>);
+
+  @override
+  _i5.Future<_i2.File> importDatabase(_i2.File? sourceFile) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #importDatabase,
+          [sourceFile],
+        ),
+        returnValue: _i5.Future<_i2.File>.value(_FakeFile_0(
+          this,
+          Invocation.method(
+            #importDatabase,
+            [sourceFile],
+          ),
+        )),
+      ) as _i5.Future<_i2.File>);
+}
+
+/// A class which mocks [ThemeNotifier].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockThemeNotifier extends _i1.Mock implements _i9.ThemeNotifier {
+  MockThemeNotifier() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i3.Signal<({_i10.ThemeData dark, _i10.ThemeData light})>
+      get currentThemeSignal => (super.noSuchMethod(
+            Invocation.getter(#currentThemeSignal),
+            returnValue:
+                _FakeSignal_1<({_i10.ThemeData dark, _i10.ThemeData light})>(
+              this,
+              Invocation.getter(#currentThemeSignal),
+            ),
+          ) as _i3.Signal<({_i10.ThemeData dark, _i10.ThemeData light})>);
+
+  @override
+  void seedCachedTheme(({_i10.ThemeData dark, _i10.ThemeData light})? theme) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #seedCachedTheme,
+          [theme],
         ),
         returnValueForMissingStub: null,
       );
 
   @override
-  _i6.Future<void> initialize() => (super.noSuchMethod(
+  _i5.Future<void> initialize() => (super.noSuchMethod(
         Invocation.method(
           #initialize,
           [],
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
 
   @override
-  _i6.Future<bool> saveSettings() => (super.noSuchMethod(
+  _i5.Future<void> changeTheme(
+    String? themeKey,
+    _i6.ThemeType? themeType,
+  ) =>
+      (super.noSuchMethod(
         Invocation.method(
-          #saveSettings,
+          #changeTheme,
+          [
+            themeKey,
+            themeType,
+          ],
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
+
+  @override
+  _i5.Future<void> setCurrentTheme() => (super.noSuchMethod(
+        Invocation.method(
+          #setCurrentTheme,
           [],
         ),
-        returnValue: _i6.Future<bool>.value(false),
-      ) as _i6.Future<bool>);
-
-  @override
-  bool hasUnsavedChanges() => (super.noSuchMethod(
-        Invocation.method(
-          #hasUnsavedChanges,
-          [],
-        ),
-        returnValue: false,
-      ) as bool);
-
-  @override
-  ({_i7.ThemeData dark, _i7.ThemeData light})? getPreviewVariants(
-          _i5.ThemeChoice? choice) =>
-      (super.noSuchMethod(Invocation.method(
-        #getPreviewVariants,
-        [choice],
-      )) as ({_i7.ThemeData dark, _i7.ThemeData light})?);
-
-  @override
-  void updateSelectedTheme(_i5.ThemeChoice? choice) => super.noSuchMethod(
-        Invocation.method(
-          #updateSelectedTheme,
-          [choice],
-        ),
-        returnValueForMissingStub: null,
-      );
-
-  @override
-  void updateAppDatabasePath(String? value) => super.noSuchMethod(
-        Invocation.method(
-          #updateAppDatabasePath,
-          [value],
-        ),
-        returnValueForMissingStub: null,
-      );
-
-  @override
-  void updateBackupInterval(String? value) => super.noSuchMethod(
-        Invocation.method(
-          #updateBackupInterval,
-          [value],
-        ),
-        returnValueForMissingStub: null,
-      );
-
-  @override
-  void updateBackupPath(String? value) => super.noSuchMethod(
-        Invocation.method(
-          #updateBackupPath,
-          [value],
-        ),
-        returnValueForMissingStub: null,
-      );
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
 }

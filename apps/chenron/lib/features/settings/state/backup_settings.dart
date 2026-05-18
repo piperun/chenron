@@ -37,6 +37,10 @@ class BackupSettingsNotifier {
   final current = signal(const BackupPreferences());
   final saved = signal(const BackupPreferences());
 
+  /// Last successful backup time, surfaced for the "Backup Status"
+  /// row in the UI. Read-only — not part of the dirty snapshot.
+  final lastBackupTimestamp = signal<DateTime?>(null);
+
   /// Tracks the row id so [save] can address the right record. Null
   /// before hydrate or when the user has no backup row yet.
   String? _rowId;
@@ -54,12 +58,14 @@ class BackupSettingsNotifier {
       _rowId = null;
       current.value = const BackupPreferences();
       saved.value = const BackupPreferences();
+      lastBackupTimestamp.value = null;
       return;
     }
     _rowId = row.id;
     final snapshot = BackupPreferences.fromRow(row);
     current.value = snapshot;
     saved.value = snapshot;
+    lastBackupTimestamp.value = row.lastBackupTimestamp;
   }
 
   /// Persist the current snapshot. Throws [StateError] if no row id is

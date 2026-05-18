@@ -69,8 +69,8 @@ class SettingsContentPanel extends StatelessWidget {
       SettingsCategory.display => [const DisplaySettingsPanel()],
       SettingsCategory.cache => [const CacheSettings()],
       SettingsCategory.archive => [const ArchiveSettingsPanel()],
-      SettingsCategory.backup => [BackupSettings(controller: controller)],
-      SettingsCategory.data => [DataSettings(controller: controller)],
+      SettingsCategory.backup => [const BackupSettings()],
+      SettingsCategory.data => [const DataSettings()],
       SettingsCategory.tags => [const TagManagementSettings()],
       // Parent categories: show first child's content as fallback
       SettingsCategory.appearance => [ThemeSettingsPanel(controller: controller)],

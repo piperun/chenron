@@ -7,7 +7,7 @@ import "package:flutter/services.dart";
 import "package:file_picker/file_picker.dart";
 import "package:signals/signals_flutter.dart";
 
-import "package:chenron/features/settings/controller/config_controller.dart";
+import "package:chenron/features/settings/coordinator/settings_coordinator.dart";
 import "package:chenron/features/settings/service/bookmark_export_service.dart";
 import "package:chenron/features/settings/service/bookmark_import_service.dart";
 import "package:chenron/features/settings/service/data_settings_service.dart";
@@ -19,9 +19,7 @@ import "package:chenron/shared/dialogs/confirm_dialog.dart";
 import "package:chenron/shared/errors/error_snack_bar.dart";
 
 class DataSettings extends StatefulWidget {
-  final ConfigController controller;
-
-  const DataSettings({super.key, required this.controller});
+  const DataSettings({super.key});
 
   @override
   State<DataSettings> createState() => _DataSettingsState();
@@ -29,6 +27,8 @@ class DataSettings extends StatefulWidget {
 
 class _DataSettingsState extends State<DataSettings> {
   final DataSettingsService _dataService = locator.get<DataSettingsService>();
+  late final _databaseNotifier =
+      locator.get<SettingsCoordinator>().database;
   Future<int>? _metadataCountFuture;
 
   @override
@@ -182,8 +182,7 @@ class _DataSettingsState extends State<DataSettings> {
     final navigator = Navigator.of(context);
 
     // Save the path to SharedPreferences immediately
-    final newPath = widget.controller.appDatabasePath.peek();
-    await _dataService.setCustomDatabasePath(newPath);
+    await _databaseNotifier.save();
 
     if (!mounted) return;
 
@@ -203,10 +202,9 @@ class _DataSettingsState extends State<DataSettings> {
     final theme = Theme.of(context);
 
     return Watch((context) {
-      // Subscribe to signal changes
-      final currentPath = widget.controller.appDatabasePath.value;
-      final hasPathChanged =
-          currentPath != widget.controller.savedAppDatabasePath;
+      // Subscribe to current/saved changes so the "Apply" button toggles.
+      final currentPath = _databaseNotifier.current.value;
+      final hasPathChanged = _databaseNotifier.isDirty;
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -219,7 +217,7 @@ class _DataSettingsState extends State<DataSettings> {
           ),
 
           PathModeSelector(
-            currentPath: widget.controller.appDatabasePath.peek(),
+            currentPath: currentPath,
             options: [
               PathModeOption(
                 label: "Default",
@@ -231,7 +229,7 @@ class _DataSettingsState extends State<DataSettings> {
               ),
             ],
             fieldLabel: "Database Path",
-            onPathChanged: widget.controller.updateAppDatabasePath,
+            onPathChanged: _databaseNotifier.update,
           ),
 
           if (hasPathChanged) ...[

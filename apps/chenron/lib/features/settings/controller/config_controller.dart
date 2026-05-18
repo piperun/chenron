@@ -46,16 +46,9 @@ class ConfigController {
   final error = signal<String?>(null);
   final userConfig = signal<UserConfig?>(null);
 
-  final appDatabasePath = signal<String?>(null);
-  String? savedAppDatabasePath;
-
   final selectedThemeChoice = signal<ThemeChoice?>(null);
   final availableThemes = signal<List<ThemeChoice>>([]);
   final themeSortMode = signal<ThemeSortMode>(ThemeSortMode.name);
-
-  final backupSettings = signal<BackupSetting?>(null);
-  final backupInterval = signal<String?>(null);
-  final backupPath = signal<String?>(null);
 
   // ---------------------------------------------------------------------------
   // Init / save / dirty — all delegate to the coordinator.
@@ -86,39 +79,8 @@ class ConfigController {
   /// legacy UI subscribers see fresh values.
   void _syncFromCoordinator() {
     userConfig.value = _coordinator.userConfig.value;
-
-    final themeSnap = _coordinator.theme.current.value;
     availableThemes.value = _coordinator.theme.availableThemes.value;
     selectedThemeChoice.value = _coordinator.theme.selectedChoice.value;
-
-    final backupSnap = _coordinator.backup.current.value;
-    backupSettings.value = _backupRowFromCoordinator();
-    backupInterval.value = backupSnap.backupInterval;
-    backupPath.value = backupSnap.backupPath;
-
-    appDatabasePath.value = _coordinator.database.current.value;
-    savedAppDatabasePath = _coordinator.database.saved.value;
-
-    // Silence unused locals (legacy signal mirrors above already touched
-    // every snapshot field we care about).
-    themeSnap;
-  }
-
-  BackupSetting? _backupRowFromCoordinator() {
-    final userId = userConfig.peek()?.id;
-    if (userId == null) return null;
-    final snap = _coordinator.backup.current.value;
-    // The legacy UI only reads `.backupInterval`/`.backupPath` off this
-    // object; we synthesise a row with the bare minimum so existing
-    // reads keep working.
-    return BackupSetting(
-      id: "",
-      userConfigId: userId,
-      backupFilename: null,
-      backupPath: snap.backupPath,
-      backupInterval: snap.backupInterval,
-      lastBackupTimestamp: null,
-    );
   }
 
   // ---------------------------------------------------------------------------
@@ -138,20 +100,5 @@ class ConfigController {
   void updateSelectedTheme(ThemeChoice? choice) {
     selectedThemeChoice.value = choice;
     _coordinator.theme.select(choice);
-  }
-
-  void updateAppDatabasePath(String? value) {
-    appDatabasePath.value = value;
-    _coordinator.database.update(value);
-  }
-
-  void updateBackupInterval(String? value) {
-    backupInterval.value = value;
-    _coordinator.backup.update((s) => s.copyWith(backupInterval: value));
-  }
-
-  void updateBackupPath(String? value) {
-    backupPath.value = value;
-    _coordinator.backup.update((s) => s.copyWith(backupPath: value));
   }
 }

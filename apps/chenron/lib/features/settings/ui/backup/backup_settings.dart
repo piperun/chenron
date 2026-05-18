@@ -1,12 +1,13 @@
-import "package:flutter/material.dart";
-import "package:flutter/services.dart";
-import "package:signals/signals_flutter.dart";
-import "package:chenron/features/settings/controller/config_controller.dart";
+import "package:basedir/directory.dart";
+import "package:chenron/base_dirs/schema.dart";
+import "package:chenron/features/settings/coordinator/settings_coordinator.dart";
+import "package:chenron/features/settings/state/backup_settings.dart";
 import "package:chenron/features/settings/ui/shared/path_mode_selector.dart";
 import "package:chenron/features/settings/ui/shared/settings_section_header.dart";
 import "package:chenron/locator.dart";
-import "package:chenron/base_dirs/schema.dart";
-import "package:basedir/directory.dart";
+import "package:flutter/material.dart";
+import "package:flutter/services.dart";
+import "package:signals/signals_flutter.dart";
 
 enum _IntervalUnit { hours, days }
 
@@ -14,15 +15,14 @@ enum _IntervalUnit { hours, days }
 const _customSentinel = "__custom__";
 
 class BackupSettings extends StatefulWidget {
-  final ConfigController controller;
-
-  const BackupSettings({super.key, required this.controller});
+  const BackupSettings({super.key});
 
   @override
   State<BackupSettings> createState() => _BackupSettingsState();
 }
 
 class _BackupSettingsState extends State<BackupSettings> {
+  late final BackupSettingsNotifier _notifier;
   late TextEditingController _customAmountController;
   bool _isCustomInterval = false;
   _IntervalUnit _customUnit = _IntervalUnit.hours;
@@ -41,12 +41,10 @@ class _BackupSettingsState extends State<BackupSettings> {
 
   /// Parse a custom cron expression into (amount, unit).
   static (int, _IntervalUnit)? _parseCustomCron(String cron) {
-    // Hourly: "0 0 */N * * *"
     final hourMatch = RegExp(r"^0 0 \*/(\d+) \* \* \*$").firstMatch(cron);
     if (hourMatch != null) {
       return (int.parse(hourMatch.group(1)!), _IntervalUnit.hours);
     }
-    // Daily: "0 0 0 */N * *"
     final dayMatch = RegExp(r"^0 0 0 \*/(\d+) \* \*$").firstMatch(cron);
     if (dayMatch != null) {
       return (int.parse(dayMatch.group(1)!), _IntervalUnit.days);
@@ -54,7 +52,6 @@ class _BackupSettingsState extends State<BackupSettings> {
     return null;
   }
 
-  /// Build a cron expression from a custom amount and unit.
   static String _buildCron(int amount, _IntervalUnit unit) {
     return switch (unit) {
       _IntervalUnit.hours => "0 0 */$amount * * *",
@@ -65,9 +62,9 @@ class _BackupSettingsState extends State<BackupSettings> {
   @override
   void initState() {
     super.initState();
+    _notifier = locator.get<SettingsCoordinator>().backup;
 
-    // Determine if current interval is a custom one
-    final currentCron = widget.controller.backupInterval.peek();
+    final currentCron = _notifier.current.peek().backupInterval;
     if (currentCron != null && !_isPreset(currentCron)) {
       _isCustomInterval = true;
       final parsed = _parseCustomCron(currentCron);
@@ -100,7 +97,7 @@ class _BackupSettingsState extends State<BackupSettings> {
     final amount = int.tryParse(_customAmountController.text);
     if (amount != null && amount > 0) {
       final cron = _buildCron(amount, _customUnit);
-      widget.controller.updateBackupInterval(cron);
+      _notifier.update((s) => s.copyWith(backupInterval: cron));
     }
   }
 
@@ -135,20 +132,17 @@ class _BackupSettingsState extends State<BackupSettings> {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Backup Schedule Section
         const SettingsSectionHeader(
           title: "Backup Schedule",
           description:
               "Automatically back up your database at regular intervals.",
         ),
-
-        // Interval dropdown — only this part reacts to the signal
         Row(
           children: [
             Text("Frequency:", style: theme.textTheme.bodyMedium),
             const SizedBox(width: 16),
             Watch((context) {
-              final interval = widget.controller.backupInterval.value;
+              final interval = _notifier.current.value.backupInterval;
               return DropdownButton<String>(
                 value: _isCustomInterval
                     ? _customSentinel
@@ -159,9 +153,9 @@ class _BackupSettingsState extends State<BackupSettings> {
                     _applyCustomInterval();
                   } else {
                     setState(() => _isCustomInterval = false);
-                    widget.controller.updateBackupInterval(
-                      value == "" ? null : value,
-                    );
+                    _notifier.update((s) => s.copyWith(
+                          backupInterval: value == "" ? null : value,
+                        ));
                   }
                 },
                 items: [
@@ -180,8 +174,6 @@ class _BackupSettingsState extends State<BackupSettings> {
             }),
           ],
         ),
-
-        // Custom interval picker
         if (_isCustomInterval)
           Padding(
             padding: const EdgeInsets.only(top: 12.0),
@@ -230,48 +222,33 @@ class _BackupSettingsState extends State<BackupSettings> {
               ],
             ),
           ),
-
         const Divider(height: 32),
-
-        // Backup Location Section
         const SettingsSectionHeader(
           title: "Backup Location",
           description: "Where database backups are stored.",
         ),
-
         PathModeSelector(
-          currentPath: widget.controller.backupPath.peek(),
+          currentPath: _notifier.current.peek().backupPath,
           options: [
             PathModeOption(
               label: "Default",
               resolveSubtitle: _getDefaultBackupPath,
             ),
-            const PathModeOption(
-              label: "Custom",
-              isCustom: true,
-            ),
+            const PathModeOption(label: "Custom", isCustom: true),
           ],
           fieldLabel: "Backup Path",
-          onPathChanged: widget.controller.updateBackupPath,
+          onPathChanged: (value) =>
+              _notifier.update((s) => s.copyWith(backupPath: value)),
         ),
-
         const Divider(height: 32),
-
-        // Backup Status — only this part reacts to backupSettings
-        Text(
-          "Backup Status",
-          style: theme.textTheme.titleMedium,
-        ),
+        Text("Backup Status", style: theme.textTheme.titleMedium),
         const SizedBox(height: 12),
         Watch((context) {
-          final backup = widget.controller.backupSettings.value;
+          final snap = _notifier.current.value;
+          final lastBackup = _notifier.lastBackupTimestamp.value;
           return Row(
             children: [
-              Icon(
-                Icons.history,
-                size: 20,
-                color: theme.colorScheme.primary,
-              ),
+              Icon(Icons.history, size: 20, color: theme.colorScheme.primary),
               const SizedBox(width: 8),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -285,7 +262,7 @@ class _BackupSettingsState extends State<BackupSettings> {
                     ),
                   ),
                   Text(
-                    _formatTimestamp(backup?.lastBackupTimestamp),
+                    _formatTimestamp(lastBackup),
                     style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w500,
                     ),
@@ -293,11 +270,7 @@ class _BackupSettingsState extends State<BackupSettings> {
                 ],
               ),
               const SizedBox(width: 24),
-              Icon(
-                Icons.schedule,
-                size: 20,
-                color: theme.colorScheme.primary,
-              ),
+              Icon(Icons.schedule, size: 20, color: theme.colorScheme.primary),
               const SizedBox(width: 8),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -311,7 +284,7 @@ class _BackupSettingsState extends State<BackupSettings> {
                     ),
                   ),
                   Text(
-                    _labelForCron(backup?.backupInterval),
+                    _labelForCron(snap.backupInterval),
                     style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w500,
                     ),
