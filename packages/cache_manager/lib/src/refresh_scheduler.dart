@@ -30,7 +30,15 @@ double computeRefreshPriority({
 /// and processes them with rate limiting.
 class RefreshScheduler {
   /// Default delay between consecutive refresh operations.
-  static const defaultDelay = Duration(seconds: 2);
+  ///
+  /// Zero by default — the actual rate-limiting (concurrency cap +
+  /// per-domain throttle) belongs to whatever `refreshOne` calls
+  /// (`MetadataFactory.getOrFetch` in production), which has the
+  /// context to throttle per host. The scheduler previously held a
+  /// 2-second hard delay between every refresh which, on top of the
+  /// factory's own throttle, meant a queue of 1000 expired entries
+  /// took 33+ minutes regardless of how many domains were involved.
+  static const defaultDelay = Duration.zero;
 
   /// Sort expired entries by descending refresh priority.
   static List<Map<String, dynamic>> buildQueue(
