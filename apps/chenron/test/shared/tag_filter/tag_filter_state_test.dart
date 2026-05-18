@@ -113,9 +113,9 @@ void main() {
     });
   });
 
-  group("TagFilterState", () {
+  group("TagFilterNotifier", () {
     test("starts with empty tags", () {
-      final state = TagFilterState();
+      final state = TagFilterNotifier();
 
       expect(state.includedTagNames, isEmpty);
       expect(state.excludedTagNames, isEmpty);
@@ -124,7 +124,7 @@ void main() {
     });
 
     test("addIncluded adds tag to included set", () {
-      final state = TagFilterState();
+      final state = TagFilterNotifier();
 
       state.addIncluded("test");
 
@@ -135,7 +135,7 @@ void main() {
     });
 
     test("addExcluded adds tag to excluded set", () {
-      final state = TagFilterState();
+      final state = TagFilterNotifier();
 
       state.addExcluded("test");
 
@@ -146,7 +146,7 @@ void main() {
     });
 
     test("addIncluded removes tag from excluded if present", () {
-      final state = TagFilterState();
+      final state = TagFilterNotifier();
 
       state.addExcluded("test");
       expect(state.excludedTagNames, {"test"});
@@ -159,7 +159,7 @@ void main() {
     });
 
     test("includeMany/excludeMany handle conflicts and idempotency", () {
-      final state = TagFilterState();
+      final state = TagFilterNotifier();
 
       state.includeMany({"a", "b", "c"});
       expect(state.includedTagNames, {"a", "b", "c"});
@@ -185,7 +185,7 @@ void main() {
     });
 
     test("parseAndAddFromQuery adds tags from query", () {
-      final state = TagFilterState();
+      final state = TagFilterNotifier();
 
       final cleanQuery = state.parseAndAddFromQuery("#test hello -#cool world");
 
@@ -201,7 +201,7 @@ void main() {
     });
 
     test("parseAndAddFromQuery accumulates tags", () {
-      final state = TagFilterState();
+      final state = TagFilterNotifier();
 
       // First submission
       state.parseAndAddFromQuery("#tag1");
@@ -215,7 +215,7 @@ void main() {
     });
 
     test("clear removes all tags", () {
-      final state = TagFilterState();
+      final state = TagFilterNotifier();
 
       state.addIncluded("test1");
       state.addIncluded("test2");
@@ -230,7 +230,7 @@ void main() {
     });
 
     test("signals react to changes", () {
-      final state = TagFilterState();
+      final state = TagFilterNotifier();
 
       // Track signal updates
       var includedUpdates = 0;

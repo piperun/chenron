@@ -42,7 +42,7 @@ class GlobalSearchBar extends StatefulWidget {
 class _GlobalSearchBarState extends State<GlobalSearchBar> {
   late final SearchBarController _queryController;
   late final bool _ownsController;
-  late final SearchFeatureManager _featureManager;
+  late final SearchFeatureService _featureManager;
 
   @override
   void initState() {
@@ -58,7 +58,7 @@ class _GlobalSearchBarState extends State<GlobalSearchBar> {
     }
 
     // Create feature manager
-    _featureManager = SearchFeatureManager(
+    _featureManager = SearchFeatureService(
       features: widget.features,
       debounceDuration: widget.debounceDuration,
       historyKey: widget.historyKey,

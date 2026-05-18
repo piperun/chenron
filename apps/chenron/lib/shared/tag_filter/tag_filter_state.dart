@@ -8,13 +8,13 @@ import "package:chenron/shared/search/query_parser.dart";
 ///
 /// Example:
 /// ```dart
-/// final tagState = TagFilterState();
+/// final tagState = TagFilterNotifier();
 /// tagState.addIncluded('test');
 /// tagState.addExcluded('cool');
 /// // Later...
 /// tagState.dispose();
 /// ```
-class TagFilterState {
+class TagFilterNotifier {
   final Signal<Set<String>> _includedTags = signal({});
   final Signal<Set<String>> _excludedTags = signal({});
 

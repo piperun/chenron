@@ -3,7 +3,7 @@ import "package:signals/signals_flutter.dart";
 import "package:chenron/features/folder_editor/widgets/item_section/item_section_controller.dart";
 
 class ItemTableFilter extends StatelessWidget {
-  final ItemSectionController controller;
+  final ItemSectionNotifier controller;
 
   const ItemTableFilter({
     super.key,

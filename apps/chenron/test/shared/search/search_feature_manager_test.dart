@@ -11,21 +11,21 @@ void main() {
   // -------------------------------------------------------------------------
   group("has()", () {
     test("returns true for enabled features", () {
-      final manager = SearchFeatureManager(
+      final manager = SearchFeatureService(
         features: const IncludeOptions({SearchFeature.debounce}),
       );
       expect(manager.has(SearchFeature.debounce), isTrue);
     });
 
     test("returns false for disabled features", () {
-      final manager = SearchFeatureManager(
+      final manager = SearchFeatureService(
         features: const IncludeOptions({SearchFeature.debounce}),
       );
       expect(manager.has(SearchFeature.history), isFalse);
     });
 
     test("supports multiple features", () {
-      final manager = SearchFeatureManager(
+      final manager = SearchFeatureService(
         features: const IncludeOptions(
             {SearchFeature.debounce, SearchFeature.history}),
       );
@@ -34,7 +34,7 @@ void main() {
     });
 
     test("empty features set returns false for all", () {
-      final manager = SearchFeatureManager(
+      final manager = SearchFeatureService(
         features: const IncludeOptions(<SearchFeature>{}),
       );
       expect(manager.has(SearchFeature.debounce), isFalse);
@@ -57,7 +57,7 @@ void main() {
     });
 
     test("setup with debounce creates debouncer", () {
-      final manager = SearchFeatureManager(
+      final manager = SearchFeatureService(
         features: const IncludeOptions({SearchFeature.debounce}),
       );
 
@@ -67,7 +67,7 @@ void main() {
     });
 
     test("setup with history creates history manager", () {
-      final manager = SearchFeatureManager(
+      final manager = SearchFeatureService(
         features: const IncludeOptions({SearchFeature.history}),
       );
 
@@ -76,7 +76,7 @@ void main() {
     });
 
     test("setup without history leaves history manager null", () {
-      final manager = SearchFeatureManager(
+      final manager = SearchFeatureService(
         features: const IncludeOptions({SearchFeature.debounce}),
       );
 
@@ -87,7 +87,7 @@ void main() {
 
     test("setup with callback attaches listener", () {
       var callCount = 0;
-      final manager = SearchFeatureManager(
+      final manager = SearchFeatureService(
         features: const IncludeOptions({SearchFeature.debounce}),
         debounceDuration: const Duration(milliseconds: 1),
       );
@@ -102,7 +102,7 @@ void main() {
     });
 
     test("dispose without setup does not throw", () {
-      final manager = SearchFeatureManager(
+      final manager = SearchFeatureService(
         features: const IncludeOptions({SearchFeature.debounce}),
       );
       // Should not throw even without setup
@@ -110,7 +110,7 @@ void main() {
     });
 
     test("setup with no features does nothing", () {
-      final manager = SearchFeatureManager(
+      final manager = SearchFeatureService(
         features: const IncludeOptions(<SearchFeature>{}),
       );
       manager.setup(controller);
@@ -124,7 +124,7 @@ void main() {
   // -------------------------------------------------------------------------
   group("loadHistory()", () {
     test("returns empty list when history not enabled", () async {
-      final manager = SearchFeatureManager(
+      final manager = SearchFeatureService(
         features: const IncludeOptions({SearchFeature.debounce}),
       );
       final history = await manager.loadHistory();

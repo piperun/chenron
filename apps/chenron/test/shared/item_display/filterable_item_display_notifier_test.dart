@@ -43,13 +43,13 @@ void main() {
 
   late FilterableItemDisplayNotifier notifier;
   late SearchFilter searchFilter;
-  late TagFilterState tagFilterState;
+  late TagFilterNotifier tagFilterState;
 
   setUp(() {
     SharedPreferences.setMockInitialValues({});
     searchFilter = SearchFilter();
     searchFilter.setup();
-    tagFilterState = TagFilterState();
+    tagFilterState = TagFilterNotifier();
 
     notifier = FilterableItemDisplayNotifier(
       initialViewMode: ViewMode.grid,
@@ -63,7 +63,7 @@ void main() {
       searchFilter: searchFilter,
       ownsSearchFilter: false,
       tagFilterState: tagFilterState,
-      ownsTagFilterState: false,
+      ownsTagFilterNotifier: false,
     );
   });
 
@@ -416,7 +416,7 @@ void main() {
   group("filteredAndSortedItems memoization", () {
     late FilterableItemDisplayNotifier memoNotifier;
     late SearchFilter memoSearch;
-    late TagFilterState memoTagState;
+    late TagFilterNotifier memoTagState;
 
     final seedItems = [
       _makeLink("1", "https://alpha.com"),
@@ -426,7 +426,7 @@ void main() {
     setUp(() {
       memoSearch = SearchFilter();
       memoSearch.setup();
-      memoTagState = TagFilterState();
+      memoTagState = TagFilterNotifier();
       memoNotifier = FilterableItemDisplayNotifier(
         initialViewMode: ViewMode.grid,
         initialSortMode: SortMode.nameAsc,
@@ -439,7 +439,7 @@ void main() {
         searchFilter: memoSearch,
         ownsSearchFilter: false,
         tagFilterState: memoTagState,
-        ownsTagFilterState: false,
+        ownsTagFilterNotifier: false,
         initialItems: seedItems,
         enableTagFiltering: true,
       );
@@ -565,7 +565,7 @@ void main() {
     test("disposes owned search filter", () {
       final ownedFilter = SearchFilter();
       ownedFilter.setup();
-      final ownedTagState = TagFilterState();
+      final ownedTagState = TagFilterNotifier();
 
       final n = FilterableItemDisplayNotifier(
         initialViewMode: ViewMode.grid,
@@ -575,7 +575,7 @@ void main() {
         searchFilter: ownedFilter,
         ownsSearchFilter: true,
         tagFilterState: ownedTagState,
-        ownsTagFilterState: true,
+        ownsTagFilterNotifier: true,
       );
 
       // Should not throw
@@ -599,7 +599,7 @@ void main() {
         searchFilter: searchFilter,
         ownsSearchFilter: false,
         tagFilterState: tagFilterState,
-        ownsTagFilterState: false,
+        ownsTagFilterNotifier: false,
       );
     });
   });

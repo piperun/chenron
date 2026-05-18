@@ -44,16 +44,16 @@ class FolderViewerPage extends StatefulWidget {
 class _FolderViewerPageState extends State<FolderViewerPage> {
   final _service = FolderViewerService();
   late Future<FolderResult> _metadata;
-  late final InfiniteScrollState<FolderItem> _infiniteScroll;
-  late final TagFilterState _tagFilterState;
+  late final InfiniteScrollNotifier<FolderItem> _infiniteScroll;
+  late final TagFilterNotifier _tagFilterState;
   bool _isHeaderExpanded = true;
   bool _isHeaderLocked = false;
 
   @override
   void initState() {
     super.initState();
-    _tagFilterState = TagFilterState();
-    _infiniteScroll = InfiniteScrollState<FolderItem>(
+    _tagFilterState = TagFilterNotifier();
+    _infiniteScroll = InfiniteScrollNotifier<FolderItem>(
       loader: (limit, offset) => _service.getFolderItemsPaginated(
         widget.folderId,
         limit,
@@ -240,7 +240,7 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
 class _CollapsibleHeader extends StatelessWidget {
   final FolderResult result;
   final List<FolderItem> parentItems;
-  final InfiniteScrollState<FolderItem> infiniteScroll;
+  final InfiniteScrollNotifier<FolderItem> infiniteScroll;
   final bool isHeaderExpanded;
   final bool isHeaderLocked;
   final VoidCallback onToggleExpanded;
@@ -312,8 +312,8 @@ class _CollapsibleHeader extends StatelessWidget {
 
 class _FolderItemDisplay extends StatelessWidget {
   final List<FolderItem> parentItems;
-  final InfiniteScrollState<FolderItem> infiniteScroll;
-  final TagFilterState tagFilterState;
+  final InfiniteScrollNotifier<FolderItem> infiniteScroll;
+  final TagFilterNotifier tagFilterState;
   final VoidCallback onRefresh;
   final void Function(BuildContext, FolderItem)? onItemTap;
 

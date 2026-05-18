@@ -200,15 +200,15 @@ class ChenronApp extends StatelessWidget {
     // Seed the controller with cached theme so the first Watch frame
     // already has the right colors (before initialize() finishes).
     if (cachedTheme != null) {
-      final controller = themeControllerSignal.value;
+      final controller = themeNotifierSignal.value;
       controller.seedCachedTheme(cachedTheme!);
     }
 
     return Watch((context) {
       final ThemeMode? currentMode = themeManager.themeModeSignal.value;
 
-      // Get current theme variants (light/dark) from ThemeController
-      final themeController = themeControllerSignal.value;
+      // Get current theme variants (light/dark) from ThemeNotifier
+      final themeController = themeNotifierSignal.value;
       final variants = themeController.currentThemeSignal.value;
 
       loggerGlobal.fine(
