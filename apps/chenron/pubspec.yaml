@@ -104,6 +104,8 @@ dev_dependencies:
   mockito: ^5.6.1
   flutter_driver:
     sdk: flutter
+  integration_test:
+    sdk: flutter
 
 flutter:
 
