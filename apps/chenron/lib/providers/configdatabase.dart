@@ -1,10 +1,10 @@
 import "package:database/database.dart";
 import "package:signals/signals.dart";
 
-final Signal<ConfigDatabaseFileHandler> configDatabaseFileHandlerSignal =
-    signal(initializeConfigDatabaseFileHandler());
+final Signal<ConfigDatabaseLifecycle> configDatabaseFileHandlerSignal =
+    signal(initializeConfigDatabaseLifecycle());
 
-ConfigDatabaseFileHandler initializeConfigDatabaseFileHandler() {
-  final configDatabase = ConfigDatabaseFileHandler();
+ConfigDatabaseLifecycle initializeConfigDatabaseLifecycle() {
+  final configDatabase = ConfigDatabaseLifecycle();
   return configDatabase;
 }

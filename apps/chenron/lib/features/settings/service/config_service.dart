@@ -7,7 +7,7 @@ import "package:signals/signals_flutter.dart";
 class ConfigService {
   // Get the database handler via locator
   final ConfigDatabase _db =
-      locator.get<Signal<ConfigDatabaseFileHandler>>().value.configDatabase;
+      locator.get<Signal<ConfigDatabaseLifecycle>>().value.configDatabase;
 
   Future<UserConfigResult?> getUserConfig() {
     return runLoggedOr(

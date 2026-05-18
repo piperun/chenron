@@ -6,7 +6,7 @@ class ItemDeletionService {
   /// Deletes multiple items from the database.
   /// Returns the count of successfully deleted items.
   Future<int> deleteItems(List<FolderItem> items) async {
-    final db = locator.get<Signal<AppDatabaseHandler>>().value;
+    final db = locator.get<Signal<AppDatabaseLifecycle>>().value;
     final appDb = db.appDatabase;
 
     int deletedCount = 0;

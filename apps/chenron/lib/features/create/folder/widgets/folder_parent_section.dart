@@ -1,4 +1,4 @@
-﻿import "dart:async";
+import "dart:async";
 import "package:chenron/locator.dart";
 import "package:chenron/shared/section_card/section_card.dart";
 import "package:chenron/utils/safe_async.dart";
@@ -25,7 +25,7 @@ class FolderParentSection extends StatefulWidget {
 
 class _FolderParentSectionState extends State<FolderParentSection> {
   final AppDatabase _db =
-      locator.get<Signal<AppDatabaseHandler>>().value.appDatabase;
+      locator.get<Signal<AppDatabaseLifecycle>>().value.appDatabase;
 
   Future<void> _showFolderSelectionDialog() async {
     await showDialog<void>(

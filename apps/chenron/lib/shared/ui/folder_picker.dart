@@ -1,4 +1,4 @@
-﻿import "dart:async";
+import "dart:async";
 import "package:chenron/locator.dart";
 import "package:chenron/utils/safe_async.dart";
 import "package:database/database.dart";
@@ -32,7 +32,7 @@ class _FolderPickerState extends State<FolderPicker> {
 
   AppDatabase _getDb() {
     if (!_dbInitialized) {
-      _db = locator.get<Signal<AppDatabaseHandler>>().value.appDatabase;
+      _db = locator.get<Signal<AppDatabaseLifecycle>>().value.appDatabase;
       _dbInitialized = true;
     }
     return _db;

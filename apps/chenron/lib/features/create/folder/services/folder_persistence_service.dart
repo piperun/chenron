@@ -11,7 +11,7 @@ class FolderPersistenceService {
 
   FolderPersistenceService()
       : _resolveDb = (() =>
-            locator.get<Signal<AppDatabaseHandler>>().value.appDatabase);
+            locator.get<Signal<AppDatabaseLifecycle>>().value.appDatabase);
 
   @visibleForTesting
   FolderPersistenceService.withDeps({required AppDatabase appDatabase})

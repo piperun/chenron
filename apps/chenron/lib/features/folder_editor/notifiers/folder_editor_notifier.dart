@@ -117,7 +117,7 @@ class FolderEditorNotifier {
     errorMessage.value = null;
 
     try {
-      final dbHandler = locator.get<Signal<AppDatabaseHandler>>().value;
+      final dbHandler = locator.get<Signal<AppDatabaseLifecycle>>().value;
       final folderResult = await dbHandler.appDatabase.getFolder(
         folderId: folderId,
         includeOptions: const IncludeOptions({
@@ -365,7 +365,7 @@ class FolderEditorNotifier {
     state.value = FolderEditorState.saving;
 
     try {
-      final dbHandler = locator.get<Signal<AppDatabaseHandler>>().value;
+      final dbHandler = locator.get<Signal<AppDatabaseLifecycle>>().value;
       final appDb = dbHandler.appDatabase;
 
       final tagUpdates = _buildTagUpdates();

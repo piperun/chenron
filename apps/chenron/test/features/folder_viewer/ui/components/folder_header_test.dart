@@ -10,7 +10,7 @@ import "package:chenron/features/settings/service/data_settings_service.dart";
 import "package:chenron/features/folder_viewer/ui/components/folder_header.dart";
 import "package:chenron_mockups/chenron_mockups.dart";
 
-class _MockConfigDbHandler extends ConfigDatabaseFileHandler {
+class _MockConfigDbHandler extends ConfigDatabaseLifecycle {
   final ConfigDatabase _db;
   _MockConfigDbHandler(this._db);
 
@@ -27,7 +27,7 @@ void main() {
   });
 
   setUp(() async {
-    if (GetIt.I.isRegistered<Signal<ConfigDatabaseFileHandler>>()) {
+    if (GetIt.I.isRegistered<Signal<ConfigDatabaseLifecycle>>()) {
       await GetIt.I.reset();
     }
 
@@ -39,7 +39,7 @@ void main() {
     await configDb.setup();
 
     final handler = _MockConfigDbHandler(configDb);
-    GetIt.I.registerSingleton<Signal<ConfigDatabaseFileHandler>>(
+    GetIt.I.registerSingleton<Signal<ConfigDatabaseLifecycle>>(
       signal(handler),
     );
     GetIt.I.registerLazySingleton<ConfigService>(ConfigService.new);
@@ -49,7 +49,7 @@ void main() {
 
   tearDown(() async {
     await configDb.close();
-    if (GetIt.I.isRegistered<Signal<ConfigDatabaseFileHandler>>()) {
+    if (GetIt.I.isRegistered<Signal<ConfigDatabaseLifecycle>>()) {
       await GetIt.I.reset();
     }
   });

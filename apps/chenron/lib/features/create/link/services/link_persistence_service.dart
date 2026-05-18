@@ -10,7 +10,7 @@ class LinkPersistenceService {
 
   LinkPersistenceService()
       : _resolveDb = (() =>
-            locator.get<Signal<AppDatabaseHandler>>().value.appDatabase);
+            locator.get<Signal<AppDatabaseLifecycle>>().value.appDatabase);
 
   @visibleForTesting
   LinkPersistenceService.withDeps({required AppDatabase appDatabase})

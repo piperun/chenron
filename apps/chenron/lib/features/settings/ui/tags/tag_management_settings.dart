@@ -24,7 +24,7 @@ class _TagManagementSettingsState extends State<TagManagementSettings> {
   StreamSubscription<List<TagResult>>? _subscription;
 
   AppDatabase get _db =>
-      locator.get<Signal<AppDatabaseHandler>>().value.appDatabase;
+      locator.get<Signal<AppDatabaseLifecycle>>().value.appDatabase;
 
   @override
   void initState() {

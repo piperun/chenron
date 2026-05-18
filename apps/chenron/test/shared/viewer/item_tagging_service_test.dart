@@ -23,11 +23,11 @@ void main() {
     );
     await database.setup();
 
-    // Set up locator with a minimal AppDatabaseHandler that exposes our
+    // Set up locator with a minimal AppDatabaseLifecycle that exposes our
     // test database.
     await locator.reset();
-    locator.registerSingleton<Signal<AppDatabaseHandler>>(
-      signal(_TestAppDatabaseHandler(database)),
+    locator.registerSingleton<Signal<AppDatabaseLifecycle>>(
+      signal(_TestAppDatabaseLifecycle(database)),
     );
   });
 
@@ -629,10 +629,10 @@ void main() {
 }
 
 /// Minimal stub that wraps a test [AppDatabase] for the locator.
-class _TestAppDatabaseHandler extends AppDatabaseHandler {
+class _TestAppDatabaseLifecycle extends AppDatabaseLifecycle {
   final AppDatabase _testDb;
 
-  _TestAppDatabaseHandler(this._testDb);
+  _TestAppDatabaseLifecycle(this._testDb);
 
   @override
   AppDatabase get appDatabase => _testDb;

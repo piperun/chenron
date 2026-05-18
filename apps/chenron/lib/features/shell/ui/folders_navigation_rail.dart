@@ -71,10 +71,10 @@ class _FoldersNavigationRailState extends State<FoldersNavigationRail> {
   void _watchFolders() {
     final AppDatabase appDb;
     try {
-      appDb = locator.get<Signal<AppDatabaseHandler>>().value.appDatabase;
+      appDb = locator.get<Signal<AppDatabaseLifecycle>>().value.appDatabase;
     } catch (e, s) {
       loggerGlobal.severe(
-          "FoldersNavigationRail", "Locator missing AppDatabaseHandler", e, s);
+          "FoldersNavigationRail", "Locator missing AppDatabaseLifecycle", e, s);
       if (mounted) setState(() => _isLoading = false);
       return;
     }

@@ -16,7 +16,7 @@ import "package:signals/signals_flutter.dart";
 /// Escape to dismiss.
 class SuggestionsOverlay extends StatefulWidget {
   final SearchBarController controller;
-  final Signal<AppDatabaseHandler> db;
+  final Signal<AppDatabaseLifecycle> db;
   final Duration debounceDuration;
   final Future<void> Function({
     required String type,

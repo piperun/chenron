@@ -35,7 +35,7 @@ class ThemeNotifier {
     try {
       await locator.allReady();
       final configHandlerSignal =
-          locator.get<Signal<ConfigDatabaseFileHandler>>();
+          locator.get<Signal<ConfigDatabaseLifecycle>>();
       final configDb = configHandlerSignal.value.configDatabase;
 
       _themeService = await ThemeServiceDB.init(database: configDb);

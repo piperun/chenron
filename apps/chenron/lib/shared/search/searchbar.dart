@@ -86,7 +86,7 @@ class _GlobalSearchBarState extends State<GlobalSearchBar> {
 
     if (!_featureManager.has(SearchFeature.suggestions)) return searchBar;
 
-    final db = locator.get<Signal<AppDatabaseHandler>>();
+    final db = locator.get<Signal<AppDatabaseLifecycle>>();
     return SuggestionsOverlay(
       controller: _queryController,
       db: db,
