@@ -15,6 +15,7 @@ import "package:chenron/shared/tag_filter/tag_filter_state.dart";
 import "package:chenron/features/folder_editor/pages/folder_editor.dart";
 import "package:app_logger/app_logger.dart";
 import "package:chenron/shared/errors/error_snack_bar.dart";
+import "package:chenron/shared/errors/user_error_message.dart";
 import "package:chenron/shared/viewer/item_handler.dart";
 import "package:chenron/features/viewer/state/viewer_state.dart";
 
@@ -180,7 +181,20 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
           }
 
           if (snapshot.hasError) {
-            return Center(child: Text("Error: ${snapshot.error}"));
+            final error = snapshot.error!;
+            loggerGlobal.severe("FolderViewer", "Failed to load folder",
+                error, snapshot.stackTrace);
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(
+                  userErrorMessage(error),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.error),
+                ),
+              ),
+            );
           }
 
           final result = snapshot.data;
