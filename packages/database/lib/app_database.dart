@@ -32,6 +32,13 @@ typedef DeleteRelationRecord = ({String id, IdType idType});
 ])
 class AppDatabase extends _$AppDatabase {
   static const int idLength = 30;
+
+  /// Default SQLite filename when no [databaseName] is passed. Apps
+  /// embedding this package should pass their own name to avoid file
+  /// collisions in `getApplicationDocumentsDirectory()` — `"chenron"`
+  /// is just the historical default kept for backwards compatibility.
+  static const String defaultDatabaseName = "chenron";
+
   final bool setupOnInit;
   final bool debugMode;
   AppDatabase({
@@ -42,7 +49,7 @@ class AppDatabase extends _$AppDatabase {
     this.debugMode = false,
   }) : super(queryExecutor ??
             _openConnection(
-                databaseName: databaseName ?? "chenron",
+                databaseName: databaseName ?? defaultDatabaseName,
                 customPath: customPath,
                 debugMode: debugMode));
 
@@ -485,7 +492,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   static QueryExecutor _openConnection(
-      {String databaseName = "chenron",
+      {String databaseName = defaultDatabaseName,
       String? customPath,
       bool debugMode = false}) {
     // In production, we use the default database path.

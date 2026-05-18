@@ -17,7 +17,7 @@ class LinuxOS extends OperatingSystem {
 
 class LinuxResources extends PlatformResources {
   @override
-  String get cacheDirectoryHint => '/home/yourname/.cache/chenron_images';
+  String get cacheDirectoryHint => '/home/yourname/.cache/your-app';
 
   @override
   String get monolithExecutableName => 'monolith-gnu-linux';

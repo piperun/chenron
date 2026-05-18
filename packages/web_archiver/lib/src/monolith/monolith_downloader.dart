@@ -14,6 +14,14 @@ class MonolithDownloader {
   /// Timeout for streaming the binary to disk.
   static const Duration defaultDownloadTimeout = Duration(minutes: 5);
 
+  /// Default install subdirectory under the app documents directory.
+  ///
+  /// Callers should override this with their own app name — the
+  /// historical default `"chenron"` is kept so existing callers keep
+  /// working unchanged, but new callers in other apps should pass
+  /// [installSubdir] explicitly.
+  static const String defaultInstallSubdir = "chenron";
+
   /// Downloads the latest release of Monolith from GitHub and writes it to
   /// disk, returning the saved-file path.
   ///
@@ -24,10 +32,13 @@ class MonolithDownloader {
   /// - Pass [client] to reuse a caller-owned HTTP client (test fixtures,
   ///   batch operations). When omitted, an internal client is created and
   ///   closed in a `finally`.
+  /// - Pass [installSubdir] to override the subdirectory under the app
+  ///   documents directory where the binary is saved.
   static Future<String> downloadLatestRelease({
     http.Client? client,
     Duration apiTimeout = defaultApiTimeout,
     Duration downloadTimeout = defaultDownloadTimeout,
+    String installSubdir = defaultInstallSubdir,
   }) async {
     const githubApiUrl =
         "https://api.github.com/repos/Y2Z/monolith/releases/latest";
@@ -56,7 +67,7 @@ class MonolithDownloader {
       final downloadUrl = asset["browser_download_url"] as String;
 
       final appDir = await getApplicationDocumentsDirectory();
-      final saveDir = Directory("${appDir.path}/chenron");
+      final saveDir = Directory("${appDir.path}/$installSubdir");
       await saveDir.create(recursive: true);
 
       final savePath = "${saveDir.path}/$assetName";
