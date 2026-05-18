@@ -5,9 +5,11 @@ import "package:flutter_test/flutter_test.dart";
 import "package:get_it/get_it.dart";
 import "package:signals/signals.dart";
 import "package:chenron/features/settings/controller/config_controller.dart";
+import "package:chenron/features/settings/coordinator/settings_coordinator.dart";
 import "package:chenron/features/settings/service/config_service.dart";
 import "package:chenron/features/settings/service/data_settings_service.dart";
 import "package:chenron/features/folder_viewer/ui/components/folder_header.dart";
+import "package:chenron/features/theme/state/theme_notifier.dart";
 import "package:chenron_mockups/chenron_mockups.dart";
 
 class _MockConfigDbHandler extends ConfigDatabaseLifecycle {
@@ -44,6 +46,11 @@ void main() {
     );
     GetIt.I.registerLazySingleton<ConfigService>(ConfigService.new);
     GetIt.I.registerLazySingleton<DataSettingsService>(DataSettingsService.new);
+    GetIt.I.registerLazySingleton<SettingsCoordinator>(() => SettingsCoordinator(
+          configService: GetIt.I.get<ConfigService>(),
+          dataService: GetIt.I.get<DataSettingsService>(),
+          themeApplier: ThemeNotifier(),
+        ));
     GetIt.I.registerLazySingleton<ConfigController>(ConfigController.new);
   });
 

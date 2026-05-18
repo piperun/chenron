@@ -265,6 +265,24 @@ class MockConfigController extends _i1.Mock implements _i3.ConfigController {
       ) as _i6.Future<void>);
 
   @override
+  _i6.Future<bool> saveSettings() => (super.noSuchMethod(
+        Invocation.method(
+          #saveSettings,
+          [],
+        ),
+        returnValue: _i6.Future<bool>.value(false),
+      ) as _i6.Future<bool>);
+
+  @override
+  bool hasUnsavedChanges() => (super.noSuchMethod(
+        Invocation.method(
+          #hasUnsavedChanges,
+          [],
+        ),
+        returnValue: false,
+      ) as bool);
+
+  @override
   ({_i7.ThemeData dark, _i7.ThemeData light})? getPreviewVariants(
           _i5.ThemeChoice? choice) =>
       (super.noSuchMethod(Invocation.method(
@@ -412,22 +430,4 @@ class MockConfigController extends _i1.Mock implements _i3.ConfigController {
         ),
         returnValueForMissingStub: null,
       );
-
-  @override
-  _i6.Future<bool> saveSettings() => (super.noSuchMethod(
-        Invocation.method(
-          #saveSettings,
-          [],
-        ),
-        returnValue: _i6.Future<bool>.value(false),
-      ) as _i6.Future<bool>);
-
-  @override
-  bool hasUnsavedChanges() => (super.noSuchMethod(
-        Invocation.method(
-          #hasUnsavedChanges,
-          [],
-        ),
-        returnValue: false,
-      ) as bool);
 }
