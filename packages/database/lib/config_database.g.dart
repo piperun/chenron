@@ -3,557 +3,6 @@
 part of 'config_database.dart';
 
 // ignore_for_file: type=lint
-class $ThemeTypesTable extends ThemeTypes
-    with TableInfo<$ThemeTypesTable, ThemeTypeEntity> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $ThemeTypesTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
-      'id', aliasedName, false,
-      hasAutoIncrement: true,
-      type: DriftSqlType.int,
-      requiredDuringInsert: false,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
-  static const VerificationMeta _nameMeta = const VerificationMeta('name');
-  @override
-  late final GeneratedColumn<String> name = GeneratedColumn<String>(
-      'name', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'));
-  @override
-  List<GeneratedColumn> get $columns => [id, name];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'theme_types';
-  @override
-  VerificationContext validateIntegrity(Insertable<ThemeTypeEntity> instance,
-      {bool isInserting = false}) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    }
-    if (data.containsKey('name')) {
-      context.handle(
-          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
-    } else if (isInserting) {
-      context.missing(_nameMeta);
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  ThemeTypeEntity map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return ThemeTypeEntity(
-      id: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
-      name: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
-    );
-  }
-
-  @override
-  $ThemeTypesTable createAlias(String alias) {
-    return $ThemeTypesTable(attachedDatabase, alias);
-  }
-}
-
-class ThemeTypeEntity extends DataClass implements Insertable<ThemeTypeEntity> {
-  final int id;
-  final String name;
-  const ThemeTypeEntity({required this.id, required this.name});
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
-    map['name'] = Variable<String>(name);
-    return map;
-  }
-
-  ThemeTypesCompanion toCompanion(bool nullToAbsent) {
-    return ThemeTypesCompanion(
-      id: Value(id),
-      name: Value(name),
-    );
-  }
-
-  factory ThemeTypeEntity.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return ThemeTypeEntity(
-      id: serializer.fromJson<int>(json['id']),
-      name: serializer.fromJson<String>(json['name']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
-      'name': serializer.toJson<String>(name),
-    };
-  }
-
-  ThemeTypeEntity copyWith({int? id, String? name}) => ThemeTypeEntity(
-        id: id ?? this.id,
-        name: name ?? this.name,
-      );
-  ThemeTypeEntity copyWithCompanion(ThemeTypesCompanion data) {
-    return ThemeTypeEntity(
-      id: data.id.present ? data.id.value : this.id,
-      name: data.name.present ? data.name.value : this.name,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('ThemeTypeEntity(')
-          ..write('id: $id, ')
-          ..write('name: $name')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(id, name);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is ThemeTypeEntity &&
-          other.id == this.id &&
-          other.name == this.name);
-}
-
-class ThemeTypesCompanion extends UpdateCompanion<ThemeTypeEntity> {
-  final Value<int> id;
-  final Value<String> name;
-  const ThemeTypesCompanion({
-    this.id = const Value.absent(),
-    this.name = const Value.absent(),
-  });
-  ThemeTypesCompanion.insert({
-    this.id = const Value.absent(),
-    required String name,
-  }) : name = Value(name);
-  static Insertable<ThemeTypeEntity> custom({
-    Expression<int>? id,
-    Expression<String>? name,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (name != null) 'name': name,
-    });
-  }
-
-  ThemeTypesCompanion copyWith({Value<int>? id, Value<String>? name}) {
-    return ThemeTypesCompanion(
-      id: id ?? this.id,
-      name: name ?? this.name,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<int>(id.value);
-    }
-    if (name.present) {
-      map['name'] = Variable<String>(name.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('ThemeTypesCompanion(')
-          ..write('id: $id, ')
-          ..write('name: $name')
-          ..write(')'))
-        .toString();
-  }
-}
-
-class $TimeDisplayFormatsTable extends TimeDisplayFormats
-    with TableInfo<$TimeDisplayFormatsTable, TimeDisplayFormatEntity> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $TimeDisplayFormatsTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
-      'id', aliasedName, false,
-      hasAutoIncrement: true,
-      type: DriftSqlType.int,
-      requiredDuringInsert: false,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
-  static const VerificationMeta _nameMeta = const VerificationMeta('name');
-  @override
-  late final GeneratedColumn<String> name = GeneratedColumn<String>(
-      'name', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'));
-  @override
-  List<GeneratedColumn> get $columns => [id, name];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'time_display_formats';
-  @override
-  VerificationContext validateIntegrity(
-      Insertable<TimeDisplayFormatEntity> instance,
-      {bool isInserting = false}) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    }
-    if (data.containsKey('name')) {
-      context.handle(
-          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
-    } else if (isInserting) {
-      context.missing(_nameMeta);
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  TimeDisplayFormatEntity map(Map<String, dynamic> data,
-      {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return TimeDisplayFormatEntity(
-      id: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
-      name: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
-    );
-  }
-
-  @override
-  $TimeDisplayFormatsTable createAlias(String alias) {
-    return $TimeDisplayFormatsTable(attachedDatabase, alias);
-  }
-}
-
-class TimeDisplayFormatEntity extends DataClass
-    implements Insertable<TimeDisplayFormatEntity> {
-  final int id;
-  final String name;
-  const TimeDisplayFormatEntity({required this.id, required this.name});
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
-    map['name'] = Variable<String>(name);
-    return map;
-  }
-
-  TimeDisplayFormatsCompanion toCompanion(bool nullToAbsent) {
-    return TimeDisplayFormatsCompanion(
-      id: Value(id),
-      name: Value(name),
-    );
-  }
-
-  factory TimeDisplayFormatEntity.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return TimeDisplayFormatEntity(
-      id: serializer.fromJson<int>(json['id']),
-      name: serializer.fromJson<String>(json['name']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
-      'name': serializer.toJson<String>(name),
-    };
-  }
-
-  TimeDisplayFormatEntity copyWith({int? id, String? name}) =>
-      TimeDisplayFormatEntity(
-        id: id ?? this.id,
-        name: name ?? this.name,
-      );
-  TimeDisplayFormatEntity copyWithCompanion(TimeDisplayFormatsCompanion data) {
-    return TimeDisplayFormatEntity(
-      id: data.id.present ? data.id.value : this.id,
-      name: data.name.present ? data.name.value : this.name,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('TimeDisplayFormatEntity(')
-          ..write('id: $id, ')
-          ..write('name: $name')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(id, name);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is TimeDisplayFormatEntity &&
-          other.id == this.id &&
-          other.name == this.name);
-}
-
-class TimeDisplayFormatsCompanion
-    extends UpdateCompanion<TimeDisplayFormatEntity> {
-  final Value<int> id;
-  final Value<String> name;
-  const TimeDisplayFormatsCompanion({
-    this.id = const Value.absent(),
-    this.name = const Value.absent(),
-  });
-  TimeDisplayFormatsCompanion.insert({
-    this.id = const Value.absent(),
-    required String name,
-  }) : name = Value(name);
-  static Insertable<TimeDisplayFormatEntity> custom({
-    Expression<int>? id,
-    Expression<String>? name,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (name != null) 'name': name,
-    });
-  }
-
-  TimeDisplayFormatsCompanion copyWith({Value<int>? id, Value<String>? name}) {
-    return TimeDisplayFormatsCompanion(
-      id: id ?? this.id,
-      name: name ?? this.name,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<int>(id.value);
-    }
-    if (name.present) {
-      map['name'] = Variable<String>(name.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('TimeDisplayFormatsCompanion(')
-          ..write('id: $id, ')
-          ..write('name: $name')
-          ..write(')'))
-        .toString();
-  }
-}
-
-class $ItemClickActionsTable extends ItemClickActions
-    with TableInfo<$ItemClickActionsTable, ItemClickActionEntity> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $ItemClickActionsTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
-      'id', aliasedName, false,
-      hasAutoIncrement: true,
-      type: DriftSqlType.int,
-      requiredDuringInsert: false,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
-  static const VerificationMeta _nameMeta = const VerificationMeta('name');
-  @override
-  late final GeneratedColumn<String> name = GeneratedColumn<String>(
-      'name', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'));
-  @override
-  List<GeneratedColumn> get $columns => [id, name];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'item_click_actions';
-  @override
-  VerificationContext validateIntegrity(
-      Insertable<ItemClickActionEntity> instance,
-      {bool isInserting = false}) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    }
-    if (data.containsKey('name')) {
-      context.handle(
-          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
-    } else if (isInserting) {
-      context.missing(_nameMeta);
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  ItemClickActionEntity map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return ItemClickActionEntity(
-      id: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
-      name: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
-    );
-  }
-
-  @override
-  $ItemClickActionsTable createAlias(String alias) {
-    return $ItemClickActionsTable(attachedDatabase, alias);
-  }
-}
-
-class ItemClickActionEntity extends DataClass
-    implements Insertable<ItemClickActionEntity> {
-  final int id;
-  final String name;
-  const ItemClickActionEntity({required this.id, required this.name});
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
-    map['name'] = Variable<String>(name);
-    return map;
-  }
-
-  ItemClickActionsCompanion toCompanion(bool nullToAbsent) {
-    return ItemClickActionsCompanion(
-      id: Value(id),
-      name: Value(name),
-    );
-  }
-
-  factory ItemClickActionEntity.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return ItemClickActionEntity(
-      id: serializer.fromJson<int>(json['id']),
-      name: serializer.fromJson<String>(json['name']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
-      'name': serializer.toJson<String>(name),
-    };
-  }
-
-  ItemClickActionEntity copyWith({int? id, String? name}) =>
-      ItemClickActionEntity(
-        id: id ?? this.id,
-        name: name ?? this.name,
-      );
-  ItemClickActionEntity copyWithCompanion(ItemClickActionsCompanion data) {
-    return ItemClickActionEntity(
-      id: data.id.present ? data.id.value : this.id,
-      name: data.name.present ? data.name.value : this.name,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('ItemClickActionEntity(')
-          ..write('id: $id, ')
-          ..write('name: $name')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(id, name);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is ItemClickActionEntity &&
-          other.id == this.id &&
-          other.name == this.name);
-}
-
-class ItemClickActionsCompanion extends UpdateCompanion<ItemClickActionEntity> {
-  final Value<int> id;
-  final Value<String> name;
-  const ItemClickActionsCompanion({
-    this.id = const Value.absent(),
-    this.name = const Value.absent(),
-  });
-  ItemClickActionsCompanion.insert({
-    this.id = const Value.absent(),
-    required String name,
-  }) : name = Value(name);
-  static Insertable<ItemClickActionEntity> custom({
-    Expression<int>? id,
-    Expression<String>? name,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (name != null) 'name': name,
-    });
-  }
-
-  ItemClickActionsCompanion copyWith({Value<int>? id, Value<String>? name}) {
-    return ItemClickActionsCompanion(
-      id: id ?? this.id,
-      name: name ?? this.name,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<int>(id.value);
-    }
-    if (name.present) {
-      map['name'] = Variable<String>(name.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('ItemClickActionsCompanion(')
-          ..write('id: $id, ')
-          ..write('name: $name')
-          ..write(')'))
-        .toString();
-  }
-}
-
 class $UserConfigsTable extends UserConfigs
     with TableInfo<$UserConfigsTable, UserConfig> {
   @override
@@ -642,36 +91,33 @@ class $UserConfigsTable extends UserConfigs
   late final GeneratedColumn<String> selectedThemeKey = GeneratedColumn<String>(
       'selected_theme_key', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _selectedThemeTypeMeta =
-      const VerificationMeta('selectedThemeType');
   @override
-  late final GeneratedColumn<int> selectedThemeType = GeneratedColumn<int>(
-      'selected_theme_type', aliasedName, false,
-      type: DriftSqlType.int,
-      requiredDuringInsert: false,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('REFERENCES theme_types (id)'),
-      defaultValue: const Constant(0));
-  static const VerificationMeta _timeDisplayFormatMeta =
-      const VerificationMeta('timeDisplayFormat');
+  late final GeneratedColumnWithTypeConverter<ThemeType, int>
+      selectedThemeType = GeneratedColumn<int>(
+              'selected_theme_type', aliasedName, false,
+              type: DriftSqlType.int,
+              requiredDuringInsert: false,
+              defaultValue: const Constant(0))
+          .withConverter<ThemeType>(
+              $UserConfigsTable.$converterselectedThemeType);
   @override
-  late final GeneratedColumn<int> timeDisplayFormat = GeneratedColumn<int>(
-      'time_display_format', aliasedName, false,
-      type: DriftSqlType.int,
-      requiredDuringInsert: false,
-      defaultConstraints: GeneratedColumn.constraintIsAlways(
-          'REFERENCES time_display_formats (id)'),
-      defaultValue: const Constant(0));
-  static const VerificationMeta _itemClickActionMeta =
-      const VerificationMeta('itemClickAction');
+  late final GeneratedColumnWithTypeConverter<TimeDisplayFormat, int>
+      timeDisplayFormat = GeneratedColumn<int>(
+              'time_display_format', aliasedName, false,
+              type: DriftSqlType.int,
+              requiredDuringInsert: false,
+              defaultValue: const Constant(0))
+          .withConverter<TimeDisplayFormat>(
+              $UserConfigsTable.$convertertimeDisplayFormat);
   @override
-  late final GeneratedColumn<int> itemClickAction = GeneratedColumn<int>(
-      'item_click_action', aliasedName, false,
-      type: DriftSqlType.int,
-      requiredDuringInsert: false,
-      defaultConstraints: GeneratedColumn.constraintIsAlways(
-          'REFERENCES item_click_actions (id)'),
-      defaultValue: const Constant(0));
+  late final GeneratedColumnWithTypeConverter<ItemClickAction, int>
+      itemClickAction = GeneratedColumn<int>(
+              'item_click_action', aliasedName, false,
+              type: DriftSqlType.int,
+              requiredDuringInsert: false,
+              defaultValue: const Constant(0))
+          .withConverter<ItemClickAction>(
+              $UserConfigsTable.$converteritemClickAction);
   static const VerificationMeta _cacheDirectoryMeta =
       const VerificationMeta('cacheDirectory');
   @override
@@ -802,24 +248,6 @@ class $UserConfigsTable extends UserConfigs
           selectedThemeKey.isAcceptableOrUnknown(
               data['selected_theme_key']!, _selectedThemeKeyMeta));
     }
-    if (data.containsKey('selected_theme_type')) {
-      context.handle(
-          _selectedThemeTypeMeta,
-          selectedThemeType.isAcceptableOrUnknown(
-              data['selected_theme_type']!, _selectedThemeTypeMeta));
-    }
-    if (data.containsKey('time_display_format')) {
-      context.handle(
-          _timeDisplayFormatMeta,
-          timeDisplayFormat.isAcceptableOrUnknown(
-              data['time_display_format']!, _timeDisplayFormatMeta));
-    }
-    if (data.containsKey('item_click_action')) {
-      context.handle(
-          _itemClickActionMeta,
-          itemClickAction.isAcceptableOrUnknown(
-              data['item_click_action']!, _itemClickActionMeta));
-    }
     if (data.containsKey('cache_directory')) {
       context.handle(
           _cacheDirectoryMeta,
@@ -879,12 +307,15 @@ class $UserConfigsTable extends UserConfigs
           data['${effectivePrefix}archive_org_s3_secret_key']),
       selectedThemeKey: attachedDatabase.typeMapping.read(
           DriftSqlType.string, data['${effectivePrefix}selected_theme_key']),
-      selectedThemeType: attachedDatabase.typeMapping.read(
-          DriftSqlType.int, data['${effectivePrefix}selected_theme_type'])!,
-      timeDisplayFormat: attachedDatabase.typeMapping.read(
-          DriftSqlType.int, data['${effectivePrefix}time_display_format'])!,
-      itemClickAction: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}item_click_action'])!,
+      selectedThemeType: $UserConfigsTable.$converterselectedThemeType.fromSql(
+          attachedDatabase.typeMapping.read(DriftSqlType.int,
+              data['${effectivePrefix}selected_theme_type'])!),
+      timeDisplayFormat: $UserConfigsTable.$convertertimeDisplayFormat.fromSql(
+          attachedDatabase.typeMapping.read(DriftSqlType.int,
+              data['${effectivePrefix}time_display_format'])!),
+      itemClickAction: $UserConfigsTable.$converteritemClickAction.fromSql(
+          attachedDatabase.typeMapping.read(
+              DriftSqlType.int, data['${effectivePrefix}item_click_action'])!),
       cacheDirectory: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}cache_directory']),
       showDescription: attachedDatabase.typeMapping
@@ -902,6 +333,15 @@ class $UserConfigsTable extends UserConfigs
   $UserConfigsTable createAlias(String alias) {
     return $UserConfigsTable(attachedDatabase, alias);
   }
+
+  static JsonTypeConverter2<ThemeType, int, int> $converterselectedThemeType =
+      const EnumIndexConverter<ThemeType>(ThemeType.values);
+  static JsonTypeConverter2<TimeDisplayFormat, int, int>
+      $convertertimeDisplayFormat =
+      const EnumIndexConverter<TimeDisplayFormat>(TimeDisplayFormat.values);
+  static JsonTypeConverter2<ItemClickAction, int, int>
+      $converteritemClickAction =
+      const EnumIndexConverter<ItemClickAction>(ItemClickAction.values);
 }
 
 class UserConfig extends DataClass implements Insertable<UserConfig> {
@@ -915,9 +355,9 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
   final String? archiveOrgS3AccessKey;
   final String? archiveOrgS3SecretKey;
   final String? selectedThemeKey;
-  final int selectedThemeType;
-  final int timeDisplayFormat;
-  final int itemClickAction;
+  final ThemeType selectedThemeType;
+  final TimeDisplayFormat timeDisplayFormat;
+  final ItemClickAction itemClickAction;
   final String? cacheDirectory;
   final bool showDescription;
   final bool showImages;
@@ -963,9 +403,20 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
     if (!nullToAbsent || selectedThemeKey != null) {
       map['selected_theme_key'] = Variable<String>(selectedThemeKey);
     }
-    map['selected_theme_type'] = Variable<int>(selectedThemeType);
-    map['time_display_format'] = Variable<int>(timeDisplayFormat);
-    map['item_click_action'] = Variable<int>(itemClickAction);
+    {
+      map['selected_theme_type'] = Variable<int>($UserConfigsTable
+          .$converterselectedThemeType
+          .toSql(selectedThemeType));
+    }
+    {
+      map['time_display_format'] = Variable<int>($UserConfigsTable
+          .$convertertimeDisplayFormat
+          .toSql(timeDisplayFormat));
+    }
+    {
+      map['item_click_action'] = Variable<int>(
+          $UserConfigsTable.$converteritemClickAction.toSql(itemClickAction));
+    }
     if (!nullToAbsent || cacheDirectory != null) {
       map['cache_directory'] = Variable<String>(cacheDirectory);
     }
@@ -1023,9 +474,12 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
       archiveOrgS3SecretKey:
           serializer.fromJson<String?>(json['archiveOrgS3SecretKey']),
       selectedThemeKey: serializer.fromJson<String?>(json['selectedThemeKey']),
-      selectedThemeType: serializer.fromJson<int>(json['selectedThemeType']),
-      timeDisplayFormat: serializer.fromJson<int>(json['timeDisplayFormat']),
-      itemClickAction: serializer.fromJson<int>(json['itemClickAction']),
+      selectedThemeType: $UserConfigsTable.$converterselectedThemeType
+          .fromJson(serializer.fromJson<int>(json['selectedThemeType'])),
+      timeDisplayFormat: $UserConfigsTable.$convertertimeDisplayFormat
+          .fromJson(serializer.fromJson<int>(json['timeDisplayFormat'])),
+      itemClickAction: $UserConfigsTable.$converteritemClickAction
+          .fromJson(serializer.fromJson<int>(json['itemClickAction'])),
       cacheDirectory: serializer.fromJson<String?>(json['cacheDirectory']),
       showDescription: serializer.fromJson<bool>(json['showDescription']),
       showImages: serializer.fromJson<bool>(json['showImages']),
@@ -1049,9 +503,14 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
       'archiveOrgS3SecretKey':
           serializer.toJson<String?>(archiveOrgS3SecretKey),
       'selectedThemeKey': serializer.toJson<String?>(selectedThemeKey),
-      'selectedThemeType': serializer.toJson<int>(selectedThemeType),
-      'timeDisplayFormat': serializer.toJson<int>(timeDisplayFormat),
-      'itemClickAction': serializer.toJson<int>(itemClickAction),
+      'selectedThemeType': serializer.toJson<int>($UserConfigsTable
+          .$converterselectedThemeType
+          .toJson(selectedThemeType)),
+      'timeDisplayFormat': serializer.toJson<int>($UserConfigsTable
+          .$convertertimeDisplayFormat
+          .toJson(timeDisplayFormat)),
+      'itemClickAction': serializer.toJson<int>(
+          $UserConfigsTable.$converteritemClickAction.toJson(itemClickAction)),
       'cacheDirectory': serializer.toJson<String?>(cacheDirectory),
       'showDescription': serializer.toJson<bool>(showDescription),
       'showImages': serializer.toJson<bool>(showImages),
@@ -1071,9 +530,9 @@ class UserConfig extends DataClass implements Insertable<UserConfig> {
           Value<String?> archiveOrgS3AccessKey = const Value.absent(),
           Value<String?> archiveOrgS3SecretKey = const Value.absent(),
           Value<String?> selectedThemeKey = const Value.absent(),
-          int? selectedThemeType,
-          int? timeDisplayFormat,
-          int? itemClickAction,
+          ThemeType? selectedThemeType,
+          TimeDisplayFormat? timeDisplayFormat,
+          ItemClickAction? itemClickAction,
           Value<String?> cacheDirectory = const Value.absent(),
           bool? showDescription,
           bool? showImages,
@@ -1234,9 +693,9 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
   final Value<String?> archiveOrgS3AccessKey;
   final Value<String?> archiveOrgS3SecretKey;
   final Value<String?> selectedThemeKey;
-  final Value<int> selectedThemeType;
-  final Value<int> timeDisplayFormat;
-  final Value<int> itemClickAction;
+  final Value<ThemeType> selectedThemeType;
+  final Value<TimeDisplayFormat> timeDisplayFormat;
+  final Value<ItemClickAction> itemClickAction;
   final Value<String?> cacheDirectory;
   final Value<bool> showDescription;
   final Value<bool> showImages;
@@ -1342,9 +801,9 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
       Value<String?>? archiveOrgS3AccessKey,
       Value<String?>? archiveOrgS3SecretKey,
       Value<String?>? selectedThemeKey,
-      Value<int>? selectedThemeType,
-      Value<int>? timeDisplayFormat,
-      Value<int>? itemClickAction,
+      Value<ThemeType>? selectedThemeType,
+      Value<TimeDisplayFormat>? timeDisplayFormat,
+      Value<ItemClickAction>? itemClickAction,
       Value<String?>? cacheDirectory,
       Value<bool>? showDescription,
       Value<bool>? showImages,
@@ -1412,13 +871,19 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
       map['selected_theme_key'] = Variable<String>(selectedThemeKey.value);
     }
     if (selectedThemeType.present) {
-      map['selected_theme_type'] = Variable<int>(selectedThemeType.value);
+      map['selected_theme_type'] = Variable<int>($UserConfigsTable
+          .$converterselectedThemeType
+          .toSql(selectedThemeType.value));
     }
     if (timeDisplayFormat.present) {
-      map['time_display_format'] = Variable<int>(timeDisplayFormat.value);
+      map['time_display_format'] = Variable<int>($UserConfigsTable
+          .$convertertimeDisplayFormat
+          .toSql(timeDisplayFormat.value));
     }
     if (itemClickAction.present) {
-      map['item_click_action'] = Variable<int>(itemClickAction.value);
+      map['item_click_action'] = Variable<int>($UserConfigsTable
+          .$converteritemClickAction
+          .toSql(itemClickAction.value));
     }
     if (cacheDirectory.present) {
       map['cache_directory'] = Variable<String>(cacheDirectory.value);
@@ -1463,187 +928,6 @@ class UserConfigsCompanion extends UpdateCompanion<UserConfig> {
           ..write('showTags: $showTags, ')
           ..write('showCopyLink: $showCopyLink, ')
           ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
-class $SeedTypesTable extends SeedTypes
-    with TableInfo<$SeedTypesTable, SeedTypeEntity> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $SeedTypesTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
-      'id', aliasedName, false,
-      hasAutoIncrement: true,
-      type: DriftSqlType.int,
-      requiredDuringInsert: false,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
-  static const VerificationMeta _nameMeta = const VerificationMeta('name');
-  @override
-  late final GeneratedColumn<String> name = GeneratedColumn<String>(
-      'name', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'));
-  @override
-  List<GeneratedColumn> get $columns => [id, name];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'seed_types';
-  @override
-  VerificationContext validateIntegrity(Insertable<SeedTypeEntity> instance,
-      {bool isInserting = false}) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    }
-    if (data.containsKey('name')) {
-      context.handle(
-          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
-    } else if (isInserting) {
-      context.missing(_nameMeta);
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  SeedTypeEntity map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return SeedTypeEntity(
-      id: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
-      name: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
-    );
-  }
-
-  @override
-  $SeedTypesTable createAlias(String alias) {
-    return $SeedTypesTable(attachedDatabase, alias);
-  }
-}
-
-class SeedTypeEntity extends DataClass implements Insertable<SeedTypeEntity> {
-  final int id;
-  final String name;
-  const SeedTypeEntity({required this.id, required this.name});
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
-    map['name'] = Variable<String>(name);
-    return map;
-  }
-
-  SeedTypesCompanion toCompanion(bool nullToAbsent) {
-    return SeedTypesCompanion(
-      id: Value(id),
-      name: Value(name),
-    );
-  }
-
-  factory SeedTypeEntity.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return SeedTypeEntity(
-      id: serializer.fromJson<int>(json['id']),
-      name: serializer.fromJson<String>(json['name']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
-      'name': serializer.toJson<String>(name),
-    };
-  }
-
-  SeedTypeEntity copyWith({int? id, String? name}) => SeedTypeEntity(
-        id: id ?? this.id,
-        name: name ?? this.name,
-      );
-  SeedTypeEntity copyWithCompanion(SeedTypesCompanion data) {
-    return SeedTypeEntity(
-      id: data.id.present ? data.id.value : this.id,
-      name: data.name.present ? data.name.value : this.name,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('SeedTypeEntity(')
-          ..write('id: $id, ')
-          ..write('name: $name')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(id, name);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is SeedTypeEntity &&
-          other.id == this.id &&
-          other.name == this.name);
-}
-
-class SeedTypesCompanion extends UpdateCompanion<SeedTypeEntity> {
-  final Value<int> id;
-  final Value<String> name;
-  const SeedTypesCompanion({
-    this.id = const Value.absent(),
-    this.name = const Value.absent(),
-  });
-  SeedTypesCompanion.insert({
-    this.id = const Value.absent(),
-    required String name,
-  }) : name = Value(name);
-  static Insertable<SeedTypeEntity> custom({
-    Expression<int>? id,
-    Expression<String>? name,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (name != null) 'name': name,
-    });
-  }
-
-  SeedTypesCompanion copyWith({Value<int>? id, Value<String>? name}) {
-    return SeedTypesCompanion(
-      id: id ?? this.id,
-      name: name ?? this.name,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<int>(id.value);
-    }
-    if (name.present) {
-      map['name'] = Variable<String>(name.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('SeedTypesCompanion(')
-          ..write('id: $id, ')
-          ..write('name: $name')
           ..write(')'))
         .toString();
   }
@@ -1713,16 +997,13 @@ class $UserThemesTable extends UserThemes
   late final GeneratedColumn<int> tertiaryColor = GeneratedColumn<int>(
       'tertiary_color', aliasedName, true,
       type: DriftSqlType.int, requiredDuringInsert: false);
-  static const VerificationMeta _seedTypeMeta =
-      const VerificationMeta('seedType');
   @override
-  late final GeneratedColumn<int> seedType = GeneratedColumn<int>(
-      'seed_type', aliasedName, false,
-      type: DriftSqlType.int,
-      requiredDuringInsert: false,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('REFERENCES seed_types (id)'),
-      defaultValue: const Constant(0));
+  late final GeneratedColumnWithTypeConverter<SeedType, int> seedType =
+      GeneratedColumn<int>('seed_type', aliasedName, false,
+              type: DriftSqlType.int,
+              requiredDuringInsert: false,
+              defaultValue: const Constant(0))
+          .withConverter<SeedType>($UserThemesTable.$converterseedType);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -1794,10 +1075,6 @@ class $UserThemesTable extends UserThemes
           tertiaryColor.isAcceptableOrUnknown(
               data['tertiary_color']!, _tertiaryColorMeta));
     }
-    if (data.containsKey('seed_type')) {
-      context.handle(_seedTypeMeta,
-          seedType.isAcceptableOrUnknown(data['seed_type']!, _seedTypeMeta));
-    }
     return context;
   }
 
@@ -1823,8 +1100,9 @@ class $UserThemesTable extends UserThemes
           .read(DriftSqlType.int, data['${effectivePrefix}secondary_color'])!,
       tertiaryColor: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}tertiary_color']),
-      seedType: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}seed_type'])!,
+      seedType: $UserThemesTable.$converterseedType.fromSql(attachedDatabase
+          .typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}seed_type'])!),
     );
   }
 
@@ -1832,6 +1110,9 @@ class $UserThemesTable extends UserThemes
   $UserThemesTable createAlias(String alias) {
     return $UserThemesTable(attachedDatabase, alias);
   }
+
+  static JsonTypeConverter2<SeedType, int, int> $converterseedType =
+      const EnumIndexConverter<SeedType>(SeedType.values);
 }
 
 class UserTheme extends DataClass implements Insertable<UserTheme> {
@@ -1843,7 +1124,7 @@ class UserTheme extends DataClass implements Insertable<UserTheme> {
   final int primaryColor;
   final int secondaryColor;
   final int? tertiaryColor;
-  final int seedType;
+  final SeedType seedType;
   const UserTheme(
       {required this.id,
       required this.userConfigId,
@@ -1867,7 +1148,10 @@ class UserTheme extends DataClass implements Insertable<UserTheme> {
     if (!nullToAbsent || tertiaryColor != null) {
       map['tertiary_color'] = Variable<int>(tertiaryColor);
     }
-    map['seed_type'] = Variable<int>(seedType);
+    {
+      map['seed_type'] =
+          Variable<int>($UserThemesTable.$converterseedType.toSql(seedType));
+    }
     return map;
   }
 
@@ -1899,7 +1183,8 @@ class UserTheme extends DataClass implements Insertable<UserTheme> {
       primaryColor: serializer.fromJson<int>(json['primaryColor']),
       secondaryColor: serializer.fromJson<int>(json['secondaryColor']),
       tertiaryColor: serializer.fromJson<int?>(json['tertiaryColor']),
-      seedType: serializer.fromJson<int>(json['seedType']),
+      seedType: $UserThemesTable.$converterseedType
+          .fromJson(serializer.fromJson<int>(json['seedType'])),
     );
   }
   @override
@@ -1914,7 +1199,8 @@ class UserTheme extends DataClass implements Insertable<UserTheme> {
       'primaryColor': serializer.toJson<int>(primaryColor),
       'secondaryColor': serializer.toJson<int>(secondaryColor),
       'tertiaryColor': serializer.toJson<int?>(tertiaryColor),
-      'seedType': serializer.toJson<int>(seedType),
+      'seedType': serializer
+          .toJson<int>($UserThemesTable.$converterseedType.toJson(seedType)),
     };
   }
 
@@ -1927,7 +1213,7 @@ class UserTheme extends DataClass implements Insertable<UserTheme> {
           int? primaryColor,
           int? secondaryColor,
           Value<int?> tertiaryColor = const Value.absent(),
-          int? seedType}) =>
+          SeedType? seedType}) =>
       UserTheme(
         id: id ?? this.id,
         userConfigId: userConfigId ?? this.userConfigId,
@@ -2005,7 +1291,7 @@ class UserThemesCompanion extends UpdateCompanion<UserTheme> {
   final Value<int> primaryColor;
   final Value<int> secondaryColor;
   final Value<int?> tertiaryColor;
-  final Value<int> seedType;
+  final Value<SeedType> seedType;
   final Value<int> rowid;
   const UserThemesCompanion({
     this.id = const Value.absent(),
@@ -2070,7 +1356,7 @@ class UserThemesCompanion extends UpdateCompanion<UserTheme> {
       Value<int>? primaryColor,
       Value<int>? secondaryColor,
       Value<int?>? tertiaryColor,
-      Value<int>? seedType,
+      Value<SeedType>? seedType,
       Value<int>? rowid}) {
     return UserThemesCompanion(
       id: id ?? this.id,
@@ -2114,7 +1400,8 @@ class UserThemesCompanion extends UpdateCompanion<UserTheme> {
       map['tertiary_color'] = Variable<int>(tertiaryColor.value);
     }
     if (seedType.present) {
-      map['seed_type'] = Variable<int>(seedType.value);
+      map['seed_type'] = Variable<int>(
+          $UserThemesTable.$converterseedType.toSql(seedType.value));
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -2533,28 +1820,15 @@ class BackupSettingsCompanion extends UpdateCompanion<BackupSetting> {
 abstract class _$ConfigDatabase extends GeneratedDatabase {
   _$ConfigDatabase(QueryExecutor e) : super(e);
   $ConfigDatabaseManager get managers => $ConfigDatabaseManager(this);
-  late final $ThemeTypesTable themeTypes = $ThemeTypesTable(this);
-  late final $TimeDisplayFormatsTable timeDisplayFormats =
-      $TimeDisplayFormatsTable(this);
-  late final $ItemClickActionsTable itemClickActions =
-      $ItemClickActionsTable(this);
   late final $UserConfigsTable userConfigs = $UserConfigsTable(this);
-  late final $SeedTypesTable seedTypes = $SeedTypesTable(this);
   late final $UserThemesTable userThemes = $UserThemesTable(this);
   late final $BackupSettingsTable backupSettings = $BackupSettingsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [
-        themeTypes,
-        timeDisplayFormats,
-        itemClickActions,
-        userConfigs,
-        seedTypes,
-        userThemes,
-        backupSettings
-      ];
+  List<DatabaseSchemaEntity> get allSchemaEntities =>
+      [userConfigs, userThemes, backupSettings];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules(
         [
@@ -2572,624 +1846,6 @@ abstract class _$ConfigDatabase extends GeneratedDatabase {
       const DriftDatabaseOptions(storeDateTimeAsText: true);
 }
 
-typedef $$ThemeTypesTableCreateCompanionBuilder = ThemeTypesCompanion Function({
-  Value<int> id,
-  required String name,
-});
-typedef $$ThemeTypesTableUpdateCompanionBuilder = ThemeTypesCompanion Function({
-  Value<int> id,
-  Value<String> name,
-});
-
-final class $$ThemeTypesTableReferences extends BaseReferences<_$ConfigDatabase,
-    $ThemeTypesTable, ThemeTypeEntity> {
-  $$ThemeTypesTableReferences(super.$_db, super.$_table, super.$_typedResult);
-
-  static MultiTypedResultKey<$UserConfigsTable, List<UserConfig>>
-      _userConfigsRefsTable(_$ConfigDatabase db) =>
-          MultiTypedResultKey.fromTable(db.userConfigs,
-              aliasName: $_aliasNameGenerator(
-                  db.themeTypes.id, db.userConfigs.selectedThemeType));
-
-  $$UserConfigsTableProcessedTableManager get userConfigsRefs {
-    final manager = $$UserConfigsTableTableManager($_db, $_db.userConfigs)
-        .filter(
-            (f) => f.selectedThemeType.id.sqlEquals($_itemColumn<int>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(_userConfigsRefsTable($_db));
-    return ProcessedTableManager(
-        manager.$state.copyWith(prefetchedData: cache));
-  }
-}
-
-class $$ThemeTypesTableFilterComposer
-    extends Composer<_$ConfigDatabase, $ThemeTypesTable> {
-  $$ThemeTypesTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<int> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get name => $composableBuilder(
-      column: $table.name, builder: (column) => ColumnFilters(column));
-
-  Expression<bool> userConfigsRefs(
-      Expression<bool> Function($$UserConfigsTableFilterComposer f) f) {
-    final $$UserConfigsTableFilterComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.id,
-        referencedTable: $db.userConfigs,
-        getReferencedColumn: (t) => t.selectedThemeType,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$UserConfigsTableFilterComposer(
-              $db: $db,
-              $table: $db.userConfigs,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return f(composer);
-  }
-}
-
-class $$ThemeTypesTableOrderingComposer
-    extends Composer<_$ConfigDatabase, $ThemeTypesTable> {
-  $$ThemeTypesTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<int> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get name => $composableBuilder(
-      column: $table.name, builder: (column) => ColumnOrderings(column));
-}
-
-class $$ThemeTypesTableAnnotationComposer
-    extends Composer<_$ConfigDatabase, $ThemeTypesTable> {
-  $$ThemeTypesTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<int> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get name =>
-      $composableBuilder(column: $table.name, builder: (column) => column);
-
-  Expression<T> userConfigsRefs<T extends Object>(
-      Expression<T> Function($$UserConfigsTableAnnotationComposer a) f) {
-    final $$UserConfigsTableAnnotationComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.id,
-        referencedTable: $db.userConfigs,
-        getReferencedColumn: (t) => t.selectedThemeType,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$UserConfigsTableAnnotationComposer(
-              $db: $db,
-              $table: $db.userConfigs,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return f(composer);
-  }
-}
-
-class $$ThemeTypesTableTableManager extends RootTableManager<
-    _$ConfigDatabase,
-    $ThemeTypesTable,
-    ThemeTypeEntity,
-    $$ThemeTypesTableFilterComposer,
-    $$ThemeTypesTableOrderingComposer,
-    $$ThemeTypesTableAnnotationComposer,
-    $$ThemeTypesTableCreateCompanionBuilder,
-    $$ThemeTypesTableUpdateCompanionBuilder,
-    (ThemeTypeEntity, $$ThemeTypesTableReferences),
-    ThemeTypeEntity,
-    PrefetchHooks Function({bool userConfigsRefs})> {
-  $$ThemeTypesTableTableManager(_$ConfigDatabase db, $ThemeTypesTable table)
-      : super(TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$ThemeTypesTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$ThemeTypesTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$ThemeTypesTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<int> id = const Value.absent(),
-            Value<String> name = const Value.absent(),
-          }) =>
-              ThemeTypesCompanion(
-            id: id,
-            name: name,
-          ),
-          createCompanionCallback: ({
-            Value<int> id = const Value.absent(),
-            required String name,
-          }) =>
-              ThemeTypesCompanion.insert(
-            id: id,
-            name: name,
-          ),
-          withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable(table),
-                    $$ThemeTypesTableReferences(db, table, e)
-                  ))
-              .toList(),
-          prefetchHooksCallback: ({userConfigsRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [if (userConfigsRefs) db.userConfigs],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (userConfigsRefs)
-                    await $_getPrefetchedData<ThemeTypeEntity, $ThemeTypesTable,
-                            UserConfig>(
-                        currentTable: table,
-                        referencedTable: $$ThemeTypesTableReferences
-                            ._userConfigsRefsTable(db),
-                        managerFromTypedResult: (p0) =>
-                            $$ThemeTypesTableReferences(db, table, p0)
-                                .userConfigsRefs,
-                        referencedItemsForCurrentItem:
-                            (item, referencedItems) => referencedItems
-                                .where((e) => e.selectedThemeType == item.id),
-                        typedResults: items)
-                ];
-              },
-            );
-          },
-        ));
-}
-
-typedef $$ThemeTypesTableProcessedTableManager = ProcessedTableManager<
-    _$ConfigDatabase,
-    $ThemeTypesTable,
-    ThemeTypeEntity,
-    $$ThemeTypesTableFilterComposer,
-    $$ThemeTypesTableOrderingComposer,
-    $$ThemeTypesTableAnnotationComposer,
-    $$ThemeTypesTableCreateCompanionBuilder,
-    $$ThemeTypesTableUpdateCompanionBuilder,
-    (ThemeTypeEntity, $$ThemeTypesTableReferences),
-    ThemeTypeEntity,
-    PrefetchHooks Function({bool userConfigsRefs})>;
-typedef $$TimeDisplayFormatsTableCreateCompanionBuilder
-    = TimeDisplayFormatsCompanion Function({
-  Value<int> id,
-  required String name,
-});
-typedef $$TimeDisplayFormatsTableUpdateCompanionBuilder
-    = TimeDisplayFormatsCompanion Function({
-  Value<int> id,
-  Value<String> name,
-});
-
-final class $$TimeDisplayFormatsTableReferences extends BaseReferences<
-    _$ConfigDatabase, $TimeDisplayFormatsTable, TimeDisplayFormatEntity> {
-  $$TimeDisplayFormatsTableReferences(
-      super.$_db, super.$_table, super.$_typedResult);
-
-  static MultiTypedResultKey<$UserConfigsTable, List<UserConfig>>
-      _userConfigsRefsTable(_$ConfigDatabase db) =>
-          MultiTypedResultKey.fromTable(db.userConfigs,
-              aliasName: $_aliasNameGenerator(
-                  db.timeDisplayFormats.id, db.userConfigs.timeDisplayFormat));
-
-  $$UserConfigsTableProcessedTableManager get userConfigsRefs {
-    final manager = $$UserConfigsTableTableManager($_db, $_db.userConfigs)
-        .filter(
-            (f) => f.timeDisplayFormat.id.sqlEquals($_itemColumn<int>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(_userConfigsRefsTable($_db));
-    return ProcessedTableManager(
-        manager.$state.copyWith(prefetchedData: cache));
-  }
-}
-
-class $$TimeDisplayFormatsTableFilterComposer
-    extends Composer<_$ConfigDatabase, $TimeDisplayFormatsTable> {
-  $$TimeDisplayFormatsTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<int> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get name => $composableBuilder(
-      column: $table.name, builder: (column) => ColumnFilters(column));
-
-  Expression<bool> userConfigsRefs(
-      Expression<bool> Function($$UserConfigsTableFilterComposer f) f) {
-    final $$UserConfigsTableFilterComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.id,
-        referencedTable: $db.userConfigs,
-        getReferencedColumn: (t) => t.timeDisplayFormat,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$UserConfigsTableFilterComposer(
-              $db: $db,
-              $table: $db.userConfigs,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return f(composer);
-  }
-}
-
-class $$TimeDisplayFormatsTableOrderingComposer
-    extends Composer<_$ConfigDatabase, $TimeDisplayFormatsTable> {
-  $$TimeDisplayFormatsTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<int> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get name => $composableBuilder(
-      column: $table.name, builder: (column) => ColumnOrderings(column));
-}
-
-class $$TimeDisplayFormatsTableAnnotationComposer
-    extends Composer<_$ConfigDatabase, $TimeDisplayFormatsTable> {
-  $$TimeDisplayFormatsTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<int> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get name =>
-      $composableBuilder(column: $table.name, builder: (column) => column);
-
-  Expression<T> userConfigsRefs<T extends Object>(
-      Expression<T> Function($$UserConfigsTableAnnotationComposer a) f) {
-    final $$UserConfigsTableAnnotationComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.id,
-        referencedTable: $db.userConfigs,
-        getReferencedColumn: (t) => t.timeDisplayFormat,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$UserConfigsTableAnnotationComposer(
-              $db: $db,
-              $table: $db.userConfigs,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return f(composer);
-  }
-}
-
-class $$TimeDisplayFormatsTableTableManager extends RootTableManager<
-    _$ConfigDatabase,
-    $TimeDisplayFormatsTable,
-    TimeDisplayFormatEntity,
-    $$TimeDisplayFormatsTableFilterComposer,
-    $$TimeDisplayFormatsTableOrderingComposer,
-    $$TimeDisplayFormatsTableAnnotationComposer,
-    $$TimeDisplayFormatsTableCreateCompanionBuilder,
-    $$TimeDisplayFormatsTableUpdateCompanionBuilder,
-    (TimeDisplayFormatEntity, $$TimeDisplayFormatsTableReferences),
-    TimeDisplayFormatEntity,
-    PrefetchHooks Function({bool userConfigsRefs})> {
-  $$TimeDisplayFormatsTableTableManager(
-      _$ConfigDatabase db, $TimeDisplayFormatsTable table)
-      : super(TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$TimeDisplayFormatsTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$TimeDisplayFormatsTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$TimeDisplayFormatsTableAnnotationComposer(
-                  $db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<int> id = const Value.absent(),
-            Value<String> name = const Value.absent(),
-          }) =>
-              TimeDisplayFormatsCompanion(
-            id: id,
-            name: name,
-          ),
-          createCompanionCallback: ({
-            Value<int> id = const Value.absent(),
-            required String name,
-          }) =>
-              TimeDisplayFormatsCompanion.insert(
-            id: id,
-            name: name,
-          ),
-          withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable(table),
-                    $$TimeDisplayFormatsTableReferences(db, table, e)
-                  ))
-              .toList(),
-          prefetchHooksCallback: ({userConfigsRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [if (userConfigsRefs) db.userConfigs],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (userConfigsRefs)
-                    await $_getPrefetchedData<TimeDisplayFormatEntity,
-                            $TimeDisplayFormatsTable, UserConfig>(
-                        currentTable: table,
-                        referencedTable: $$TimeDisplayFormatsTableReferences
-                            ._userConfigsRefsTable(db),
-                        managerFromTypedResult: (p0) =>
-                            $$TimeDisplayFormatsTableReferences(db, table, p0)
-                                .userConfigsRefs,
-                        referencedItemsForCurrentItem:
-                            (item, referencedItems) => referencedItems
-                                .where((e) => e.timeDisplayFormat == item.id),
-                        typedResults: items)
-                ];
-              },
-            );
-          },
-        ));
-}
-
-typedef $$TimeDisplayFormatsTableProcessedTableManager = ProcessedTableManager<
-    _$ConfigDatabase,
-    $TimeDisplayFormatsTable,
-    TimeDisplayFormatEntity,
-    $$TimeDisplayFormatsTableFilterComposer,
-    $$TimeDisplayFormatsTableOrderingComposer,
-    $$TimeDisplayFormatsTableAnnotationComposer,
-    $$TimeDisplayFormatsTableCreateCompanionBuilder,
-    $$TimeDisplayFormatsTableUpdateCompanionBuilder,
-    (TimeDisplayFormatEntity, $$TimeDisplayFormatsTableReferences),
-    TimeDisplayFormatEntity,
-    PrefetchHooks Function({bool userConfigsRefs})>;
-typedef $$ItemClickActionsTableCreateCompanionBuilder
-    = ItemClickActionsCompanion Function({
-  Value<int> id,
-  required String name,
-});
-typedef $$ItemClickActionsTableUpdateCompanionBuilder
-    = ItemClickActionsCompanion Function({
-  Value<int> id,
-  Value<String> name,
-});
-
-final class $$ItemClickActionsTableReferences extends BaseReferences<
-    _$ConfigDatabase, $ItemClickActionsTable, ItemClickActionEntity> {
-  $$ItemClickActionsTableReferences(
-      super.$_db, super.$_table, super.$_typedResult);
-
-  static MultiTypedResultKey<$UserConfigsTable, List<UserConfig>>
-      _userConfigsRefsTable(_$ConfigDatabase db) =>
-          MultiTypedResultKey.fromTable(db.userConfigs,
-              aliasName: $_aliasNameGenerator(
-                  db.itemClickActions.id, db.userConfigs.itemClickAction));
-
-  $$UserConfigsTableProcessedTableManager get userConfigsRefs {
-    final manager = $$UserConfigsTableTableManager($_db, $_db.userConfigs)
-        .filter(
-            (f) => f.itemClickAction.id.sqlEquals($_itemColumn<int>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(_userConfigsRefsTable($_db));
-    return ProcessedTableManager(
-        manager.$state.copyWith(prefetchedData: cache));
-  }
-}
-
-class $$ItemClickActionsTableFilterComposer
-    extends Composer<_$ConfigDatabase, $ItemClickActionsTable> {
-  $$ItemClickActionsTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<int> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get name => $composableBuilder(
-      column: $table.name, builder: (column) => ColumnFilters(column));
-
-  Expression<bool> userConfigsRefs(
-      Expression<bool> Function($$UserConfigsTableFilterComposer f) f) {
-    final $$UserConfigsTableFilterComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.id,
-        referencedTable: $db.userConfigs,
-        getReferencedColumn: (t) => t.itemClickAction,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$UserConfigsTableFilterComposer(
-              $db: $db,
-              $table: $db.userConfigs,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return f(composer);
-  }
-}
-
-class $$ItemClickActionsTableOrderingComposer
-    extends Composer<_$ConfigDatabase, $ItemClickActionsTable> {
-  $$ItemClickActionsTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<int> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get name => $composableBuilder(
-      column: $table.name, builder: (column) => ColumnOrderings(column));
-}
-
-class $$ItemClickActionsTableAnnotationComposer
-    extends Composer<_$ConfigDatabase, $ItemClickActionsTable> {
-  $$ItemClickActionsTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<int> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get name =>
-      $composableBuilder(column: $table.name, builder: (column) => column);
-
-  Expression<T> userConfigsRefs<T extends Object>(
-      Expression<T> Function($$UserConfigsTableAnnotationComposer a) f) {
-    final $$UserConfigsTableAnnotationComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.id,
-        referencedTable: $db.userConfigs,
-        getReferencedColumn: (t) => t.itemClickAction,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$UserConfigsTableAnnotationComposer(
-              $db: $db,
-              $table: $db.userConfigs,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return f(composer);
-  }
-}
-
-class $$ItemClickActionsTableTableManager extends RootTableManager<
-    _$ConfigDatabase,
-    $ItemClickActionsTable,
-    ItemClickActionEntity,
-    $$ItemClickActionsTableFilterComposer,
-    $$ItemClickActionsTableOrderingComposer,
-    $$ItemClickActionsTableAnnotationComposer,
-    $$ItemClickActionsTableCreateCompanionBuilder,
-    $$ItemClickActionsTableUpdateCompanionBuilder,
-    (ItemClickActionEntity, $$ItemClickActionsTableReferences),
-    ItemClickActionEntity,
-    PrefetchHooks Function({bool userConfigsRefs})> {
-  $$ItemClickActionsTableTableManager(
-      _$ConfigDatabase db, $ItemClickActionsTable table)
-      : super(TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$ItemClickActionsTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$ItemClickActionsTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$ItemClickActionsTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<int> id = const Value.absent(),
-            Value<String> name = const Value.absent(),
-          }) =>
-              ItemClickActionsCompanion(
-            id: id,
-            name: name,
-          ),
-          createCompanionCallback: ({
-            Value<int> id = const Value.absent(),
-            required String name,
-          }) =>
-              ItemClickActionsCompanion.insert(
-            id: id,
-            name: name,
-          ),
-          withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable(table),
-                    $$ItemClickActionsTableReferences(db, table, e)
-                  ))
-              .toList(),
-          prefetchHooksCallback: ({userConfigsRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [if (userConfigsRefs) db.userConfigs],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (userConfigsRefs)
-                    await $_getPrefetchedData<ItemClickActionEntity,
-                            $ItemClickActionsTable, UserConfig>(
-                        currentTable: table,
-                        referencedTable: $$ItemClickActionsTableReferences
-                            ._userConfigsRefsTable(db),
-                        managerFromTypedResult: (p0) =>
-                            $$ItemClickActionsTableReferences(db, table, p0)
-                                .userConfigsRefs,
-                        referencedItemsForCurrentItem:
-                            (item, referencedItems) => referencedItems
-                                .where((e) => e.itemClickAction == item.id),
-                        typedResults: items)
-                ];
-              },
-            );
-          },
-        ));
-}
-
-typedef $$ItemClickActionsTableProcessedTableManager = ProcessedTableManager<
-    _$ConfigDatabase,
-    $ItemClickActionsTable,
-    ItemClickActionEntity,
-    $$ItemClickActionsTableFilterComposer,
-    $$ItemClickActionsTableOrderingComposer,
-    $$ItemClickActionsTableAnnotationComposer,
-    $$ItemClickActionsTableCreateCompanionBuilder,
-    $$ItemClickActionsTableUpdateCompanionBuilder,
-    (ItemClickActionEntity, $$ItemClickActionsTableReferences),
-    ItemClickActionEntity,
-    PrefetchHooks Function({bool userConfigsRefs})>;
 typedef $$UserConfigsTableCreateCompanionBuilder = UserConfigsCompanion
     Function({
   required String id,
@@ -3202,9 +1858,9 @@ typedef $$UserConfigsTableCreateCompanionBuilder = UserConfigsCompanion
   Value<String?> archiveOrgS3AccessKey,
   Value<String?> archiveOrgS3SecretKey,
   Value<String?> selectedThemeKey,
-  Value<int> selectedThemeType,
-  Value<int> timeDisplayFormat,
-  Value<int> itemClickAction,
+  Value<ThemeType> selectedThemeType,
+  Value<TimeDisplayFormat> timeDisplayFormat,
+  Value<ItemClickAction> itemClickAction,
   Value<String?> cacheDirectory,
   Value<bool> showDescription,
   Value<bool> showImages,
@@ -3224,9 +1880,9 @@ typedef $$UserConfigsTableUpdateCompanionBuilder = UserConfigsCompanion
   Value<String?> archiveOrgS3AccessKey,
   Value<String?> archiveOrgS3SecretKey,
   Value<String?> selectedThemeKey,
-  Value<int> selectedThemeType,
-  Value<int> timeDisplayFormat,
-  Value<int> itemClickAction,
+  Value<ThemeType> selectedThemeType,
+  Value<TimeDisplayFormat> timeDisplayFormat,
+  Value<ItemClickAction> itemClickAction,
   Value<String?> cacheDirectory,
   Value<bool> showDescription,
   Value<bool> showImages,
@@ -3238,54 +1894,6 @@ typedef $$UserConfigsTableUpdateCompanionBuilder = UserConfigsCompanion
 final class $$UserConfigsTableReferences
     extends BaseReferences<_$ConfigDatabase, $UserConfigsTable, UserConfig> {
   $$UserConfigsTableReferences(super.$_db, super.$_table, super.$_typedResult);
-
-  static $ThemeTypesTable _selectedThemeTypeTable(_$ConfigDatabase db) =>
-      db.themeTypes.createAlias($_aliasNameGenerator(
-          db.userConfigs.selectedThemeType, db.themeTypes.id));
-
-  $$ThemeTypesTableProcessedTableManager get selectedThemeType {
-    final $_column = $_itemColumn<int>('selected_theme_type')!;
-
-    final manager = $$ThemeTypesTableTableManager($_db, $_db.themeTypes)
-        .filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_selectedThemeTypeTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-        manager.$state.copyWith(prefetchedData: [item]));
-  }
-
-  static $TimeDisplayFormatsTable _timeDisplayFormatTable(
-          _$ConfigDatabase db) =>
-      db.timeDisplayFormats.createAlias($_aliasNameGenerator(
-          db.userConfigs.timeDisplayFormat, db.timeDisplayFormats.id));
-
-  $$TimeDisplayFormatsTableProcessedTableManager get timeDisplayFormat {
-    final $_column = $_itemColumn<int>('time_display_format')!;
-
-    final manager =
-        $$TimeDisplayFormatsTableTableManager($_db, $_db.timeDisplayFormats)
-            .filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_timeDisplayFormatTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-        manager.$state.copyWith(prefetchedData: [item]));
-  }
-
-  static $ItemClickActionsTable _itemClickActionTable(_$ConfigDatabase db) =>
-      db.itemClickActions.createAlias($_aliasNameGenerator(
-          db.userConfigs.itemClickAction, db.itemClickActions.id));
-
-  $$ItemClickActionsTableProcessedTableManager get itemClickAction {
-    final $_column = $_itemColumn<int>('item_click_action')!;
-
-    final manager =
-        $$ItemClickActionsTableTableManager($_db, $_db.itemClickActions)
-            .filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_itemClickActionTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-        manager.$state.copyWith(prefetchedData: [item]));
-  }
 
   static MultiTypedResultKey<$UserThemesTable, List<UserTheme>>
       _userThemesRefsTable(_$ConfigDatabase db) =>
@@ -3363,6 +1971,21 @@ class $$UserConfigsTableFilterComposer
       column: $table.selectedThemeKey,
       builder: (column) => ColumnFilters(column));
 
+  ColumnWithTypeConverterFilters<ThemeType, ThemeType, int>
+      get selectedThemeType => $composableBuilder(
+          column: $table.selectedThemeType,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnWithTypeConverterFilters<TimeDisplayFormat, TimeDisplayFormat, int>
+      get timeDisplayFormat => $composableBuilder(
+          column: $table.timeDisplayFormat,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnWithTypeConverterFilters<ItemClickAction, ItemClickAction, int>
+      get itemClickAction => $composableBuilder(
+          column: $table.itemClickAction,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
   ColumnFilters<String> get cacheDirectory => $composableBuilder(
       column: $table.cacheDirectory,
       builder: (column) => ColumnFilters(column));
@@ -3379,66 +2002,6 @@ class $$UserConfigsTableFilterComposer
 
   ColumnFilters<bool> get showCopyLink => $composableBuilder(
       column: $table.showCopyLink, builder: (column) => ColumnFilters(column));
-
-  $$ThemeTypesTableFilterComposer get selectedThemeType {
-    final $$ThemeTypesTableFilterComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.selectedThemeType,
-        referencedTable: $db.themeTypes,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$ThemeTypesTableFilterComposer(
-              $db: $db,
-              $table: $db.themeTypes,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return composer;
-  }
-
-  $$TimeDisplayFormatsTableFilterComposer get timeDisplayFormat {
-    final $$TimeDisplayFormatsTableFilterComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.timeDisplayFormat,
-        referencedTable: $db.timeDisplayFormats,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$TimeDisplayFormatsTableFilterComposer(
-              $db: $db,
-              $table: $db.timeDisplayFormats,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return composer;
-  }
-
-  $$ItemClickActionsTableFilterComposer get itemClickAction {
-    final $$ItemClickActionsTableFilterComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.itemClickAction,
-        referencedTable: $db.itemClickActions,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$ItemClickActionsTableFilterComposer(
-              $db: $db,
-              $table: $db.itemClickActions,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return composer;
-  }
 
   Expression<bool> userThemesRefs(
       Expression<bool> Function($$UserThemesTableFilterComposer f) f) {
@@ -3528,6 +2091,18 @@ class $$UserConfigsTableOrderingComposer
       column: $table.selectedThemeKey,
       builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<int> get selectedThemeType => $composableBuilder(
+      column: $table.selectedThemeType,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get timeDisplayFormat => $composableBuilder(
+      column: $table.timeDisplayFormat,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get itemClickAction => $composableBuilder(
+      column: $table.itemClickAction,
+      builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get cacheDirectory => $composableBuilder(
       column: $table.cacheDirectory,
       builder: (column) => ColumnOrderings(column));
@@ -3545,66 +2120,6 @@ class $$UserConfigsTableOrderingComposer
   ColumnOrderings<bool> get showCopyLink => $composableBuilder(
       column: $table.showCopyLink,
       builder: (column) => ColumnOrderings(column));
-
-  $$ThemeTypesTableOrderingComposer get selectedThemeType {
-    final $$ThemeTypesTableOrderingComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.selectedThemeType,
-        referencedTable: $db.themeTypes,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$ThemeTypesTableOrderingComposer(
-              $db: $db,
-              $table: $db.themeTypes,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return composer;
-  }
-
-  $$TimeDisplayFormatsTableOrderingComposer get timeDisplayFormat {
-    final $$TimeDisplayFormatsTableOrderingComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.timeDisplayFormat,
-        referencedTable: $db.timeDisplayFormats,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$TimeDisplayFormatsTableOrderingComposer(
-              $db: $db,
-              $table: $db.timeDisplayFormats,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return composer;
-  }
-
-  $$ItemClickActionsTableOrderingComposer get itemClickAction {
-    final $$ItemClickActionsTableOrderingComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.itemClickAction,
-        referencedTable: $db.itemClickActions,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$ItemClickActionsTableOrderingComposer(
-              $db: $db,
-              $table: $db.itemClickActions,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return composer;
-  }
 }
 
 class $$UserConfigsTableAnnotationComposer
@@ -3646,6 +2161,18 @@ class $$UserConfigsTableAnnotationComposer
   GeneratedColumn<String> get selectedThemeKey => $composableBuilder(
       column: $table.selectedThemeKey, builder: (column) => column);
 
+  GeneratedColumnWithTypeConverter<ThemeType, int> get selectedThemeType =>
+      $composableBuilder(
+          column: $table.selectedThemeType, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<TimeDisplayFormat, int>
+      get timeDisplayFormat => $composableBuilder(
+          column: $table.timeDisplayFormat, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<ItemClickAction, int> get itemClickAction =>
+      $composableBuilder(
+          column: $table.itemClickAction, builder: (column) => column);
+
   GeneratedColumn<String> get cacheDirectory => $composableBuilder(
       column: $table.cacheDirectory, builder: (column) => column);
 
@@ -3660,67 +2187,6 @@ class $$UserConfigsTableAnnotationComposer
 
   GeneratedColumn<bool> get showCopyLink => $composableBuilder(
       column: $table.showCopyLink, builder: (column) => column);
-
-  $$ThemeTypesTableAnnotationComposer get selectedThemeType {
-    final $$ThemeTypesTableAnnotationComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.selectedThemeType,
-        referencedTable: $db.themeTypes,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$ThemeTypesTableAnnotationComposer(
-              $db: $db,
-              $table: $db.themeTypes,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return composer;
-  }
-
-  $$TimeDisplayFormatsTableAnnotationComposer get timeDisplayFormat {
-    final $$TimeDisplayFormatsTableAnnotationComposer composer =
-        $composerBuilder(
-            composer: this,
-            getCurrentColumn: (t) => t.timeDisplayFormat,
-            referencedTable: $db.timeDisplayFormats,
-            getReferencedColumn: (t) => t.id,
-            builder: (joinBuilder,
-                    {$addJoinBuilderToRootComposer,
-                    $removeJoinBuilderFromRootComposer}) =>
-                $$TimeDisplayFormatsTableAnnotationComposer(
-                  $db: $db,
-                  $table: $db.timeDisplayFormats,
-                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                  joinBuilder: joinBuilder,
-                  $removeJoinBuilderFromRootComposer:
-                      $removeJoinBuilderFromRootComposer,
-                ));
-    return composer;
-  }
-
-  $$ItemClickActionsTableAnnotationComposer get itemClickAction {
-    final $$ItemClickActionsTableAnnotationComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.itemClickAction,
-        referencedTable: $db.itemClickActions,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$ItemClickActionsTableAnnotationComposer(
-              $db: $db,
-              $table: $db.itemClickActions,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return composer;
-  }
 
   Expression<T> userThemesRefs<T extends Object>(
       Expression<T> Function($$UserThemesTableAnnotationComposer a) f) {
@@ -3776,12 +2242,7 @@ class $$UserConfigsTableTableManager extends RootTableManager<
     $$UserConfigsTableUpdateCompanionBuilder,
     (UserConfig, $$UserConfigsTableReferences),
     UserConfig,
-    PrefetchHooks Function(
-        {bool selectedThemeType,
-        bool timeDisplayFormat,
-        bool itemClickAction,
-        bool userThemesRefs,
-        bool backupSettingsRefs})> {
+    PrefetchHooks Function({bool userThemesRefs, bool backupSettingsRefs})> {
   $$UserConfigsTableTableManager(_$ConfigDatabase db, $UserConfigsTable table)
       : super(TableManagerState(
           db: db,
@@ -3803,9 +2264,9 @@ class $$UserConfigsTableTableManager extends RootTableManager<
             Value<String?> archiveOrgS3AccessKey = const Value.absent(),
             Value<String?> archiveOrgS3SecretKey = const Value.absent(),
             Value<String?> selectedThemeKey = const Value.absent(),
-            Value<int> selectedThemeType = const Value.absent(),
-            Value<int> timeDisplayFormat = const Value.absent(),
-            Value<int> itemClickAction = const Value.absent(),
+            Value<ThemeType> selectedThemeType = const Value.absent(),
+            Value<TimeDisplayFormat> timeDisplayFormat = const Value.absent(),
+            Value<ItemClickAction> itemClickAction = const Value.absent(),
             Value<String?> cacheDirectory = const Value.absent(),
             Value<bool> showDescription = const Value.absent(),
             Value<bool> showImages = const Value.absent(),
@@ -3845,9 +2306,9 @@ class $$UserConfigsTableTableManager extends RootTableManager<
             Value<String?> archiveOrgS3AccessKey = const Value.absent(),
             Value<String?> archiveOrgS3SecretKey = const Value.absent(),
             Value<String?> selectedThemeKey = const Value.absent(),
-            Value<int> selectedThemeType = const Value.absent(),
-            Value<int> timeDisplayFormat = const Value.absent(),
-            Value<int> itemClickAction = const Value.absent(),
+            Value<ThemeType> selectedThemeType = const Value.absent(),
+            Value<TimeDisplayFormat> timeDisplayFormat = const Value.absent(),
+            Value<ItemClickAction> itemClickAction = const Value.absent(),
             Value<String?> cacheDirectory = const Value.absent(),
             Value<bool> showDescription = const Value.absent(),
             Value<bool> showImages = const Value.absent(),
@@ -3883,66 +2344,14 @@ class $$UserConfigsTableTableManager extends RootTableManager<
                   ))
               .toList(),
           prefetchHooksCallback: (
-              {selectedThemeType = false,
-              timeDisplayFormat = false,
-              itemClickAction = false,
-              userThemesRefs = false,
-              backupSettingsRefs = false}) {
+              {userThemesRefs = false, backupSettingsRefs = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [
                 if (userThemesRefs) db.userThemes,
                 if (backupSettingsRefs) db.backupSettings
               ],
-              addJoins: <
-                  T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic>>(state) {
-                if (selectedThemeType) {
-                  state = state.withJoin(
-                    currentTable: table,
-                    currentColumn: table.selectedThemeType,
-                    referencedTable: $$UserConfigsTableReferences
-                        ._selectedThemeTypeTable(db),
-                    referencedColumn: $$UserConfigsTableReferences
-                        ._selectedThemeTypeTable(db)
-                        .id,
-                  ) as T;
-                }
-                if (timeDisplayFormat) {
-                  state = state.withJoin(
-                    currentTable: table,
-                    currentColumn: table.timeDisplayFormat,
-                    referencedTable: $$UserConfigsTableReferences
-                        ._timeDisplayFormatTable(db),
-                    referencedColumn: $$UserConfigsTableReferences
-                        ._timeDisplayFormatTable(db)
-                        .id,
-                  ) as T;
-                }
-                if (itemClickAction) {
-                  state = state.withJoin(
-                    currentTable: table,
-                    currentColumn: table.itemClickAction,
-                    referencedTable:
-                        $$UserConfigsTableReferences._itemClickActionTable(db),
-                    referencedColumn: $$UserConfigsTableReferences
-                        ._itemClickActionTable(db)
-                        .id,
-                  ) as T;
-                }
-
-                return state;
-              },
+              addJoins: null,
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (userThemesRefs)
@@ -3989,214 +2398,7 @@ typedef $$UserConfigsTableProcessedTableManager = ProcessedTableManager<
     $$UserConfigsTableUpdateCompanionBuilder,
     (UserConfig, $$UserConfigsTableReferences),
     UserConfig,
-    PrefetchHooks Function(
-        {bool selectedThemeType,
-        bool timeDisplayFormat,
-        bool itemClickAction,
-        bool userThemesRefs,
-        bool backupSettingsRefs})>;
-typedef $$SeedTypesTableCreateCompanionBuilder = SeedTypesCompanion Function({
-  Value<int> id,
-  required String name,
-});
-typedef $$SeedTypesTableUpdateCompanionBuilder = SeedTypesCompanion Function({
-  Value<int> id,
-  Value<String> name,
-});
-
-final class $$SeedTypesTableReferences
-    extends BaseReferences<_$ConfigDatabase, $SeedTypesTable, SeedTypeEntity> {
-  $$SeedTypesTableReferences(super.$_db, super.$_table, super.$_typedResult);
-
-  static MultiTypedResultKey<$UserThemesTable, List<UserTheme>>
-      _userThemesRefsTable(_$ConfigDatabase db) =>
-          MultiTypedResultKey.fromTable(db.userThemes,
-              aliasName: $_aliasNameGenerator(
-                  db.seedTypes.id, db.userThemes.seedType));
-
-  $$UserThemesTableProcessedTableManager get userThemesRefs {
-    final manager = $$UserThemesTableTableManager($_db, $_db.userThemes)
-        .filter((f) => f.seedType.id.sqlEquals($_itemColumn<int>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(_userThemesRefsTable($_db));
-    return ProcessedTableManager(
-        manager.$state.copyWith(prefetchedData: cache));
-  }
-}
-
-class $$SeedTypesTableFilterComposer
-    extends Composer<_$ConfigDatabase, $SeedTypesTable> {
-  $$SeedTypesTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<int> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get name => $composableBuilder(
-      column: $table.name, builder: (column) => ColumnFilters(column));
-
-  Expression<bool> userThemesRefs(
-      Expression<bool> Function($$UserThemesTableFilterComposer f) f) {
-    final $$UserThemesTableFilterComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.id,
-        referencedTable: $db.userThemes,
-        getReferencedColumn: (t) => t.seedType,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$UserThemesTableFilterComposer(
-              $db: $db,
-              $table: $db.userThemes,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return f(composer);
-  }
-}
-
-class $$SeedTypesTableOrderingComposer
-    extends Composer<_$ConfigDatabase, $SeedTypesTable> {
-  $$SeedTypesTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<int> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get name => $composableBuilder(
-      column: $table.name, builder: (column) => ColumnOrderings(column));
-}
-
-class $$SeedTypesTableAnnotationComposer
-    extends Composer<_$ConfigDatabase, $SeedTypesTable> {
-  $$SeedTypesTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<int> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get name =>
-      $composableBuilder(column: $table.name, builder: (column) => column);
-
-  Expression<T> userThemesRefs<T extends Object>(
-      Expression<T> Function($$UserThemesTableAnnotationComposer a) f) {
-    final $$UserThemesTableAnnotationComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.id,
-        referencedTable: $db.userThemes,
-        getReferencedColumn: (t) => t.seedType,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$UserThemesTableAnnotationComposer(
-              $db: $db,
-              $table: $db.userThemes,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return f(composer);
-  }
-}
-
-class $$SeedTypesTableTableManager extends RootTableManager<
-    _$ConfigDatabase,
-    $SeedTypesTable,
-    SeedTypeEntity,
-    $$SeedTypesTableFilterComposer,
-    $$SeedTypesTableOrderingComposer,
-    $$SeedTypesTableAnnotationComposer,
-    $$SeedTypesTableCreateCompanionBuilder,
-    $$SeedTypesTableUpdateCompanionBuilder,
-    (SeedTypeEntity, $$SeedTypesTableReferences),
-    SeedTypeEntity,
-    PrefetchHooks Function({bool userThemesRefs})> {
-  $$SeedTypesTableTableManager(_$ConfigDatabase db, $SeedTypesTable table)
-      : super(TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$SeedTypesTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$SeedTypesTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$SeedTypesTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<int> id = const Value.absent(),
-            Value<String> name = const Value.absent(),
-          }) =>
-              SeedTypesCompanion(
-            id: id,
-            name: name,
-          ),
-          createCompanionCallback: ({
-            Value<int> id = const Value.absent(),
-            required String name,
-          }) =>
-              SeedTypesCompanion.insert(
-            id: id,
-            name: name,
-          ),
-          withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable(table),
-                    $$SeedTypesTableReferences(db, table, e)
-                  ))
-              .toList(),
-          prefetchHooksCallback: ({userThemesRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [if (userThemesRefs) db.userThemes],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (userThemesRefs)
-                    await $_getPrefetchedData<SeedTypeEntity, $SeedTypesTable,
-                            UserTheme>(
-                        currentTable: table,
-                        referencedTable:
-                            $$SeedTypesTableReferences._userThemesRefsTable(db),
-                        managerFromTypedResult: (p0) =>
-                            $$SeedTypesTableReferences(db, table, p0)
-                                .userThemesRefs,
-                        referencedItemsForCurrentItem: (item,
-                                referencedItems) =>
-                            referencedItems.where((e) => e.seedType == item.id),
-                        typedResults: items)
-                ];
-              },
-            );
-          },
-        ));
-}
-
-typedef $$SeedTypesTableProcessedTableManager = ProcessedTableManager<
-    _$ConfigDatabase,
-    $SeedTypesTable,
-    SeedTypeEntity,
-    $$SeedTypesTableFilterComposer,
-    $$SeedTypesTableOrderingComposer,
-    $$SeedTypesTableAnnotationComposer,
-    $$SeedTypesTableCreateCompanionBuilder,
-    $$SeedTypesTableUpdateCompanionBuilder,
-    (SeedTypeEntity, $$SeedTypesTableReferences),
-    SeedTypeEntity,
-    PrefetchHooks Function({bool userThemesRefs})>;
+    PrefetchHooks Function({bool userThemesRefs, bool backupSettingsRefs})>;
 typedef $$UserThemesTableCreateCompanionBuilder = UserThemesCompanion Function({
   required String id,
   required String userConfigId,
@@ -4206,7 +2408,7 @@ typedef $$UserThemesTableCreateCompanionBuilder = UserThemesCompanion Function({
   required int primaryColor,
   required int secondaryColor,
   Value<int?> tertiaryColor,
-  Value<int> seedType,
+  Value<SeedType> seedType,
   Value<int> rowid,
 });
 typedef $$UserThemesTableUpdateCompanionBuilder = UserThemesCompanion Function({
@@ -4218,7 +2420,7 @@ typedef $$UserThemesTableUpdateCompanionBuilder = UserThemesCompanion Function({
   Value<int> primaryColor,
   Value<int> secondaryColor,
   Value<int?> tertiaryColor,
-  Value<int> seedType,
+  Value<SeedType> seedType,
   Value<int> rowid,
 });
 
@@ -4236,21 +2438,6 @@ final class $$UserThemesTableReferences
     final manager = $$UserConfigsTableTableManager($_db, $_db.userConfigs)
         .filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_userConfigIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-        manager.$state.copyWith(prefetchedData: [item]));
-  }
-
-  static $SeedTypesTable _seedTypeTable(_$ConfigDatabase db) =>
-      db.seedTypes.createAlias(
-          $_aliasNameGenerator(db.userThemes.seedType, db.seedTypes.id));
-
-  $$SeedTypesTableProcessedTableManager get seedType {
-    final $_column = $_itemColumn<int>('seed_type')!;
-
-    final manager = $$SeedTypesTableTableManager($_db, $_db.seedTypes)
-        .filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_seedTypeTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
         manager.$state.copyWith(prefetchedData: [item]));
@@ -4288,6 +2475,11 @@ class $$UserThemesTableFilterComposer
   ColumnFilters<int> get tertiaryColor => $composableBuilder(
       column: $table.tertiaryColor, builder: (column) => ColumnFilters(column));
 
+  ColumnWithTypeConverterFilters<SeedType, SeedType, int> get seedType =>
+      $composableBuilder(
+          column: $table.seedType,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
   $$UserConfigsTableFilterComposer get userConfigId {
     final $$UserConfigsTableFilterComposer composer = $composerBuilder(
         composer: this,
@@ -4300,26 +2492,6 @@ class $$UserThemesTableFilterComposer
             $$UserConfigsTableFilterComposer(
               $db: $db,
               $table: $db.userConfigs,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return composer;
-  }
-
-  $$SeedTypesTableFilterComposer get seedType {
-    final $$SeedTypesTableFilterComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.seedType,
-        referencedTable: $db.seedTypes,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$SeedTypesTableFilterComposer(
-              $db: $db,
-              $table: $db.seedTypes,
               $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
               joinBuilder: joinBuilder,
               $removeJoinBuilderFromRootComposer:
@@ -4362,6 +2534,9 @@ class $$UserThemesTableOrderingComposer
       column: $table.tertiaryColor,
       builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<int> get seedType => $composableBuilder(
+      column: $table.seedType, builder: (column) => ColumnOrderings(column));
+
   $$UserConfigsTableOrderingComposer get userConfigId {
     final $$UserConfigsTableOrderingComposer composer = $composerBuilder(
         composer: this,
@@ -4374,26 +2549,6 @@ class $$UserThemesTableOrderingComposer
             $$UserConfigsTableOrderingComposer(
               $db: $db,
               $table: $db.userConfigs,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return composer;
-  }
-
-  $$SeedTypesTableOrderingComposer get seedType {
-    final $$SeedTypesTableOrderingComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.seedType,
-        referencedTable: $db.seedTypes,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$SeedTypesTableOrderingComposer(
-              $db: $db,
-              $table: $db.seedTypes,
               $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
               joinBuilder: joinBuilder,
               $removeJoinBuilderFromRootComposer:
@@ -4433,6 +2588,9 @@ class $$UserThemesTableAnnotationComposer
   GeneratedColumn<int> get tertiaryColor => $composableBuilder(
       column: $table.tertiaryColor, builder: (column) => column);
 
+  GeneratedColumnWithTypeConverter<SeedType, int> get seedType =>
+      $composableBuilder(column: $table.seedType, builder: (column) => column);
+
   $$UserConfigsTableAnnotationComposer get userConfigId {
     final $$UserConfigsTableAnnotationComposer composer = $composerBuilder(
         composer: this,
@@ -4445,26 +2603,6 @@ class $$UserThemesTableAnnotationComposer
             $$UserConfigsTableAnnotationComposer(
               $db: $db,
               $table: $db.userConfigs,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return composer;
-  }
-
-  $$SeedTypesTableAnnotationComposer get seedType {
-    final $$SeedTypesTableAnnotationComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.seedType,
-        referencedTable: $db.seedTypes,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$SeedTypesTableAnnotationComposer(
-              $db: $db,
-              $table: $db.seedTypes,
               $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
               joinBuilder: joinBuilder,
               $removeJoinBuilderFromRootComposer:
@@ -4485,7 +2623,7 @@ class $$UserThemesTableTableManager extends RootTableManager<
     $$UserThemesTableUpdateCompanionBuilder,
     (UserTheme, $$UserThemesTableReferences),
     UserTheme,
-    PrefetchHooks Function({bool userConfigId, bool seedType})> {
+    PrefetchHooks Function({bool userConfigId})> {
   $$UserThemesTableTableManager(_$ConfigDatabase db, $UserThemesTable table)
       : super(TableManagerState(
           db: db,
@@ -4505,7 +2643,7 @@ class $$UserThemesTableTableManager extends RootTableManager<
             Value<int> primaryColor = const Value.absent(),
             Value<int> secondaryColor = const Value.absent(),
             Value<int?> tertiaryColor = const Value.absent(),
-            Value<int> seedType = const Value.absent(),
+            Value<SeedType> seedType = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               UserThemesCompanion(
@@ -4529,7 +2667,7 @@ class $$UserThemesTableTableManager extends RootTableManager<
             required int primaryColor,
             required int secondaryColor,
             Value<int?> tertiaryColor = const Value.absent(),
-            Value<int> seedType = const Value.absent(),
+            Value<SeedType> seedType = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               UserThemesCompanion.insert(
@@ -4550,7 +2688,7 @@ class $$UserThemesTableTableManager extends RootTableManager<
                     $$UserThemesTableReferences(db, table, e)
                   ))
               .toList(),
-          prefetchHooksCallback: ({userConfigId = false, seedType = false}) {
+          prefetchHooksCallback: ({userConfigId = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
@@ -4577,16 +2715,6 @@ class $$UserThemesTableTableManager extends RootTableManager<
                         $$UserThemesTableReferences._userConfigIdTable(db).id,
                   ) as T;
                 }
-                if (seedType) {
-                  state = state.withJoin(
-                    currentTable: table,
-                    currentColumn: table.seedType,
-                    referencedTable:
-                        $$UserThemesTableReferences._seedTypeTable(db),
-                    referencedColumn:
-                        $$UserThemesTableReferences._seedTypeTable(db).id,
-                  ) as T;
-                }
 
                 return state;
               },
@@ -4609,7 +2737,7 @@ typedef $$UserThemesTableProcessedTableManager = ProcessedTableManager<
     $$UserThemesTableUpdateCompanionBuilder,
     (UserTheme, $$UserThemesTableReferences),
     UserTheme,
-    PrefetchHooks Function({bool userConfigId, bool seedType})>;
+    PrefetchHooks Function({bool userConfigId})>;
 typedef $$BackupSettingsTableCreateCompanionBuilder = BackupSettingsCompanion
     Function({
   required String id,
@@ -4913,16 +3041,8 @@ typedef $$BackupSettingsTableProcessedTableManager = ProcessedTableManager<
 class $ConfigDatabaseManager {
   final _$ConfigDatabase _db;
   $ConfigDatabaseManager(this._db);
-  $$ThemeTypesTableTableManager get themeTypes =>
-      $$ThemeTypesTableTableManager(_db, _db.themeTypes);
-  $$TimeDisplayFormatsTableTableManager get timeDisplayFormats =>
-      $$TimeDisplayFormatsTableTableManager(_db, _db.timeDisplayFormats);
-  $$ItemClickActionsTableTableManager get itemClickActions =>
-      $$ItemClickActionsTableTableManager(_db, _db.itemClickActions);
   $$UserConfigsTableTableManager get userConfigs =>
       $$UserConfigsTableTableManager(_db, _db.userConfigs);
-  $$SeedTypesTableTableManager get seedTypes =>
-      $$SeedTypesTableTableManager(_db, _db.seedTypes);
   $$UserThemesTableTableManager get userThemes =>
       $$UserThemesTableTableManager(_db, _db.userThemes);
   $$BackupSettingsTableTableManager get backupSettings =>

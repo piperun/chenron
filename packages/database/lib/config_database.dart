@@ -1,29 +1,21 @@
+import "package:database/models/enums.dart";
 import "package:database/schema/user_config_schema.dart";
 import "package:database/src/core/initial_data/config_database.dart";
 import "package:drift/drift.dart";
 import "package:drift_flutter/drift_flutter.dart";
 import "package:basedir/directory.dart";
 
+export "package:database/models/enums.dart"
+    show ThemeType, TimeDisplayFormat, ItemClickAction, SeedType;
+
 part "config_database.g.dart";
 
 enum ConfigIncludes { archiveSettings, backupSettings, userThemes, userConfig }
-
-enum ThemeType { custom, system }
-
-enum TimeDisplayFormat { relative, absolute }
-
-enum ItemClickAction { openItem, showDetails }
-
-enum SeedType { none, primary, primaryAndSecondary, all }
 
 @DriftDatabase(tables: [
   UserConfigs,
   UserThemes,
   BackupSettings,
-  ThemeTypes,
-  TimeDisplayFormats,
-  ItemClickActions,
-  SeedTypes,
 ])
 class ConfigDatabase extends _$ConfigDatabase {
   static const int idLength = 30;
@@ -43,16 +35,13 @@ class ConfigDatabase extends _$ConfigDatabase {
                 debugMode: debugMode));
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration {
     return MigrationStrategy(
       onCreate: (migrator) async {
         await migrator.createAll();
-        if (setupOnInit) {
-          await setupConfigEnums();
-        }
         // Create triggers for auto-updating timestamps on new databases
         await _createConfigUpdateTriggers();
       },
@@ -62,20 +51,11 @@ class ConfigDatabase extends _$ConfigDatabase {
           await migrator.addColumn(userConfigs, userConfigs.itemClickAction);
         }
         if (from < 3) {
-          // Schema v3: Add timestamps and enum tables
+          // Schema v3: Add timestamps + enum lookup tables (removed in v5)
           await migrator.addColumn(userConfigs, userConfigs.createdAt);
           await migrator.addColumn(userConfigs, userConfigs.updatedAt);
           await migrator.addColumn(userThemes, userThemes.createdAt);
           await migrator.addColumn(userThemes, userThemes.updatedAt);
-
-          // Create enum tables
-          await migrator.createTable(themeTypes);
-          await migrator.createTable(timeDisplayFormats);
-          await migrator.createTable(itemClickActions);
-          await migrator.createTable(seedTypes);
-
-          // Populate enum tables
-          await setupConfigEnums();
 
           // Create triggers for auto-updating timestamps
           await _createConfigUpdateTriggers();
@@ -87,6 +67,34 @@ class ConfigDatabase extends _$ConfigDatabase {
           await migrator.addColumn(userConfigs, userConfigs.showImages);
           await migrator.addColumn(userConfigs, userConfigs.showTags);
           await migrator.addColumn(userConfigs, userConfigs.showCopyLink);
+        }
+
+        // v4 -> v5: replace enum lookup tables with intEnum<T>(). Existing
+        // values were 1-based (autoincrement); intEnum is 0-based.
+        if (from < 5) {
+          // Be defensive: a v3+ database has the lookup tables and
+          // 1-based values. A database that started at v5 (e.g. a fresh
+          // install in test) doesn't need the value shift.
+          final hasLegacyTables = await customSelect(
+            "SELECT name FROM sqlite_master WHERE type='table' "
+            "AND name IN ('theme_types','time_display_formats',"
+            "'item_click_actions','seed_types')",
+          ).get();
+          if (hasLegacyTables.isNotEmpty) {
+            await customStatement(
+                "UPDATE user_configs SET selected_theme_type = selected_theme_type - 1");
+            await customStatement(
+                "UPDATE user_configs SET time_display_format = time_display_format - 1");
+            await customStatement(
+                "UPDATE user_configs SET item_click_action = item_click_action - 1");
+            await customStatement(
+                "UPDATE user_themes SET seed_type = seed_type - 1");
+            await customStatement("DROP TABLE IF EXISTS theme_types");
+            await customStatement(
+                "DROP TABLE IF EXISTS time_display_formats");
+            await customStatement("DROP TABLE IF EXISTS item_click_actions");
+            await customStatement("DROP TABLE IF EXISTS seed_types");
+          }
         }
       },
     );

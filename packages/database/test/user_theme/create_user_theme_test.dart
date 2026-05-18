@@ -30,9 +30,9 @@ void main() {
       copyOnImport: false,
       defaultArchiveIs: false,
       defaultArchiveOrg: false,
-      selectedThemeType: 0,
-      timeDisplayFormat: 0,
-      itemClickAction: 0,
+      selectedThemeType: ThemeType.custom,
+      timeDisplayFormat: TimeDisplayFormat.relative,
+      itemClickAction: ItemClickAction.openItem,
         showDescription: true,
         showImages: true,
         showTags: true,
@@ -60,7 +60,7 @@ void main() {
         name: "Ocean Blue",
         primaryColor: 0xFF0077BE,
         secondaryColor: 0xFF00A8E8,
-        seedType: 0,
+        seedType: SeedType.none,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
@@ -89,7 +89,7 @@ void main() {
           name: "Theme 1",
           primaryColor: 0xFFFF0000,
           secondaryColor: 0xFFFF5555,
-          seedType: 0,
+          seedType: SeedType.none,
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         ),
@@ -99,7 +99,7 @@ void main() {
           name: "Theme 2",
           primaryColor: 0xFF00FF00,
           secondaryColor: 0xFF55FF55,
-          seedType: 0,
+          seedType: SeedType.none,
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         ),
@@ -109,7 +109,7 @@ void main() {
           name: "Theme 3",
           primaryColor: 0xFF0000FF,
           secondaryColor: 0xFF5555FF,
-          seedType: 0,
+          seedType: SeedType.none,
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         ),
@@ -139,7 +139,7 @@ void main() {
         primaryColor: 0xFF123456,
         secondaryColor: 0xFF654321,
         tertiaryColor: 0xFFABCDEF,
-        seedType: 1,
+        seedType: SeedType.primary,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
@@ -157,7 +157,7 @@ void main() {
 
       expect(savedTheme, isNotNull);
       expect(savedTheme!.data.tertiaryColor, equals(0xFFABCDEF));
-      expect(savedTheme.data.seedType, equals(1));
+      expect(savedTheme.data.seedType, equals(SeedType.primary));
     });
 
     test("creates theme without optional fields", () async {
@@ -167,7 +167,7 @@ void main() {
         name: "Minimal Theme",
         primaryColor: 0xFF000000,
         secondaryColor: 0xFFFFFFFF,
-        seedType: 0,
+        seedType: SeedType.none,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
@@ -207,7 +207,7 @@ void main() {
           name: "Theme A",
           primaryColor: 0xFF111111,
           secondaryColor: 0xFF222222,
-          seedType: 0,
+          seedType: SeedType.none,
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         ),
@@ -217,7 +217,7 @@ void main() {
           name: "Theme B",
           primaryColor: 0xFF333333,
           secondaryColor: 0xFF444444,
-          seedType: 0,
+          seedType: SeedType.none,
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         ),
@@ -243,7 +243,7 @@ void main() {
         name: "Linked Theme",
         primaryColor: 0xFFAAAAAA,
         secondaryColor: 0xFFBBBBBB,
-        seedType: 0,
+        seedType: SeedType.none,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
@@ -270,7 +270,7 @@ void main() {
         name: 'Theme: "Special" & <Cool>',
         primaryColor: 0xFF123ABC,
         secondaryColor: 0xFFDEF456,
-        seedType: 0,
+        seedType: SeedType.none,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
@@ -295,7 +295,7 @@ void main() {
           name: "Short Hex",
           primaryColor: 0xFFFFFFFF,
           secondaryColor: 0xFF000000,
-          seedType: 0,
+          seedType: SeedType.none,
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         ),
@@ -305,7 +305,7 @@ void main() {
           name: "Long Hex",
           primaryColor: 0xFFFFFFFF,
           secondaryColor: 0xFF000000,
-          seedType: 0,
+          seedType: SeedType.none,
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         ),
@@ -315,7 +315,7 @@ void main() {
           name: "With Alpha",
           primaryColor: 0x00FFFFFF,
           secondaryColor: 0xFF000000,
-          seedType: 0,
+          seedType: SeedType.none,
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         ),

@@ -8,3 +8,15 @@ library;
 enum FolderItemType { link, document, folder }
 
 enum MetadataTypeEnum { tag }
+
+// ConfigDatabase enums. Same rationale — these used to back lookup
+// tables (themeTypes, timeDisplayFormats, itemClickActions, seedTypes)
+// that intEnum<T>() replaces.
+
+enum ThemeType { custom, system }
+
+enum TimeDisplayFormat { relative, absolute }
+
+enum ItemClickAction { openItem, showDetails }
+
+enum SeedType { none, primary, primaryAndSecondary, all }

@@ -1,105 +1,59 @@
+import "package:app_logger/app_logger.dart";
 import "package:database/config_database.dart";
 import "package:database/models/created_ids.dart";
 import "package:database/src/core/id.dart";
 import "package:drift/drift.dart";
-import "package:app_logger/app_logger.dart";
 
+/// Defensive bootstrap helpers for the [ConfigDatabase].
+///
+/// The enum-table seeding (`setupConfigEnums()` and friends) that
+/// used to live here was deleted in the v5 migration when the lookup
+/// tables were replaced by `intEnum<T>()` columns.
 extension ConfigDatabaseInit on ConfigDatabase {
-  Future<void> setupConfigEnums() async {
-    await _setupTypes<ThemeType>(themeTypes, ThemeType.values);
-    await _setupTypes<TimeDisplayFormat>(
-        timeDisplayFormats, TimeDisplayFormat.values);
-    await _setupTypes<ItemClickAction>(
-        itemClickActions, ItemClickAction.values);
-    await _setupTypes<SeedType>(seedTypes, SeedType.values);
-  }
-
-  Future<void> _setupTypes<T extends Enum>(
-      TableInfo table, List<T> enumValues) async {
-    for (var type in enumValues) {
-      final companion = _factoryCompanion(table, type);
-      await into(table).insertOnConflictUpdate(companion);
-    }
-  }
-
-  Insertable _factoryCompanion(TableInfo table, Enum type) {
-    switch (table.actualTableName) {
-      case "theme_types":
-        return ThemeTypesCompanion.insert(
-          id: Value(type.index),
-          name: type.name,
-        );
-      case "time_display_formats":
-        return TimeDisplayFormatsCompanion.insert(
-          id: Value(type.index),
-          name: type.name,
-        );
-      case "item_click_actions":
-        return ItemClickActionsCompanion.insert(
-          id: Value(type.index),
-          name: type.name,
-        );
-      case "seed_types":
-        return SeedTypesCompanion.insert(
-          id: Value(type.index),
-          name: type.name,
-        );
-      default:
-        throw ArgumentError("Unsupported table: ${table.actualTableName}");
-    }
-  }
-
+  /// Ensure a user-config row exists. Creates one if missing; recovers
+  /// from a [FormatException] by wiping and re-inserting (defensive
+  /// against schema drift between launches).
   Future<UserConfigResultIds> setupUserConfig() async {
-    final userConfigCreatedId = await _setupUserConfigEntry();
-
-    if (userConfigCreatedId.userConfigId.isNotEmpty) {
-      await _setupBackupConfig(userConfigCreatedId.userConfigId);
+    final result = await _setupUserConfigEntry();
+    if (result.userConfigId.isNotEmpty) {
+      await _setupBackupConfig(result.userConfigId);
     }
-
-    return userConfigCreatedId;
+    return result;
   }
 
   Future<UserConfigResultIds> _setupUserConfigEntry() async {
     try {
-      final existingConfig = await (select(userConfigs)).getSingleOrNull();
-
-      if (existingConfig == null) {
-        final configId = generateId();
-
-        await into(userConfigs).insert(UserConfigsCompanion.insert(
-          id: configId,
-          darkMode: const Value(false),
-          copyOnImport: const Value(true),
-          archiveOrgS3AccessKey: const Value(null),
-          archiveOrgS3SecretKey: const Value(null),
-        ));
-
-        return UserConfigResultIds(userConfigId: configId);
+      final existing = await (select(userConfigs)).getSingleOrNull();
+      if (existing != null) {
+        return UserConfigResultIds(userConfigId: existing.id);
       }
-
-      // Return existing config ID
-      return UserConfigResultIds(userConfigId: existingConfig.id);
-    } on FormatException catch (e) {
-      // Schema mismatch detected - likely missing column from old schema
-      loggerGlobal.warning(
-          "ConfigDB", "Schema mismatch detected, recreating config: $e");
-
-      // Delete corrupted config and create a fresh one
-      await delete(userConfigs).go();
-      final configId = generateId();
-
+      final id = generateId();
       await into(userConfigs).insert(UserConfigsCompanion.insert(
-        id: configId,
+        id: id,
         darkMode: const Value(false),
         copyOnImport: const Value(true),
         archiveOrgS3AccessKey: const Value(null),
         archiveOrgS3SecretKey: const Value(null),
       ));
-
-      return UserConfigResultIds(userConfigId: configId);
+      return UserConfigResultIds(userConfigId: id);
+    } on FormatException catch (e) {
+      // Persisted row's shape doesn't match the current code; nuke and
+      // recreate so the user isn't stuck with an unreadable config.
+      loggerGlobal.warning(
+          "ConfigDB", "Schema mismatch detected, recreating config: $e");
+      await delete(userConfigs).go();
+      final id = generateId();
+      await into(userConfigs).insert(UserConfigsCompanion.insert(
+        id: id,
+        darkMode: const Value(false),
+        copyOnImport: const Value(true),
+        archiveOrgS3AccessKey: const Value(null),
+        archiveOrgS3SecretKey: const Value(null),
+      ));
+      return UserConfigResultIds(userConfigId: id);
     } catch (e) {
       loggerGlobal.severe(
-          "SetupUpserConfigEntry", "Error in _setupUserConfigEntry: $e");
+          "SetupUserConfigEntry", "Error in _setupUserConfigEntry: $e");
       rethrow;
     }
   }
@@ -109,27 +63,23 @@ extension ConfigDatabaseInit on ConfigDatabase {
     try {
       final query = select(backupSettings)
         ..where((tbl) => tbl.userConfigId.equals(userConfigId));
-
-      final existingConfig = await query.getSingleOrNull();
-
-      if (existingConfig == null) {
-        final backupId = generateId();
-
-        await into(backupSettings).insert(BackupSettingsCompanion.insert(
-          id: backupId,
-          userConfigId: userConfigId,
-          backupFilename: const Value(null),
-          backupPath: const Value(null),
-          backupInterval: const Value(null),
-        ));
-
+      final existing = await query.getSingleOrNull();
+      if (existing != null) {
         return BackupSettingsResultIds(
-            backupSettingsId: backupId, userConfigId: userConfigId);
+          backupSettingsId: existing.id,
+          userConfigId: existing.userConfigId,
+        );
       }
-
+      final id = generateId();
+      await into(backupSettings).insert(BackupSettingsCompanion.insert(
+        id: id,
+        userConfigId: userConfigId,
+        backupFilename: const Value(null),
+        backupPath: const Value(null),
+        backupInterval: const Value(null),
+      ));
       return BackupSettingsResultIds(
-          backupSettingsId: existingConfig.id,
-          userConfigId: existingConfig.userConfigId);
+          backupSettingsId: id, userConfigId: userConfigId);
     } catch (e) {
       loggerGlobal.severe(
           "SetupBackupConfig", "Error in _setupBackupConfig: $e");

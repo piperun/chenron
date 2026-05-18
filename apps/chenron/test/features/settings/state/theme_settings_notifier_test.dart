@@ -23,7 +23,7 @@ void main() {
 
   UserConfig stubConfig({
     String? selectedThemeKey = "materialBaseline",
-    int selectedThemeType = 0,
+    ThemeType selectedThemeType = ThemeType.custom,
   }) =>
       UserConfig(
         id: "cfg",
@@ -35,8 +35,8 @@ void main() {
         defaultArchiveOrg: false,
         selectedThemeKey: selectedThemeKey,
         selectedThemeType: selectedThemeType,
-        timeDisplayFormat: 0,
-        itemClickAction: 0,
+        timeDisplayFormat: TimeDisplayFormat.relative,
+        itemClickAction: ItemClickAction.openItem,
         showDescription: true,
         showImages: true,
         showTags: true,
@@ -47,7 +47,7 @@ void main() {
 
   test("hydrate maps selectedThemeType int into ThemeType enum", () {
     // ThemeType is {custom: 0, system: 1}
-    notifier.hydrate(stubConfig(selectedThemeKey: "nier", selectedThemeType: 0));
+    notifier.hydrate(stubConfig(selectedThemeKey: "nier", selectedThemeType: ThemeType.custom));
     expect(notifier.current.value.selectedKey, "nier");
     expect(notifier.current.value.selectedType, ThemeType.custom);
     expect(notifier.isDirty, isFalse);

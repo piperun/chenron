@@ -23,8 +23,11 @@ abstract class DisplaySettings with _$DisplaySettings {
   }) = _DisplaySettings;
 
   factory DisplaySettings.fromUserConfig(UserConfig config) => DisplaySettings(
-        timeDisplayFormat: config.timeDisplayFormat,
-        itemClickAction: config.itemClickAction,
+        // UserConfig now exposes these as enums (intEnum<T>); the
+        // settings snapshot still holds the int index for the UI's
+        // existing radio + segmented-button bindings.
+        timeDisplayFormat: config.timeDisplayFormat.index,
+        itemClickAction: config.itemClickAction.index,
         cacheDirectory: config.cacheDirectory,
         showDescription: config.showDescription,
         showImages: config.showImages,

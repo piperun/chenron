@@ -15,8 +15,8 @@ void main() {
   });
 
   UserConfig stubConfig({
-    int timeDisplayFormat = 1,
-    int itemClickAction = 0,
+    TimeDisplayFormat timeDisplayFormat = TimeDisplayFormat.absolute,
+    ItemClickAction itemClickAction = ItemClickAction.openItem,
     String? cacheDirectory,
     bool showImages = true,
   }) =>
@@ -28,7 +28,7 @@ void main() {
         copyOnImport: false,
         defaultArchiveIs: false,
         defaultArchiveOrg: false,
-        selectedThemeType: 0,
+        selectedThemeType: ThemeType.custom,
         timeDisplayFormat: timeDisplayFormat,
         itemClickAction: itemClickAction,
         cacheDirectory: cacheDirectory,
@@ -42,7 +42,7 @@ void main() {
 
   test("hydrate copies display fields from UserConfig", () {
     notifier.hydrate(stubConfig(
-      timeDisplayFormat: 1,
+      timeDisplayFormat: TimeDisplayFormat.absolute,
       cacheDirectory: "/tmp/cache",
       showImages: false,
     ));

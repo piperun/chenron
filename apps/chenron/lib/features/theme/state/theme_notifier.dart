@@ -61,14 +61,14 @@ class ThemeNotifier {
           primaryColor: theme.data.primaryColor,
           secondaryColor: theme.data.secondaryColor,
           tertiaryColor: theme.data.tertiaryColor,
-          seedType: theme.data.seedType,
+          seedType: theme.data.seedType.index,
         );
         _cacheCustomTheme(
           key: themeKey,
           primaryColor: theme.data.primaryColor,
           secondaryColor: theme.data.secondaryColor,
           tertiaryColor: theme.data.tertiaryColor,
-          seedType: theme.data.seedType,
+          seedType: theme.data.seedType.index,
         );
         return;
       }
@@ -99,10 +99,10 @@ class ThemeNotifier {
     loggerGlobal.info(
         "ThemeNotifier", "Applying theme from persisted config...");
     final String? key = _themeService?.configData.data.selectedThemeKey;
-    final int? typeIndex = _themeService?.configData.data.selectedThemeType;
+    final ThemeType? type = _themeService?.configData.data.selectedThemeType;
 
     // Fallback if config incomplete
-    if (key == null || typeIndex == null) {
+    if (key == null || type == null) {
       loggerGlobal.warning("ThemeNotifier",
           "No persisted theme selection found. Using fallback.");
       currentThemeSignal.value = (
@@ -112,7 +112,7 @@ class ThemeNotifier {
       return;
     }
 
-    if (typeIndex == ThemeType.custom.index) {
+    if (type == ThemeType.custom) {
       loggerGlobal.fine(
           "ThemeNotifier", "Persisted theme type: custom, key=$key");
       final UserThemeResult? theme = await _themeService?.getThemeByKey(key);
@@ -121,14 +121,14 @@ class ThemeNotifier {
           primaryColor: theme.data.primaryColor,
           secondaryColor: theme.data.secondaryColor,
           tertiaryColor: theme.data.tertiaryColor,
-          seedType: theme.data.seedType,
+          seedType: theme.data.seedType.index,
         );
         _cacheCustomTheme(
           key: key,
           primaryColor: theme.data.primaryColor,
           secondaryColor: theme.data.secondaryColor,
           tertiaryColor: theme.data.tertiaryColor,
-          seedType: theme.data.seedType,
+          seedType: theme.data.seedType.index,
         );
         return;
       }
