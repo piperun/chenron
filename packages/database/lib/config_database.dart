@@ -145,9 +145,14 @@ class ConfigDatabase extends _$ConfigDatabase {
         ));
   }
 
+  /// Post-creation hook. Ensures a user-config row exists (creating
+  /// one if missing, recovering it if the persisted schema doesn't
+  /// match the current code's expectations).
+  ///
+  /// Enum-table seeding lives in [migration]'s `onCreate` /
+  /// `onUpgrade` — it's no longer redone here on every launch.
   Future<void> setup() async {
     if (setupOnInit) {
-      await setupConfigEnums();
       await setupUserConfig();
     }
   }
