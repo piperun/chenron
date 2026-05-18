@@ -144,7 +144,6 @@ class _PathModeSelectorState extends State<PathModeSelector> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final isCustomSelected = widget.options[_selectedIndex].isCustom;
 
     return Column(
@@ -157,7 +156,11 @@ class _PathModeSelectorState extends State<PathModeSelector> {
           child: Column(
             children: [
               for (var i = 0; i < widget.options.length; i++)
-                _buildRadioTile(theme, i, widget.options[i]),
+                _PathModeTile(
+                  index: i,
+                  option: widget.options[i],
+                  subtitleFuture: _subtitleFutures[i],
+                ),
             ],
           ),
         ),
@@ -190,30 +193,42 @@ class _PathModeSelectorState extends State<PathModeSelector> {
     );
   }
 
-  Widget _buildRadioTile(ThemeData theme, int index, PathModeOption option) {
-    if (_subtitleFutures.containsKey(index)) {
+}
+
+class _PathModeTile extends StatelessWidget {
+  final int index;
+  final PathModeOption option;
+  final Future<String>? subtitleFuture;
+
+  const _PathModeTile({
+    required this.index,
+    required this.option,
+    required this.subtitleFuture,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (subtitleFuture == null) {
       return RadioListTile<int>(
         title: Text(option.label),
         value: index,
         contentPadding: EdgeInsets.zero,
-        subtitle: FutureBuilder<String>(
-          future: _subtitleFutures[index],
-          builder: (context, snapshot) {
-            return Text(
-              snapshot.data ?? "Loading...",
-              style: theme.textTheme.bodySmall?.copyWith(
-                color:
-                    theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6),
-              ),
-            );
-          },
-        ),
       );
     }
+    final theme = Theme.of(context);
     return RadioListTile<int>(
       title: Text(option.label),
       value: index,
       contentPadding: EdgeInsets.zero,
+      subtitle: FutureBuilder<String>(
+        future: subtitleFuture,
+        builder: (context, snapshot) => Text(
+          snapshot.data ?? "Loading...",
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6),
+          ),
+        ),
+      ),
     );
   }
 }
