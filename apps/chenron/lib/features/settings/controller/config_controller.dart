@@ -5,41 +5,12 @@ import "package:signals/signals_flutter.dart";
 import "package:vibe/vibe.dart";
 import "package:chenron/features/settings/service/config_service.dart";
 import "package:chenron/features/settings/service/data_settings_service.dart";
+import "package:chenron/features/settings/state/theme_choice.dart";
 import "package:chenron/features/theme/state/theme_notifier.dart";
 import "package:chenron/features/theme/state/theme_utils.dart";
 import "package:chenron/providers/theme_notifier_signal.dart";
 import "package:chenron/locator.dart";
 import "package:app_logger/app_logger.dart";
-
-enum ThemeSortMode { name, colorCount }
-
-@immutable
-class ThemeChoice {
-  final String key;
-  final String name;
-  final ThemeType type;
-  final int colorCount;
-  final List<Color> swatches;
-
-  const ThemeChoice({
-    required this.key,
-    required this.name,
-    required this.type,
-    this.colorCount = 1,
-    this.swatches = const [],
-  });
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is ThemeChoice &&
-          runtimeType == other.runtimeType &&
-          key == other.key &&
-          type == other.type;
-
-  @override
-  int get hashCode => key.hashCode ^ type.hashCode;
-}
 
 class ConfigController {
   late final ConfigService _configService;

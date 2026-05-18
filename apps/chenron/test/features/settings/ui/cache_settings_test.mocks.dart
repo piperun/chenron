@@ -3,12 +3,13 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i5;
+import 'dart:async' as _i6;
 
 import 'package:chenron/features/settings/controller/config_controller.dart'
     as _i3;
+import 'package:chenron/features/settings/state/theme_choice.dart' as _i5;
 import 'package:database/main.dart' as _i4;
-import 'package:flutter/material.dart' as _i6;
+import 'package:flutter/material.dart' as _i7;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:signals/signals_flutter.dart' as _i2;
 
@@ -83,33 +84,33 @@ class MockConfigController extends _i1.Mock implements _i3.ConfigController {
       ) as _i2.FlutterSignal<String?>);
 
   @override
-  _i2.FlutterSignal<_i3.ThemeChoice?> get selectedThemeChoice =>
+  _i2.FlutterSignal<_i5.ThemeChoice?> get selectedThemeChoice =>
       (super.noSuchMethod(
         Invocation.getter(#selectedThemeChoice),
-        returnValue: _FakeFlutterSignal_0<_i3.ThemeChoice?>(
+        returnValue: _FakeFlutterSignal_0<_i5.ThemeChoice?>(
           this,
           Invocation.getter(#selectedThemeChoice),
         ),
-      ) as _i2.FlutterSignal<_i3.ThemeChoice?>);
+      ) as _i2.FlutterSignal<_i5.ThemeChoice?>);
 
   @override
-  _i2.FlutterSignal<List<_i3.ThemeChoice>> get availableThemes =>
+  _i2.FlutterSignal<List<_i5.ThemeChoice>> get availableThemes =>
       (super.noSuchMethod(
         Invocation.getter(#availableThemes),
-        returnValue: _FakeFlutterSignal_0<List<_i3.ThemeChoice>>(
+        returnValue: _FakeFlutterSignal_0<List<_i5.ThemeChoice>>(
           this,
           Invocation.getter(#availableThemes),
         ),
-      ) as _i2.FlutterSignal<List<_i3.ThemeChoice>>);
+      ) as _i2.FlutterSignal<List<_i5.ThemeChoice>>);
 
   @override
-  _i2.FlutterSignal<_i3.ThemeSortMode> get themeSortMode => (super.noSuchMethod(
+  _i2.FlutterSignal<_i5.ThemeSortMode> get themeSortMode => (super.noSuchMethod(
         Invocation.getter(#themeSortMode),
-        returnValue: _FakeFlutterSignal_0<_i3.ThemeSortMode>(
+        returnValue: _FakeFlutterSignal_0<_i5.ThemeSortMode>(
           this,
           Invocation.getter(#themeSortMode),
         ),
-      ) as _i2.FlutterSignal<_i3.ThemeSortMode>);
+      ) as _i2.FlutterSignal<_i5.ThemeSortMode>);
 
   @override
   _i2.FlutterSignal<bool> get defaultArchiveIs => (super.noSuchMethod(
@@ -239,10 +240,10 @@ class MockConfigController extends _i1.Mock implements _i3.ConfigController {
       ) as _i2.FlutterSignal<String?>);
 
   @override
-  List<_i3.ThemeChoice> get sortedThemes => (super.noSuchMethod(
+  List<_i5.ThemeChoice> get sortedThemes => (super.noSuchMethod(
         Invocation.getter(#sortedThemes),
-        returnValue: <_i3.ThemeChoice>[],
-      ) as List<_i3.ThemeChoice>);
+        returnValue: <_i5.ThemeChoice>[],
+      ) as List<_i5.ThemeChoice>);
 
   @override
   set savedAppDatabasePath(String? value) => super.noSuchMethod(
@@ -254,25 +255,25 @@ class MockConfigController extends _i1.Mock implements _i3.ConfigController {
       );
 
   @override
-  _i5.Future<void> initialize() => (super.noSuchMethod(
+  _i6.Future<void> initialize() => (super.noSuchMethod(
         Invocation.method(
           #initialize,
           [],
         ),
-        returnValue: _i5.Future<void>.value(),
-        returnValueForMissingStub: _i5.Future<void>.value(),
-      ) as _i5.Future<void>);
+        returnValue: _i6.Future<void>.value(),
+        returnValueForMissingStub: _i6.Future<void>.value(),
+      ) as _i6.Future<void>);
 
   @override
-  ({_i6.ThemeData dark, _i6.ThemeData light})? getPreviewVariants(
-          _i3.ThemeChoice? choice) =>
+  ({_i7.ThemeData dark, _i7.ThemeData light})? getPreviewVariants(
+          _i5.ThemeChoice? choice) =>
       (super.noSuchMethod(Invocation.method(
         #getPreviewVariants,
         [choice],
-      )) as ({_i6.ThemeData dark, _i6.ThemeData light})?);
+      )) as ({_i7.ThemeData dark, _i7.ThemeData light})?);
 
   @override
-  void updateSelectedTheme(_i3.ThemeChoice? choice) => super.noSuchMethod(
+  void updateSelectedTheme(_i5.ThemeChoice? choice) => super.noSuchMethod(
         Invocation.method(
           #updateSelectedTheme,
           [choice],
@@ -413,13 +414,13 @@ class MockConfigController extends _i1.Mock implements _i3.ConfigController {
       );
 
   @override
-  _i5.Future<bool> saveSettings() => (super.noSuchMethod(
+  _i6.Future<bool> saveSettings() => (super.noSuchMethod(
         Invocation.method(
           #saveSettings,
           [],
         ),
-        returnValue: _i5.Future<bool>.value(false),
-      ) as _i5.Future<bool>);
+        returnValue: _i6.Future<bool>.value(false),
+      ) as _i6.Future<bool>);
 
   @override
   bool hasUnsavedChanges() => (super.noSuchMethod(

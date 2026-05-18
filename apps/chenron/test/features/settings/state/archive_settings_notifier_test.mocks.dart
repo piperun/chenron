@@ -178,4 +178,24 @@ class MockConfigService extends _i1.Mock implements _i2.ConfigService {
         returnValue: _i3.Future<void>.value(),
         returnValueForMissingStub: _i3.Future<void>.value(),
       ) as _i3.Future<void>);
+
+  @override
+  _i3.Future<void> updateThemeSection({
+    required String? configId,
+    required String? selectedThemeKey,
+    required _i4.ThemeType? selectedThemeType,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateThemeSection,
+          [],
+          {
+            #configId: configId,
+            #selectedThemeKey: selectedThemeKey,
+            #selectedThemeType: selectedThemeType,
+          },
+        ),
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
 }
