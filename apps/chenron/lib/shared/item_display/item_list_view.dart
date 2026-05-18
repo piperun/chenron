@@ -1,7 +1,7 @@
 import "package:flutter/material.dart";
 import "package:signals/signals_flutter.dart";
 import "package:database/models/item.dart";
-import "package:chenron/features/settings/controller/config_controller.dart";
+import "package:chenron/features/settings/coordinator/settings_coordinator.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/shared/item_display/widgets/display_mode/display_mode.dart";
 import "package:chenron/shared/item_display/widgets/item_empty_state.dart";
@@ -39,7 +39,7 @@ class ItemListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final config = locator.get<ConfigController>();
+    final displayNotifier = locator.get<SettingsCoordinator>().display;
 
     if (items.isEmpty) {
       return const ItemEmptyState();
@@ -67,10 +67,11 @@ class ItemListView extends StatelessWidget {
           child: Watch((context) {
             // Read config preferences once per config change. Resolved values
             // are then passed as primitives to each cell — no per-cell Watch.
-            final showImages = config.showImages.value;
-            final showDescription = config.showDescription.value;
-            final showTags = config.showTags.value;
-            final showCopyLink = config.showCopyLink.value;
+            final snapshot = displayNotifier.current.value;
+            final showImages = snapshot.showImages;
+            final showDescription = snapshot.showDescription;
+            final showTags = snapshot.showTags;
+            final showCopyLink = snapshot.showCopyLink;
 
             final titleLines = displayMode.titleLines;
             final descriptionLines =

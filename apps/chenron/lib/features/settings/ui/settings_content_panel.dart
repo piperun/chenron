@@ -66,8 +66,8 @@ class SettingsContentPanel extends StatelessWidget {
   ) {
     return switch (category) {
       SettingsCategory.theme => [ThemeSettingsPanel(controller: controller)],
-      SettingsCategory.display => [DisplaySettingsPanel(controller: controller)],
-      SettingsCategory.cache => [CacheSettings(controller: controller)],
+      SettingsCategory.display => [const DisplaySettingsPanel()],
+      SettingsCategory.cache => [const CacheSettings()],
       SettingsCategory.archive => [const ArchiveSettingsPanel()],
       SettingsCategory.backup => [BackupSettings(controller: controller)],
       SettingsCategory.data => [DataSettings(controller: controller)],

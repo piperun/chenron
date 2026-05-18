@@ -12,7 +12,8 @@ import "package:database/database.dart";
 import "package:flutter/material.dart";
 import "package:url_launcher/url_launcher.dart";
 import "package:signals/signals_flutter.dart";
-import "package:chenron/features/settings/controller/config_controller.dart";
+import "package:chenron/features/settings/coordinator/settings_coordinator.dart";
+import "package:chenron/features/settings/state/display_settings.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/shared/item_detail/item_detail_dialog.dart";
 
@@ -29,7 +30,8 @@ class ViewerPresenter {
 
   final _itemsController = StreamController<List<ViewerItem>>.broadcast();
   final ViewerModel _model;
-  final ConfigController _configController = locator.get<ConfigController>();
+  final DisplaySettingsNotifier _displayNotifier =
+      locator.get<SettingsCoordinator>().display;
   Stream<List<ViewerItem>>? _allItemsStream;
   StreamSubscription<List<ViewerItem>>? _allItemsSubscription;
   List<ViewerItem> _currentItems = [];
@@ -181,7 +183,7 @@ class ViewerPresenter {
 
   void handleItemTap(BuildContext context, ViewerItem item) {
     final action =
-        ItemClickAction.values[_configController.itemClickAction.peek()];
+        ItemClickAction.values[_displayNotifier.current.peek().itemClickAction];
 
     if (action == ItemClickAction.showDetails) {
       showItemDetailDialog(context,
@@ -217,7 +219,7 @@ class ViewerPresenter {
   /// so they don't need to know about ViewerItem or the presenter signal.
   void handleFolderItemTap(BuildContext context, FolderItem item) {
     final action =
-        ItemClickAction.values[_configController.itemClickAction.peek()];
+        ItemClickAction.values[_displayNotifier.current.peek().itemClickAction];
 
     if (action == ItemClickAction.showDetails) {
       showItemDetailDialog(context, itemId: item.id!, itemType: item.type);

@@ -113,105 +113,6 @@ class MockConfigController extends _i1.Mock implements _i3.ConfigController {
       ) as _i2.FlutterSignal<_i5.ThemeSortMode>);
 
   @override
-  _i2.FlutterSignal<bool> get defaultArchiveIs => (super.noSuchMethod(
-        Invocation.getter(#defaultArchiveIs),
-        returnValue: _FakeFlutterSignal_0<bool>(
-          this,
-          Invocation.getter(#defaultArchiveIs),
-        ),
-      ) as _i2.FlutterSignal<bool>);
-
-  @override
-  _i2.FlutterSignal<bool> get defaultArchiveOrg => (super.noSuchMethod(
-        Invocation.getter(#defaultArchiveOrg),
-        returnValue: _FakeFlutterSignal_0<bool>(
-          this,
-          Invocation.getter(#defaultArchiveOrg),
-        ),
-      ) as _i2.FlutterSignal<bool>);
-
-  @override
-  _i2.FlutterSignal<String?> get archiveOrgS3AccessKey => (super.noSuchMethod(
-        Invocation.getter(#archiveOrgS3AccessKey),
-        returnValue: _FakeFlutterSignal_0<String?>(
-          this,
-          Invocation.getter(#archiveOrgS3AccessKey),
-        ),
-      ) as _i2.FlutterSignal<String?>);
-
-  @override
-  _i2.FlutterSignal<String?> get archiveOrgS3SecretKey => (super.noSuchMethod(
-        Invocation.getter(#archiveOrgS3SecretKey),
-        returnValue: _FakeFlutterSignal_0<String?>(
-          this,
-          Invocation.getter(#archiveOrgS3SecretKey),
-        ),
-      ) as _i2.FlutterSignal<String?>);
-
-  @override
-  _i2.FlutterSignal<int> get timeDisplayFormat => (super.noSuchMethod(
-        Invocation.getter(#timeDisplayFormat),
-        returnValue: _FakeFlutterSignal_0<int>(
-          this,
-          Invocation.getter(#timeDisplayFormat),
-        ),
-      ) as _i2.FlutterSignal<int>);
-
-  @override
-  _i2.FlutterSignal<int> get itemClickAction => (super.noSuchMethod(
-        Invocation.getter(#itemClickAction),
-        returnValue: _FakeFlutterSignal_0<int>(
-          this,
-          Invocation.getter(#itemClickAction),
-        ),
-      ) as _i2.FlutterSignal<int>);
-
-  @override
-  _i2.FlutterSignal<String?> get cacheDirectory => (super.noSuchMethod(
-        Invocation.getter(#cacheDirectory),
-        returnValue: _FakeFlutterSignal_0<String?>(
-          this,
-          Invocation.getter(#cacheDirectory),
-        ),
-      ) as _i2.FlutterSignal<String?>);
-
-  @override
-  _i2.FlutterSignal<bool> get showDescription => (super.noSuchMethod(
-        Invocation.getter(#showDescription),
-        returnValue: _FakeFlutterSignal_0<bool>(
-          this,
-          Invocation.getter(#showDescription),
-        ),
-      ) as _i2.FlutterSignal<bool>);
-
-  @override
-  _i2.FlutterSignal<bool> get showImages => (super.noSuchMethod(
-        Invocation.getter(#showImages),
-        returnValue: _FakeFlutterSignal_0<bool>(
-          this,
-          Invocation.getter(#showImages),
-        ),
-      ) as _i2.FlutterSignal<bool>);
-
-  @override
-  _i2.FlutterSignal<bool> get showTags => (super.noSuchMethod(
-        Invocation.getter(#showTags),
-        returnValue: _FakeFlutterSignal_0<bool>(
-          this,
-          Invocation.getter(#showTags),
-        ),
-      ) as _i2.FlutterSignal<bool>);
-
-  @override
-  _i2.FlutterSignal<bool> get showCopyLink => (super.noSuchMethod(
-        Invocation.getter(#showCopyLink),
-        returnValue: _FakeFlutterSignal_0<bool>(
-          this,
-          Invocation.getter(#showCopyLink),
-        ),
-      ) as _i2.FlutterSignal<bool>);
-
-  @override
   _i2.FlutterSignal<_i4.BackupSetting?> get backupSettings =>
       (super.noSuchMethod(
         Invocation.getter(#backupSettings),
@@ -300,74 +201,9 @@ class MockConfigController extends _i1.Mock implements _i3.ConfigController {
       );
 
   @override
-  void updateDefaultArchiveIs({required bool? enabled}) => super.noSuchMethod(
-        Invocation.method(
-          #updateDefaultArchiveIs,
-          [],
-          {#enabled: enabled},
-        ),
-        returnValueForMissingStub: null,
-      );
-
-  @override
-  void updateDefaultArchiveOrg({required bool? enabled}) => super.noSuchMethod(
-        Invocation.method(
-          #updateDefaultArchiveOrg,
-          [],
-          {#enabled: enabled},
-        ),
-        returnValueForMissingStub: null,
-      );
-
-  @override
-  void updateArchiveOrgS3AccessKey(String? value) => super.noSuchMethod(
-        Invocation.method(
-          #updateArchiveOrgS3AccessKey,
-          [value],
-        ),
-        returnValueForMissingStub: null,
-      );
-
-  @override
-  void updateArchiveOrgS3SecretKey(String? value) => super.noSuchMethod(
-        Invocation.method(
-          #updateArchiveOrgS3SecretKey,
-          [value],
-        ),
-        returnValueForMissingStub: null,
-      );
-
-  @override
-  void updateTimeDisplayFormat(int? value) => super.noSuchMethod(
-        Invocation.method(
-          #updateTimeDisplayFormat,
-          [value],
-        ),
-        returnValueForMissingStub: null,
-      );
-
-  @override
-  void updateItemClickAction(int? value) => super.noSuchMethod(
-        Invocation.method(
-          #updateItemClickAction,
-          [value],
-        ),
-        returnValueForMissingStub: null,
-      );
-
-  @override
   void updateAppDatabasePath(String? value) => super.noSuchMethod(
         Invocation.method(
           #updateAppDatabasePath,
-          [value],
-        ),
-        returnValueForMissingStub: null,
-      );
-
-  @override
-  void updateCacheDirectory(String? value) => super.noSuchMethod(
-        Invocation.method(
-          #updateCacheDirectory,
           [value],
         ),
         returnValueForMissingStub: null,
@@ -387,46 +223,6 @@ class MockConfigController extends _i1.Mock implements _i3.ConfigController {
         Invocation.method(
           #updateBackupPath,
           [value],
-        ),
-        returnValueForMissingStub: null,
-      );
-
-  @override
-  void updateShowDescription({required bool? enabled}) => super.noSuchMethod(
-        Invocation.method(
-          #updateShowDescription,
-          [],
-          {#enabled: enabled},
-        ),
-        returnValueForMissingStub: null,
-      );
-
-  @override
-  void updateShowImages({required bool? enabled}) => super.noSuchMethod(
-        Invocation.method(
-          #updateShowImages,
-          [],
-          {#enabled: enabled},
-        ),
-        returnValueForMissingStub: null,
-      );
-
-  @override
-  void updateShowTags({required bool? enabled}) => super.noSuchMethod(
-        Invocation.method(
-          #updateShowTags,
-          [],
-          {#enabled: enabled},
-        ),
-        returnValueForMissingStub: null,
-      );
-
-  @override
-  void updateShowCopyLink({required bool? enabled}) => super.noSuchMethod(
-        Invocation.method(
-          #updateShowCopyLink,
-          [],
-          {#enabled: enabled},
         ),
         returnValueForMissingStub: null,
       );

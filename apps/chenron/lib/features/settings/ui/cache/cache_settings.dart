@@ -1,29 +1,36 @@
 import "dart:async";
-import "package:flutter/material.dart";
-import "package:signals/signals_flutter.dart";
-import "package:chenron/features/settings/controller/config_controller.dart";
+
+import "package:chenron/features/settings/coordinator/settings_coordinator.dart";
 import "package:chenron/features/settings/service/cache_service.dart";
+import "package:chenron/features/settings/state/display_settings.dart";
 import "package:chenron/features/settings/ui/shared/path_mode_selector.dart";
 import "package:chenron/features/settings/ui/shared/settings_section_header.dart";
 import "package:chenron/features/settings/ui/shared/stats_action_row.dart";
+import "package:chenron/locator.dart";
 import "package:chenron/shared/dialogs/confirm_dialog.dart";
 import "package:chenron/shared/errors/error_snack_bar.dart";
+import "package:flutter/material.dart";
 import "package:path_provider/path_provider.dart";
+import "package:signals/signals_flutter.dart";
 
 class CacheSettings extends StatefulWidget {
-  final ConfigController controller;
   final CacheService? cacheService;
 
-  const CacheSettings({super.key, required this.controller, this.cacheService});
+  const CacheSettings({super.key, this.cacheService});
 
   @override
   State<CacheSettings> createState() => _CacheSettingsState();
 }
 
 class _CacheSettingsState extends State<CacheSettings> {
+  late final DisplaySettingsNotifier _displayNotifier;
+  late final CacheService _cacheService;
+  Future<int>? _imageCacheSizeFuture;
+
   @override
   void initState() {
     super.initState();
+    _displayNotifier = locator.get<SettingsCoordinator>().display;
     _initCacheService();
   }
 
@@ -37,14 +44,11 @@ class _CacheSettingsState extends State<CacheSettings> {
     return "${appDir.path}/cache";
   }
 
-  late final CacheService _cacheService;
-  Future<int>? _imageCacheSizeFuture;
-
   void _initCacheService() {
     _cacheService = widget.cacheService ??
         CacheService(
           resolveCachePath: () async {
-            final customPath = widget.controller.cacheDirectory.peek();
+            final customPath = _displayNotifier.current.peek().cacheDirectory;
             return customPath ?? await _getDefaultCachePath();
           },
         );
@@ -98,22 +102,20 @@ class _CacheSettingsState extends State<CacheSettings> {
     final theme = Theme.of(context);
 
     return Watch((context) {
-      // Subscribe to cacheDirectory changes to trigger rebuilds
-      // ignore: unused_local_variable
-      final _ = widget.controller.cacheDirectory.value;
+      // Subscribe to the whole display snapshot so cacheDirectory edits
+      // trigger a rebuild of this panel.
+      final DisplaySettings snapshot = _displayNotifier.current.value;
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Cache Directory Section
           const SettingsSectionHeader(
             title: "Cache Directory",
             description: "Location where cached images are stored.",
           ),
-
           PathModeSelector(
-            currentPath: widget.controller.cacheDirectory.peek(),
+            currentPath: snapshot.cacheDirectory,
             options: [
               PathModeOption(
                 label: "Default",
@@ -130,23 +132,16 @@ class _CacheSettingsState extends State<CacheSettings> {
               ),
             ],
             fieldLabel: "Cache Path",
-            onPathChanged: widget.controller.updateCacheDirectory,
+            onPathChanged: (value) => _displayNotifier
+                .update((s) => s.copyWith(cacheDirectory: value)),
             detectInitialMode: (path) async {
               final appDataPath = await _getAppDataCachePath();
               return path == appDataPath ? 1 : 2;
             },
           ),
-
           const Divider(height: 32),
-
-          // Cache Management Section
-          Text(
-            "Cache Management",
-            style: theme.textTheme.titleMedium,
-          ),
+          Text("Cache Management", style: theme.textTheme.titleMedium),
           const SizedBox(height: 12),
-
-          // Image Cache Row
           StatsActionRow(
             icon: Icons.image_outlined,
             label: "Image Cache",

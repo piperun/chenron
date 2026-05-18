@@ -53,15 +53,6 @@ class ConfigController {
   final availableThemes = signal<List<ThemeChoice>>([]);
   final themeSortMode = signal<ThemeSortMode>(ThemeSortMode.name);
 
-  final timeDisplayFormat = signal<int>(0);
-  final itemClickAction = signal<int>(0);
-  final cacheDirectory = signal<String?>(null);
-
-  final showDescription = signal<bool>(true);
-  final showImages = signal<bool>(true);
-  final showTags = signal<bool>(true);
-  final showCopyLink = signal<bool>(true);
-
   final backupSettings = signal<BackupSetting?>(null);
   final backupInterval = signal<String?>(null);
   final backupPath = signal<String?>(null);
@@ -95,15 +86,6 @@ class ConfigController {
   /// legacy UI subscribers see fresh values.
   void _syncFromCoordinator() {
     userConfig.value = _coordinator.userConfig.value;
-
-    final display = _coordinator.display.current.value;
-    timeDisplayFormat.value = display.timeDisplayFormat;
-    itemClickAction.value = display.itemClickAction;
-    cacheDirectory.value = display.cacheDirectory;
-    showDescription.value = display.showDescription;
-    showImages.value = display.showImages;
-    showTags.value = display.showTags;
-    showCopyLink.value = display.showCopyLink;
 
     final themeSnap = _coordinator.theme.current.value;
     availableThemes.value = _coordinator.theme.availableThemes.value;
@@ -158,24 +140,9 @@ class ConfigController {
     _coordinator.theme.select(choice);
   }
 
-  void updateTimeDisplayFormat(int value) {
-    timeDisplayFormat.value = value;
-    _coordinator.display.update((s) => s.copyWith(timeDisplayFormat: value));
-  }
-
-  void updateItemClickAction(int value) {
-    itemClickAction.value = value;
-    _coordinator.display.update((s) => s.copyWith(itemClickAction: value));
-  }
-
   void updateAppDatabasePath(String? value) {
     appDatabasePath.value = value;
     _coordinator.database.update(value);
-  }
-
-  void updateCacheDirectory(String? value) {
-    cacheDirectory.value = value;
-    _coordinator.display.update((s) => s.copyWith(cacheDirectory: value));
   }
 
   void updateBackupInterval(String? value) {
@@ -186,25 +153,5 @@ class ConfigController {
   void updateBackupPath(String? value) {
     backupPath.value = value;
     _coordinator.backup.update((s) => s.copyWith(backupPath: value));
-  }
-
-  void updateShowDescription({required bool enabled}) {
-    showDescription.value = enabled;
-    _coordinator.display.update((s) => s.copyWith(showDescription: enabled));
-  }
-
-  void updateShowImages({required bool enabled}) {
-    showImages.value = enabled;
-    _coordinator.display.update((s) => s.copyWith(showImages: enabled));
-  }
-
-  void updateShowTags({required bool enabled}) {
-    showTags.value = enabled;
-    _coordinator.display.update((s) => s.copyWith(showTags: enabled));
-  }
-
-  void updateShowCopyLink({required bool enabled}) {
-    showCopyLink.value = enabled;
-    _coordinator.display.update((s) => s.copyWith(showCopyLink: enabled));
   }
 }
