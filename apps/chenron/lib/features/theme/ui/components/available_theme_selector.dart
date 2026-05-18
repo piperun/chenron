@@ -2,6 +2,7 @@ import "package:flutter/material.dart";
 import "package:signals/signals_flutter.dart";
 import "package:vibe/vibe.dart";
 import "package:chenron/features/settings/controller/config_controller.dart";
+import "package:chenron/features/settings/state/theme_choice.dart";
 import "package:app_logger/app_logger.dart";
 
 class AvailableThemeSelector extends StatelessWidget {

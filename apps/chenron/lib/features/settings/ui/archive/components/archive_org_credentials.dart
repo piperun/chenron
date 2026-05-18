@@ -1,15 +1,12 @@
+import "package:chenron/features/settings/coordinator/settings_coordinator.dart";
+import "package:chenron/features/settings/state/archive_settings.dart";
+import "package:chenron/features/settings/ui/credential_field.dart";
+import "package:chenron/locator.dart";
 import "package:flutter/material.dart";
 import "package:signals/signals_flutter.dart";
-import "package:chenron/features/settings/controller/config_controller.dart";
-import "package:chenron/features/settings/ui/credential_field.dart";
 
 class ArchiveOrgCredentialsWidget extends StatefulWidget {
-  final ConfigController controller;
-
-  const ArchiveOrgCredentialsWidget({
-    super.key,
-    required this.controller,
-  });
+  const ArchiveOrgCredentialsWidget({super.key});
 
   @override
   State<ArchiveOrgCredentialsWidget> createState() =>
@@ -18,32 +15,37 @@ class ArchiveOrgCredentialsWidget extends StatefulWidget {
 
 class _ArchiveOrgCredentialsWidgetState
     extends State<ArchiveOrgCredentialsWidget> {
+  late final ArchiveSettingsNotifier _notifier;
   late final TextEditingController _accessKeyController;
   late final TextEditingController _secretKeyController;
 
   @override
   void initState() {
     super.initState();
-    _accessKeyController = TextEditingController(
-        text: widget.controller.archiveOrgS3AccessKey.peek());
-    _secretKeyController = TextEditingController(
-        text: widget.controller.archiveOrgS3SecretKey.peek());
+    _notifier = locator.get<SettingsCoordinator>().archive;
+    final initial = _notifier.current.peek();
+    _accessKeyController =
+        TextEditingController(text: initial.archiveOrgS3AccessKey);
+    _secretKeyController =
+        TextEditingController(text: initial.archiveOrgS3SecretKey);
 
     _accessKeyController.addListener(_onAccessKeyChanged);
     _secretKeyController.addListener(_onSecretKeyChanged);
   }
 
   void _onAccessKeyChanged() {
-    if (widget.controller.archiveOrgS3AccessKey.peek() !=
-        _accessKeyController.text) {
-      widget.controller.updateArchiveOrgS3AccessKey(_accessKeyController.text);
+    final current = _notifier.current.peek();
+    if (current.archiveOrgS3AccessKey != _accessKeyController.text) {
+      _notifier.update((s) =>
+          s.copyWith(archiveOrgS3AccessKey: _accessKeyController.text));
     }
   }
 
   void _onSecretKeyChanged() {
-    if (widget.controller.archiveOrgS3SecretKey.peek() !=
-        _secretKeyController.text) {
-      widget.controller.updateArchiveOrgS3SecretKey(_secretKeyController.text);
+    final current = _notifier.current.peek();
+    if (current.archiveOrgS3SecretKey != _secretKeyController.text) {
+      _notifier.update((s) =>
+          s.copyWith(archiveOrgS3SecretKey: _secretKeyController.text));
     }
   }
 
@@ -59,27 +61,23 @@ class _ArchiveOrgCredentialsWidgetState
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final externalAccessKey =
-        widget.controller.archiveOrgS3AccessKey.watch(context);
-    final externalSecretKey =
-        widget.controller.archiveOrgS3SecretKey.watch(context);
+    final snapshot = _notifier.current.watch(context);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        if (_accessKeyController.text != (externalAccessKey ?? "")) {
-          _accessKeyController.value = _accessKeyController.value.copyWith(
-            text: externalAccessKey ?? "",
-            selection: TextSelection.collapsed(
-                offset: (externalAccessKey ?? "").length),
-          );
-        }
-        if (_secretKeyController.text != (externalSecretKey ?? "")) {
-          _secretKeyController.value = _secretKeyController.value.copyWith(
-            text: externalSecretKey ?? "",
-            selection: TextSelection.collapsed(
-                offset: (externalSecretKey ?? "").length),
-          );
-        }
+      if (!mounted) return;
+      final externalAccess = snapshot.archiveOrgS3AccessKey ?? "";
+      final externalSecret = snapshot.archiveOrgS3SecretKey ?? "";
+      if (_accessKeyController.text != externalAccess) {
+        _accessKeyController.value = _accessKeyController.value.copyWith(
+          text: externalAccess,
+          selection: TextSelection.collapsed(offset: externalAccess.length),
+        );
+      }
+      if (_secretKeyController.text != externalSecret) {
+        _secretKeyController.value = _secretKeyController.value.copyWith(
+          text: externalSecret,
+          selection: TextSelection.collapsed(offset: externalSecret.length),
+        );
       }
     });
   }
@@ -124,4 +122,3 @@ class _ArchiveOrgCredentialsWidgetState
     );
   }
 }
-

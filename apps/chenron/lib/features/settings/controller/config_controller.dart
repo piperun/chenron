@@ -53,11 +53,6 @@ class ConfigController {
   final availableThemes = signal<List<ThemeChoice>>([]);
   final themeSortMode = signal<ThemeSortMode>(ThemeSortMode.name);
 
-  final defaultArchiveIs = signal<bool>(false);
-  final defaultArchiveOrg = signal<bool>(false);
-  final archiveOrgS3AccessKey = signal<String?>(null);
-  final archiveOrgS3SecretKey = signal<String?>(null);
-
   final timeDisplayFormat = signal<int>(0);
   final itemClickAction = signal<int>(0);
   final cacheDirectory = signal<String?>(null);
@@ -100,12 +95,6 @@ class ConfigController {
   /// legacy UI subscribers see fresh values.
   void _syncFromCoordinator() {
     userConfig.value = _coordinator.userConfig.value;
-
-    final archive = _coordinator.archive.current.value;
-    defaultArchiveIs.value = archive.defaultArchiveIs;
-    defaultArchiveOrg.value = archive.defaultArchiveOrg;
-    archiveOrgS3AccessKey.value = archive.archiveOrgS3AccessKey;
-    archiveOrgS3SecretKey.value = archive.archiveOrgS3SecretKey;
 
     final display = _coordinator.display.current.value;
     timeDisplayFormat.value = display.timeDisplayFormat;
@@ -167,28 +156,6 @@ class ConfigController {
   void updateSelectedTheme(ThemeChoice? choice) {
     selectedThemeChoice.value = choice;
     _coordinator.theme.select(choice);
-  }
-
-  void updateDefaultArchiveIs({required bool enabled}) {
-    defaultArchiveIs.value = enabled;
-    _coordinator.archive.update((s) => s.copyWith(defaultArchiveIs: enabled));
-  }
-
-  void updateDefaultArchiveOrg({required bool enabled}) {
-    defaultArchiveOrg.value = enabled;
-    _coordinator.archive.update((s) => s.copyWith(defaultArchiveOrg: enabled));
-  }
-
-  void updateArchiveOrgS3AccessKey(String? value) {
-    archiveOrgS3AccessKey.value = value;
-    _coordinator.archive
-        .update((s) => s.copyWith(archiveOrgS3AccessKey: value));
-  }
-
-  void updateArchiveOrgS3SecretKey(String? value) {
-    archiveOrgS3SecretKey.value = value;
-    _coordinator.archive
-        .update((s) => s.copyWith(archiveOrgS3SecretKey: value));
   }
 
   void updateTimeDisplayFormat(int value) {

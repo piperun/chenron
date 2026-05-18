@@ -1,36 +1,27 @@
-import "package:flutter/material.dart";
-import "package:signals/signals_flutter.dart"; // Import signals
-import "package:chenron/features/settings/controller/config_controller.dart"; // Import controller
-// Import the specific widget (assuming it's adapted or we adapt it here)
-import "package:chenron/features/settings/ui/archive/components/archive_org_credentials.dart";
 import "package:app_logger/app_logger.dart";
+import "package:chenron/features/settings/coordinator/settings_coordinator.dart";
+import "package:chenron/features/settings/state/archive_settings.dart";
+import "package:chenron/features/settings/ui/archive/components/archive_org_credentials.dart";
+import "package:chenron/locator.dart";
+import "package:flutter/material.dart";
+import "package:signals/signals_flutter.dart";
 
-class ArchiveSettings extends StatelessWidget {
-  // Changed to StatelessWidget
-  final ConfigController controller; // Accept the controller
-
-  const ArchiveSettings({
-    super.key,
-    required this.controller, // Require the controller
-  });
+class ArchiveSettingsPanel extends StatelessWidget {
+  const ArchiveSettingsPanel({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Watch relevant signals for reactive UI updates
-    final useDefaultIs = controller.defaultArchiveIs.watch(context);
-    final useDefaultOrg = controller.defaultArchiveOrg.watch(context);
-    final accessKey = controller.archiveOrgS3AccessKey.watch(context);
-    final secretKey = controller.archiveOrgS3SecretKey.watch(context);
+    final notifier = locator.get<SettingsCoordinator>().archive;
+    final ArchiveSettings snapshot = notifier.current.watch(context);
 
-    // Determine if S3 keys are present directly from controller signals
-    final bool s3KeysPresent = (accessKey?.trim().isNotEmpty ?? false) &&
-        (secretKey?.trim().isNotEmpty ?? false);
+    final bool s3KeysPresent =
+        (snapshot.archiveOrgS3AccessKey?.trim().isNotEmpty ?? false) &&
+            (snapshot.archiveOrgS3SecretKey?.trim().isNotEmpty ?? false);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Default Archive Toggles
         Text(
           "Default Archiving Behavior",
           style: Theme.of(context).textTheme.titleMedium,
@@ -40,11 +31,11 @@ class ArchiveSettings extends StatelessWidget {
           title: const Text("Archive to archive.is by Default"),
           subtitle: const Text(
               "Automatically attempt archiving to archive.is for new items."),
-          value: useDefaultIs,
+          value: snapshot.defaultArchiveIs,
           onChanged: (value) {
-            controller.updateDefaultArchiveIs(enabled: value);
+            notifier.update((s) => s.copyWith(defaultArchiveIs: value));
             loggerGlobal.info(
-                "ArchiveSettings", "Default archive.is changed: $value");
+                "ArchiveSettingsPanel", "Default archive.is changed: $value");
           },
         ),
         SwitchListTile(
@@ -57,19 +48,20 @@ class ArchiveSettings extends StatelessWidget {
                 ? TextStyle(color: Theme.of(context).disabledColor)
                 : null,
           ),
-          value: useDefaultOrg,
+          value: snapshot.defaultArchiveOrg,
           onChanged: s3KeysPresent
               ? (value) {
-                  controller.updateDefaultArchiveOrg(enabled: value);
+                  notifier
+                      .update((s) => s.copyWith(defaultArchiveOrg: value));
                   loggerGlobal.info(
-                      "ArchiveSettings", "Default archive.org changed: $value");
+                    "ArchiveSettingsPanel",
+                    "Default archive.org changed: $value",
+                  );
                 }
               : null,
         ),
         const Divider(),
-        ArchiveOrgCredentialsWidget(
-          controller: controller,
-        ),
+        const ArchiveOrgCredentialsWidget(),
       ],
     );
   }
