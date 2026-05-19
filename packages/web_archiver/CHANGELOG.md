@@ -2,6 +2,22 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## web_archiver-v0.1.1 - 2026-05-19
+#### Bug Fixes
+- (**web_archiver**) stream monolith download to disk + add timeouts - (b33fb68) - *piperun*
+#### Performance Improvements
+- add HTTP timeouts to archive clients, cap polling at 5 minutes - (35cc833) - *piperun*
+#### Build system
+- (**web_archiver**) scaffold windows platform for integration tests - (4d6601e) - *piperun*
+#### Refactoring
+- <span style="background-color: #d73a49; color: white; padding: 2px 6px; border-radius: 3px; font-weight: bold; font-size: 0.85em;">BREAKING</span>(**database**) trim umbrella + drop main.dart shim - (3f4123e) - *piperun*
+- (**web_archiver**) unify logging on app_logger - (6eaef1b) - *piperun*
+- <span style="background-color: #d73a49; color: white; padding: 2px 6px; border-radius: 3px; font-weight: bold; font-size: 0.85em;">BREAKING</span>locator-manage three static singletons - (f195a96) - *piperun*
+- lift app-specific identifiers in generic packages to overridable defaults - (0ce7948) - *piperun*
+- generalize archive_jobs table into background_jobs - (0a99b8d) - *piperun*
+
+- - -
+
 ## web_archiver-v0.1.0 - 2026-02-07
 #### Features
 - Add unit tests for parseArchiveDate function to validate URL parsing - (49851a3) - *piperun*
