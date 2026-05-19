@@ -240,7 +240,8 @@ void main() {
       expect(job.error, "HTTP 503");
     });
 
-    test("permits null linkId for orphan fetches (background refresh)", () async {
+    test("permits null linkId for orphan fetches (background refresh)",
+        () async {
       final id = await database.recordMetadataFetch(
         url: "https://orphan.com",
         succeeded: false,
@@ -255,19 +256,16 @@ void main() {
     test("metadata fetches are NOT picked up by the archive processor",
         () async {
       // Failed metadata entries shouldn't be queued — they are audit logs.
-      // getNextQueuedArchiveJob filters by service, so it should ignore them
-      // even if a metadata entry somehow ends up with status="queued".
+      // getNextQueuedArchiveJob filters by service, so it ignores them even
+      // if a metadata entry somehow ends up with status="queued".
       await database.recordMetadataFetch(
         url: "https://meta.com",
         succeeded: false,
         error: "boom",
       );
 
-      // No archive jobs in the queue.
       final next = await database.getNextQueuedArchiveJob();
       expect(next, isNull);
-
-      // Pending archive count excludes metadata fetches.
       expect(await database.getPendingArchiveJobCount(), 0);
     });
 

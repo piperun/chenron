@@ -112,12 +112,13 @@ extension BackgroundJobsCrudExtensions on AppDatabase {
   // Metadata fetch logging (audit-log workflow)
   // ---------------------------------------------------------------------------
 
-  /// Record a metadata fetch attempt. Always written with a terminal status
-  /// (completed or failed) since fetches happen synchronously — there is no
-  /// queue to pull from.
+  /// Record a metadata fetch attempt. Always written with a terminal
+  /// status (completed or failed) since fetches happen synchronously —
+  /// there is no queue to pull from.
   ///
-  /// [linkId] is optional: the startup metadata refresh pass iterates the
-  /// metadata cache (keyed by URL), so no specific link is associated.
+  /// [linkId] is optional: the startup metadata refresh pass iterates
+  /// the metadata cache (keyed by URL), so no specific link is associated.
+  /// Rows aged out by the activity-log TTL (see `MainSetup`).
   Future<String> recordMetadataFetch({
     required String url,
     required bool succeeded,
@@ -187,5 +188,38 @@ extension BackgroundJobsCrudExtensions on AppDatabase {
     return (select(backgroundJobs)
           ..orderBy([(j) => OrderingTerm.desc(j.updatedAt)]))
         .get();
+  }
+
+  /// Mark any `in_progress` row that hasn't been touched in the last
+  /// [staleAfter] as failed. Used at startup to recover jobs orphaned by
+  /// a crash or kill — without this they sit forever, displayed as
+  /// "Archiving..." even though no work is happening.
+  ///
+  /// Returns the number of rows reclaimed.
+  Future<int> recoverOrphanedBackgroundJobs({
+    Duration staleAfter = const Duration(minutes: 30),
+  }) async {
+    final cutoff = DateTime.now().subtract(staleAfter);
+    return (update(backgroundJobs)
+          ..where((j) =>
+              j.status.equals(BackgroundJobStatus.inProgress) &
+              j.updatedAt.isSmallerThanValue(cutoff)))
+        .write(BackgroundJobsCompanion(
+      status: const Value(BackgroundJobStatus.failed),
+      error: const Value("App killed mid-job (auto-recovered)"),
+      updatedAt: Value(DateTime.now()),
+    ));
+  }
+
+  /// Delete rows whose `updated_at` is older than [olderThan].
+  ///
+  /// Pass `null` to disable TTL (permanent retention). Returns the
+  /// number of rows deleted.
+  Future<int> purgeOldBackgroundJobs({required Duration? olderThan}) async {
+    if (olderThan == null) return 0;
+    final cutoff = DateTime.now().subtract(olderThan);
+    return (delete(backgroundJobs)
+          ..where((j) => j.updatedAt.isSmallerThanValue(cutoff)))
+        .go();
   }
 }
