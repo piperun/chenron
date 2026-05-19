@@ -1,31 +1,34 @@
 import "package:database/database.dart";
-import "package:database/src/features/user_theme/handlers/user_theme_create_vepr.dart";
+import "package:database/src/core/handlers/run_vepr.dart";
+import "package:database/src/features/user_theme/handlers/insert_handler.dart";
 
 extension UserThemeCreateExtension on ConfigDatabase {
-  /// Creates new user themes associated with a user configuration using the VEPR pattern.
+  /// Creates new user themes associated with a user configuration.
   Future<List<UserThemeResultIds>> createUserTheme({
     required String userConfigId,
     required List<UserTheme> themes,
-  }) async {
-    // Public API method acts as the RUNNER
-
-    // 1. Instantiate the specific VEPR implementation
-    final operation =
-        UserThemeCreateVEPR(this); // Pass the ConfigDatabase instance
-
-    // 2. Prepare the input (using the typedef'd Record)
-    final UserThemeCreateInput input = (
-      userConfigId: userConfigId,
-      themes: themes,
+  }) {
+    return runVepr<List<UserThemeResultIds>, void, List<UserThemeResultIds>>(
+      logSource: "createUserTheme",
+      validate: () {
+        if (userConfigId.trim().isEmpty) {
+          throw ArgumentError("userConfigId cannot be empty.");
+        }
+      },
+      execute: () async {
+        if (themes.isEmpty) return <UserThemeResultIds>[];
+        List<UserThemeResultIds> results = [];
+        await batch((b) async {
+          results = await insertUserThemes(
+            batch: b,
+            userConfigId: userConfigId,
+            themes: themes,
+          );
+        });
+        return results;
+      },
+      process: (_) async {},
+      build: (results, _) => results,
     );
-
-    // 3. Execute the operation within a transaction
-    // Note: The original code used transaction, let's keep it for consistency,
-    // although batch might be sufficient if insertUserThemes is atomic enough.
-    // 3. Execute the operation using the run macro
-    return operation.run(input);
   }
-
-  // Remove the old private helper method _createUserTheme
-  // Future<List<UserThemeResultIds>> _createUserTheme(...) async { ... } // REMOVE
 }

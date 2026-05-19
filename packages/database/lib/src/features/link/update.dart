@@ -1,10 +1,13 @@
 import "package:database/database.dart";
-import "package:database/src/features/link/handlers/link_update_vepr.dart";
+import "package:database/src/core/handlers/run_vepr.dart";
 import "package:database/src/core/id.dart";
+import "package:database/src/features/link/read.dart";
 import "package:database/src/features/tag/create.dart";
 import "package:app_logger/app_logger.dart";
 import "package:drift/drift.dart";
 import "package:meta/meta.dart";
+
+typedef _LinkUpdatePathExec = ({bool linkExists, bool pathConflicts});
 
 extension LinkUpdateExtensions on AppDatabase {
   /// **DO NOT USE IN PRODUCTION **
@@ -32,12 +35,45 @@ extension LinkUpdateExtensions on AppDatabase {
   Future<bool> updateLinkPath({
     required String linkId,
     required String newPath,
-  }) async {
-    final operation = LinkUpdatePathVEPR(this);
-
-    final input = (linkId: linkId, newPath: newPath);
-
-    return operation.run(input);
+  }) {
+    return runVepr<_LinkUpdatePathExec, int, bool>(
+      logSource: "updateLinkPath",
+      validate: () {
+        if (linkId.trim().isEmpty) {
+          throw ArgumentError("Link ID cannot be empty.");
+        }
+        if (newPath.trim().isEmpty) {
+          throw ArgumentError("New path cannot be empty.");
+        }
+        if (!newPath.startsWith("http://") &&
+            !newPath.startsWith("https://")) {
+          throw ArgumentError("Link path must start with http:// or https://");
+        }
+      },
+      execute: () async {
+        final existing = await getLink(linkId: linkId);
+        if (existing == null) {
+          return (linkExists: false, pathConflicts: false);
+        }
+        final conflict = await (select(links)
+              ..where((tbl) =>
+                  tbl.path.equals(newPath) & tbl.id.equals(linkId).not()))
+            .getSingleOrNull();
+        return (linkExists: true, pathConflicts: conflict != null);
+      },
+      process: (exec) async {
+        if (!exec.linkExists) {
+          throw StateError("Cannot update non-existent link: $linkId");
+        }
+        if (exec.pathConflicts) {
+          throw StateError(
+              "Cannot update link: new path conflicts with existing link");
+        }
+        return (update(links)..where((tbl) => tbl.id.equals(linkId)))
+            .write(LinksCompanion(path: Value(newPath)));
+      },
+      build: (_, updateCount) => updateCount > 0,
+    );
   }
 
   /// Adds tags to an existing link
