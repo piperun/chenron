@@ -45,12 +45,21 @@ jobs:
         working-directory: apps/chenron
         run: flutter test test/
 
-      # Run chenron integration tests
+      # Run chenron integration tests.
+      # NOTE: each file is invoked separately. `flutter test integration_test/`
+      # (batch mode) can't run more than one file per invocation on desktop
+      # targets — the 2nd app process fails to attach to the debug socket
+      # with "Error waiting for a debug connection: The log reader stopped
+      # unexpectedly". Looping per-file dodges that.
       - name: Run chenron integration tests
         working-directory: apps/chenron
         run: |
           if [ -d "integration_test" ]; then
-            flutter test integration_test/ -d ${{ matrix.device }}
+            for f in integration_test/*.dart; do
+              echo "::group::$f"
+              flutter test "$f" -d ${{ matrix.device }}
+              echo "::endgroup::"
+            done
           else
             echo "No integration_test directory, skipping."
           fi
