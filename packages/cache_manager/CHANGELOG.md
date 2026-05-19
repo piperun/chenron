@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## cache_manager-v0.5.0 - 2026-05-19
+#### Performance Improvements
+- (**cache_manager**) drop the hardcoded 2s scheduler delay between refreshes - (15881af) - *piperun*
+#### Refactoring
+- (**cache_manager**) unify logging on app_logger - (0988b01) - *piperun*
+- <span style="background-color: #d73a49; color: white; padding: 2px 6px; border-radius: 3px; font-weight: bold; font-size: 0.85em;">BREAKING</span>locator-manage three static singletons - (f195a96) - *piperun*
+- lift app-specific identifiers in generic packages to overridable defaults - (0ce7948) - *piperun*
+
+- - -
+
 ## cache_manager-v0.4.0 - 2026-03-27
 #### Features
 - add cache logging to MetadataFactory - (4583086) - *piperun*
