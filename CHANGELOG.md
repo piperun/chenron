@@ -2,6 +2,59 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## chenron-v1.11.0 - 2026-05-19
+#### Features
+- (**chenron**) auto-purge activity log on startup with retention setting - (2f0d4cb) - *piperun*
+- (**chenron**) add safeWatch + safeAwait error-handling helpers - (16900d0) - *piperun*
+#### Bug Fixes
+- (**chenron**) reuse the lifecycle ConfigDatabase in _processArchiveQueue - (172fb63) - *piperun*
+- (**chenron**) close the 3 remaining stream-error audit OPEN sites - (eb2e8aa) - *piperun*
+- (**chenron**) wrap MISSING db awaits with safeAwait across page-level handlers - (c023d97) - *piperun*
+- (**chenron**) route the three .listen() stream sites through safeWatch - (fe56c4f) - *piperun*
+- (**chenron**) replace SILENT catches in tag/folder pickers with safeAwait - (08d97fd) - *piperun*
+- (**chenron**) dispose the SuggestionsOverlay query effect on State.dispose - (89be7e1) - *piperun*
+- (**chenron**) guard CreateLinkNotifier signal writes against dispose race - (cf4d49f) - *piperun*
+- (**chenron**) bound favicon cache with LRU to prevent unbounded growth - (4273117) - *piperun*
+#### Performance Improvements
+- (**chenron**) batch activity tracker's two writes into one transaction - (86f4167) - *piperun*
+- (**chenron**) move bookmark HTML parse to a background isolate - (05d2765) - *piperun*
+- (**chenron**) batch folder_editor save into one transaction - (dfd1db5) - *piperun*
+- (**chenron**) collapse N+1 metadata lookup in suggestion_builder - (9713713) - *piperun*
+- (**chenron**) bound bulk-validation concurrency and share one HTTP client - (36fef07) - *piperun*
+- (**chenron**) route metadata refresh notifications by URL via a dispatcher - (a93af39) - *piperun*
+- (**chenron**) memoize FilterableItemDisplay filter+sort with Computed - (894fbd9) - *piperun*
+- (**chenron**) reduce per-cell rebuilds in item list/grid views - (7df8116) - *piperun*
+- (**database**) add getFoldersByIds; drop N+1 in FolderPersistenceService - (b5a4038) - *piperun*
+- (**database**) add watchFoldersWithItemCounts for count-only consumers - (78070f6) - *piperun*
+#### Refactoring
+- (**chenron**) extract _PathModeTile from PathModeSelector - (a9e2fd4) - *piperun*
+- (**chenron**) extract _GlobalSearchBarView from GlobalSearchBar - (eeb3bb6) - *piperun*
+- (**chenron**) widget-method cleanup for ActivityLogPage - (4270a5a) - *piperun*
+- (**chenron**) split DeleteConfirmationDialog build into 4 widgets - (1d35fca) - *piperun*
+- (**chenron**) extract showConfirmDialog helper for confirm/destruct dialogs - (46f575d) - *piperun*
+- (**chenron**) extract _ChromeIconButton from FolderHeader _ActionRow - (e1d8e9d) - *piperun*
+- (**chenron**) extract SettingsSectionHeader - (4847cdf) - *piperun*
+- (**chenron**) rename direct-action methods _on* -> _handle* per CLAUDE.md - (2fce12f) - *piperun*
+- (**chenron**) rename files to match their renamed Notifier/Service classes - (c798928) - *piperun*
+- (**chenron**) rename Controller/State/Manager classes per CLAUDE.md convention - (9a6a0c2) - *piperun*
+- (**chenron**) route semantic Colors.* through theme.colorScheme - (adcc975) - *piperun*
+- (**chenron**) replace magic ints/strings with named DB enums + constants - (0102f5f) - *piperun*
+- (**chenron**) consolidate item-type enums on FolderItemType - (fa785aa) - *piperun*
+- <span style="background-color: #d73a49; color: white; padding: 2px 6px; border-radius: 3px; font-weight: bold; font-size: 0.85em;">BREAKING</span>(**database**) trim umbrella + drop main.dart shim - (3f4123e) - *piperun*
+- <span style="background-color: #d73a49; color: white; padding: 2px 6px; border-radius: 3px; font-weight: bold; font-size: 0.85em;">BREAKING</span>(**database**) replace 4 ConfigDB lookup tables with intEnum (v5) - (f1ad893) - *piperun*
+- (**database**) split DB handler into DatabaseLifecycle + AppFileService - (5b101b7) - *piperun*
+- (**database**) canonicalize on database.dart, demote main.dart to shim - (9ed8d08) - *piperun*
+- (**settings**) migrate theme UI + delete ConfigController (Phases 8+9) - (883b9ea) - *piperun*
+- (**settings**) migrate backup + data UIs off ConfigController (Phases 6+7) - (c308b02) - *piperun*
+- (**settings**) migrate display + cache UIs off ConfigController (Phase 5) - (f198c95) - *piperun*
+- (**settings**) migrate archive UI off ConfigController bridge (Phase 4) - (29b147b) - *piperun*
+- (**settings**) SettingsCoordinator + bridge ConfigController (Phase 3) - (1a144aa) - *piperun*
+- (**settings**) add Backup + Theme section notifiers (Phase 2) - (b759f57) - *piperun*
+- (**settings**) introduce per-section notifiers (Archive/Display/Database) - (4ca9f5d) - *piperun*
+- <span style="background-color: #d73a49; color: white; padding: 2px 6px; border-radius: 3px; font-weight: bold; font-size: 0.85em;">BREAKING</span>locator-manage three static singletons - (f195a96) - *piperun*
+
+- - -
+
 ## chenron-v1.10.0 - 2026-05-09
 #### Features
 - (**chenron**) log metadata fetches to the activity log - (4372553) - *piperun*
