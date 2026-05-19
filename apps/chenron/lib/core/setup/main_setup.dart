@@ -334,9 +334,14 @@ class MainSetup {
   static Future<void> _processArchiveQueue() async {
     try {
       final appDbHandler = locator.get<Signal<AppDatabaseLifecycle>>();
-      final configDb = ConfigDatabase();
+      // Reuse the lifecycle-registered ConfigDatabase. Constructing a
+      // second instance with the bare `ConfigDatabase()` constructor
+      // opens the same SQLite file twice; the second open fails with
+      // `SqliteException(14): unable to open database file` and Drift
+      // logs a "multiple databases" race warning.
+      final configDb =
+          locator.get<Signal<ConfigDatabaseLifecycle>>().value.configDatabase;
       final userConfig = await configDb.getUserConfig();
-      await configDb.close();
 
       if (userConfig == null) return;
       final config = userConfig.data;
