@@ -199,10 +199,15 @@ class _SuggestionsOverlayState extends State<SuggestionsOverlay> {
             child: Material(
               elevation: 8,
               borderRadius: BorderRadius.circular(8),
+              // Surface color goes on Material (the ink-splash root for
+              // descendant ListTiles) rather than the wrapping Container,
+              // so Flutter 3.44+ doesn't assert. Container keeps the
+              // border + maxHeight constraints only.
+              color: Theme.of(context).colorScheme.surface,
+              clipBehavior: Clip.antiAlias,
               child: Container(
                 constraints: const BoxConstraints(maxHeight: 400),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: Theme.of(context)
@@ -226,27 +231,24 @@ class _SuggestionsOverlayState extends State<SuggestionsOverlay> {
                           final item = _suggestions[index];
                           final isSelected = index == _selectedIndex;
                           final colorScheme = Theme.of(context).colorScheme;
-                          return Container(
-                            margin: const EdgeInsets.symmetric(
+                          // Use ListTile's built-in selected + selectedTileColor
+                          // instead of wrapping in a colored Container — that
+                          // avoids the Flutter 3.44+ DecoratedBox/ListTile
+                          // assertion and gets us proper ink-splash behavior
+                          // for free.
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(
                               horizontal: 6,
                               vertical: 2,
                             ),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? colorScheme.primaryContainer
-                                  : Colors.transparent,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
                             child: ListTile(
+                              selected: isSelected,
+                              selectedTileColor: colorScheme.primaryContainer,
+                              selectedColor: colorScheme.onPrimaryContainer,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              leading: Icon(
-                                item.icon,
-                                color: isSelected
-                                    ? colorScheme.onPrimaryContainer
-                                    : null,
-                              ),
+                              leading: Icon(item.icon),
                               title: RichText(
                                 text: TextSpan(
                                   children: TextHighlighter.highlight(

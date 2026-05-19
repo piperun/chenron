@@ -24,7 +24,6 @@ class _SearchViewState extends State<SearchView> {
       child: Container(
         width: MediaQuery.of(context).size.width * 0.8,
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
@@ -37,7 +36,14 @@ class _SearchViewState extends State<SearchView> {
             ),
           ],
         ),
-        child: Column(
+        // Material wrapper supplies the surface color + ink-splash root
+        // so descendant ListTiles satisfy the Flutter 3.44+ assertion
+        // against being wrapped in a colored DecoratedBox.
+        child: Material(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(8),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
@@ -97,6 +103,7 @@ class _SearchViewState extends State<SearchView> {
               ),
             ),
           ],
+        ),
         ),
       ),
     );
