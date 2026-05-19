@@ -1,7 +1,7 @@
 name: web_archiver
 description: "Archive.org client and helpers for Chenron, extracted as a reusable package."
 publish_to: 'none'
-version: 0.1.0
+version: 0.1.1
 resolution: workspace
 
 environment:
