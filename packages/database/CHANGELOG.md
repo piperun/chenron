@@ -2,6 +2,30 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## database-v0.14.0 - 2026-05-19
+#### Features
+- (**database**) add background_jobs cleanup helpers - (f9969dd) - *piperun*
+#### Bug Fixes
+- (**database**) repair -1 enum indices after buggy v5 migration - (2e983a9) - *piperun*
+#### Performance Improvements
+- (**chenron**) collapse N+1 metadata lookup in suggestion_builder - (9713713) - *piperun*
+- (**database**) stop re-running enum seeding on every app launch - (4217505) - *piperun*
+- (**database**) add getFoldersByIds; drop N+1 in FolderPersistenceService - (b5a4038) - *piperun*
+- (**database**) add watchFoldersWithItemCounts for count-only consumers - (78070f6) - *piperun*
+#### Refactoring
+- (**chenron**) replace magic ints/strings with named DB enums + constants - (0102f5f) - *piperun*
+- <span style="background-color: #d73a49; color: white; padding: 2px 6px; border-radius: 3px; font-weight: bold; font-size: 0.85em;">BREAKING</span>(**database**) redesign VEPR as a function (runVepr) - (48413eb) - *piperun*
+- <span style="background-color: #d73a49; color: white; padding: 2px 6px; border-radius: 3px; font-weight: bold; font-size: 0.85em;">BREAKING</span>(**database**) trim umbrella + drop main.dart shim - (3f4123e) - *piperun*
+- <span style="background-color: #d73a49; color: white; padding: 2px 6px; border-radius: 3px; font-weight: bold; font-size: 0.85em;">BREAKING</span>(**database**) replace 4 ConfigDB lookup tables with intEnum (v5) - (f1ad893) - *piperun*
+- <span style="background-color: #d73a49; color: white; padding: 2px 6px; border-radius: 3px; font-weight: bold; font-size: 0.85em;">BREAKING</span>(**database**) replace item/metadata lookup tables with intEnum (AppDB v15) - (e0b8adb) - *piperun*
+- (**database**) split DB handler into DatabaseLifecycle + AppFileService - (5b101b7) - *piperun*
+- (**database**) rename test_support/ to honest paths - (e8bcd31) - *piperun*
+- (**database**) canonicalize on database.dart, demote main.dart to shim - (9ed8d08) - *piperun*
+- <span style="background-color: #d73a49; color: white; padding: 2px 6px; border-radius: 3px; font-weight: bold; font-size: 0.85em;">BREAKING</span>locator-manage three static singletons - (f195a96) - *piperun*
+- lift app-specific identifiers in generic packages to overridable defaults - (0ce7948) - *piperun*
+
+- - -
+
 ## database-v0.13.0 - 2026-05-09
 #### Refactoring
 - generalize archive_jobs table into background_jobs - (0a99b8d) - *piperun*
