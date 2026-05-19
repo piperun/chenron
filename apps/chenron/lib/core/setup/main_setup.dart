@@ -1,6 +1,7 @@
 // lib/initialization/app_setupr.dart
 
 import "package:chenron/components/metadata_factory.dart";
+import "package:chenron/features/activity_log/activity_log_settings.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/services/drift_metadata_persistence.dart";
 import "package:basedir/directory.dart";
@@ -107,6 +108,7 @@ class MainSetup {
     await _startBackupScheduler();
     final appDbHandler = locator.get<Signal<AppDatabaseLifecycle>>();
     await _recordDailySnapshot(appDbHandler.value.appDatabase);
+    await _cleanupBackgroundJobs(appDbHandler.value.appDatabase);
 
     // Refresh stale metadata entries in the background.
     // Fire-and-forget — doesn't block other deferred tasks.
@@ -116,6 +118,28 @@ class MainSetup {
     _processArchiveQueue();
 
     loggerGlobal.info("MainSetup", "Deferred tasks complete.");
+  }
+
+  /// Reclaim orphaned `in_progress` rows (left over from a crash or
+  /// kill mid-job) and purge anything older than the configured TTL.
+  /// Non-fatal — log and move on if either step fails.
+  static Future<void> _cleanupBackgroundJobs(AppDatabase db) async {
+    try {
+      final orphaned = await db.recoverOrphanedBackgroundJobs();
+      if (orphaned > 0) {
+        loggerGlobal.info("MainSetup",
+            "Recovered $orphaned orphaned in_progress background job(s).");
+      }
+      final ttl = await ActivityLogSettings.getTtl();
+      final purged = await db.purgeOldBackgroundJobs(olderThan: ttl);
+      if (purged > 0) {
+        loggerGlobal.info("MainSetup",
+            "Purged $purged background job(s) older than ${ttl?.inHours ?? '∞'}h.");
+      }
+    } catch (e, s) {
+      loggerGlobal.warning(
+          "MainSetup", "Background job cleanup failed: $e", e, s);
+    }
   }
 
   static void _setupLocator() {

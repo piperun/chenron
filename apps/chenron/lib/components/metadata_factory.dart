@@ -14,7 +14,8 @@ const _tag = "MetadataFactory";
 
 /// Best-effort write of a metadata-fetch entry into the BackgroundJobs
 /// table for the activity log. Catches and swallows all errors — a missing
-/// locator (in unit tests) or DB hiccup must never break a fetch.
+/// locator (in unit tests) or DB hiccup must never break a fetch. Rows
+/// age out via the activity-log TTL.
 Future<void> _logMetadataFetch({
   required String url,
   required bool succeeded,
@@ -152,7 +153,7 @@ class MetadataFactory {
       await MetadataCache.set(url, data);
       MetadataCache.clearFailure(url);
       // Per the activity-log policy: log every initial fetch, and only
-      // failures for subsequent fetches.
+      // failures for subsequent fetches. TTL purges old rows.
       if (isFirstFetch) {
         unawaited(_logMetadataFetch(url: url, succeeded: true));
       }

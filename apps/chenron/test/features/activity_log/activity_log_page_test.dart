@@ -1,9 +1,8 @@
+import "package:chenron/features/activity_log/pages/activity_log_page.dart";
+import "package:chenron_mockups/chenron_mockups.dart";
+import "package:database/features.dart";
 import "package:flutter/material.dart";
 import "package:flutter_test/flutter_test.dart";
-
-import "package:chenron_mockups/chenron_mockups.dart";
-import "package:chenron/features/activity_log/pages/activity_log_page.dart";
-import "package:database/features.dart";
 
 void main() {
   late MockDatabaseHelper mockDb;
@@ -93,14 +92,11 @@ void main() {
     await tester.pumpWidget(buildPage());
     await tester.pumpAndSettle();
 
-    // Failed metadata entry visible…
     expect(find.text("https://broken.com"), findsOneWidget);
-    // …but no Retry icon (Icons.replay) — retry only applies to archive jobs.
     expect(find.byIcon(Icons.replay), findsNothing);
   });
 
-  testWidgets("Retry button still shown for failed archive jobs",
-      (tester) async {
+  testWidgets("Retry button shown for failed archive jobs", (tester) async {
     final id = await mockDb.database.enqueueArchiveJob(
       linkId: "link-1",
       url: "https://archive-failed.com",
