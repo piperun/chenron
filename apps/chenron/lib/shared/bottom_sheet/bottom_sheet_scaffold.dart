@@ -62,10 +62,16 @@ class _SheetContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    return Container(
+    const radius = BorderRadius.vertical(top: Radius.circular(20));
+    // The Material wrapper provides the surface color + ink-splash root
+    // for descendant ListTiles. Flutter 3.44+ asserts that a ListTile
+    // can't sit under a DecoratedBox with a background color before
+    // hitting Material — moving the color onto Material itself
+    // satisfies that contract while the outer DecoratedBox keeps the
+    // shadow.
+    return DecoratedBox(
       decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: radius,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.1),
@@ -74,7 +80,12 @@ class _SheetContainer extends StatelessWidget {
           ),
         ],
       ),
-      child: child,
+      child: Material(
+        color: theme.cardColor,
+        borderRadius: radius,
+        clipBehavior: Clip.antiAlias,
+        child: child,
+      ),
     );
   }
 }
