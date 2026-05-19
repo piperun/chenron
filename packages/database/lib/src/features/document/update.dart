@@ -1,7 +1,6 @@
 import "package:database/database.dart";
-import "package:database/src/core/id.dart";
-import "package:database/src/features/document/handlers/document_update_vepr.dart";
-import "package:database/src/features/tag/create.dart";
+import "package:database/features.dart";
+import "package:database/src/core/handlers/run_vepr.dart";
 
 import "package:app_logger/app_logger.dart";
 import "package:drift/drift.dart";
@@ -13,17 +12,35 @@ extension DocumentUpdateExtensions on AppDatabase {
     String? title,
     int? fileSize,
     String? checksum,
-  }) async {
-    final operation = DocumentUpdateVEPR(this);
-
-    final input = (
-      documentId: documentId,
-      title: title,
-      fileSize: fileSize,
-      checksum: checksum,
+  }) {
+    return runVepr<String, int, bool>(
+      logSource: "updateDocument",
+      validate: () {
+        if (title != null && title.trim().isEmpty) {
+          throw ArgumentError("Document title cannot be empty.");
+        }
+        if (title == null && fileSize == null && checksum == null) {
+          throw ArgumentError(
+              "At least one field must be provided for update.");
+        }
+      },
+      execute: () async {
+        final doc = await getDocument(documentId: documentId);
+        if (doc == null) {
+          throw ArgumentError("Document with ID $documentId not found.");
+        }
+        return documentId;
+      },
+      process: (docId) async {
+        return (update(documents)..where((tbl) => tbl.id.equals(docId)))
+            .write(DocumentsCompanion(
+          title: title != null ? Value(title) : const Value.absent(),
+          fileSize: fileSize != null ? Value(fileSize) : const Value.absent(),
+          checksum: checksum != null ? Value(checksum) : const Value.absent(),
+        ));
+      },
+      build: (_, updateCount) => updateCount > 0,
     );
-
-    return operation.run(input);
   }
 
   /// Adds tags to an existing document
