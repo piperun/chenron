@@ -2,6 +2,7 @@ import "dart:async";
 import "dart:convert";
 import "dart:io";
 
+import "package:chenron/features/activity_log/activity_log_settings.dart";
 import "package:chenron/utils/safe_async.dart";
 import "package:database/database.dart";
 import "package:database/features.dart";
@@ -128,6 +129,17 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
     if (ok == true) await _loadJobs();
   }
 
+  Future<void> _handleOpenSettings() async {
+    final current = await ActivityLogSettings.getTtl();
+    if (!mounted) return;
+    final picked = await showDialog<_TtlChoice>(
+      context: context,
+      builder: (_) => _TtlSettingsDialog(current: current),
+    );
+    if (picked == null) return;
+    await ActivityLogSettings.setTtl(picked.duration);
+  }
+
   Future<void> _handleExport() async {
     final jobs = _filteredJobs;
     final jsonData = jobs
@@ -179,6 +191,7 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
             onChanged: (value) => setState(() => _searchQuery = value),
             canExport: filtered.isNotEmpty,
             onExport: _handleExport,
+            onOpenSettings: _handleOpenSettings,
           ),
           const SizedBox(height: 12),
           _FilterChipsRow(
@@ -218,12 +231,14 @@ class _SearchBar extends StatelessWidget {
   final ValueChanged<String> onChanged;
   final bool canExport;
   final Future<void> Function() onExport;
+  final Future<void> Function() onOpenSettings;
 
   const _SearchBar({
     required this.query,
     required this.onChanged,
     required this.canExport,
     required this.onExport,
+    required this.onOpenSettings,
   });
 
   @override
@@ -251,11 +266,101 @@ class _SearchBar extends StatelessWidget {
             onChanged: onChanged,
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 8),
+        IconButton(
+          tooltip: "Retention settings",
+          icon: const Icon(Icons.settings_outlined, size: 20),
+          onPressed: () => unawaited(onOpenSettings()),
+        ),
+        const SizedBox(width: 4),
         OutlinedButton.icon(
           onPressed: canExport ? () => unawaited(onExport()) : null,
           icon: const Icon(Icons.download, size: 18),
           label: const Text("Export"),
+        ),
+      ],
+    );
+  }
+}
+
+/// One option in the TTL chooser dialog. `duration: null` = permanent.
+class _TtlChoice {
+  final String label;
+  final Duration? duration;
+  const _TtlChoice(this.label, this.duration);
+
+  static const options = <_TtlChoice>[
+    _TtlChoice("24 hours", Duration(hours: 24)),
+    _TtlChoice("3 days", Duration(hours: 72)),
+    _TtlChoice("7 days", Duration(hours: 168)),
+    _TtlChoice("30 days", Duration(hours: 720)),
+    _TtlChoice("Forever (no auto-purge)", null),
+  ];
+
+  /// Match a stored TTL [Duration] (or null) to the closest preset.
+  static _TtlChoice fromDuration(Duration? current) {
+    if (current == null) return options.last;
+    for (final opt in options) {
+      if (opt.duration?.inHours == current.inHours) return opt;
+    }
+    return options.first;
+  }
+}
+
+class _TtlSettingsDialog extends StatefulWidget {
+  final Duration? current;
+  const _TtlSettingsDialog({required this.current});
+
+  @override
+  State<_TtlSettingsDialog> createState() => _TtlSettingsDialogState();
+}
+
+class _TtlSettingsDialogState extends State<_TtlSettingsDialog> {
+  late _TtlChoice _selected;
+
+  @override
+  void initState() {
+    super.initState();
+    _selected = _TtlChoice.fromDuration(widget.current);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text("Activity log retention"),
+      content: RadioGroup<_TtlChoice>(
+        groupValue: _selected,
+        onChanged: (v) {
+          if (v != null) setState(() => _selected = v);
+        },
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Background-job rows older than this are deleted at startup.",
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 8),
+            ..._TtlChoice.options.map(
+              (opt) => RadioListTile<_TtlChoice>(
+                title: Text(opt.label),
+                value: opt,
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text("Cancel"),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(_selected),
+          child: const Text("Save"),
         ),
       ],
     );
@@ -588,9 +693,9 @@ class _LogEntryTile extends StatelessWidget {
   }
 
   Widget? _buildTrailing(ThemeData theme) {
-    // Retry button only makes sense for queued archive jobs that re-run via
-    // the processor. Metadata fetch entries are audit-log style and would
-    // need the URL re-fetched directly — not supported here.
+    // Retry only makes sense for archive jobs (they re-run through the
+    // processor). Metadata fetches are audit-log entries — re-fetching
+    // happens implicitly on next access, so no Retry button.
     if (job.status == BackgroundJobStatus.failed &&
         job.service != BackgroundJobService.metadataFetch) {
       return IconButton(
