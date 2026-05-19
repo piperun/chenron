@@ -1,6 +1,5 @@
 import "package:database/database.dart";
 import "package:database/src/features/background_jobs/crud.dart";
-import "package:database/src/features/background_jobs/processor.dart";
 import "package:database/src/features/folder/create.dart";
 import "package:database/src/features/folder/update.dart";
 import "package:database/src/features/link/read.dart";
@@ -84,7 +83,9 @@ extension PayloadExtensions on AppDatabase {
       await configDatabase.close();
     }
 
-    // Trigger background processing immediately
-    ArchiveQueueProcessor.triggerProcessing();
+    // Trigger background processing immediately. The host app wires
+    // this hook to its locator-managed processor; in tests or when no
+    // host is present, it's a no-op.
+    onArchiveJobEnqueued?.call();
   }
 }

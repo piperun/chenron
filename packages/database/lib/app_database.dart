@@ -40,6 +40,14 @@ class AppDatabase extends _$AppDatabase {
 
   final bool setupOnInit;
   final bool debugMode;
+
+  /// Fire-and-forget hook invoked after a new archive job is enqueued
+  /// (e.g. via `createFolderExtended`). The host app wires this to the
+  /// locator-managed `ArchiveQueueProcessor.processAll` so the queue
+  /// drains promptly without the database package needing to know
+  /// about the locator.
+  void Function()? onArchiveJobEnqueued;
+
   AppDatabase({
     QueryExecutor? queryExecutor,
     String? databaseName,

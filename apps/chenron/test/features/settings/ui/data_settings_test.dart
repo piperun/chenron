@@ -102,11 +102,20 @@ void main() {
       ));
 
       fakePersistence = FakeMetadataPersistence();
-      MetadataCache.init(fakePersistence);
+      if (locator.isRegistered<MetadataCache>()) {
+        await locator<MetadataCache>().clearAll();
+        locator.unregister<MetadataCache>();
+      }
+      locator.registerSingleton<MetadataCache>(
+        MetadataCache(persistence: fakePersistence),
+      );
     });
 
     tearDown(() async {
-      await MetadataCache.clearAll();
+      if (locator.isRegistered<MetadataCache>()) {
+        await locator<MetadataCache>().clearAll();
+        locator.unregister<MetadataCache>();
+      }
       if (locator.isRegistered<SettingsCoordinator>()) {
         await locator.unregister<SettingsCoordinator>();
       }

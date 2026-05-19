@@ -1,5 +1,7 @@
 // lib/initialization/app_setupr.dart
 
+import "dart:async";
+
 import "package:chenron/components/metadata_factory.dart";
 import "package:chenron/features/activity_log/activity_log_settings.dart";
 import "package:chenron/locator.dart";
@@ -211,10 +213,12 @@ class MainSetup {
       appDbHandler.value.databaseLocation = appDatabaseLocation;
       await appDbHandler.value.createDatabase(setupOnInit: true);
 
-      // Connect the metadata cache to the drift database.
-      MetadataCache.init(
-        DriftMetadataPersistence(appDbHandler.value.appDatabase),
-      );
+      // Connect the locator-registered metadata cache to the drift
+      // database. The cache instance was registered empty in
+      // locatorSetup so callers can grab it without ordering pain.
+      locator.get<MetadataCache>().attachPersistence(
+            DriftMetadataPersistence(appDbHandler.value.appDatabase),
+          );
     } catch (e, s) {
       const errorMsg = "Configuration database setup failed.";
       loggerGlobal.severe("MainSetup", errorMsg, e, s);
@@ -343,13 +347,21 @@ class MainSetup {
           config.archiveOrgS3SecretKey!.isNotEmpty;
       if (!hasKeys) return;
 
+      final db = appDbHandler.value.appDatabase;
       final processor = ArchiveQueueProcessor(
-        database: appDbHandler.value.appDatabase,
-        archiveOrgClientFactory: archiveOrgClientFactory,
+        database: db,
+        archiveOrgClientFactory: defaultArchiveOrgClientFactory,
         accessKey: config.archiveOrgS3AccessKey!,
         secretKey: config.archiveOrgS3SecretKey!,
       );
-      ArchiveQueueProcessor.registerInstance(processor);
+      if (locator.isRegistered<ArchiveQueueProcessor>()) {
+        locator.unregister<ArchiveQueueProcessor>();
+      }
+      locator.registerSingleton<ArchiveQueueProcessor>(processor);
+      // Hook payload.dart's post-enqueue trigger to this processor. The
+      // database package emits the event; the locator-managed processor
+      // handles it.
+      db.onArchiveJobEnqueued = () => unawaited(processor.processAll());
       await processor.processAll();
     } catch (e, s) {
       loggerGlobal.warning(

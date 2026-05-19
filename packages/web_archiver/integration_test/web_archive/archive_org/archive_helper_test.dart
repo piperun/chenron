@@ -1,3 +1,5 @@
+import "dart:async";
+
 import "package:database/database.dart";
 import "package:database/features.dart";
 import "package:drift/drift.dart" as drift;
@@ -11,10 +13,12 @@ import "package:web_archiver/web_archiver.dart";
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
+  ArchiveOrgClient fakeFactory(String key, String secret) =>
+      _FakeArchiveOrgClient();
+
   setUpAll(() {
     installFakePathProvider();
     installTestLogger();
-    archiveOrgClientFactory = (key, secret) => _FakeArchiveOrgClient();
     drift.driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
   });
 
@@ -33,7 +37,6 @@ void main() {
   });
 
   tearDown(() async {
-    ArchiveQueueProcessor.clearInstance();
     await database.close();
   });
 
@@ -49,7 +52,7 @@ void main() {
 
       final processor = ArchiveQueueProcessor(
         database: database,
-        archiveOrgClientFactory: archiveOrgClientFactory,
+        archiveOrgClientFactory: fakeFactory,
         accessKey: "test_key",
         secretKey: "test_secret",
         delayBetweenJobs: Duration.zero,
@@ -125,25 +128,24 @@ void main() {
       expect(link?.data.archiveOrgUrl, isNotNull);
     });
 
-    test("triggerProcessing fires processing from static instance", () async {
-      final linkResult = await database.createLink(link: testUrl);
+    test("onArchiveJobEnqueued hook fires the processor", () async {
+      final processor = ArchiveQueueProcessor(
+        database: database,
+        archiveOrgClientFactory: fakeFactory,
+        accessKey: "test_key",
+        secretKey: "test_secret",
+        delayBetweenJobs: Duration.zero,
+      );
+      database.onArchiveJobEnqueued =
+          () => unawaited(processor.processAll());
 
+      final linkResult = await database.createLink(link: testUrl);
       await database.enqueueArchiveJob(
         linkId: linkResult.linkId,
         url: testUrl,
         service: "archive_org",
       );
-
-      final processor = ArchiveQueueProcessor(
-        database: database,
-        archiveOrgClientFactory: archiveOrgClientFactory,
-        accessKey: "test_key",
-        secretKey: "test_secret",
-        delayBetweenJobs: Duration.zero,
-      );
-
-      ArchiveQueueProcessor.registerInstance(processor);
-      ArchiveQueueProcessor.triggerProcessing();
+      database.onArchiveJobEnqueued!();
 
       // Fire-and-forget — give it time to complete
       await Future<void>.delayed(const Duration(milliseconds: 500));

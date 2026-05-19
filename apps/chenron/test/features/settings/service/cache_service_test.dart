@@ -2,6 +2,7 @@ import "dart:io";
 
 import "package:cache_manager/cache_manager.dart";
 import "package:flutter_test/flutter_test.dart";
+import "package:get_it/get_it.dart";
 
 import "package:chenron/features/settings/service/cache_service.dart";
 
@@ -48,12 +49,22 @@ void main() {
   setUp(() async {
     tempDir = await Directory.systemTemp.createTemp("cache_service_test_");
     fakePersistence = FakeMetadataPersistence();
-    MetadataCache.init(fakePersistence);
+    if (GetIt.I.isRegistered<MetadataCache>()) {
+      await GetIt.I<MetadataCache>().clearAll();
+      GetIt.I.unregister<MetadataCache>();
+    }
+    GetIt.I.registerSingleton<MetadataCache>(
+      MetadataCache(persistence: fakePersistence),
+    );
     imageCacheManagerCleared = false;
   });
 
   tearDown(() async {
-    await MetadataCache.clearAll();
+    if (GetIt.I.isRegistered<MetadataCache>()) {
+      final cache = GetIt.I<MetadataCache>();
+      await cache.clearAll();
+      GetIt.I.unregister<MetadataCache>();
+    }
     if (tempDir.existsSync()) {
       await tempDir.delete(recursive: true);
     }

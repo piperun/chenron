@@ -81,23 +81,24 @@ class FailingMetadataPersistence implements MetadataPersistence {
 
 void main() {
   late FakeMetadataPersistence fakePersistence;
+  late MetadataCache cache;
 
   setUp(() {
     fakePersistence = FakeMetadataPersistence();
-    MetadataCache.init(fakePersistence);
+    cache = MetadataCache(persistence: fakePersistence);
   });
 
   tearDown(() async {
     // Reset all static state between tests
-    await MetadataCache.clearAll();
+    await cache.clearAll();
   });
 
   group("MetadataCache basics", () {
     test("set stores in both memory and persistence", () async {
-      await MetadataCache.set("https://a.com", {"title": "A"});
+      await cache.set("https://a.com", {"title": "A"});
 
       // Memory cache should have it (immediate get without persistence call)
-      final result = await MetadataCache.get("https://a.com");
+      final result = await cache.get("https://a.com");
       expect(result, isNotNull);
       expect(result!["title"], "A");
       expect(result["fetchedAt"], isA<String>());
@@ -107,14 +108,14 @@ void main() {
     });
 
     test("get returns null for unknown URL", () async {
-      final result = await MetadataCache.get("https://unknown.com");
+      final result = await cache.get("https://unknown.com");
       expect(result, isNull);
     });
 
     test("set adds fetchedAt timestamp automatically", () async {
-      await MetadataCache.set("https://a.com", {"title": "A"});
+      await cache.set("https://a.com", {"title": "A"});
 
-      final result = await MetadataCache.get("https://a.com");
+      final result = await cache.get("https://a.com");
       expect(result!.containsKey("fetchedAt"), isTrue);
 
       final fetchedAt = DateTime.parse(result["fetchedAt"] as String);
@@ -125,38 +126,38 @@ void main() {
     });
 
     test("remove clears from both memory and persistence", () async {
-      await MetadataCache.set("https://a.com", {"title": "A"});
-      await MetadataCache.remove("https://a.com");
+      await cache.set("https://a.com", {"title": "A"});
+      await cache.remove("https://a.com");
 
-      final result = await MetadataCache.get("https://a.com");
+      final result = await cache.get("https://a.com");
       expect(result, isNull);
       expect(fakePersistence.calls, contains("remove:https://a.com"));
     });
 
     test("clearAll resets everything", () async {
-      await MetadataCache.set("https://a.com", {"title": "A"});
-      await MetadataCache.set("https://b.com", {"title": "B"});
-      MetadataCache.recordFailure("https://c.com");
-      MetadataCache.startFetching("https://d.com");
+      await cache.set("https://a.com", {"title": "A"});
+      await cache.set("https://b.com", {"title": "B"});
+      cache.recordFailure("https://c.com");
+      cache.startFetching("https://d.com");
 
-      await MetadataCache.clearAll();
+      await cache.clearAll();
 
-      expect(await MetadataCache.get("https://a.com"), isNull);
-      expect(await MetadataCache.get("https://b.com"), isNull);
+      expect(await cache.get("https://a.com"), isNull);
+      expect(await cache.get("https://b.com"), isNull);
       // Failure records should be cleared
-      expect(MetadataCache.shouldRetry("https://c.com"), isTrue);
+      expect(cache.shouldRetry("https://c.com"), isTrue);
       // Fetching flags should be cleared
-      expect(MetadataCache.isFetching("https://d.com"), isFalse);
+      expect(cache.isFetching("https://d.com"), isFalse);
       expect(fakePersistence.calls, contains("clearAll"));
     });
   });
 
   group("MetadataCache memory-first reads", () {
     test("serves from memory without hitting persistence", () async {
-      await MetadataCache.set("https://a.com", {"title": "A"});
+      await cache.set("https://a.com", {"title": "A"});
       fakePersistence.calls.clear();
 
-      final result = await MetadataCache.get("https://a.com");
+      final result = await cache.get("https://a.com");
       expect(result!["title"], "A");
 
       // Persistence.get should NOT have been called — served from LRU
@@ -173,7 +174,7 @@ void main() {
         "fetchedAt": DateTime.now().toIso8601String(),
       });
 
-      final result = await MetadataCache.get("https://a.com");
+      final result = await cache.get("https://a.com");
       expect(result, isNotNull);
       expect(result!["title"], "From DB");
       expect(fakePersistence.calls, contains("get:https://a.com"));
@@ -186,11 +187,11 @@ void main() {
       });
 
       // First call: hits persistence
-      await MetadataCache.get("https://a.com");
+      await cache.get("https://a.com");
       fakePersistence.calls.clear();
 
       // Second call: should serve from memory, no persistence call
-      final result = await MetadataCache.get("https://a.com");
+      final result = await cache.get("https://a.com");
       expect(result!["title"], "Promoted");
       expect(
         fakePersistence.calls.where((c) => c.startsWith("get:")),
@@ -201,21 +202,21 @@ void main() {
 
   group("MetadataCache freshness", () {
     test("returns data fetched less than 7 days ago", () async {
-      await MetadataCache.set("https://fresh.com", {"title": "Fresh"});
+      await cache.set("https://fresh.com", {"title": "Fresh"});
 
-      final result = await MetadataCache.get("https://fresh.com");
+      final result = await cache.get("https://fresh.com");
       expect(result, isNotNull);
       expect(result!["title"], "Fresh");
     });
 
     test("rejects stale data from memory cache (>7 days)", () async {
       // Manually set with old timestamp
-      await MetadataCache.set("https://stale.com", {"title": "Stale"});
+      await cache.set("https://stale.com", {"title": "Stale"});
 
       // Now hack the memory cache entry via another set with old timestamp
       // We need to go through persistence to test stale rejection.
       // Clear memory and seed persistence with stale data.
-      await MetadataCache.clearAll();
+      await cache.clearAll();
 
       final staleDate =
           DateTime.now().subtract(const Duration(days: 8)).toIso8601String();
@@ -224,36 +225,36 @@ void main() {
         "fetchedAt": staleDate,
       });
 
-      final result = await MetadataCache.get("https://stale.com");
+      final result = await cache.get("https://stale.com");
       expect(result, isNull);
     });
 
     test("rejects data with missing fetchedAt as stale", () async {
-      await MetadataCache.clearAll();
+      await cache.clearAll();
 
       fakePersistence.seedStale("https://nots.com", {
         "title": "No timestamp",
         // no fetchedAt key
       });
 
-      final result = await MetadataCache.get("https://nots.com");
+      final result = await cache.get("https://nots.com");
       expect(result, isNull);
     });
 
     test("rejects data with invalid fetchedAt as stale", () async {
-      await MetadataCache.clearAll();
+      await cache.clearAll();
 
       fakePersistence.seedStale("https://bad.com", {
         "title": "Bad TS",
         "fetchedAt": "not-a-date",
       });
 
-      final result = await MetadataCache.get("https://bad.com");
+      final result = await cache.get("https://bad.com");
       expect(result, isNull);
     });
 
     test("data at exactly 6 days is still fresh", () async {
-      await MetadataCache.clearAll();
+      await cache.clearAll();
 
       final sixDaysAgo =
           DateTime.now().subtract(const Duration(days: 6)).toIso8601String();
@@ -262,7 +263,7 @@ void main() {
         "fetchedAt": sixDaysAgo,
       });
 
-      final result = await MetadataCache.get("https://edge.com");
+      final result = await cache.get("https://edge.com");
       expect(result, isNotNull);
       expect(result!["title"], "Six days");
     });
@@ -270,123 +271,123 @@ void main() {
 
   group("MetadataCache failure tracking and backoff", () {
     test("shouldRetry returns true for never-failed URL", () {
-      expect(MetadataCache.shouldRetry("https://new.com"), isTrue);
+      expect(cache.shouldRetry("https://new.com"), isTrue);
     });
 
     test("shouldRetry returns false immediately after failure", () {
-      MetadataCache.recordFailure("https://fail.com");
+      cache.recordFailure("https://fail.com");
       // First backoff is 2 minutes, so immediately after should be false
-      expect(MetadataCache.shouldRetry("https://fail.com"), isFalse);
+      expect(cache.shouldRetry("https://fail.com"), isFalse);
     });
 
     test("clearFailure resets retry to true", () {
-      MetadataCache.recordFailure("https://fail.com");
-      expect(MetadataCache.shouldRetry("https://fail.com"), isFalse);
+      cache.recordFailure("https://fail.com");
+      expect(cache.shouldRetry("https://fail.com"), isFalse);
 
-      MetadataCache.clearFailure("https://fail.com");
-      expect(MetadataCache.shouldRetry("https://fail.com"), isTrue);
+      cache.clearFailure("https://fail.com");
+      expect(cache.shouldRetry("https://fail.com"), isTrue);
     });
 
     test("multiple failures don't permanently block", () {
       // Record many failures
       for (var i = 0; i < 10; i++) {
-        MetadataCache.recordFailure("https://fail.com");
+        cache.recordFailure("https://fail.com");
       }
       // Still returns false immediately, but the point is it doesn't throw
       // or permanently deny — the backoff caps at 1440 min (24h)
-      expect(MetadataCache.shouldRetry("https://fail.com"), isFalse);
+      expect(cache.shouldRetry("https://fail.com"), isFalse);
 
       // After clearing, it should retry
-      MetadataCache.clearFailure("https://fail.com");
-      expect(MetadataCache.shouldRetry("https://fail.com"), isTrue);
+      cache.clearFailure("https://fail.com");
+      expect(cache.shouldRetry("https://fail.com"), isTrue);
     });
 
     test("failure tracking is per-URL", () {
-      MetadataCache.recordFailure("https://bad.com");
+      cache.recordFailure("https://bad.com");
 
-      expect(MetadataCache.shouldRetry("https://bad.com"), isFalse);
-      expect(MetadataCache.shouldRetry("https://good.com"), isTrue);
+      expect(cache.shouldRetry("https://bad.com"), isFalse);
+      expect(cache.shouldRetry("https://good.com"), isTrue);
     });
   });
 
   group("MetadataCache fetching guards", () {
     test("isFetching returns false for unknown URL", () {
-      expect(MetadataCache.isFetching("https://a.com"), isFalse);
+      expect(cache.isFetching("https://a.com"), isFalse);
     });
 
     test("startFetching / stopFetching toggle state", () {
-      MetadataCache.startFetching("https://a.com");
-      expect(MetadataCache.isFetching("https://a.com"), isTrue);
+      cache.startFetching("https://a.com");
+      expect(cache.isFetching("https://a.com"), isTrue);
 
-      MetadataCache.stopFetching("https://a.com");
-      expect(MetadataCache.isFetching("https://a.com"), isFalse);
+      cache.stopFetching("https://a.com");
+      expect(cache.isFetching("https://a.com"), isFalse);
     });
 
     test("fetching is per-URL", () {
-      MetadataCache.startFetching("https://a.com");
+      cache.startFetching("https://a.com");
 
-      expect(MetadataCache.isFetching("https://a.com"), isTrue);
-      expect(MetadataCache.isFetching("https://b.com"), isFalse);
+      expect(cache.isFetching("https://a.com"), isTrue);
+      expect(cache.isFetching("https://b.com"), isFalse);
     });
   });
 
   group("MetadataCache graceful degradation", () {
     test("works without persistence (memory-only)", () async {
       // Reinitialize with a failing persistence to simulate unavailable DB
-      MetadataCache.init(FailingMetadataPersistence());
+      cache = MetadataCache(persistence: FailingMetadataPersistence());
 
       // set should not throw — memory cache works, persistence error swallowed
-      await MetadataCache.set("https://a.com", {"title": "Memory only"});
+      await cache.set("https://a.com", {"title": "Memory only"});
 
       // get should serve from memory
-      final result = await MetadataCache.get("https://a.com");
+      final result = await cache.get("https://a.com");
       expect(result, isNotNull);
       expect(result!["title"], "Memory only");
     });
 
     test("persistence errors on get don't crash", () async {
-      MetadataCache.init(FailingMetadataPersistence());
-      await MetadataCache.clearAll();
+      cache = MetadataCache(persistence: FailingMetadataPersistence());
+      await cache.clearAll();
 
       // Should return null, not throw
-      final result = await MetadataCache.get("https://fail.com");
+      final result = await cache.get("https://fail.com");
       expect(result, isNull);
     });
 
     test("persistence errors on remove don't crash", () async {
-      MetadataCache.init(FailingMetadataPersistence());
+      cache = MetadataCache(persistence: FailingMetadataPersistence());
 
       // Should not throw
-      await MetadataCache.remove("https://fail.com");
+      await cache.remove("https://fail.com");
     });
 
     test("persistence errors on clearAll don't crash", () async {
-      MetadataCache.init(FailingMetadataPersistence());
+      cache = MetadataCache(persistence: FailingMetadataPersistence());
 
       // Should not throw — memory state is still cleared
-      await MetadataCache.clearAll();
+      await cache.clearAll();
     });
   });
 
   group("MetadataCache statistics", () {
     test("getCacheEntryCount delegates to persistence", () async {
-      await MetadataCache.set("https://a.com", {"title": "A"});
-      await MetadataCache.set("https://b.com", {"title": "B"});
+      await cache.set("https://a.com", {"title": "A"});
+      await cache.set("https://b.com", {"title": "B"});
 
-      final count = await MetadataCache.getCacheEntryCount();
+      final count = await cache.getCacheEntryCount();
       expect(count, 2);
     });
 
     test("getCacheEntryCount returns 0 on persistence error", () async {
-      MetadataCache.init(FailingMetadataPersistence());
-      final count = await MetadataCache.getCacheEntryCount();
+      cache = MetadataCache(persistence: FailingMetadataPersistence());
+      final count = await cache.getCacheEntryCount();
       expect(count, 0);
     });
 
     test("getMemoryCacheStats returns size and maxSize", () async {
-      await MetadataCache.set("https://a.com", {"title": "A"});
+      await cache.set("https://a.com", {"title": "A"});
 
-      final stats = MetadataCache.getMemoryCacheStats();
+      final stats = cache.getMemoryCacheStats();
       expect(stats["size"], 1);
       expect(stats["maxSize"], 100);
     });
@@ -394,7 +395,7 @@ void main() {
 
   group("MetadataCache adaptive TTL freshness", () {
     test("respects per-entry ttlDays instead of hardcoded 7", () async {
-      await MetadataCache.clearAll();
+      await cache.clearAll();
 
       // Seed entry with 30-day TTL, fetched 10 days ago — should be fresh
       fakePersistence.seedStale("https://long-ttl.com", {
@@ -405,13 +406,13 @@ void main() {
         "consecutiveUnchanged": 2,
       });
 
-      final result = await MetadataCache.get("https://long-ttl.com");
+      final result = await cache.get("https://long-ttl.com");
       expect(result, isNotNull);
       expect(result!["title"], "Long TTL");
     });
 
     test("entry with short TTL expires sooner", () async {
-      await MetadataCache.clearAll();
+      await cache.clearAll();
 
       // Seed entry with 3-day TTL, fetched 4 days ago — should be stale
       fakePersistence.seedStale("https://short-ttl.com", {
@@ -422,12 +423,12 @@ void main() {
         "consecutiveUnchanged": 0,
       });
 
-      final result = await MetadataCache.get("https://short-ttl.com");
+      final result = await cache.get("https://short-ttl.com");
       expect(result, isNull);
     });
 
     test("missing ttlDays falls back to 7 days", () async {
-      await MetadataCache.clearAll();
+      await cache.clearAll();
 
       fakePersistence.seedStale("https://legacy.com", {
         "title": "Legacy",
@@ -436,12 +437,12 @@ void main() {
         // No ttlDays key — old format
       });
 
-      final result = await MetadataCache.get("https://legacy.com");
+      final result = await cache.get("https://legacy.com");
       expect(result, isNotNull);
     });
 
     test("getStale returns stale entry without removing it", () async {
-      await MetadataCache.clearAll();
+      await cache.clearAll();
 
       fakePersistence.seedStale("https://old.com", {
         "title": "Old Title",
@@ -452,11 +453,11 @@ void main() {
       });
 
       // Regular get should return null (stale)
-      final fresh = await MetadataCache.get("https://old.com");
+      final fresh = await cache.get("https://old.com");
       expect(fresh, isNull);
 
       // getStale should return the data regardless of freshness
-      final stale = await MetadataCache.getStale("https://old.com");
+      final stale = await cache.getStale("https://old.com");
       expect(stale, isNotNull);
       expect(stale!["title"], "Old Title");
       expect(stale["consecutiveUnchanged"], 1);
@@ -464,7 +465,7 @@ void main() {
     });
 
     test("getStale returns null for unknown URL", () async {
-      final result = await MetadataCache.getStale("https://unknown.com");
+      final result = await cache.getStale("https://unknown.com");
       expect(result, isNull);
     });
   });
@@ -474,15 +475,15 @@ void main() {
       // The LRU cache has maxSize 100. Fill it, then add one more.
       // The first entry should be evicted from memory.
       for (var i = 0; i < 101; i++) {
-        await MetadataCache.set("https://site$i.com", {"title": "S$i"});
+        await cache.set("https://site$i.com", {"title": "S$i"});
       }
 
-      final stats = MetadataCache.getMemoryCacheStats();
+      final stats = cache.getMemoryCacheStats();
       expect(stats["size"], 100);
 
       // site0 should be evicted from memory but still in persistence
       fakePersistence.calls.clear();
-      final evicted = await MetadataCache.get("https://site0.com");
+      final evicted = await cache.get("https://site0.com");
       // Should fetch from persistence (it was evicted from LRU)
       expect(evicted, isNotNull);
       expect(evicted!["title"], "S0");
@@ -498,35 +499,35 @@ void main() {
       // Record a failure and verify cleanup doesn't crash.
       // Since we can't backdate the timestamp, we verify the method runs
       // without error and that a recent failure survives cleanup.
-      MetadataCache.recordFailure("https://old-fail.com");
-      MetadataCache.cleanupStaleFailures();
+      cache.recordFailure("https://old-fail.com");
+      cache.cleanupStaleFailures();
       // Recent failure should NOT be cleaned up
-      expect(MetadataCache.shouldRetry("https://old-fail.com"), isFalse);
+      expect(cache.shouldRetry("https://old-fail.com"), isFalse);
     });
 
     test("cleanupStaleFailures preserves recent failures", () {
-      MetadataCache.recordFailure("https://recent.com");
-      MetadataCache.cleanupStaleFailures();
+      cache.recordFailure("https://recent.com");
+      cache.cleanupStaleFailures();
       // Still not retryable — cleanup didn't remove it
-      expect(MetadataCache.shouldRetry("https://recent.com"), isFalse);
+      expect(cache.shouldRetry("https://recent.com"), isFalse);
     });
 
     test("cleanupStaleFailures is safe to call with no failures", () {
       // Should not throw
-      MetadataCache.cleanupStaleFailures();
-      expect(MetadataCache.shouldRetry("https://anything.com"), isTrue);
+      cache.cleanupStaleFailures();
+      expect(cache.shouldRetry("https://anything.com"), isTrue);
     });
 
     test("clearFailure followed by cleanupStaleFailures leaves clean state",
         () {
-      MetadataCache.recordFailure("https://a.com");
-      MetadataCache.recordFailure("https://b.com");
-      MetadataCache.clearFailure("https://a.com");
-      MetadataCache.cleanupStaleFailures();
+      cache.recordFailure("https://a.com");
+      cache.recordFailure("https://b.com");
+      cache.clearFailure("https://a.com");
+      cache.cleanupStaleFailures();
       // a.com was explicitly cleared
-      expect(MetadataCache.shouldRetry("https://a.com"), isTrue);
+      expect(cache.shouldRetry("https://a.com"), isTrue);
       // b.com is recent, cleanup shouldn't remove it
-      expect(MetadataCache.shouldRetry("https://b.com"), isFalse);
+      expect(cache.shouldRetry("https://b.com"), isFalse);
     });
   });
 }

@@ -1,4 +1,3 @@
-import "dart:async";
 import "package:app_logger/app_logger.dart";
 import "package:database/database.dart";
 import "package:database/src/features/background_jobs/crud.dart";
@@ -20,26 +19,11 @@ class ArchiveQueueProcessor {
   final int maxAttempts;
   final Duration delayBetweenJobs;
 
-  static bool _isProcessing = false;
-  static ArchiveQueueProcessor? _instance;
-
-  /// Register a processor instance at startup so it can be triggered
-  /// when new jobs are enqueued mid-session.
-  static void registerInstance(ArchiveQueueProcessor processor) {
-    _instance = processor;
-  }
-
-  /// Trigger processing of queued jobs. Safe to call from anywhere —
-  /// no-ops if already processing or no instance registered.
-  /// Fire-and-forget: does not await completion.
-  static void triggerProcessing() {
-    unawaited(_instance?.processAll());
-  }
-
-  /// Clear the registered instance. Used in tests.
-  static void clearInstance() {
-    _instance = null;
-  }
+  /// Per-instance reentrancy guard. A second call to [processAll] while
+  /// the first is still draining no-ops out, keeping the archive queue
+  /// strictly sequential. Per-instance (not static) so a crashed test
+  /// can't poison the flag for the next test.
+  bool _isProcessing = false;
 
   ArchiveQueueProcessor({
     required this.database,
