@@ -1,14 +1,16 @@
 import "package:drift/drift.dart";
 
-/// Queue of pending/in-progress background operations.
-///
-/// Originally introduced as the archive job queue; generalized to also
-/// track metadata fetches and other background work.
+/// Queue of pending/in-progress background operations + audit log for
+/// completed ones.
 ///
 /// - Archive jobs are created when a folder is saved with links. A
 ///   background processor picks them up and runs archiving asynchronously.
 /// - Metadata fetch entries are written by [MetadataFactory] for failures
-///   and first-time fetches so the user can see what scraping failed.
+///   and first-time fetches so the user can see what scraping happened.
+///
+/// Rows are retained per the activity-log TTL setting (default 24h, see
+/// `MainSetup.runDeferredTasks`); orphan `in_progress` rows are reclaimed
+/// to `failed` at startup so the UI never shows phantom work.
 ///
 /// [linkId] is nullable: not every job is tied to a single link. The
 /// startup metadata refresh pass iterates the metadata cache (keyed by
