@@ -14,8 +14,7 @@ void main() {
   // Offline tests: use a fake client via the factory to avoid network calls.
   group("[offline] ArchiveOrgClient", () {
     setUpAll(() {
-      archiveOrgClientFactory = (k, s) => _FakeArchiveOrgClient();
-      archiveClient = archiveOrgClientFactory("", "");
+      archiveClient = _FakeArchiveOrgClient();
     });
 
     test("archives a single URL successfully", () async {
@@ -52,8 +51,7 @@ void main() {
           : "Set CHENRON_ARCHIVE_ORG_KEY and CHENRON_ARCHIVE_ORG_SECRET to run online tests",
       () {
     setUpAll(() {
-      archiveOrgClientFactory = (k, s) => ArchiveOrgClient(k, s);
-      archiveClient = archiveOrgClientFactory(key!, secret!);
+      archiveClient = ArchiveOrgClient(key!, secret!);
     });
 
     test("authenticates successfully with valid credentials", () async {

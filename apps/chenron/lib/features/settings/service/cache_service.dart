@@ -1,7 +1,8 @@
 import "dart:io";
 
-import "package:flutter/foundation.dart";
 import "package:cache_manager/cache_manager.dart";
+import "package:chenron/locator.dart";
+import "package:flutter/foundation.dart";
 
 /// Service for clearing image and metadata caches independently.
 class CacheService {
@@ -28,7 +29,7 @@ class CacheService {
 
   /// Clear in-memory LRU, failure tracking, and persistent metadata table.
   Future<void> clearMetadataCache() async {
-    await MetadataCache.clearAll();
+    await locator.get<MetadataCache>().clearAll();
   }
 
   /// Total bytes used by the image cache directory.
@@ -56,6 +57,6 @@ class CacheService {
 
   /// Number of metadata entries in persistent storage.
   Future<int> getMetadataCacheEntryCount() async {
-    return MetadataCache.getCacheEntryCount();
+    return locator.get<MetadataCache>().getCacheEntryCount();
   }
 }

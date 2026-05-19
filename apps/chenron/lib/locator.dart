@@ -1,3 +1,4 @@
+import "package:cache_manager/cache_manager.dart";
 import "package:chenron/providers/appdatabase_provider.dart";
 import "package:chenron/providers/basedir.dart";
 import "package:chenron/providers/configdatabase.dart";
@@ -16,6 +17,11 @@ import "package:chenron/services/activity_tracker.dart";
 final locator = GetIt.I;
 
 void locatorSetup() {
+  // Persistence is attached later, once the AppDatabase is open — see
+  // MainSetup._setupConfig. Registering an empty instance up-front lets
+  // callers grab the singleton without an init-ordering dance.
+  locator.registerSingleton<MetadataCache>(MetadataCache());
+
   locator
       .registerSingleton<Signal<AppDatabaseLifecycle>>(appDatabaseAccessorSignal);
   locator.registerSingleton<Signal<ConfigDatabaseLifecycle>>(

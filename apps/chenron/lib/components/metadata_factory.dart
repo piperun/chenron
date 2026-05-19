@@ -85,10 +85,10 @@ class MetadataFactory {
   static Future<Map<String, dynamic>?> _fetchAndCache(String url) async {
     bool isFirstFetch = false;
     try {
-      MetadataCache.startFetching(url);
+      locator.get<MetadataCache>().startFetching(url);
 
       // Read old entry BEFORE fetching (for change comparison)
-      final oldEntry = await MetadataCache.getStale(url);
+      final oldEntry = await locator.get<MetadataCache>().getStale(url);
       isFirstFetch = oldEntry == null;
 
       await _throttleDomain(url);
@@ -150,8 +150,8 @@ class MetadataFactory {
         "ttlDays": ttlDays,
       };
 
-      await MetadataCache.set(url, data);
-      MetadataCache.clearFailure(url);
+      await locator.get<MetadataCache>().set(url, data);
+      locator.get<MetadataCache>().clearFailure(url);
       // Per the activity-log policy: log every initial fetch, and only
       // failures for subsequent fetches. TTL purges old rows.
       if (isFirstFetch) {
@@ -159,9 +159,9 @@ class MetadataFactory {
       }
       return data;
     } catch (e) {
-      MetadataCache.recordFailure(url);
+      locator.get<MetadataCache>().recordFailure(url);
       loggerGlobal.warning(_tag,
-          "Fetch failed for: $url | failures=${MetadataCache.getFailureCount(url)}");
+          "Fetch failed for: $url | failures=${locator.get<MetadataCache>().getFailureCount(url)}");
       // Failures are always logged (initial or subsequent).
       unawaited(_logMetadataFetch(
         url: url,
@@ -170,7 +170,7 @@ class MetadataFactory {
       ));
       return null;
     } finally {
-      MetadataCache.stopFetching(url);
+      locator.get<MetadataCache>().stopFetching(url);
       _releaseSlot();
     }
   }
@@ -180,16 +180,16 @@ class MetadataFactory {
   /// At most [_maxConcurrent] fetches run in parallel; extras are queued.
   /// Requests to the same domain are throttled by [_domainDelay].
   static Future<Map<String, dynamic>?> getOrFetch(String url) async {
-    final cached = await MetadataCache.get(url);
+    final cached = await locator.get<MetadataCache>().get(url);
     if (cached != null) return cached;
 
-    if (MetadataCache.isFetching(url)) {
+    if (locator.get<MetadataCache>().isFetching(url)) {
       loggerGlobal.fine(_tag, "Skipped (already fetching): $url");
       return null;
     }
-    if (!MetadataCache.shouldRetry(url)) {
+    if (!locator.get<MetadataCache>().shouldRetry(url)) {
       loggerGlobal.fine(_tag,
-          "Skipped (backoff): $url | failures=${MetadataCache.getFailureCount(url)}");
+          "Skipped (backoff): $url | failures=${locator.get<MetadataCache>().getFailureCount(url)}");
       return null;
     }
 
@@ -207,7 +207,7 @@ class MetadataFactory {
   /// for it, so callers won't see stale data.
   static Future<Map<String, dynamic>?> forceFetch(String url) async {
     loggerGlobal.info(_tag, "Force refresh requested: $url");
-    MetadataCache.clearFailure(url);
+    locator.get<MetadataCache>().clearFailure(url);
 
     await _acquireSlot();
     final result = await _fetchAndCache(url);
@@ -232,15 +232,15 @@ class MetadataFactory {
     loggerGlobal.info(_tag, "Background refresh started");
 
     try {
-      MetadataCache.cleanupStaleFailures();
-      final persistence = MetadataCache.persistence;
+      locator.get<MetadataCache>().cleanupStaleFailures();
+      final persistence = locator.get<MetadataCache>().persistence;
       if (persistence == null) return;
 
       final refreshed = await RefreshScheduler.processQueue(
         persistence: persistence,
         refreshOne: (url) async {
-          if (MetadataCache.isFetching(url)) return true; // skip, not an error
-          if (!MetadataCache.shouldRetry(url)) return true; // skip failed URLs
+          if (locator.get<MetadataCache>().isFetching(url)) return true; // skip, not an error
+          if (!locator.get<MetadataCache>().shouldRetry(url)) return true; // skip failed URLs
 
           await _acquireSlot();
           final result = await _fetchAndCache(url);

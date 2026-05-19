@@ -1,3 +1,5 @@
+import "dart:async";
+
 import "package:database/database.dart";
 import "package:database/src/features/background_jobs/crud.dart";
 import "package:database/src/features/background_jobs/processor.dart";
@@ -24,7 +26,6 @@ void main() {
   });
 
   tearDown(() async {
-    ArchiveQueueProcessor.clearInstance();
     await database.delete(database.backgroundJobs).go();
     await database.delete(database.links).go();
     await database.close();
@@ -159,16 +160,9 @@ void main() {
     });
   });
 
-  group("ArchiveQueueProcessor static instance + triggerProcessing", () {
-    test("registerInstance stores and triggerProcessing invokes it", () async {
-      final linkResult = await database.createLink(link: "https://trigger.com");
-
-      await database.enqueueArchiveJob(
-        linkId: linkResult.linkId,
-        url: "https://trigger.com",
-        service: "archive_org",
-      );
-
+  group("onArchiveJobEnqueued hook + reentrancy guard", () {
+    test("hook fires the processor when payload.dart enqueues a job",
+        () async {
       final fakeClient = _FakeArchiveOrgClient();
       final processor = ArchiveQueueProcessor(
         database: database,
@@ -177,11 +171,19 @@ void main() {
         secretKey: "test-secret",
         delayBetweenJobs: Duration.zero,
       );
+      database.onArchiveJobEnqueued =
+          () => unawaited(processor.processAll());
 
-      ArchiveQueueProcessor.registerInstance(processor);
-      ArchiveQueueProcessor.triggerProcessing();
+      final linkResult = await database.createLink(link: "https://trigger.com");
+      await database.enqueueArchiveJob(
+        linkId: linkResult.linkId,
+        url: "https://trigger.com",
+        service: "archive_org",
+      );
+      // Simulate the payload.dart trigger path.
+      database.onArchiveJobEnqueued!();
 
-      // triggerProcessing is fire-and-forget, give it time to complete
+      // Fire-and-forget — give it time to complete.
       await Future<void>.delayed(const Duration(milliseconds: 500));
 
       final jobs = await (database.select(database.backgroundJobs)).get();
@@ -192,12 +194,14 @@ void main() {
       expect(link!.data.archiveOrgUrl, isNotNull);
     });
 
-    test("triggerProcessing is safe when no instance registered", () {
-      // Should not throw
-      ArchiveQueueProcessor.triggerProcessing();
+    test("processAll is safe to call with no hook wired", () async {
+      // database.onArchiveJobEnqueued is null by default — payload.dart
+      // tolerates that (no host app present in tests).
+      expect(database.onArchiveJobEnqueued, isNull);
     });
 
-    test("triggerProcessing no-ops when already processing", () async {
+    test("concurrent processAll calls no-op via per-instance guard",
+        () async {
       final link1 = await database.createLink(link: "https://slow1.com");
       final link2 = await database.createLink(link: "https://slow2.com");
 
@@ -221,16 +225,15 @@ void main() {
         delayBetweenJobs: Duration.zero,
       );
 
-      ArchiveQueueProcessor.registerInstance(processor);
-
-      // Start processing
+      // Start processing.
       final firstRun = processor.processAll();
-      // Trigger again while first run is active — should no-op
-      ArchiveQueueProcessor.triggerProcessing();
+      // Second call while first is active — instance-level guard makes
+      // it no-op out.
+      final secondRun = processor.processAll();
 
-      await firstRun;
+      await Future.wait([firstRun, secondRun]);
 
-      // Only one run should have happened (2 jobs processed once, not twice)
+      // Only one run actually drained the queue.
       expect(fakeClient.archiveCallCount, 2);
     });
   });

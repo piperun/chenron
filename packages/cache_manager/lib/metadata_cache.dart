@@ -7,23 +7,31 @@ const _source = 'MetadataCache';
 /// Manages caching of metadata with an in-memory LRU layer and a
 /// pluggable persistent backend ([MetadataPersistence]).
 ///
-/// Call [init] once at startup to enable persistent storage.
-/// Without it, only the in-memory LRU cache is active.
+/// Constructed with the persistence backend (or [persistence] later
+/// via [attachPersistence]). Without persistence, only the in-memory
+/// LRU cache is active.
+///
+/// Host apps register a single instance in their service locator so
+/// every caller shares the same cache state.
 class MetadataCache {
-  static MetadataPersistence? _persistence;
-  static final _LRUCache<String, Map<String, dynamic>> _memoryCache =
+  MetadataPersistence? _persistence;
+  final _LRUCache<String, Map<String, dynamic>> _memoryCache =
       _LRUCache(maxSize: 100);
-  static final Map<String, DateTime> _failedAttempts = {};
-  static final Map<String, int> _failureCount = {};
-  static final Set<String> _fetchingUrls = {};
+  final Map<String, DateTime> _failedAttempts = {};
+  final Map<String, int> _failureCount = {};
+  final Set<String> _fetchingUrls = {};
 
-  /// Inject the persistent storage backend. Call once at startup.
-  static void init(MetadataPersistence persistence) {
+  MetadataCache({MetadataPersistence? persistence})
+      : _persistence = persistence;
+
+  /// Inject (or replace) the persistent storage backend. Useful when
+  /// the persistence layer is only available after database setup.
+  void attachPersistence(MetadataPersistence persistence) {
     _persistence = persistence;
   }
 
   /// Get metadata from cache (memory first, then persistent)
-  static Future<Map<String, dynamic>?> get(String url) async {
+  Future<Map<String, dynamic>?> get(String url) async {
     // Check memory cache first (LRU automatically updates access order)
     final cachedData = _memoryCache.get(url);
     if (cachedData != null) {
@@ -66,7 +74,7 @@ class MetadataCache {
   }
 
   /// Save metadata to cache (both memory and persistent)
-  static Future<void> set(String url, Map<String, dynamic> metadata) async {
+  Future<void> set(String url, Map<String, dynamic> metadata) async {
     // Add fetchedAt timestamp
     final metadataWithTimestamp = {
       ...metadata,
@@ -91,7 +99,7 @@ class MetadataCache {
   ///
   /// Uses exponential backoff: 2min, 10min, 1hr, 6hr, 24hr (capped).
   /// Never permanently gives up — everything eventually retries.
-  static bool shouldRetry(String url) {
+  bool shouldRetry(String url) {
     if (!_failedAttempts.containsKey(url)) return true;
 
     final lastAttempt = _failedAttempts[url]!;
@@ -104,38 +112,38 @@ class MetadataCache {
   }
 
   /// Record a failed fetch attempt
-  static void recordFailure(String url) {
+  void recordFailure(String url) {
     _failedAttempts[url] = DateTime.now();
     _failureCount[url] = (_failureCount[url] ?? 0) + 1;
   }
 
   /// Number of consecutive failures recorded for [url].
-  static int getFailureCount(String url) => _failureCount[url] ?? 0;
+  int getFailureCount(String url) => _failureCount[url] ?? 0;
 
   /// Clear failure record on successful fetch
-  static void clearFailure(String url) {
+  void clearFailure(String url) {
     _failedAttempts.remove(url);
     _failureCount.remove(url);
   }
 
   /// Remove failure records older than 30 days to prevent unbounded growth.
-  static void cleanupStaleFailures() {
+  void cleanupStaleFailures() {
     final cutoff = DateTime.now().subtract(const Duration(days: 30));
     _failedAttempts.removeWhere((_, time) => time.isBefore(cutoff));
     _failureCount.removeWhere((url, _) => !_failedAttempts.containsKey(url));
   }
 
   /// Check if URL is currently being fetched
-  static bool isFetching(String url) => _fetchingUrls.contains(url);
+  bool isFetching(String url) => _fetchingUrls.contains(url);
 
   /// Mark URL as being fetched
-  static void startFetching(String url) => _fetchingUrls.add(url);
+  void startFetching(String url) => _fetchingUrls.add(url);
 
   /// Mark URL as no longer being fetched
-  static void stopFetching(String url) => _fetchingUrls.remove(url);
+  void stopFetching(String url) => _fetchingUrls.remove(url);
 
   /// Remove a single URL from both memory and persistent cache.
-  static Future<void> remove(String url) async {
+  Future<void> remove(String url) async {
     _memoryCache.remove(url);
     try {
       await _persistence?.remove(url);
@@ -143,7 +151,7 @@ class MetadataCache {
   }
 
   /// Clear all cached metadata
-  static Future<void> clearAll() async {
+  Future<void> clearAll() async {
     _memoryCache.clear();
     _failedAttempts.clear();
     _failureCount.clear();
@@ -160,7 +168,7 @@ class MetadataCache {
   ///
   /// Falls back to 7 days if the entry has no ttlDays field (pre-migration
   /// data).
-  static bool _isFresh(Map<String, dynamic> metadata) {
+  bool _isFresh(Map<String, dynamic> metadata) {
     final fetchedAtStr = metadata['fetchedAt'] as String?;
     if (fetchedAtStr == null) return false;
 
@@ -179,7 +187,7 @@ class MetadataCache {
   /// Used for change comparison during refresh — we need the old data
   /// to decide whether to escalate or reset the adaptive TTL.
   /// Does NOT promote into memory cache (the entry is stale).
-  static Future<Map<String, dynamic>?> getStale(String url) async {
+  Future<Map<String, dynamic>?> getStale(String url) async {
     // Check memory cache (may have been evicted or removed as stale)
     final memCached = _memoryCache.get(url);
     if (memCached != null) return memCached;
@@ -195,10 +203,10 @@ class MetadataCache {
 
   /// Access the persistence backend (for use by RefreshScheduler).
   /// Returns null if [init] has not been called.
-  static MetadataPersistence? get persistence => _persistence;
+  MetadataPersistence? get persistence => _persistence;
 
   /// Get the number of persistently cached entries.
-  static Future<int> getCacheEntryCount() async {
+  Future<int> getCacheEntryCount() async {
     try {
       return await _persistence?.count() ?? 0;
     } catch (e) {
@@ -207,7 +215,7 @@ class MetadataCache {
   }
 
   /// Get memory cache statistics
-  static Map<String, int> getMemoryCacheStats() {
+  Map<String, int> getMemoryCacheStats() {
     return {
       'size': _memoryCache.length,
       'maxSize': _memoryCache.maxSize,

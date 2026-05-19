@@ -8,9 +8,13 @@ import 'package:web_archiver/src/archive_org/archive_org_options.dart';
 typedef ArchiveOrgClientFactory = ArchiveOrgClient Function(
     String apiKey, String apiSecret);
 
-/// Default factory instance for creating [ArchiveOrgClient]s.
-ArchiveOrgClientFactory archiveOrgClientFactory =
-    (apiKey, apiSecret) => ArchiveOrgClient(apiKey, apiSecret);
+/// Default factory that returns a real [ArchiveOrgClient]. Callers (the
+/// archive processor, main setup) wire this through their constructors;
+/// tests pass their own fake factory instead. There is no mutable global
+/// — that pattern got reassigned across tests and leaked state.
+ArchiveOrgClient defaultArchiveOrgClientFactory(
+        String apiKey, String apiSecret) =>
+    ArchiveOrgClient(apiKey, apiSecret);
 
 const _source = 'ArchiveOrgClient';
 
