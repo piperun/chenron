@@ -2,6 +2,19 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## chenron-v1.13.1 - 2026-05-20
+#### Bug Fixes
+- (**chenron**) collapse duplicate ChenronDir enum to silence GetIt warning - (acd0dd0) - *piperun*
+
+- - -
+
+## [v1.2.1](https://github.com/piperun/chenron-flutter/compare/48f4c66301952b4bc2f4a98f942c6b05ef45f859..v1.2.1) - 2026-05-20
+### Package updates
+- [chenron-v1.13.1](apps/chenron) bumped to [chenron-v1.13.1](https://github.com/piperun/chenron-flutter/compare/chenron-v1.13.0..chenron-v1.13.1)
+### Global changes
+
+- - -
+
 ## chenron-v1.13.0 - 2026-05-20
 #### Refactoring
 - (**chenron**) hoist metadata fetch + migrate to MetadataService signals - (62c5808) - *piperun*
