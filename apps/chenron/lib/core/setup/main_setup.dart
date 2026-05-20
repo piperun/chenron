@@ -2,13 +2,12 @@
 
 import "dart:async";
 
-import "package:chenron/components/metadata_factory.dart";
 import "package:chenron/features/activity_log/activity_log_settings.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/services/drift_metadata_persistence.dart";
 import "package:basedir/directory.dart";
 import "package:cache_manager/cache_manager.dart";
-import "package:database/database.dart";
+import "package:database/database.dart" hide Metadata;
 import "package:core/patterns/include_options.dart";
 import "package:database/features.dart";
 import "package:app_logger/app_logger.dart";
@@ -114,7 +113,7 @@ class MainSetup {
 
     // Refresh stale metadata entries in the background.
     // Fire-and-forget — doesn't block other deferred tasks.
-    MetadataFactory.refreshStaleEntries();
+    unawaited(locator.get<MetadataService>().refreshStaleEntries());
 
     // Process pending archive jobs in the background.
     _processArchiveQueue();

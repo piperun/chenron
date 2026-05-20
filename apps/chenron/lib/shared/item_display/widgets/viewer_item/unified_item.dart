@@ -1,5 +1,8 @@
+import "package:cache_manager/cache_manager.dart";
 import "package:flutter/material.dart";
 import "package:database/models/item.dart";
+import "package:signals/signals_flutter.dart";
+import "package:chenron/locator.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/item_utils.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/item_content.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/viewer_item.dart";
@@ -41,16 +44,55 @@ class UnifiedItem extends StatefulWidget {
 class _UnifiedItemState extends State<UnifiedItem> {
   bool _tagsExpanded = false;
 
+  /// Cached URL for the wrapped item (folder items resolve to "").
+  late String _url;
+
+  /// Single shared metadata signal for this card, hoisted once in
+  /// [initState] so children render off the same observable.
+  ///
+  /// `null` when the item isn't a link or has no URL — children render
+  /// their static fallbacks in that case.
+  ///
+  /// The signal is owned by [MetadataService] and shared across every
+  /// card that points at the same URL; we never `dispose()` it here.
+  Signal<MetadataState>? _metadataSignal;
+
   bool get _isCard => widget.mode == PreviewMode.card;
   bool get _hasImage =>
       widget.showImage &&
       widget.item.type == FolderItemType.link &&
-      ItemUtils.getUrl(widget.item).isNotEmpty;
+      _url.isNotEmpty;
+
+  @override
+  void initState() {
+    super.initState();
+    _resolveMetadataSignal();
+  }
+
+  @override
+  void didUpdateWidget(UnifiedItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Re-resolve when the wrapped item changes (e.g. list re-uses the
+    // same State for a different row).
+    if (oldWidget.item != widget.item) {
+      _resolveMetadataSignal();
+    }
+  }
+
+  void _resolveMetadataSignal() {
+    _url = ItemUtils.getUrl(widget.item);
+    if (widget.item.type == FolderItemType.link && _url.isNotEmpty) {
+      _metadataSignal = locator.get<MetadataService>().watch(_url);
+    } else {
+      _metadataSignal = null;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final url = ItemUtils.getUrl(widget.item);
+    final url = _url;
+    final metadata = _metadataSignal;
 
     final content = Padding(
       padding: const EdgeInsets.all(12),
@@ -61,14 +103,20 @@ class _UnifiedItemState extends State<UnifiedItem> {
           ItemMetaRow(item: widget.item, url: url, showInfoButton: false),
           const SizedBox(height: 4),
           ItemTitle(
-              item: widget.item, url: url, maxLines: widget.titleLines),
+            item: widget.item,
+            url: url,
+            metadata: metadata,
+            maxLines: widget.titleLines,
+          ),
           if (widget.descriptionLines > 0) ...[
             const SizedBox(height: 4),
             Flexible(
               child: ItemDescription(
-                  item: widget.item,
-                  url: url,
-                  maxLines: widget.descriptionLines),
+                item: widget.item,
+                url: url,
+                metadata: metadata,
+                maxLines: widget.descriptionLines,
+              ),
             ),
           ],
         ],
@@ -111,7 +159,8 @@ class _UnifiedItemState extends State<UnifiedItem> {
                 mainAxisSize: _isCard ? MainAxisSize.max : MainAxisSize.min,
                 children: [
                   // Card: image on top
-                  if (_isCard && _hasImage) ItemImageHeader(url: url),
+                  if (_isCard && _hasImage)
+                    ItemImageHeader(url: url, metadata: metadata),
 
                   // Card: content fills remaining space
                   // List: content in a row with thumbnail left
@@ -122,7 +171,8 @@ class _UnifiedItemState extends State<UnifiedItem> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          if (_hasImage) ItemThumbnail(url: url),
+                          if (_hasImage)
+                            ItemThumbnail(url: url, metadata: metadata),
                           Expanded(child: content),
                         ],
                       ),
