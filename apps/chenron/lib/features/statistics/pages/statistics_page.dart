@@ -100,7 +100,12 @@ class _StatisticsPageState extends State<StatisticsPage> {
 
   void _onTimeRangeChanged(TimeRange range) {
     _timeRange.value = range;
-    _isLoading.value = true;
+    // Deliberately do NOT flip _isLoading back to true here. The flag's
+    // only purpose is the first-paint spinner; resetting it on every
+    // range tap would blank the whole page for ~200ms and re-mount
+    // every chart. The signals below repopulate atomically when the
+    // new query completes, so the user sees a smooth in-place swap of
+    // chart data instead of a full-page flicker.
     unawaited(_loadData());
   }
 

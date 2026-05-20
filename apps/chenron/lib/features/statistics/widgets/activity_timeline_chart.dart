@@ -17,13 +17,6 @@ class ActivityTimelineChart extends StatelessWidget {
     required this.onTimeRangeChanged,
   });
 
-  static const _entityColors = {
-    "link": Colors.blue,
-    "document": Colors.purple,
-    "folder": Colors.orange,
-    "tag": Colors.teal,
-  };
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -46,12 +39,44 @@ class ActivityTimelineChart extends StatelessWidget {
                   ),
                 ),
               )
-            : BarChart(_buildChartData(theme)),
+            // ClipRect contains a swap-animation artifact: when time
+            // range changes, BarChartData.maxY and each bar's `toY`
+            // tween at different rates, so for a few frames a bar's
+            // value temporarily exceeds the chart's current maxY. fl_chart
+            // doesn't clip its own paint (BarChartData's constructor
+            // doesn't forward AxisChartData.clipData), so those frames
+            // would draw the bar outside the SizedBox — visibly bleeding
+            // up into the Growth Trend chart above. ClipRect at the
+            // widget layer forces that overshoot to stay inside the
+            // chart card.
+            : ClipRect(
+                child: BarChart(
+                  _buildChartData(theme),
+                  // Default is 150 ms / Curves.linear, which "snaps"
+                  // sharply when switching time ranges that have very
+                  // different maxY. easeOutCubic decelerates the
+                  // settle and keeps the new heights from looking
+                  // twitchy now that they are clipped to the chart.
+                  duration: const Duration(milliseconds: 280),
+                  curve: Curves.easeOutCubic,
+                ),
+              ),
       ),
     );
   }
 
   BarChartData _buildChartData(ThemeData theme) {
+    // Mirrors FolderCompositionChart's mapping so the two charts on the
+    // same page share a coherent palette. ColorScheme only gives three
+    // semantic accents (primary/secondary/tertiary), so "tag" falls back
+    // to primaryContainer — a paired accent that still reads as themed
+    // rather than dropping back to vivid Material defaults.
+    final entityColors = <String, Color>{
+      "link": theme.colorScheme.primary,
+      "document": theme.colorScheme.tertiary,
+      "folder": theme.colorScheme.secondary,
+      "tag": theme.colorScheme.primaryContainer,
+    };
     // Group by date
     final grouped = <DateTime, Map<String, int>>{};
     for (final entry in dailyCounts) {
@@ -115,13 +140,13 @@ class ActivityTimelineChart extends StatelessWidget {
         final rodStacks = <BarChartRodStackItem>[];
         double cumulative = 0;
 
-        for (final entityType in _entityColors.keys) {
+        for (final entityType in entityColors.keys) {
           final count = (dayData[entityType] ?? 0).toDouble();
           if (count > 0) {
             rodStacks.add(BarChartRodStackItem(
               cumulative,
               cumulative + count,
-              _entityColors[entityType]!,
+              entityColors[entityType]!,
             ));
             cumulative += count;
           }
@@ -133,6 +158,14 @@ class ActivityTimelineChart extends StatelessWidget {
             BarChartRodData(
               toY: cumulative,
               rodStackItems: rodStacks,
+              // fl_chart's default rod color is Colors.cyan. The stacks
+              // normally cover the full rod, but during swap animation
+              // the rod's `toY` and the stack items' `toY` values
+              // interpolate at slightly different rates — for a few
+              // frames a sliver of the underlying rod is exposed and
+              // flashes cyan. Force the rod itself to transparent so any
+              // animation gap is invisible.
+              color: Colors.transparent,
               width: sortedDays.length > 14 ? 8 : 16,
               borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
             ),
