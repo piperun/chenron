@@ -2,6 +2,7 @@ import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/material.dart';
 import 'package:vibe/src/flex/flex_theme.dart';
 import 'package:vibe/src/theme.dart';
+import 'package:vibe/src/themes/chart_palette.dart';
 import 'package:vibe/src/themes/nier/palette.dart';
 
 /// Nier: Automata themed implementation (Tier 4 — full control).
@@ -71,6 +72,10 @@ class NierTheme extends FlexVibeTheme {
 
     return (
       light: base.light.copyWith(
+        // Attach the YorHa-derived ChartPalette so statistics charts
+        // render in Nier hues (rust / dark-brown / outline-grey / teal)
+        // instead of falling back to vivid Material defaults.
+        extensions: <ChartPalette>[ChartPalette.nier],
         // ThemeData.hoverColor is the global hover overlay that many
         // Material widgets fall back to. Material 3's default is
         // Colors.black/white * 0.04 — the white in dark mode reads as a
@@ -178,6 +183,9 @@ class NierTheme extends FlexVibeTheme {
         ),
       ),
       dark: base.dark.copyWith(
+        // Same chart palette as light mode — Nier's chart hues read
+        // the same in either mode.
+        extensions: <ChartPalette>[ChartPalette.nier],
         // See light comment. In dark Nier the Material 3 default
         // overlay (onSurface = canvasBeige cream at low alpha) lifts
         // the dark-brown surface visibly toward "white" on hover. Use
