@@ -1,6 +1,19 @@
-import "package:cache_manager/src/refresh_scheduler.dart";
-import "package:cache_manager/src/metadata_persistence.dart";
+import "package:cache_manager/cache_manager.dart";
 import "package:flutter_test/flutter_test.dart";
+
+Metadata _meta(
+  String url, {
+  DateTime? fetchedAt,
+  int ttlDays = 7,
+  int consecutiveUnchanged = 0,
+}) {
+  return Metadata(
+    url: url,
+    fetchedAt: fetchedAt ?? DateTime.now(),
+    ttlDays: ttlDays,
+    consecutiveUnchanged: consecutiveUnchanged,
+  );
+}
 
 void main() {
   group("computeRefreshPriority", () {
@@ -54,66 +67,45 @@ void main() {
     test("buildQueue returns URLs sorted by descending priority", () {
       final now = DateTime.now();
       final entries = [
-        {
-          "url": "https://low.com",
-          "fetchedAt": now.subtract(const Duration(days: 8)).toIso8601String(),
-          "ttlDays": 7,
-          "consecutiveUnchanged": 5,
-        },
-        {
-          "url": "https://high.com",
-          "fetchedAt": now.subtract(const Duration(days: 30)).toIso8601String(),
-          "ttlDays": 7,
-          "consecutiveUnchanged": 0,
-        },
-        {
-          "url": "https://mid.com",
-          "fetchedAt": now.subtract(const Duration(days: 14)).toIso8601String(),
-          "ttlDays": 7,
-          "consecutiveUnchanged": 1,
-        },
+        _meta(
+          "https://low.com",
+          fetchedAt: now.subtract(const Duration(days: 8)),
+          consecutiveUnchanged: 5,
+        ),
+        _meta(
+          "https://high.com",
+          fetchedAt: now.subtract(const Duration(days: 30)),
+        ),
+        _meta(
+          "https://mid.com",
+          fetchedAt: now.subtract(const Duration(days: 14)),
+          consecutiveUnchanged: 1,
+        ),
       ];
 
       final queue = RefreshScheduler.buildQueue(entries, now: now);
 
-      expect(queue[0]["url"], "https://high.com");
-      expect(queue.last["url"], "https://low.com");
+      expect(queue[0].url, "https://high.com");
+      expect(queue.last.url, "https://low.com");
     });
 
     test("buildQueue excludes non-expired entries", () {
       final now = DateTime.now();
       final entries = [
-        {
-          "url": "https://fresh.com",
-          "fetchedAt": now.subtract(const Duration(days: 3)).toIso8601String(),
-          "ttlDays": 7,
-          "consecutiveUnchanged": 0,
-        },
-        {
-          "url": "https://stale.com",
-          "fetchedAt": now.subtract(const Duration(days: 10)).toIso8601String(),
-          "ttlDays": 7,
-          "consecutiveUnchanged": 0,
-        },
+        _meta(
+          "https://fresh.com",
+          fetchedAt: now.subtract(const Duration(days: 3)),
+        ),
+        _meta(
+          "https://stale.com",
+          fetchedAt: now.subtract(const Duration(days: 10)),
+        ),
       ];
 
       final queue = RefreshScheduler.buildQueue(entries, now: now);
 
       expect(queue.length, 1);
-      expect(queue[0]["url"], "https://stale.com");
-    });
-
-    test("buildQueue handles missing fields gracefully", () {
-      final now = DateTime.now();
-      final entries = [
-        {
-          "url": "https://legacy.com",
-          "fetchedAt": now.subtract(const Duration(days: 10)).toIso8601String(),
-        },
-      ];
-
-      final queue = RefreshScheduler.buildQueue(entries, now: now);
-      expect(queue.length, 1);
+      expect(queue[0].url, "https://stale.com");
     });
 
     test("processQueue calls refreshOne for each expired entry in order",
@@ -122,18 +114,8 @@ void main() {
       final refreshedUrls = <String>[];
 
       final fakePersistence = _FakePersistenceWithExpired([
-        {
-          "url": "https://a.com",
-          "fetchedAt": now.subtract(const Duration(days: 20)).toIso8601String(),
-          "ttlDays": 7,
-          "consecutiveUnchanged": 0,
-        },
-        {
-          "url": "https://b.com",
-          "fetchedAt": now.subtract(const Duration(days: 10)).toIso8601String(),
-          "ttlDays": 7,
-          "consecutiveUnchanged": 0,
-        },
+        _meta("https://a.com", fetchedAt: now.subtract(const Duration(days: 20))),
+        _meta("https://b.com", fetchedAt: now.subtract(const Duration(days: 10))),
       ]);
 
       final count = await RefreshScheduler.processQueue(
@@ -154,18 +136,8 @@ void main() {
       final now = DateTime.now();
 
       final fakePersistence = _FakePersistenceWithExpired([
-        {
-          "url": "https://a.com",
-          "fetchedAt": now.subtract(const Duration(days: 20)).toIso8601String(),
-          "ttlDays": 7,
-          "consecutiveUnchanged": 0,
-        },
-        {
-          "url": "https://b.com",
-          "fetchedAt": now.subtract(const Duration(days: 10)).toIso8601String(),
-          "ttlDays": 7,
-          "consecutiveUnchanged": 0,
-        },
+        _meta("https://a.com", fetchedAt: now.subtract(const Duration(days: 20))),
+        _meta("https://b.com", fetchedAt: now.subtract(const Duration(days: 10))),
       ]);
 
       final count = await RefreshScheduler.processQueue(
@@ -182,18 +154,8 @@ void main() {
       var callCount = 0;
 
       final fakePersistence = _FakePersistenceWithExpired([
-        {
-          "url": "https://a.com",
-          "fetchedAt": now.subtract(const Duration(days: 20)).toIso8601String(),
-          "ttlDays": 7,
-          "consecutiveUnchanged": 0,
-        },
-        {
-          "url": "https://b.com",
-          "fetchedAt": now.subtract(const Duration(days: 10)).toIso8601String(),
-          "ttlDays": 7,
-          "consecutiveUnchanged": 0,
-        },
+        _meta("https://a.com", fetchedAt: now.subtract(const Duration(days: 20))),
+        _meta("https://b.com", fetchedAt: now.subtract(const Duration(days: 10))),
       ]);
 
       final count = await RefreshScheduler.processQueue(
@@ -212,16 +174,16 @@ void main() {
 }
 
 class _FakePersistenceWithExpired implements MetadataPersistence {
-  final List<Map<String, dynamic>> _expired;
+  final List<Metadata> _expired;
   _FakePersistenceWithExpired(this._expired);
 
   @override
-  Future<List<Map<String, dynamic>>> getExpiredEntries() async => _expired;
+  Future<List<Metadata>> getExpiredEntries() async => _expired;
 
   @override
-  Future<Map<String, dynamic>?> get(String url) async => null;
+  Future<Metadata?> get(String url) async => null;
   @override
-  Future<void> set(String url, Map<String, dynamic> metadata) async {}
+  Future<void> set(Metadata metadata) async {}
   @override
   Future<void> remove(String url) async {}
   @override
