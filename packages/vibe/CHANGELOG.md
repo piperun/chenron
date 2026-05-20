@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## vibe-v0.2.0 - 2026-05-20
+#### Features
+- (**vibe**) add ChartPalette ThemeExtension with Nier YorHa palette - (877e61f) - *piperun*
+- (**vibe**) refine Nier theme — kill white washes, pin filled-button text - (b27771c) - *piperun*
+
+- - -
+
 ## vibe-v0.1.1 - 2026-02-08
 #### Bug Fixes
 - resolve vibe lint warnings and remove stale test driver - (4ed0e9b) - *piperun*
