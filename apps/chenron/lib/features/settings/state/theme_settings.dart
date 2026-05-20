@@ -55,6 +55,12 @@ class ThemeSettingsNotifier implements SettingsSection {
   /// Resolves the current key/type back to a full [ThemeChoice] using
   /// [availableThemes]. Returns null while themes haven't loaded yet
   /// or if the persisted choice no longer exists in the list.
+  ///
+  /// When no match is found, returns null rather than picking
+  /// `list.first` — that fallback misled the dropdown into showing the
+  /// first theme (currently Nier) as "selected" even when the user had
+  /// never actually picked it. Honest null lets the dropdown show its
+  /// placeholder.
   late final Computed<ThemeChoice?> selectedChoice = Computed(() {
     final snap = current.value;
     final list = availableThemes.value;
@@ -64,7 +70,7 @@ class ThemeSettingsNotifier implements SettingsSection {
         return c;
       }
     }
-    return list.first;
+    return null;
   });
 
   /// Themes sorted by [sortMode]. UI reads this rather than
