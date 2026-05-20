@@ -2,6 +2,7 @@ import "package:cache_manager/cache_manager.dart";
 import "package:flutter/material.dart";
 import "package:database/models/item.dart";
 import "package:signals/signals_flutter.dart";
+import "package:vibe/vibe.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/item_utils.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/item_content.dart";
@@ -91,6 +92,7 @@ class _UnifiedItemState extends State<UnifiedItem> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final cardRadius = BorderRadius.circular(ShapeTokens.of(context).cardCorner);
     final url = _url;
     final metadata = _metadataSignal;
 
@@ -136,7 +138,7 @@ class _UnifiedItemState extends State<UnifiedItem> {
 
     return Material(
       color: Colors.transparent,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: cardRadius,
       child: InkWell(
         onTap: _tagsExpanded
             ? () => setState(() => _tagsExpanded = false)
@@ -144,11 +146,11 @@ class _UnifiedItemState extends State<UnifiedItem> {
                 (widget.item.type == FolderItemType.link
                     ? () => ItemUtils.launchUrl(widget.item)
                     : null),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: cardRadius,
         child: Container(
           decoration: BoxDecoration(
             border: Border.all(color: theme.dividerColor),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: cardRadius,
             color: theme.cardColor,
           ),
           clipBehavior: Clip.antiAlias,
