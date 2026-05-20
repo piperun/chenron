@@ -2,6 +2,29 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## chenron-v1.12.0 - 2026-05-20
+#### Features
+- (**chenron**) wire statistics charts to ChartPalette + themed tooltips - (80553fe) - *piperun*
+- (**chenron**) polish Growth Trend chart tooltip readability - (7b6b158) - *piperun*
+#### Bug Fixes
+- (**chenron**) improve folder list selected state contrast - (3f92212) - *piperun*
+- (**chenron**) theme picker shows honest selection state - (1ec168d) - *piperun*
+- (**chenron**) statistics page polish - (b3de25a) - *piperun*
+- (**chenron**) satisfy Flutter 3.44 ListTile assertion in search dialogs - (be6f765) - *piperun*
+- (**chenron**) wrap bottom-sheet child in Material to satisfy Flutter 3.44 assertion - (7464a99) - *piperun*
+
+- - -
+
+## [v1.2.0](https://github.com/piperun/chenron-flutter/compare/2552bd5c4e19c095c9565d976354476a9968bac7..v1.2.0) - 2026-05-19
+### Package updates
+- [vibe-v0.2.0](packages/vibe) bumped to [vibe-v0.2.0](https://github.com/piperun/chenron-flutter/compare/vibe-v0.1.1..vibe-v0.2.0)
+- [chenron-v1.12.0](apps/chenron) bumped to [chenron-v1.12.0](https://github.com/piperun/chenron-flutter/compare/chenron-v1.11.0..chenron-v1.12.0)
+### Global changes
+#### Refactoring
+- (**cache_manager**) unify logging on app_logger - ([0988b01](https://github.com/piperun/chenron-flutter/commit/0988b0137e65d69db27d651f125f4b429c92510c)) - [@piperun](https://github.com/piperun)
+
+- - -
+
 ## chenron-v1.11.0 - 2026-05-19
 #### Features
 - (**chenron**) auto-purge activity log on startup with retention setting - (2f0d4cb) - *piperun*
