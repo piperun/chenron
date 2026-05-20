@@ -1,6 +1,7 @@
 import "dart:async";
 
 import "package:app_logger/app_logger.dart";
+import "package:cache_manager/src/metadata.dart";
 import "package:cache_manager/src/metadata_persistence.dart";
 
 const _source = "RefreshScheduler";
@@ -33,34 +34,26 @@ class RefreshScheduler {
   ///
   /// Zero by default — the actual rate-limiting (concurrency cap +
   /// per-domain throttle) belongs to whatever `refreshOne` calls
-  /// (`MetadataFactory.getOrFetch` in production), which has the
+  /// (`MetadataService._doFetch` in production), which has the
   /// context to throttle per host. The scheduler previously held a
   /// 2-second hard delay between every refresh which, on top of the
-  /// factory's own throttle, meant a queue of 1000 expired entries
+  /// service's own throttle, meant a queue of 1000 expired entries
   /// took 33+ minutes regardless of how many domains were involved.
   static const defaultDelay = Duration.zero;
 
   /// Sort expired entries by descending refresh priority.
-  static List<Map<String, dynamic>> buildQueue(
-    List<Map<String, dynamic>> entries, {
+  static List<Metadata> buildQueue(
+    List<Metadata> entries, {
     DateTime? now,
   }) {
     final currentTime = now ?? DateTime.now();
 
-    final scored = <(double, Map<String, dynamic>)>[];
+    final scored = <(double, Metadata)>[];
     for (final entry in entries) {
-      final fetchedAtStr = entry["fetchedAt"] as String?;
-      if (fetchedAtStr == null) continue;
-      final fetchedAt = DateTime.tryParse(fetchedAtStr);
-      if (fetchedAt == null) continue;
-
-      final ttlDays = (entry["ttlDays"] as int?) ?? 7;
-      final consecutiveUnchanged = (entry["consecutiveUnchanged"] as int?) ?? 0;
-
       final priority = computeRefreshPriority(
-        fetchedAt: fetchedAt,
-        ttlDays: ttlDays,
-        consecutiveUnchanged: consecutiveUnchanged,
+        fetchedAt: entry.fetchedAt,
+        ttlDays: entry.ttlDays,
+        consecutiveUnchanged: entry.consecutiveUnchanged,
         now: currentTime,
       );
 
@@ -76,14 +69,15 @@ class RefreshScheduler {
   /// Process expired entries in priority order.
   ///
   /// Calls [refreshOne] for each URL with a delay between calls.
-  /// Stops early if [shouldStop] returns true or [refreshOne] returns false.
+  /// Stops early if [shouldStop] returns true or [refreshOne] returns
+  /// false.
   static Future<int> processQueue({
     required MetadataPersistence persistence,
     required Future<bool> Function(String url) refreshOne,
     bool Function()? shouldStop,
     Duration delay = defaultDelay,
   }) async {
-    List<Map<String, dynamic>> expired;
+    List<Metadata> expired;
     try {
       expired = await persistence.getExpiredEntries();
     } catch (e) {
@@ -108,8 +102,7 @@ class RefreshScheduler {
         break;
       }
 
-      final url = entry["url"] as String;
-      final success = await refreshOne(url);
+      final success = await refreshOne(entry.url);
       if (!success) {
         loggerGlobal.info(_source,
             "Refresh halted (rate limit or error) after $refreshed entries.");

@@ -13,9 +13,15 @@ dependencies:
   app_logger: any
   cached_network_image: ^3.4.1
   path_provider: ^2.1.5
+  freezed_annotation: ^3.0.0
+  json_annotation: ^4.9.0
+  signals: ^6.0.2
 
   flutter_cache_manager: any
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  build_runner: ^2.4.15
+  freezed: ^3.0.0-0.0.dev
+  json_serializable: ^6.8.0
