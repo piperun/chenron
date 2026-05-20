@@ -1,6 +1,7 @@
 import "package:fl_chart/fl_chart.dart";
 import "package:flutter/material.dart";
 import "package:database/features.dart";
+import "package:vibe/vibe.dart";
 import "package:chenron/features/statistics/widgets/chart_card.dart";
 
 class FolderCompositionChart extends StatelessWidget {
@@ -16,6 +17,7 @@ class FolderCompositionChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final palette = ChartPalette.of(context);
     final folders = _aggregateFolders();
 
     return ChartCard(
@@ -31,7 +33,7 @@ class FolderCompositionChart extends StatelessWidget {
                   ),
                 ),
               )
-            : BarChart(_buildChartData(theme, folders)),
+            : BarChart(_buildChartData(theme, palette, folders)),
       ),
     );
   }
@@ -57,11 +59,15 @@ class FolderCompositionChart extends StatelessWidget {
     return list.take(10).toList();
   }
 
-  BarChartData _buildChartData(ThemeData theme, List<_FolderData> folders) {
+  BarChartData _buildChartData(
+    ThemeData theme,
+    ChartPalette palette,
+    List<_FolderData> folders,
+  ) {
     final colors = typeColors ?? {
-      "link": theme.colorScheme.primary,
-      "document": theme.colorScheme.tertiary,
-      "folder": theme.colorScheme.secondary,
+      "link": palette.links,
+      "document": palette.documents,
+      "folder": palette.folders,
     };
 
     return BarChartData(
@@ -110,6 +116,56 @@ class FolderCompositionChart extends StatelessWidget {
             const AxisTitles(sideTitles: SideTitles(showTitles: false)),
       ),
       borderData: FlBorderData(show: false),
+      // Tooltip styled to match GrowthTrendChart / ActivityTimelineChart.
+      // Without an explicit BarTouchData here fl_chart shows its default
+      // slate-blue tooltip — visually inconsistent with the rest of the
+      // page and themed for no theme in particular.
+      barTouchData: BarTouchData(
+        touchTooltipData: BarTouchTooltipData(
+          fitInsideHorizontally: true,
+          fitInsideVertically: true,
+          getTooltipColor: (_) {
+            final hsl = HSLColor.fromColor(theme.colorScheme.primary);
+            return hsl.withSaturation(0.40).withLightness(0.20).toColor();
+          },
+          tooltipBorderRadius: BorderRadius.circular(8),
+          tooltipPadding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          getTooltipItem: (group, groupIndex, rod, rodIndex) {
+            final outline = palette.tooltipShadows;
+            const labels = <String, String>{
+              "link": "Links",
+              "document": "Documents",
+              "folder": "Folders",
+            };
+            final folder = folders[groupIndex];
+            final spans = <TextSpan>[];
+            for (final type in colors.keys) {
+              final count = folder.typeCounts[type] ?? 0;
+              if (count == 0) continue;
+              spans.add(TextSpan(
+                text: "${labels[type]}: $count\n",
+                style: TextStyle(
+                  color: colors[type],
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12,
+                  shadows: outline,
+                ),
+              ));
+            }
+            return BarTooltipItem(
+              "${folder.title}\n",
+              TextStyle(
+                color: theme.colorScheme.onPrimary,
+                fontWeight: FontWeight.w600,
+                fontSize: 11,
+                shadows: outline,
+              ),
+              children: spans,
+            );
+          },
+        ),
+      ),
       barGroups: folders.asMap().entries.map((entry) {
         final folder = entry.value;
         final rodStacks = <BarChartRodStackItem>[];
@@ -133,6 +189,12 @@ class FolderCompositionChart extends StatelessWidget {
             BarChartRodData(
               toY: cumulative,
               rodStackItems: rodStacks,
+              // Same transparent-rod trick as ActivityTimelineChart —
+              // prevents fl_chart's default Colors.cyan from peeking
+              // through during animation. FolderCompositionChart never
+              // swaps data so this is defensive, but keeps the two
+              // charts symmetric.
+              color: Colors.transparent,
               width: 20,
               borderRadius:
                   const BorderRadius.vertical(top: Radius.circular(4)),

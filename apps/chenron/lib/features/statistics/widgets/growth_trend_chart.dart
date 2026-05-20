@@ -2,6 +2,7 @@ import "package:fl_chart/fl_chart.dart";
 import "package:flutter/material.dart";
 import "package:database/database.dart";
 import "package:intl/intl.dart";
+import "package:vibe/vibe.dart";
 import "package:chenron/features/statistics/widgets/chart_card.dart";
 import "package:chenron/features/statistics/widgets/time_range_selector.dart";
 
@@ -20,6 +21,7 @@ class GrowthTrendChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final palette = ChartPalette.of(context);
 
     return ChartCard(
       title: "Growth Trend",
@@ -39,12 +41,12 @@ class GrowthTrendChart extends StatelessWidget {
                   ),
                 ),
               )
-            : LineChart(_buildChartData(theme)),
+            : LineChart(_buildChartData(theme, palette)),
       ),
     );
   }
 
-  LineChartData _buildChartData(ThemeData theme) {
+  LineChartData _buildChartData(ThemeData theme, ChartPalette palette) {
     final sorted = List<Statistic>.from(history)
       ..sort((a, b) => a.recordedAt.compareTo(b.recordedAt));
 
@@ -97,10 +99,10 @@ class GrowthTrendChart extends StatelessWidget {
       ),
       borderData: FlBorderData(show: false),
       lineBarsData: [
-        _buildLine(sorted, (s) => s.totalLinks.toDouble(), Colors.blue),
-        _buildLine(sorted, (s) => s.totalDocuments.toDouble(), Colors.purple),
-        _buildLine(sorted, (s) => s.totalFolders.toDouble(), Colors.orange),
-        _buildLine(sorted, (s) => s.totalTags.toDouble(), Colors.teal),
+        _buildLine(sorted, (s) => s.totalLinks.toDouble(), palette.links),
+        _buildLine(sorted, (s) => s.totalDocuments.toDouble(), palette.documents),
+        _buildLine(sorted, (s) => s.totalFolders.toDouble(), palette.folders),
+        _buildLine(sorted, (s) => s.totalTags.toDouble(), palette.tags),
       ],
       lineTouchData: LineTouchData(
         // Generous threshold so the tooltip appears anywhere you sweep
@@ -133,24 +135,7 @@ class GrowthTrendChart extends StatelessWidget {
             // swallowed by darker background tones — works for purple
             // against a near-black tooltip just as well as for blue
             // against a lighter inverseSurface in dark mode.
-            const outline = <Shadow>[
-              Shadow(
-                color: Colors.black,
-                offset: Offset(-0.8, -0.8),
-              ),
-              Shadow(
-                color: Colors.black,
-                offset: Offset(0.8, -0.8),
-              ),
-              Shadow(
-                color: Colors.black,
-                offset: Offset(0.8, 0.8),
-              ),
-              Shadow(
-                color: Colors.black,
-                offset: Offset(-0.8, 0.8),
-              ),
-            ];
+            final outline = palette.tooltipShadows;
             return touchedSpots.map((spot) {
               final labels = ["Links", "Documents", "Folders", "Tags"];
               return LineTooltipItem(
