@@ -1,6 +1,8 @@
 import "package:flutter/material.dart";
 import "package:database/database.dart";
 import "package:database/features.dart";
+import "package:vibe/vibe.dart";
+
 import "package:chenron/components/floating_label.dart";
 
 class FolderList extends StatelessWidget {
@@ -96,6 +98,8 @@ class _FolderRowState extends State<_FolderRow> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final rowRadius =
+        BorderRadius.circular(ShapeTokens.of(context).cardCorner);
     final folderColor = widget.folder.color != null
         ? Color(widget.folder.color!)
         : colorScheme.primary;
@@ -114,7 +118,7 @@ class _FolderRowState extends State<_FolderRow> {
       onExit: (_) => setState(() => _isHovered = false),
       child: InkWell(
         onTap: widget.onTap,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: rowRadius,
         child: LayoutBuilder(
           builder: (context, constraints) {
             final showExtended = constraints.maxWidth > 120;
@@ -129,7 +133,7 @@ class _FolderRowState extends State<_FolderRow> {
                     : _isHovered
                         ? colorScheme.onSurface.withValues(alpha: 0.08)
                         : Colors.transparent,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: rowRadius,
               ),
               child: showExtended
                   ? Row(
@@ -172,6 +176,8 @@ class _FolderRowState extends State<_FolderRow> {
     final counts = widget.folder.counts;
 
     final colorScheme = Theme.of(context).colorScheme;
+    final badgeRadius =
+        BorderRadius.circular(ShapeTokens.of(context).buttonCorner);
     final badgeConfig = {
       FolderItemType.link: (icon: Icons.link, color: colorScheme.primary),
       FolderItemType.document:
@@ -189,7 +195,7 @@ class _FolderRowState extends State<_FolderRow> {
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
               decoration: BoxDecoration(
                 color: badgeConfig[type]!.color.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: badgeRadius,
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
