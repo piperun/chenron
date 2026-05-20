@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [v1.2.0](https://github.com/piperun/chenron-flutter/compare/48f4c66301952b4bc2f4a98f942c6b05ef45f859..v1.2.0) - 2026-05-20
+### Package updates
+- [cache_manager-v0.6.0](packages/cache_manager) bumped to [cache_manager-v0.6.0](https://github.com/piperun/chenron-flutter/compare/cache_manager-v0.5.0..cache_manager-v0.6.0)
+### Global changes
+
+- - -
+
 ## chenron-v1.12.0 - 2026-05-20
 #### Features
 - (**chenron**) wire statistics charts to ChartPalette + themed tooltips - (80553fe) - *piperun*
