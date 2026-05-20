@@ -100,6 +100,15 @@ class _FolderRowState extends State<_FolderRow> {
         ? Color(widget.folder.color!)
         : colorScheme.primary;
 
+    // secondaryContainer (not primaryContainer) is Material 3's actual
+    // convention for selected list items — what NavigationRail and
+    // NavigationDrawer use by default. In Nier light theme,
+    // primaryContainer resolves to surfaceOffWhite which is nearly
+    // invisible against the rail background; secondaryContainer
+    // (gridLineBeige) gives the deeper-beige "in-selection" tone that
+    // matches the Nier game's submenu item styling.
+    final selectedTextColor = colorScheme.onSecondaryContainer;
+
     Widget row = MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
@@ -116,7 +125,7 @@ class _FolderRowState extends State<_FolderRow> {
               margin: const EdgeInsets.symmetric(vertical: 2),
               decoration: BoxDecoration(
                 color: widget.isSelected
-                    ? colorScheme.primaryContainer
+                    ? colorScheme.secondaryContainer
                     : _isHovered
                         ? colorScheme.onSurface.withValues(alpha: 0.08)
                         : Colors.transparent,
@@ -131,7 +140,10 @@ class _FolderRowState extends State<_FolderRow> {
                           child: Text(
                             widget.folder.title,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontSize: 14),
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: widget.isSelected ? selectedTextColor : null,
+                            ),
                           ),
                         ),
                         ..._buildItemBadges(context),
