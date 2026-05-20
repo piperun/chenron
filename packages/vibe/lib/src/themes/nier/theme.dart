@@ -71,6 +71,13 @@ class NierTheme extends FlexVibeTheme {
 
     return (
       light: base.light.copyWith(
+        // ThemeData.hoverColor is the global hover overlay that many
+        // Material widgets fall back to. Material 3's default is
+        // Colors.black/white * 0.04 — the white in dark mode reads as a
+        // bright wash on Nier's dark-brown surfaces. Force a Nier-toned
+        // mid-tone here so every widget without a specific overlay
+        // stays inside the palette.
+        hoverColor: NierColors.yorha.textBrownGrey.withValues(alpha: 0.06),
         textTheme: base.light.textTheme.apply(
           bodyColor: NierColors.yorha.textBrownGrey,
           displayColor: NierColors.yorha.textBrownGrey,
@@ -85,6 +92,12 @@ class NierTheme extends FlexVibeTheme {
           surfaceContainerHighest: NierColors.yorha.gridLineBeige,
           onSurface: NierColors.yorha.textBrownGrey,
           onSurfaceVariant: NierColors.yorha.textBrownDarkOutline,
+          // Material 3 auto-derives onPrimary as white when not set,
+          // which surfaces as white text on FilledButton (primary bg).
+          // Nier has no white in its palette — explicitly map to
+          // canvasBeige so filled-button labels read as the in-game
+          // cream-on-brown pairing.
+          onPrimary: NierColors.yorha.canvasBeige,
           onPrimaryContainer: NierColors.yorha.canvasBeige,
           onSecondaryContainer: NierColors.yorha.textBrownGrey,
           onTertiaryContainer: NierColors.yorha.textBrownGrey,
@@ -96,6 +109,12 @@ class NierTheme extends FlexVibeTheme {
         inputDecorationTheme: base.light.inputDecorationTheme.copyWith(
           filled: true,
           fillColor: NierColors.yorha.surfaceOffWhite,
+          // Default Material 3 hover overlay is onSurface * 0.08 — on
+          // Nier's pale surfaceOffWhite fill it visibly washes toward a
+          // near-white tint, which doesn't exist in the game palette.
+          // Use a subtle outlineGrey wash instead so hover stays in the
+          // beige/brown family.
+          hoverColor: NierColors.yorha.outlineGrey.withValues(alpha: 0.06),
         ),
         appBarTheme: base.light.appBarTheme.copyWith(
           backgroundColor: NierColors.yorha.canvasBeige,
@@ -146,8 +165,25 @@ class NierTheme extends FlexVibeTheme {
             foregroundColor: NierColors.yorha.canvasBeige,
           ),
         ),
+        // FlexColorScheme's filledButtonSchemeColor sets the background
+        // to primary but its derived foreground reads as white on
+        // brown. Pin foreground explicitly to canvasBeige so "Add New"
+        // and other filled buttons render the in-game cream-on-brown
+        // pairing.
+        filledButtonTheme: FilledButtonThemeData(
+          style: FilledButton.styleFrom(
+            backgroundColor: NierColors.yorha.textBrownGrey,
+            foregroundColor: NierColors.yorha.canvasBeige,
+          ),
+        ),
       ),
       dark: base.dark.copyWith(
+        // See light comment. In dark Nier the Material 3 default
+        // overlay (onSurface = canvasBeige cream at low alpha) lifts
+        // the dark-brown surface visibly toward "white" on hover. Use
+        // gridLineBeige (more saturated mid-tone) so the hover wash
+        // still reads as Nier-beige rather than diluted-cream.
+        hoverColor: NierColors.yorha.gridLineBeige.withValues(alpha: 0.08),
         textTheme: base.dark.textTheme.apply(
           bodyColor: NierColors.yorha.canvasBeige,
           displayColor: NierColors.yorha.canvasBeige,
@@ -162,6 +198,10 @@ class NierTheme extends FlexVibeTheme {
           surfaceContainerHighest: NierColors.yorha.textBrownDarkOutline,
           onSurface: NierColors.yorha.canvasBeige,
           onSurfaceVariant: NierColors.yorha.outlineGrey,
+          // Dark Nier primary is canvasBeige; default-derived onPrimary
+          // would be near-black. Pin it to textBrownGrey so the
+          // brown-on-beige in-game pairing renders on filled buttons.
+          onPrimary: NierColors.yorha.textBrownGrey,
           onPrimaryContainer: NierColors.yorha.textBrownGrey,
           onSecondaryContainer: NierColors.yorha.textBrownGrey,
           onTertiaryContainer: NierColors.yorha.textBrownGrey,
@@ -173,6 +213,11 @@ class NierTheme extends FlexVibeTheme {
         inputDecorationTheme: base.dark.inputDecorationTheme.copyWith(
           filled: true,
           fillColor: NierColors.yorha.textBrownDarker,
+          // Dark-mode hover would otherwise paint canvasBeige (onSurface)
+          // at 8% over the dark fill — a cream tint that reads as
+          // "almost white" against textBrownDarker. Override with the
+          // outline mid-tone so hover stays inside the brown family.
+          hoverColor: NierColors.yorha.outlineGrey.withValues(alpha: 0.06),
         ),
         appBarTheme: base.dark.appBarTheme.copyWith(
           backgroundColor: NierColors.yorha.textBrownGrey,
@@ -222,6 +267,14 @@ class NierTheme extends FlexVibeTheme {
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
+            backgroundColor: NierColors.yorha.canvasBeige,
+            foregroundColor: NierColors.yorha.textBrownGrey,
+          ),
+        ),
+        // Dark-mode counterpart: bg = primary (canvasBeige cream),
+        // fg = textBrownGrey so we get brown-text-on-cream-button.
+        filledButtonTheme: FilledButtonThemeData(
+          style: FilledButton.styleFrom(
             backgroundColor: NierColors.yorha.canvasBeige,
             foregroundColor: NierColors.yorha.textBrownGrey,
           ),
