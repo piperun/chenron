@@ -7,3 +7,4 @@ export 'package:vibe/src/theme.dart';
 export 'package:vibe/src/themes/chart_palette.dart';
 export 'package:vibe/src/themes/nier/palette.dart';
 export 'package:vibe/src/themes/nier/theme.dart';
+export 'package:vibe/src/themes/shape_tokens.dart';
