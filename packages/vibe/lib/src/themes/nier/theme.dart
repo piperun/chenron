@@ -4,6 +4,7 @@ import 'package:vibe/src/flex/flex_theme.dart';
 import 'package:vibe/src/theme.dart';
 import 'package:vibe/src/themes/chart_palette.dart';
 import 'package:vibe/src/themes/nier/palette.dart';
+import 'package:vibe/src/themes/shape_tokens.dart';
 
 /// Nier: Automata themed implementation (Tier 4 — full control).
 ///
@@ -75,7 +76,10 @@ class NierTheme extends FlexVibeTheme {
         // Attach the YorHa-derived ChartPalette so statistics charts
         // render in Nier hues (rust / dark-brown / outline-grey / teal)
         // instead of falling back to vivid Material defaults.
-        extensions: <ChartPalette>[ChartPalette.nier],
+        extensions: <ThemeExtension<dynamic>>[
+          ChartPalette.nier,
+          ShapeTokens.nier,
+        ],
         // ThemeData.hoverColor is the global hover overlay that many
         // Material widgets fall back to. Material 3's default is
         // Colors.black/white * 0.04 — the white in dark mode reads as a
@@ -110,7 +114,11 @@ class NierTheme extends FlexVibeTheme {
           outlineVariant: NierColors.yorha.gridLineBeige,
         ),
         cardColor: NierColors.yorha.surfaceOffWhite,
-        cardTheme: CardThemeData(color: NierColors.yorha.surfaceOffWhite),
+        cardTheme: CardThemeData(
+          color: NierColors.yorha.surfaceOffWhite,
+          // Square corners — Nier UI panels are hard rectangles.
+          shape: const RoundedRectangleBorder(),
+        ),
         inputDecorationTheme: base.light.inputDecorationTheme.copyWith(
           filled: true,
           fillColor: NierColors.yorha.surfaceOffWhite,
@@ -120,6 +128,24 @@ class NierTheme extends FlexVibeTheme {
           // Use a subtle outlineGrey wash instead so hover stays in the
           // beige/brown family.
           hoverColor: NierColors.yorha.outlineGrey.withValues(alpha: 0.06),
+          // Square the OutlineInputBorder (default radius is 4) so
+          // text fields match Nier's hard-rectangular input panels.
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.zero,
+            borderSide: BorderSide(color: NierColors.yorha.outlineGrey),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.zero,
+            borderSide: BorderSide(color: NierColors.yorha.outlineGrey),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.zero,
+            borderSide:
+                BorderSide(color: NierColors.yorha.textBrownGrey, width: 2),
+          ),
+        ),
+        dialogTheme: const DialogThemeData(
+          shape: RoundedRectangleBorder(),
         ),
         appBarTheme: base.light.appBarTheme.copyWith(
           backgroundColor: NierColors.yorha.canvasBeige,
@@ -134,12 +160,15 @@ class NierTheme extends FlexVibeTheme {
             filled: true,
             fillColor: NierColors.yorha.canvasBeige,
             border: OutlineInputBorder(
+              borderRadius: BorderRadius.zero,
               borderSide: BorderSide(color: NierColors.yorha.outlineGrey),
             ),
             enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.zero,
               borderSide: BorderSide(color: NierColors.yorha.outlineGrey),
             ),
             focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.zero,
               borderSide:
                   BorderSide(color: NierColors.yorha.textBrownGrey, width: 2),
             ),
@@ -168,6 +197,7 @@ class NierTheme extends FlexVibeTheme {
           style: ElevatedButton.styleFrom(
             backgroundColor: NierColors.yorha.textBrownGrey,
             foregroundColor: NierColors.yorha.canvasBeige,
+            shape: const RoundedRectangleBorder(),
           ),
         ),
         // FlexColorScheme's filledButtonSchemeColor sets the background
@@ -179,13 +209,17 @@ class NierTheme extends FlexVibeTheme {
           style: FilledButton.styleFrom(
             backgroundColor: NierColors.yorha.textBrownGrey,
             foregroundColor: NierColors.yorha.canvasBeige,
+            shape: const RoundedRectangleBorder(),
           ),
         ),
       ),
       dark: base.dark.copyWith(
         // Same chart palette as light mode — Nier's chart hues read
         // the same in either mode.
-        extensions: <ChartPalette>[ChartPalette.nier],
+        extensions: <ThemeExtension<dynamic>>[
+          ChartPalette.nier,
+          ShapeTokens.nier,
+        ],
         // See light comment. In dark Nier the Material 3 default
         // overlay (onSurface = canvasBeige cream at low alpha) lifts
         // the dark-brown surface visibly toward "white" on hover. Use
@@ -217,7 +251,10 @@ class NierTheme extends FlexVibeTheme {
           outlineVariant: NierColors.yorha.textBrownDarker,
         ),
         cardColor: NierColors.yorha.textBrownDarker,
-        cardTheme: CardThemeData(color: NierColors.yorha.textBrownDarker),
+        cardTheme: CardThemeData(
+          color: NierColors.yorha.textBrownDarker,
+          shape: const RoundedRectangleBorder(),
+        ),
         inputDecorationTheme: base.dark.inputDecorationTheme.copyWith(
           filled: true,
           fillColor: NierColors.yorha.textBrownDarker,
@@ -226,6 +263,19 @@ class NierTheme extends FlexVibeTheme {
           // "almost white" against textBrownDarker. Override with the
           // outline mid-tone so hover stays inside the brown family.
           hoverColor: NierColors.yorha.outlineGrey.withValues(alpha: 0.06),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.zero,
+            borderSide: BorderSide(color: NierColors.yorha.textBrownDarkOutline),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.zero,
+            borderSide: BorderSide(color: NierColors.yorha.textBrownDarkOutline),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.zero,
+            borderSide:
+                BorderSide(color: NierColors.yorha.canvasBeige, width: 2),
+          ),
         ),
         appBarTheme: base.dark.appBarTheme.copyWith(
           backgroundColor: NierColors.yorha.textBrownGrey,
@@ -234,22 +284,27 @@ class NierTheme extends FlexVibeTheme {
         navigationRailTheme: base.dark.navigationRailTheme.copyWith(
           backgroundColor: NierColors.yorha.textBrownGrey,
         ),
-        dialogTheme:
-            DialogThemeData(backgroundColor: NierColors.yorha.textBrownDarker),
+        dialogTheme: DialogThemeData(
+          backgroundColor: NierColors.yorha.textBrownDarker,
+          shape: const RoundedRectangleBorder(),
+        ),
         dropdownMenuTheme: DropdownMenuThemeData(
           textStyle: TextStyle(color: NierColors.yorha.canvasBeige),
           inputDecorationTheme: InputDecorationTheme(
             filled: true,
             fillColor: NierColors.yorha.textBrownDarker,
             border: OutlineInputBorder(
+              borderRadius: BorderRadius.zero,
               borderSide:
                   BorderSide(color: NierColors.yorha.textBrownDarkOutline),
             ),
             enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.zero,
               borderSide:
                   BorderSide(color: NierColors.yorha.textBrownDarkOutline),
             ),
             focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.zero,
               borderSide:
                   BorderSide(color: NierColors.yorha.canvasBeige, width: 2),
             ),
@@ -277,6 +332,7 @@ class NierTheme extends FlexVibeTheme {
           style: ElevatedButton.styleFrom(
             backgroundColor: NierColors.yorha.canvasBeige,
             foregroundColor: NierColors.yorha.textBrownGrey,
+            shape: const RoundedRectangleBorder(),
           ),
         ),
         // Dark-mode counterpart: bg = primary (canvasBeige cream),
@@ -285,6 +341,7 @@ class NierTheme extends FlexVibeTheme {
           style: FilledButton.styleFrom(
             backgroundColor: NierColors.yorha.canvasBeige,
             foregroundColor: NierColors.yorha.textBrownGrey,
+            shape: const RoundedRectangleBorder(),
           ),
         ),
       ),
