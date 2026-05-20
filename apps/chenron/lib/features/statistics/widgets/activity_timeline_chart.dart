@@ -2,6 +2,7 @@ import "package:fl_chart/fl_chart.dart";
 import "package:flutter/material.dart";
 import "package:database/features.dart";
 import "package:intl/intl.dart";
+import "package:vibe/vibe.dart";
 import "package:chenron/features/statistics/widgets/chart_card.dart";
 import "package:chenron/features/statistics/widgets/time_range_selector.dart";
 
@@ -20,6 +21,7 @@ class ActivityTimelineChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final palette = ChartPalette.of(context);
 
     return ChartCard(
       title: "Activity Timeline",
@@ -51,7 +53,7 @@ class ActivityTimelineChart extends StatelessWidget {
             // chart card.
             : ClipRect(
                 child: BarChart(
-                  _buildChartData(theme),
+                  _buildChartData(theme, palette),
                   // Default is 150 ms / Curves.linear, which "snaps"
                   // sharply when switching time ranges that have very
                   // different maxY. easeOutCubic decelerates the
@@ -65,17 +67,16 @@ class ActivityTimelineChart extends StatelessWidget {
     );
   }
 
-  BarChartData _buildChartData(ThemeData theme) {
-    // Mirrors FolderCompositionChart's mapping so the two charts on the
-    // same page share a coherent palette. ColorScheme only gives three
-    // semantic accents (primary/secondary/tertiary), so "tag" falls back
-    // to primaryContainer — a paired accent that still reads as themed
-    // rather than dropping back to vivid Material defaults.
+  BarChartData _buildChartData(ThemeData theme, ChartPalette palette) {
+    // ChartPalette is a theme-attached extension so each theme picks
+    // its own per-entity hues. Default themes get the vivid Material
+    // palette via ChartPalette.material; themes like Nier override
+    // with their in-palette colors.
     final entityColors = <String, Color>{
-      "link": theme.colorScheme.primary,
-      "document": theme.colorScheme.tertiary,
-      "folder": theme.colorScheme.secondary,
-      "tag": theme.colorScheme.primaryContainer,
+      "link": palette.links,
+      "document": palette.documents,
+      "folder": palette.folders,
+      "tag": palette.tags,
     };
     // Group by date
     final grouped = <DateTime, Map<String, int>>{};
@@ -135,6 +136,59 @@ class ActivityTimelineChart extends StatelessWidget {
             const AxisTitles(sideTitles: SideTitles(showTitles: false)),
       ),
       borderData: FlBorderData(show: false),
+      // Custom tooltip mirroring the GrowthTrendChart styling so all
+      // three statistics charts feel coherent. Without this we got
+      // fl_chart's default (slate-blue bg, white-or-rod-color text) —
+      // and because rod.color is Colors.transparent (for the cyan-flash
+      // fix) the default text was invisible.
+      barTouchData: BarTouchData(
+        touchTooltipData: BarTouchTooltipData(
+          fitInsideHorizontally: true,
+          fitInsideVertically: true,
+          getTooltipColor: (_) {
+            final hsl = HSLColor.fromColor(theme.colorScheme.primary);
+            return hsl.withSaturation(0.40).withLightness(0.20).toColor();
+          },
+          tooltipBorderRadius: BorderRadius.circular(8),
+          tooltipPadding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          getTooltipItem: (group, groupIndex, rod, rodIndex) {
+            final outline = palette.tooltipShadows;
+            const labels = <String, String>{
+              "link": "Links",
+              "document": "Documents",
+              "folder": "Folders",
+              "tag": "Tags",
+            };
+            final day = sortedDays[groupIndex];
+            final dayData = grouped[day]!;
+            final spans = <TextSpan>[];
+            for (final entityType in entityColors.keys) {
+              final count = dayData[entityType] ?? 0;
+              if (count == 0) continue;
+              spans.add(TextSpan(
+                text: "${labels[entityType]}: $count\n",
+                style: TextStyle(
+                  color: entityColors[entityType],
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12,
+                  shadows: outline,
+                ),
+              ));
+            }
+            return BarTooltipItem(
+              "${dateFormat.format(day)}\n",
+              TextStyle(
+                color: theme.colorScheme.onPrimary,
+                fontWeight: FontWeight.w600,
+                fontSize: 11,
+                shadows: outline,
+              ),
+              children: spans,
+            );
+          },
+        ),
+      ),
       barGroups: sortedDays.asMap().entries.map((entry) {
         final dayData = grouped[entry.value]!;
         final rodStacks = <BarChartRodStackItem>[];
