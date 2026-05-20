@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## cache_manager-v0.6.0 - 2026-05-20
+#### Features
+- (**cache_manager**) typed Metadata + sealed MetadataState + MetadataService - (1ed39e3) - *piperun*
+
+- - -
+
 ## cache_manager-v0.5.0 - 2026-05-19
 #### Performance Improvements
 - (**cache_manager**) drop the hardcoded 2s scheduler delay between refreshes - (15881af) - *piperun*
