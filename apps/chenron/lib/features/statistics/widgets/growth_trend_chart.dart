@@ -103,16 +103,63 @@ class GrowthTrendChart extends StatelessWidget {
         _buildLine(sorted, (s) => s.totalTags.toDouble(), Colors.teal),
       ],
       lineTouchData: LineTouchData(
+        // Generous threshold so the tooltip appears anywhere you sweep
+        // along the line, not only when the cursor is pixel-perfect on a
+        // data-point x-coordinate. fl_chart still snaps to the nearest
+        // point — this just widens the catchment area.
+        touchSpotThreshold: 24,
         touchTooltipData: LineTouchTooltipData(
+          // Re-position the tooltip when it would otherwise overflow the
+          // chart bounds (e.g. for data points near the top edge, where
+          // the default "above the point" placement gets clipped by the
+          // ChartCard border).
+          fitInsideHorizontally: true,
+          fitInsideVertically: true,
+          // Tooltip BG is a dark, desaturated tint of the theme's
+          // primary color — "barely there" identity, not a neutral
+          // overlay. HSL with lightness ~0.13 + saturation ~0.4 gives a
+          // dark surface that hints at the app's hue without competing
+          // with the series colors painted on top of it.
+          getTooltipColor: (_) {
+            final hsl = HSLColor.fromColor(theme.colorScheme.primary);
+            return hsl.withSaturation(0.40).withLightness(0.20).toColor();
+          },
+          tooltipBorderRadius: BorderRadius.circular(8),
+          tooltipPadding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           getTooltipItems: (touchedSpots) {
+            // Dark text-shadow outline lets the original series colors
+            // (1:1 with the lines on the chart) stay vivid without being
+            // swallowed by darker background tones — works for purple
+            // against a near-black tooltip just as well as for blue
+            // against a lighter inverseSurface in dark mode.
+            const outline = <Shadow>[
+              Shadow(
+                color: Colors.black,
+                offset: Offset(-0.8, -0.8),
+              ),
+              Shadow(
+                color: Colors.black,
+                offset: Offset(0.8, -0.8),
+              ),
+              Shadow(
+                color: Colors.black,
+                offset: Offset(0.8, 0.8),
+              ),
+              Shadow(
+                color: Colors.black,
+                offset: Offset(-0.8, 0.8),
+              ),
+            ];
             return touchedSpots.map((spot) {
               final labels = ["Links", "Documents", "Folders", "Tags"];
               return LineTooltipItem(
                 "${labels[spot.barIndex]}: ${spot.y.toInt()}",
                 TextStyle(
                   color: spot.bar.color,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w700,
                   fontSize: 12,
+                  shadows: outline,
                 ),
               );
             }).toList();
