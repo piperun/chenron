@@ -27,9 +27,12 @@ class CacheService {
     await _clearImageCacheManager();
   }
 
-  /// Clear in-memory LRU, failure tracking, and persistent metadata table.
+  /// Clear the persistent metadata table + the in-memory LRU, then wipe
+  /// the failure tracker so previously-blocked URLs aren't stuck in
+  /// back-off after a manual purge.
   Future<void> clearMetadataCache() async {
     await locator.get<MetadataCache>().clearAll();
+    locator.get<FailureTracker>().clearAll();
   }
 
   /// Total bytes used by the image cache directory.
@@ -57,6 +60,6 @@ class CacheService {
 
   /// Number of metadata entries in persistent storage.
   Future<int> getMetadataCacheEntryCount() async {
-    return locator.get<MetadataCache>().getCacheEntryCount();
+    return locator.get<MetadataCache>().count();
   }
 }

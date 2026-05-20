@@ -38,7 +38,7 @@ class _DataSettingsState extends State<DataSettings> {
   }
 
   void _refreshMetadataCount() {
-    _metadataCountFuture = locator.get<MetadataCache>().getCacheEntryCount();
+    _metadataCountFuture = locator.get<MetadataCache>().count();
   }
 
   Future<void> _confirmAndClearMetadata(BuildContext context) async {
@@ -53,6 +53,7 @@ class _DataSettingsState extends State<DataSettings> {
 
     try {
       await locator.get<MetadataCache>().clearAll();
+      locator.get<FailureTracker>().clearAll();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

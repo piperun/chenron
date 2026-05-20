@@ -1,11 +1,13 @@
 import "dart:async";
 
+import "package:cache_manager/cache_manager.dart";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
+import "package:signals/signals_flutter.dart";
 import "package:url_launcher/url_launcher.dart" as url_launcher;
 
 import "package:chenron/components/favicon_display/favicon.dart";
-import "package:chenron/components/metadata_factory.dart";
+import "package:chenron/locator.dart";
 import "package:chenron/shared/item_detail/item_detail_data.dart";
 import "package:chenron/shared/item_detail/components/type_chip.dart";
 
@@ -19,25 +21,29 @@ class LinkHero extends StatefulWidget {
 }
 
 class _LinkHeroState extends State<LinkHero> {
-  late Future<Map<String, dynamic>?> _metadataFuture;
+  /// Long-lived metadata signal owned by [MetadataService]. Hoisted
+  /// once so the [Watch] in `build()` doesn't allocate on rebuild.
+  Signal<MetadataState>? _metadataSignal;
   bool _isRefreshing = false;
 
   @override
   void initState() {
     super.initState();
-    _metadataFuture = widget.data.url != null
-        ? MetadataFactory.getOrFetch(widget.data.url!)
-        : Future.value(null);
+    final url = widget.data.url;
+    if (url != null && url.isNotEmpty) {
+      _metadataSignal = locator.get<MetadataService>().watch(url);
+    }
   }
 
   Future<void> _handleRefreshMetadata() async {
-    if (widget.data.url == null || _isRefreshing) return;
-    setState(() {
-      _isRefreshing = true;
-      _metadataFuture = MetadataFactory.forceFetch(widget.data.url!);
-    });
-    await _metadataFuture;
-    if (mounted) setState(() => _isRefreshing = false);
+    final url = widget.data.url;
+    if (url == null || _isRefreshing) return;
+    setState(() => _isRefreshing = true);
+    try {
+      await locator.get<MetadataService>().forceFetch(url);
+    } finally {
+      if (mounted) setState(() => _isRefreshing = false);
+    }
   }
 
   Future<void> _handleOpenLink() async {
@@ -62,6 +68,7 @@ class _LinkHeroState extends State<LinkHero> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final metadataSignal = _metadataSignal;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -97,11 +104,13 @@ class _LinkHeroState extends State<LinkHero> {
         const SizedBox(height: 12),
 
         // Metadata title + description
-        FutureBuilder<Map<String, dynamic>?>(
-          future: _metadataFuture,
-          builder: (context, snapshot) {
-            final title = snapshot.data?["title"] as String?;
-            final description = snapshot.data?["description"] as String?;
+        if (metadataSignal != null)
+          Watch((context) {
+            final state = metadataSignal.value;
+            final ready =
+                state is MetadataStateReady ? state.data : null;
+            final title = ready?.title;
+            final description = ready?.description;
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -132,8 +141,7 @@ class _LinkHeroState extends State<LinkHero> {
                   ),
               ],
             );
-          },
-        ),
+          }),
         const SizedBox(height: 16),
 
         // Action buttons

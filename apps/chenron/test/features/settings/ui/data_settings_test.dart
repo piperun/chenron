@@ -13,16 +13,16 @@ import "package:chenron/locator.dart";
 
 import "data_settings_test.mocks.dart";
 
-/// In-memory fake persistence for MetadataCache tests.
+/// In-memory typed persistence for [MetadataCache] tests.
 class FakeMetadataPersistence implements MetadataPersistence {
-  final Map<String, Map<String, dynamic>> _store = {};
+  final Map<String, Metadata> _store = {};
 
   @override
-  Future<Map<String, dynamic>?> get(String url) async => _store[url];
+  Future<Metadata?> get(String url) async => _store[url];
 
   @override
-  Future<void> set(String url, Map<String, dynamic> metadata) async {
-    _store[url] = metadata;
+  Future<void> set(Metadata metadata) async {
+    _store[metadata.url] = metadata;
   }
 
   @override
@@ -35,7 +35,7 @@ class FakeMetadataPersistence implements MetadataPersistence {
   Future<int> count() async => _store.length;
 
   @override
-  Future<List<Map<String, dynamic>>> getExpiredEntries() async => [];
+  Future<List<Metadata>> getExpiredEntries() async => [];
 }
 
 class FakeDataSettingsService extends Fake implements DataSettingsService {
@@ -84,6 +84,14 @@ void main() {
   group("DataSettings widget — Metadata Cache section", () {
     late FakeMetadataPersistence fakePersistence;
 
+    Metadata buildMetadata(String url, {String? title}) {
+      return Metadata(
+        url: url,
+        title: title,
+        fetchedAt: DateTime.now(),
+      );
+    }
+
     setUp(() async {
       TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -106,15 +114,24 @@ void main() {
         await locator<MetadataCache>().clearAll();
         locator.unregister<MetadataCache>();
       }
+      if (locator.isRegistered<FailureTracker>()) {
+        locator<FailureTracker>().clearAll();
+        locator.unregister<FailureTracker>();
+      }
       locator.registerSingleton<MetadataCache>(
         MetadataCache(persistence: fakePersistence),
       );
+      locator.registerSingleton<FailureTracker>(FailureTracker());
     });
 
     tearDown(() async {
       if (locator.isRegistered<MetadataCache>()) {
         await locator<MetadataCache>().clearAll();
         locator.unregister<MetadataCache>();
+      }
+      if (locator.isRegistered<FailureTracker>()) {
+        locator<FailureTracker>().clearAll();
+        locator.unregister<FailureTracker>();
       }
       if (locator.isRegistered<SettingsCoordinator>()) {
         await locator.unregister<SettingsCoordinator>();
@@ -136,8 +153,8 @@ void main() {
 
     testWidgets("renders Metadata Cache section with current entry count",
         (tester) async {
-      await fakePersistence.set("https://a.com", {"title": "A"});
-      await fakePersistence.set("https://b.com", {"title": "B"});
+      await fakePersistence.set(buildMetadata("https://a.com", title: "A"));
+      await fakePersistence.set(buildMetadata("https://b.com", title: "B"));
 
       await tester.pumpWidget(buildPage());
       await tester.pumpAndSettle();
@@ -147,7 +164,8 @@ void main() {
     });
 
     testWidgets("singular grammar for one entry", (tester) async {
-      await fakePersistence.set("https://only.com", {"title": "Only"});
+      await fakePersistence
+          .set(buildMetadata("https://only.com", title: "Only"));
 
       await tester.pumpWidget(buildPage());
       await tester.pumpAndSettle();
@@ -156,7 +174,7 @@ void main() {
     });
 
     testWidgets("Clear Metadata opens confirmation dialog", (tester) async {
-      await fakePersistence.set("https://a.com", {"title": "A"});
+      await fakePersistence.set(buildMetadata("https://a.com", title: "A"));
 
       await tester.pumpWidget(buildPage());
       await tester.pumpAndSettle();
@@ -174,8 +192,8 @@ void main() {
 
     testWidgets("confirming clear empties MetadataCache and refreshes count",
         (tester) async {
-      await fakePersistence.set("https://a.com", {"title": "A"});
-      await fakePersistence.set("https://b.com", {"title": "B"});
+      await fakePersistence.set(buildMetadata("https://a.com", title: "A"));
+      await fakePersistence.set(buildMetadata("https://b.com", title: "B"));
 
       await tester.pumpWidget(buildPage());
       await tester.pumpAndSettle();
@@ -193,7 +211,7 @@ void main() {
 
     testWidgets("cancelling the dialog leaves MetadataCache untouched",
         (tester) async {
-      await fakePersistence.set("https://a.com", {"title": "A"});
+      await fakePersistence.set(buildMetadata("https://a.com", title: "A"));
 
       await tester.pumpWidget(buildPage());
       await tester.pumpAndSettle();

@@ -1,5 +1,5 @@
+import "package:cache_manager/cache_manager.dart";
 import "package:flutter/material.dart";
-import "package:chenron/components/metadata_factory.dart";
 import "package:chenron/features/bulk_tag/pages/bulk_tag_dialog.dart";
 import "package:chenron/shared/dialogs/delete_confirmation_dialog.dart";
 import "package:chenron/shared/viewer/item_deletion_service.dart";
@@ -180,9 +180,9 @@ String _buildRemovalMessage(TagRemovalResult result) {
 /// Handles bulk metadata refresh for selected link items.
 ///
 /// Filters to link items, force-fetches metadata for each, and shows
-/// progress via snackbars. The UI updates live via
-/// MetadataFactory.refreshDispatcher, which routes per-URL events to
-/// the cards subscribed to that URL.
+/// progress via snackbars. Every card pointing at a refreshed URL is
+/// bound to the shared [MetadataService] signal, so the new metadata
+/// renders live without a separate dispatcher.
 Future<void> handleItemMetadataRefresh(
   BuildContext context,
   List<FolderItem> items,
@@ -203,10 +203,11 @@ Future<void> handleItemMetadataRefresh(
     );
   }
 
+  final service = locator.get<MetadataService>();
   final results = await Future.wait(
-    links.map((link) => MetadataFactory.forceFetch(link.url)),
+    links.map((link) => service.forceFetch(link.url)),
   );
-  final successCount = results.where((r) => r != null).length;
+  final successCount = results.whereType<MetadataStateReady>().length;
 
   if (context.mounted) {
     ScaffoldMessenger.of(context).showSnackBar(
