@@ -172,13 +172,14 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // Stream the metadata result instead of gating the whole page on
+      // it — the header skeleton + item display render as soon as the
+      // page mounts, then the FolderHeader content + parentItems
+      // populate once the metadata Future resolves. Items load in
+      // parallel via _infiniteScroll (kicked off in initState).
       body: FutureBuilder<FolderResult>(
         future: _metadata,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
           if (snapshot.hasError) {
             final error = snapshot.error!;
             loggerGlobal.severe("FolderViewer", "Failed to load folder",
@@ -197,27 +198,29 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
           }
 
           final result = snapshot.data;
-          if (result == null) {
-            return const Center(child: Text("Folder not found"));
-          }
-
-          final parentItems = result.items;
+          final parentItems = result?.items ?? const <FolderItem>[];
 
           return Column(
             children: [
-              _CollapsibleHeader(
-                result: result,
-                parentItems: parentItems,
-                infiniteScroll: _infiniteScroll,
-                isHeaderExpanded: _isHeaderExpanded,
-                isHeaderLocked: _isHeaderLocked,
-                onToggleExpanded: () => setState(
-                    () => _isHeaderExpanded = !_isHeaderExpanded),
-                onToggleLock: _toggleHeaderLock,
-                onEdit: _handleEdit,
-                onDelete: () => _handleDelete(result.data),
-                onTagSearch: widget.onTagSearch,
-              ),
+              if (result == null)
+                _HeaderSkeleton(
+                  isHeaderLocked: _isHeaderLocked,
+                  onToggleLock: _toggleHeaderLock,
+                )
+              else
+                _CollapsibleHeader(
+                  result: result,
+                  parentItems: parentItems,
+                  infiniteScroll: _infiniteScroll,
+                  isHeaderExpanded: _isHeaderExpanded,
+                  isHeaderLocked: _isHeaderLocked,
+                  onToggleExpanded: () => setState(
+                      () => _isHeaderExpanded = !_isHeaderExpanded),
+                  onToggleLock: _toggleHeaderLock,
+                  onEdit: _handleEdit,
+                  onDelete: () => _handleDelete(result.data),
+                  onTagSearch: widget.onTagSearch,
+                ),
               Expanded(
                 child: _FolderItemDisplay(
                   parentItems: parentItems,
@@ -234,6 +237,65 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
     );
   }
 
+}
+
+/// Stand-in for [FolderHeader] / [CollapsedHeader] while the folder
+/// metadata Future is still in flight — keeps the navigation chrome
+/// (back / home / lock) visible on first paint so the page doesn't
+/// "blink" through a full-page loading spinner.
+class _HeaderSkeleton extends StatelessWidget {
+  const _HeaderSkeleton({
+    required this.isHeaderLocked,
+    required this.onToggleLock,
+  });
+
+  final bool isHeaderLocked;
+  final VoidCallback onToggleLock;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return SizedBox(
+      height: 60,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        child: Row(
+          children: [
+            IconButton(
+              icon: const Icon(Icons.arrow_back),
+              tooltip: "Back",
+              onPressed: () => Navigator.pop(context),
+            ),
+            IconButton(
+              icon: const Icon(Icons.home),
+              tooltip: "Home",
+              onPressed: () =>
+                  Navigator.popUntil(context, (route) => route.isFirst),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: SizedBox(
+                height: 14,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.outlineVariant
+                        .withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            IconButton(
+              icon: Icon(isHeaderLocked ? Icons.lock : Icons.lock_open),
+              tooltip: isHeaderLocked ? "Unlock header" : "Lock header",
+              onPressed: onToggleLock,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _CollapsibleHeader extends StatelessWidget {
@@ -326,9 +388,6 @@ class _FolderItemDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveOnItemTap =
-        onItemTap ?? viewerViewModelSignal.value.handleFolderItemTap;
-
     return Watch((context) {
       final loadedItems = infiniteScroll.loadedItems.value;
       final allItems = [...parentItems, ...loadedItems];
@@ -338,7 +397,18 @@ class _FolderItemDisplay extends StatelessWidget {
         tagFilterState: tagFilterState,
         enableTagFiltering: true,
         displayModeContext: "folder_viewer",
-        onItemTap: (item) => handleItemTap(context, item, effectiveOnItemTap),
+        // Resolve the viewer fallback lazily on tap rather than during
+        // build — looking up `viewerViewModelSignal.value` early
+        // constructs a `ViewerPresenter` that hits the locator for
+        // `SettingsCoordinator`, which isn't registered in widget
+        // tests. Deferring keeps build() side-effect-free and lets
+        // the page render its skeleton even before the locator has
+        // every service.
+        onItemTap: (item) {
+          final effectiveOnItemTap =
+              onItemTap ?? viewerViewModelSignal.value.handleFolderItemTap;
+          handleItemTap(context, item, effectiveOnItemTap);
+        },
         onDeleteRequested: (items) => handleItemDeletion(
           context,
           items,

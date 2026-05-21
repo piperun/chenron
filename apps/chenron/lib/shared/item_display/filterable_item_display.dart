@@ -76,6 +76,7 @@ class FilterableItemDisplay extends StatefulWidget {
 class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
   late final FilterableItemDisplayNotifier _notifier;
   late final void Function() _disposeDeleteModeEffect;
+  late final void Function() _disposeLoadAllRemainingEffect;
   var _cachedTags = <Tag>[];
   List<FolderItem>? _cachedTagsSource;
 
@@ -128,6 +129,21 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
         selectedCount: count,
       );
     });
+
+    // When a filter activates, eagerly load all remaining items so
+    // in-memory filtering works on the full dataset. Driven by an
+    // effect on the filter signals instead of a side-effect inside
+    // build() — build() must stay pure; calling a signal-mutating
+    // callback from inside a Watch invites rebuild loops.
+    _disposeLoadAllRemainingEffect = effect(() {
+      final isFiltering =
+          _notifier.searchFilter.controller.query.value.isNotEmpty ||
+              _notifier.tagFilterState.includedTags.value.isNotEmpty ||
+              _notifier.tagFilterState.excludedTags.value.isNotEmpty;
+      if (isFiltering && widget.hasMore) {
+        widget.onLoadAllRemaining?.call();
+      }
+    });
   }
 
   @override
@@ -144,6 +160,7 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
   @override
   void dispose() {
     _disposeDeleteModeEffect();
+    _disposeLoadAllRemainingEffect();
     _notifier.dispose();
     super.dispose();
   }
@@ -273,12 +290,6 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
               final isFiltering = currentQuery.isNotEmpty ||
                   _notifier.tagFilterState.includedTags.value.isNotEmpty ||
                   _notifier.tagFilterState.excludedTags.value.isNotEmpty;
-
-              // When a filter activates, eagerly load all remaining
-              // items so in-memory filtering works on the full dataset.
-              if (isFiltering && widget.hasMore) {
-                widget.onLoadAllRemaining?.call();
-              }
 
               // Memoized: only recomputes when actual filter inputs change.
               final filtered = _notifier.filteredAndSortedItems.value;

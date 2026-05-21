@@ -7,6 +7,7 @@ import "package:flutter/material.dart";
 import "package:flutter_test/flutter_test.dart";
 import "package:get_it/get_it.dart";
 import "package:integration_test/integration_test.dart";
+import "package:shared_preferences/shared_preferences.dart";
 import "package:signals/signals.dart";
 
 class _MockAppDatabaseLifecycle extends AppDatabaseLifecycle {
@@ -36,6 +37,12 @@ void main() {
   setUpAll(() {
     installFakePathProvider();
     installTestLogger();
+    // FolderViewerPage now renders FilterableItemDisplay immediately
+    // (no more full-page loading-spinner gate), so its initState
+    // reaches DisplayModePreference.getDisplayMode which reads
+    // SharedPreferences. Stub it out so the async load doesn't
+    // escape the test boundary.
+    SharedPreferences.setMockInitialValues(<String, Object>{});
   });
 
   late MockDatabaseHelper mockDb;
@@ -211,8 +218,14 @@ void main() {
       // line up. Going further (driving the toggle popup, tapping a link)
       // pulls in `SettingsCoordinator` which has its own dep chain — not
       // worth recreating here.
+      // The page mounts and renders its initial chrome — back /
+      // home navigation buttons in the skeleton header before
+      // metadata resolves. (Was: full-page CircularProgressIndicator;
+      // the FolderViewerPage perf rewrite renders chrome
+      // immediately.)
       expect(find.byType(FolderViewerPage), findsOneWidget);
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byIcon(Icons.arrow_back), findsOneWidget);
+      expect(find.byIcon(Icons.home), findsOneWidget);
     });
   });
 }
