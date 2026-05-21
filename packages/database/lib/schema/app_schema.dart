@@ -58,6 +58,7 @@ class Tags extends Table {
 }
 
 @TableIndex(name: "items_folder_item_idx", columns: {#folderId, #itemId}, unique: true)
+@TableIndex(name: "items_item_idx", columns: {#itemId})
 class Items extends Table {
   TextColumn get id => text().withLength(min: 30, max: 60)();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();

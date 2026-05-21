@@ -46,8 +46,13 @@ extension FolderItemPaginationExtensions on AppDatabase {
       }
     }
 
-    // Step 3: Batch load entities by type (parallel)
-    final entityResults = await Future.wait([
+    // Step 3 + 4: Batch-load entities (by type) AND tags concurrently.
+    // Both only depend on the junction rows we already have — there's
+    // no reason to make the tags load wait for the entities to come
+    // back. Awaiting them in parallel cuts a network round-trip off
+    // the first-page latency.
+    final allItemIds = itemRows.map((r) => r.itemId).toList();
+    final entitiesFuture = Future.wait([
       linkIds.isEmpty
           ? Future.value(<Link>[])
           : (select(links)..where((l) => l.id.isIn(linkIds))).get(),
@@ -58,6 +63,10 @@ extension FolderItemPaginationExtensions on AppDatabase {
           ? Future.value(<Folder>[])
           : (select(folders)..where((f) => f.id.isIn(folderIds))).get(),
     ]);
+    final tagsFuture = _loadTagsForItems(allItemIds);
+
+    final entityResults = await entitiesFuture;
+    final tagsByItemId = await tagsFuture;
 
     final linkMap = {for (final l in entityResults[0] as List<Link>) l.id: l};
     final docMap = {
@@ -66,10 +75,6 @@ extension FolderItemPaginationExtensions on AppDatabase {
     final folderMap = {
       for (final f in entityResults[2] as List<Folder>) f.id: f,
     };
-
-    // Step 4: Batch load tags for all items via metadata_records
-    final allItemIds = itemRows.map((r) => r.itemId).toList();
-    final tagsByItemId = await _loadTagsForItems(allItemIds);
 
     // Step 5: Assemble FolderItem objects
     final result = <FolderItem>[];
@@ -107,37 +112,27 @@ extension FolderItemPaginationExtensions on AppDatabase {
   }
 
   /// Loads tags grouped by item ID for a batch of items.
+  ///
+  /// Single round-trip: joins `metadata_records` to `tags` so the
+  /// pagination first-paint doesn't pay for two sequential queries
+  /// (metadata-records lookup → tag-batch lookup) when one will do.
   Future<Map<String, List<Tag>>> _loadTagsForItems(
     List<String> itemIds,
   ) async {
     if (itemIds.isEmpty) return {};
 
-    // Query metadata records for these entities
-    final metadataQuery = select(metadataRecords)
-      ..where((m) => m.itemId.isIn(itemIds));
-    final metadataRows = await metadataQuery.get();
+    final query = select(metadataRecords).join([
+      innerJoin(tags, tags.id.equalsExp(metadataRecords.metadataId)),
+    ])
+      ..where(metadataRecords.itemId.isIn(itemIds));
+    final rows = await query.get();
 
-    if (metadataRows.isEmpty) return {};
-
-    // Collect unique tag IDs
-    final tagIds = metadataRows.map((m) => m.metadataId).toSet().toList();
-
-    // Batch load tags
-    final tagMap = {
-      for (final t
-          in await (select(tags)..where((t) => t.id.isIn(tagIds))).get())
-        t.id: t,
-    };
-
-    // Group tags by item ID
     final result = <String, List<Tag>>{};
-    for (final m in metadataRows) {
-      final tag = tagMap[m.metadataId];
-      if (tag != null) {
-        result.putIfAbsent(m.itemId, () => []).add(tag);
-      }
+    for (final row in rows) {
+      final record = row.readTable(metadataRecords);
+      final tag = row.readTable(tags);
+      result.putIfAbsent(record.itemId, () => <Tag>[]).add(tag);
     }
-
     return result;
   }
 }
