@@ -10,6 +10,7 @@ import "package:chenron/features/settings/state/display_settings.dart";
 import "package:chenron/features/settings/state/settings_section.dart";
 import "package:chenron/features/settings/state/theme_settings.dart";
 import "package:chenron/features/theme/state/theme_notifier.dart";
+import "package:chenron/features/theme/state/theme_options_store.dart";
 import "package:app_logger/app_logger.dart";
 
 /// Composes the per-section notifiers and orchestrates the page-level
@@ -47,10 +48,11 @@ class SettingsCoordinator {
     required ConfigService configService,
     required DataSettingsService dataService,
     required ThemeNotifier themeApplier,
+    required ThemeOptionsStore optionsStore,
   }) : _configService = configService {
     archive = ArchiveSettingsNotifier(configService);
     display = DisplaySettingsNotifier(configService);
-    theme = ThemeSettingsNotifier(configService, themeApplier);
+    theme = ThemeSettingsNotifier(configService, themeApplier, optionsStore);
     backup = BackupSettingsNotifier(configService);
     database = DatabaseSettingsNotifier(dataService);
     _uniformSections = [archive, display, theme];
@@ -83,6 +85,14 @@ class SettingsCoordinator {
         }
 
         await theme.loadAvailableThemes();
+
+        // Apply persisted per-theme options now so the active theme
+        // renders with the user's stored toggles on first paint
+        // rather than reverting to the theme's own defaults.
+        final String? activeKey = theme.current.value.selectedKey;
+        if (activeKey != null) {
+          await theme.loadOptionsFor(activeKey);
+        }
 
         final backupRow = await _configService.getBackupSettings();
         backup.hydrateBackup(backupRow);

@@ -1,5 +1,6 @@
 import "dart:async";
 import "package:flutter/material.dart";
+import "package:vibe/vibe.dart";
 
 class RailBottomSection extends StatelessWidget {
   final bool showPlanInfo;
@@ -64,29 +65,36 @@ class RailBottomSection extends StatelessWidget {
                     ],
                   ),
                 ),
-              // Add New button (always shown)
+              // Add New button (always shown). Wrapped in OffsetShadow
+              // so themes that want the in-game "raised plate" hard
+              // diagonal shadow (Nier) get it; default themes fall
+              // back to a subtle themed shadow color.
               if (showExtended)
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton.icon(
-                    onPressed: onAddPressed,
-                    icon: const Icon(Icons.add),
-                    label: const Text("Add New"),
-                    style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 10),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                OffsetShadow(
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      onPressed: onAddPressed,
+                      icon: const Icon(Icons.add),
+                      label: const Text("Add New"),
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
                   ),
                 )
               else
-                FloatingActionButton(
-                  onPressed: onAddPressed,
-                  tooltip: "Add New",
-                  mini: true,
-                  child: const Icon(Icons.add),
+                OffsetShadow(
+                  child: FloatingActionButton(
+                    onPressed: onAddPressed,
+                    tooltip: "Add New",
+                    mini: true,
+                    child: const Icon(Icons.add),
+                  ),
                 ),
             ],
           );

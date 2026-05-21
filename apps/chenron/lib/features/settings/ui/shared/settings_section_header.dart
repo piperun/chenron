@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import "package:vibe/vibe.dart";
 
 /// Section header for settings pages: large title + dimmed description
 /// + a configurable gap before the section body.
@@ -25,11 +26,15 @@ class SettingsSectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final typo = TypographyTokens.of(context);
+    final titleStyle = theme.textTheme.titleMedium?.copyWith(
+      letterSpacing: typo.headerLetterSpacing,
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(title, style: theme.textTheme.titleMedium),
+        Text(typo.formatHeader(title), style: titleStyle),
         const SizedBox(height: 8),
         Text(
           description,

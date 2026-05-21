@@ -9,6 +9,7 @@ import "package:chenron/features/settings/service/config_service.dart";
 import "package:chenron/features/settings/service/data_settings_service.dart";
 import "package:chenron/features/settings/ui/data/data_settings.dart";
 import "package:chenron/features/theme/state/theme_notifier.dart";
+import "package:chenron/features/theme/state/theme_options_store.dart";
 import "package:chenron/locator.dart";
 
 import "data_settings_test.mocks.dart";
@@ -107,6 +108,7 @@ void main() {
         configService: MockConfigService(),
         dataService: locator.get<DataSettingsService>(),
         themeApplier: MockThemeNotifier(),
+        optionsStore: ThemeOptionsStore(),
       ));
 
       fakePersistence = FakeMetadataPersistence();

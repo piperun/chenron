@@ -2,18 +2,19 @@ import "package:flex_color_scheme/flex_color_scheme.dart";
 import "package:flutter/material.dart";
 import "package:vibe/vibe.dart";
 
-/// Global theme registry (initialized in main)
-late final VibeRegistry themeRegistry;
+/// Global theme registry. Always non-null so unit tests that bypass
+/// `initializeThemeRegistry` can still query it (they get an empty
+/// registry and `getPredefinedTheme` returns null, which calling code
+/// already handles).
+final VibeRegistry themeRegistry = VibeRegistry();
 bool _themeRegistryInitialized = false;
 
 /// Initialize the theme registry with all available themes
 void initializeThemeRegistry() {
-  // Skip if already initialized (happens in tests)
+  // Skip if already populated (happens in tests).
   if (_themeRegistryInitialized) {
     return;
   }
-
-  themeRegistry = VibeRegistry();
   _themeRegistryInitialized = true;
 
   // Register built-in themes
@@ -31,10 +32,17 @@ void initializeThemeRegistry() {
 /// - "nier" (custom Nier theme via vibe)
 /// - Any FlexScheme name (e.g., "greyLaw", "ebonyClay", etc.)
 ///
+/// [options] is forwarded to the theme's `build()` so per-theme
+/// settings (e.g. Nier's grid overlay toggle) reach the underlying
+/// theme. Themes that don't declare settings ignore the parameter.
+///
 /// Returns a ThemeVariants (light/dark ThemeData) if found, else null.
-ThemeVariants? getPredefinedTheme(String themeKey) {
+ThemeVariants? getPredefinedTheme(
+  String themeKey, [
+  Map<String, Object?> options = const <String, Object?>{},
+]) {
   final VibeTheme? theme = themeRegistry.get(themeKey);
-  return theme?.build();
+  return theme?.build(options);
 }
 
 /// Wrapper for FlexScheme themes to work with VibeTheme
@@ -50,7 +58,12 @@ class _FlexSchemeTheme implements VibeTheme {
   String get name => scheme.name;
 
   @override
-  ThemeVariants build() {
+  List<ThemeSetting<Object?>> get settings => const <ThemeSetting<Object?>>[];
+
+  @override
+  ThemeVariants build([
+    Map<String, Object?> options = const <String, Object?>{},
+  ]) {
     return (
       light: FlexThemeData.light(scheme: scheme),
       dark: FlexThemeData.dark(scheme: scheme),

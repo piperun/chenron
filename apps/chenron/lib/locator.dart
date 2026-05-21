@@ -13,6 +13,7 @@ import "package:chenron/features/settings/coordinator/settings_coordinator.dart"
 import "package:chenron/features/settings/service/config_service.dart";
 import "package:chenron/features/settings/service/data_settings_service.dart";
 import "package:chenron/features/theme/state/theme_manager.dart";
+import "package:chenron/features/theme/state/theme_options_store.dart";
 import "package:chenron/providers/appdatabase_provider.dart";
 import "package:chenron/providers/basedir.dart";
 import "package:chenron/providers/configdatabase.dart";
@@ -61,6 +62,7 @@ void locatorSetup() {
   locator.registerLazySingleton<ThemeManager>(() => ThemeManager(
         locator<Signal<ConfigDatabaseLifecycle>>().value.configDatabase,
       ));
+  locator.registerLazySingleton<ThemeOptionsStore>(ThemeOptionsStore.new);
 
   // --- Settings ---
   // SettingsCoordinator composes the per-section notifiers; settings
@@ -71,6 +73,7 @@ void locatorSetup() {
         configService: locator.get<ConfigService>(),
         dataService: locator.get<DataSettingsService>(),
         themeApplier: themeNotifierSignal.value,
+        optionsStore: locator.get<ThemeOptionsStore>(),
       ));
 
   // --- File services ---

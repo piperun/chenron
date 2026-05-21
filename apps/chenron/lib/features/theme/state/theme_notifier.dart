@@ -22,6 +22,13 @@ class ThemeNotifier {
 
   bool _seeded = false;
 
+  // Tracked so [applyOptions] can rebuild the active theme with new
+  // option values without re-querying the DB. Custom themes have no
+  // settings so the cached map stays empty for them.
+  String? _currentKey;
+  ThemeType? _currentType;
+  Map<String, Object?> _currentOptions = const <String, Object?>{};
+
   /// Sets the initial theme from the SharedPreferences cache.
   /// Only applies once — `initialize()` overwrites with the DB value.
   void seedCachedTheme(ThemeVariants theme) {
@@ -51,6 +58,8 @@ class ThemeNotifier {
 
   Future<void> changeTheme(String themeKey, ThemeType themeType) async {
     await _themeService?.changeTheme(themeKey, themeType);
+    _currentKey = themeKey;
+    _currentType = themeType;
 
     // Apply immediately without relying on stale config snapshots
     if (themeType == ThemeType.custom) {
@@ -73,14 +82,14 @@ class ThemeNotifier {
         return;
       }
       // Fallback if custom theme missing: try predefined by key
-      final fallback = getPredefinedTheme(themeKey);
+      final fallback = getPredefinedTheme(themeKey, _currentOptions);
       if (fallback != null) {
         currentThemeSignal.value = fallback;
         _cacheSystemTheme(themeKey);
         return;
       }
     } else {
-      final variants = getPredefinedTheme(themeKey);
+      final variants = getPredefinedTheme(themeKey, _currentOptions);
       if (variants != null) {
         currentThemeSignal.value = variants;
         _cacheSystemTheme(themeKey);
@@ -93,6 +102,20 @@ class ThemeNotifier {
       light: FlexThemeData.light(scheme: FlexScheme.materialBaseline),
       dark: FlexThemeData.dark(scheme: FlexScheme.materialBaseline),
     );
+  }
+
+  /// Re-renders the active theme with [opts] applied. Used by the
+  /// settings UI for live-applied option toggles. Custom themes don't
+  /// expose options, so this is a no-op for them.
+  Future<void> applyOptions(Map<String, Object?> opts) async {
+    _currentOptions = opts;
+    if (_currentKey == null) return;
+    if (_currentType == ThemeType.custom) return;
+    final ThemeVariants? variants =
+        getPredefinedTheme(_currentKey!, opts);
+    if (variants != null) {
+      currentThemeSignal.value = variants;
+    }
   }
 
   Future<void> setCurrentTheme() async {
@@ -111,6 +134,9 @@ class ThemeNotifier {
       );
       return;
     }
+
+    _currentKey = key;
+    _currentType = type;
 
     if (type == ThemeType.custom) {
       loggerGlobal.fine(
@@ -139,7 +165,7 @@ class ThemeNotifier {
 
     loggerGlobal.fine(
         "ThemeNotifier", "Persisted theme type: system, key=$key");
-    final variants = getPredefinedTheme(key);
+    final variants = getPredefinedTheme(key, _currentOptions);
     currentThemeSignal.value = variants ??
         (
           light: FlexThemeData.light(scheme: FlexScheme.materialBaseline),

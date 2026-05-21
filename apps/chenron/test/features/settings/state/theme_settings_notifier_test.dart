@@ -1,6 +1,7 @@
 import "package:chenron/features/settings/state/theme_choice.dart";
 import "package:chenron/features/settings/state/theme_settings.dart";
 import "package:chenron/features/theme/state/theme_notifier.dart";
+import "package:chenron/features/theme/state/theme_options_store.dart";
 import "package:database/database.dart";
 import "package:flutter_test/flutter_test.dart";
 import "package:mockito/annotations.dart";
@@ -18,7 +19,7 @@ void main() {
   setUp(() {
     service = MockConfigService();
     themeApplier = MockThemeNotifier();
-    notifier = ThemeSettingsNotifier(service, themeApplier);
+    notifier = ThemeSettingsNotifier(service, themeApplier, ThemeOptionsStore());
   });
 
   UserConfig stubConfig({

@@ -8,6 +8,7 @@ import "package:chenron/features/settings/service/config_service.dart";
 import "package:chenron/features/settings/service/data_settings_service.dart";
 import "package:chenron/features/folder_viewer/ui/components/folder_header.dart";
 import "package:chenron/features/theme/state/theme_notifier.dart";
+import "package:chenron/features/theme/state/theme_options_store.dart";
 import "package:chenron_mockups/chenron_mockups.dart";
 
 class _MockConfigDbHandler extends ConfigDatabaseLifecycle {
@@ -48,6 +49,7 @@ void main() {
           configService: GetIt.I.get<ConfigService>(),
           dataService: GetIt.I.get<DataSettingsService>(),
           themeApplier: ThemeNotifier(),
+          optionsStore: ThemeOptionsStore(),
         ));
   });
 

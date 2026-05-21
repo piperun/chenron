@@ -2,6 +2,7 @@ import "package:chenron/features/settings/coordinator/settings_coordinator.dart"
 import "package:chenron/features/settings/service/config_service.dart";
 import "package:chenron/features/settings/service/data_settings_service.dart";
 import "package:chenron/features/theme/state/theme_notifier.dart";
+import "package:chenron/features/theme/state/theme_options_store.dart";
 import "package:chenron/features/viewer/mvc/viewer_model.dart";
 import "package:chenron/features/viewer/mvc/viewer_presenter.dart";
 import "package:chenron/features/viewer/pages/viewer.dart";
@@ -29,6 +30,7 @@ void main() {
       configService: MockConfigService(),
       dataService: MockDataSettingsService(),
       themeApplier: MockThemeNotifier(),
+      optionsStore: ThemeOptionsStore(),
     ));
 
     presenter = ViewerPresenter(model: fakeViewerModel);
