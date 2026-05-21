@@ -39,13 +39,11 @@ class LinkPageHeader extends StatelessWidget {
             ),
           ),
           const Spacer(),
-          OffsetShadow(
-            child: FilledButton.icon(
-              key: const Key("create_link_header_save_button"),
-              onPressed: hasEntries ? onSave : null,
-              icon: const Icon(Icons.save, size: 18),
-              label: const Text("Save"),
-            ),
+          NierMinorButton(
+            key: const Key("create_link_header_save_button"),
+            label: "Save",
+            icon: Icons.save,
+            onPressed: hasEntries ? onSave : null,
           ),
         ],
       ),

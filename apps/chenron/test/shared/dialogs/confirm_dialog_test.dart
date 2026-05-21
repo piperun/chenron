@@ -1,6 +1,7 @@
 import "package:chenron/shared/dialogs/confirm_dialog.dart";
 import "package:flutter/material.dart";
 import "package:flutter_test/flutter_test.dart";
+import "package:vibe/vibe.dart";
 
 void main() {
   Future<Future<bool>> openDialog(
@@ -73,7 +74,7 @@ void main() {
       message: "Save your work?",
       confirmLabel: "Persist",
     );
-    await tester.tap(find.widgetWithText(TextButton, "Cancel"));
+    await tester.tap(find.widgetWithText(NierMinorButton, "Cancel"));
     await tester.pumpAndSettle();
     expect(await future, isFalse);
   });
@@ -111,7 +112,7 @@ void main() {
           filled.style?.backgroundColor?.resolve(<WidgetState>{});
       expect(resolvedBg, expectedError);
 
-      await tester.tap(find.widgetWithText(TextButton, "Cancel"));
+      await tester.tap(find.widgetWithText(NierMinorButton, "Cancel"));
       await tester.pumpAndSettle();
       await future;
     },
@@ -129,7 +130,7 @@ void main() {
       find.widgetWithText(FilledButton, "Import"),
     );
     expect(filled.style, isNull);
-    await tester.tap(find.widgetWithText(TextButton, "Cancel"));
+    await tester.tap(find.widgetWithText(NierMinorButton, "Cancel"));
     await tester.pumpAndSettle();
     await future;
   });

@@ -28,25 +28,18 @@ Future<bool> showConfirmDialog(
     context: context,
     barrierDismissible: barrierDismissible,
     builder: (ctx) {
-      final theme = Theme.of(ctx);
       return AlertDialog(
         title: Text(title),
         content: Text(message),
         actions: [
-          TextButton(
+          NierMinorButton(
+            label: cancelLabel,
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text(cancelLabel),
           ),
-          OffsetShadow(
-            child: FilledButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              style: destructive
-                  ? FilledButton.styleFrom(
-                      backgroundColor: theme.colorScheme.error,
-                    )
-                  : null,
-              child: Text(confirmLabel),
-            ),
+          NierMinorButton(
+            label: confirmLabel,
+            destructive: destructive,
+            onPressed: () => Navigator.pop(ctx, true),
           ),
         ],
       );
