@@ -8,6 +8,7 @@ import "package:database/database.dart";
 import "package:database/features.dart";
 import "package:file_picker/file_picker.dart";
 import "package:flutter/material.dart";
+import "package:vibe/vibe.dart";
 
 /// Generalized activity log page with combinable chip filters.
 ///
@@ -273,10 +274,10 @@ class _SearchBar extends StatelessWidget {
           onPressed: () => unawaited(onOpenSettings()),
         ),
         const SizedBox(width: 4),
-        OutlinedButton.icon(
+        NierMinorButton(
+          label: "Export",
+          icon: Icons.download,
           onPressed: canExport ? () => unawaited(onExport()) : null,
-          icon: const Icon(Icons.download, size: 18),
-          label: const Text("Export"),
         ),
       ],
     );

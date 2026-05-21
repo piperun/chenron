@@ -5,6 +5,7 @@ import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:signals/signals_flutter.dart";
 import "package:url_launcher/url_launcher.dart" as url_launcher;
+import "package:vibe/vibe.dart";
 
 import "package:chenron/components/favicon_display/favicon.dart";
 import "package:chenron/locator.dart";
@@ -154,10 +155,10 @@ class _LinkHeroState extends State<LinkHero> {
               icon: const Icon(Icons.open_in_new, size: 16),
               label: const Text("Open Link"),
             ),
-            OutlinedButton.icon(
+            NierMinorButton(
+              label: "Copy URL",
+              icon: Icons.copy,
               onPressed: _handleCopyUrl,
-              icon: const Icon(Icons.copy, size: 16),
-              label: const Text("Copy URL"),
             ),
             OutlinedButton.icon(
               onPressed: _isRefreshing ? null : _handleRefreshMetadata,

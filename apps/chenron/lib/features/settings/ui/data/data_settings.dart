@@ -273,15 +273,15 @@ class _DataSettingsState extends State<DataSettings> {
             spacing: 12,
             runSpacing: 12,
             children: [
-              OutlinedButton.icon(
+              NierMinorButton(
+                label: "Export Database",
+                icon: Icons.upload_outlined,
                 onPressed: _handleExport,
-                icon: const Icon(Icons.upload_outlined, size: 18),
-                label: const Text("Export Database"),
               ),
-              OutlinedButton.icon(
+              NierMinorButton(
+                label: "Import Database",
+                icon: Icons.download_outlined,
                 onPressed: _handleImport,
-                icon: const Icon(Icons.download_outlined, size: 18),
-                label: const Text("Import Database"),
               ),
             ],
           ),
@@ -301,15 +301,15 @@ class _DataSettingsState extends State<DataSettings> {
             spacing: 12,
             runSpacing: 12,
             children: [
-              OutlinedButton.icon(
+              NierMinorButton(
+                label: "Export Bookmarks",
+                icon: Icons.upload_outlined,
                 onPressed: _handleExportBookmarks,
-                icon: const Icon(Icons.upload_outlined, size: 18),
-                label: const Text("Export Bookmarks"),
               ),
-              OutlinedButton.icon(
+              NierMinorButton(
+                label: "Import Bookmarks",
+                icon: Icons.download_outlined,
                 onPressed: _handleImportBookmarks,
-                icon: const Icon(Icons.download_outlined, size: 18),
-                label: const Text("Import Bookmarks"),
               ),
             ],
           ),

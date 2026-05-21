@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import "package:vibe/vibe.dart";
 
 /// A standardized empty state display with icon, message, optional subtitle,
 /// and optional action button.
@@ -63,10 +64,10 @@ class EmptyState extends StatelessWidget {
             ],
             if (actionLabel != null && onAction != null) ...[
               const SizedBox(height: 16),
-              OutlinedButton.icon(
+              NierMinorButton(
+                label: actionLabel!,
+                icon: Icons.add,
                 onPressed: onAction,
-                icon: const Icon(Icons.add, size: 18),
-                label: Text(actionLabel!),
               ),
             ],
           ],
