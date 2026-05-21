@@ -266,27 +266,21 @@ class _DialogActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          TextButton(
+          NierMinorButton(
+            label: "Cancel",
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text("Cancel"),
           ),
           const SizedBox(width: 8),
-          OffsetShadow(
-            child: FilledButton(
-              onPressed:
-                  canConfirm ? () => Navigator.of(context).pop(true) : null,
-              style: FilledButton.styleFrom(
-                backgroundColor: colorScheme.error,
-                foregroundColor: colorScheme.onError,
-              ),
-              child: Text(count == 1 ? "Delete" : "Delete All"),
-            ),
+          NierMinorButton(
+            label: count == 1 ? "Delete" : "Delete All",
+            destructive: true,
+            onPressed:
+                canConfirm ? () => Navigator.of(context).pop(true) : null,
           ),
         ],
       ),

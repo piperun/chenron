@@ -236,12 +236,10 @@ class _DataSettingsState extends State<DataSettings> {
 
           if (hasPathChanged) ...[
             const SizedBox(height: 16),
-            OffsetShadow(
-              child: FilledButton.icon(
-                onPressed: _handleApplyRestart,
-                icon: const Icon(Icons.restart_alt, size: 18),
-                label: const Text("Apply & Restart"),
-              ),
+            NierMinorButton(
+              label: "Apply & Restart",
+              icon: Icons.restart_alt,
+              onPressed: _handleApplyRestart,
             ),
           ],
 
@@ -333,11 +331,9 @@ class _RestartDialog extends StatelessWidget {
       title: Text(title),
       content: Text(message),
       actions: [
-        const OffsetShadow(
-          child: FilledButton(
-            onPressed: SystemNavigator.pop,
-            child: Text("Restart Now"),
-          ),
+        const NierMinorButton(
+          label: "Restart Now",
+          onPressed: SystemNavigator.pop,
         ),
       ],
     );

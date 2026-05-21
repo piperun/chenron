@@ -65,30 +65,22 @@ class RailBottomSection extends StatelessWidget {
                     ],
                   ),
                 ),
-              // Add New button (always shown). Wrapped in OffsetShadow
-              // so themes that want the in-game "raised plate" hard
-              // diagonal shadow (Nier) get it; default themes fall
-              // back to a subtle themed shadow color.
+              // Add New button (always shown). Extended layout uses
+              // NierMinorButton for theme-consistent plate + hover
+              // shadow; the collapsed mini-FAB keeps its FloatingActionButton
+              // shape since it's a circular surface (different widget
+              // semantics) and just wraps in HoverShadow.
               if (showExtended)
-                OffsetShadow(
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: FilledButton.icon(
-                      onPressed: onAddPressed,
-                      icon: const Icon(Icons.add),
-                      label: const Text("Add New"),
-                      style: FilledButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 10),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
+                SizedBox(
+                  width: double.infinity,
+                  child: NierMinorButton(
+                    label: "Add New",
+                    icon: Icons.add,
+                    onPressed: onAddPressed,
                   ),
                 )
               else
-                OffsetShadow(
+                HoverShadow(
                   child: FloatingActionButton(
                     onPressed: onAddPressed,
                     tooltip: "Add New",
