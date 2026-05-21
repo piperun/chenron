@@ -274,7 +274,7 @@ class _SearchBar extends StatelessWidget {
           onPressed: () => unawaited(onOpenSettings()),
         ),
         const SizedBox(width: 4),
-        NierMinorButton(
+        MinorButton(
           label: "Export",
           icon: Icons.download,
           onPressed: canExport ? () => unawaited(onExport()) : null,

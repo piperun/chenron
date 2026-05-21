@@ -66,14 +66,14 @@ class RailBottomSection extends StatelessWidget {
                   ),
                 ),
               // Add New button (always shown). Extended layout uses
-              // NierMinorButton for theme-consistent plate + hover
+              // MinorButton for theme-consistent plate + hover
               // shadow; the collapsed mini-FAB keeps its FloatingActionButton
               // shape since it's a circular surface (different widget
               // semantics) and just wraps in HoverShadow.
               if (showExtended)
                 SizedBox(
                   width: double.infinity,
-                  child: NierMinorButton(
+                  child: MinorButton(
                     label: "Add New",
                     icon: Icons.add,
                     onPressed: onAddPressed,
