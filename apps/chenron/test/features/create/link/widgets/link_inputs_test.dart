@@ -10,10 +10,14 @@ void main() {
       String? errorText,
       String? keyPrefix,
     }) {
+      final effectiveController = controller ?? TextEditingController();
+      if (controller == null) {
+        addTearDown(effectiveController.dispose);
+      }
       return MaterialApp(
         home: Scaffold(
           body: SingleInput(
-            controller: controller ?? TextEditingController(),
+            controller: effectiveController,
             onAdd: onAdd ?? () {},
             errorText: errorText,
             keyPrefix: keyPrefix,
@@ -90,6 +94,7 @@ void main() {
 
     testWidgets("accepts text input", (tester) async {
       final controller = TextEditingController();
+      addTearDown(controller.dispose);
       await tester.pumpWidget(buildSingleInput(controller: controller));
       await tester.pumpAndSettle();
 

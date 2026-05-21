@@ -14,12 +14,20 @@ void main() {
     ValueChanged<String>? onSubmitted,
     TextEditingController? controller,
   }) {
+    final effectiveController = controller ?? TextEditingController();
+    // If we created the controller (caller didn't pass one), register
+    // it for disposal at test teardown so it doesn't leak. The widget
+    // can't dispose a passed-in controller — that ownership lives
+    // with whoever creates it.
+    if (controller == null) {
+      addTearDown(effectiveController.dispose);
+    }
     return MaterialApp(
       home: Scaffold(
         body: LabeledTextField(
           labelText: labelText,
           hintText: hintText,
-          controller: controller ?? TextEditingController(),
+          controller: effectiveController,
           icon: icon,
           errorText: errorText,
           textInputAction: textInputAction,
@@ -125,6 +133,7 @@ void main() {
 
     testWidgets("controller reflects typed text", (tester) async {
       final controller = TextEditingController();
+      addTearDown(controller.dispose);
       await tester.pumpWidget(buildField(controller: controller));
       await tester.pumpAndSettle();
 
