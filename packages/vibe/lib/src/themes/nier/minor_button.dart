@@ -30,6 +30,7 @@ class NierMinorButton extends StatefulWidget {
     required this.onPressed,
     this.icon,
     this.destructive = false,
+    this.selected = false,
   });
 
   /// Button text. Drawn after the leading indicator / icon.
@@ -49,6 +50,12 @@ class NierMinorButton extends StatefulWidget {
   /// neutral brown. Idle plate stays neutral either way.
   final bool destructive;
 
+  /// When `true`, render the button in its active visual state
+  /// regardless of hover/focus. Used for toggle-style or radio-group
+  /// inline buttons where one of a set is the persistent current
+  /// choice.
+  final bool selected;
+
   @override
   State<NierMinorButton> createState() => _NierMinorButtonState();
 }
@@ -58,7 +65,8 @@ class _NierMinorButtonState extends State<NierMinorButton> {
   bool _focused = false;
 
   bool get _interactive => widget.onPressed != null;
-  bool get _active => _interactive && (_hovered || _focused);
+  bool get _active =>
+      widget.selected || (_interactive && (_hovered || _focused));
 
   void _handleHoverChange({required bool hovered}) {
     if (_hovered == hovered) return;

@@ -17,11 +17,35 @@ import 'package:flutter/material.dart';
 /// no Nier flavour leaking in.
 /// Signature for the "minor" (dialog-tier) button renderer that
 /// themes attach to [ButtonTokens.buildMinor].
+///
+/// `selected: true` asks the theme to render the button in its
+/// active visual state regardless of hover/focus — useful for
+/// toggle-style or radio-group inline buttons (rare on minor tier).
 typedef MinorButtonBuilder = Widget Function({
   required String label,
   required VoidCallback? onPressed,
   IconData? icon,
   bool destructive,
+  bool selected,
+});
+
+/// Signature for the "super" (menu-row-tier) button renderer that
+/// themes attach to [ButtonTokens.buildSuper]. Same shape as
+/// [MinorButtonBuilder] so callers can swap tiers without changing
+/// the call site, but the theme's `buildSuper` is expected to render
+/// a heavier treatment (animated fills, decorative borders, etc.)
+/// matching menu rows rather than inline action confirmations.
+///
+/// `selected: true` is load-bearing here — menu rows have persistent
+/// selection state ("you are on the Settings → Display page"), and
+/// the theme should render the active animation full-on regardless
+/// of hover.
+typedef SuperButtonBuilder = Widget Function({
+  required String label,
+  required VoidCallback? onPressed,
+  IconData? icon,
+  bool destructive,
+  bool selected,
 });
 
 /// [ThemeExtension] that lets themes own how generic button widgets
@@ -30,22 +54,34 @@ typedef MinorButtonBuilder = Widget Function({
 class ButtonTokens extends ThemeExtension<ButtonTokens> {
   /// Build a button-tokens set.
   ///
-  /// [buildMinor] receives the props for a minor (dialog-tier) button
-  /// and must return the rendered widget. The Nier theme returns its
-  /// `NierMinorButton`; the [material] default returns a plain
-  /// [FilledButton.icon].
-  const ButtonTokens({required this.buildMinor});
+  /// [buildMinor] handles dialog-tier buttons (Yes / No / Save /
+  /// Delete). [buildSuper] handles menu-row-tier buttons (settings
+  /// sidebar items, primary navigation). Themes that want a uniform
+  /// look can supply the same builder for both. The default
+  /// [material] uses [FilledButton.icon] for minor and adds a heavier
+  /// outline on super.
+  const ButtonTokens({
+    required this.buildMinor,
+    required this.buildSuper,
+  });
 
   /// Renderer for the "minor" button tier — dialog-style action
-  /// buttons (Yes / No, Save, Delete, Cancel, ...). Pair with future
-  /// `buildSuper` for the menu-row tier.
+  /// buttons (Yes / No, Save, Delete, Cancel, ...).
   final MinorButtonBuilder buildMinor;
+
+  /// Renderer for the "super" button tier — heavier menu-row treatment
+  /// for primary navigation / settings list items.
+  final SuperButtonBuilder buildSuper;
 
   /// Material-default tokens — used when a theme hasn't attached its
   /// own [ButtonTokens]. Renders [FilledButton.icon] (or [FilledButton]
   /// when [icon] is null), with the theme's error color for
-  /// `destructive: true`.
-  static const ButtonTokens material = ButtonTokens(buildMinor: _materialMinor);
+  /// `destructive: true`. Super tier uses the same renderer as minor —
+  /// Material doesn't distinguish; only opinionated themes (Nier) do.
+  static const ButtonTokens material = ButtonTokens(
+    buildMinor: _materialMinor,
+    buildSuper: _materialMinor,
+  );
 
   /// Read the active token set, or fall back to [material] if the
   /// current theme hasn't attached one.
@@ -53,8 +89,14 @@ class ButtonTokens extends ThemeExtension<ButtonTokens> {
       Theme.of(context).extension<ButtonTokens>() ?? ButtonTokens.material;
 
   @override
-  ButtonTokens copyWith({MinorButtonBuilder? buildMinor}) =>
-      ButtonTokens(buildMinor: buildMinor ?? this.buildMinor);
+  ButtonTokens copyWith({
+    MinorButtonBuilder? buildMinor,
+    SuperButtonBuilder? buildSuper,
+  }) =>
+      ButtonTokens(
+        buildMinor: buildMinor ?? this.buildMinor,
+        buildSuper: buildSuper ?? this.buildSuper,
+      );
 
   @override
   ButtonTokens lerp(ThemeExtension<ButtonTokens>? other, double t) {
@@ -70,16 +112,25 @@ Widget _materialMinor({
   required VoidCallback? onPressed,
   IconData? icon,
   bool destructive = false,
+  bool selected = false,
 }) {
   return Builder(
     builder: (BuildContext context) {
       final ColorScheme scheme = Theme.of(context).colorScheme;
+      // Material has no built-in "selected" emphasis for action
+      // buttons; the closest is to flip a selected button to a
+      // tonal-button-style background. Plain bg for unselected.
       final ButtonStyle? style = destructive
           ? FilledButton.styleFrom(
               backgroundColor: scheme.error,
               foregroundColor: scheme.onError,
             )
-          : null;
+          : (selected
+              ? FilledButton.styleFrom(
+                  backgroundColor: scheme.secondaryContainer,
+                  foregroundColor: scheme.onSecondaryContainer,
+                )
+              : null);
       if (icon != null) {
         return FilledButton.icon(
           onPressed: onPressed,

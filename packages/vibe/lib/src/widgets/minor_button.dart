@@ -18,6 +18,7 @@ class MinorButton extends StatelessWidget {
     required this.onPressed,
     this.icon,
     this.destructive = false,
+    this.selected = false,
   });
 
   /// Button text.
@@ -35,6 +36,11 @@ class MinorButton extends StatelessWidget {
   /// emphasis (typically theme.colorScheme.error background).
   final bool destructive;
 
+  /// When `true`, the theme renders the button in its active visual
+  /// state regardless of hover/focus. Useful for toggle-style or
+  /// radio-group selection on inline action buttons.
+  final bool selected;
+
   @override
   Widget build(BuildContext context) {
     return ButtonTokens.of(context).buildMinor(
@@ -42,6 +48,7 @@ class MinorButton extends StatelessWidget {
       onPressed: onPressed,
       icon: icon,
       destructive: destructive,
+      selected: selected,
     );
   }
 }
