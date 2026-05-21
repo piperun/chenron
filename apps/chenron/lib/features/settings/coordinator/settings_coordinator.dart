@@ -68,13 +68,26 @@ class SettingsCoordinator {
   /// UserConfig row for the uniform sections, the BackupSetting row,
   /// and the theme list. Errors are caught and surfaced via [error];
   /// individual sections fall back to their default snapshot.
+  ///
+  /// All four reads kick off concurrently — they live in independent
+  /// sources (SharedPreferences, ConfigDatabase user_config table,
+  /// ConfigDatabase backup_settings table, FlexScheme enumeration +
+  /// custom-theme query) — so the total open-Settings latency is the
+  /// max of their individual latencies, not the sum.
   Future<void> initialize() async {
     isLoading.value = true;
     error.value = null;
     try {
-      await database.load();
+      final dbLoadFuture = database.load();
+      final configFuture = _configService.getUserConfig();
+      final themesFuture = theme.loadAvailableThemes();
+      final backupFuture = _configService.getBackupSettings();
 
-      final configResult = await _configService.getUserConfig();
+      await dbLoadFuture;
+      await themesFuture;
+      final configResult = await configFuture;
+      final backupRow = await backupFuture;
+
       if (configResult != null) {
         final config = configResult.data;
         _configId = config.id;
@@ -83,26 +96,23 @@ class SettingsCoordinator {
         for (final section in _uniformSections) {
           section.hydrate(config);
         }
-
-        await theme.loadAvailableThemes();
+        backup.hydrateBackup(backupRow);
 
         // Apply persisted per-theme options now so the active theme
         // renders with the user's stored toggles on first paint
-        // rather than reverting to the theme's own defaults.
+        // rather than reverting to the theme's own defaults. Depends
+        // on the hydrated `theme.current.value.selectedKey`, so it
+        // can't join the parallel batch above.
         final String? activeKey = theme.current.value.selectedKey;
         if (activeKey != null) {
           await theme.loadOptionsFor(activeKey);
         }
-
-        final backupRow = await _configService.getBackupSettings();
-        backup.hydrateBackup(backupRow);
       } else {
         _configId = null;
         userConfig.value = null;
         error.value = "Failed to load user configuration.";
-        // Sections keep their default snapshots; theme still loads its
-        // list so the UI has something to render.
-        await theme.loadAvailableThemes();
+        // Sections keep their default snapshots; the theme list is
+        // already loaded above so the UI has something to render.
       }
     } catch (e, s) {
       loggerGlobal.severe("SettingsCoordinator", "Initialization error", e, s);
