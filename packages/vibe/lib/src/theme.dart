@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:vibe/src/flex/palette_builder.dart';
 import 'package:vibe/src/flex/seed_builder.dart';
 import 'package:vibe/src/palette.dart';
+import 'package:vibe/src/themes/theme_setting.dart';
 
 /// A pair of Material [ThemeData] for light and dark variants.
 typedef ThemeVariants = ({ThemeData light, ThemeData dark});
@@ -45,8 +46,18 @@ abstract class VibeTheme {
   /// Human-readable display name.
   String get name;
 
+  /// Declarative list of user-configurable options this theme exposes.
+  ///
+  /// Defaults to empty so existing themes opt in only when they want a
+  /// settings UI. The host app renders one tile per entry and passes
+  /// chosen values back through [build].
+  List<ThemeSetting<Object?>> get settings => const <ThemeSetting<Object?>>[];
+
   /// Build the light and dark theme variants.
-  ThemeVariants build();
+  ///
+  /// [options] carries user-chosen values keyed by [ThemeSetting.key].
+  /// Themes that don't declare [settings] ignore the parameter.
+  ThemeVariants build([Map<String, Object?> options = const <String, Object?>{}]);
 }
 
 class _SeedVibeTheme implements VibeTheme {
@@ -73,7 +84,13 @@ class _SeedVibeTheme implements VibeTheme {
   final bool useTertiary;
 
   @override
-  ThemeVariants build() => buildSeededVariants(
+  List<ThemeSetting<Object?>> get settings => const <ThemeSetting<Object?>>[];
+
+  @override
+  ThemeVariants build([
+    Map<String, Object?> options = const <String, Object?>{},
+  ]) =>
+      buildSeededVariants(
         primary: primary,
         secondary: secondary,
         tertiary: tertiary,
@@ -100,7 +117,13 @@ class _PaletteVibeTheme implements VibeTheme {
   final VibePalette dark;
 
   @override
-  ThemeVariants build() => buildVariantsFromPalettes(
+  List<ThemeSetting<Object?>> get settings => const <ThemeSetting<Object?>>[];
+
+  @override
+  ThemeVariants build([
+    Map<String, Object?> options = const <String, Object?>{},
+  ]) =>
+      buildVariantsFromPalettes(
         light: light,
         dark: dark,
       );
