@@ -32,11 +32,11 @@ Future<bool> showConfirmDialog(
         title: Text(title),
         content: Text(message),
         actions: [
-          NierMinorButton(
+          MinorButton(
             label: cancelLabel,
             onPressed: () => Navigator.pop(ctx, false),
           ),
-          NierMinorButton(
+          MinorButton(
             label: confirmLabel,
             destructive: destructive,
             onPressed: () => Navigator.pop(ctx, true),

@@ -74,7 +74,7 @@ void main() {
       message: "Save your work?",
       confirmLabel: "Persist",
     );
-    await tester.tap(find.widgetWithText(NierMinorButton, "Cancel"));
+    await tester.tap(find.widgetWithText(MinorButton, "Cancel"));
     await tester.pumpAndSettle();
     expect(await future, isFalse);
   });
@@ -112,7 +112,7 @@ void main() {
           filled.style?.backgroundColor?.resolve(<WidgetState>{});
       expect(resolvedBg, expectedError);
 
-      await tester.tap(find.widgetWithText(NierMinorButton, "Cancel"));
+      await tester.tap(find.widgetWithText(MinorButton, "Cancel"));
       await tester.pumpAndSettle();
       await future;
     },
@@ -130,7 +130,7 @@ void main() {
       find.widgetWithText(FilledButton, "Import"),
     );
     expect(filled.style, isNull);
-    await tester.tap(find.widgetWithText(NierMinorButton, "Cancel"));
+    await tester.tap(find.widgetWithText(MinorButton, "Cancel"));
     await tester.pumpAndSettle();
     await future;
   });

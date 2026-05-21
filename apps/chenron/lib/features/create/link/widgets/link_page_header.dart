@@ -39,7 +39,7 @@ class LinkPageHeader extends StatelessWidget {
             ),
           ),
           const Spacer(),
-          NierMinorButton(
+          MinorButton(
             key: const Key("create_link_header_save_button"),
             label: "Save",
             icon: Icons.save,

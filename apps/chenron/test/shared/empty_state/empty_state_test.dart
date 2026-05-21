@@ -68,7 +68,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text("Create New"), findsOneWidget);
-      expect(find.byType(NierMinorButton), findsOneWidget);
+      expect(find.byType(MinorButton), findsOneWidget);
     });
 
     testWidgets("hides action button when actionLabel is null",
@@ -79,7 +79,7 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      expect(find.byType(NierMinorButton), findsNothing);
+      expect(find.byType(MinorButton), findsNothing);
     });
 
     testWidgets("hides action button when onAction is null", (tester) async {
@@ -89,7 +89,7 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      expect(find.byType(NierMinorButton), findsNothing);
+      expect(find.byType(MinorButton), findsNothing);
     });
 
     testWidgets("wraps content in SingleChildScrollView", (tester) async {

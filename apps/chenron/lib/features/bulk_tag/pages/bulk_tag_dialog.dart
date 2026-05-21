@@ -275,7 +275,7 @@ class _BulkTagDialogState extends State<_BulkTagDialog> {
                 }
                 return Padding(
                   padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-                  child: NierMinorButton(
+                  child: MinorButton(
                     label: 'Create "$query"',
                     icon: Icons.add,
                     onPressed: _handleCreateTag,

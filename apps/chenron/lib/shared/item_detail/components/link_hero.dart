@@ -155,7 +155,7 @@ class _LinkHeroState extends State<LinkHero> {
               icon: const Icon(Icons.open_in_new, size: 16),
               label: const Text("Open Link"),
             ),
-            NierMinorButton(
+            MinorButton(
               label: "Copy URL",
               icon: Icons.copy,
               onPressed: _handleCopyUrl,

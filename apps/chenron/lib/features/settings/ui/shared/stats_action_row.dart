@@ -55,7 +55,7 @@ class StatsActionRow extends StatelessWidget {
           ],
         ),
         const Spacer(),
-        NierMinorButton(
+        MinorButton(
           label: buttonLabel,
           icon: Icons.delete_outline,
           destructive: true,

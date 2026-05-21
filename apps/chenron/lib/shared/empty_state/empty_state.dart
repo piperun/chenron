@@ -64,7 +64,7 @@ class EmptyState extends StatelessWidget {
             ],
             if (actionLabel != null && onAction != null) ...[
               const SizedBox(height: 16),
-              NierMinorButton(
+              MinorButton(
                 label: actionLabel!,
                 icon: Icons.add,
                 onPressed: onAction,

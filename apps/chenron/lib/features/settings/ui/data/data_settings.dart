@@ -236,7 +236,7 @@ class _DataSettingsState extends State<DataSettings> {
 
           if (hasPathChanged) ...[
             const SizedBox(height: 16),
-            NierMinorButton(
+            MinorButton(
               label: "Apply & Restart",
               icon: Icons.restart_alt,
               onPressed: _handleApplyRestart,
@@ -273,12 +273,12 @@ class _DataSettingsState extends State<DataSettings> {
             spacing: 12,
             runSpacing: 12,
             children: [
-              NierMinorButton(
+              MinorButton(
                 label: "Export Database",
                 icon: Icons.upload_outlined,
                 onPressed: _handleExport,
               ),
-              NierMinorButton(
+              MinorButton(
                 label: "Import Database",
                 icon: Icons.download_outlined,
                 onPressed: _handleImport,
@@ -301,12 +301,12 @@ class _DataSettingsState extends State<DataSettings> {
             spacing: 12,
             runSpacing: 12,
             children: [
-              NierMinorButton(
+              MinorButton(
                 label: "Export Bookmarks",
                 icon: Icons.upload_outlined,
                 onPressed: _handleExportBookmarks,
               ),
-              NierMinorButton(
+              MinorButton(
                 label: "Import Bookmarks",
                 icon: Icons.download_outlined,
                 onPressed: _handleImportBookmarks,
@@ -331,7 +331,7 @@ class _RestartDialog extends StatelessWidget {
       title: Text(title),
       content: Text(message),
       actions: [
-        const NierMinorButton(
+        const MinorButton(
           label: "Restart Now",
           onPressed: SystemNavigator.pop,
         ),
