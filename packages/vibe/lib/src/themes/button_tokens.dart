@@ -74,13 +74,16 @@ class ButtonTokens extends ThemeExtension<ButtonTokens> {
   final SuperButtonBuilder buildSuper;
 
   /// Material-default tokens — used when a theme hasn't attached its
-  /// own [ButtonTokens]. Renders [FilledButton.icon] (or [FilledButton]
-  /// when [icon] is null), with the theme's error color for
-  /// `destructive: true`. Super tier uses the same renderer as minor —
-  /// Material doesn't distinguish; only opinionated themes (Nier) do.
+  /// own [ButtonTokens]. Minor tier renders [FilledButton.icon] (or
+  /// [FilledButton] when [icon] is null) with destructive / selected
+  /// emphasis. Super tier renders a Material 3-style NavigationDrawer
+  /// list row (transparent idle, [ColorScheme.secondaryContainer]
+  /// selected highlight) — using FilledButton here would paint every
+  /// menu row as a full-saturation primary plate, which reads as
+  /// visually heavy and doesn't match Material 3's nav-row idiom.
   static const ButtonTokens material = ButtonTokens(
     buildMinor: _materialMinor,
-    buildSuper: _materialMinor,
+    buildSuper: _materialSuper,
   );
 
   /// Read the active token set, or fall back to [material] if the
@@ -105,6 +108,65 @@ class ButtonTokens extends ThemeExtension<ButtonTokens> {
     if (other is! ButtonTokens) return this;
     return t < 0.5 ? this : other;
   }
+}
+
+/// Material-3 NavigationDrawer-style row used as the default
+/// [SuperButtonBuilder]. Transparent idle, [ColorScheme.secondaryContainer]
+/// when [selected], subtle hover overlay via [InkWell]. Rounded 12 px
+/// corners (between a flat list tile and a full pill) so it reads as
+/// a list row rather than a CTA button.
+Widget _materialSuper({
+  required String label,
+  required VoidCallback? onPressed,
+  IconData? icon,
+  bool destructive = false,
+  bool selected = false,
+}) {
+  return Builder(
+    builder: (BuildContext context) {
+      final ColorScheme scheme = Theme.of(context).colorScheme;
+      final Color bg = destructive
+          ? (selected ? scheme.errorContainer : Colors.transparent)
+          : (selected ? scheme.secondaryContainer : Colors.transparent);
+      final Color fg = destructive
+          ? (selected ? scheme.onErrorContainer : scheme.onSurface)
+          : (selected ? scheme.onSecondaryContainer : scheme.onSurface);
+      final BorderRadius radius = BorderRadius.circular(12);
+      return Material(
+        color: bg,
+        borderRadius: radius,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: radius,
+          child: Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                if (icon != null) ...<Widget>[
+                  Icon(icon, size: 20, color: fg),
+                  const SizedBox(width: 12),
+                ],
+                Flexible(
+                  child: Text(
+                    label,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: fg,
+                      fontWeight:
+                          selected ? FontWeight.w600 : FontWeight.normal,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    },
+  );
 }
 
 Widget _materialMinor({
