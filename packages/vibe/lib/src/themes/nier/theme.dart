@@ -2,8 +2,10 @@ import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/material.dart';
 import 'package:vibe/src/flex/flex_theme.dart';
 import 'package:vibe/src/theme.dart';
+import 'package:vibe/src/themes/button_tokens.dart';
 import 'package:vibe/src/themes/chart_palette.dart';
 import 'package:vibe/src/themes/frame_tokens.dart';
+import 'package:vibe/src/themes/nier/minor_button.dart';
 import 'package:vibe/src/themes/nier/page_frame.dart';
 import 'package:vibe/src/themes/nier/palette.dart';
 import 'package:vibe/src/themes/shape_tokens.dart';
@@ -117,6 +119,20 @@ class NierTheme extends FlexVibeTheme {
               showCorner: showCorner,
               child: child,
             ),
+          ),
+          ButtonTokens(
+            buildMinor: ({
+              required String label,
+              required VoidCallback? onPressed,
+              IconData? icon,
+              bool destructive = false,
+            }) =>
+                NierMinorButton(
+                  label: label,
+                  onPressed: onPressed,
+                  icon: icon,
+                  destructive: destructive,
+                ),
           ),
         ],
         // ThemeData.hoverColor is the global hover overlay that many
@@ -282,6 +298,20 @@ class NierTheme extends FlexVibeTheme {
               showCorner: showCorner,
               child: child,
             ),
+          ),
+          ButtonTokens(
+            buildMinor: ({
+              required String label,
+              required VoidCallback? onPressed,
+              IconData? icon,
+              bool destructive = false,
+            }) =>
+                NierMinorButton(
+                  label: label,
+                  onPressed: onPressed,
+                  icon: icon,
+                  destructive: destructive,
+                ),
           ),
         ],
         // See light comment. In dark Nier the Material 3 default
