@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import "package:vibe/vibe.dart";
 
 class LinkPageHeader extends StatelessWidget {
   final VoidCallback onClose;
@@ -38,11 +39,13 @@ class LinkPageHeader extends StatelessWidget {
             ),
           ),
           const Spacer(),
-          FilledButton.icon(
-            key: const Key("create_link_header_save_button"),
-            onPressed: hasEntries ? onSave : null,
-            icon: const Icon(Icons.save, size: 18),
-            label: const Text("Save"),
+          OffsetShadow(
+            child: FilledButton.icon(
+              key: const Key("create_link_header_save_button"),
+              onPressed: hasEntries ? onSave : null,
+              icon: const Icon(Icons.save, size: 18),
+              label: const Text("Save"),
+            ),
           ),
         ],
       ),

@@ -6,6 +6,7 @@ import "package:chenron/features/settings/service/config_service.dart";
 import "package:chenron/features/settings/service/data_settings_service.dart";
 import "package:chenron/features/settings/ui/cache/cache_settings.dart";
 import "package:chenron/features/theme/state/theme_notifier.dart";
+import "package:chenron/features/theme/state/theme_options_store.dart";
 import "package:chenron/locator.dart";
 import "package:flutter/material.dart";
 import "package:flutter_test/flutter_test.dart";
@@ -80,6 +81,7 @@ void main() {
       configService: mockConfigService,
       dataService: mockDataService,
       themeApplier: mockThemeApplier,
+      optionsStore: ThemeOptionsStore(),
     ));
 
     fakeCacheService = FakeCacheService(imageCacheSize: 1024 * 500); // 500 KB

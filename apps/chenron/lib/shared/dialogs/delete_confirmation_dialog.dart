@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import "package:vibe/vibe.dart";
 
 /// Data model for items to be deleted
 class DeletableItem {
@@ -276,14 +277,16 @@ class _DialogActions extends StatelessWidget {
             child: const Text("Cancel"),
           ),
           const SizedBox(width: 8),
-          FilledButton(
-            onPressed:
-                canConfirm ? () => Navigator.of(context).pop(true) : null,
-            style: FilledButton.styleFrom(
-              backgroundColor: colorScheme.error,
-              foregroundColor: colorScheme.onError,
+          OffsetShadow(
+            child: FilledButton(
+              onPressed:
+                  canConfirm ? () => Navigator.of(context).pop(true) : null,
+              style: FilledButton.styleFrom(
+                backgroundColor: colorScheme.error,
+                foregroundColor: colorScheme.onError,
+              ),
+              child: Text(count == 1 ? "Delete" : "Delete All"),
             ),
-            child: Text(count == 1 ? "Delete" : "Delete All"),
           ),
         ],
       ),

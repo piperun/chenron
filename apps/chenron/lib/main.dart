@@ -221,6 +221,11 @@ class ChenronApp extends StatelessWidget {
         themeAnimationDuration: kDefaultAnimationDuration,
         themeAnimationCurve: Curves.easeInOut,
         themeMode: currentMode ?? initialThemeMode,
+        // Theme-driven page frame. Themes that attach a FrameTokens
+        // get to wrap every route (e.g. Nier's dotted HUD bands at
+        // top/bottom); default themes pass the child through
+        // untouched.
+        builder: FrameTokens.wrapIfNeeded,
         home: const RootPage(),
       );
     });

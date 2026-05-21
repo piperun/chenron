@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import "package:vibe/vibe.dart";
 
 /// Shows a two-button confirmation dialog and returns whether the user
 /// confirmed.
@@ -36,14 +37,16 @@ Future<bool> showConfirmDialog(
             onPressed: () => Navigator.pop(ctx, false),
             child: Text(cancelLabel),
           ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: destructive
-                ? FilledButton.styleFrom(
-                    backgroundColor: theme.colorScheme.error,
-                  )
-                : null,
-            child: Text(confirmLabel),
+          OffsetShadow(
+            child: FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: destructive
+                  ? FilledButton.styleFrom(
+                      backgroundColor: theme.colorScheme.error,
+                    )
+                  : null,
+              child: Text(confirmLabel),
+            ),
           ),
         ],
       );

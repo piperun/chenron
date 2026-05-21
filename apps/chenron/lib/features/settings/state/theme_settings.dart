@@ -1,3 +1,5 @@
+import "dart:async";
+
 import "package:database/database.dart";
 import "package:flex_color_scheme/flex_color_scheme.dart";
 import "package:flutter/material.dart";
@@ -9,6 +11,7 @@ import "package:chenron/features/settings/service/config_service.dart";
 import "package:chenron/features/settings/state/settings_section.dart";
 import "package:chenron/features/settings/state/theme_choice.dart";
 import "package:chenron/features/theme/state/theme_notifier.dart";
+import "package:chenron/features/theme/state/theme_options_store.dart";
 import "package:chenron/features/theme/state/theme_utils.dart";
 import "package:app_logger/app_logger.dart";
 
@@ -43,14 +46,20 @@ abstract class ThemeSettings with _$ThemeSettings {
 class ThemeSettingsNotifier implements SettingsSection {
   final ConfigService _service;
   final ThemeNotifier _themeApplier;
+  final ThemeOptionsStore _optionsStore;
 
-  ThemeSettingsNotifier(this._service, this._themeApplier);
+  ThemeSettingsNotifier(this._service, this._themeApplier, this._optionsStore);
 
   final current = signal(const ThemeSettings());
   final saved = signal(const ThemeSettings());
 
   final availableThemes = signal<List<ThemeChoice>>(const []);
   final sortMode = signal<ThemeSortMode>(ThemeSortMode.name);
+
+  /// User-chosen values for the active theme's [VibeTheme.settings],
+  /// keyed by [ThemeSetting.key]. Empty for themes that declare no
+  /// settings.
+  final themeOptions = signal<Map<String, Object?>>(<String, Object?>{});
 
   /// Resolves the current key/type back to a full [ThemeChoice] using
   /// [availableThemes]. Returns null while themes haven't loaded yet
@@ -97,6 +106,36 @@ class ThemeSettingsNotifier implements SettingsSection {
       selectedKey: choice.key,
       selectedType: choice.type,
     );
+    // Pull the new theme's persisted options so the preview + live
+    // theme reflect them immediately. Custom themes have no schema, so
+    // the store returns an empty map and the apply is a no-op.
+    unawaited(loadOptionsFor(choice.key));
+  }
+
+  /// Loads persisted options for [themeId] and re-applies the active
+  /// theme so first paint reflects them. Safe to call for any
+  /// registered theme; themes without a schema clear [themeOptions].
+  Future<void> loadOptionsFor(String themeId) async {
+    final VibeTheme? theme = themeRegistry.get(themeId);
+    if (theme == null) {
+      themeOptions.value = <String, Object?>{};
+      return;
+    }
+    final Map<String, Object?> loaded =
+        await _optionsStore.load(themeId, theme.settings);
+    themeOptions.value = loaded;
+    await _themeApplier.applyOptions(loaded);
+  }
+
+  /// Update a single option for the currently selected theme. Persists
+  /// the new value and re-applies the live theme so the change shows up
+  /// without a settings save.
+  Future<void> setOption(String key, Object? value) async {
+    final String? themeId = current.value.selectedKey;
+    if (themeId == null) return;
+    themeOptions.value = <String, Object?>{...themeOptions.value, key: value};
+    await _optionsStore.set(themeId, key, value);
+    await _themeApplier.applyOptions(themeOptions.value);
   }
 
   void setSortMode(ThemeSortMode mode) {
@@ -192,6 +231,9 @@ class ThemeSettingsNotifier implements SettingsSection {
       selectedThemeType: s.selectedType,
     );
     await _themeApplier.changeTheme(key, s.selectedType);
+    // Re-hydrate the option map so the just-saved theme paints with
+    // its persisted overrides instead of the previous theme's state.
+    await loadOptionsFor(key);
     saved.value = s;
   }
 }

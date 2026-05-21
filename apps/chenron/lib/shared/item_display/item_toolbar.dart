@@ -136,6 +136,7 @@ class ItemToolbar extends StatelessWidget {
           // View toggle
           Container(
             decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainer,
               border: Border.all(color: theme.dividerColor),
               borderRadius: BorderRadius.circular(8),
             ),

@@ -1,4 +1,6 @@
 import "package:chenron/features/theme/ui/components/available_theme_selector.dart";
+import "package:chenron/features/theme/ui/components/dark_mode_switch.dart";
+import "package:chenron/features/theme/ui/components/theme_options_section.dart";
 import "package:flutter/material.dart";
 
 class ThemeSettingsPanel extends StatelessWidget {
@@ -12,6 +14,9 @@ class ThemeSettingsPanel extends StatelessWidget {
       children: [
         AvailableThemeSelector(),
         SizedBox(height: 8),
+        DarkModeSwitch(),
+        SizedBox(height: 16),
+        ThemeOptionsSection(),
       ],
     );
   }

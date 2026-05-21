@@ -2,6 +2,7 @@ import "package:chenron/features/settings/coordinator/settings_coordinator.dart"
 import "package:chenron/features/settings/service/config_service.dart";
 import "package:chenron/features/settings/service/data_settings_service.dart";
 import "package:chenron/features/theme/state/theme_notifier.dart";
+import "package:chenron/features/theme/state/theme_options_store.dart";
 import "package:database/database.dart";
 import "package:flutter_test/flutter_test.dart";
 import "package:mockito/annotations.dart";
@@ -24,6 +25,7 @@ void main() {
       configService: configService,
       dataService: dataService,
       themeApplier: themeApplier,
+      optionsStore: ThemeOptionsStore(),
     );
 
     // Defaults — happy path stubs.

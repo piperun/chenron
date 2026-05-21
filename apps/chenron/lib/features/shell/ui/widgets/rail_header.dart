@@ -1,4 +1,6 @@
 import "package:flutter/material.dart";
+import "package:vibe/vibe.dart";
+
 import "package:chenron/components/floating_label.dart";
 import "package:chenron/features/shell/ui/sections/navigation_section.dart";
 
@@ -31,6 +33,11 @@ class RailHeader extends StatelessWidget {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final showExtended = constraints.maxWidth > 120;
+          // Nier-style themes opt into tracked caps; default themes
+          // keep the existing tight tracking on the "FOLDERS" label.
+          final typo = TypographyTokens.of(context);
+          final folderHeaderTracking =
+              typo.headerLetterSpacing == 0 ? 0.3 : typo.headerLetterSpacing;
           return Column(
             crossAxisAlignment: showExtended
                 ? CrossAxisAlignment.start
@@ -53,12 +60,17 @@ class RailHeader extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
+                    Text(
+                      // Always rendered caps regardless of theme; the
+                      // TypographyTokens consumption here is purely
+                      // about how *wide* the tracking is. Nier picks
+                      // up its 2px tracking; Material themes keep the
+                      // original tight 0.3.
                       "FOLDERS",
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
-                        letterSpacing: 0.3,
+                        letterSpacing: folderHeaderTracking,
                       ),
                     ),
                     IconButton(

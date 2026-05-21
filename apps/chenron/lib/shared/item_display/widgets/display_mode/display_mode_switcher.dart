@@ -45,6 +45,7 @@ class DisplayModeSwitcher extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainer,
           border: Border.all(color: theme.dividerColor),
           borderRadius: BorderRadius.circular(8),
         ),

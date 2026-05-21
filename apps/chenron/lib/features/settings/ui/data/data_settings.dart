@@ -2,6 +2,7 @@ import "dart:async";
 import "dart:io";
 
 import "package:cache_manager/cache_manager.dart";
+import "package:vibe/vibe.dart";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:file_picker/file_picker.dart";
@@ -235,10 +236,12 @@ class _DataSettingsState extends State<DataSettings> {
 
           if (hasPathChanged) ...[
             const SizedBox(height: 16),
-            FilledButton.icon(
-              onPressed: _handleApplyRestart,
-              icon: const Icon(Icons.restart_alt, size: 18),
-              label: const Text("Apply & Restart"),
+            OffsetShadow(
+              child: FilledButton.icon(
+                onPressed: _handleApplyRestart,
+                icon: const Icon(Icons.restart_alt, size: 18),
+                label: const Text("Apply & Restart"),
+              ),
             ),
           ],
 
@@ -330,10 +333,11 @@ class _RestartDialog extends StatelessWidget {
       title: Text(title),
       content: Text(message),
       actions: [
-        // ignore: prefer_const_constructors
-        FilledButton(
-          onPressed: SystemNavigator.pop,
-          child: const Text("Restart Now"),
+        const OffsetShadow(
+          child: FilledButton(
+            onPressed: SystemNavigator.pop,
+            child: Text("Restart Now"),
+          ),
         ),
       ],
     );
