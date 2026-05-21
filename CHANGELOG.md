@@ -2,6 +2,21 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## chenron-v1.14.0 - 2026-05-21
+#### Features
+- (**chenron**) WIP — migrate Settings nav rail to SuperButton - (d8a9f36) - *piperun*
+- (**chenron**) WIP — adopt theme-agnostic MinorButton - (ac94c1c) - *piperun*
+- (**chenron**) WIP — migrate primary OutlinedButton sites to NierMinorButton - (ac76686) - *piperun*
+- (**chenron**) WIP — adopt HoverShadow + NierMinorButton - (a4ba97f) - *piperun*
+- (**chenron**) WIP — apply Nier tokens + per-theme settings UI - (f19bb40) - *piperun*
+- (**chenron**) consume ShapeTokens for hand-rolled corners - (7a27199) - *piperun*
+#### Performance Improvements
+- (**chenron**) parallelize SettingsCoordinator initialize - (8c2beb8) - *piperun*
+- (**chenron**) split folder-rail counts into fast names + slow counts upgrade - (5f61abe) - *piperun*
+- (**chenron**) folder-open + startup latency fixes - (aacac32) - *piperun*
+
+- - -
+
 ## chenron-v1.13.1 - 2026-05-20
 #### Bug Fixes
 - (**chenron**) collapse duplicate ChenronDir enum to silence GetIt warning - (acd0dd0) - *piperun*
