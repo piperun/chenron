@@ -1,5 +1,7 @@
 import "package:flutter/material.dart";
 import "package:flutter_test/flutter_test.dart";
+import "package:vibe/vibe.dart";
+
 import "package:chenron/shared/empty_state/empty_state.dart";
 
 void main() {
@@ -66,7 +68,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text("Create New"), findsOneWidget);
-      expect(find.byType(OutlinedButton), findsOneWidget);
+      expect(find.byType(NierMinorButton), findsOneWidget);
     });
 
     testWidgets("hides action button when actionLabel is null",
@@ -77,7 +79,7 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      expect(find.byType(OutlinedButton), findsNothing);
+      expect(find.byType(NierMinorButton), findsNothing);
     });
 
     testWidgets("hides action button when onAction is null", (tester) async {
@@ -87,7 +89,7 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      expect(find.byType(OutlinedButton), findsNothing);
+      expect(find.byType(NierMinorButton), findsNothing);
     });
 
     testWidgets("wraps content in SingleChildScrollView", (tester) async {

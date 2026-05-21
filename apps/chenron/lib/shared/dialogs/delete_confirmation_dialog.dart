@@ -268,14 +268,20 @@ class _DialogActions extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(20),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
+      // Wrap (not Row) so the buttons stack vertically when the
+      // dialog is narrower than the combined width — each NierMinorButton
+      // now carries a leading pointer slot, so two side-by-side
+      // buttons need ~120 px more than the old TextButton/FilledButton
+      // pair and can blow past a constrained dialog width.
+      child: Wrap(
+        alignment: WrapAlignment.end,
+        spacing: 8,
+        runSpacing: 8,
         children: [
           NierMinorButton(
             label: "Cancel",
             onPressed: () => Navigator.of(context).pop(false),
           ),
-          const SizedBox(width: 8),
           NierMinorButton(
             label: count == 1 ? "Delete" : "Delete All",
             destructive: true,

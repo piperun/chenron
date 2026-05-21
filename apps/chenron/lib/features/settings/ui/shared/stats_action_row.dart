@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import "package:vibe/vibe.dart";
 
 /// Single-line settings row that shows a cached stat (size, count, ...) with
 /// a destructive "clear"-style action button on the right.
@@ -54,13 +55,11 @@ class StatsActionRow extends StatelessWidget {
           ],
         ),
         const Spacer(),
-        OutlinedButton.icon(
+        NierMinorButton(
+          label: buttonLabel,
+          icon: Icons.delete_outline,
+          destructive: true,
           onPressed: onClear,
-          icon: const Icon(Icons.delete_outline, size: 18),
-          label: Text(buttonLabel),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: theme.colorScheme.error,
-          ),
         ),
       ],
     );

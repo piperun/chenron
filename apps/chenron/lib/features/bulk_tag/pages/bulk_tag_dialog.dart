@@ -9,6 +9,7 @@ import "package:database/database.dart";
 import "package:database/features.dart";
 import "package:flutter/material.dart";
 import "package:signals/signals.dart";
+import "package:vibe/vibe.dart";
 
 // Re-export so callers only need one import
 export "package:chenron/features/bulk_tag/models/bulk_tag_result.dart";
@@ -216,8 +217,6 @@ class _BulkTagDialogState extends State<_BulkTagDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     final itemCount = widget.items.length;
     final hasItems = itemCount > 0;
 
@@ -276,14 +275,10 @@ class _BulkTagDialogState extends State<_BulkTagDialog> {
                 }
                 return Padding(
                   padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-                  child: OutlinedButton.icon(
+                  child: NierMinorButton(
+                    label: 'Create "$query"',
+                    icon: Icons.add,
                     onPressed: _handleCreateTag,
-                    icon: const Icon(Icons.add, size: 18),
-                    label: Text('Create "$query"'),
-                    style: OutlinedButton.styleFrom(
-                      alignment: Alignment.centerLeft,
-                      foregroundColor: colorScheme.primary,
-                    ),
                   ),
                 );
               },
