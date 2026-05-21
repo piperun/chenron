@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## database-v0.14.1 - 2026-05-21
+#### Performance Improvements
+- (**database**) items(item_id) index + parallelize folder pagination - (91a5019) - *piperun*
+
+- - -
+
 ## database-v0.14.0 - 2026-05-19
 #### Features
 - (**database**) add background_jobs cleanup helpers - (f9969dd) - *piperun*
