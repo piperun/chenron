@@ -1,4 +1,6 @@
 import "package:flutter/material.dart";
+import "package:vibe/vibe.dart";
+
 import "package:chenron/features/settings/models/settings_category.dart";
 
 class SettingsNavigationRail extends StatefulWidget {
@@ -184,56 +186,64 @@ class _CategoryRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final IconData displayIcon =
+        isSelected ? category.selectedIcon : category.icon;
 
-    return Tooltip(
-      message: isExtended ? "" : category.label,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(10),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          margin: const EdgeInsets.symmetric(vertical: 2),
-          decoration: BoxDecoration(
-            color:
-                isSelected ? colorScheme.primaryContainer : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                isSelected ? category.selectedIcon : category.icon,
-                size: 20,
-                color: isSelected
-                    ? colorScheme.onPrimaryContainer
-                    : colorScheme.onSurfaceVariant,
-              ),
-              if (isExtended) ...[
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    category.label,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight:
-                          isSelected ? FontWeight.w600 : FontWeight.normal,
-                      color: isSelected
-                          ? colorScheme.onPrimaryContainer
-                          : colorScheme.onSurface,
-                    ),
-                  ),
-                ),
-                if (category.hasChildren)
-                  Icon(
-                    isExpanded ? Icons.expand_more : Icons.chevron_right,
-                    size: 18,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-              ],
-            ],
+    // Collapsed rail: tight icon-only row. SuperButton's pointer +
+    // plate chrome doesn't make sense in 72 px width, so we keep the
+    // existing minimal layout for this mode.
+    if (!isExtended) {
+      return Tooltip(
+        message: category.label,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(10),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            margin: const EdgeInsets.symmetric(vertical: 2),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? colorScheme.primaryContainer
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              displayIcon,
+              size: 20,
+              color: isSelected
+                  ? colorScheme.onPrimaryContainer
+                  : colorScheme.onSurfaceVariant,
+            ),
           ),
         ),
-      ),
+      );
+    }
+
+    // Extended rail: SuperButton renders the menu-row chrome (active
+    // theme decides — Nier gives YorHa fade-fill + pointer + borders;
+    // Material falls back to a plain FilledButton). Hierarchy chevron
+    // sits outside the button as a trailing hint.
+    final Widget button = SuperButton(
+      label: category.label,
+      icon: displayIcon,
+      selected: isSelected,
+      onPressed: onTap,
+    );
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: category.hasChildren
+          ? Row(
+              children: [
+                Expanded(child: button),
+                Icon(
+                  isExpanded ? Icons.expand_more : Icons.chevron_right,
+                  size: 18,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ],
+            )
+          : button,
     );
   }
 }
@@ -251,43 +261,15 @@ class _SubCategoryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        padding: const EdgeInsets.only(left: 32, right: 10, top: 6, bottom: 6),
-        margin: const EdgeInsets.symmetric(vertical: 1),
-        decoration: BoxDecoration(
-          color: isSelected ? colorScheme.primaryContainer : Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              isSelected ? category.selectedIcon : category.icon,
-              size: 18,
-              color: isSelected
-                  ? colorScheme.onPrimaryContainer
-                  : colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                category.label,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                  color: isSelected
-                      ? colorScheme.onPrimaryContainer
-                      : colorScheme.onSurface,
-                ),
-              ),
-            ),
-          ],
-        ),
+    return Padding(
+      // Indent sub-categories so the hierarchy stays visually obvious
+      // even after the pointer + plate chrome takes most of the row.
+      padding: const EdgeInsets.only(left: 20, top: 1, bottom: 1),
+      child: SuperButton(
+        label: category.label,
+        icon: isSelected ? category.selectedIcon : category.icon,
+        selected: isSelected,
+        onPressed: onTap,
       ),
     );
   }
