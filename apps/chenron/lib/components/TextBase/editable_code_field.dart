@@ -377,6 +377,10 @@ class _ErrorHighlightPainter extends CustomPainter {
 
       currentY += lineHeight;
     }
+    // TextPainter requires manual disposal as of Flutter 3.13+ even
+    // when created locally — otherwise its internal Paragraph leaks
+    // through the engine boundary.
+    textPainter.dispose();
   }
 
   @override
