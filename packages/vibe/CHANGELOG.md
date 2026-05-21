@@ -2,6 +2,19 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## vibe-v0.3.0 - 2026-05-21
+#### Features
+- (**vibe**) WIP — SuperButton + selected state for menu-row tier - (3efa245) - *piperun*
+- (**vibe**) WIP — ButtonTokens dispatch + generic MinorButton - (d3d7f0e) - *piperun*
+- (**vibe**) WIP — NierMinorButton 3D translate + YorHa pointer + theme-aware shadow shape - (c3d488a) - *piperun*
+- (**vibe**) WIP — HoverShadow + NierMinorButton - (34d152b) - *piperun*
+- (**vibe**) WIP — nier UI overhaul + per-theme settings schema - (280bc77) - *piperun*
+- (**vibe**) add ShapeTokens ThemeExtension + square Nier widget shapes - (4182f97) - *piperun*
+#### Performance Improvements
+- (**vibe**) redesign Material `buildSuper` default as a nav-row pill - (5d4289a) - *piperun*
+
+- - -
+
 ## vibe-v0.2.0 - 2026-05-20
 #### Features
 - (**vibe**) add ChartPalette ThemeExtension with Nier YorHa palette - (877e61f) - *piperun*
