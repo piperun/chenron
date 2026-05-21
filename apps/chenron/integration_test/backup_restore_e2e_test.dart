@@ -152,7 +152,7 @@ void main() {
       );
       // Schema version must match the live DB — otherwise restore would
       // trigger an unwanted migration and corrupt data.
-      expect(restored.schemaVersion, equals(15));
+      expect(restored.schemaVersion, equals(16));
 
       final canaryLinks = await restored.getAllLinks();
       expect(

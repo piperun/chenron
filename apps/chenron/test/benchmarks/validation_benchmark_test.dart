@@ -218,7 +218,12 @@ void main() {
       debugPrint(
           "Ratio: ${(sw2.elapsedMilliseconds / sw1.elapsedMilliseconds).toStringAsFixed(2)}x slower");
       debugPrint("\nValid URLs (format): ${formatResult.validLines}");
-    });
+      // Calls `UrlValidatorService.validateUrls` which hits the
+      // network for 50 URLs — flaky on CI / when network is slow,
+      // and the rest of this file's benchmark groups already opt
+      // out by default. Matches the existing pattern.
+    },
+        skip: "Benchmark test (does network) - run explicitly when needed");
   });
 
   group("Memory Usage Test",

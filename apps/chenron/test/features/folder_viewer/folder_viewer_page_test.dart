@@ -75,10 +75,15 @@ void main() {
     // that chain. Full header rendering is covered by integration tests.
 
     group("Loading states", () {
-      testWidgets("shows loading indicator initially", (tester) async {
+      testWidgets("renders chrome immediately (back / home / lock buttons)",
+          (tester) async {
         await tester.pumpWidget(buildViewer(folderId: testFolderId));
 
-        expect(find.byType(CircularProgressIndicator), findsOneWidget);
+        // The page no longer gates rendering behind a full-page
+        // CircularProgressIndicator — chrome (back / home / lock)
+        // shows up on first frame while metadata loads.
+        expect(find.byIcon(Icons.arrow_back), findsOneWidget);
+        expect(find.byIcon(Icons.home), findsOneWidget);
       });
 
       testWidgets("shows error for non-existent folder", (tester) async {

@@ -19,12 +19,17 @@ class InfiniteScrollNotifier<T> {
   })  : _loader = loader,
         _countLoader = countLoader;
 
-  /// Loads the total count (if countLoader provided) and the first page.
+  /// Loads the total count (if countLoader provided) and the first
+  /// page. The count and the first page are fired off in parallel —
+  /// neither depends on the other, and serializing them was a
+  /// noticeable contributor to first-paint latency on folder open.
   Future<void> loadInitial() async {
-    if (_countLoader != null) {
-      totalCount.value = await _countLoader();
-    }
-    await loadNextPage();
+    final futures = <Future<void>>[
+      loadNextPage(),
+      if (_countLoader != null)
+        _countLoader().then((value) => totalCount.value = value),
+    ];
+    await Future.wait(futures);
   }
 
   /// Appends the next page of items. No-op if already loading or no more items.

@@ -31,19 +31,24 @@ void main() async {
   final initialThemeMode = isDark ? ThemeMode.dark : ThemeMode.light;
   final cachedTheme = ThemeCache.loadCachedTheme(prefs);
 
-  // Restore persisted window size on desktop platforms
-  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-    await _initWindowManager(prefs);
-  }
-
-  // Show a loading screen immediately, then initialize in the background.
-  // This eliminates the blank white window that appears while databases,
-  // directories, and services are being set up.
+  // Show a loading screen immediately, then initialize in the
+  // background. This eliminates the blank white window that appears
+  // while databases, directories, and services are being set up.
   runApp(AppBootstrap(
     initialThemeMode: initialThemeMode,
     cachedTheme: cachedTheme,
     prefs: prefs,
   ));
+
+  // Restore persisted window size on desktop platforms. Unawaited
+  // so it runs in parallel with AppBootstrap's MainSetup — the
+  // OS-window setup (~50–200 ms) overlaps with database/locator
+  // init instead of gating it. `windowManager.waitUntilReadyToShow`
+  // keeps the window hidden until ready, so the user still sees the
+  // loading screen on first paint, not a flash of an empty window.
+  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    unawaited(_initWindowManager(prefs));
+  }
 }
 
 Future<void> _initWindowManager(SharedPreferences prefs) async {
@@ -129,9 +134,13 @@ class _AppBootstrapState extends State<AppBootstrap> {
       loggerGlobal.info("AppBootstrap", "Locator ready.");
       if (mounted) setState(() => _isReady = true);
 
-      // Non-critical tasks (backup scheduler, daily snapshot) run after
-      // the UI is visible so the app feels responsive immediately.
-      await MainSetup.runDeferredTasks();
+      // Non-critical tasks (backup scheduler, daily snapshot, orphan
+      // cleanup, etc.) run after the UI is visible. Fire-and-forget
+      // — each task wraps its own try/catch and is documented as
+      // non-fatal, so we don't need to await them; awaiting them
+      // here pinned the main isolate on background work right when
+      // the user was first interacting.
+      unawaited(MainSetup.runDeferredTasks());
     } catch (error, stackTrace) {
       loggerGlobal.severe(
           "AppBootstrap", "Failed to initialize: $error", error, stackTrace);

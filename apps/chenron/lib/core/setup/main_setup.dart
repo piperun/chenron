@@ -182,12 +182,10 @@ class MainSetup {
   }) async {
     try {
       final configHandler = locator.get<Signal<ConfigDatabaseLifecycle>>();
-      final databaseLocation = DatabaseLocation(
+      configHandler.value.databaseLocation = DatabaseLocation(
         databaseDirectory: baseDirs.dir(ChenronDir.database),
         databaseFilename: "config.sqlite",
       );
-      configHandler.value.databaseLocation = databaseLocation;
-      await configHandler.value.createDatabase(setupOnInit: true);
 
       // Initialize AppDatabase — use custom path if provided and valid,
       // otherwise fall back to the default base directory.
@@ -205,12 +203,18 @@ class MainSetup {
               "Custom db path '$customAppDbPath' not found, using default.");
         }
       }
-      final appDatabaseLocation = DatabaseLocation(
+      appDbHandler.value.databaseLocation = DatabaseLocation(
         databaseDirectory: appDbDir,
         databaseFilename: "app.sqlite",
       );
-      appDbHandler.value.databaseLocation = appDatabaseLocation;
-      await appDbHandler.value.createDatabase(setupOnInit: true);
+
+      // Open both databases in parallel — they are independent SQLite
+      // files; serializing them was costing the startup-critical-path
+      // an extra migration + setup pass while the second one waited.
+      await Future.wait([
+        configHandler.value.createDatabase(setupOnInit: true),
+        appDbHandler.value.createDatabase(setupOnInit: true),
+      ]);
 
       // Connect the locator-registered metadata cache to the drift
       // database. The cache instance was registered empty in
