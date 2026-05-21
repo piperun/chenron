@@ -20,6 +20,10 @@ monorepo_version_separator = "-"
 
 [commit_types]
 hotfix = { changelog_title = "Hotfixes", bump_patch = true }
+# Conventional Commits treats `perf` as patch-bump material — cog's
+# default leaves it out, so opt in explicitly. Without this a perf-only
+# round needs `cog bump --patch --package <name>` instead of `--auto`.
+perf = { changelog_title = "Performance", bump_patch = true }
 chore = { changelog_title = "Chores", omit_from_changelog = true }
 test = { changelog_title = "Tests", omit_from_changelog = true }
 ci = { changelog_title = "CI", omit_from_changelog = true }
