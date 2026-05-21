@@ -16,3 +16,4 @@ export 'package:vibe/src/themes/typography_tokens.dart';
 export 'package:vibe/src/widgets/hover_shadow.dart';
 export 'package:vibe/src/widgets/minor_button.dart';
 export 'package:vibe/src/widgets/offset_shadow.dart';
+export 'package:vibe/src/widgets/super_button.dart';

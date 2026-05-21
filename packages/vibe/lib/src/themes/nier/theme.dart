@@ -8,6 +8,7 @@ import 'package:vibe/src/themes/frame_tokens.dart';
 import 'package:vibe/src/themes/nier/minor_button.dart';
 import 'package:vibe/src/themes/nier/page_frame.dart';
 import 'package:vibe/src/themes/nier/palette.dart';
+import 'package:vibe/src/themes/nier/super_button.dart';
 import 'package:vibe/src/themes/shape_tokens.dart';
 import 'package:vibe/src/themes/theme_setting.dart';
 import 'package:vibe/src/themes/typography_tokens.dart';
@@ -126,12 +127,28 @@ class NierTheme extends FlexVibeTheme {
               required VoidCallback? onPressed,
               IconData? icon,
               bool destructive = false,
+              bool selected = false,
             }) =>
                 NierMinorButton(
                   label: label,
                   onPressed: onPressed,
                   icon: icon,
                   destructive: destructive,
+                  selected: selected,
+                ),
+            buildSuper: ({
+              required String label,
+              required VoidCallback? onPressed,
+              IconData? icon,
+              bool destructive = false,
+              bool selected = false,
+            }) =>
+                NierSuperButton(
+                  label: label,
+                  onPressed: onPressed,
+                  icon: icon,
+                  destructive: destructive,
+                  selected: selected,
                 ),
           ),
         ],
@@ -305,12 +322,28 @@ class NierTheme extends FlexVibeTheme {
               required VoidCallback? onPressed,
               IconData? icon,
               bool destructive = false,
+              bool selected = false,
             }) =>
                 NierMinorButton(
                   label: label,
                   onPressed: onPressed,
                   icon: icon,
                   destructive: destructive,
+                  selected: selected,
+                ),
+            buildSuper: ({
+              required String label,
+              required VoidCallback? onPressed,
+              IconData? icon,
+              bool destructive = false,
+              bool selected = false,
+            }) =>
+                NierSuperButton(
+                  label: label,
+                  onPressed: onPressed,
+                  icon: icon,
+                  destructive: destructive,
+                  selected: selected,
                 ),
           ),
         ],
