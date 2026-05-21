@@ -3995,6 +3995,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       'document_title', 'CREATE INDEX document_title ON documents (title)');
   late final Index itemsFolderItemIdx = Index('items_folder_item_idx',
       'CREATE UNIQUE INDEX items_folder_item_idx ON items (folder_id, item_id)');
+  late final Index itemsItemIdx =
+      Index('items_item_idx', 'CREATE INDEX items_item_idx ON items (item_id)');
   late final Index metadataRecordsItemIdx = Index('metadata_records_item_idx',
       'CREATE INDEX metadata_records_item_idx ON metadata_records (item_id)');
   late final Index activityEventsOccurredIdx = Index(
@@ -4022,6 +4024,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         folderTitle,
         documentTitle,
         itemsFolderItemIdx,
+        itemsItemIdx,
         metadataRecordsItemIdx,
         activityEventsOccurredIdx,
         backgroundJobsStatusCreatedIdx

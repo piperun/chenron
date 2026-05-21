@@ -70,7 +70,7 @@ class AppDatabase extends _$AppDatabase {
   Future<void> setup() async {}
 
   @override
-  int get schemaVersion => 15;
+  int get schemaVersion => 16;
 
   @override
   MigrationStrategy get migration {
@@ -402,6 +402,19 @@ class AppDatabase extends _$AppDatabase {
           await migrator.alterTable(TableMigration(metadataRecords));
           await customStatement("DROP TABLE IF EXISTS item_types");
           await customStatement("DROP TABLE IF EXISTS metadata_types");
+        }
+
+        // v15 -> v16: add an index on items(item_id). The existing
+        // composite (folder_id, item_id) index can't serve queries
+        // filtered by item_id alone (SQLite needs the leading column
+        // to be present), so parent-folder lookups like
+        // `SELECT * FROM items WHERE item_id = ?` were doing full
+        // table scans on every folder open. This single-column index
+        // turns those into B-tree lookups.
+        if (from < 16) {
+          await customStatement(
+            "CREATE INDEX IF NOT EXISTS items_item_idx ON items (item_id)",
+          );
         }
       },
     );
