@@ -3,8 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:vibe/src/flex/flex_theme.dart';
 import 'package:vibe/src/theme.dart';
 import 'package:vibe/src/themes/chart_palette.dart';
+import 'package:vibe/src/themes/frame_tokens.dart';
+import 'package:vibe/src/themes/nier/page_frame.dart';
 import 'package:vibe/src/themes/nier/palette.dart';
 import 'package:vibe/src/themes/shape_tokens.dart';
+import 'package:vibe/src/themes/theme_setting.dart';
+import 'package:vibe/src/themes/typography_tokens.dart';
 
 /// Nier: Automata themed implementation (Tier 4 — full control).
 ///
@@ -14,11 +18,34 @@ import 'package:vibe/src/themes/shape_tokens.dart';
 /// Light: primary = brown (interactive), backgrounds = beige
 /// Dark:  primary = beige (interactive), backgrounds = brown
 class NierTheme extends FlexVibeTheme {
+  /// SharedPreferences sub-key for the graph-paper grid overlay toggle.
+  static const String optGrid = 'gridOverlay';
+
+  /// SharedPreferences sub-key for the corner-decor (circle + hatch)
+  /// toggle.
+  static const String optCornerDecor = 'cornerDecor';
+
   @override
   String get id => 'nier';
 
   @override
   String get name => 'Nier: Automata';
+
+  @override
+  List<ThemeSetting<Object?>> get settings => const <ThemeSetting<Object?>>[
+        BoolThemeSetting(
+          key: optGrid,
+          label: 'Grid overlay',
+          description: 'Fine graph-paper wash behind page content',
+          defaultValue: true,
+        ),
+        BoolThemeSetting(
+          key: optCornerDecor,
+          label: 'Corner decor',
+          description: 'Faded YorHa circle + diagonal hatching motif',
+          defaultValue: true,
+        ),
+      ];
 
   @override
   FlexSchemeColor get lightColors => FlexSchemeColor(
@@ -68,7 +95,11 @@ class NierTheme extends FlexVibeTheme {
       );
 
   @override
-  ThemeVariants build() {
+  ThemeVariants build([
+    Map<String, Object?> options = const <String, Object?>{},
+  ]) {
+    final bool showGrid = options[optGrid] as bool? ?? true;
+    final bool showCorner = options[optCornerDecor] as bool? ?? true;
     final ThemeVariants base = super.build();
 
     return (
@@ -79,6 +110,14 @@ class NierTheme extends FlexVibeTheme {
         extensions: <ThemeExtension<dynamic>>[
           ChartPalette.nier,
           ShapeTokens.nier,
+          TypographyTokens.nier,
+          FrameTokens(
+            wrap: (Widget child) => NierPageFrame(
+              showGrid: showGrid,
+              showCorner: showCorner,
+              child: child,
+            ),
+          ),
         ],
         // ThemeData.hoverColor is the global hover overlay that many
         // Material widgets fall back to. Material 3's default is
@@ -91,7 +130,12 @@ class NierTheme extends FlexVibeTheme {
           bodyColor: NierColors.yorha.textBrownGrey,
           displayColor: NierColors.yorha.textBrownGrey,
         ),
-        scaffoldBackgroundColor: NierColors.yorha.canvasBeige,
+        // Scaffold is transparent so the Nier decoration layers
+        // (corner decor SVG + grid lines) painted inside
+        // NierPageFrame show through. The visible page background is
+        // provided by NierPageFrame's outer ColoredBox using the
+        // theme's surface color.
+        scaffoldBackgroundColor: Colors.transparent,
         colorScheme: base.light.colorScheme.copyWith(
           surface: NierColors.yorha.canvasBeige,
           surfaceContainerLowest: NierColors.yorha.surfaceOffWhite,
@@ -193,23 +237,35 @@ class NierTheme extends FlexVibeTheme {
             ),
           ),
         ),
+        // Filled + elevated + outlined buttons follow the in-game
+        // YorHa choice-button pattern: lighter `dominantBeige`
+        // surface when idle, `textBrownGrey` (dark) when hovered /
+        // focused / pressed / selected. Foreground inverts so
+        // contrast stays legible. Drop shadow is handled by wrapping
+        // the button in `OffsetShadow` at the call site (Material's
+        // elevation always blurs; Nier needs hard offset).
         elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: NierColors.yorha.textBrownGrey,
-            foregroundColor: NierColors.yorha.canvasBeige,
-            shape: const RoundedRectangleBorder(),
+          style: _nierButtonStyle(
+            idleBg: NierColors.yorha.dominantBeige,
+            idleFg: NierColors.yorha.textBrownGrey,
+            activeBg: NierColors.yorha.textBrownGrey,
+            activeFg: NierColors.yorha.canvasBeige,
           ),
         ),
-        // FlexColorScheme's filledButtonSchemeColor sets the background
-        // to primary but its derived foreground reads as white on
-        // brown. Pin foreground explicitly to canvasBeige so "Add New"
-        // and other filled buttons render the in-game cream-on-brown
-        // pairing.
         filledButtonTheme: FilledButtonThemeData(
-          style: FilledButton.styleFrom(
-            backgroundColor: NierColors.yorha.textBrownGrey,
-            foregroundColor: NierColors.yorha.canvasBeige,
-            shape: const RoundedRectangleBorder(),
+          style: _nierButtonStyle(
+            idleBg: NierColors.yorha.dominantBeige,
+            idleFg: NierColors.yorha.textBrownGrey,
+            activeBg: NierColors.yorha.textBrownGrey,
+            activeFg: NierColors.yorha.canvasBeige,
+          ),
+        ),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: _nierButtonStyle(
+            idleBg: NierColors.yorha.dominantBeige,
+            idleFg: NierColors.yorha.textBrownGrey,
+            activeBg: NierColors.yorha.textBrownGrey,
+            activeFg: NierColors.yorha.canvasBeige,
           ),
         ),
       ),
@@ -219,6 +275,14 @@ class NierTheme extends FlexVibeTheme {
         extensions: <ThemeExtension<dynamic>>[
           ChartPalette.nier,
           ShapeTokens.nier,
+          TypographyTokens.nier,
+          FrameTokens(
+            wrap: (Widget child) => NierPageFrame(
+              showGrid: showGrid,
+              showCorner: showCorner,
+              child: child,
+            ),
+          ),
         ],
         // See light comment. In dark Nier the Material 3 default
         // overlay (onSurface = canvasBeige cream at low alpha) lifts
@@ -230,7 +294,8 @@ class NierTheme extends FlexVibeTheme {
           bodyColor: NierColors.yorha.canvasBeige,
           displayColor: NierColors.yorha.canvasBeige,
         ),
-        scaffoldBackgroundColor: NierColors.yorha.textBrownGrey,
+        // See light comment.
+        scaffoldBackgroundColor: Colors.transparent,
         colorScheme: base.dark.colorScheme.copyWith(
           surface: NierColors.yorha.textBrownGrey,
           surfaceContainerLowest: NierColors.yorha.textBrownDarker,
@@ -328,23 +393,66 @@ class NierTheme extends FlexVibeTheme {
             ),
           ),
         ),
+        // Dark-mode counterpart of the YorHa choice-button pattern:
+        // textBrownDarker (deeper brown) when idle, canvasBeige
+        // (cream) when active. Foreground inverts.
         elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: NierColors.yorha.canvasBeige,
-            foregroundColor: NierColors.yorha.textBrownGrey,
-            shape: const RoundedRectangleBorder(),
+          style: _nierButtonStyle(
+            idleBg: NierColors.yorha.textBrownDarker,
+            idleFg: NierColors.yorha.canvasBeige,
+            activeBg: NierColors.yorha.canvasBeige,
+            activeFg: NierColors.yorha.textBrownGrey,
           ),
         ),
-        // Dark-mode counterpart: bg = primary (canvasBeige cream),
-        // fg = textBrownGrey so we get brown-text-on-cream-button.
         filledButtonTheme: FilledButtonThemeData(
-          style: FilledButton.styleFrom(
-            backgroundColor: NierColors.yorha.canvasBeige,
-            foregroundColor: NierColors.yorha.textBrownGrey,
-            shape: const RoundedRectangleBorder(),
+          style: _nierButtonStyle(
+            idleBg: NierColors.yorha.textBrownDarker,
+            idleFg: NierColors.yorha.canvasBeige,
+            activeBg: NierColors.yorha.canvasBeige,
+            activeFg: NierColors.yorha.textBrownGrey,
+          ),
+        ),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: _nierButtonStyle(
+            idleBg: NierColors.yorha.textBrownDarker,
+            idleFg: NierColors.yorha.canvasBeige,
+            activeBg: NierColors.yorha.canvasBeige,
+            activeFg: NierColors.yorha.textBrownGrey,
           ),
         ),
       ),
     );
   }
+}
+
+/// Shared button style for the in-game YorHa "lighter idle, darker
+/// active" choice pattern. Returns a [ButtonStyle] whose background
+/// + foreground each swap between the idle and active pair based on
+/// `WidgetState.hovered`, `focused`, `pressed`, or `selected`. Shape
+/// is forced square to match `ShapeTokens.nier`.
+ButtonStyle _nierButtonStyle({
+  required Color idleBg,
+  required Color idleFg,
+  required Color activeBg,
+  required Color activeFg,
+}) {
+  const Set<WidgetState> activeStates = <WidgetState>{
+    WidgetState.hovered,
+    WidgetState.focused,
+    WidgetState.pressed,
+    WidgetState.selected,
+  };
+  bool isActive(Set<WidgetState> states) =>
+      states.any(activeStates.contains);
+  return ButtonStyle(
+    backgroundColor: WidgetStateProperty.resolveWith<Color?>(
+      (Set<WidgetState> states) => isActive(states) ? activeBg : idleBg,
+    ),
+    foregroundColor: WidgetStateProperty.resolveWith<Color?>(
+      (Set<WidgetState> states) => isActive(states) ? activeFg : idleFg,
+    ),
+    shape: const WidgetStatePropertyAll<OutlinedBorder>(
+      RoundedRectangleBorder(),
+    ),
+  );
 }

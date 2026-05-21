@@ -38,10 +38,14 @@ void main() {
       );
     });
 
-    test("light scaffold background is canvasBeige", () {
+    test("light scaffold background is transparent", () {
+      // NierPageFrame draws decoration layers (corner decor + grid lines)
+      // behind page content; the visible page background is its outer
+      // ColoredBox using colorScheme.surface. Scaffold itself stays
+      // transparent so the decorations show through.
       expect(
         variants.light.scaffoldBackgroundColor,
-        NierColors.yorha.canvasBeige,
+        Colors.transparent,
       );
     });
 
@@ -66,10 +70,12 @@ void main() {
       );
     });
 
-    test("dark scaffold background is textBrownGrey", () {
+    test("dark scaffold background is transparent", () {
+      // See light counterpart — NierPageFrame owns the visible
+      // background, scaffold stays transparent.
       expect(
         variants.dark.scaffoldBackgroundColor,
-        NierColors.yorha.textBrownGrey,
+        Colors.transparent,
       );
     });
 

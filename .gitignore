@@ -58,6 +58,9 @@ example.png
 
 *_old
 
+# Reference clones / vendored sources we read but don't ship
+tmp/
+
 # Secrets and credentials
 .env*
 *.pem

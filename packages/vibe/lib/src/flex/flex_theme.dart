@@ -2,6 +2,7 @@ import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:vibe/src/theme.dart';
+import 'package:vibe/src/themes/theme_setting.dart';
 
 /// Base class for themes that need full [FlexSchemeColor] control.
 ///
@@ -29,7 +30,12 @@ abstract class FlexVibeTheme implements VibeTheme {
   FlexSubThemesData get subThemes => const FlexSubThemesData();
 
   @override
-  ThemeVariants build() {
+  List<ThemeSetting<Object?>> get settings => const <ThemeSetting<Object?>>[];
+
+  @override
+  ThemeVariants build([
+    Map<String, Object?> options = const <String, Object?>{},
+  ]) {
     final ThemeData light = FlexThemeData.light(
       colors: lightColors,
       surfaceMode: FlexSurfaceMode.level,
