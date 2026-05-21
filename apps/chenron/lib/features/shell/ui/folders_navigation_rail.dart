@@ -53,9 +53,19 @@ class FoldersNavigationRail extends StatefulWidget {
 
 class _FoldersNavigationRailState extends State<FoldersNavigationRail> {
   String _filterTerm = "";
-  List<FolderItemCounts> _folders = [];
+  // Fast path — folder rows without counts. Populated by the first
+  // `select(folders).watch()` emission, which is cheap because it
+  // skips the count aggregation join.
+  List<Folder> _folderRows = const <Folder>[];
+  // Slow path — per-folder counts, populated when the
+  // `watchFoldersWithItemCounts` stream catches up. Indexed by folder
+  // ID; absent ids render with no badges (the FolderList row already
+  // hides badges when the count is 0).
+  Map<String, Map<FolderItemType, int>> _countsById =
+      const <String, Map<FolderItemType, int>>{};
   bool _isLoading = true;
-  StreamSubscription<List<FolderItemCounts>>? _foldersSubscription;
+  StreamSubscription<List<Folder>>? _foldersSubscription;
+  StreamSubscription<List<FolderItemCounts>>? _countsSubscription;
 
   @override
   void initState() {
@@ -66,6 +76,7 @@ class _FoldersNavigationRailState extends State<FoldersNavigationRail> {
   @override
   void dispose() {
     unawaited(_foldersSubscription?.cancel());
+    unawaited(_countsSubscription?.cancel());
     super.dispose();
   }
 
@@ -80,15 +91,17 @@ class _FoldersNavigationRailState extends State<FoldersNavigationRail> {
       return;
     }
 
-    // Count-only stream: re-fires when folders/items change, but does
-    // NOT join the link/document/metadata/tag tree.
-    _foldersSubscription = safeWatch<List<FolderItemCounts>>(
-      appDb.watchFoldersWithItemCounts(),
-      tag: "FoldersNavigationRail",
-      onData: (folders) {
+    // Fast path: bare folder rows. This stream's first emission is
+    // a `SELECT * FROM folders` with no joins — fast even on cold
+    // SQLite + drift statement caches, so the rail paints folder
+    // titles on first frame.
+    _foldersSubscription = safeWatch<List<Folder>>(
+      appDb.select(appDb.folders).watch(),
+      tag: "FoldersNavigationRail.folders",
+      onData: (rows) {
         if (mounted) {
           setState(() {
-            _folders = folders;
+            _folderRows = rows;
             _isLoading = false;
           });
         }
@@ -97,6 +110,46 @@ class _FoldersNavigationRailState extends State<FoldersNavigationRail> {
         if (mounted) setState(() => _isLoading = false);
       },
     );
+
+    // Slow path: per-type counts. Joins folders × items with a
+    // GROUP BY aggregate — heavier, but its result is only used to
+    // populate the badges. Coming in after the titles already
+    // rendered, so the latency isn't on the critical first-paint
+    // path.
+    _countsSubscription = safeWatch<List<FolderItemCounts>>(
+      appDb.watchFoldersWithItemCounts(),
+      tag: "FoldersNavigationRail.counts",
+      onData: (counts) {
+        if (mounted) {
+          setState(() {
+            _countsById = <String, Map<FolderItemType, int>>{
+              for (final c in counts) c.id: c.counts,
+            };
+          });
+        }
+      },
+    );
+  }
+
+  /// Project the current `_folderRows` + `_countsById` snapshot into
+  /// the `List<FolderItemCounts>` shape `FolderList` consumes. Folders
+  /// whose counts haven't arrived yet get an empty `counts` map; the
+  /// row builder already hides badges for zero counts, so the visual
+  /// is "titles only" → "titles + badges" as the count stream catches
+  /// up.
+  List<FolderItemCounts> _displayFolders() {
+    return <FolderItemCounts>[
+      for (final folder in _folderRows)
+        FolderItemCounts(
+          id: folder.id,
+          title: folder.title,
+          description: folder.description,
+          color: folder.color,
+          createdAt: folder.createdAt,
+          updatedAt: folder.updatedAt,
+          counts: _countsById[folder.id] ?? const <FolderItemType, int>{},
+        ),
+    ];
   }
 
   @override
@@ -134,7 +187,7 @@ class _FoldersNavigationRailState extends State<FoldersNavigationRail> {
           Expanded(
             child: FolderList(
               isLoading: _isLoading,
-              folders: _folders,
+              folders: _displayFolders(),
               filterTerm: _filterTerm,
               isExtended: widget.isExtended,
               selectedFolderId: widget.selectedFolderId,
