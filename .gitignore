@@ -35,6 +35,14 @@ build/
 /build/
 apps/*/build/
 
+# Flatpak build artifacts (kept out of git AND out of the analyzer's
+# walk — flatpak-builder's OSTree cache has permission bits that make
+# custom_lint's directory scan blow up).
+apps/*/linux/flatpak/build-dir/
+apps/*/linux/flatpak/repo/
+apps/*/linux/flatpak/.flatpak-builder/
+apps/*/linux/flatpak/*.flatpak
+
 # Symbolication related
 app.*.symbols
 
