@@ -160,7 +160,7 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
 
     final jsonString = const JsonEncoder.withIndent("  ").convert(jsonData);
 
-    final result = await FilePicker.platform.saveFile(
+    final result = await FilePicker.saveFile(
       dialogTitle: "Export Activity Log",
       fileName:
           "activity-log-${DateTime.now().toIso8601String().split('T').first}.json",
