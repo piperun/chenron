@@ -60,7 +60,7 @@ dependencies:
   trina_grid: ^2.1.1
   url_launcher: ^6.3.0
   validator_dart: ^0.1.0
-  window_manager: ^0.4.3
+  window_manager: ^0.5.1
 
   # Local workspace packages (alphabetically sorted)
   # Constraint is `any` — Dart pub workspaces resolve from the workspace
