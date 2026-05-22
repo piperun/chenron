@@ -56,6 +56,7 @@ Future<void> _initWindowManager(SharedPreferences prefs) async {
 
   final windowService = WindowService(prefs);
   final saved = windowService.getSavedWindowSize();
+  final wasMaximized = windowService.getSavedMaximized();
 
   final display = WidgetsBinding.instance.platformDispatcher.displays.first;
   final screenSize = display.size / display.devicePixelRatio;
@@ -73,11 +74,13 @@ Future<void> _initWindowManager(SharedPreferences prefs) async {
   );
 
   await windowManager.waitUntilReadyToShow(options, () async {
+    if (wasMaximized) {
+      await windowManager.maximize();
+    }
     await windowManager.show();
     await windowManager.focus();
   });
 
-  // Persist size changes on window resize and close
   windowManager.addListener(_WindowSizeListener(windowService));
 }
 
@@ -86,17 +89,31 @@ class _WindowSizeListener extends WindowListener {
 
   _WindowSizeListener(this._service);
 
-  @override
-  Future<void> onWindowResized() async {
+  // Skip persisting size while maximized — getSize() returns the
+  // maximized dimensions, which on next launch get clamped to the
+  // screen and look like a forced-fullscreen start. The maximized
+  // flag is tracked separately.
+  Future<void> _persistIfRestored() async {
+    if (await windowManager.isMaximized()) return;
     final size = await windowManager.getSize();
     await _service.saveWindowSize(size);
   }
 
   @override
+  Future<void> onWindowResized() => _persistIfRestored();
+
+  @override
   Future<void> onWindowClose() async {
-    final size = await windowManager.getSize();
-    await _service.saveWindowSize(size);
+    await _service.saveMaximized(maximized: await windowManager.isMaximized());
+    await _persistIfRestored();
   }
+
+  @override
+  Future<void> onWindowMaximize() => _service.saveMaximized(maximized: true);
+
+  @override
+  Future<void> onWindowUnmaximize() =>
+      _service.saveMaximized(maximized: false);
 }
 
 class AppBootstrap extends StatefulWidget {
