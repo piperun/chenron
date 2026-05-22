@@ -75,7 +75,7 @@ class _DataSettingsState extends State<DataSettings> {
   Future<void> _handleExport() async {
     final messenger = ScaffoldMessenger.of(context);
 
-    final destination = await FilePicker.platform.getDirectoryPath();
+    final destination = await FilePicker.getDirectoryPath();
     if (destination == null) return;
 
     try {
@@ -100,7 +100,7 @@ class _DataSettingsState extends State<DataSettings> {
     );
     if (!confirmed) return;
 
-    final picked = await FilePicker.platform.pickFiles(
+    final picked = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ["sqlite"],
     );
@@ -131,7 +131,7 @@ class _DataSettingsState extends State<DataSettings> {
   Future<void> _handleExportBookmarks() async {
     final messenger = ScaffoldMessenger.of(context);
 
-    final destination = await FilePicker.platform.saveFile(
+    final destination = await FilePicker.saveFile(
       fileName: "bookmarks.html",
       type: FileType.custom,
       allowedExtensions: ["html"],
@@ -154,7 +154,7 @@ class _DataSettingsState extends State<DataSettings> {
   Future<void> _handleImportBookmarks() async {
     final messenger = ScaffoldMessenger.of(context);
 
-    final picked = await FilePicker.platform.pickFiles(
+    final picked = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ["html", "htm"],
     );

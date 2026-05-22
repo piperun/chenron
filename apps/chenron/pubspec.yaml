@@ -37,7 +37,7 @@ dependencies:
   cupertino_icons: ^1.0.6
   drift: ^2.26.0
   favicon: ^1.1.2
-  file_picker: ^10.3.7
+  file_picker: ^11.0.2
   fl_chart: ^1.1.1
   flex_color_scheme: ^8.3.0
   flutter_cache_manager: ^3.3.0
