@@ -2,7 +2,7 @@ name: chenron_workspace
 publish_to: none
 
 environment:
-  sdk: ">=3.5.0 <4.0.0"
+  sdk: ">=3.6.0 <4.0.0"
 
 workspace:
   - apps/chenron
@@ -15,3 +15,47 @@ workspace:
   - packages/app_logger
   - packages/core
   - packages/database
+
+dev_dependencies:
+  melos: ^7.7.0
+
+melos:
+  # Cog owns versioning across the workspace — do not enable melos's
+  # `version` command or it'll fight the conventional-commits flow.
+
+  scripts:
+    analyze:
+      description: Run `flutter analyze` across the workspace.
+      run: flutter analyze
+
+    test:
+      description: Run `flutter test` in every package that has a test/ directory.
+      exec: flutter test
+      packageFilters:
+        dirExists: test
+
+    format:
+      description: Format Dart sources across the workspace.
+      run: dart format .
+
+    check_format:
+      description: Fail if Dart sources need formatting.
+      run: dart format --output none --set-exit-if-changed .
+
+    build_runner:
+      description: Regenerate codegen in packages that depend on build_runner (drift, freezed, json_serializable, mockito).
+      run: melos exec -c 1 --depends-on=build_runner --order-dependents -- dart run build_runner build --delete-conflicting-outputs
+
+    build_runner_watch:
+      description: Watch mode for build_runner.
+      run: melos exec -c 1 --depends-on=build_runner --order-dependents -- dart run build_runner watch --delete-conflicting-outputs
+
+    outdated:
+      description: Report outdated direct dependencies workspace-wide.
+      run: flutter pub outdated
+
+    clean:
+      description: Wipe per-package build artifacts (flutter clean on Flutter packages).
+      exec: flutter clean
+      packageFilters:
+        flutter: true
