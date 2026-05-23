@@ -2,6 +2,22 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## chenron-v1.14.1 - 2026-05-22
+#### Bug Fixes
+- (**chenron**) persist maximized state and reject garbage window sizes - (c6e84d4) - *piperun*
+
+- - -
+
+## [v1.3.0](https://github.com/piperun/chenron-flutter/compare/280bc7722d309905937a67a6c480abf1a0319bfe..v1.3.0) - 2026-05-23
+### Package updates
+- [chenron-v1.14.1](apps/chenron) bumped to [chenron-v1.14.1](https://github.com/piperun/chenron-flutter/compare/chenron-v1.14.0..chenron-v1.14.1)
+- [chenron_mockups](packages/chenron_mockups) bumped to [chenron_mockups-v0.0.1](https://github.com/piperun/chenron-flutter/compare/3a4459e3d4b97af54131dbe1a22de0da545dbfbd..chenron_mockups-v0.0.1)
+### Global changes
+#### Features
+- (**vibe**) WIP — nier UI overhaul + per-theme settings schema - ([280bc77](https://github.com/piperun/chenron-flutter/commit/280bc7722d309905937a67a6c480abf1a0319bfe)) - [@piperun](https://github.com/piperun)
+
+- - -
+
 ## chenron-v1.14.0 - 2026-05-21
 #### Features
 - (**chenron**) WIP — migrate Settings nav rail to SuperButton - (d8a9f36) - *piperun*
