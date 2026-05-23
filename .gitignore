@@ -69,6 +69,9 @@ example.png
 # Reference clones / vendored sources we read but don't ship
 tmp/
 
+# Claude Code local state (scheduled task locks, per-user settings)
+.claude/
+
 # Secrets and credentials
 .env*
 *.pem
