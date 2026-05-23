@@ -269,10 +269,10 @@ packages:
     dependency: transitive
     description:
       name: cuid2
-      sha256: "62ba655617d5e9338cf09492f24c5acff27ae41acb4e1675996dd4f89fa0a48d"
+      sha256: "465caced9e08993a1ba98311d4aaba969d6147f59992c4e10893d3bd4d306361"
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.0"
+    version: "4.1.0"
   cupertino_icons:
     dependency: transitive
     description:
@@ -904,10 +904,10 @@ packages:
     dependency: transitive
     description:
       name: pointycastle
-      sha256: "4be0097fcf3fd3e8449e53730c631200ebc7b88016acecab2b0da2f0149222fe"
+      sha256: "92aa3841d083cc4b0f4709b5c74fd6409a3e6ba833ffc7dc6a8fee096366acf5"
       url: "https://pub.dev"
     source: hosted
-    version: "3.9.1"
+    version: "4.0.0"
   pool:
     dependency: transitive
     description:

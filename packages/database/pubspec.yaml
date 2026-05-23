@@ -17,7 +17,7 @@ dependencies:
   core: any
   app_logger: any
   cron: ^0.6.1
-  cuid2: ^3.1.0
+  cuid2: ^4.1.0
   meta: ^1.12.0
   freezed_annotation: ^3.0.0
   get_it: ^9.2.0
