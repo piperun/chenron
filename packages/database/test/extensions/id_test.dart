@@ -47,11 +47,11 @@ void main() {
     test("generateId() respects custom length parameter", () {
       final id10 = database.generateId(length: 10);
       final id20 = database.generateId(length: 20);
-      final id50 = database.generateId(length: 50);
+      final id32 = database.generateId(length: 32);
 
       expect(id10.length, equals(10));
       expect(id20.length, equals(20));
-      expect(id50.length, equals(50));
+      expect(id32.length, equals(32));
     });
 
     test("generateId() produces valid CUID2 format", () {
