@@ -2,3 +2,4 @@ analyzer:
   exclude:
     - archived/**
     - packages/theme_core/**
+    - tmp/**
