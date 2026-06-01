@@ -71,6 +71,11 @@ class Items extends Table {
 }
 
 @TableIndex(name: "metadata_records_item_idx", columns: {#itemId})
+@TableIndex(
+  name: "metadata_records_relation_idx",
+  columns: {#itemId, #metadataId, #typeId},
+  unique: true,
+)
 class MetadataRecords extends Table {
   TextColumn get id => text().withLength(min: 30, max: 60)();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();

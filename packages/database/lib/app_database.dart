@@ -70,7 +70,7 @@ class AppDatabase extends _$AppDatabase {
   Future<void> setup() async {}
 
   @override
-  int get schemaVersion => 16;
+  int get schemaVersion => 17;
 
   @override
   MigrationStrategy get migration {
@@ -414,6 +414,26 @@ class AppDatabase extends _$AppDatabase {
         if (from < 16) {
           await customStatement(
             "CREATE INDEX IF NOT EXISTS items_item_idx ON items (item_id)",
+          );
+        }
+
+        // v16 -> v17: enforce one relation per (item_id, metadata_id,
+        // type_id). `insertMetadataRelation` already uses `insertOrIgnore`,
+        // but it keyed the ignore on a freshly generated primary key, so a
+        // repeated relation was never collapsed — saving one link to several
+        // folders, or re-importing an existing URL, appended a duplicate tag
+        // row every time. Drop the existing duplicates (keep the lowest id
+        // per relation) first, otherwise creating the unique index would fail
+        // on databases that already accumulated them.
+        if (from < 17) {
+          await customStatement(
+            "DELETE FROM metadata_records WHERE id NOT IN ("
+            "SELECT MIN(id) FROM metadata_records "
+            "GROUP BY item_id, metadata_id, type_id)",
+          );
+          await customStatement(
+            "CREATE UNIQUE INDEX IF NOT EXISTS metadata_records_relation_idx "
+            "ON metadata_records (item_id, metadata_id, type_id)",
           );
         }
       },

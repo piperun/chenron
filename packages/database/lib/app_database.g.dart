@@ -3999,6 +3999,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       Index('items_item_idx', 'CREATE INDEX items_item_idx ON items (item_id)');
   late final Index metadataRecordsItemIdx = Index('metadata_records_item_idx',
       'CREATE INDEX metadata_records_item_idx ON metadata_records (item_id)');
+  late final Index metadataRecordsRelationIdx = Index(
+      'metadata_records_relation_idx',
+      'CREATE UNIQUE INDEX metadata_records_relation_idx ON metadata_records (item_id, metadata_id, type_id)');
   late final Index activityEventsOccurredIdx = Index(
       'activity_events_occurred_idx',
       'CREATE INDEX activity_events_occurred_idx ON activity_events (occurred_at)');
@@ -4026,6 +4029,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         itemsFolderItemIdx,
         itemsItemIdx,
         metadataRecordsItemIdx,
+        metadataRecordsRelationIdx,
         activityEventsOccurredIdx,
         backgroundJobsStatusCreatedIdx
       ];
