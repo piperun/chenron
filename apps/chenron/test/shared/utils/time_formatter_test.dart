@@ -1,4 +1,5 @@
 import "package:flutter_test/flutter_test.dart";
+import "package:intl/intl.dart";
 
 import "package:chenron/shared/utils/time_formatter.dart";
 
@@ -73,6 +74,37 @@ void main() {
       expect(TimeFormatter.format(d, TimeDisplayFormat.absolute),
           "2025-01-02 14:30");
       expect(TimeFormatter.format(null, TimeDisplayFormat.relative), "Unknown");
+    });
+  });
+
+  group("absolute formatters convert UTC instants to local time", () {
+    // Stored timestamps come back from the database in UTC; the absolute
+    // formatters must render them in the device's local zone, not as UTC
+    // wall-clock. (On a machine whose local zone is UTC the rendered string
+    // is identical either way — there the conversion is simply a no-op.)
+    final utcInstant = DateTime.utc(2025, 1, 2, 14, 30, 45);
+    final local = utcInstant.toLocal();
+
+    test("formatAbsolute renders the local wall-clock of the instant", () {
+      expect(TimeFormatter.formatAbsolute(utcInstant),
+          DateFormat("yyyy-MM-dd HH:mm").format(local));
+    });
+
+    test("formatFull renders the local wall-clock of the instant", () {
+      expect(TimeFormatter.formatFull(utcInstant),
+          DateFormat("yyyy-MM-dd HH:mm:ss").format(local));
+    });
+
+    test("formatTooltip renders the local wall-clock of the instant", () {
+      expect(TimeFormatter.formatTooltip(utcInstant),
+          DateFormat("EEEE, MMMM d, yyyy 'at' HH:mm:ss").format(local));
+    });
+
+    test("a UTC instant and its local equivalent format identically", () {
+      // The formatter normalizes zone, so feeding it the UTC instant or the
+      // already-local DateTime for the same moment yields the same string.
+      expect(TimeFormatter.formatAbsolute(utcInstant),
+          TimeFormatter.formatAbsolute(local));
     });
   });
 }

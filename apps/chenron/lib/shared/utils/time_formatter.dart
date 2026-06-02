@@ -9,12 +9,19 @@ enum TimeDisplayFormat {
   absolute,
 }
 
-/// Utility class for formatting timestamps
+/// Utility class for formatting timestamps.
+///
+/// Stored timestamps come back from the database in UTC. The absolute
+/// formatters convert to the device's local zone with `toLocal()` so the
+/// displayed wall-clock matches the user's clock; `formatRelative` needs no
+/// conversion because the difference between two instants is zone-independent.
 class TimeFormatter {
   /// Formats a DateTime as relative time (e.g., "2h ago", "5d ago")
   static String formatRelative(DateTime? dateTime) {
     if (dateTime == null) return "Unknown";
 
+    // Both operands are absolute instants, so the difference is the same
+    // regardless of either one's zone — no toLocal() needed here.
     final now = DateTime.now();
     final difference = now.difference(dateTime);
 
@@ -40,7 +47,7 @@ class TimeFormatter {
     if (dateTime == null) return "Unknown";
 
     final formatter = DateFormat("yyyy-MM-dd HH:mm");
-    return formatter.format(dateTime);
+    return formatter.format(dateTime.toLocal());
   }
 
   /// Formats a DateTime as full timestamp with seconds (e.g., "2025-01-01 14:30:45")
@@ -48,7 +55,7 @@ class TimeFormatter {
     if (dateTime == null) return "Unknown";
 
     final formatter = DateFormat("yyyy-MM-dd HH:mm:ss");
-    return formatter.format(dateTime);
+    return formatter.format(dateTime.toLocal());
   }
 
   /// Formats a DateTime based on the specified format preference
@@ -66,7 +73,7 @@ class TimeFormatter {
     if (dateTime == null) return "Unknown";
 
     final formatter = DateFormat("EEEE, MMMM d, yyyy 'at' HH:mm:ss");
-    return formatter.format(dateTime);
+    return formatter.format(dateTime.toLocal());
   }
 }
 
