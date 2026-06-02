@@ -1,6 +1,7 @@
 import "package:database/database.dart";
 import "package:database/src/features/folder/create.dart";
 import "package:database/src/features/folder/remove.dart";
+import "package:database/src/features/folder/update.dart";
 import "package:flutter_test/flutter_test.dart";
 
 import "package:chenron_mockups/chenron_mockups.dart";
@@ -28,6 +29,41 @@ void main() {
 
     tearDown(() async {
       await database.close();
+    });
+
+    test("removing a nested folder deletes its membership row in the parent",
+        () async {
+      // Parent folder P that contains child folder C as one of its items.
+      final parent = await database.createFolder(
+          folderInfo: FolderDraft(title: "Parent Folder", description: ""));
+      final child = await database.createFolder(
+          folderInfo: FolderDraft(title: "Child Folder", description: ""));
+      await database.updateFolder(
+        parent.folderId,
+        itemUpdates: CUD(update: [
+          FolderItem.folder(
+            id: null,
+            itemId: child.folderId,
+            folderId: child.folderId,
+            title: "Child Folder",
+          ),
+        ]),
+      );
+
+      // Sanity: the junction row linking C into P exists.
+      final before = await (database.select(database.items)
+            ..where((t) => t.itemId.equals(child.folderId)))
+          .get();
+      expect(before, hasLength(1));
+
+      await database.removeFolder(child.folderId);
+
+      // Deleting C must remove its membership in P, not leave a dangling
+      // junction row pointing at a folder that no longer exists.
+      final after = await (database.select(database.items)
+            ..where((t) => t.itemId.equals(child.folderId)))
+          .get();
+      expect(after, isEmpty);
     });
 
     test("Remove folder without tags", () async {
