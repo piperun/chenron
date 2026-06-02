@@ -135,6 +135,60 @@ void main() {
     });
   });
 
+  group("getCurrentCounts() Query Operations", () {
+    test("returns correct counts for a seeded database", () async {
+      // Baseline (setupOnInit seeds a Default folder).
+      final base = await database.getCurrentCounts();
+
+      await database.createLink(link: "https://flutter.dev");
+      await database.createLink(link: "https://dart.dev");
+      await database.createLink(link: "https://pub.dev");
+      await database.createDocument(
+        title: "Test Doc One",
+        filePath: "/path/doc1.md",
+        fileType: DocumentFileType.markdown,
+      );
+      await database.createDocument(
+        title: "Test Doc Two",
+        filePath: "/path/doc2.md",
+        fileType: DocumentFileType.markdown,
+      );
+      await database.addTag("flutter");
+      await database.addTag("dart");
+      await database.createFolder(
+        folderInfo: FolderDraft(
+          title: "Counts Folder",
+          description: "A folder for counting",
+        ),
+      );
+
+      final counts = await database.getCurrentCounts();
+
+      expect(counts.links, equals(base.links + 3));
+      expect(counts.documents, equals(base.documents + 2));
+      expect(counts.tags, equals(base.tags + 2));
+      expect(counts.folders, equals(base.folders + 1));
+    });
+
+    test("counts agree with direct row counts", () async {
+      await database.createLink(link: "https://example.com");
+      await database.addTag("solo");
+
+      final counts = await database.getCurrentCounts();
+
+      final linkRows = (await database.select(database.links).get()).length;
+      final docRows = (await database.select(database.documents).get()).length;
+      final tagRows = (await database.select(database.tags).get()).length;
+      final folderRows =
+          (await database.select(database.folders).get()).length;
+
+      expect(counts.links, equals(linkRows));
+      expect(counts.documents, equals(docRows));
+      expect(counts.tags, equals(tagRows));
+      expect(counts.folders, equals(folderRows));
+    });
+  });
+
   group("getLatestStatistics() Query Operations", () {
     test("returns null when no snapshots exist", () async {
       final latest = await database.getLatestStatistics();

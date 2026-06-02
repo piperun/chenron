@@ -177,19 +177,21 @@ extension FolderUpdateExtensions on AppDatabase {
 
         final List<String> addedTagIds = [];
 
-        for (var tag in tags) {
-          final existingMetadata = await (select(metadataRecords)
-                ..where((tbl) =>
-                    tbl.itemId.equals(folderId) &
-                    tbl.typeId.equalsValue(MetadataTypeEnum.tag)))
-              .get();
+        // Fetch the folder's existing tag relations once, then track newly
+        // attached ids in the same set so a single call can't insert the
+        // same tag twice. Re-querying per tag was an N+1 round-trip.
+        final existingMetadata = await (select(metadataRecords)
+              ..where((tbl) =>
+                  tbl.itemId.equals(folderId) &
+                  tbl.typeId.equalsValue(MetadataTypeEnum.tag)))
+            .get();
+        final attachedTagIds =
+            existingMetadata.map((m) => m.metadataId).toSet();
 
+        for (var tag in tags) {
           final tagId = await addTag(tag.value);
 
-          final alreadyLinked =
-              existingMetadata.any((m) => m.metadataId == tagId);
-
-          if (!alreadyLinked) {
+          if (attachedTagIds.add(tagId)) {
             await into(metadataRecords).insert(
               MetadataRecordsCompanion.insert(
                 id: generateId(),

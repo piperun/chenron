@@ -264,6 +264,58 @@ void main() {
     });
   });
 
+  group("addTagsToFolder() - Adding Tags", () {
+    test("adds several tags at once, each attached exactly once", () async {
+      final addedTagIds = await database.addTagsToFolder(
+        folderId: createdIds.folderId,
+        tags: [
+          Metadata(value: "alpha", type: MetadataTypeEnum.tag),
+          Metadata(value: "beta", type: MetadataTypeEnum.tag),
+          Metadata(value: "gamma", type: MetadataTypeEnum.tag),
+        ],
+      );
+
+      expect(addedTagIds.length, equals(3));
+
+      // Exactly three tag relations for this folder, no duplicates.
+      final records = await (database.metadataRecords.select()
+            ..where((t) => t.itemId.equals(createdIds.folderId)))
+          .get();
+      expect(records.length, equals(3));
+
+      final folderTags = await database.getFolder(
+        folderId: createdIds.folderId,
+        includeOptions: const IncludeOptions({AppDataInclude.tags}),
+      );
+      expect(folderTags!.tags.map((t) => t.name).toSet(),
+          equals({"alpha", "beta", "gamma"}));
+    });
+
+    test("re-adding an already attached tag does not duplicate it", () async {
+      await database.addTagsToFolder(
+        folderId: createdIds.folderId,
+        tags: [Metadata(value: "shared", type: MetadataTypeEnum.tag)],
+      );
+
+      // Same tag plus a fresh one in a single multi-tag call.
+      final addedTagIds = await database.addTagsToFolder(
+        folderId: createdIds.folderId,
+        tags: [
+          Metadata(value: "shared", type: MetadataTypeEnum.tag),
+          Metadata(value: "fresh", type: MetadataTypeEnum.tag),
+        ],
+      );
+
+      // Only the fresh association is reported as added.
+      expect(addedTagIds.length, equals(1));
+
+      final records = await (database.metadataRecords.select()
+            ..where((t) => t.itemId.equals(createdIds.folderId)))
+          .get();
+      expect(records.length, equals(2));
+    });
+  });
+
   group("Update Folder Exceptions", () {
     test("fails to update folder with short title", () async {
       expect(

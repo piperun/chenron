@@ -44,25 +44,24 @@ extension StatisticsTracking on AppDatabase {
   }
 
   /// Counts all items in the database right now.
+  ///
+  /// One round-trip: four `COUNT(*)` scalar subqueries in a single
+  /// statement instead of four sequential awaited queries.
   Future<ItemCounts> getCurrentCounts() async {
-    final links = await (selectOnly(this.links)
-          ..addColumns([this.links.id.count()]))
-        .getSingle();
-    final docs = await (selectOnly(documents)
-          ..addColumns([documents.id.count()]))
-        .getSingle();
-    final tags = await (selectOnly(this.tags)
-          ..addColumns([this.tags.id.count()]))
-        .getSingle();
-    final folders = await (selectOnly(this.folders)
-          ..addColumns([this.folders.id.count()]))
-        .getSingle();
+    final row = await customSelect(
+      "SELECT "
+      "(SELECT COUNT(*) FROM links) AS link_count, "
+      "(SELECT COUNT(*) FROM documents) AS document_count, "
+      "(SELECT COUNT(*) FROM tags) AS tag_count, "
+      "(SELECT COUNT(*) FROM folders) AS folder_count",
+      readsFrom: {links, documents, tags, folders},
+    ).getSingle();
 
     return ItemCounts(
-      links: links.read(this.links.id.count()) ?? 0,
-      documents: docs.read(documents.id.count()) ?? 0,
-      tags: tags.read(this.tags.id.count()) ?? 0,
-      folders: folders.read(this.folders.id.count()) ?? 0,
+      links: row.read<int>("link_count"),
+      documents: row.read<int>("document_count"),
+      tags: row.read<int>("tag_count"),
+      folders: row.read<int>("folder_count"),
     );
   }
 }
