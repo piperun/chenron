@@ -17,6 +17,50 @@ extension ItemMembershipExtensions on AppDatabase {
     return rows.map((row) => row.readTable(folders)).toList();
   }
 
+  /// Returns the transitive set of folder ids nested anywhere beneath
+  /// [folderId] — its child folders, their child folders, and so on.
+  ///
+  /// Nesting is modelled as `items` rows of type [FolderItemType.folder]
+  /// whose `folderId` is the parent and whose `itemId` is the contained
+  /// child folder. The walk descends level by level, one
+  /// `WHERE folder_id IN (...)` query per level, tracking visited ids so a
+  /// pre-existing cycle in the data cannot loop forever. [folderId] itself
+  /// is never included in the result.
+  ///
+  /// Use this to forbid choosing a descendant as a folder's parent, which
+  /// would otherwise create a cycle (A contains B while B contains A).
+  Future<Set<String>> getDescendantFolderIds({
+    required String folderId,
+  }) async {
+    final descendants = <String>{};
+    // Ids whose children still need to be fetched.
+    var frontier = <String>{folderId};
+
+    while (frontier.isNotEmpty) {
+      final childRows = await (select(items)
+            ..where((t) =>
+                t.folderId.isIn(frontier) &
+                t.typeId.equalsValue(FolderItemType.folder)))
+          .get();
+
+      final nextFrontier = <String>{};
+      for (final row in childRows) {
+        final childId = row.itemId;
+        // Skip self-reference and anything already discovered to stay
+        // cycle-safe and avoid re-querying the same subtree.
+        if (childId == folderId || descendants.contains(childId)) {
+          continue;
+        }
+        descendants.add(childId);
+        nextFrontier.add(childId);
+      }
+
+      frontier = nextFrontier;
+    }
+
+    return descendants;
+  }
+
   /// Adds an item (link/document/folder) to a folder.
   ///
   /// Returns the generated items-table row ID, or `null` if the
