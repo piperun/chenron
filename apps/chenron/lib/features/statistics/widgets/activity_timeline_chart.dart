@@ -5,8 +5,9 @@ import "package:intl/intl.dart";
 import "package:vibe/vibe.dart";
 import "package:chenron/features/statistics/widgets/chart_card.dart";
 import "package:chenron/features/statistics/widgets/time_range_selector.dart";
+import "package:chenron/features/statistics/widgets/aggregation_counter.dart";
 
-class ActivityTimelineChart extends StatelessWidget {
+class ActivityTimelineChart extends StatefulWidget {
   final List<DailyActivityCount> dailyCounts;
   final TimeRange timeRange;
   final ValueChanged<TimeRange> onTimeRangeChanged;
@@ -19,6 +20,49 @@ class ActivityTimelineChart extends StatelessWidget {
   });
 
   @override
+  State<ActivityTimelineChart> createState() => _ActivityTimelineChartState();
+}
+
+class _ActivityTimelineChartState extends State<ActivityTimelineChart>
+    implements AggregationCounter {
+  // Grouping dailyCounts by day is pure with respect to the input list,
+  // so the grouped map + sorted day list are cached here and recomputed
+  // only when the list changes — not on every repaint (theme change,
+  // tooltip hover, swap animation tick, parent rebuild).
+  late _TimelineData _data;
+
+  @override
+  int aggregationCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _data = _group(widget.dailyCounts);
+  }
+
+  @override
+  void didUpdateWidget(ActivityTimelineChart oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.dailyCounts, widget.dailyCounts)) {
+      _data = _group(widget.dailyCounts);
+    }
+  }
+
+  /// Group dailyCounts by calendar day into a per-day type map plus the
+  /// ascending list of days.
+  _TimelineData _group(List<DailyActivityCount> dailyCounts) {
+    aggregationCount++;
+    final grouped = <DateTime, Map<String, int>>{};
+    for (final entry in dailyCounts) {
+      final day = DateTime(entry.date.year, entry.date.month, entry.date.day);
+      grouped.putIfAbsent(day, () => {});
+      grouped[day]![entry.entityType] = entry.count;
+    }
+    final sortedDays = grouped.keys.toList()..sort();
+    return _TimelineData(grouped: grouped, sortedDays: sortedDays);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final palette = ChartPalette.of(context);
@@ -26,12 +70,12 @@ class ActivityTimelineChart extends StatelessWidget {
     return ChartCard(
       title: "Activity Timeline",
       trailing: TimeRangeSelector(
-        selected: timeRange,
-        onChanged: onTimeRangeChanged,
+        selected: widget.timeRange,
+        onChanged: widget.onTimeRangeChanged,
       ),
       child: SizedBox(
         height: 200,
-        child: dailyCounts.isEmpty
+        child: widget.dailyCounts.isEmpty
             ? Center(
                 child: Text(
                   "No activity recorded yet.",
@@ -78,15 +122,10 @@ class ActivityTimelineChart extends StatelessWidget {
       "folder": palette.folders,
       "tag": palette.tags,
     };
-    // Group by date
-    final grouped = <DateTime, Map<String, int>>{};
-    for (final entry in dailyCounts) {
-      final day = DateTime(entry.date.year, entry.date.month, entry.date.day);
-      grouped.putIfAbsent(day, () => {});
-      grouped[day]![entry.entityType] = entry.count;
-    }
-
-    final sortedDays = grouped.keys.toList()..sort();
+    // Grouping is precomputed in _group and cached; reuse it here so a
+    // repaint (theme/hover/animation) doesn't rebuild the map.
+    final grouped = _data.grouped;
+    final sortedDays = _data.sortedDays;
     final dateFormat = DateFormat.MMMd();
 
     return BarChartData(
@@ -228,4 +267,13 @@ class ActivityTimelineChart extends StatelessWidget {
       }).toList(),
     );
   }
+}
+
+/// Cached grouping of daily activity counts: the per-day type map and the
+/// ascending list of days it was built from.
+class _TimelineData {
+  final Map<DateTime, Map<String, int>> grouped;
+  final List<DateTime> sortedDays;
+
+  const _TimelineData({required this.grouped, required this.sortedDays});
 }

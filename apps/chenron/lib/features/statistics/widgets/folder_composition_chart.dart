@@ -3,8 +3,9 @@ import "package:flutter/material.dart";
 import "package:database/features.dart";
 import "package:vibe/vibe.dart";
 import "package:chenron/features/statistics/widgets/chart_card.dart";
+import "package:chenron/features/statistics/widgets/aggregation_counter.dart";
 
-class FolderCompositionChart extends StatelessWidget {
+class FolderCompositionChart extends StatefulWidget {
   final List<FolderItemCount> folderCounts;
   final Map<String, Color>? typeColors;
 
@@ -15,10 +16,39 @@ class FolderCompositionChart extends StatelessWidget {
   });
 
   @override
+  State<FolderCompositionChart> createState() => _FolderCompositionChartState();
+}
+
+class _FolderCompositionChartState extends State<FolderCompositionChart>
+    implements AggregationCounter {
+  // Aggregating folderCounts (group + fold + sort + take(10)) is pure with
+  // respect to the input list, so it is cached here and recomputed only
+  // when the list changes — not on every repaint (theme change, tooltip
+  // hover, parent rebuild).
+  late List<_FolderData> _folders;
+
+  @override
+  int aggregationCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _folders = _aggregateFolders(widget.folderCounts);
+  }
+
+  @override
+  void didUpdateWidget(FolderCompositionChart oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.folderCounts, widget.folderCounts)) {
+      _folders = _aggregateFolders(widget.folderCounts);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final palette = ChartPalette.of(context);
-    final folders = _aggregateFolders();
+    final folders = _folders;
 
     return ChartCard(
       title: "Items per Folder",
@@ -40,7 +70,8 @@ class FolderCompositionChart extends StatelessWidget {
 
   /// Aggregate folderCounts into per-folder totals with type breakdown.
   /// Returns top 10 folders by total count.
-  List<_FolderData> _aggregateFolders() {
+  List<_FolderData> _aggregateFolders(List<FolderItemCount> folderCounts) {
+    aggregationCount++;
     final map = <String, Map<String, int>>{};
     for (final entry in folderCounts) {
       map.putIfAbsent(entry.folderTitle, () => {});
@@ -64,7 +95,7 @@ class FolderCompositionChart extends StatelessWidget {
     ChartPalette palette,
     List<_FolderData> folders,
   ) {
-    final colors = typeColors ?? {
+    final colors = widget.typeColors ?? {
       "link": palette.links,
       "document": palette.documents,
       "folder": palette.folders,
