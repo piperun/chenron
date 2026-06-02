@@ -38,40 +38,40 @@ class LocalSearchBar extends StatelessWidget {
         maxWidth: 400,
       ),
       child: TextField(
-          controller: filter.controller.textController,
-          onSubmitted: onSubmitted,
-          decoration: InputDecoration(
-            hintText: hintText,
-            prefixIcon: const Icon(Icons.search, size: 20),
-            suffixIcon: hasHistory
-                ? Builder(
-                    builder: (context) => IconButton(
-                      icon: const Icon(Icons.history, size: 20),
-                      onPressed: () => _showHistory(context),
-                      tooltip: "Search history",
-                    ),
-                  )
-                : null,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: theme.dividerColor),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: theme.dividerColor),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: theme.colorScheme.primary),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 12,
-            ),
-            isDense: true,
+        controller: filter.controller.textController,
+        onSubmitted: onSubmitted,
+        decoration: InputDecoration(
+          hintText: hintText,
+          prefixIcon: const Icon(Icons.search, size: 20),
+          suffixIcon: hasHistory
+              ? Builder(
+                  builder: (context) => IconButton(
+                    icon: const Icon(Icons.history, size: 20),
+                    onPressed: () => _showHistory(context),
+                    tooltip: "Search history",
+                  ),
+                )
+              : null,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: theme.dividerColor),
           ),
-          style: const TextStyle(fontSize: 14),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: theme.dividerColor),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: theme.colorScheme.primary),
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 12,
+          ),
+          isDense: true,
         ),
+        style: const TextStyle(fontSize: 14),
+      ),
     );
   }
 
@@ -166,6 +166,9 @@ class _HistoryModal extends StatelessWidget {
             )
           else
             Flexible(
+              // Bounded search-history dropdown; shrinkWrap is the correct
+              // sizing here, so the slivers suggestion doesn't apply.
+              // ignore: avoid-shrink-wrap-in-lists
               child: ListView.builder(
                 shrinkWrap: true,
                 itemCount: history.length,
@@ -237,4 +240,3 @@ class _HistoryModal extends StatelessWidget {
     }
   }
 }
-

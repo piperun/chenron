@@ -65,9 +65,8 @@ class _FolderParentSectionState extends State<FolderParentSection> {
             ...widget.selectedFolders.map((folder) => Chip(
                   label: Text(folder.title),
                   onDeleted: () {
-                    final updated =
-                        List<Folder>.from(widget.selectedFolders)
-                          ..remove(folder);
+                    final updated = List<Folder>.from(widget.selectedFolders)
+                      ..remove(folder);
                     widget.onFoldersChanged(updated);
                   },
                   deleteIconColor: theme.colorScheme.error,
@@ -176,6 +175,9 @@ class _FolderSelectionDialogState extends State<_FolderSelectionDialog> {
               )
             else
               Flexible(
+                // Bounded list inside a min-height dialog column; shrinkWrap is
+                // the correct sizing here, so the slivers suggestion doesn't apply.
+                // ignore: avoid-shrink-wrap-in-lists
                 child: ListView.builder(
                   shrinkWrap: true,
                   itemCount: _filteredFolders.length,

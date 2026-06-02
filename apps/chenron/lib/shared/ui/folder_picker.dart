@@ -219,6 +219,9 @@ class _FolderSelectionDialogState extends State<FolderSelectionDialog> {
               const Center(child: CircularProgressIndicator())
             else
               Flexible(
+                // Bounded list inside a min-height dialog column; shrinkWrap is
+                // the correct sizing here, so the slivers suggestion doesn't apply.
+                // ignore: avoid-shrink-wrap-in-lists
                 child: ListView.builder(
                   shrinkWrap: true,
                   itemCount: _filteredFolders.length,
