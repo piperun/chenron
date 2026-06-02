@@ -2,6 +2,7 @@ import "dart:async";
 
 import "package:cache_manager/cache_manager.dart";
 import "package:flutter_test/flutter_test.dart";
+import "package:signals/signals.dart";
 
 /// In-memory typed persistence backing the cache under test.
 class _FakePersistence implements MetadataPersistence {
@@ -461,6 +462,260 @@ void main() {
 
       expect(state, isA<MetadataStateReady>());
       expect((state as MetadataStateReady).data.consecutiveUnchanged, 0);
+    });
+  });
+
+  group("forceFetch slot accounting (H9)", () {
+    test(
+        "force-refreshing an in-flight URL does not leak a concurrency slot",
+        () async {
+      // One URL already in-flight (gated), maxConcurrent=2.
+      fetcher.gate("https://slow.com");
+      fetcher.responses["https://slow.com"] =
+          const RawFetchedMetadata(title: "Slow");
+
+      final service = buildService(maxConcurrent: 2);
+
+      // First observer kicks off the (gated) fetch -> 1 slot in use.
+      service.watch("https://slow.com");
+      await Future<void>.delayed(Duration.zero);
+      expect(fetcher.calls.length, 1);
+
+      // Force-refresh the SAME in-flight URL. It must coalesce onto the
+      // running fetch rather than acquiring (and stranding) a 2nd slot.
+      final forced = service.forceFetch("https://slow.com");
+      await Future<void>.delayed(Duration.zero);
+      // Still just the one network call — no duplicate fetch.
+      expect(fetcher.calls.length, 1);
+
+      // Resolve the in-flight fetch; the forced future resolves too.
+      fetcher.release("https://slow.com");
+      await forced;
+      for (var i = 0; i < 10; i++) {
+        await Future<void>.delayed(Duration.zero);
+      }
+
+      // The pool must be fully restored: two fresh gated fetches should
+      // both start concurrently. If forceFetch leaked a slot, only one
+      // would start.
+      for (final url in ["https://a.com", "https://b.com"]) {
+        fetcher.gate(url);
+        fetcher.responses[url] = RawFetchedMetadata(title: url);
+      }
+      service.watch("https://a.com");
+      service.watch("https://b.com");
+      for (var i = 0; i < 5; i++) {
+        await Future<void>.delayed(Duration.zero);
+      }
+      expect(
+        fetcher.calls.where((u) => u == "https://a.com" || u == "https://b.com").length,
+        2,
+        reason: "both slots should be free after the forced refresh resolved",
+      );
+
+      fetcher.release("https://a.com");
+      fetcher.release("https://b.com");
+    });
+
+    test(
+        "repeated force-refresh on a gated URL never exhausts the pool",
+        () async {
+      // Hammer forceFetch on the same gated URL; each coalesces onto the
+      // one in-flight fetch. None may strand a slot.
+      fetcher.gate("https://slow.com");
+      fetcher.responses["https://slow.com"] =
+          const RawFetchedMetadata(title: "Slow");
+
+      final service = buildService(maxConcurrent: 2);
+      service.watch("https://slow.com");
+      await Future<void>.delayed(Duration.zero);
+
+      final forced = <Future<MetadataState>>[];
+      for (var i = 0; i < 5; i++) {
+        forced.add(service.forceFetch("https://slow.com"));
+        await Future<void>.delayed(Duration.zero);
+      }
+      expect(fetcher.calls.length, 1); // all coalesced
+
+      fetcher.release("https://slow.com");
+      await Future.wait(forced);
+      for (var i = 0; i < 10; i++) {
+        await Future<void>.delayed(Duration.zero);
+      }
+
+      // Pool intact: maxConcurrent fresh fetches start together.
+      for (final url in ["https://a.com", "https://b.com"]) {
+        fetcher.gate(url);
+        fetcher.responses[url] = RawFetchedMetadata(title: url);
+      }
+      service.watch("https://a.com");
+      service.watch("https://b.com");
+      for (var i = 0; i < 5; i++) {
+        await Future<void>.delayed(Duration.zero);
+      }
+      expect(
+        fetcher.calls.where((u) => u == "https://a.com" || u == "https://b.com").length,
+        2,
+      );
+
+      fetcher.release("https://a.com");
+      fetcher.release("https://b.com");
+    });
+  });
+
+  group("dispose + signal-cache bounds (H8)", () {
+    test("dispose disposes all signals and clears the caches", () async {
+      fetcher.responses["https://x.com"] =
+          const RawFetchedMetadata(title: "X");
+      final service = buildService();
+      final s = service.watch("https://x.com");
+      for (var i = 0; i < 10 && s.value is MetadataStateLoading; i++) {
+        await Future<void>.delayed(Duration.zero);
+      }
+      expect(service.signalCacheSize, 1);
+
+      service.dispose();
+
+      expect(s.disposed, isTrue);
+      expect(service.signalCacheSize, 0);
+      expect(service.domainThrottleMapSize, 0);
+    });
+
+    test("a late fetch resolving after dispose does not throw or write",
+        () async {
+      // Gate the fetch so it's still in-flight when we dispose.
+      fetcher.gate("https://slow.com");
+      fetcher.responses["https://slow.com"] =
+          const RawFetchedMetadata(title: "Slow");
+
+      final service = buildService();
+      final s = service.watch("https://slow.com");
+      await Future<void>.delayed(Duration.zero);
+
+      service.dispose();
+      expect(s.disposed, isTrue);
+
+      // Let the gated fetch complete AFTER disposal. It must not throw a
+      // "wrote to disposed signal" error nor resurrect the signal.
+      fetcher.release("https://slow.com");
+      for (var i = 0; i < 10; i++) {
+        await Future<void>.delayed(Duration.zero);
+      }
+      expect(service.signalCacheSize, 0);
+    });
+
+    test("watch() after dispose is a no-op (returns disposed sentinel)",
+        () async {
+      final service = buildService();
+      service.dispose();
+      final s = service.watch("https://x.com");
+      // Whatever it returns must already be disposed; no fetch fires.
+      expect(s.disposed, isTrue);
+      expect(fetcher.calls, isEmpty);
+    });
+
+    test("_signals cache evicts LRU entries past the cap", () async {
+      // Cap is signalCacheCapacity; watch one more than the cap and the
+      // least-recently-used signal must be evicted (disposed + removed).
+      final service = buildService();
+      final cap = service.signalCacheCapacity;
+
+      Signal<MetadataState>? firstSignal;
+      for (var i = 0; i < cap; i++) {
+        final url = "https://host$i.com/page";
+        fetcher.responses[url] = RawFetchedMetadata(title: "t$i");
+        final s = service.watch(url);
+        firstSignal ??= s;
+      }
+      expect(service.signalCacheSize, cap);
+
+      // One more distinct URL -> overflow -> evict the oldest (host0).
+      const overflowUrl = "https://overflow.com/page";
+      fetcher.responses[overflowUrl] =
+          const RawFetchedMetadata(title: "overflow");
+      service.watch(overflowUrl);
+
+      expect(service.signalCacheSize, cap);
+      expect(firstSignal!.disposed, isTrue,
+          reason: "least-recently-used signal should be evicted + disposed");
+
+      // Drain pending fetches.
+      for (var i = 0; i < 20; i++) {
+        await Future<void>.delayed(Duration.zero);
+      }
+    });
+
+    test("watch() promotes recency so the active entry is not evicted",
+        () async {
+      final service = buildService();
+      final cap = service.signalCacheCapacity;
+
+      const keepUrl = "https://keep.com/page";
+      fetcher.responses[keepUrl] = const RawFetchedMetadata(title: "keep");
+      final keep = service.watch(keepUrl);
+
+      // Fill the rest of the cap with other URLs.
+      for (var i = 1; i < cap; i++) {
+        final url = "https://host$i.com/page";
+        fetcher.responses[url] = RawFetchedMetadata(title: "t$i");
+        service.watch(url);
+      }
+      // Touch keepUrl again so it becomes most-recently-used.
+      service.watch(keepUrl);
+
+      // Overflow: the oldest non-keep entry (host1) is evicted, not keep.
+      const overflowUrl = "https://overflow.com/page";
+      fetcher.responses[overflowUrl] =
+          const RawFetchedMetadata(title: "overflow");
+      service.watch(overflowUrl);
+
+      expect(keep.disposed, isFalse,
+          reason: "recently-watched signal must survive eviction");
+
+      for (var i = 0; i < 20; i++) {
+        await Future<void>.delayed(Duration.zero);
+      }
+    });
+  });
+
+  group("domain throttle map pruning (H18)", () {
+    test("stale _lastDomainFetch entries are pruned by cleanupStale",
+        () async {
+      // A short-but-not-instant window so both entries coexist until we
+      // deliberately age past it, then prune.
+      final service = buildService(
+        domainDelay: const Duration(milliseconds: 40),
+      );
+
+      fetcher.responses["https://a.com/x"] =
+          const RawFetchedMetadata(title: "a");
+      fetcher.responses["https://b.com/x"] =
+          const RawFetchedMetadata(title: "b");
+
+      await service.forceFetch("https://a.com/x");
+      await service.forceFetch("https://b.com/x");
+      expect(service.domainThrottleMapSize, 2);
+
+      // Wait past the throttle window, then prune.
+      await Future<void>.delayed(const Duration(milliseconds: 60));
+      service.cleanupStale();
+
+      expect(service.domainThrottleMapSize, 0);
+    });
+
+    test("a recently-touched domain entry is NOT pruned", () async {
+      final service = buildService(
+        domainDelay: const Duration(seconds: 30),
+      );
+
+      fetcher.responses["https://a.com/x"] =
+          const RawFetchedMetadata(title: "a");
+      await service.forceFetch("https://a.com/x");
+      expect(service.domainThrottleMapSize, 1);
+
+      // Within the 30s window -> must survive pruning.
+      service.cleanupStale();
+      expect(service.domainThrottleMapSize, 1);
     });
   });
 }
