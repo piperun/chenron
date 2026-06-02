@@ -1,7 +1,9 @@
+import 'dart:ui' show lerpDouble;
+
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:vibe/src/themes/nier/palette.dart';
+import 'package:vibe/src/themes/nier/pointer.dart';
 
 /// The "super" YorHa menu-row choice button: a heavier treatment
 /// than [NierMinorButton] for primary navigation / settings rows.
@@ -163,7 +165,7 @@ class _NierSuperButtonState extends State<NierSuperButton>
             // and falls back to the in-game default when unbounded.
             final double plateWidth = constraints.hasBoundedWidth
                 ? (constraints.maxWidth -
-                        _NierPointer.width -
+                        NierPointer.width -
                         _pointerGap)
                     .clamp(_minPlateWidth, double.infinity)
                 : _defaultPlateWidth;
@@ -174,12 +176,12 @@ class _NierSuperButtonState extends State<NierSuperButton>
                 // Pointer slot — always reserved so the row doesn't
                 // jump width when the hover state changes.
                 SizedBox(
-                  width: _NierPointer.width,
-                  height: _NierPointer.height,
+                  width: NierPointer.width,
+                  height: NierPointer.height,
                   child: AnimatedOpacity(
                     duration: const Duration(milliseconds: 80),
                     opacity: _active ? 1.0 : 0.0,
-                    child: _NierPointer(color: animatedFillColor),
+                    child: NierPointer(color: animatedFillColor),
                   ),
                 ),
                 const SizedBox(width: _pointerGap),
@@ -203,7 +205,7 @@ class _NierSuperButtonState extends State<NierSuperButton>
                     // active foreground (cream on light theme, dark
                     // brown on dark theme) so the stripes contrast
                     // against the dark active plate when visible.
-                    final double borderWidth = lerpDouble(0, 2.5, progress);
+                    final double borderWidth = lerpDouble(0, 2.5, progress)!;
                     final Color borderColor =
                         activeFgColor.withValues(alpha: progress);
                     return SizedBox(
@@ -300,41 +302,6 @@ class _NierSuperButtonState extends State<NierSuperButton>
           },
         ),
       ),
-    );
-  }
-}
-
-/// Linear interpolation between two doubles. Inline rather than
-/// pulling `dart:ui`'s `lerpDouble` so the file's import surface
-/// stays focused on Flutter widgets.
-double lerpDouble(double a, double b, double t) => a + (b - a) * t;
-
-/// Same YorHa pointer SVG as `NierMinorButton._NierPointer`,
-/// duplicated locally so both widgets are self-contained. Worth
-/// hoisting into a shared internal module if a third consumer
-/// appears.
-class _NierPointer extends StatelessWidget {
-  const _NierPointer({required this.color});
-
-  static const double width = 32;
-  static const double height = 20;
-
-  final Color color;
-
-  static const String _svg = '''
-<svg xmlns="http://www.w3.org/2000/svg" width="367.705" height="234.894" viewBox="0 0 367.705 234.894">
-  <path fill="black" d="M0,117.447l90.7,90.7,272.151-90.7L90.7,26.747Zm105.983,0a17.3,17.3,0,1,1-17.3-17.3A17.3,17.3,0,0,1,105.983,117.447Z"/>
-  <rect fill="black" x="340.658" y="207.848" width="27.046" height="27.046" transform="translate(132.81 575.553) rotate(-90)"/>
-  <rect fill="black" x="340.658" width="27.046" height="27.046" transform="translate(340.658 367.705) rotate(-90)"/>
-</svg>
-''';
-
-  @override
-  Widget build(BuildContext context) {
-    return SvgPicture.string(
-      _svg,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-      fit: BoxFit.contain,
     );
   }
 }
