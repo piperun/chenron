@@ -35,6 +35,7 @@ class ViewerPresenter {
   Stream<List<ViewerItem>>? _allItemsStream;
   StreamSubscription<List<ViewerItem>>? _allItemsSubscription;
   List<ViewerItem> _currentItems = [];
+  bool _disposed = false;
 
   Map<String, ViewerItem> get _currentItemsById =>
       {for (final item in _currentItems) item.id: item};
@@ -47,7 +48,20 @@ class ViewerPresenter {
     searchController.addListener(_onSearchChanged);
   }
 
+  /// Subscribes to the reactive item stream exactly once.
+  ///
+  /// This presenter is an app-lifetime singleton (held by
+  /// `viewerViewModelSignal`) while `Viewer` mounts and unmounts
+  /// repeatedly, calling `init()` on every mount. `watchAllItems()` is a
+  /// live Drift stream that already pushes updates on every DB change,
+  /// so a single subscription suffices for the app's lifetime. Guarding
+  /// here keeps each visit (and the refresh-callback `init()` calls)
+  /// from stacking another live `watchAllItems()` subscription on top of
+  /// the previous one.
   Future<void> init() async {
+    if (_disposed) return;
+    if (_allItemsSubscription != null) return;
+
     _allItemsStream = _model.watchAllItems();
     _allItemsSubscription = safeWatch<List<ViewerItem>>(
       _allItemsStream!,
@@ -158,7 +172,10 @@ class ViewerPresenter {
   }
 
   void dispose() {
+    if (_disposed) return;
+    _disposed = true;
     unawaited(_allItemsSubscription?.cancel());
+    _allItemsSubscription = null;
     searchController.removeListener(_onSearchChanged);
     searchController.dispose();
     unawaited(_itemsController.close());
