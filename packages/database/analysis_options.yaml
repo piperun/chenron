@@ -47,7 +47,10 @@ dcm:
     - avoid-missed-calls
     - avoid-duplicate-exports
     - avoid-double-slash-imports
-    - avoid-passing-self-as-argument
+    # avoid-passing-self-as-argument is disabled: it fires only on drift's
+    # mandatory `db.select(db.table)` / `db.into(db.table)` query-builder
+    # idiom, which is a false positive. avoid-self-compare (below) still
+    # guards genuine self-reference bugs like `a.compareTo(a)`.
     - avoid-self-compare
     - avoid-throw-in-catch-block
     - avoid-unnecessary-type-casts
