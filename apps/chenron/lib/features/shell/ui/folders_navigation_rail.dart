@@ -85,9 +85,11 @@ class _FoldersNavigationRailState extends State<FoldersNavigationRail> {
     try {
       appDb = locator.get<Signal<AppDatabaseLifecycle>>().value.appDatabase;
     } catch (e, s) {
-      loggerGlobal.severe(
-          "FoldersNavigationRail", "Locator missing AppDatabaseLifecycle", e, s);
-      if (mounted) setState(() => _isLoading = false);
+      loggerGlobal.severe("FoldersNavigationRail",
+          "Locator missing AppDatabaseLifecycle", e, s);
+      // Runs synchronously in initState (before first build), so assigning
+      // the field directly is enough — no setState required.
+      _isLoading = false;
       return;
     }
 
@@ -168,38 +170,39 @@ class _FoldersNavigationRailState extends State<FoldersNavigationRail> {
           ),
         ),
         child: Column(
-        children: [
-          RailHeader(
-            isExtended: widget.isExtended,
-            onToggleExtended: widget.onToggleExtended,
-            currentSection: widget.currentSection,
-            onSectionSelected: widget.onSectionSelected,
-          ),
-          if (widget.showQuotaBar) RailQuotaBar(isExtended: widget.isExtended),
-          RailFilter(
-            isExtended: widget.isExtended,
-            onFilterChanged: (value) {
-              setState(() {
-                _filterTerm = value;
-              });
-            },
-          ),
-          Expanded(
-            child: FolderList(
-              isLoading: _isLoading,
-              folders: _displayFolders(),
-              filterTerm: _filterTerm,
+          children: [
+            RailHeader(
               isExtended: widget.isExtended,
-              selectedFolderId: widget.selectedFolderId,
-              onFolderSelected: widget.onFolderSelected,
+              onToggleExtended: widget.onToggleExtended,
+              currentSection: widget.currentSection,
+              onSectionSelected: widget.onSectionSelected,
             ),
-          ),
-          RailBottomSection(
-            showPlanInfo: widget.showPlanInfo,
-            isExtended: widget.isExtended,
-            onAddPressed: widget.onAddPressed,
-          ),
-        ],
+            if (widget.showQuotaBar)
+              RailQuotaBar(isExtended: widget.isExtended),
+            RailFilter(
+              isExtended: widget.isExtended,
+              onFilterChanged: (value) {
+                setState(() {
+                  _filterTerm = value;
+                });
+              },
+            ),
+            Expanded(
+              child: FolderList(
+                isLoading: _isLoading,
+                folders: _displayFolders(),
+                filterTerm: _filterTerm,
+                isExtended: widget.isExtended,
+                selectedFolderId: widget.selectedFolderId,
+                onFolderSelected: widget.onFolderSelected,
+              ),
+            ),
+            RailBottomSection(
+              showPlanInfo: widget.showPlanInfo,
+              isExtended: widget.isExtended,
+              onAddPressed: widget.onAddPressed,
+            ),
+          ],
         ),
       ),
     );

@@ -51,8 +51,7 @@ class FolderList extends StatelessWidget {
                     color: Theme.of(context).colorScheme.onSurfaceVariant),
               )
             : Tooltip(
-                message:
-                    filterTerm.isEmpty ? "No folders" : "No matches",
+                message: filterTerm.isEmpty ? "No folders" : "No matches",
                 child: Icon(Icons.folder_off_outlined,
                     color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
@@ -98,8 +97,7 @@ class _FolderRowState extends State<_FolderRow> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final rowRadius =
-        BorderRadius.circular(ShapeTokens.of(context).cardCorner);
+    final rowRadius = BorderRadius.circular(ShapeTokens.of(context).cardCorner);
     final folderColor = widget.folder.color != null
         ? Color(widget.folder.color!)
         : colorScheme.primary;
@@ -146,7 +144,8 @@ class _FolderRowState extends State<_FolderRow> {
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               fontSize: 14,
-                              color: widget.isSelected ? selectedTextColor : null,
+                              color:
+                                  widget.isSelected ? selectedTextColor : null,
                             ),
                           ),
                         ),
@@ -180,42 +179,41 @@ class _FolderRowState extends State<_FolderRow> {
         BorderRadius.circular(ShapeTokens.of(context).buttonCorner);
     final badgeConfig = {
       FolderItemType.link: (icon: Icons.link, color: colorScheme.primary),
-      FolderItemType.document:
-          (icon: Icons.description, color: colorScheme.tertiary),
-      FolderItemType.folder:
-          (icon: Icons.folder, color: colorScheme.secondary),
+      FolderItemType.document: (
+        icon: Icons.description,
+        color: colorScheme.tertiary
+      ),
+      FolderItemType.folder: (icon: Icons.folder, color: colorScheme.secondary),
     };
 
     return [
       for (final type in FolderItemType.values)
         if ((counts[type] ?? 0) > 0)
-          Padding(
-            padding: const EdgeInsets.only(left: 4),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-              decoration: BoxDecoration(
-                color: badgeConfig[type]!.color.withValues(alpha: 0.12),
-                borderRadius: badgeRadius,
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    badgeConfig[type]!.icon,
-                    size: 11,
+          Container(
+            margin: const EdgeInsets.only(left: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+            decoration: BoxDecoration(
+              color: badgeConfig[type]!.color.withValues(alpha: 0.12),
+              borderRadius: badgeRadius,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  badgeConfig[type]!.icon,
+                  size: 11,
+                  color: badgeConfig[type]!.color,
+                ),
+                const SizedBox(width: 2),
+                Text(
+                  "${counts[type]}",
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
                     color: badgeConfig[type]!.color,
                   ),
-                  const SizedBox(width: 2),
-                  Text(
-                    "${counts[type]}",
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: badgeConfig[type]!.color,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
     ];

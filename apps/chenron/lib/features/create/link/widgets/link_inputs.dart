@@ -89,21 +89,17 @@ class BulkInput extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            Row(
-              children: [
-                TextButton(
-                  key: const Key("bulk_clear_button"),
-                  onPressed: onClear,
-                  child: const Text("Clear"),
-                ),
-                const SizedBox(width: 8),
-                FilledButton.icon(
-                  key: const Key("bulk_add_button"),
-                  onPressed: onAdd,
-                  icon: const Icon(Icons.upload, size: 18),
-                  label: const Text("Add"),
-                ),
-              ],
+            TextButton(
+              key: const Key("bulk_clear_button"),
+              onPressed: onClear,
+              child: const Text("Clear"),
+            ),
+            const SizedBox(width: 8),
+            FilledButton.icon(
+              key: const Key("bulk_add_button"),
+              onPressed: onAdd,
+              icon: const Icon(Icons.upload, size: 18),
+              label: const Text("Add"),
             ),
           ],
         ),
@@ -111,4 +107,3 @@ class BulkInput extends StatelessWidget {
     );
   }
 }
-

@@ -46,9 +46,8 @@ class _CreateFolderPageState extends State<CreateFolderPage> {
   }
 
   void _onFormValidationChanged(bool isValid) {
-    _isFormValid = isValid;
     widget.onValidationChanged?.call(isValid);
-    setState(() {});
+    setState(() => _isFormValid = isValid);
   }
 
   @override
