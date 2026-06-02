@@ -80,7 +80,7 @@ class _CacheSettingsState extends State<CacheSettings> {
           ),
         );
       }
-      setState(_refreshCacheStats);
+      if (mounted) setState(_refreshCacheStats);
     } catch (e) {
       if (context.mounted) {
         showErrorSnackBar(context, e);

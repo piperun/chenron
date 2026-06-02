@@ -46,7 +46,8 @@ class CreateLinkPage extends StatefulWidget {
 
 class _CreateLinkPageState extends State<CreateLinkPage> {
   late CreateLinkNotifier _notifier;
-  final ItemTableNotifier<FolderItem> _tableNotifier = ItemTableNotifier<FolderItem>();
+  final ItemTableNotifier<FolderItem> _tableNotifier =
+      ItemTableNotifier<FolderItem>();
   late List<Folder> _selectedFolders;
   final Map<String, String> _folderNameCache = {};
   String? _singleInputError;
@@ -81,6 +82,7 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
   void dispose() {
     _disposeEffect();
     _notifier.dispose();
+    _tableNotifier.dispose();
     super.dispose();
   }
 
@@ -162,7 +164,7 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
                       ConstrainedBox(
                         constraints: BoxConstraints(
                           minHeight: 300,
-                          maxHeight: (MediaQuery.of(context).size.height * 0.5)
+                          maxHeight: (MediaQuery.sizeOf(context).height * 0.5)
                               .clamp(300.0, double.infinity),
                         ),
                         child: LinkTableSection(

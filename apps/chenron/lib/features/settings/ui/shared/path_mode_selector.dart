@@ -130,10 +130,9 @@ class _PathModeSelectorState extends State<PathModeSelector> {
 
   Future<void> _handlePickFolder() async {
     final result = await FilePicker.getDirectoryPath();
-    if (result != null) {
-      setState(() => _pathController.text = result);
-      widget.onPathChanged(result);
-    }
+    if (result == null || !mounted) return;
+    setState(() => _pathController.text = result);
+    widget.onPathChanged(result);
   }
 
   void _onPathChanged(String value) {
@@ -192,7 +191,6 @@ class _PathModeSelectorState extends State<PathModeSelector> {
       ],
     );
   }
-
 }
 
 class _PathModeTile extends StatelessWidget {

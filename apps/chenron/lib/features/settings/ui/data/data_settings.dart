@@ -28,8 +28,7 @@ class DataSettings extends StatefulWidget {
 
 class _DataSettingsState extends State<DataSettings> {
   final DataSettingsService _dataService = locator.get<DataSettingsService>();
-  late final _databaseNotifier =
-      locator.get<SettingsCoordinator>().database;
+  late final _databaseNotifier = locator.get<SettingsCoordinator>().database;
   Future<int>? _metadataCountFuture;
 
   @override
@@ -64,7 +63,7 @@ class _DataSettingsState extends State<DataSettings> {
           ),
         );
       }
-      setState(_refreshMetadataCount);
+      if (mounted) setState(_refreshMetadataCount);
     } catch (e) {
       if (context.mounted) {
         showErrorSnackBar(context, e);
@@ -291,8 +290,7 @@ class _DataSettingsState extends State<DataSettings> {
           // --- Bookmarks ---
           const SettingsSectionHeader(
             title: "Bookmarks",
-            description:
-                "Export or import bookmarks in standard HTML format, "
+            description: "Export or import bookmarks in standard HTML format, "
                 "compatible with all major browsers.",
             gapAfter: 12,
           ),
