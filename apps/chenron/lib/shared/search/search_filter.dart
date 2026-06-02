@@ -162,24 +162,38 @@ class SearchFilter {
     required List<FolderItem> items,
     required SortMode sortMode,
   }) {
-    final sorted = List<FolderItem>.from(items);
+    // Decorate-sort: each item's sort key is a freezed `.map()` call, which
+    // allocates closures. Computing it inside the comparator runs it O(n log n)
+    // times; precompute it once per item, sort on the cached key, then strip
+    // the decoration. Sort order is identical to comparing on the live keys.
+    final byName =
+        sortMode == SortMode.nameAsc || sortMode == SortMode.nameDesc;
 
-    sorted.sort((a, b) {
+    final decorated = [
+      for (final item in items)
+        (
+          item: item,
+          name: byName ? _getItemName(item) : "",
+          date: byName ? null : _getCreatedAt(item),
+        ),
+    ];
+
+    decorated.sort((a, b) {
       switch (sortMode) {
         case SortMode.nameAsc:
-          return _getItemName(a).compareTo(_getItemName(b));
+          return a.name.compareTo(b.name);
         case SortMode.nameDesc:
-          return _getItemName(b).compareTo(_getItemName(a));
+          return b.name.compareTo(a.name);
         case SortMode.dateAsc:
-          final aDate = _getCreatedAt(a);
-          final bDate = _getCreatedAt(b);
+          final aDate = a.date;
+          final bDate = b.date;
           if (aDate == null && bDate == null) return 0;
           if (aDate == null) return 1;
           if (bDate == null) return -1;
           return aDate.compareTo(bDate);
         case SortMode.dateDesc:
-          final aDate = _getCreatedAt(a);
-          final bDate = _getCreatedAt(b);
+          final aDate = a.date;
+          final bDate = b.date;
           if (aDate == null && bDate == null) return 0;
           if (aDate == null) return 1;
           if (bDate == null) return -1;
@@ -187,7 +201,7 @@ class SearchFilter {
       }
     });
 
-    return sorted;
+    return [for (final entry in decorated) entry.item];
   }
 
   String _getItemName(FolderItem item) {

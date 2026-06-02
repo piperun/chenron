@@ -231,4 +231,109 @@ void main() {
       expect(result, hasLength(3));
     });
   });
+
+  group("SearchFilter.sortItems ordering", () {
+    // Distinct names to assert alphabetical order unambiguously.
+    final banana = _link("https://banana.example");
+    final apple = _doc("Apple");
+    final cherry = _folder("cherry");
+
+    // String.compareTo is case-sensitive: uppercase ASCII sorts before
+    // lowercase, so "Apple" (A=65) < "cherry" (c=99) < "https" (h=104).
+    test("nameAsc sorts by name ascending", () {
+      final result = filter.sortItems(
+        items: [banana, cherry, apple],
+        sortMode: SortMode.nameAsc,
+      );
+      expect(_names(result), ["Apple", "cherry", "https://banana.example"]);
+    });
+
+    test("nameDesc sorts by name descending", () {
+      final result = filter.sortItems(
+        items: [apple, banana, cherry],
+        sortMode: SortMode.nameDesc,
+      );
+      expect(_names(result), ["https://banana.example", "cherry", "Apple"]);
+    });
+
+    test("dateAsc sorts oldest first, null dates last", () {
+      final older = FolderItem.link(
+        id: "older",
+        url: "older",
+        createdAt: DateTime(2020),
+      );
+      final newer = FolderItem.link(
+        id: "newer",
+        url: "newer",
+        createdAt: DateTime(2024),
+      );
+      // Folders have no createdAt -> treated as null.
+      final noDate = _folder("z-no-date");
+
+      final result = filter.sortItems(
+        items: [newer, noDate, older],
+        sortMode: SortMode.dateAsc,
+      );
+      expect(_names(result), ["older", "newer", "z-no-date"]);
+    });
+
+    test("dateDesc sorts newest first, null dates last", () {
+      final older = FolderItem.link(
+        id: "older",
+        url: "older",
+        createdAt: DateTime(2020),
+      );
+      final newer = FolderItem.link(
+        id: "newer",
+        url: "newer",
+        createdAt: DateTime(2024),
+      );
+      final noDate = _folder("z-no-date");
+
+      final result = filter.sortItems(
+        items: [older, noDate, newer],
+        sortMode: SortMode.dateDesc,
+      );
+      expect(_names(result), ["newer", "older", "z-no-date"]);
+    });
+
+    test("dateAsc keeps both-null pairs in input order", () {
+      // Two folders, both null-dated -> comparator returns 0, stable order.
+      final first = _folder("first");
+      final second = _folder("second");
+      final result = filter.sortItems(
+        items: [first, second],
+        sortMode: SortMode.dateAsc,
+      );
+      expect(_names(result), ["first", "second"]);
+    });
+
+    test("equal names preserve input order (stable)", () {
+      final a = _link("https://same.example");
+      final b = _link("https://same.example");
+      final result = filter.sortItems(
+        items: [a, b],
+        sortMode: SortMode.nameAsc,
+      );
+      expect(result.length, 2);
+      expect(identical(result[0], a), isTrue);
+      expect(identical(result[1], b), isTrue);
+    });
+
+    test("does not mutate the input list", () {
+      final input = [banana, apple, cherry];
+      final snapshot = List<FolderItem>.from(input);
+      filter.sortItems(items: input, sortMode: SortMode.nameAsc);
+      expect(_names(input), _names(snapshot));
+    });
+  });
 }
+
+/// Extract the sortable name of each item (mirrors SearchFilter._getItemName).
+List<String> _names(List<FolderItem> items) => items
+    .map((i) => i.map(
+          link: (l) => l.url,
+          document: (d) => d.title,
+          folder: (f) => f.folderId,
+        ))
+    .toList();
