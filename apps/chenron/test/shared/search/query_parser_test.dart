@@ -52,5 +52,26 @@ void main() {
         expect(result.excludedTags, {"exc"});
       }
     });
+
+    test("a bare # or -# is kept as text, not a tag", () {
+      final result = QueryParser.parseTags("a # b -# c");
+      expect(result.includedTags, isEmpty);
+      expect(result.excludedTags, isEmpty);
+      expect(result.cleanQuery, "a # b -# c");
+    });
+
+    test("supports unicode tag names", () {
+      final result = QueryParser.parseTags("#тег -#café");
+      expect(result.includedTags, {"тег"});
+      expect(result.excludedTags, {"café"});
+    });
+
+    test("an unterminated quote is not treated as a tag boundary", () {
+      // No closing quote, so the quote pattern does not match; the token
+      // keeps its leading quote and the '#' inside is not parsed as a tag.
+      final result = QueryParser.parseTags('a "#b');
+      expect(result.includedTags, isEmpty);
+      expect(result.cleanQuery, 'a "#b');
+    });
   });
 }
