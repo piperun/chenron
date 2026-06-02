@@ -2,6 +2,33 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [v1.14.2](https://github.com/piperun/chenron-flutter/compare/8ba73a03f1552e3e2fa4a3bc802aebb525205e46..v1.14.2) - 2026-06-02
+#### Bug Fixes
+- (**basedir**) make isDirWritable probe unique and always clean up - ([55125ed](https://github.com/piperun/chenron-flutter/commit/55125ed85ef801dd82d17490bbba2358188731a3)) - [@piperun](https://github.com/piperun)
+- (**cache_manager**) stop MetadataService leaking signals and slots - ([690c73b](https://github.com/piperun/chenron-flutter/commit/690c73bb3cdf97e021b361982dee70fc4cbea007)) - [@piperun](https://github.com/piperun)
+- (**chenron**) make setState async-safe and dispose a leaked notifier - ([95ff523](https://github.com/piperun/chenron-flutter/commit/95ff523189779aeb2aea1d27eb81c5f1253482c5)) - [@piperun](https://github.com/piperun)
+- (**chenron**) correct four UI rendering bugs - ([0dfe307](https://github.com/piperun/chenron-flutter/commit/0dfe3075261c34503a9226742e14250284ca4874)) - [@piperun](https://github.com/piperun)
+- (**chenron**) stop ViewerPresenter stacking subscriptions and leaking - ([c85f4f8](https://github.com/piperun/chenron-flutter/commit/c85f4f8078389c05520ac8fd265b0e0e0f4b2bc3)) - [@piperun](https://github.com/piperun)
+- (**chenron**) stop duplicating link tag relations on save and import - ([f10a013](https://github.com/piperun/chenron-flutter/commit/f10a013e4649bcdf9984f3a4dfc3309f1137c15c)) - [@piperun](https://github.com/piperun)
+- (**database**) type-gate tag joins and make default-folder fallback stable - ([015c74b](https://github.com/piperun/chenron-flutter/commit/015c74b0d3c636b233f151bce1ae0b2be04da103)) - [@piperun](https://github.com/piperun)
+- (**database**) preserve background-job fields on status update - ([51c84f1](https://github.com/piperun/chenron-flutter/commit/51c84f176a13bff8b672b067b3b9601c54e300fc)) - [@piperun](https://github.com/piperun)
+- (**database**) delete a folder's parent-membership rows on remove - ([c21121e](https://github.com/piperun/chenron-flutter/commit/c21121e50da48783c4b352d5760b4c033efacb1a)) - [@piperun](https://github.com/piperun)
+- (**database**) enforce one tag relation per item via unique index - ([8ba73a0](https://github.com/piperun/chenron-flutter/commit/8ba73a03f1552e3e2fa4a3bc802aebb525205e46)) - [@piperun](https://github.com/piperun)
+- (**web_archiver**) harden archive client parsing and UTC dates - ([cc25d47](https://github.com/piperun/chenron-flutter/commit/cc25d47dc093b4686e2bf1c46ae9945de393d508)) - [@piperun](https://github.com/piperun)
+#### Performance
+- (**chenron**) narrow widget rebuild scope - ([2777fa9](https://github.com/piperun/chenron-flutter/commit/2777fa9d62509bc323549ac37bcc80f7ef414b63)) - [@piperun](https://github.com/piperun)
+- (**chenron**) decorate-sort items by precomputed key - ([68ec9cf](https://github.com/piperun/chenron-flutter/commit/68ec9cfefab3b3099339282c7e4c356bf700640b)) - [@piperun](https://github.com/piperun)
+- (**chenron**) bound image decode to display size - ([1d2d07a](https://github.com/piperun/chenron-flutter/commit/1d2d07a934f10bde475949b3cf759797d121bfe1)) - [@piperun](https://github.com/piperun)
+- (**database**) cut redundant queries in tag-add and count paths - ([efcfe05](https://github.com/piperun/chenron-flutter/commit/efcfe05637ac4ff556116d40e98270afc0d9bdb4)) - [@piperun](https://github.com/piperun)
+#### Refactoring
+- (**chenron**) widget composition and setState cleanups - ([3af179b](https://github.com/piperun/chenron-flutter/commit/3af179b06d5e6be6cd0af30ed1fe5d8686a79995)) - [@piperun](https://github.com/piperun)
+- (**chenron**) remove two superseded widgets - ([5346d21](https://github.com/piperun/chenron-flutter/commit/5346d2101fe3b0e93639196f0d06cc0bef950469)) - [@piperun](https://github.com/piperun)
+- (**chenron**) make table renderers widgets and null-safe - ([95eba3f](https://github.com/piperun/chenron-flutter/commit/95eba3fc87d570f308c3b423e855ad8b5345b6cb)) - [@piperun](https://github.com/piperun)
+- (**chenron**) hoist _buildX helpers to StatelessWidget classes - ([b813e9f](https://github.com/piperun/chenron-flutter/commit/b813e9f06bf3d9b01fd52390838c9d2ce30953db)) - [@piperun](https://github.com/piperun)
+- (**database**) drop dead RelationBuilder override and empty stub - ([1903fc7](https://github.com/piperun/chenron-flutter/commit/1903fc7c622732e020a76beb6bfe4974001c8a24)) - [@piperun](https://github.com/piperun)
+
+- - -
+
 ## chenron-v1.14.1 - 2026-05-22
 #### Bug Fixes
 - (**chenron**) persist maximized state and reject garbage window sizes - (c6e84d4) - *piperun*
