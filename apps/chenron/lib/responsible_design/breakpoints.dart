@@ -41,7 +41,7 @@ class Breakpoints {
       double ratioMd = 0.875,
       double ratioLg = 0.75,
       double ratioXl = 0.625}) {
-    final screenWidth = MediaQuery.of(context).size.width;
+    final screenWidth = MediaQuery.sizeOf(context).width;
     if (screenWidth <= sm) {
       return screenWidth * ratioSm;
     } else if (screenWidth <= md) {
@@ -60,7 +60,7 @@ class Breakpoints {
       double ratioMd = 0.875,
       double ratioLg = 0.75,
       double ratioXl = 0.625}) {
-    final screenHeight = MediaQuery.of(context).size.height;
+    final screenHeight = MediaQuery.sizeOf(context).height;
     if (screenHeight <= sm) {
       return screenHeight * ratioSm;
     } else if (screenHeight <= md) {
@@ -75,14 +75,13 @@ class Breakpoints {
   }
 
   static bool isExtraSmall(BuildContext context) =>
-      MediaQuery.of(context).size.width > xs;
+      MediaQuery.sizeOf(context).width > xs;
   static bool isSmall(BuildContext context) =>
-      MediaQuery.of(context).size.width > sm;
+      MediaQuery.sizeOf(context).width > sm;
   static bool isMedium(BuildContext context) =>
-      MediaQuery.of(context).size.width > md;
+      MediaQuery.sizeOf(context).width > md;
   static bool isLarge(BuildContext context) =>
-      MediaQuery.of(context).size.width > lg;
+      MediaQuery.sizeOf(context).width > lg;
   static bool isExtraLarge(BuildContext context) =>
-      MediaQuery.of(context).size.width > xl;
+      MediaQuery.sizeOf(context).width > xl;
 }
-

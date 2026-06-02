@@ -59,7 +59,6 @@ class _TagFilterModalState extends State<TagFilterModal> {
     _availableSearchController.addListener(_handleAvailableSearchChanged);
 
     _activeSearchController = TextEditingController();
-    _activeSearchController.addListener(() => setState(() {}));
   }
 
   void _handleAvailableSearchChanged() {
@@ -253,17 +252,20 @@ class _TagFilterModalState extends State<TagFilterModal> {
             // Content based on active tab
             Expanded(
               child: _activeTab == TagFilterTab.active
-                  ? ActiveFiltersTab(
-                      includedTags: _includedTags,
-                      excludedTags: _excludedTags,
-                      searchController: _activeSearchController,
-                      onClearAll: _clearAll,
-                      onRemoveIncluded: _removeFromIncluded,
-                      onRemoveExcluded: _removeFromExcluded,
-                      onClearIncluded: () =>
-                          setState(() => _includedTags.clear()),
-                      onClearExcluded: () =>
-                          setState(() => _excludedTags.clear()),
+                  ? ListenableBuilder(
+                      listenable: _activeSearchController,
+                      builder: (context, _) => ActiveFiltersTab(
+                        includedTags: _includedTags,
+                        excludedTags: _excludedTags,
+                        searchController: _activeSearchController,
+                        onClearAll: _clearAll,
+                        onRemoveIncluded: _removeFromIncluded,
+                        onRemoveExcluded: _removeFromExcluded,
+                        onClearIncluded: () =>
+                            setState(() => _includedTags.clear()),
+                        onClearExcluded: () =>
+                            setState(() => _excludedTags.clear()),
+                      ),
                     )
                   : AvailableTagsTab(
                       availableTags: widget.availableTags,

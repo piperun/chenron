@@ -116,7 +116,7 @@ class _LinkEditBottomSheetState extends State<LinkEditBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
+    final bottomPadding = MediaQuery.viewInsetsOf(context).bottom;
 
     return BottomSheetScaffold(
       headerIcon: Icons.edit,
@@ -151,8 +151,7 @@ class _LinkEditBottomSheetState extends State<LinkEditBottomSheet> {
             const SizedBox(height: 20),
             _ArchiveToggle(
               value: _isArchived,
-              onChanged: (value) =>
-                  setState(() => _isArchived = value),
+              onChanged: (value) => setState(() => _isArchived = value),
             ),
           ],
         ),
@@ -173,7 +172,6 @@ class _LinkEditBottomSheetState extends State<LinkEditBottomSheet> {
     );
   }
 }
-
 
 class _UrlField extends StatelessWidget {
   final TextEditingController controller;
@@ -271,8 +269,7 @@ class _TagsSection extends StatelessWidget {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                   side: BorderSide(
-                    color:
-                        theme.colorScheme.secondary.withValues(alpha: 0.5),
+                    color: theme.colorScheme.secondary.withValues(alpha: 0.5),
                   ),
                 ),
               );
@@ -304,4 +301,3 @@ class _ArchiveToggle extends StatelessWidget {
     );
   }
 }
-

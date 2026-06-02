@@ -44,7 +44,6 @@ class EditableCodeFieldState extends State<EditableCodeField> {
     _verticalScrollController.addListener(_syncScroll);
     _controller.addListener(() {
       widget.onChanged?.call(_controller.text);
-      setState(() {}); // Rebuild to update line numbers
     });
   }
 
@@ -102,12 +101,16 @@ class EditableCodeFieldState extends State<EditableCodeField> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Line numbers
-            _LineNumbers(
-              text: _controller.text,
-              validationResult: widget.validationResult,
-              scrollController: _lineNumberScrollController,
-              textStyle: textStyle,
+            // Line numbers — rebuild just this subtree as the text changes
+            // instead of setState-ing the whole field on every keystroke.
+            ListenableBuilder(
+              listenable: _controller,
+              builder: (context, _) => _LineNumbers(
+                text: _controller.text,
+                validationResult: widget.validationResult,
+                scrollController: _lineNumberScrollController,
+                textStyle: textStyle,
+              ),
             ),
             // Divider
             Container(
@@ -389,4 +392,3 @@ class _ErrorHighlightPainter extends CustomPainter {
         oldDelegate.validationResult != validationResult;
   }
 }
-

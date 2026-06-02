@@ -42,9 +42,10 @@ class _AddItemModalState extends State<AddItemModal> {
 
   @override
   Widget build(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
+    final screenSize = MediaQuery.sizeOf(context);
     final isSmallScreen = screenSize.width < Breakpoints.md;
-    final isMediumScreen = screenSize.width >= Breakpoints.md && screenSize.width < Breakpoints.xl;
+    final isMediumScreen =
+        screenSize.width >= Breakpoints.md && screenSize.width < Breakpoints.xl;
 
     // Responsive sizing based on screen width
     double modalWidth;
@@ -456,4 +457,3 @@ class _DocumentPlaceholder extends StatelessWidget {
     );
   }
 }
-

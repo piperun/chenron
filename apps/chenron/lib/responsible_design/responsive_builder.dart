@@ -17,7 +17,7 @@ class ResponsiveValue<T> {
   });
 
   T value(BuildContext context) {
-    final double width = MediaQuery.of(context).size.width;
+    final double width = MediaQuery.sizeOf(context).width;
     if (width >= Breakpoints.xl) {
       return xl;
     } else if (width >= Breakpoints.lg) {
@@ -62,4 +62,3 @@ class ResponsiveBuilder extends StatelessWidget {
     );
   }
 }
-

@@ -54,16 +54,14 @@ class _ItemDetailDialogState extends State<ItemDetailDialog> {
   @override
   void initState() {
     super.initState();
-    final db =
-        locator.get<Signal<AppDatabaseLifecycle>>().value.appDatabase;
+    final db = locator.get<Signal<AppDatabaseLifecycle>>().value.appDatabase;
     _service = ItemDetailService(db);
     unawaited(_loadData());
   }
 
   Future<void> _loadData() async {
     try {
-      final data =
-          await _service.fetchItem(widget.itemId, widget.itemType);
+      final data = await _service.fetchItem(widget.itemId, widget.itemType);
       if (mounted) {
         setState(() {
           _data = data;
@@ -110,8 +108,7 @@ class _ItemDetailDialogState extends State<ItemDetailDialog> {
       tag: "ItemDetailDialog",
       operation: "add to folder",
       action: () async {
-        await _service.addToFolder(
-            widget.itemId, widget.itemType, folderId);
+        await _service.addToFolder(widget.itemId, widget.itemType, folderId);
         return true;
       },
     );
@@ -133,14 +130,12 @@ class _ItemDetailDialogState extends State<ItemDetailDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final screenSize = MediaQuery.of(context).size;
-
     return Dialog(
       backgroundColor: Colors.transparent,
       child: Container(
         constraints: BoxConstraints(
           maxWidth: 600,
-          maxHeight: screenSize.height * 0.8,
+          maxHeight: MediaQuery.sizeOf(context).height * 0.8,
         ),
         decoration: BoxDecoration(
           color: theme.cardColor,
@@ -183,8 +178,8 @@ class _ItemDetailDialogState extends State<ItemDetailDialog> {
             else if (_data != null)
               Flexible(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 20, vertical: 16),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -206,8 +201,7 @@ class _ItemDetailDialogState extends State<ItemDetailDialog> {
                         onFoldersSelected: (folders) {
                           final currentIds =
                               _data!.parentFolders.map((f) => f.id).toSet();
-                          final selectedIds =
-                              folders.map((f) => f.id).toSet();
+                          final selectedIds = folders.map((f) => f.id).toSet();
                           for (final id in selectedIds.difference(currentIds)) {
                             unawaited(_handleAddToFolder(id));
                           }
