@@ -4,6 +4,7 @@ import "package:drift_dev/api/migrations_native.dart";
 import "package:flutter_test/flutter_test.dart";
 
 import "generated_migrations/schema.dart" as app;
+import "generated_migrations/schema_v14.dart" as v14;
 import "generated_migrations/schema_v16.dart" as v16;
 import "generated_migrations_config/schema.dart" as config;
 
@@ -81,6 +82,46 @@ void main() {
           .customSelect("SELECT COUNT(*) AS c FROM metadata_records")
           .getSingle();
       expect(afterReinsert.read<int>("c"), 1);
+
+      await db.close();
+    });
+
+    test("v14 -> v17 shifts enum type ids down by one and preserves rows",
+        () async {
+      final schema = await verifier.schemaAt(14);
+
+      // v14 stored 1-based enum indices; the v15 step subtracts one to make
+      // them 0-based. Seed rows at the old values and prove the migration
+      // both keeps the rows and rewrites the indices correctly.
+      const itemId = "itm00000000000000000000000001";
+      const metaId = "mdr00000000000000000000000001";
+      final oldDb = v14.DatabaseAtV14(schema.newConnection());
+      // type_id 2 (1-based document) -> 1 (0-based document).
+      await oldDb.customStatement(
+        "INSERT INTO items (id, folder_id, item_id, type_id) "
+        "VALUES ('$itemId', 'fld0000000000000000000000001', "
+        "'lnk0000000000000000000000001', 2)",
+      );
+      // type_id 1 (1-based tag) -> 0 (0-based tag).
+      await oldDb.customStatement(
+        "INSERT INTO metadata_records (id, type_id, item_id, metadata_id) "
+        "VALUES ('$metaId', 1, '$itemId', 'tag0000000000000000000000001')",
+      );
+      await oldDb.close();
+
+      final db = AppDatabase(queryExecutor: schema.newConnection());
+      await verifier.migrateAndValidate(db, 17);
+
+      final item = await db
+          .customSelect("SELECT type_id FROM items WHERE id = '$itemId'")
+          .getSingle();
+      expect(item.read<int>("type_id"), 1);
+
+      final meta = await db
+          .customSelect(
+              "SELECT type_id FROM metadata_records WHERE id = '$metaId'")
+          .getSingle();
+      expect(meta.read<int>("type_id"), 0);
 
       await db.close();
     });
