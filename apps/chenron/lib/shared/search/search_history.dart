@@ -1,4 +1,5 @@
 import "dart:convert";
+import "package:app_logger/app_logger.dart";
 import "package:shared_preferences/shared_preferences.dart";
 
 class SearchHistoryItem {
@@ -41,10 +42,19 @@ class SearchHistoryService {
 
     if (historyJson == null) return [];
 
-    final List<dynamic> decoded = jsonDecode(historyJson) as List<dynamic>;
-    return decoded
-        .map((item) => SearchHistoryItem.fromJson(item as Map<String, dynamic>))
-        .toList();
+    try {
+      final List<dynamic> decoded = jsonDecode(historyJson) as List<dynamic>;
+      return decoded
+          .map((item) =>
+              SearchHistoryItem.fromJson(item as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      // Corrupt or schema-changed history must not brick the history sheet.
+      // Degrade to empty and log; the next save overwrites the bad value.
+      loggerGlobal.warning(
+          "SearchHistory", "Discarding unreadable search history: $e");
+      return [];
+    }
   }
 
   Future<void> saveHistoryItem({
