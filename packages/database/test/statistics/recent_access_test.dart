@@ -297,4 +297,83 @@ void main() {
       expect(results, matcher.isEmpty);
     });
   });
+
+  group("UPSERT + ordering characterization", () {
+    test("recording the same key twice yields count 2 and a later timestamp",
+        () async {
+      await database.recordItemAccess(
+        entityId: "doc-1",
+        entityType: "document",
+      );
+      final first = await (database.select(database.recentAccess)
+            ..where((t) => t.entityId.equals("doc-1")))
+          .getSingle();
+
+      // Timestamps are stored at whole-second ISO precision, so wait past
+      // a second boundary to make the advance observable.
+      await Future.delayed(const Duration(milliseconds: 1100));
+
+      await database.recordItemAccess(
+        entityId: "doc-1",
+        entityType: "document",
+      );
+      final second = await (database.select(database.recentAccess)
+            ..where((t) => t.entityId.equals("doc-1")))
+          .getSingle();
+
+      // Still one row (UPSERT, not a second insert).
+      final all = await (database.select(database.recentAccess)
+            ..where((t) => t.entityId.equals("doc-1")))
+          .get();
+      expect(all.length, equals(1));
+
+      expect(second.accessCount, equals(2));
+      expect(second.lastAccessedAt.isAfter(first.lastAccessedAt), matcher.isTrue);
+    });
+
+    test(
+        "getRecentlyViewed with a limit below the row count returns the most "
+        "recent rows in order", () async {
+      // Insert five rows oldest -> newest; expect the three newest back.
+      for (var i = 0; i < 5; i++) {
+        await database.recordItemAccess(
+          entityId: "item-$i",
+          entityType: "link",
+        );
+        await Future.delayed(const Duration(milliseconds: 1100));
+      }
+
+      final results = await database.getRecentlyViewed(limit: 3);
+
+      expect(results.length, equals(3));
+      // item-4 (newest) ... item-2; item-0 and item-1 fall outside the limit.
+      expect(results.map((r) => r.entityId).toList(),
+          equals(<String>["item-4", "item-3", "item-2"]));
+    });
+
+    test(
+        "getMostAccessed with a limit below the row count returns the highest "
+        "counts in order", () async {
+      // Distinct access counts so the ordering is unambiguous.
+      Future<void> hit(String id, int times) async {
+        for (var i = 0; i < times; i++) {
+          await database.recordItemAccess(entityId: id, entityType: "link");
+        }
+      }
+
+      await hit("one", 1);
+      await hit("five", 5);
+      await hit("three", 3);
+      await hit("seven", 7);
+
+      final results = await database.getMostAccessed(limit: 2);
+
+      expect(results.length, equals(2));
+      // Top two by access_count: seven (7) then five (5).
+      expect(results.map((r) => r.entityId).toList(),
+          equals(<String>["seven", "five"]));
+      expect(results.map((r) => r.accessCount).toList(),
+          equals(<int>[7, 5]));
+    });
+  });
 }
