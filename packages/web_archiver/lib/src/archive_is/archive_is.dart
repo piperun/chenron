@@ -14,8 +14,17 @@ class ArchiveIsClient {
   /// Default timeout for requests.
   final Duration defaultTimeout = const Duration(seconds: 30);
 
-  /// Creates a new [ArchiveIsClient].
-  ArchiveIsClient(); // No API keys needed
+  /// Optional caller-owned HTTP client. When supplied (e.g. test fixtures, a
+  /// shared batch client), it is used for all requests and is **not** closed by
+  /// this class — the caller owns its lifecycle. When null, [archiveUrl]
+  /// creates an internal client and closes it in a `finally`.
+  final http.Client? _injectedClient;
+
+  /// Creates a new [ArchiveIsClient]. No API keys are needed.
+  ///
+  /// Pass [client] to inject an HTTP client for testing or connection reuse;
+  /// otherwise a fresh client is created and closed per [archiveUrl] call.
+  ArchiveIsClient({http.Client? client}) : _injectedClient = client;
 
   /// Attempts to find the currently active domain for archive.is (e.g., .is, .today, .ph)
   /// by following redirects from a known starting point.
@@ -74,7 +83,11 @@ class ArchiveIsClient {
   /// Archives the target URL using archive.is.
   /// Returns the URL of the archived snapshot (memento).
   Future<String> archiveUrl(String targetUrl, {String? userAgent}) async {
-    final client = http.Client();
+    // Reuse the injected client (caller-owned, not closed here) or create an
+    // internal one to close in the `finally`.
+    final http.Client? ownedClient =
+        _injectedClient == null ? http.Client() : null;
+    final http.Client client = _injectedClient ?? ownedClient!;
     final effectiveUserAgent = userAgent ?? defaultUserAgent;
     String? currentDomain;
 
@@ -143,12 +156,16 @@ class ArchiveIsClient {
           _source, "Checking POST response. Status: ${response.statusCode}");
       // _logger.fine("Response Headers: ${response.headers}"); // Optional: Debug headers
 
-      // Check Refresh header (often used for immediate redirect)
+      // Check Refresh header (often used for immediate redirect). Split on only
+      // the FIRST ";url=" — the memento URL itself may contain ";url=" (e.g. in
+      // a query parameter), so consuming every delimiter would drop the memento.
       if (response.headers.containsKey("refresh")) {
         final refreshHeader = response.headers["refresh"]!;
-        final parts = refreshHeader.split(";url=");
-        if (parts.length == 2) {
-          final memento = parts[1];
+        const delimiter = ";url=";
+        final delimiterIndex = refreshHeader.indexOf(delimiter);
+        if (delimiterIndex != -1) {
+          final memento =
+              refreshHeader.substring(delimiterIndex + delimiter.length);
           loggerGlobal.info(
               _source, "Success: Found memento in Refresh header: $memento");
           return memento;
@@ -186,7 +203,8 @@ class ArchiveIsClient {
           _source, "Error during archiveUrl for $targetUrl: $e");
       rethrow; // Rethrow the exception to be handled by the caller
     } finally {
-      client.close(); // Ensure the client is always closed
+      // Only close the client we created; an injected client is the caller's.
+      ownedClient?.close();
     }
   }
 }

@@ -10,8 +10,11 @@ DateTime? parseArchiveDate(String url) {
   if (match != null && match.groupCount >= 1) {
     final dateString = match.group(1);
     if (dateString != null) {
+      // Wayback timestamps are UTC. The trailing "Z" forces DateTime.parse to
+      // interpret the value as UTC; without it the same archive would resolve
+      // to a different instant on every machine, varying with the local offset.
       return DateTime.parse("${dateString.substring(0, 8)}"
-          "T${dateString.substring(8)}");
+          "T${dateString.substring(8)}Z");
     }
   }
 
