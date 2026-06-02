@@ -90,6 +90,11 @@ class Favicon extends StatelessWidget {
               snapshot.data!,
               width: 16,
               height: 16,
+              // Decode at the 16px display size (2x for DPR) instead of the
+              // source resolution — favicons are commonly 256px PNGs, and one
+              // is rendered per link cell.
+              cacheWidth: 32,
+              cacheHeight: 32,
               errorBuilder: (context, error, stackTrace) {
                 return const Icon(Icons.link, size: 16);
               },

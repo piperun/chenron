@@ -152,6 +152,11 @@ class _ItemThumbnailState extends State<ItemThumbnail> {
                 cacheManager: cacheManager,
                 fit: BoxFit.cover,
                 filterQuality: FilterQuality.medium,
+                // Bound the decode to the thumbnail width (x DPR) so a large
+                // OG image isn't decoded at full resolution in every cell.
+                memCacheWidth:
+                    (widget.width * MediaQuery.devicePixelRatioOf(context))
+                        .round(),
                 errorWidget: (context, url, error) => _ImagePlaceholder(
                   height: h ?? double.infinity,
                   width: widget.width,
@@ -195,6 +200,10 @@ class _NetworkImageBox extends StatelessWidget {
         cacheManager: cacheManager,
         fit: BoxFit.cover,
         filterQuality: FilterQuality.medium,
+        // Bound the decode to the box height (x DPR); a cover-fit hero only
+        // needs that vertical resolution, not the full source image.
+        memCacheHeight:
+            (height * MediaQuery.devicePixelRatioOf(context)).round(),
         placeholder: (context, url) => Container(
           color: theme.colorScheme.surfaceContainerHighest,
           child: const Center(
