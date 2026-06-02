@@ -58,6 +58,19 @@ dcm:
     - avoid-unnecessary-type-casts
     - avoid-unused-parameters
     - avoid-generics-shadowing
+    # --- Correctness (free tier) ---
+    - no-equal-then-else
+    - avoid-unrelated-type-assertions
+    - avoid-incomplete-copy-with
+    # --- Flutter lifecycle & correctness (free tier) ---
+    - use-setstate-synchronously
+    - avoid-unnecessary-setstate
+    # --- Flutter performance (free tier) ---
+    - avoid-shrink-wrap-in-lists
+    - avoid-wrapping-in-padding
+    - avoid-expanded-as-spacer
+    # Other high-value rules (dispose-fields, no-equal-switch-case/conditions,
+    # prefer-dedicated-media-query-methods, …) require a paid DCM tier — omitted.
 linter:
   # The lint rules applied to this project can be customized in the
   # section below to disable rules from the `package:flutter_lints/flutter.yaml`
