@@ -42,6 +42,81 @@ void main() {
       expect(job.attempts, 0);
     });
 
+    test("updating status preserves a stored error when error is omitted",
+        () async {
+      final id = await database.enqueueArchiveJob(
+        linkId: "link-1",
+        url: "https://example.com",
+        service: "archive_org",
+      );
+      // A failed attempt records why it failed.
+      await database.updateBackgroundJobStatus(
+        id: id,
+        status: "failed",
+        error: "network timeout",
+        incrementAttempts: true,
+      );
+      // Re-processing flips it to in_progress without restating the error.
+      await database.updateBackgroundJobStatus(id: id, status: "in_progress");
+
+      final job = await database.getBackgroundJob(id);
+      expect(job!.status, "in_progress");
+      // The prior error must survive a status-only transition.
+      expect(job.error, "network timeout");
+    });
+
+    test("updating status preserves a stored resultUrl when omitted", () async {
+      final id = await database.enqueueArchiveJob(
+        linkId: "link-1",
+        url: "https://example.com",
+        service: "archive_org",
+      );
+      await database.updateBackgroundJobStatus(
+        id: id,
+        status: "completed",
+        resultUrl: "https://web.archive.org/snap/1",
+      );
+      // A later status touch (without resultUrl) must not wipe the snapshot.
+      await database.updateBackgroundJobStatus(id: id, status: "queued");
+
+      final job = await database.getBackgroundJob(id);
+      expect(job!.resultUrl, "https://web.archive.org/snap/1");
+    });
+
+    test("incrementAttempts raises attempts by exactly one per call", () async {
+      final id = await database.enqueueArchiveJob(
+        linkId: "link-1",
+        url: "https://example.com",
+        service: "archive_org",
+      );
+      await database.updateBackgroundJobStatus(
+          id: id, status: "queued", incrementAttempts: true);
+      await database.updateBackgroundJobStatus(
+          id: id, status: "queued", incrementAttempts: true);
+
+      final job = await database.getBackgroundJob(id);
+      expect(job!.attempts, 2);
+    });
+
+    test("concurrent attempt increments do not lose updates", () async {
+      final id = await database.enqueueArchiveJob(
+        linkId: "link-1",
+        url: "https://example.com",
+        service: "archive_org",
+      );
+
+      // Fire many increments concurrently; a read-modify-write would race and
+      // lose increments, an atomic UPDATE keeps every one.
+      await Future.wait(List.generate(
+        20,
+        (_) => database.updateBackgroundJobStatus(
+            id: id, status: "queued", incrementAttempts: true),
+      ));
+
+      final job = await database.getBackgroundJob(id);
+      expect(job!.attempts, 20);
+    });
+
     test("getNextQueuedJob returns oldest queued job", () async {
       await database.enqueueArchiveJob(
         linkId: "link-1",

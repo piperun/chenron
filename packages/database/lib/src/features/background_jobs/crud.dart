@@ -160,18 +160,31 @@ extension BackgroundJobsCrudExtensions on AppDatabase {
     String? error,
     bool incrementAttempts = false,
   }) async {
-    final job = await getBackgroundJob(id);
-    if (job == null) return;
+    await transaction(() async {
+      final updated =
+          await (update(backgroundJobs)..where((j) => j.id.equals(id))).write(
+        BackgroundJobsCompanion(
+          status: Value(status),
+          // Omitted fields are preserved: a status-only transition (e.g. a
+          // retry flipping the job to in_progress) must not erase a
+          // previously stored resultUrl or error.
+          resultUrl:
+              resultUrl == null ? const Value.absent() : Value(resultUrl),
+          error: error == null ? const Value.absent() : Value(error),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
 
-    await (update(backgroundJobs)..where((j) => j.id.equals(id))).write(
-      BackgroundJobsCompanion(
-        status: Value(status),
-        resultUrl: Value(resultUrl),
-        error: Value(error),
-        attempts: Value(incrementAttempts ? job.attempts + 1 : job.attempts),
-        updatedAt: Value(DateTime.now()),
-      ),
-    );
+      // Increment in a single atomic statement so concurrent callers cannot
+      // lose a bump through read-modify-write. Skip when the row is absent.
+      if (incrementAttempts && updated > 0) {
+        await customUpdate(
+          "UPDATE background_jobs SET attempts = attempts + 1 WHERE id = ?",
+          variables: [Variable.withString(id)],
+          updates: {backgroundJobs},
+        );
+      }
+    });
   }
 
   /// Remove completed jobs (cleanup) — applies to both archive jobs and
