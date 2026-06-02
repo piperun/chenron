@@ -5,6 +5,7 @@ import "package:database/database.dart";
 import "package:database/features.dart";
 import "package:signals/signals_flutter.dart";
 import "package:chenron/locator.dart";
+import "package:chenron/features/statistics/state/statistics_loader.dart";
 import "package:chenron/features/statistics/widgets/overview_cards.dart";
 import "package:chenron/features/statistics/widgets/growth_trend_chart.dart";
 import "package:chenron/features/statistics/widgets/activity_timeline_chart.dart";
@@ -12,6 +13,7 @@ import "package:chenron/features/statistics/widgets/tag_distribution_chart.dart"
 import "package:chenron/features/statistics/widgets/folder_composition_chart.dart";
 import "package:chenron/features/statistics/widgets/recent_activity_list.dart";
 import "package:chenron/features/statistics/widgets/time_range_selector.dart";
+import "package:chenron/shared/errors/error_snack_bar.dart";
 import "package:chenron/utils/safe_async.dart";
 
 class StatisticsPage extends StatefulWidget {
@@ -27,20 +29,21 @@ class _StatisticsPageState extends State<StatisticsPage> {
       locator.get<Signal<AppDatabaseLifecycle>>().value.appDatabase;
 
   final _timeRange = signal(TimeRange.month);
-  final _currentCounts = signal<ItemCounts?>(null);
-  final _history = signal<List<Statistic>>([]);
-  final _dailyCounts = signal<List<DailyActivityCount>>([]);
-  final _tagCounts = signal<List<TagCount>>([]);
-  final _folderCounts = signal<List<FolderItemCount>>([]);
   final _recentActivity = signal<List<EnrichedActivityEvent>>([]);
-  final _isLoading = signal(true);
+
+  late final StatisticsLoader _loader = StatisticsLoader(
+    _db,
+    onError: (error) {
+      if (mounted) showErrorSnackBar(context, error);
+    },
+  );
 
   StreamSubscription<List<EnrichedActivityEvent>>? _activitySubscription;
 
   @override
   void initState() {
     super.initState();
-    unawaited(_loadData());
+    unawaited(_loader.loadAll(_timeRange.value));
     _activitySubscription = safeWatch<List<EnrichedActivityEvent>>(
       _db.watchRecentActivityWithNames(),
       tag: "StatisticsPage",
@@ -54,68 +57,32 @@ class _StatisticsPageState extends State<StatisticsPage> {
   void dispose() {
     unawaited(_activitySubscription?.cancel());
     _timeRange.dispose();
-    _currentCounts.dispose();
-    _history.dispose();
-    _dailyCounts.dispose();
-    _tagCounts.dispose();
-    _folderCounts.dispose();
     _recentActivity.dispose();
-    _isLoading.dispose();
+    _loader.dispose();
     super.dispose();
-  }
-
-  Future<void> _loadData() async {
-    final startDate = _timeRange.value.startDate;
-    final endDate = DateTime.now();
-
-    await safeAwait<void>(
-      tag: "StatisticsPage",
-      operation: "load statistics",
-      action: () async {
-        final latestStats = await _db.getCurrentCounts();
-        final history = await _db.getStatisticsHistory(
-          startDate: startDate,
-          endDate: endDate,
-        );
-        final dailyCounts = await _db.getDailyActivityCounts(
-          startDate: startDate ?? DateTime(2000),
-          endDate: endDate,
-        );
-        final tagCounts = await _db.getTagDistribution();
-        final folderCounts = await _db.getFolderComposition();
-
-        if (!mounted) return;
-        _currentCounts.value = latestStats;
-        _history.value = history;
-        _dailyCounts.value = dailyCounts;
-        _tagCounts.value = tagCounts;
-        _folderCounts.value = folderCounts;
-      },
-    );
-
-    // Clear the spinner regardless of success/failure so the user sees
-    // either the populated charts or the snackbar-explained empty page.
-    if (mounted) _isLoading.value = false;
   }
 
   void _onTimeRangeChanged(TimeRange range) {
     _timeRange.value = range;
-    // Deliberately do NOT flip _isLoading back to true here. The flag's
-    // only purpose is the first-paint spinner; resetting it on every
-    // range tap would blank the whole page for ~200ms and re-mount
-    // every chart. The signals below repopulate atomically when the
-    // new query completes, so the user sees a smooth in-place swap of
-    // chart data instead of a full-page flicker.
-    unawaited(_loadData());
+    // Deliberately do NOT flip the loading flag back to true here. The
+    // flag's only purpose is the first-paint spinner; resetting it on
+    // every range tap would blank the whole page for ~200ms and re-mount
+    // every chart. reloadForRange repopulates the two range-dependent
+    // signals atomically when the new query completes, so the user sees
+    // a smooth in-place swap of chart data instead of a full-page
+    // flicker. The three range-independent results (counts, tags,
+    // folders) are left untouched — they do not vary with the range.
+    unawaited(_loader.reloadForRange(range));
   }
 
   @override
   Widget build(BuildContext context) {
     return SignalBuilder(builder: (context) {
-      if (_isLoading.value) {
+      if (_loader.isLoading.value) {
         return const Center(child: CircularProgressIndicator());
       }
 
+      final counts = _loader.currentCounts.value;
       return SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.all(widget.padding),
@@ -123,14 +90,14 @@ class _StatisticsPageState extends State<StatisticsPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               OverviewCards(
-                totalLinks: _currentCounts.value?.links ?? 0,
-                totalDocuments: _currentCounts.value?.documents ?? 0,
-                totalFolders: _currentCounts.value?.folders ?? 0,
-                totalTags: _currentCounts.value?.tags ?? 0,
+                totalLinks: counts?.links ?? 0,
+                totalDocuments: counts?.documents ?? 0,
+                totalFolders: counts?.folders ?? 0,
+                totalTags: counts?.tags ?? 0,
               ),
               const SizedBox(height: 16),
               GrowthTrendChart(
-                history: _history.value,
+                history: _loader.history.value,
                 timeRange: _timeRange.value,
                 onTimeRangeChanged: _onTimeRangeChanged,
               ),
@@ -140,19 +107,21 @@ class _StatisticsPageState extends State<StatisticsPage> {
                 children: [
                   Expanded(
                     child: ActivityTimelineChart(
-                      dailyCounts: _dailyCounts.value,
+                      dailyCounts: _loader.dailyCounts.value,
                       timeRange: _timeRange.value,
                       onTimeRangeChanged: _onTimeRangeChanged,
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: TagDistributionChart(tagCounts: _tagCounts.value),
+                    child: TagDistributionChart(
+                      tagCounts: _loader.tagCounts.value,
+                    ),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
-              FolderCompositionChart(folderCounts: _folderCounts.value),
+              FolderCompositionChart(folderCounts: _loader.folderCounts.value),
               const SizedBox(height: 16),
               RecentActivityList(events: _recentActivity.value),
             ],
