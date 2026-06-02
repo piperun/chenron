@@ -77,6 +77,10 @@ class _UnifiedItemState extends State<UnifiedItem> {
     // same State for a different row).
     if (oldWidget.item != widget.item) {
       _resolveMetadataSignal();
+      // The recycled State carries per-row UI state; collapse the tag
+      // overlay so the new item doesn't inherit the previous row's
+      // expanded tags. No setState — didUpdateWidget already rebuilds.
+      _tagsExpanded = false;
     }
   }
 
