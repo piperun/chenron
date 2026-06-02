@@ -192,6 +192,39 @@ class MockDatabaseHelper {
     return items.length;
   }
 
+  /// Count link rows for [url]. `Links.path` is unique, so this is 0 or 1 —
+  /// asserting it proves a URL is never stored as more than one link record.
+  Future<int> countLinkRows(String url) async {
+    _ensureSetup();
+
+    final linksTable = database.links;
+    final rows = await (database.select(linksTable)
+          ..where((tbl) => tbl.path.equals(url)))
+        .get();
+
+    return rows.length;
+  }
+
+  /// Count the tag-relation rows (`metadata_records` of type tag) attached to
+  /// the link with [url]. A link should hold at most one relation per tag;
+  /// re-running `createLink` for an existing link must not accumulate copies.
+  Future<int> countLinkTagRelations(String url) async {
+    _ensureSetup();
+
+    final linksTable = database.links;
+    final link = await (database.select(linksTable)
+          ..where((tbl) => tbl.path.equals(url)))
+        .getSingleOrNull();
+    if (link == null) return 0;
+
+    final metadataRecordsTable = database.metadataRecords;
+    final records = await (database.select(metadataRecordsTable)
+          ..where((tbl) => tbl.itemId.equals(link.id)))
+        .get();
+
+    return records.where((r) => r.typeId == MetadataTypeEnum.tag).length;
+  }
+
   /// Reset the database (clear all data)
   Future<void> reset() async {
     if (!_isSetup) return;

@@ -53,14 +53,17 @@ class BookmarkImportService {
       throw ArgumentError("Invalid bookmark file: no bookmark data found.");
     }
 
-    // Pre-load existing URLs for duplicate detection
+    // Pre-load existing links so a URL already in the database is reused
+    // (reattached to its folder) rather than re-created. Re-running
+    // `createLink` for an existing link would append duplicate tag-relation
+    // rows, so existing URLs must skip it entirely.
     final allLinks = await appDb.getAllLinks();
-    final existingUrls = allLinks.map((l) => l.data.path).toSet();
+    final existingLinkIds = {for (final l in allLinks) l.data.path: l.data.id};
 
     final counters = _ImportCounters();
 
     await appDb.transaction(() async {
-      await _processDl(appDb, rootDl, null, counters, existingUrls);
+      await _processDl(appDb, rootDl, null, counters, existingLinkIds);
     });
 
     return BookmarkImportResult(
@@ -76,7 +79,7 @@ class BookmarkImportService {
     Element dl,
     String? parentFolderId,
     _ImportCounters counters,
-    Set<String> existingUrls,
+    Map<String, String> existingLinkIds,
   ) async {
     final children = dl.children.where((e) => e.localName == "dt").toList();
 
@@ -85,9 +88,10 @@ class BookmarkImportService {
       final a = dt.querySelector("a");
 
       if (h3 != null) {
-        await _handleFolder(appDb, dt, h3, parentFolderId, counters, existingUrls);
+        await _handleFolder(
+            appDb, dt, h3, parentFolderId, counters, existingLinkIds);
       } else if (a != null) {
-        await _handleLink(appDb, a, parentFolderId, counters, existingUrls);
+        await _handleLink(appDb, a, parentFolderId, counters, existingLinkIds);
       }
     }
   }
@@ -98,7 +102,7 @@ class BookmarkImportService {
     Element h3,
     String? parentFolderId,
     _ImportCounters counters,
-    Set<String> existingUrls,
+    Map<String, String> existingLinkIds,
   ) async {
     final title = _sanitizeFolderTitle(h3.text.trim());
     final description = _extractDescription(dt);
@@ -138,7 +142,8 @@ class BookmarkImportService {
     // Find the nested <DL> for this folder's contents
     final nestedDl = _findNestedDl(dt);
     if (nestedDl != null) {
-      await _processDl(appDb, nestedDl, result.folderId, counters, existingUrls);
+      await _processDl(
+          appDb, nestedDl, result.folderId, counters, existingLinkIds);
     }
   }
 
@@ -147,7 +152,7 @@ class BookmarkImportService {
     Element a,
     String? parentFolderId,
     _ImportCounters counters,
-    Set<String> existingUrls,
+    Map<String, String> existingLinkIds,
   ) async {
     final url = a.attributes["href"] ?? "";
     if (!_isValidUrl(url)) return;
@@ -157,17 +162,18 @@ class BookmarkImportService {
         .map((t) => Metadata(value: t, type: MetadataTypeEnum.tag))
         .toList();
 
-    final isNew = !existingUrls.contains(url);
-
-    final linkResult = await appDb.createLink(
-      link: url,
-      tags: tagMetadata.isNotEmpty ? tagMetadata : null,
-    );
-
-    if (isNew) {
+    // Reuse an existing link rather than re-creating it. Calling `createLink`
+    // again would re-run tag insertion and duplicate the link's tag relations.
+    String? linkId = existingLinkIds[url];
+    if (linkId == null) {
+      final linkResult = await appDb.createLink(
+        link: url,
+        tags: tagMetadata.isNotEmpty ? tagMetadata : null,
+      );
+      linkId = linkResult.linkId;
+      existingLinkIds[url] = linkId;
       counters.linksImported++;
       counters.tagsCreated += tags.length;
-      existingUrls.add(url);
     } else {
       counters.linksSkipped++;
     }
@@ -182,7 +188,7 @@ class BookmarkImportService {
           update: [
             FolderItem.link(
               id: null,
-              itemId: linkResult.linkId,
+              itemId: linkId,
               url: url,
             ),
           ],

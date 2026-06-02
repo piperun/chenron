@@ -32,24 +32,34 @@ class LinkPersistenceService {
       }
     }
 
+    // No destination — a link with no folder would be unreachable, so save
+    // nothing (matches the "Saved 0 link(s)" contract callers rely on).
+    if (targetFolders.isEmpty) {
+      return 0;
+    }
+
     var savedCount = 0;
-    for (final folderId in targetFolders) {
-      for (final entry in entries) {
-        final mergedTags = <String>{...entry.tags, ...globalTags};
-        final tags = mergedTags.isNotEmpty
-            ? mergedTags
-                .map((tag) => Metadata(
-                      value: tag,
-                      type: MetadataTypeEnum.tag,
-                    ))
-                .toList()
-            : null;
+    for (final entry in entries) {
+      final mergedTags = <String>{...entry.tags, ...globalTags};
+      final tags = mergedTags.isNotEmpty
+          ? mergedTags
+              .map((tag) => Metadata(
+                    value: tag,
+                    type: MetadataTypeEnum.tag,
+                  ))
+              .toList()
+          : null;
 
-        final result = await appDb.createLink(
-          link: entry.url,
-          tags: tags,
-        );
+      // Create the link (and its tags) once. `createLink` is idempotent on
+      // the URL, so attaching the same link to several folders must not
+      // re-run tag insertion — doing so would accumulate duplicate
+      // tag-relation rows, one per target folder.
+      final result = await appDb.createLink(
+        link: entry.url,
+        tags: tags,
+      );
 
+      for (final folderId in targetFolders) {
         await appDb.updateFolder(
           folderId,
           itemUpdates: CUD(
@@ -64,9 +74,9 @@ class LinkPersistenceService {
             remove: [],
           ),
         );
-
-        savedCount++;
       }
+
+      savedCount++;
     }
 
     return savedCount;

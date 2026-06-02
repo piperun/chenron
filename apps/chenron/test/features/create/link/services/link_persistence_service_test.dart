@@ -87,8 +87,11 @@ void main() {
         entries: entries,
         folderIds: [folderId, folderId2],
       );
-      // 1 entry × 2 folders = 2
-      expect(count, 2);
+      // One distinct link saved, shared by two folders — the count reports
+      // links saved, not folder attachments (the snackbar reads "Saved N link(s)").
+      expect(count, 1);
+      // The same URL must never be stored as more than one link record.
+      expect(await mockDb.countLinkRows("https://multi.com"), 1);
 
       final f1 = await mockDb.getFolder(folderId);
       final f2 = await mockDb.getFolder(folderId2);
@@ -100,6 +103,28 @@ void main() {
         f2!.items.whereType<LinkItem>().any((i) => i.url == "https://multi.com"),
         isTrue,
       );
+    });
+
+    test("does not duplicate tag relations across multiple folders", () async {
+      final folderId2 =
+          await mockDb.createTestFolder(title: "Second Folder");
+
+      final entries = [
+        const LinkEntry(
+          key: ValueKey("k1"),
+          url: "https://multitag.com",
+          tags: ["flutter"],
+        ),
+      ];
+
+      await service.saveLinks(
+        entries: entries,
+        folderIds: [folderId, folderId2],
+      );
+
+      // The link is shared by both folders, so its single "flutter" tag must
+      // be recorded exactly once — not once per target folder.
+      expect(await mockDb.countLinkTagRelations("https://multitag.com"), 1);
     });
 
     test("falls back to default folder when folderIds is empty", () async {

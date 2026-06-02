@@ -3,6 +3,7 @@ import "dart:io";
 import "package:flutter_test/flutter_test.dart";
 
 import "package:chenron_mockups/chenron_mockups.dart";
+import "package:database/database.dart";
 import "package:database/features.dart";
 import "package:chenron/features/settings/service/bookmark_import_service.dart";
 
@@ -112,6 +113,28 @@ void main() {
       final result = await service.importBookmarks(file);
       expect(result.linksImported, 1); // only dart.dev is new
       expect(result.linksSkipped, 1); // flutter.dev already exists
+    });
+
+    test("does not duplicate tag relations when re-importing an existing tagged link",
+        () async {
+      // Pre-seed a link that already carries the "flutter" tag.
+      await mockDb.database.createLink(
+        link: "https://flutter.dev",
+        tags: [Metadata(type: MetadataTypeEnum.tag, value: "flutter")],
+      );
+
+      // Import a file naming the same URL with the same tag.
+      final file = await writeBookmarkFile(_bookmarkHtml(
+        links: ["https://flutter.dev"],
+        linkTags: {"https://flutter.dev": "flutter"},
+      ));
+
+      final result = await service.importBookmarks(file);
+
+      // The URL already exists, so it is skipped — and re-importing it must
+      // not append a second copy of its "flutter" tag relation.
+      expect(result.linksSkipped, 1);
+      expect(await mockDb.countLinkTagRelations("https://flutter.dev"), 1);
     });
 
     test("imports tags on links", () async {

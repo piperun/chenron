@@ -78,8 +78,8 @@ void main() {
       expect(result.linksSkipped, equals(2));
 
       final allLinks = await mockDb.database.getAllLinks();
-      expect(allLinks.where((l) => l.data.path == dupUrl).length,
-          greaterThanOrEqualTo(1));
+      // The URL is stored exactly once; the repeats are skipped, not appended.
+      expect(allLinks.where((l) => l.data.path == dupUrl).length, equals(1));
     });
 
     test("sanitizes folder titles per BookmarkImportService rules", () async {
