@@ -188,15 +188,29 @@ class _GridLinePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    // Stroke (not fill): the path is a set of open line segments, so it
+    // must be stroked to render — filling open subpaths draws nothing.
     final Paint paint = Paint()
       ..color = color.withValues(alpha: _opacity)
-      ..strokeWidth = _strokeWidth;
+      ..strokeWidth = _strokeWidth
+      ..style = PaintingStyle.stroke;
+    // Accumulate every vertical + horizontal line into one Path so the
+    // whole grid is a single `drawPath` call instead of ~N `drawLine`
+    // calls (with spacing 6 that's hundreds of calls per repaint, and
+    // this paints on every route via `MaterialApp.builder`). The
+    // rendered result is identical — same segments, same stroke.
+    final Path path = Path();
     for (double x = 0; x < size.width; x += _spacing) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+      path
+        ..moveTo(x, 0)
+        ..lineTo(x, size.height);
     }
     for (double y = 0; y < size.height; y += _spacing) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+      path
+        ..moveTo(0, y)
+        ..lineTo(size.width, y);
     }
+    canvas.drawPath(path, paint);
   }
 
   @override
