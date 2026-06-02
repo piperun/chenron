@@ -1,7 +1,32 @@
 import 'dart:io';
+import 'package:file/file.dart' as fs;
+import 'package:file/local.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
+
+/// [FileSystem] for `flutter_cache_manager` that stores cached files under an
+/// explicit base directory instead of `flutter_cache_manager`'s default
+/// (`getTemporaryDirectory()/cacheKey`). Wiring this into the [Config] makes
+/// the directory the manager actually writes to match the directory
+/// [ImageCacheManager] reports via [ImageCacheManager.getCacheDirectory] and
+/// measures via [ImageCacheManager.getCacheSize].
+class _BaseDirFileSystem implements FileSystem {
+  _BaseDirFileSystem(this._basePath);
+
+  final String _basePath;
+  static const _local = LocalFileSystem();
+
+  @override
+  Future<fs.File> createFile(String name) async {
+    final directory = _local.directory(_basePath);
+    if (!await directory.exists()) {
+      await directory.create(recursive: true);
+    }
+    return directory.childFile(name);
+  }
+}
 
 /// Manages image caching using flutter_cache_manager
 class ImageCacheManager {
@@ -33,10 +58,24 @@ class ImageCacheManager {
           stalePeriod: const Duration(days: 30),
           maxNrOfCacheObjects: 200,
           fileService: HttpFileService(),
-          // Use custom path or default temp dir
+          // Store files under the resolved path so the directory the manager
+          // writes to is the same one getCacheDirectory()/getCacheSize()
+          // report. Without this the manager would fall back to
+          // getTemporaryDirectory()/cacheKey and reporting would describe a
+          // different folder than where the bytes actually land.
+          fileSystem: _BaseDirFileSystem(cachePath),
         ),
       );
     }
+  }
+
+  /// Reset all cached static state. Intended for tests that need to
+  /// re-[initialize] with a different path/key within the same process.
+  @visibleForTesting
+  static void resetForTesting() {
+    _cacheManager = null;
+    _currentCachePath = null;
+    _currentCacheKey = defaultCacheKey;
   }
 
   /// Get default cache path (system temp directory under [cacheKey])
