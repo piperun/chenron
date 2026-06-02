@@ -24,9 +24,8 @@ void main() {
     );
   }
 
-  /// Opens the AddItemModal with a viewport large enough to avoid overflow.
-  /// Uses a narrow width so the modal gets height-proportional sizing (60%
-  /// of viewport) instead of the fixed 480px that overflows by 2px.
+  /// Opens the AddItemModal in a tall viewport so the type-selector modal
+  /// fits comfortably.
   Future<void> openModal(WidgetTester tester,
       {ValueChanged<FolderItemType>? onTypeSelected}) async {
     tester.view.physicalSize = const Size(600, 1000);

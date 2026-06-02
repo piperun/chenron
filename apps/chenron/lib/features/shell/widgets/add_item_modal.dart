@@ -43,29 +43,24 @@ class _AddItemModalState extends State<AddItemModal> {
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.sizeOf(context);
-    final isSmallScreen = screenSize.width < Breakpoints.md;
-    final isMediumScreen =
-        screenSize.width >= Breakpoints.md && screenSize.width < Breakpoints.xl;
+    final sizeClass = WindowSizeClass.fromWidth(screenSize.width);
+    final hasType = _selectedType != null;
 
-    // Responsive sizing based on screen width
-    double modalWidth;
-    double modalHeight;
-
-    if (isSmallScreen) {
-      // Small screens: use most of the screen
-      modalWidth = screenSize.width * 0.95;
-      modalHeight = _selectedType == null
-          ? screenSize.height * 0.6
-          : screenSize.height * 0.9;
-    } else if (isMediumScreen) {
-      // Medium screens: balanced sizing
-      modalWidth = _selectedType == null ? 500.0 : 700.0;
-      modalHeight = _selectedType == null ? 480.0 : screenSize.height * 0.85;
-    } else {
-      // Large screens: generous sizing
-      modalWidth = _selectedType == null ? 500.0 : 900.0;
-      modalHeight = _selectedType == null ? 480.0 : screenSize.height * 0.85;
-    }
+    // Modal size relative to the whole window: compact fills most of the
+    // screen, wider classes use fixed, increasingly generous sizes.
+    final double modalWidth = responsiveValue(
+      sizeClass,
+      compact: screenSize.width * 0.95,
+      medium: hasType ? 700.0 : 500.0,
+      expanded: hasType ? 900.0 : 500.0,
+    );
+    final double modalHeight = responsiveValue(
+      sizeClass,
+      compact: hasType ? screenSize.height * 0.9 : screenSize.height * 0.6,
+      // The type selector needs ~482px; 500 fits it with margin (480 clipped
+      // it by 2px on non-compact windows).
+      medium: hasType ? screenSize.height * 0.85 : 500.0,
+    );
 
     return Dialog(
       shape: RoundedRectangleBorder(

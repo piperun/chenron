@@ -1,87 +1,80 @@
-import "package:flutter/material.dart";
+import "package:flutter/widgets.dart";
 
-const kBreakpointSmall = 479.0;
-const kBreakpointMedium = 767.0;
-const kBreakpointLarge = 991.0;
-bool isMobileWidth(BuildContext context) =>
-    MediaQuery.sizeOf(context).width < kBreakpointSmall;
-bool responsiveVisibility({
-  required BuildContext context,
-  bool phone = true,
-  bool tablet = true,
-  bool tabletLandscape = true,
-  bool desktop = true,
-}) {
-  final width = MediaQuery.sizeOf(context).width;
-  if (width < kBreakpointSmall) {
-    return phone;
-  } else if (width < kBreakpointMedium) {
-    return tablet;
-  } else if (width < kBreakpointLarge) {
-    return tabletLandscape;
-  } else {
-    return desktop;
+/// Material 3 window size classes — the breakpoints Flutter's adaptive
+/// Material components are designed around.
+///
+/// Derive the class from the width you care about:
+/// - the **whole window** via `context.windowSizeClass`, for app-shell
+///   decisions (e.g. navigation rail vs. bottom bar);
+/// - the **available width** via `WindowSizeClass.fromWidth(constraints.maxWidth)`
+///   inside a `LayoutBuilder`, for a component, so it adapts to the space it
+///   is actually given rather than to the whole window.
+enum WindowSizeClass {
+  /// Under 600 px — phones in portrait.
+  compact,
+
+  /// 600–840 px — phones in landscape, small tablets.
+  medium,
+
+  /// 840–1200 px — tablets, small desktop windows.
+  expanded,
+
+  /// 1200–1600 px — desktop.
+  large,
+
+  /// 1600 px and up — large / ultrawide desktop.
+  extraLarge;
+
+  /// Lower-bound widths (logical pixels) for each Material 3 size class.
+  static const double mediumMinWidth = 600;
+  static const double expandedMinWidth = 840;
+  static const double largeMinWidth = 1200;
+  static const double extraLargeMinWidth = 1600;
+
+  /// The size class for [width] in logical pixels.
+  static WindowSizeClass fromWidth(double width) {
+    if (width >= extraLargeMinWidth) return WindowSizeClass.extraLarge;
+    if (width >= largeMinWidth) return WindowSizeClass.large;
+    if (width >= expandedMinWidth) return WindowSizeClass.expanded;
+    if (width >= mediumMinWidth) return WindowSizeClass.medium;
+    return WindowSizeClass.compact;
   }
+
+  /// Whether this class is [other] or wider.
+  bool isAtLeast(WindowSizeClass other) => index >= other.index;
 }
 
-class Breakpoints {
-  // Define breakpoints similar to Tailwind CSS
-  static const double xs =
-      0; // Extra small devices (portrait phones, less than 576px)
-  static const double sm =
-      576; // Small devices (landscape phones, 576px and up)
-  static const double md = 768; // Medium devices (tablets, 768px and up)
-  static const double lg = 992; // Large devices (desktops, 992px and up)
-  static const double xl =
-      1200; // Extra large devices (large desktops, 1200px and up)
+extension WindowSizeContext on BuildContext {
+  /// The [WindowSizeClass] for the whole window.
+  ///
+  /// Use for app-shell layout decisions. For a component, prefer
+  /// `WindowSizeClass.fromWidth(constraints.maxWidth)` inside a
+  /// `LayoutBuilder` so it adapts to its own available width.
+  WindowSizeClass get windowSizeClass =>
+      WindowSizeClass.fromWidth(MediaQuery.sizeOf(this).width);
+}
 
-  // Utility functions with Tailwind-like ratios
-  static double responsiveWidth(BuildContext context,
-      {double ratioSm = 1.0,
-      double ratioMd = 0.875,
-      double ratioLg = 0.75,
-      double ratioXl = 0.625}) {
-    final screenWidth = MediaQuery.sizeOf(context).width;
-    if (screenWidth <= sm) {
-      return screenWidth * ratioSm;
-    } else if (screenWidth <= md) {
-      return screenWidth * ratioMd;
-    } else if (screenWidth <= lg) {
-      return screenWidth * ratioLg;
-    } else if (screenWidth <= xl) {
-      return screenWidth * ratioXl;
-    } else {
-      return screenWidth * 0.375; // Default for extra large screens
-    }
+/// Picks the value for [sizeClass], falling back to the nearest smaller class
+/// that was supplied. Only [compact] is required, so callers specify just the
+/// classes where the value actually changes.
+T responsiveValue<T>(
+  WindowSizeClass sizeClass, {
+  required T compact,
+  T? medium,
+  T? expanded,
+  T? large,
+  T? extraLarge,
+}) {
+  switch (sizeClass) {
+    case WindowSizeClass.extraLarge:
+      return extraLarge ?? large ?? expanded ?? medium ?? compact;
+    case WindowSizeClass.large:
+      return large ?? expanded ?? medium ?? compact;
+    case WindowSizeClass.expanded:
+      return expanded ?? medium ?? compact;
+    case WindowSizeClass.medium:
+      return medium ?? compact;
+    case WindowSizeClass.compact:
+      return compact;
   }
-
-  static double responsiveHeight(BuildContext context,
-      {double ratioSm = 1.0,
-      double ratioMd = 0.875,
-      double ratioLg = 0.75,
-      double ratioXl = 0.625}) {
-    final screenHeight = MediaQuery.sizeOf(context).height;
-    if (screenHeight <= sm) {
-      return screenHeight * ratioSm;
-    } else if (screenHeight <= md) {
-      return screenHeight * ratioMd;
-    } else if (screenHeight <= lg) {
-      return screenHeight * ratioLg;
-    } else if (screenHeight <= xl) {
-      return screenHeight * ratioXl;
-    } else {
-      return screenHeight * 0.375; // Default for extra large screens
-    }
-  }
-
-  static bool isExtraSmall(BuildContext context) =>
-      MediaQuery.sizeOf(context).width > xs;
-  static bool isSmall(BuildContext context) =>
-      MediaQuery.sizeOf(context).width > sm;
-  static bool isMedium(BuildContext context) =>
-      MediaQuery.sizeOf(context).width > md;
-  static bool isLarge(BuildContext context) =>
-      MediaQuery.sizeOf(context).width > lg;
-  static bool isExtraLarge(BuildContext context) =>
-      MediaQuery.sizeOf(context).width > xl;
 }
