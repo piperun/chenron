@@ -365,5 +365,22 @@ void main() {
         BackgroundJobService.metadataFetch,
       ]));
     });
+
+    test("getAllBackgroundJobs caps the result at the requested limit",
+        () async {
+      for (var i = 0; i < 3; i++) {
+        await database.enqueueArchiveJob(
+          linkId: "link-$i",
+          url: "https://e$i.com",
+          service: "archive_org",
+        );
+      }
+
+      // The activity log loads jobs into memory, so the query is bounded.
+      expect(await database.getAllBackgroundJobs(limit: 2), hasLength(2));
+      // A limit at/above the count, or null, returns everything.
+      expect(await database.getAllBackgroundJobs(limit: 5), hasLength(3));
+      expect(await database.getAllBackgroundJobs(limit: null), hasLength(3));
+    });
   });
 }

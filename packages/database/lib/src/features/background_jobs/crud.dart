@@ -195,12 +195,19 @@ extension BackgroundJobsCrudExtensions on AppDatabase {
         .go();
   }
 
-  /// Get all background jobs (archive + metadata fetches), newest first.
-  /// This is what the activity log surfaces.
-  Future<List<BackgroundJob>> getAllBackgroundJobs() async {
-    return (select(backgroundJobs)
-          ..orderBy([(j) => OrderingTerm.desc(j.updatedAt)]))
-        .get();
+  /// Get background jobs (archive + metadata fetches), newest first.
+  ///
+  /// This is what the activity log surfaces — and it loads the whole result
+  /// into memory to filter client-side, so it is bounded to the most recent
+  /// [limit] rows by default. The table holds live state, not durable
+  /// history, so a cap is appropriate; pass `limit: null` for the full set.
+  Future<List<BackgroundJob>> getAllBackgroundJobs({int? limit = 500}) async {
+    final query = select(backgroundJobs)
+      ..orderBy([(j) => OrderingTerm.desc(j.updatedAt)]);
+    if (limit != null) {
+      query.limit(limit);
+    }
+    return query.get();
   }
 
   /// Mark any `in_progress` row that hasn't been touched in the last
