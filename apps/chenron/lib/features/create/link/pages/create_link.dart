@@ -110,10 +110,12 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
                 onDismiss: () => setState(() => _generalError = null),
               ),
             if (widget.hideAppBar && widget.onClose != null)
-              LinkPageHeader(
-                onClose: widget.onClose!,
-                onSave: _saveLinks,
-                hasEntries: _notifier.hasEntries.value,
+              SignalBuilder(
+                builder: (context) => LinkPageHeader(
+                  onClose: widget.onClose!,
+                  onSave: _saveLinks,
+                  hasEntries: _notifier.hasEntries.value,
+                ),
               ),
             Expanded(
               child: Padding(
@@ -167,15 +169,17 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
                           maxHeight: (MediaQuery.sizeOf(context).height * 0.5)
                               .clamp(300.0, double.infinity),
                         ),
-                        child: LinkTableSection(
-                          entries: _notifier.entries,
-                          notifier: _tableNotifier,
-                          onEdit: _handleEdit,
-                          onDelete: _handleDelete,
-                          onDeleteSelected: _handleDeleteSelected,
-                          onClearAll: _handleClearAll,
-                          folderNames: _folderNameCache,
-                          globalTags: _notifier.globalTags,
+                        child: SignalBuilder(
+                          builder: (context) => LinkTableSection(
+                            entries: _notifier.entries,
+                            notifier: _tableNotifier,
+                            onEdit: _handleEdit,
+                            onDelete: _handleDelete,
+                            onDeleteSelected: _handleDeleteSelected,
+                            onClearAll: _handleClearAll,
+                            folderNames: _folderNameCache,
+                            globalTags: _notifier.globalTags,
+                          ),
                         ),
                       ),
                     ],

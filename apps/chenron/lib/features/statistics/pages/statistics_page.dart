@@ -123,7 +123,12 @@ class _StatisticsPageState extends State<StatisticsPage> {
               const SizedBox(height: 16),
               FolderCompositionChart(folderCounts: _loader.folderCounts.value),
               const SizedBox(height: 16),
-              RecentActivityList(events: _recentActivity.value),
+              // Scoped so the frequently-updating recent-activity stream only
+              // rebuilds this list, not the charts above it.
+              SignalBuilder(
+                builder: (context) =>
+                    RecentActivityList(events: _recentActivity.value),
+              ),
             ],
           ),
         ),
