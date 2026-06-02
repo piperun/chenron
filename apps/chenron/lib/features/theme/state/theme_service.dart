@@ -22,7 +22,7 @@ class ThemeServiceDB implements ThemeService {
       if (userConfig != null) {
         fetchedConfigId = userConfig;
         loggerGlobal.info(
-            "ThemeServiceDB", "UserConfig found, ID: $fetchedConfigId");
+            "ThemeServiceDB", "UserConfig found, ID: ${fetchedConfigId.data.id}");
       } else {
         loggerGlobal.severe(
             "ThemeServiceDB", "UserConfig not found during creation.");

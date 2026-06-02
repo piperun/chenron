@@ -59,11 +59,6 @@ class FolderEditorNotifier {
     return items;
   });
 
-  // Computed signal for filtered items (for search/display)
-  late final Computed<List<FolderItem>> displayItems = computed(() {
-    return currentItems.value;
-  });
-
   late final Computed<bool> hasChanges = computed(() {
     final FolderResult? original = _originalFolder;
     final FolderFormData? current = formData.value;
@@ -543,7 +538,6 @@ class FolderEditorNotifier {
     itemChanges.dispose();
     formData.dispose();
     currentItems.dispose();
-    displayItems.dispose();
     hasChanges.dispose();
   }
 }
