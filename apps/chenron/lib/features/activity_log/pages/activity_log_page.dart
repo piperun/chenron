@@ -18,7 +18,18 @@ import "package:vibe/vibe.dart";
 class ActivityLogPage extends StatefulWidget {
   final AppDatabase database;
 
-  const ActivityLogPage({super.key, required this.database});
+  /// Writes [contents] to the file at [path]. Injectable so tests can
+  /// simulate a permission/read-only failure; defaults to a real
+  /// [File.writeAsString].
+  @visibleForTesting
+  final Future<void> Function(String path, String contents) fileWriter;
+
+  ActivityLogPage({
+    super.key,
+    required this.database,
+    Future<void> Function(String path, String contents)? fileWriter,
+  }) : fileWriter =
+            fileWriter ?? ((path, contents) => File(path).writeAsString(contents));
 
   @override
   State<ActivityLogPage> createState() => _ActivityLogPageState();
@@ -168,7 +179,15 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
 
     if (result == null) return;
 
-    await File(result).writeAsString(jsonString);
+    final wrote = await safeAwait<bool>(
+      tag: "ActivityLogPage",
+      operation: "write activity log export",
+      action: () async {
+        await widget.fileWriter(result, jsonString);
+        return true;
+      },
+    );
+    if (wrote != true) return;
 
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(

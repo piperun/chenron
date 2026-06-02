@@ -51,30 +51,30 @@ class _ConfigPageState extends State<ConfigPage> {
         content: Text("Saving..."), duration: Duration(seconds: 60)));
 
     final success = await _coordinator.saveAll();
+    if (!mounted) return;
 
+    // Replace the indefinite "Saving..." snackbar with the result.
+    // showSnackBar already supersedes the current one, so no delay is
+    // needed between hide and show.
     scaffoldMessenger.hideCurrentSnackBar();
 
-    await Future<void>.delayed(const Duration(milliseconds: 100));
-
-    if (mounted) {
-      if (success) {
-        scaffoldMessenger.showSnackBar(
-          SnackBar(
-            content: const Text("Settings saved"),
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            duration: const Duration(seconds: 3),
-          ),
-        );
-      } else {
-        scaffoldMessenger.showSnackBar(
-          SnackBar(
-            content: Text(
-                "Error saving settings: ${_coordinator.error.peek() ?? 'Unknown error'}"),
-            backgroundColor: Theme.of(context).colorScheme.error,
-            duration: const Duration(seconds: 4),
-          ),
-        );
-      }
+    if (success) {
+      scaffoldMessenger.showSnackBar(
+        SnackBar(
+          content: const Text("Settings saved"),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } else {
+      scaffoldMessenger.showSnackBar(
+        SnackBar(
+          content: Text(
+              "Error saving settings: ${_coordinator.error.peek() ?? 'Unknown error'}"),
+          backgroundColor: Theme.of(context).colorScheme.error,
+          duration: const Duration(seconds: 4),
+        ),
+      );
     }
   }
 

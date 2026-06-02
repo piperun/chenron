@@ -49,8 +49,13 @@ class _BulkTagDialogState extends State<_BulkTagDialog> {
   /// All tag names from the database.
   List<String> _allTagNames = [];
 
-  /// Tag name → assigned color (ARGB int), or null if unset.
+  /// Tag name → assigned color (ARGB int), or null if unset. Holds the
+  /// in-dialog (staged) colors the user is editing.
   final Map<String, int?> _tagColors = {};
+
+  /// Tag name → color as loaded from the DB, so Apply can ship only the
+  /// entries the user actually changed and Cancel discards everything.
+  final Map<String, int?> _originalTagColors = {};
   bool _isLoading = true;
   String? _createError;
 
@@ -95,8 +100,9 @@ class _BulkTagDialogState extends State<_BulkTagDialog> {
     setState(() {
       if (results != null) {
         _allTagNames = results.map((r) => r.data.name).toList();
-        _tagColors.addAll(
-            {for (final r in results) r.data.name: r.data.color});
+        final loaded = {for (final r in results) r.data.name: r.data.color};
+        _tagColors.addAll(loaded);
+        _originalTagColors.addAll(loaded);
       }
       _isLoading = false;
     });
@@ -190,20 +196,26 @@ class _BulkTagDialogState extends State<_BulkTagDialog> {
     });
   }
 
-  Future<void> _handleColorChange(String tagName, int? color) async {
+  /// Stages a color edit. The change is committed (via the returned
+  /// [BulkTagResult]) only when the user hits Apply — so picking a color
+  /// then cancelling leaves the stored tag color untouched.
+  void _handleColorChange(String tagName, int? color) {
     setState(() => _tagColors[tagName] = color);
-    await safeAwait<void>(
-      tag: "BulkTagDialog",
-      operation: "update tag color",
-      action: () async {
-        final db =
-            locator.get<Signal<AppDatabaseLifecycle>>().value.appDatabase;
-        await db.updateTagColor(tagName: tagName, color: color);
-      },
-    );
   }
 
-  bool get _hasChanges => _tagsToAdd.isNotEmpty || _tagsToRemove.isNotEmpty;
+  /// Tags whose staged color differs from what was loaded.
+  Map<String, int?> _changedColors() {
+    final changed = <String, int?>{};
+    _tagColors.forEach((name, color) {
+      if (_originalTagColors[name] != color) changed[name] = color;
+    });
+    return changed;
+  }
+
+  bool get _hasChanges =>
+      _tagsToAdd.isNotEmpty ||
+      _tagsToRemove.isNotEmpty ||
+      _changedColors().isNotEmpty;
 
   String _applyLabel() {
     final adds = _tagsToAdd.length;
@@ -315,6 +327,7 @@ class _BulkTagDialogState extends State<_BulkTagDialog> {
               onApply: () => Navigator.of(context).pop(BulkTagResult(
                 tagsToAdd: _tagsToAdd.toList(),
                 tagsToRemove: _tagsToRemove.toList(),
+                colorChanges: _changedColors(),
               )),
             ),
           ],

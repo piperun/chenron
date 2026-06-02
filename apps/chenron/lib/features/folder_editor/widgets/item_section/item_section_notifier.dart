@@ -27,8 +27,7 @@ class ItemSectionNotifier {
     return item.map(
       link: (linkItem) => linkItem.url,
       document: (docItem) => docItem.title,
-      folder: (folderItem) =>
-          folderItem.folderId, // Will need to resolve folder name elsewhere
+      folder: (folderItem) => folderItem.title,
     );
   }
 

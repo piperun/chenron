@@ -5,9 +5,11 @@ import "package:chenron/shared/dialogs/delete_confirmation_dialog.dart";
 import "package:chenron/shared/viewer/item_deletion_service.dart";
 import "package:chenron/shared/viewer/item_tagging_service.dart";
 import "package:database/database.dart";
+import "package:database/features.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/services/activity_tracker.dart";
 import "package:chenron/shared/errors/error_snack_bar.dart";
+import "package:signals/signals.dart";
 
 /// Tracks the item view event and delegates the tap to [onTap].
 ///
@@ -133,6 +135,15 @@ Future<void> handleItemTagging(
       final removeResult =
           await service.removeTagFromItems(items, result.tagsToRemove);
       messages.add(_buildRemovalMessage(removeResult));
+    }
+
+    if (result.colorChanges.isNotEmpty) {
+      final db = locator.get<Signal<AppDatabaseLifecycle>>().value.appDatabase;
+      for (final entry in result.colorChanges.entries) {
+        await db.updateTagColor(tagName: entry.key, color: entry.value);
+      }
+      final n = result.colorChanges.length;
+      messages.add("Recolored $n ${n == 1 ? 'tag' : 'tags'}");
     }
 
     if (context.mounted) {

@@ -1,5 +1,6 @@
 import "package:chenron/locator.dart";
 import "package:chenron/features/bulk_tag/pages/bulk_tag_dialog.dart";
+import "package:chenron/shared/color_picker/color_dot.dart";
 import "package:database/database.dart";
 import "package:database/features.dart";
 import "package:drift/native.dart";
@@ -549,6 +550,122 @@ void main() {
       await tester.pump(const Duration(seconds: 1));
 
       expect(find.text("Tag editor"), findsNothing);
+    });
+  });
+
+  group("BulkTagDialog color changes", () {
+    /// Opens the swatch popup for the (single) visible tag row and taps
+    /// the [target] palette color.
+    Future<void> pickColor(WidgetTester tester, Color target) async {
+      await tester.tap(find.byType(ColorDot).first);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300)); // menu opens
+
+      // Palette swatches render as 28x28 Containers tinted with the color.
+      final swatch = find.byWidgetPredicate((w) =>
+          w is Container &&
+          w.decoration is BoxDecoration &&
+          (w.decoration! as BoxDecoration).color == target);
+      await tester.tap(swatch.first);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300)); // menu closes
+    }
+
+    Future<int?> storedColor(String tagName) async {
+      final tags = await database.getAllTags();
+      return tags.firstWhere((t) => t.data.name == tagName).data.color;
+    }
+
+    testWidgets("picking a color then Cancel does NOT mutate the DB",
+        (tester) async {
+      // Tag starts red.
+      await database.addTag("flutter");
+      await database.updateTagColor(
+          tagName: "flutter", color: Colors.red.toARGB32());
+
+      await openDialog(tester, items: []);
+
+      // Change to blue inside the dialog.
+      await pickColor(tester, Colors.blue);
+
+      // Cancel.
+      await tester.tap(find.text("Cancel"));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      // Regression: the old dialog wrote the color on pick, so Cancel
+      // still left the global tag blue. It must remain red.
+      expect(await storedColor("flutter"), Colors.red.toARGB32());
+    });
+
+    testWidgets("picking a color surfaces it in the result on Apply",
+        (tester) async {
+      await database.addTag("flutter");
+
+      BulkTagResult? result;
+      await tester.pumpWidget(buildApp(
+        child: Builder(
+          builder: (context) => ElevatedButton(
+            onPressed: () async {
+              result = await showBulkTagDialog(
+                context: context,
+                items: const [],
+              );
+            },
+            child: const Text("Open"),
+          ),
+        ),
+      ));
+      await tester.tap(find.text("Open"));
+      await tester.pump();
+      await tester.pump();
+
+      await pickColor(tester, Colors.blue);
+
+      // A color-only change enables Apply.
+      await tester.tap(find.text("Apply"));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(result, isNotNull);
+      expect(result!.colorChanges["flutter"], Colors.blue.toARGB32());
+
+      // The dialog itself must not have written — DB unchanged until the
+      // caller applies the result.
+      expect(await storedColor("flutter"), isNull);
+    });
+
+    testWidgets("unchanged colors are not reported on Apply", (tester) async {
+      await database.addTag("flutter");
+
+      BulkTagResult? result;
+      await tester.pumpWidget(buildApp(
+        child: Builder(
+          builder: (context) => ElevatedButton(
+            onPressed: () async {
+              result = await showBulkTagDialog(
+                context: context,
+                items: const [],
+              );
+            },
+            child: const Text("Open"),
+          ),
+        ),
+      ));
+      await tester.tap(find.text("Open"));
+      await tester.pump();
+      await tester.pump();
+
+      // Add the tag (so Apply is enabled) without touching its color.
+      await tester.tap(find.text("flutter"));
+      await tester.pump();
+
+      await tester.tap(find.text("Apply (+1)"));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(result, isNotNull);
+      expect(result!.colorChanges, isEmpty);
     });
   });
 }
