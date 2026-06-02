@@ -27,6 +27,10 @@ class _ExpandableFieldState extends State<ExpandableField> {
         textPainter.layout(maxWidth: maxWidth);
 
         final isTextOverflowing = textPainter.didExceedMaxLines;
+        // TextPainter holds an engine-side Paragraph that must be disposed
+        // manually (Flutter 3.13+); this one is rebuilt every layout pass, so
+        // skipping disposal leaks a Paragraph on each build.
+        textPainter.dispose();
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,

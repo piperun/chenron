@@ -26,12 +26,18 @@ class TagsList extends StatelessWidget {
   const TagsList({super.key, required this.tags});
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Wrap(
       spacing: 8,
       runSpacing: 8,
       children: tags
-          .map((tag) =>
-              Chip(label: Text(tag), backgroundColor: Colors.blue.shade100))
+          .map((tag) => Chip(
+                label: Text(
+                  tag,
+                  style: TextStyle(color: colorScheme.onSecondaryContainer),
+                ),
+                backgroundColor: colorScheme.secondaryContainer,
+              ))
           .toList(),
     );
   }

@@ -19,7 +19,9 @@ class ItemTableNotifier<T> {
   }
 
   void handleRowChecked(TrinaGridOnRowCheckedEvent event) {
-    hasCheckedRows.value = event.isChecked!;
+    // isChecked is nullable; a header "select all" event arrives with a null
+    // value in the indeterminate case. Treat null as unchecked.
+    hasCheckedRows.value = event.isChecked ?? false;
   }
 
   void appendRow(TrinaRow<dynamic> row, {String? key}) {
