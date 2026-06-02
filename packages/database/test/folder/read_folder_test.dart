@@ -2,8 +2,10 @@
 
 import "package:core/patterns/include_options.dart";
 import "package:database/database.dart";
+import "package:database/src/core/id.dart";
 import "package:database/src/features/folder/create.dart";
 import "package:database/src/features/folder/read.dart";
+import "package:drift/drift.dart" hide isNull, isNotNull;
 import "package:flutter_test/flutter_test.dart";
 import "package:chenron_mockups/chenron_mockups.dart";
 
@@ -390,6 +392,98 @@ void main() {
               folders[1].tags.length == 2 &&
               folders[0].items.length == 2 &&
               folders[1].items.length == 2)));
+    });
+  });
+
+  group("getDefaultFolderId() Operations", () {
+    test("returns the 'Default' folder when one exists", () async {
+      await database.into(database.folders).insert(
+            FoldersCompanion.insert(
+              id: database.generateId(),
+              title: "Default",
+              description: "",
+            ),
+          );
+
+      final defaultId = await database.getDefaultFolderId();
+      expect(defaultId, isNotNull);
+
+      final folder = await database.folders.findById(defaultId!).getSingle();
+      expect(folder.title, equals("Default"));
+    });
+
+    test("returns null when there are no folders at all", () async {
+      await database.delete(database.folders).go();
+
+      final defaultId = await database.getDefaultFolderId();
+      expect(defaultId, isNull);
+    });
+
+    test(
+        "fallback (no 'Default' folder) returns the earliest-created folder "
+        "regardless of insertion order", () async {
+      await database.delete(database.folders).go();
+
+      // Insert out of created_at order: the middle insert is the oldest.
+      final base = DateTime.utc(2024, 1, 1, 12);
+      final newestId = database.generateId();
+      final oldestId = database.generateId();
+      final middleId = database.generateId();
+
+      await database.into(database.folders).insert(FoldersCompanion.insert(
+            id: newestId,
+            title: "Newest Folder",
+            description: "",
+            createdAt: Value(base.add(const Duration(days: 10))),
+          ));
+      await database.into(database.folders).insert(FoldersCompanion.insert(
+            id: oldestId,
+            title: "Oldest Folder",
+            description: "",
+            createdAt: Value(base),
+          ));
+      await database.into(database.folders).insert(FoldersCompanion.insert(
+            id: middleId,
+            title: "Middle Folder",
+            description: "",
+            createdAt: Value(base.add(const Duration(days: 5))),
+          ));
+
+      final defaultId = await database.getDefaultFolderId();
+
+      // Deterministic: the oldest createdAt wins, not the first/last row.
+      expect(defaultId, equals(oldestId));
+
+      // Stable across repeated calls.
+      expect(await database.getDefaultFolderId(), equals(oldestId));
+    });
+
+    test(
+        "fallback ties on created_at are broken deterministically by id",
+        () async {
+      await database.delete(database.folders).go();
+
+      final sharedTime = DateTime.utc(2024, 6, 1, 9);
+      // Two ids with the same createdAt; the smaller id must win.
+      final ids = [database.generateId(), database.generateId()]..sort();
+      final smallerId = ids.first;
+      final largerId = ids.last;
+
+      // Insert the larger id first so row order can't be what wins.
+      await database.into(database.folders).insert(FoldersCompanion.insert(
+            id: largerId,
+            title: "Tie Folder One",
+            description: "",
+            createdAt: Value(sharedTime),
+          ));
+      await database.into(database.folders).insert(FoldersCompanion.insert(
+            id: smallerId,
+            title: "Tie Folder Two",
+            description: "",
+            createdAt: Value(sharedTime),
+          ));
+
+      expect(await database.getDefaultFolderId(), equals(smallerId));
     });
   });
 

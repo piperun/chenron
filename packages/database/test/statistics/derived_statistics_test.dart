@@ -1,4 +1,5 @@
 import "package:database/database.dart";
+import "package:database/src/core/id.dart";
 import "package:database/src/features/statistics/activity.dart";
 import "package:database/src/features/statistics/derived.dart";
 import "package:database/src/features/link/create.dart";
@@ -92,6 +93,37 @@ void main() {
       final distribution = await database.getTagDistribution();
 
       expect(distribution, matcher.isEmpty);
+    });
+
+    test("ignores non-tag metadata relations in the count", () async {
+      // One genuine tag relation on a link.
+      await database.createLink(
+        link: "https://flutter.dev",
+        tags: [Metadata(value: "flutter", type: MetadataTypeEnum.tag)],
+      );
+
+      final tagRow = await database.select(database.tags).getSingle();
+
+      // Simulate a future, non-tag metadata type pointing at the same tag
+      // row. type_id intentionally falls outside MetadataTypeEnum (tag == 0)
+      // so the distribution must not count it.
+      await database.customStatement(
+        "INSERT INTO metadata_records (id, type_id, item_id, metadata_id) "
+        "VALUES (?, ?, ?, ?)",
+        [
+          database.generateId(),
+          MetadataTypeEnum.tag.index + 1,
+          "some-other-item",
+          tagRow.id,
+        ],
+      );
+
+      final distribution = await database.getTagDistribution();
+      final flutterTag =
+          distribution.where((t) => t.tagName == "flutter").first;
+
+      // Still 1: the non-tag relation is filtered out by type_id.
+      expect(flutterTag.itemCount, equals(1));
     });
 
     test("includes tagColor when set", () async {

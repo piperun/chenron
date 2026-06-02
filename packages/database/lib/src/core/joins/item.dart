@@ -24,7 +24,9 @@ class ItemJoins implements RowJoins<Items, FolderItem> {
             nestedFolders, nestedFolders.id.equalsExp(db.items.itemId)),
         // Load tags from the source link/document, not from item metadata
         leftOuterJoin(
-            linkMetadata, linkMetadata.itemId.equalsExp(db.items.itemId)),
+            linkMetadata,
+            linkMetadata.itemId.equalsExp(db.items.itemId) &
+                linkMetadata.typeId.equalsValue(MetadataTypeEnum.tag)),
         leftOuterJoin(linkTags, linkTags.id.equalsExp(linkMetadata.metadataId)),
       ];
 }

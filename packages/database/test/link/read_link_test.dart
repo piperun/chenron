@@ -2,10 +2,12 @@
 
 import "package:core/patterns/include_options.dart";
 import "package:database/database.dart";
+import "package:database/src/core/id.dart";
 import "package:flutter_test/flutter_test.dart";
 
 import "package:database/src/features/link/read.dart";
 import "package:database/src/features/link/create.dart";
+import "package:database/src/features/tag/create.dart";
 import "package:chenron_mockups/chenron_mockups.dart";
 
 void main() {
@@ -87,6 +89,38 @@ void main() {
       expect(result, isNotNull);
       expect(result!.data.id, equals(activeLinkId));
       expect(result.tags.length, equals(2));
+      expect(
+        result.tags.map((t) => t.name).toSet(),
+        equals({"tech", "programming"}),
+      );
+    });
+
+    test("tag load ignores non-tag metadata on the same item", () async {
+      // A tag row that is NOT attached to the link as a tag relation.
+      final strayTagId = await database.addTag("stray");
+
+      // Inject a non-tag metadata relation on the link's item pointing at
+      // the stray tag. type_id is outside MetadataTypeEnum (tag == 0), so
+      // the tag join must skip it: without the type_id filter this stray
+      // would surface as a third tag.
+      await database.customStatement(
+        "INSERT INTO metadata_records (id, type_id, item_id, metadata_id) "
+        "VALUES (?, ?, ?, ?)",
+        [
+          database.generateId(),
+          MetadataTypeEnum.tag.index + 1,
+          activeLinkId,
+          strayTagId,
+        ],
+      );
+
+      final result = await database.getLink(
+        linkId: activeLinkId,
+        includeOptions:
+            const IncludeOptions<AppDataInclude>({AppDataInclude.tags}),
+      );
+
+      expect(result!.tags.length, equals(2));
       expect(
         result.tags.map((t) => t.name).toSet(),
         equals({"tech", "programming"}),

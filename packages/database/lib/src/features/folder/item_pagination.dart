@@ -124,7 +124,8 @@ extension FolderItemPaginationExtensions on AppDatabase {
     final query = select(metadataRecords).join([
       innerJoin(tags, tags.id.equalsExp(metadataRecords.metadataId)),
     ])
-      ..where(metadataRecords.itemId.isIn(itemIds));
+      ..where(metadataRecords.itemId.isIn(itemIds) &
+          metadataRecords.typeId.equalsValue(MetadataTypeEnum.tag));
     final rows = await query.get();
 
     final result = <String, List<Tag>>{};

@@ -1,6 +1,7 @@
 import "package:core/patterns/include_options.dart";
 import "package:database/database.dart";
 import "package:database/src/core/builders/base_query_builder.dart";
+import "package:drift/drift.dart";
 
 extension FolderReadExtensions on AppDatabase {
   Future<FolderResult?> getFolder({
@@ -59,7 +60,16 @@ extension FolderReadExtensions on AppDatabase {
         .getSingleOrNull();
     if (byTitle != null) return byTitle.id;
 
-    final first = await (select(folders)..limit(1)).getSingleOrNull();
+    // Deterministic fallback: oldest folder first, id as a stable
+    // tie-breaker. Without an ORDER BY, LIMIT 1 returned an arbitrary
+    // row, so the "default" folder could differ run to run.
+    final first = await (select(folders)
+          ..orderBy([
+            (f) => OrderingTerm.asc(f.createdAt),
+            (f) => OrderingTerm.asc(f.id),
+          ])
+          ..limit(1))
+        .getSingleOrNull();
     return first?.id;
   }
 

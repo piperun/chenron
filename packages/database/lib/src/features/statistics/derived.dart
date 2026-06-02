@@ -4,10 +4,14 @@ import "package:drift/drift.dart";
 extension DerivedStatistics on AppDatabase {
   /// Gets tag distribution: count of items per tag name
   Future<List<TagCount>> getTagDistribution() async {
+    // Only count tag-type relations. metadata_records stores its type as
+    // an intEnum<MetadataTypeEnum> (tag == 0); gating the join keeps the
+    // count correct once a second metadata type is introduced.
     final query = customSelect(
       "SELECT t.name AS tag_name, t.color AS tag_color, COUNT(mr.id) AS item_count "
       "FROM tags t "
-      "LEFT JOIN metadata_records mr ON mr.metadata_id = t.id "
+      "LEFT JOIN metadata_records mr "
+      "ON mr.metadata_id = t.id AND mr.type_id = ${MetadataTypeEnum.tag.index} "
       "GROUP BY t.id ORDER BY item_count DESC",
       readsFrom: {tags, metadataRecords},
     );

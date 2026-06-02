@@ -9,8 +9,10 @@ class TagJoins implements RowJoins<Tags, Tag> {
 
   @override
   List<Join> createJoins(Expression<String> baseJoinExpression) => [
-        leftOuterJoin(db.metadataRecords,
-            db.metadataRecords.itemId.equalsExp(baseJoinExpression)),
+        leftOuterJoin(
+            db.metadataRecords,
+            db.metadataRecords.itemId.equalsExp(baseJoinExpression) &
+                db.metadataRecords.typeId.equalsValue(MetadataTypeEnum.tag)),
         leftOuterJoin(
             db.tags, db.tags.id.equalsExp(db.metadataRecords.metadataId)),
       ];
