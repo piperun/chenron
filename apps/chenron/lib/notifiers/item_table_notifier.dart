@@ -24,21 +24,6 @@ class ItemTableNotifier<T> {
     hasCheckedRows.value = event.isChecked ?? false;
   }
 
-  void appendRow(TrinaRow<dynamic> row, {String? key}) {
-    if (_stateManager != null) {
-      final String? newUrl = row.cells[key]?.value as String?;
-
-      final bool isDuplicate = _stateManager!.rows.any((existingRow) {
-        final String? existingUrl = existingRow.cells[key]?.value as String?;
-        return existingUrl == newUrl;
-      });
-
-      if (!isDuplicate) {
-        _stateManager!.appendRows([row]);
-      }
-    }
-  }
-
   void removeSelectedRows() {
     if (_stateManager == null) return;
     final selectedRows = _stateManager!.checkedRows;
