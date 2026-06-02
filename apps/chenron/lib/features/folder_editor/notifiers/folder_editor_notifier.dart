@@ -371,8 +371,19 @@ class FolderEditorNotifier {
 
       final tagUpdates = _buildTagUpdates();
       final itemUpdates = itemChanges.value;
-      final parentFolderUpdates =
-          _buildParentFolderUpdates(folderId, current.title);
+
+      // A folder may not be nested under itself or any of its own
+      // descendants — that would create a cycle (A inside B while B is
+      // inside A). The picker already hides these, but guard the write
+      // path too so a stale form or a future caller can never persist one.
+      final forbiddenParents =
+          await appDb.getDescendantFolderIds(folderId: folderId);
+      forbiddenParents.add(folderId);
+      final parentFolderUpdates = _buildParentFolderUpdates(
+        folderId,
+        current.title,
+        forbiddenParents: forbiddenParents,
+      );
 
       // Single transaction for the main folder update + every parent
       // folder update. Previously each parent update was its own
@@ -438,15 +449,31 @@ class FolderEditorNotifier {
   }
 
   List<({String parentFolderId, CUD<FolderItem> changes})>
-      _buildParentFolderUpdates(String currentFolderId, String currentTitle) {
+      _buildParentFolderUpdates(
+    String currentFolderId,
+    String currentTitle, {
+    Set<String> forbiddenParents = const {},
+  }) {
     final current = formData.value;
     if (current == null) {
       return [];
     }
 
-    // Clean up duplicates and convert to sets for comparison
+    // Clean up duplicates and convert to sets for comparison.
+    // Drop any parent that would form a cycle (the folder itself or one
+    // of its descendants) before diffing, so such a parent is never
+    // added or "kept" — only an existing illegal link may still be removed.
     final originalParents = _originalParentFolderIds.toSet();
-    final currentParents = current.parentFolderIds.toSet();
+    final currentParents =
+        current.parentFolderIds.toSet().difference(forbiddenParents);
+
+    if (forbiddenParents.any(current.parentFolderIds.contains)) {
+      loggerGlobal.warning(
+        "FolderEditor",
+        "Ignored attempt to set folder $currentFolderId under itself or a "
+            "descendant; cycle prevented.",
+      );
+    }
 
     final updates = <({String parentFolderId, CUD<FolderItem> changes})>[];
 

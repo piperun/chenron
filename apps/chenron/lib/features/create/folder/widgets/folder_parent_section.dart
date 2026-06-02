@@ -104,6 +104,11 @@ class _FolderSelectionDialogState extends State<_FolderSelectionDialog> {
   late Set<Folder> _selectedFolders;
   String _searchQuery = "";
   List<Folder> _allFolders = [];
+
+  /// Ids that may not be chosen as a parent: the folder being edited
+  /// plus every folder nested beneath it. Picking a descendant would
+  /// create a cycle (the folder ends up inside one of its own children).
+  Set<String> _excludedFolderIds = {};
   bool _isLoading = true;
 
   @override
@@ -119,18 +124,37 @@ class _FolderSelectionDialogState extends State<_FolderSelectionDialog> {
       operation: "load folders",
       action: widget.db.getAllFolders,
     );
+
+    // Exclude the edited folder and its descendants so a child or
+    // grandchild can never be picked as this folder's parent.
+    final excluded = <String>{};
+    final currentFolderId = widget.currentFolderId;
+    if (currentFolderId != null) {
+      excluded.add(currentFolderId);
+      final descendants = await safeAwait<Set<String>>(
+        tag: "FolderParentSection",
+        operation: "load descendant folders",
+        action: () =>
+            widget.db.getDescendantFolderIds(folderId: currentFolderId),
+      );
+      if (descendants != null) {
+        excluded.addAll(descendants);
+      }
+    }
+
     if (!mounted) return;
     setState(() {
       if (results != null) {
         _allFolders = results.map((r) => r.data).toList();
       }
+      _excludedFolderIds = excluded;
       _isLoading = false;
     });
   }
 
   List<Folder> get _filteredFolders => _allFolders.where((f) {
-        // Exclude current folder from selection
-        if (widget.currentFolderId != null && f.id == widget.currentFolderId) {
+        // Exclude the current folder and its descendants to prevent cycles.
+        if (_excludedFolderIds.contains(f.id)) {
           return false;
         }
         return f.title.toLowerCase().contains(_searchQuery.toLowerCase());
