@@ -24,6 +24,13 @@ melos:
   # `version` command or it'll fight the conventional-commits flow.
 
   scripts:
+    # Always bump via this (or the `git bump` alias) — never bare `cog bump`
+    # from a subdirectory. cog resolves the version hook + changelog relative
+    # to the invocation dir, and melos runs scripts from the repo root.
+    bump:
+      description: Bump the workspace version with cog (from the repo root).
+      run: cog bump --auto
+
     analyze:
       description: Run `flutter analyze` across the workspace.
       run: flutter analyze
