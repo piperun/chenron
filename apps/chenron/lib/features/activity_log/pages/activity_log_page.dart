@@ -63,10 +63,8 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
       if (_searchQuery.isNotEmpty) {
         final q = _searchQuery.toLowerCase();
         final matchesUrl = job.url.toLowerCase().contains(q);
-        final matchesError =
-            job.error?.toLowerCase().contains(q) ?? false;
-        final matchesResult =
-            job.resultUrl?.toLowerCase().contains(q) ?? false;
+        final matchesError = job.error?.toLowerCase().contains(q) ?? false;
+        final matchesResult = job.resultUrl?.toLowerCase().contains(q) ?? false;
         if (!matchesUrl && !matchesError && !matchesResult) return false;
       }
       return true;
@@ -208,8 +206,8 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
             shown: filtered.length,
             total: _allJobs.length,
             hasActiveFilters: _hasActiveFilters,
-            hasCompleted: _allJobs
-                .any((j) => j.status == BackgroundJobStatus.completed),
+            hasCompleted:
+                _allJobs.any((j) => j.status == BackgroundJobStatus.completed),
             onClearCompleted: _handleClearCompleted,
           ),
           const SizedBox(height: 8),
@@ -558,8 +556,7 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dimmed =
-        theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.3);
+    final dimmed = theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.3);
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -577,8 +574,8 @@ class _EmptyState extends StatelessWidget {
             Text(
               subtitle!,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant
-                    .withValues(alpha: 0.7),
+                color:
+                    theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
               ),
             ),
           ],
@@ -615,9 +612,8 @@ class _LogFilterChip extends StatelessWidget {
       onSelected: (_) => onSelected(),
       selectedColor: chipColor.withValues(alpha: 0.15),
       checkmarkColor: chipColor,
-      side: selected
-          ? BorderSide(color: chipColor.withValues(alpha: 0.5))
-          : null,
+      side:
+          selected ? BorderSide(color: chipColor.withValues(alpha: 0.5)) : null,
       visualDensity: VisualDensity.compact,
     );
   }
@@ -634,6 +630,12 @@ class _LogEntryTile extends StatelessWidget {
     final theme = Theme.of(context);
     final (icon, color) = _statusVisual(theme);
 
+    // Retry only makes sense for archive jobs (they re-run through the
+    // processor). Metadata fetches are audit-log entries — re-fetching
+    // happens implicitly on next access, so no Retry button.
+    final canRetry = job.status == BackgroundJobStatus.failed &&
+        job.service != BackgroundJobService.metadataFetch;
+
     return ListTile(
       leading: Icon(icon, color: color),
       title: Text(
@@ -641,12 +643,45 @@ class _LogEntryTile extends StatelessWidget {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
-      subtitle: _buildSubtitle(theme),
-      trailing: _buildTrailing(theme),
+      subtitle: _LogEntrySubtitle(job: job),
+      trailing: canRetry
+          ? IconButton(
+              icon: const Icon(Icons.replay),
+              tooltip: "Retry",
+              onPressed: () => onRetry(job),
+            )
+          : null,
     );
   }
 
-  Widget? _buildSubtitle(ThemeData theme) {
+  (IconData, Color) _statusVisual(ThemeData theme) {
+    return switch (job.status) {
+      BackgroundJobStatus.queued => (
+          Icons.schedule,
+          theme.colorScheme.onSurfaceVariant
+        ),
+      BackgroundJobStatus.inProgress => (Icons.sync, theme.colorScheme.primary),
+      BackgroundJobStatus.completed => (
+          Icons.check_circle,
+          theme.colorScheme.primary
+        ),
+      BackgroundJobStatus.failed => (
+          Icons.error_outline,
+          theme.colorScheme.error
+        ),
+      _ => (Icons.help_outline, theme.colorScheme.onSurfaceVariant),
+    };
+  }
+}
+
+class _LogEntrySubtitle extends StatelessWidget {
+  final BackgroundJob job;
+
+  const _LogEntrySubtitle({required this.job});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final parts = <InlineSpan>[];
 
     // Type badge
@@ -693,41 +728,12 @@ class _LogEntryTile extends StatelessWidget {
     );
   }
 
-  Widget? _buildTrailing(ThemeData theme) {
-    // Retry only makes sense for archive jobs (they re-run through the
-    // processor). Metadata fetches are audit-log entries — re-fetching
-    // happens implicitly on next access, so no Retry button.
-    if (job.status == BackgroundJobStatus.failed &&
-        job.service != BackgroundJobService.metadataFetch) {
-      return IconButton(
-        icon: const Icon(Icons.replay),
-        tooltip: "Retry",
-        onPressed: () => onRetry(job),
-      );
-    }
-    return null;
-  }
-
   static String _serviceLabel(String service) {
     return switch (service) {
       BackgroundJobService.archiveOrg => "archive.org",
       BackgroundJobService.archiveIs => "archive.is",
       BackgroundJobService.metadataFetch => "metadata",
       _ => service,
-    };
-  }
-
-  (IconData, Color) _statusVisual(ThemeData theme) {
-    return switch (job.status) {
-      BackgroundJobStatus.queued =>
-        (Icons.schedule, theme.colorScheme.onSurfaceVariant),
-      BackgroundJobStatus.inProgress =>
-        (Icons.sync, theme.colorScheme.primary),
-      BackgroundJobStatus.completed =>
-        (Icons.check_circle, theme.colorScheme.primary),
-      BackgroundJobStatus.failed =>
-        (Icons.error_outline, theme.colorScheme.error),
-      _ => (Icons.help_outline, theme.colorScheme.onSurfaceVariant),
     };
   }
 }

@@ -38,7 +38,11 @@ class SettingsContentPanel extends StatelessWidget {
             ),
           ),
           const Divider(),
-          Expanded(child: ListView(children: _buildContent(category))),
+          Expanded(
+            child: ListView(
+              children: [_SettingsCategoryContent(category: category)],
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.only(top: 16, bottom: 8),
             child: Center(
@@ -52,18 +56,25 @@ class SettingsContentPanel extends StatelessWidget {
       ),
     );
   }
+}
 
-  static List<Widget> _buildContent(SettingsCategory category) {
+class _SettingsCategoryContent extends StatelessWidget {
+  final SettingsCategory category;
+
+  const _SettingsCategoryContent({required this.category});
+
+  @override
+  Widget build(BuildContext context) {
     return switch (category) {
-      SettingsCategory.theme => [const ThemeSettingsPanel()],
-      SettingsCategory.display => [const DisplaySettingsPanel()],
-      SettingsCategory.cache => [const CacheSettings()],
-      SettingsCategory.archive => [const ArchiveSettingsPanel()],
-      SettingsCategory.backup => [const BackupSettings()],
-      SettingsCategory.data => [const DataSettings()],
-      SettingsCategory.tags => [const TagManagementSettings()],
+      SettingsCategory.theme => const ThemeSettingsPanel(),
+      SettingsCategory.display => const DisplaySettingsPanel(),
+      SettingsCategory.cache => const CacheSettings(),
+      SettingsCategory.archive => const ArchiveSettingsPanel(),
+      SettingsCategory.backup => const BackupSettings(),
+      SettingsCategory.data => const DataSettings(),
+      SettingsCategory.tags => const TagManagementSettings(),
       // Parent categories: show first child's content as fallback
-      SettingsCategory.appearance => [const ThemeSettingsPanel()],
+      SettingsCategory.appearance => const ThemeSettingsPanel(),
     };
   }
 }

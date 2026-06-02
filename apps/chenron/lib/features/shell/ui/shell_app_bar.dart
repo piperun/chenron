@@ -26,12 +26,32 @@ class ShellAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     if (currentPage.isMainView) {
-      return _buildMainAppBar();
+      return _MainAppBar(
+        searchFilter: searchFilter,
+        onActivityLogPressed: onActivityLogPressed,
+        onSettingsPressed: onSettingsPressed,
+      );
     }
-    return _buildContextualAppBar();
+    return _ContextualAppBar(
+      currentPage: currentPage,
+      onBack: onBack,
+    );
   }
+}
 
-  AppBar _buildMainAppBar() {
+class _MainAppBar extends StatelessWidget {
+  final SearchFilter searchFilter;
+  final VoidCallback onActivityLogPressed;
+  final VoidCallback onSettingsPressed;
+
+  const _MainAppBar({
+    required this.searchFilter,
+    required this.onActivityLogPressed,
+    required this.onSettingsPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return AppBar(
       automaticallyImplyLeading: false,
       centerTitle: true,
@@ -57,8 +77,19 @@ class ShellAppBar extends StatelessWidget implements PreferredSizeWidget {
       ],
     );
   }
+}
 
-  AppBar _buildContextualAppBar() {
+class _ContextualAppBar extends StatelessWidget {
+  final AppPage currentPage;
+  final VoidCallback? onBack;
+
+  const _ContextualAppBar({
+    required this.currentPage,
+    this.onBack,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return AppBar(
       automaticallyImplyLeading: false,
       leading: IconButton(

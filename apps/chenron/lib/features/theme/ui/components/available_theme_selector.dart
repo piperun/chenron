@@ -200,7 +200,6 @@ class _SchemeGrid extends StatelessWidget {
 
   const _SchemeGrid({required this.label, required this.scheme});
 
-  static const double _cellHeight = 24;
   static const double _gap = 2;
   static const double _rowLabelWidth = 64;
 
@@ -217,47 +216,65 @@ class _SchemeGrid extends StatelessWidget {
       children: [
         Text(label, style: theme.textTheme.labelSmall),
         const SizedBox(height: 2),
-        _labeledRow("Base", labelStyle, [
-          _cell(scheme.primary),
-          _cell(scheme.secondary),
-          _cell(scheme.tertiary),
-          _cell(scheme.error),
+        _LabeledRow(label: "Base", style: labelStyle, cells: [
+          _SchemeCell(color: scheme.primary),
+          _SchemeCell(color: scheme.secondary),
+          _SchemeCell(color: scheme.tertiary),
+          _SchemeCell(color: scheme.error),
         ]),
         const SizedBox(height: _gap),
-        _labeledRow("Container", labelStyle, [
-          _cell(scheme.primaryContainer),
-          _cell(scheme.secondaryContainer),
-          _cell(scheme.tertiaryContainer),
-          _cell(scheme.errorContainer),
+        _LabeledRow(label: "Container", style: labelStyle, cells: [
+          _SchemeCell(color: scheme.primaryContainer),
+          _SchemeCell(color: scheme.secondaryContainer),
+          _SchemeCell(color: scheme.tertiaryContainer),
+          _SchemeCell(color: scheme.errorContainer),
         ]),
         const SizedBox(height: _gap),
-        _labeledRow("Surface", labelStyle, [
-          _cell(scheme.surface),
-          _cell(scheme.surfaceContainerHighest),
-          _cell(scheme.outline),
-          _cell(scheme.outlineVariant),
+        _LabeledRow(label: "Surface", style: labelStyle, cells: [
+          _SchemeCell(color: scheme.surface),
+          _SchemeCell(color: scheme.surfaceContainerHighest),
+          _SchemeCell(color: scheme.outline),
+          _SchemeCell(color: scheme.outlineVariant),
         ]),
       ],
     );
   }
+}
 
-  Widget _labeledRow(
-    String label,
-    TextStyle? style,
-    List<Widget> cells,
-  ) {
+class _LabeledRow extends StatelessWidget {
+  final String label;
+  final TextStyle? style;
+  final List<Widget> cells;
+
+  const _LabeledRow({
+    required this.label,
+    required this.style,
+    required this.cells,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Row(
       children: [
         SizedBox(
-          width: _rowLabelWidth,
+          width: _SchemeGrid._rowLabelWidth,
           child: Text(label, style: style),
         ),
         ...cells,
       ],
     );
   }
+}
 
-  Widget _cell(Color color) {
+class _SchemeCell extends StatelessWidget {
+  final Color color;
+
+  const _SchemeCell({required this.color});
+
+  static const double _cellHeight = 24;
+
+  @override
+  Widget build(BuildContext context) {
     return Expanded(
       child: Container(
         height: _cellHeight,
