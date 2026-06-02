@@ -1,4 +1,5 @@
 import "dart:io";
+import "dart:math";
 
 import "package:flutter/foundation.dart";
 import "package:path/path.dart" as p;
@@ -102,19 +103,45 @@ Future<Directory> getDefaultApplicationDirectory({bool debugMode = false}) async
       "No writable directory found. Debug mode: $debugMode, $defaultDir");
 }
 
-/// Checks whether [directory] is writable by attempting to create, write, and delete a temp file.
+/// Random source for unique probe-file names. Not security-sensitive — it only
+/// needs to keep concurrent probes from colliding on the same path.
+final Random _probeRandom = Random();
+
+/// Builds a probe-file name that is unique across concurrent probes and app
+/// instances. A timestamp alone collides when two probes run in the same
+/// millisecond; the pid plus a random suffix disambiguates them.
+String _uniqueProbeName() {
+  final int ts = DateTime.now().microsecondsSinceEpoch;
+  final int rand = _probeRandom.nextInt(1 << 32);
+  return "temp_${ts}_${pid}_${rand.toRadixString(16)}";
+}
+
+/// Checks whether [directory] is writable by attempting to create, write, and
+/// delete a uniquely named probe file.
+///
+/// The probe name is unique per call so concurrent probes (or multiple app
+/// instances within the same millisecond) never share a path and delete each
+/// other's file. The probe is removed in a `finally` so a failure partway
+/// through never leaves residue behind.
 Future<bool> isDirWritable(Directory directory) async {
+  final File tempFile = File(p.join(directory.path, _uniqueProbeName()));
   try {
-    final File tempFile = File(p.join(
-        directory.path, "temp_${DateTime.now().millisecondsSinceEpoch}"));
     await tempFile.create();
-    await tempFile
-        .writeAsBytes(<int>[DateTime.now().millisecondsSinceEpoch]);
-    await tempFile.delete();
+    await tempFile.writeAsBytes(<int>[DateTime.now().millisecondsSinceEpoch]);
     return true;
   } on FileSystemException catch (e) {
     // Use debugPrint instead of logger as this may be called before logger initialization
     debugPrint("ApplicationDirectory Write Error: ${e.message}");
     return false;
+  } finally {
+    // Always clean up the probe, even if create/write threw. A cleanup failure
+    // must not flip an already-determined result, so swallow its error here.
+    try {
+      if (await tempFile.exists()) {
+        await tempFile.delete();
+      }
+    } on FileSystemException catch (e) {
+      debugPrint("ApplicationDirectory probe cleanup error: ${e.message}");
+    }
   }
 }
