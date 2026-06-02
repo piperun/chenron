@@ -34,7 +34,7 @@ class ItemDescription extends StatelessWidget {
     final metadataSignal = metadata;
 
     if (metadataSignal != null) {
-      return Watch((context) {
+      return SignalBuilder(builder: (context) {
         final state = metadataSignal.value;
         final description = switch (state) {
           MetadataStateReady(:final data) => data.description,

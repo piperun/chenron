@@ -78,7 +78,7 @@ class _FolderEditorState extends State<FolderEditor> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Watch((context) {
+    return SignalBuilder(builder: (context) {
       final canSave = _isFormValid.value &&
           _notifier.hasChanges.value &&
           _notifier.state.value != FolderEditorState.saving;
@@ -157,7 +157,7 @@ class SectionBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Watch((context) {
+    return SignalBuilder(builder: (context) {
       switch (notifier.state.value) {
         case FolderEditorState.loading:
           return const Center(

@@ -64,7 +64,7 @@ class ItemListView extends StatelessWidget {
             }
             return false;
           },
-          child: Watch((context) {
+          child: SignalBuilder(builder: (context) {
             // Read config preferences once per config change. Resolved values
             // are then passed as primitives to each cell — no per-cell Watch.
             final snapshot = displayNotifier.current.value;

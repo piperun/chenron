@@ -182,16 +182,15 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             final error = snapshot.error!;
-            loggerGlobal.severe("FolderViewer", "Failed to load folder",
-                error, snapshot.stackTrace);
+            loggerGlobal.severe("FolderViewer", "Failed to load folder", error,
+                snapshot.stackTrace);
             return Center(
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Text(
                   userErrorMessage(error),
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                      color: Theme.of(context).colorScheme.error),
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
                 ),
               ),
             );
@@ -214,8 +213,8 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
                   infiniteScroll: _infiniteScroll,
                   isHeaderExpanded: _isHeaderExpanded,
                   isHeaderLocked: _isHeaderLocked,
-                  onToggleExpanded: () => setState(
-                      () => _isHeaderExpanded = !_isHeaderExpanded),
+                  onToggleExpanded: () =>
+                      setState(() => _isHeaderExpanded = !_isHeaderExpanded),
                   onToggleLock: _toggleHeaderLock,
                   onEdit: _handleEdit,
                   onDelete: () => _handleDelete(result.data),
@@ -236,7 +235,6 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
       ),
     );
   }
-
 }
 
 /// Stand-in for [FolderHeader] / [CollapsedHeader] while the folder
@@ -278,8 +276,8 @@ class _HeaderSkeleton extends StatelessWidget {
                 height: 14,
                 child: DecoratedBox(
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.outlineVariant
-                        .withValues(alpha: 0.4),
+                    color:
+                        theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -325,9 +323,8 @@ class _CollapsibleHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Watch((context) {
-      final totalItems =
-          infiniteScroll.estimatedTotal + parentItems.length;
+    return SignalBuilder(builder: (context) {
+      final totalItems = infiniteScroll.estimatedTotal + parentItems.length;
 
       return GestureDetector(
         onTap: isHeaderLocked ? null : onToggleExpanded,
@@ -341,8 +338,8 @@ class _CollapsibleHeader extends StatelessWidget {
                   tags: result.tags,
                   totalItems: totalItems,
                   onBack: () => Navigator.pop(context),
-                  onHome: () => Navigator.popUntil(
-                      context, (route) => route.isFirst),
+                  onHome: () =>
+                      Navigator.popUntil(context, (route) => route.isFirst),
                   isExpanded: isHeaderExpanded,
                   onToggle: onToggleExpanded,
                   isLocked: isHeaderLocked,
@@ -361,8 +358,8 @@ class _CollapsibleHeader extends StatelessWidget {
                   isHeaderLocked: isHeaderLocked,
                   isHeaderExpanded: isHeaderExpanded,
                   onBack: () => Navigator.pop(context),
-                  onHome: () => Navigator.popUntil(
-                      context, (route) => route.isFirst),
+                  onHome: () =>
+                      Navigator.popUntil(context, (route) => route.isFirst),
                   onToggleLock: onToggleLock,
                 ),
         ),
@@ -388,7 +385,7 @@ class _FolderItemDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Watch((context) {
+    return SignalBuilder(builder: (context) {
       final loadedItems = infiniteScroll.loadedItems.value;
       final allItems = [...parentItems, ...loadedItems];
 

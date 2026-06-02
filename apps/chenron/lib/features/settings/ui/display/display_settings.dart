@@ -5,14 +5,14 @@ import "package:chenron/shared/utils/time_formatter.dart";
 import "package:flutter/material.dart";
 import "package:signals/signals_flutter.dart";
 
-class DisplaySettingsPanel extends StatelessWidget {
+class DisplaySettingsPanel extends SignalWidget {
   const DisplaySettingsPanel({super.key});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final notifier = locator.get<SettingsCoordinator>().display;
-    final DisplaySettings snapshot = notifier.current.watch(context);
+    final DisplaySettings snapshot = notifier.current.value;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

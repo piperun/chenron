@@ -217,14 +217,14 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
 
   @override
   Widget build(BuildContext context) {
-    return Watch((context) {
+    return SignalBuilder(builder: (context) {
       if (_notifier.isLoadingDisplayMode.value) {
         return const Center(child: CircularProgressIndicator());
       }
 
       return Column(
         children: [
-          Watch((context) {
+          SignalBuilder(builder: (context) {
             final includedTags = _notifier.tagFilterState.includedTags.value;
             final excludedTags = _notifier.tagFilterState.excludedTags.value;
             final isDeleteMode = _notifier.isDeleteMode.value;
@@ -260,7 +260,7 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
                   : null,
             );
           }),
-          Watch((context) {
+          SignalBuilder(builder: (context) {
             if (!_notifier.isDeleteMode.value) {
               return const SizedBox.shrink();
             }
@@ -279,7 +279,7 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
             );
           }),
           Expanded(
-            child: Watch((context) {
+            child: SignalBuilder(builder: (context) {
               final currentQuery =
                   _notifier.searchFilter.controller.query.value;
               final viewMode = _notifier.viewMode.value;
@@ -297,8 +297,7 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
               // Disable lazy loading while filtering (all items loaded).
               final VoidCallback? loadMore =
                   isFiltering ? null : widget.onLoadMore;
-              final bool showHasMore =
-                  isFiltering ? false : widget.hasMore;
+              final bool showHasMore = isFiltering ? false : widget.hasMore;
 
               return viewMode == ViewMode.grid
                   ? ItemGridView(
@@ -309,8 +308,7 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
                       excludedTagNames:
                           _notifier.tagFilterState.excludedTagNames,
                       onItemTap: _handleItemTap,
-                      onTagFilterTap:
-                          _notifier.tagFilterState.addIncluded,
+                      onTagFilterTap: _notifier.tagFilterState.addIncluded,
                       aspectRatio: displayModeVal.aspectRatio,
                       maxCrossAxisExtent: displayModeVal.maxCrossAxisExtent,
                       isDeleteMode: isDeleteMode,

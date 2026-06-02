@@ -141,12 +141,10 @@ class _BackupSettingsState extends State<BackupSettings> {
           children: [
             Text("Frequency:", style: theme.textTheme.bodyMedium),
             const SizedBox(width: 16),
-            Watch((context) {
+            SignalBuilder(builder: (context) {
               final interval = _notifier.current.value.backupInterval;
               return DropdownButton<String>(
-                value: _isCustomInterval
-                    ? _customSentinel
-                    : (interval ?? ""),
+                value: _isCustomInterval ? _customSentinel : (interval ?? ""),
                 onChanged: (value) {
                   if (value == _customSentinel) {
                     setState(() => _isCustomInterval = true);
@@ -243,7 +241,7 @@ class _BackupSettingsState extends State<BackupSettings> {
         const Divider(height: 32),
         Text("Backup Status", style: theme.textTheme.titleMedium),
         const SizedBox(height: 12),
-        Watch((context) {
+        SignalBuilder(builder: (context) {
           final snap = _notifier.current.value;
           final lastBackup = _notifier.lastBackupTimestamp.value;
           return Row(

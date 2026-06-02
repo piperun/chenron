@@ -88,7 +88,7 @@ class _CreateLinkPageState extends State<CreateLinkPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Watch((context) {
+    return SignalBuilder(builder: (context) {
       return Scaffold(
         appBar: widget.hideAppBar
             ? null

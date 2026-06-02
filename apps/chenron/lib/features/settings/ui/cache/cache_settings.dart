@@ -101,7 +101,7 @@ class _CacheSettingsState extends State<CacheSettings> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Watch((context) {
+    return SignalBuilder(builder: (context) {
       // Subscribe to the whole display snapshot so cacheDirectory edits
       // trigger a rebuild of this panel.
       final DisplaySettings snapshot = _displayNotifier.current.value;

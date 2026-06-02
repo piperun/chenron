@@ -40,8 +40,7 @@ class ItemMetaRow extends StatelessWidget {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
-                color:
-                    theme.colorScheme.onSurfaceVariant,
+                color: theme.colorScheme.onSurfaceVariant,
               ),
               overflow: TextOverflow.ellipsis,
             ),
@@ -59,7 +58,8 @@ class ItemMetaRow extends StatelessWidget {
             Tooltip(
               message: "Show details",
               child: InkWell(
-                onTap: () => showItemDetailDialog(context, itemId: item.id!, itemType: item.type),
+                onTap: () => showItemDetailDialog(context,
+                    itemId: item.id!, itemType: item.type),
                 borderRadius: BorderRadius.circular(12),
                 child: Container(
                   padding: const EdgeInsets.all(2),
@@ -87,7 +87,8 @@ class ItemMetaRow extends StatelessWidget {
           Tooltip(
             message: "Show details",
             child: InkWell(
-              onTap: () => showItemDetailDialog(context, itemId: item.id!, itemType: item.type),
+              onTap: () => showItemDetailDialog(context,
+                  itemId: item.id!, itemType: item.type),
               borderRadius: BorderRadius.circular(12),
               child: Container(
                 padding: const EdgeInsets.all(2),
@@ -116,8 +117,8 @@ class _TimeDisplay extends StatelessWidget {
     final theme = Theme.of(context);
     final displayNotifier = locator.get<SettingsCoordinator>().display;
 
-    return Watch(
-      (context) {
+    return SignalBuilder(
+      builder: (context) {
         final timeFormat = TimeDisplayFormat
             .values[displayNotifier.current.value.timeDisplayFormat];
 
@@ -135,8 +136,7 @@ class _TimeDisplay extends StatelessWidget {
 
         final date = addedAt ?? createdAt;
         final prefix = addedAt != null ? "added " : "";
-        final displayText =
-            "$prefix${TimeFormatter.format(date, timeFormat)}";
+        final displayText = "$prefix${TimeFormatter.format(date, timeFormat)}";
         final tooltipText = addedAt != null
             ? "Added to folder: ${TimeFormatter.formatTooltip(date)}"
             : TimeFormatter.formatTooltip(date);

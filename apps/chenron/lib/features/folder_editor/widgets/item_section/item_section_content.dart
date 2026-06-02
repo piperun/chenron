@@ -36,18 +36,19 @@ class ItemSectionContent extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Toolbar
-        Watch((context) => ItemSectionToolbar(
-              items: controller.filteredItems.value,
-              hasSelectedRows: hasSelectedRows,
-              onAddLink: onAddLink,
-              onAddDocument: onAddDocument,
-              onDeleteSelected: onDeleteSelected,
-            )),
+        SignalBuilder(
+            builder: (context) => ItemSectionToolbar(
+                  items: controller.filteredItems.value,
+                  hasSelectedRows: hasSelectedRows,
+                  onAddLink: onAddLink,
+                  onAddDocument: onAddDocument,
+                  onDeleteSelected: onDeleteSelected,
+                )),
 
         const SizedBox(height: 12),
 
         // Search filter (conditionally shown)
-        Watch((context) {
+        SignalBuilder(builder: (context) {
           if (controller.allItems.value.isNotEmpty) {
             return Column(
               children: [
@@ -60,16 +61,16 @@ class ItemSectionContent extends StatelessWidget {
         }),
 
         // Main content
-        Watch((context) => ItemTableView(
-              items: controller.filteredItems.value,
-              allItems: controller.allItems.value,
-              hasSearchQuery: controller.searchQuery.value.isNotEmpty,
-              columns: columns,
-              buildRows: buildRows,
-              tableNotifier: tableNotifier,
-            )),
+        SignalBuilder(
+            builder: (context) => ItemTableView(
+                  items: controller.filteredItems.value,
+                  allItems: controller.allItems.value,
+                  hasSearchQuery: controller.searchQuery.value.isNotEmpty,
+                  columns: columns,
+                  buildRows: buildRows,
+                  tableNotifier: tableNotifier,
+                )),
       ],
     );
   }
 }
-

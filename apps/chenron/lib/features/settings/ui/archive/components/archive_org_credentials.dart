@@ -3,7 +3,6 @@ import "package:chenron/features/settings/state/archive_settings.dart";
 import "package:chenron/features/settings/ui/credential_field.dart";
 import "package:chenron/locator.dart";
 import "package:flutter/material.dart";
-import "package:signals/signals_flutter.dart";
 
 class ArchiveOrgCredentialsWidget extends StatefulWidget {
   const ArchiveOrgCredentialsWidget({super.key});
@@ -36,16 +35,16 @@ class _ArchiveOrgCredentialsWidgetState
   void _onAccessKeyChanged() {
     final current = _notifier.current.peek();
     if (current.archiveOrgS3AccessKey != _accessKeyController.text) {
-      _notifier.update((s) =>
-          s.copyWith(archiveOrgS3AccessKey: _accessKeyController.text));
+      _notifier.update(
+          (s) => s.copyWith(archiveOrgS3AccessKey: _accessKeyController.text));
     }
   }
 
   void _onSecretKeyChanged() {
     final current = _notifier.current.peek();
     if (current.archiveOrgS3SecretKey != _secretKeyController.text) {
-      _notifier.update((s) =>
-          s.copyWith(archiveOrgS3SecretKey: _secretKeyController.text));
+      _notifier.update(
+          (s) => s.copyWith(archiveOrgS3SecretKey: _secretKeyController.text));
     }
   }
 
@@ -61,7 +60,7 @@ class _ArchiveOrgCredentialsWidgetState
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final snapshot = _notifier.current.watch(context);
+    final snapshot = _notifier.current.peek();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;

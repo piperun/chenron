@@ -6,13 +6,13 @@ import "package:chenron/locator.dart";
 import "package:flutter/material.dart";
 import "package:signals/signals_flutter.dart";
 
-class ArchiveSettingsPanel extends StatelessWidget {
+class ArchiveSettingsPanel extends SignalWidget {
   const ArchiveSettingsPanel({super.key});
 
   @override
   Widget build(BuildContext context) {
     final notifier = locator.get<SettingsCoordinator>().archive;
-    final ArchiveSettings snapshot = notifier.current.watch(context);
+    final ArchiveSettings snapshot = notifier.current.value;
 
     final bool s3KeysPresent =
         (snapshot.archiveOrgS3AccessKey?.trim().isNotEmpty ?? false) &&
@@ -51,8 +51,7 @@ class ArchiveSettingsPanel extends StatelessWidget {
           value: snapshot.defaultArchiveOrg,
           onChanged: s3KeysPresent
               ? (value) {
-                  notifier
-                      .update((s) => s.copyWith(defaultArchiveOrg: value));
+                  notifier.update((s) => s.copyWith(defaultArchiveOrg: value));
                   loggerGlobal.info(
                     "ArchiveSettingsPanel",
                     "Default archive.org changed: $value",

@@ -37,7 +37,7 @@ class LinkTableSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Watch((context) {
+    return SignalBuilder(builder: (context) {
       notifier.hasCheckedRows.value; // subscribe to row check changes
       return Card(
         margin: const EdgeInsets.only(bottom: 16),
@@ -93,4 +93,3 @@ class LinkTableSection extends StatelessWidget {
     });
   }
 }
-

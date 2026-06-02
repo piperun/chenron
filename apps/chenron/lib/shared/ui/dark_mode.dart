@@ -13,7 +13,7 @@ class DarkModeToggle extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeManager = locator.get<ThemeManager>();
 
-    return Watch((context) {
+    return SignalBuilder(builder: (context) {
       final currentMode = themeManager.themeModeSignal.value;
       final isDark = currentMode == ThemeMode.dark;
 
@@ -30,4 +30,3 @@ class DarkModeToggle extends StatelessWidget {
     });
   }
 }
-

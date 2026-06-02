@@ -130,7 +130,7 @@ class _GlobalSearchBarView extends StatelessWidget {
       leading: const Icon(Icons.search),
       onSubmitted: (value) => onSubmittedExternal?.call(value),
       trailing: [
-        Watch((context) {
+        SignalBuilder(builder: (context) {
           final hasQuery = controller.query.value.isNotEmpty;
           return hasQuery
               ? IconButton(
@@ -149,8 +149,7 @@ class _GlobalSearchBarView extends StatelessWidget {
         RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
       elevation: const WidgetStatePropertyAll(0),
-      backgroundColor:
-          WidgetStatePropertyAll(colorScheme.surfaceContainerLow),
+      backgroundColor: WidgetStatePropertyAll(colorScheme.surfaceContainerLow),
       side: WidgetStatePropertyAll(
         BorderSide(color: colorScheme.outline.withValues(alpha: 0.3)),
       ),

@@ -18,7 +18,10 @@ import "package:signals/signals_flutter.dart";
 /// leak for the process lifetime.
 final Signal<ViewerPresenter> viewerViewModelSignal = (() {
   final presenter = ViewerPresenter();
-  final s = Signal<ViewerPresenter>(presenter, autoDispose: true);
+  final s = Signal<ViewerPresenter>(
+    presenter,
+    options: const SignalOptions(autoDispose: true),
+  );
   s.onDispose(presenter.dispose);
   return s;
 })();

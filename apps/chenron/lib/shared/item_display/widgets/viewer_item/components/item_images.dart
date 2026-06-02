@@ -61,7 +61,7 @@ class _ItemImageHeaderState extends State<ItemImageHeader> {
           return _ImagePlaceholder(height: widget.height, iconSize: 40);
         }
 
-        return Watch((context) {
+        return SignalBuilder(builder: (context) {
           final state = metadataSignal.value;
           final imageUrl = switch (state) {
             MetadataStateReady(:final data) => data.imageUrl,
@@ -136,7 +136,7 @@ class _ItemThumbnailState extends State<ItemThumbnail> {
           );
         }
 
-        return Watch((context) {
+        return SignalBuilder(builder: (context) {
           final state = metadataSignal.value;
           final imageUrl = switch (state) {
             MetadataStateReady(:final data) => data.imageUrl,

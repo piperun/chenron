@@ -90,7 +90,7 @@ class _ViewerState extends State<Viewer> {
     final presenter = viewerViewModelSignal.value;
 
     return Scaffold(
-      body: Watch.builder(
+      body: SignalBuilder(
         builder: (context) {
           final snapshot = presenter.itemsSignal.value;
 
@@ -105,11 +105,10 @@ class _ViewerState extends State<Viewer> {
                 enableTagFiltering: true,
                 displayModeContext: "viewer",
                 showSearch: false,
-                onItemTap: (item) => handleItemTap(
-                      context, item, presenter.handleFolderItemTap),
+                onItemTap: (item) =>
+                    handleItemTap(context, item, presenter.handleFolderItemTap),
                 onDeleteModeChanged: (
-                    {required bool isDeleteMode,
-                    required int selectedCount}) {
+                    {required bool isDeleteMode, required int selectedCount}) {
                   // Optional: Track delete mode state if needed
                 },
                 onDeleteRequested: (items) => handleItemDeletion(

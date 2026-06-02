@@ -12,21 +12,21 @@ class ItemTableFilter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Watch((context) => TextField(
-          decoration: InputDecoration(
-            hintText: "Search items...",
-            prefixIcon: const Icon(Icons.search),
-            suffixIcon: controller.searchQuery.value.isNotEmpty
-                ? IconButton(
-                    icon: const Icon(Icons.clear),
-                    onPressed: controller.clearSearch,
-                  )
-                : null,
-            border: const OutlineInputBorder(),
-            isDense: true,
-          ),
-          onChanged: controller.updateSearchQuery,
-        ));
+    return SignalBuilder(
+        builder: (context) => TextField(
+              decoration: InputDecoration(
+                hintText: "Search items...",
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: controller.searchQuery.value.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: controller.clearSearch,
+                      )
+                    : null,
+                border: const OutlineInputBorder(),
+                isDense: true,
+              ),
+              onChanged: controller.updateSearchQuery,
+            ));
   }
 }
-

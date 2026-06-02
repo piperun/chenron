@@ -15,7 +15,7 @@ class DarkModeSwitch extends StatelessWidget {
   Widget build(BuildContext context) {
     final ThemeManager manager = locator.get<ThemeManager>();
 
-    return Watch((BuildContext context) {
+    return SignalBuilder(builder: (BuildContext context) {
       final ThemeMode? mode = manager.themeModeSignal.value;
       final bool isDark = mode == ThemeMode.dark;
       return SwitchListTile(

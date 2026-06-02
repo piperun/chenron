@@ -74,7 +74,8 @@ class _FolderItemsSectionState extends State<FolderItemsSection> {
   }
 
   Future<void> _handleAddLink() async {
-    final List<FolderItem>? picked = await showModalBottomSheet<List<FolderItem>>(
+    final List<FolderItem>? picked =
+        await showModalBottomSheet<List<FolderItem>>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -95,7 +96,8 @@ class _FolderItemsSectionState extends State<FolderItemsSection> {
   }
 
   Future<void> _handleAddDocument() async {
-    final List<FolderItem>? picked = await showModalBottomSheet<List<FolderItem>>(
+    final List<FolderItem>? picked =
+        await showModalBottomSheet<List<FolderItem>>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -218,7 +220,7 @@ class _FolderItemsSectionState extends State<FolderItemsSection> {
 
   @override
   Widget build(BuildContext context) {
-    return Watch((context) {
+    return SignalBuilder(builder: (context) {
       _tableNotifier.hasCheckedRows.value; // subscribe to row check changes
       final hasSelectedRows =
           _tableNotifier.stateManager?.checkedRows.isNotEmpty ?? false;
@@ -238,4 +240,3 @@ class _FolderItemsSectionState extends State<FolderItemsSection> {
     });
   }
 }
-

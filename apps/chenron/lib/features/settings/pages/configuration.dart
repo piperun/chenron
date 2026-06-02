@@ -80,7 +80,7 @@ class _ConfigPageState extends State<ConfigPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Watch((context) {
+    return SignalBuilder(builder: (context) {
       final hasChanges = _coordinator.hasUnsavedChanges;
       final isLoading = _coordinator.isLoading.value;
       final error = _coordinator.error.value;

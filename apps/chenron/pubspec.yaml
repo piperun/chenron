@@ -55,7 +55,7 @@ dependencies:
   path_provider: ^2.1.4
   rxdart: ^0.28.0
   shared_preferences: ^2.5.3
-  signals: ^6.0.2
+  signals: ^7.1.0
   sqlite3: ^2.7.5
   trina_grid: ^2.1.1
   url_launcher: ^6.3.0

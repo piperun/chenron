@@ -23,7 +23,7 @@ class LinkHero extends StatefulWidget {
 
 class _LinkHeroState extends State<LinkHero> {
   /// Long-lived metadata signal owned by [MetadataService]. Hoisted
-  /// once so the [Watch] in `build()` doesn't allocate on rebuild.
+  /// once so the [SignalBuilder] in `build()` doesn't allocate on rebuild.
   Signal<MetadataState>? _metadataSignal;
   bool _isRefreshing = false;
 
@@ -106,10 +106,9 @@ class _LinkHeroState extends State<LinkHero> {
 
         // Metadata title + description
         if (metadataSignal != null)
-          Watch((context) {
+          SignalBuilder(builder: (context) {
             final state = metadataSignal.value;
-            final ready =
-                state is MetadataStateReady ? state.data : null;
+            final ready = state is MetadataStateReady ? state.data : null;
             final title = ready?.title;
             final description = ready?.description;
 
@@ -134,8 +133,7 @@ class _LinkHeroState extends State<LinkHero> {
                     style: TextStyle(
                       fontSize: 14,
                       height: 1.4,
-                      color: theme.colorScheme.onSurface
-                          .withValues(alpha: 0.7),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                     ),
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,

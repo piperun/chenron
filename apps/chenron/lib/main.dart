@@ -112,8 +112,7 @@ class _WindowSizeListener extends WindowListener {
   Future<void> onWindowMaximize() => _service.saveMaximized(maximized: true);
 
   @override
-  Future<void> onWindowUnmaximize() =>
-      _service.saveMaximized(maximized: false);
+  Future<void> onWindowUnmaximize() => _service.saveMaximized(maximized: false);
 }
 
 class AppBootstrap extends StatefulWidget {
@@ -230,15 +229,15 @@ class ChenronApp extends StatelessWidget {
       controller.seedCachedTheme(cachedTheme!);
     }
 
-    return Watch((context) {
+    return SignalBuilder(builder: (context) {
       final ThemeMode? currentMode = themeManager.themeModeSignal.value;
 
       // Get current theme variants (light/dark) from ThemeNotifier
       final themeController = themeNotifierSignal.value;
       final variants = themeController.currentThemeSignal.value;
 
-      loggerGlobal.fine(
-          "ChenronApp.build", "Building with ThemeMode: $currentMode and dynamic theme");
+      loggerGlobal.fine("ChenronApp.build",
+          "Building with ThemeMode: $currentMode and dynamic theme");
 
       return MaterialApp(
         title: "Chenron",
@@ -257,4 +256,3 @@ class ChenronApp extends StatelessWidget {
     });
   }
 }
-

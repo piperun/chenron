@@ -45,8 +45,8 @@ void main() {
                 onChanged: controller.updateSignal,
               ),
             ),
-            body: Watch(
-              (context) {
+            body: SignalBuilder(
+              builder: (context) {
                 final query = controller.query.value;
                 final filtered = searchFilter.filterItems(
                   items: testItems,
@@ -160,8 +160,8 @@ void main() {
                 onChanged: controller.updateSignal,
               ),
             ),
-            body: Watch(
-              (context) {
+            body: SignalBuilder(
+              builder: (context) {
                 final query = controller.query.value;
                 final filtered = searchFilter.filterItems(
                   items: testItems,

@@ -20,7 +20,7 @@ class ThemeOptionsSection extends StatelessWidget {
     final ThemeSettingsNotifier notifier =
         locator.get<SettingsCoordinator>().theme;
 
-    return Watch((BuildContext context) {
+    return SignalBuilder(builder: (BuildContext context) {
       final ThemeSettings snapshot = notifier.current.value;
       final String? themeId = snapshot.selectedKey;
       if (themeId == null) return const SizedBox.shrink();
@@ -70,15 +70,13 @@ class _BoolSettingTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Watch((BuildContext context) {
+    return SignalBuilder(builder: (BuildContext context) {
       final Map<String, Object?> opts = notifier.themeOptions.value;
-      final bool value =
-          opts[setting.key] as bool? ?? setting.defaultValue;
+      final bool value = opts[setting.key] as bool? ?? setting.defaultValue;
       return SwitchListTile(
         title: Text(setting.label),
-        subtitle: setting.description == null
-            ? null
-            : Text(setting.description!),
+        subtitle:
+            setting.description == null ? null : Text(setting.description!),
         value: value,
         onChanged: (bool newValue) {
           unawaited(notifier.setOption(setting.key, newValue));
@@ -99,7 +97,7 @@ class _EnumSettingTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Watch((BuildContext context) {
+    return SignalBuilder(builder: (BuildContext context) {
       final Map<String, Object?> opts = notifier.themeOptions.value;
       final Object? raw = opts[setting.key];
       // Persistence stores enums as `Enum.name`; resolve back to the
@@ -115,9 +113,8 @@ class _EnumSettingTile extends StatelessWidget {
       );
       return ListTile(
         title: Text(setting.label),
-        subtitle: setting.description == null
-            ? null
-            : Text(setting.description!),
+        subtitle:
+            setting.description == null ? null : Text(setting.description!),
         trailing: DropdownButton<Enum>(
           value: selected,
           onChanged: (Enum? newValue) {

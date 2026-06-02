@@ -66,39 +66,43 @@ class DisplayTogglePopup extends StatelessWidget {
       menuChildren: [
         MenuItemButton(
           onPressed: null,
-          child: Watch((context) => _DisplayToggleCheckbox(
-                label: "Images",
-                isSelected: notifier.current.value.showImages,
-                onChanged: (v) =>
-                    notifier.update((s) => s.copyWith(showImages: v)),
-              )),
+          child: SignalBuilder(
+              builder: (context) => _DisplayToggleCheckbox(
+                    label: "Images",
+                    isSelected: notifier.current.value.showImages,
+                    onChanged: (v) =>
+                        notifier.update((s) => s.copyWith(showImages: v)),
+                  )),
         ),
         MenuItemButton(
           onPressed: null,
-          child: Watch((context) => _DisplayToggleCheckbox(
-                label: "Description",
-                isSelected: notifier.current.value.showDescription,
-                onChanged: (v) =>
-                    notifier.update((s) => s.copyWith(showDescription: v)),
-              )),
+          child: SignalBuilder(
+              builder: (context) => _DisplayToggleCheckbox(
+                    label: "Description",
+                    isSelected: notifier.current.value.showDescription,
+                    onChanged: (v) =>
+                        notifier.update((s) => s.copyWith(showDescription: v)),
+                  )),
         ),
         MenuItemButton(
           onPressed: null,
-          child: Watch((context) => _DisplayToggleCheckbox(
-                label: "Tags",
-                isSelected: notifier.current.value.showTags,
-                onChanged: (v) =>
-                    notifier.update((s) => s.copyWith(showTags: v)),
-              )),
+          child: SignalBuilder(
+              builder: (context) => _DisplayToggleCheckbox(
+                    label: "Tags",
+                    isSelected: notifier.current.value.showTags,
+                    onChanged: (v) =>
+                        notifier.update((s) => s.copyWith(showTags: v)),
+                  )),
         ),
         MenuItemButton(
           onPressed: null,
-          child: Watch((context) => _DisplayToggleCheckbox(
-                label: "Copy",
-                isSelected: notifier.current.value.showCopyLink,
-                onChanged: (v) =>
-                    notifier.update((s) => s.copyWith(showCopyLink: v)),
-              )),
+          child: SignalBuilder(
+              builder: (context) => _DisplayToggleCheckbox(
+                    label: "Copy",
+                    isSelected: notifier.current.value.showCopyLink,
+                    onChanged: (v) =>
+                        notifier.update((s) => s.copyWith(showCopyLink: v)),
+                  )),
         ),
       ],
     );

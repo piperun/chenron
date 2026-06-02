@@ -15,7 +15,7 @@ dependencies:
   path_provider: ^2.1.5
   freezed_annotation: ^3.0.0
   json_annotation: ^4.12.0
-  signals: ^6.0.2
+  signals: ^7.1.0
 
   flutter_cache_manager: any
 dev_dependencies:

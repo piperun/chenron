@@ -202,7 +202,7 @@ class _DataSettingsState extends State<DataSettings> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Watch((context) {
+    return SignalBuilder(builder: (context) {
       // Subscribe to current/saved changes so the "Apply" button toggles.
       final currentPath = _databaseNotifier.current.value;
       final hasPathChanged = _databaseNotifier.isDirty;

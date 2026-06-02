@@ -6,7 +6,7 @@ import "package:flutter/material.dart";
 import "package:signals/signals_flutter.dart";
 import "package:vibe/vibe.dart";
 
-class AvailableThemeSelector extends StatelessWidget {
+class AvailableThemeSelector extends SignalWidget {
   const AvailableThemeSelector({super.key});
 
   static const EdgeInsets _contentPadding = EdgeInsets.all(16.0);
@@ -18,10 +18,11 @@ class AvailableThemeSelector extends StatelessWidget {
     loggerGlobal.fine("AvailableThemeSelector", "Build method called.");
     final notifier = locator.get<SettingsCoordinator>().theme;
 
-    // Subscribe to all the signals this widget renders against.
-    notifier.availableThemes.watch(context);
-    final selected = notifier.selectedChoice.watch(context);
-    final sortMode = notifier.sortMode.watch(context);
+    // Read the signals this widget renders against; SignalWidget tracks
+    // `.value` reads in build and rebuilds when any of them change.
+    notifier.availableThemes.value;
+    final selected = notifier.selectedChoice.value;
+    final sortMode = notifier.sortMode.value;
     final sorted = notifier.sortedThemes.value;
 
     if (sorted.isEmpty) {

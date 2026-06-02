@@ -111,7 +111,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Watch((context) {
+    return SignalBuilder(builder: (context) {
       if (_isLoading.value) {
         return const Center(child: CircularProgressIndicator());
       }
