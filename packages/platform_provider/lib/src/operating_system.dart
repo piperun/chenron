@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'platform_resources.dart';
 import 'implementations/windows_os.dart';
 import 'implementations/macos_os.dart';
@@ -50,4 +50,16 @@ abstract class OperatingSystem {
 
     return _current!;
   }
+
+  /// Overrides the resolved [OperatingSystem] so tests can drive
+  /// platform-dependent code paths against a fake instead of the host the
+  /// suite happens to run on. Does not affect production resolution, which
+  /// only ever falls through to the `Platform`/`kIsWeb` checks above.
+  @visibleForTesting
+  static set current(OperatingSystem os) => _current = os;
+
+  /// Clears any injected/cached [OperatingSystem] so the next read of
+  /// [current] resolves freshly from the host platform.
+  @visibleForTesting
+  static void resetForTesting() => _current = null;
 }
