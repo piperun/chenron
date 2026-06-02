@@ -44,6 +44,13 @@ void main() {
       await db.close();
     });
 
+    test("migrating from v17 produces the current v17 schema", () async {
+      final connection = await verifier.schemaAt(17);
+      final db = AppDatabase(queryExecutor: connection.newConnection());
+      await verifier.migrateAndValidate(db, 17);
+      await db.close();
+    });
+
     test("v16 -> v17 collapses pre-existing duplicate metadata relations",
         () async {
       final schema = await verifier.schemaAt(16);

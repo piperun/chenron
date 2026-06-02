@@ -70,7 +70,7 @@ class AppDatabase extends _$AppDatabase {
   Future<void> setup() async {}
 
   @override
-  int get schemaVersion => 17;
+  int get schemaVersion => 18;
 
   @override
   MigrationStrategy get migration {
@@ -436,6 +436,19 @@ class AppDatabase extends _$AppDatabase {
             "ON metadata_records (item_id, metadata_id, type_id)",
           );
         }
+
+        // v17 -> v18: rebuild the updated-at triggers at millisecond
+        // precision. The old triggers stamped seconds (%S), so two edits to
+        // the same row within one second produced the same timestamp and the
+        // trigger's `WHEN NEW.updated_at = OLD.updated_at` guard suppressed
+        // the second bump.
+        if (from < 18) {
+          await customStatement(
+              "DROP TRIGGER IF EXISTS update_folders_timestamp");
+          await customStatement(
+              "DROP TRIGGER IF EXISTS update_documents_timestamp");
+          await _createUpdateTriggers();
+        }
       },
     );
   }
@@ -459,7 +472,7 @@ class AppDatabase extends _$AppDatabase {
       WHEN NEW.updated_at = OLD.updated_at
       BEGIN
         UPDATE folders
-        SET updated_at = (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+        SET updated_at = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
         WHERE id = NEW.id;
       END
     """);
@@ -472,7 +485,7 @@ class AppDatabase extends _$AppDatabase {
       WHEN NEW.updated_at = OLD.updated_at
       BEGIN
         UPDATE documents
-        SET updated_at = (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+        SET updated_at = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
         WHERE id = NEW.id;
       END
     """);

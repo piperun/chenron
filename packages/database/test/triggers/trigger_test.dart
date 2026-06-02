@@ -31,6 +31,26 @@ void main() {
     await database.close();
   });
 
+  group("Update trigger precision", () {
+    test("update-timestamp triggers use millisecond precision", () async {
+      final rows = await database.customSelect(
+        "SELECT name, sql FROM sqlite_master WHERE type = 'trigger' "
+        "AND name IN ('update_folders_timestamp', 'update_documents_timestamp')",
+      ).get();
+
+      expect(rows, hasLength(2));
+      for (final row in rows) {
+        final sql = row.read<String>("sql");
+        // Millisecond precision (%f) so two edits within the same second
+        // both register; second precision (%S) collapses them because the
+        // trigger's WHEN guard sees no change.
+        expect(sql, contains("%f"),
+            reason: "${row.read<String>("name")} should use %f");
+        expect(sql, isNot(contains("%S")));
+      }
+    });
+  });
+
   group("Folder updatedAt Trigger", () {
     test("updatedAt changes automatically when folder is updated", () async {
       // Create a folder
