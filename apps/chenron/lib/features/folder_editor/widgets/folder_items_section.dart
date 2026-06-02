@@ -74,6 +74,10 @@ class _FolderItemsSectionState extends State<FolderItemsSection> {
   }
 
   Future<void> _handleAddLink() async {
+    // Capture the navigator before the first await so the "Create New"
+    // closure never reaches through a BuildContext that may be disposed
+    // by the time the sheet resolves.
+    final NavigatorState navigator = Navigator.of(context);
     final List<FolderItem>? picked =
         await showModalBottomSheet<List<FolderItem>>(
       context: context,
@@ -82,8 +86,8 @@ class _FolderItemsSectionState extends State<FolderItemsSection> {
       builder: (_) => LinkPickerSheet(
         currentFolderItems: widget.items,
         onCreateNew: () async {
-          Navigator.pop(context);
-          await _navigateToCreateLink();
+          navigator.pop();
+          await _navigateToCreateLink(navigator);
         },
       ),
     );
@@ -113,11 +117,10 @@ class _FolderItemsSectionState extends State<FolderItemsSection> {
     }
   }
 
-  Future<void> _navigateToCreateLink() async {
+  Future<void> _navigateToCreateLink(NavigatorState navigator) async {
     try {
       final folder = widget.notifier.folder.value?.data;
-      await Navigator.push(
-        context,
+      await navigator.push(
         MaterialPageRoute<void>(
           builder: (context) => CreateLinkPage(
             hideAppBar: true,
@@ -130,7 +133,7 @@ class _FolderItemsSectionState extends State<FolderItemsSection> {
         ),
       );
 
-      // Refresh after navigation completes
+      // Refresh after navigation completes.
       await _refreshItems();
     } catch (e, stackTrace) {
       loggerGlobal.severe(
