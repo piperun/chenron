@@ -1,4 +1,5 @@
 import "package:database/src/core/id.dart";
+import "package:database/src/core/time.dart";
 
 import "package:database/database.dart";
 import "package:drift/drift.dart";
@@ -22,8 +23,8 @@ extension DocumentInsertHandler on AppDatabase {
           fileType: doc.fileType,
           fileSize: Value(doc.fileSize),
           checksum: Value(doc.checksum),
-          createdAt: Value(doc.createdAt ?? DateTime.now()),
-          updatedAt: Value(doc.updatedAt ?? DateTime.now()),
+          createdAt: Value(doc.createdAt?.toUtc() ?? dbNow()),
+          updatedAt: Value(doc.updatedAt?.toUtc() ?? dbNow()),
         ),
         mode: InsertMode.insertOrIgnore,
       );

@@ -2,6 +2,7 @@ import "package:cron/cron.dart";
 import "package:crypto/crypto.dart";
 import "package:database/src/core/handlers/app_file_service.dart";
 import "package:database/src/core/handlers/database_lifecycle.dart";
+import "package:database/src/core/time.dart";
 import "package:database/src/features/backup_settings/update.dart";
 import "package:app_logger/app_logger.dart";
 
@@ -72,7 +73,7 @@ class DatabaseBackupScheduler {
       if (_backupSettingsId != null) {
         await configLifecycle.configDatabase.updateBackupSettings(
           id: _backupSettingsId!,
-          lastBackupTimestamp: DateTime.now(),
+          lastBackupTimestamp: dbNow(),
         );
       }
 

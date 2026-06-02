@@ -1,6 +1,7 @@
 import "package:database/database.dart";
 import "package:database/schema/user_config_schema.dart";
 import "package:database/src/core/handlers/run_vepr.dart";
+import "package:database/src/core/time.dart";
 import "package:database/src/features/user_theme/handlers/insert_handler.dart";
 import "package:drift/drift.dart";
 
@@ -136,7 +137,7 @@ extension UserConfigUpdateExtensions on ConfigDatabase {
                   secondaryColor: Value(t.secondaryColor),
                   tertiaryColor: Value(t.tertiaryColor),
                   seedType: Value(t.seedType),
-                  updatedAt: Value(DateTime.now()),
+                  updatedAt: Value(dbNow()),
                 ),
                 where: (tbl) =>
                     tbl.id.equals(t.id) & tbl.userConfigId.equals(id),

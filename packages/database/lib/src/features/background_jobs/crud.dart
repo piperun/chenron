@@ -1,5 +1,6 @@
 import "package:database/database.dart";
 import "package:database/src/core/id.dart";
+import "package:database/src/core/time.dart";
 import "package:drift/drift.dart";
 
 /// Service values for the [BackgroundJobs.service] column.
@@ -171,7 +172,7 @@ extension BackgroundJobsCrudExtensions on AppDatabase {
           resultUrl:
               resultUrl == null ? const Value.absent() : Value(resultUrl),
           error: error == null ? const Value.absent() : Value(error),
-          updatedAt: Value(DateTime.now()),
+          updatedAt: Value(dbNow()),
         ),
       );
 
@@ -219,7 +220,7 @@ extension BackgroundJobsCrudExtensions on AppDatabase {
   Future<int> recoverOrphanedBackgroundJobs({
     Duration staleAfter = const Duration(minutes: 30),
   }) async {
-    final cutoff = DateTime.now().subtract(staleAfter);
+    final cutoff = dbNow().subtract(staleAfter);
     return (update(backgroundJobs)
           ..where((j) =>
               j.status.equals(BackgroundJobStatus.inProgress) &
@@ -237,7 +238,7 @@ extension BackgroundJobsCrudExtensions on AppDatabase {
   /// number of rows deleted.
   Future<int> purgeOldBackgroundJobs({required Duration? olderThan}) async {
     if (olderThan == null) return 0;
-    final cutoff = DateTime.now().subtract(olderThan);
+    final cutoff = dbNow().subtract(olderThan);
     return (delete(backgroundJobs)
           ..where((j) => j.updatedAt.isSmallerThanValue(cutoff)))
         .go();

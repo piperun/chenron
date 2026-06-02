@@ -1,5 +1,6 @@
 import "package:database/database.dart";
 import "package:database/features.dart";
+import "package:database/src/core/time.dart";
 import "package:drift/drift.dart";
 
 extension ActivityTracking on AppDatabase {
@@ -12,7 +13,7 @@ extension ActivityTracking on AppDatabase {
     await into(activityEvents).insert(
       ActivityEventsCompanion.insert(
         id: generateId(),
-        occurredAt: Value(DateTime.now()),
+        occurredAt: Value(dbNow()),
         eventType: eventType,
         entityType: entityType,
         entityId: entityId != null ? Value(entityId) : const Value.absent(),
@@ -30,10 +31,12 @@ extension ActivityTracking on AppDatabase {
       ..orderBy([(t) => OrderingTerm.desc(t.occurredAt)]);
 
     if (startDate != null) {
-      query.where((t) => t.occurredAt.isBiggerOrEqualValue(startDate));
+      final start = startDate.toUtc();
+      query.where((t) => t.occurredAt.isBiggerOrEqualValue(start));
     }
     if (endDate != null) {
-      query.where((t) => t.occurredAt.isSmallerOrEqualValue(endDate));
+      final end = endDate.toUtc();
+      query.where((t) => t.occurredAt.isSmallerOrEqualValue(end));
     }
     if (entityType != null) {
       query.where((t) => t.entityType.equals(entityType));
