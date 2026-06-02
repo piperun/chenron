@@ -1,28 +1,30 @@
-# ─── VERSIONING RULES ────────────────────────────────────────────────────────
+# ─── VERSIONING ──────────────────────────────────────────────────────────────
+# Single source-of-truth version for the whole workspace = the chenron app
+# version, tagged `vX.Y.Z`.
+#
+# The packages are unpublished (`publish_to: none`) and wired together with
+# `any` internal constraints, so per-package versions were pure bookkeeping
+# that drifted (e.g. a global `v1.3.0` next to `chenron-v1.14.0`). One tag +
+# one changelog is the source of truth; the bump writes the version into the
+# app pubspec.
+#
 # Use: cog bump --auto
-#
-# This bumps all packages that have relevant scoped commits since their
-# last tag. Commit scopes must match a package name from [monorepo.packages.*]:
-#
-#   feat(chenron): ...     → bumps chenron
-#   fix(database): ...     → bumps database
-#   feat(cache_manager):   → bumps cache_manager
-#
-# Unscoped commits (feat: ...) are NOT routed to any package and will
-# be missed by --auto. Use unscoped only for repo-wide chores.
 # ─────────────────────────────────────────────────────────────────────────────
 
 from_latest_tag = true
 ignore_merge_commits = true
 tag_prefix = "v"
 branch_whitelist = ["main"]
-monorepo_version_separator = "-"
+
+# The release version lives in the chenron app pubspec.
+pre_bump_hooks = [
+  "sed -i 's/^version: .*/version: {{version}}+0/' apps/chenron/pubspec.yaml",
+]
 
 [commit_types]
 hotfix = { changelog_title = "Hotfixes", bump_patch = true }
-# Conventional Commits treats `perf` as patch-bump material — cog's
-# default leaves it out, so opt in explicitly. Without this a perf-only
-# round needs `cog bump --patch --package <name>` instead of `--auto`.
+# Conventional Commits treats `perf` as patch-bump material — cog's default
+# leaves it out, so opt in explicitly.
 perf = { changelog_title = "Performance", bump_patch = true }
 chore = { changelog_title = "Chores", omit_from_changelog = true }
 test = { changelog_title = "Tests", omit_from_changelog = true }
@@ -48,83 +50,3 @@ script = "#!/bin/sh\nset -e\nexec scripts/pre-push.sh \"$@\""
 
 [git_hooks.commit-msg]
 script = "#!/bin/sh\nset -e\ncog verify --file $1"
-
-# NOTE on pre_bump_hooks:
-# Workspace-internal dependencies use `any` constraints in every consumer
-# pubspec — Dart pub workspaces resolve from the workspace root, so the
-# pinned `^X.Y.Z` lines that used to live in consumer pubspecs were just
-# rewrite-targets for the old cross-pubspec sed hooks. Removing them
-# eliminates the manual-coupling foot-gun: a bump of one package no
-# longer forces edits in every other pubspec.
-# Each hook now just rewrites the local `version:` field.
-
-[monorepo.packages.chenron]
-path = "apps/chenron"
-changelog_path = "CHANGELOG.md"
-public_api = true
-pre_bump_hooks = [
-  "sed -i 's/^version: .*/version: {{version}}+0/' pubspec.yaml",
-]
-
-[monorepo.packages.database]
-path = "packages/database"
-public_api = true
-pre_bump_hooks = [
-  "sed -i 's/^version: .*/version: {{version}}/' pubspec.yaml",
-]
-
-[monorepo.packages.core]
-path = "packages/core"
-public_api = true
-pre_bump_hooks = [
-  "sed -i 's/^version: .*/version: {{version}}/' pubspec.yaml",
-]
-
-[monorepo.packages.basedir]
-path = "packages/basedir"
-public_api = false
-pre_bump_hooks = [
-  "sed -i 's/^version: .*/version: {{version}}/' pubspec.yaml",
-]
-
-[monorepo.packages.cache_manager]
-path = "packages/cache_manager"
-public_api = false
-pre_bump_hooks = [
-  "sed -i 's/^version: .*/version: {{version}}/' pubspec.yaml",
-]
-
-[monorepo.packages.logger]
-path = "packages/logger"
-public_api = false
-pre_bump_hooks = [
-  "sed -i 's/^version: .*/version: {{version}}/' pubspec.yaml",
-]
-
-[monorepo.packages.vibe]
-path = "packages/vibe"
-public_api = false
-pre_bump_hooks = [
-  "sed -i 's/^version: .*/version: {{version}}/' pubspec.yaml",
-]
-
-[monorepo.packages.web_archiver]
-path = "packages/web_archiver"
-public_api = false
-pre_bump_hooks = [
-  "sed -i 's/^version: .*/version: {{version}}/' pubspec.yaml",
-]
-
-[monorepo.packages.platform_provider]
-path = "packages/platform_provider"
-public_api = false
-pre_bump_hooks = [
-  "sed -i 's/^version: .*/version: {{version}}/' pubspec.yaml",
-]
-
-[monorepo.packages.chenron_mockups]
-path = "packages/chenron_mockups"
-public_api = false
-pre_bump_hooks = [
-  "sed -i 's/^version: .*/version: {{version}}/' pubspec.yaml",
-]
