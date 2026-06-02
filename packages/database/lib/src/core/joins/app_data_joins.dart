@@ -16,19 +16,6 @@ class AppDataRelationBuilder<T extends DbResult> extends RelationBuilder<T> {
         });
 
   @override
-  List<Join> createQueryJoins(
-      IncludeOptions<Enum> includeOptions, Expression<String> joinExp) {
-    final joins = <Join>[];
-    for (final option in includeOptions.options) {
-      final join = rowJoins[option];
-      if (join != null) {
-        joins.addAll(join.createJoins(joinExp));
-      }
-    }
-    return joins;
-  }
-
-  @override
   List<T> processQueryResults({
     required List<TypedResult?> rows,
     required TableInfo mainTable,

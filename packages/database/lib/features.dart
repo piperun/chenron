@@ -34,7 +34,6 @@ export "src/features/tag/remove.dart";
 export "src/features/user_config/create.dart";
 export "src/features/user_config/read.dart";
 export "src/features/user_config/update.dart";
-export "src/features/user_config/remove.dart";
 
 // Backup Settings operations
 export "src/features/backup_settings/read.dart";
