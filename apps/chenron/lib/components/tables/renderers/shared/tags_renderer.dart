@@ -1,15 +1,25 @@
 import "package:flutter/material.dart";
 
-/// Shared renderer for displaying tags in tables
+/// Shared table cell that displays a list of tags.
 ///
-/// Used by both link and document tables to display tags consistently.
-class TagsRenderer {
-  static Widget build(List<String> tags, ThemeData theme) {
+/// Used by both link and document tables to render tags consistently.
+class TableTagsCell extends StatelessWidget {
+  final List<String> tags;
+  final ThemeData theme;
+
+  const TableTagsCell({
+    super.key,
+    required this.tags,
+    required this.theme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     if (tags.isEmpty) {
       return Text("-",
           style: TextStyle(color: theme.colorScheme.onSurfaceVariant));
     }
-    
+
     return Wrap(
       spacing: 4,
       runSpacing: 4,
@@ -32,4 +42,3 @@ class TagsRenderer {
     );
   }
 }
-

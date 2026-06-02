@@ -28,7 +28,8 @@ class LinkColumnBuilder {
         width: 80,
         enableRowChecked: true,
         renderer: (rendererContext) {
-          final entry = _findEntry(entries, rendererContext.row.key);
+          final entry = findEntry(entries, rendererContext.row.key);
+          if (entry == null) return const SizedBox.shrink();
           return LinkStatusRenderer.build(entry, theme, context);
         },
       ),
@@ -44,11 +45,12 @@ class LinkColumnBuilder {
         width: 200,
         enableEditingMode: false,
         renderer: (rendererContext) {
-          final entry = _findEntry(entries, rendererContext.row.key);
+          final entry = findEntry(entries, rendererContext.row.key);
+          if (entry == null) return const SizedBox.shrink();
           final merged = globalTags.isEmpty
               ? entry.tags
               : <String>{...entry.tags, ...globalTags}.toList();
-          return TagsRenderer.build(merged, theme);
+          return TableTagsCell(tags: merged, theme: theme);
         },
       ),
       TrinaColumn(
@@ -58,8 +60,9 @@ class LinkColumnBuilder {
         width: 180,
         enableEditingMode: false,
         renderer: (rendererContext) {
-          final entry = _findEntry(entries, rendererContext.row.key);
-          return FoldersRenderer.build(
+          final entry = findEntry(entries, rendererContext.row.key);
+          if (entry == null) return const SizedBox.shrink();
+          return TableFoldersCell(
             folderIds: entry.folderIds,
             folderNames: folderNames,
             theme: theme,
@@ -78,8 +81,9 @@ class LinkColumnBuilder {
         type: TrinaColumnType.text(),
         width: 150,
         renderer: (rendererContext) {
-          final entry = _findEntry(entries, rendererContext.row.key);
-          return ActionsRenderer.build<LinkEntry>(
+          final entry = findEntry(entries, rendererContext.row.key);
+          if (entry == null) return const SizedBox.shrink();
+          return TableActionsCell<LinkEntry>(
             item: entry,
             itemKey: entry.key,
             theme: theme,
@@ -91,8 +95,17 @@ class LinkColumnBuilder {
     ];
   }
 
-  static LinkEntry _findEntry(List<LinkEntry> entries, Key key) {
-    return entries.firstWhere((e) => e.key == key);
+  /// Looks up the entry whose key matches [key].
+  ///
+  /// Returns null when no entry matches — a row can briefly outlive its entry
+  /// (e.g. the entry was just removed) while the grid still renders the row,
+  /// so callers must render a safe empty cell rather than dereferencing null.
+  @visibleForTesting
+  static LinkEntry? findEntry(List<LinkEntry> entries, Key key) {
+    for (final entry in entries) {
+      if (entry.key == key) return entry;
+    }
+    return null;
   }
 }
 

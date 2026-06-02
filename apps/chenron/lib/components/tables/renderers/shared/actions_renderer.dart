@@ -6,7 +6,7 @@ class ActionButton<T> {
   final String tooltip;
   final void Function(T item) onPressed;
   final Color? color;
-  
+
   ActionButton({
     required this.icon,
     required this.tooltip,
@@ -15,26 +15,37 @@ class ActionButton<T> {
   });
 }
 
-/// Shared renderer for displaying action buttons in tables
+/// Shared table cell that displays action buttons.
 ///
-/// Used by both link and document tables to display edit/delete actions
+/// Used by both link and document tables to render edit/delete actions
 /// and optionally type-specific custom actions.
-class ActionsRenderer<T> {
-  static Widget build<T>({
-    required T item,
-    required Key itemKey,
-    required ThemeData theme,
-    ValueChanged<Key>? onEdit,
-    ValueChanged<Key>? onDelete,
-    List<ActionButton<T>>? customActions,
-  }) {
+class TableActionsCell<T> extends StatelessWidget {
+  final T item;
+  final Key itemKey;
+  final ThemeData theme;
+  final ValueChanged<Key>? onEdit;
+  final ValueChanged<Key>? onDelete;
+  final List<ActionButton<T>>? customActions;
+
+  const TableActionsCell({
+    super.key,
+    required this.item,
+    required this.itemKey,
+    required this.theme,
+    this.onEdit,
+    this.onDelete,
+    this.customActions,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         if (onEdit != null)
           IconButton(
             icon: const Icon(Icons.edit, size: 18),
-            onPressed: () => onEdit(itemKey),
+            onPressed: () => onEdit!(itemKey),
             tooltip: "Edit",
           ),
         if (onDelete != null)
@@ -44,17 +55,16 @@ class ActionsRenderer<T> {
               size: 18,
               color: theme.colorScheme.error,
             ),
-            onPressed: () => onDelete(itemKey),
+            onPressed: () => onDelete!(itemKey),
             tooltip: "Delete",
           ),
         if (customActions != null)
-          ...customActions.map((action) => IconButton(
-            icon: Icon(action.icon, size: 18, color: action.color),
-            onPressed: () => action.onPressed(item),
-            tooltip: action.tooltip,
-          )),
+          ...customActions!.map((action) => IconButton(
+                icon: Icon(action.icon, size: 18, color: action.color),
+                onPressed: () => action.onPressed(item),
+                tooltip: action.tooltip,
+              )),
       ],
     );
   }
 }
-

@@ -1,18 +1,26 @@
 import "package:flutter/material.dart";
 
-/// Shared renderer for displaying folders in tables
+/// Shared table cell that displays folder assignments.
 ///
-/// Used by both link and document tables to display folder assignments consistently.
-class FoldersRenderer {
-  static Widget build({
-    required List<String> folderIds,
-    required Map<String, String> folderNames,
-    required ThemeData theme,
-  }) {
+/// Used by both link and document tables to render folders consistently.
+class TableFoldersCell extends StatelessWidget {
+  final List<String> folderIds;
+  final Map<String, String> folderNames;
+  final ThemeData theme;
+
+  const TableFoldersCell({
+    super.key,
+    required this.folderIds,
+    required this.folderNames,
+    required this.theme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     if (folderIds.isEmpty) {
       return const Text("default", style: TextStyle(fontSize: 12));
     }
-    
+
     return Wrap(
       spacing: 4,
       runSpacing: 4,
@@ -39,4 +47,3 @@ class FoldersRenderer {
     );
   }
 }
-
