@@ -2,6 +2,19 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [v1.14.4](https://github.com/piperun/chenron-flutter/compare/eb350888d1efa5f976622ecf7545c76029943d02..v1.14.4) - 2026-06-03
+#### Bug Fixes
+- (**chenron**) apply the configured image cache directory - ([6821442](https://github.com/piperun/chenron-flutter/commit/6821442c057ccc65a004fd5475150bba5be4f13d)) - [@piperun](https://github.com/piperun)
+#### Documentation
+- (**database**) document the single-writer worker-isolate invariant - ([1bea5f6](https://github.com/piperun/chenron-flutter/commit/1bea5f67a77496347ecd0016074d9427d395ddc7)) - [@piperun](https://github.com/piperun)
+#### Refactoring
+- (**cache_manager**) make ImageCacheManager an injectable instance - ([c64f084](https://github.com/piperun/chenron-flutter/commit/c64f084ec73719cfeafe6f7b6c479d778e4aa2a0)) - [@piperun](https://github.com/piperun)
+- (**cache_manager**) stop re-exporting cached_network_image - ([eb35088](https://github.com/piperun/chenron-flutter/commit/eb350888d1efa5f976622ecf7545c76029943d02)) - [@piperun](https://github.com/piperun)
+- (**chenron**) draw stat-card accents from ChartPalette - ([dde8a6f](https://github.com/piperun/chenron-flutter/commit/dde8a6f62a1195164db746a66bd5d83fa0fef5ad)) - [@piperun](https://github.com/piperun)
+- (**database**) standardize timestamp storage to canonical UTC - ([4808cf0](https://github.com/piperun/chenron-flutter/commit/4808cf01903a31ef8020a8aae234ae277c33cd03)) - [@piperun](https://github.com/piperun)
+
+- - -
+
 ## [v1.14.3](https://github.com/piperun/chenron-flutter/compare/d92740b07bdfce5f86579df3b8120bc7753aa5f1..v1.14.3) - 2026-06-02
 #### Bug Fixes
 - (**cache_manager**) store cached files under the configured path - ([6ca173c](https://github.com/piperun/chenron-flutter/commit/6ca173c2f0288f0b1401064a026413105ef27d09)) - [@piperun](https://github.com/piperun)
