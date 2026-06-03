@@ -33,6 +33,7 @@ dependencies:
     sdk: flutter
 
   # Remote packages (alphabetically sorted)
+  cached_network_image: ^3.4.1
   collection: any
   cupertino_icons: ^1.0.6
   drift: ^2.26.0
