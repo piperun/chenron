@@ -2,6 +2,34 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [v1.14.3](https://github.com/piperun/chenron-flutter/compare/d92740b07bdfce5f86579df3b8120bc7753aa5f1..v1.14.3) - 2026-06-02
+#### Bug Fixes
+- (**cache_manager**) store cached files under the configured path - ([6ca173c](https://github.com/piperun/chenron-flutter/commit/6ca173c2f0288f0b1401064a026413105ef27d09)) - [@piperun](https://github.com/piperun)
+- (**chenron**) show timestamps in the device's local zone - ([39208b1](https://github.com/piperun/chenron-flutter/commit/39208b15d79a36b33bcec8d65184d616e12f794d)) - [@piperun](https://github.com/piperun)
+- (**chenron**) folder titles, export errors, save guard, tag color cancel - ([fa51a71](https://github.com/piperun/chenron-flutter/commit/fa51a71de9d3aad945a9ecc54d2fd4d19c64bb30)) - [@piperun](https://github.com/piperun)
+- (**chenron**) reset UnifiedItem tag expansion on row recycle - ([2e0b39c](https://github.com/piperun/chenron-flutter/commit/2e0b39c8dec500ba3bd3f45f0e35896819c1dd1a)) - [@piperun](https://github.com/piperun)
+- (**chenron**) guard infinite scroll reset race and loader errors - ([8d1329f](https://github.com/piperun/chenron-flutter/commit/8d1329ff3f719b5b71875723252c82aa6596d6d4)) - [@piperun](https://github.com/piperun)
+- (**chenron**) guard folder-editor context across async gaps - ([57b0b95](https://github.com/piperun/chenron-flutter/commit/57b0b95c7ff9fd3d721a83a393492fe5bae0e37c)) - [@piperun](https://github.com/piperun)
+- (**chenron**) prevent folder parent cycles - ([4e9b0ac](https://github.com/piperun/chenron-flutter/commit/4e9b0ac3cf8fe8744dabed3d18cdb6f87c874c2c)) - [@piperun](https://github.com/piperun)
+- (**chenron**) degrade gracefully on corrupt search history - ([3d8f8e4](https://github.com/piperun/chenron-flutter/commit/3d8f8e46973d34ac394680d9ca9c987d96eee35f)) - [@piperun](https://github.com/piperun)
+- (**database**) store app-written timestamps in UTC - ([86004f7](https://github.com/piperun/chenron-flutter/commit/86004f751a01cf625027fb696197dfe9573986b2)) - [@piperun](https://github.com/piperun)
+- (**database**) add getDescendantFolderIds for folder cycle detection - ([4abd44e](https://github.com/piperun/chenron-flutter/commit/4abd44e8deb5d6820b68484da5c3476c1409e025)) - [@piperun](https://github.com/piperun)
+- (**database**) archive outside the write transaction - ([6a046ef](https://github.com/piperun/chenron-flutter/commit/6a046ef22830f4c30cf0d68686e78e37ed014a83)) - [@piperun](https://github.com/piperun)
+- (**database**) stamp update triggers at millisecond precision - ([55d53ca](https://github.com/piperun/chenron-flutter/commit/55d53caa915b0e6aa519799421867090f0fd9795)) - [@piperun](https://github.com/piperun)
+#### Performance
+- (**chenron**) narrow over-scoped SignalBuilder boundaries - ([dd80ce0](https://github.com/piperun/chenron-flutter/commit/dd80ce04199a15936d6aa4695ffac0d84b159c3a)) - [@piperun](https://github.com/piperun)
+- (**chenron**) memoize statistics chart aggregations - ([2a390cc](https://github.com/piperun/chenron-flutter/commit/2a390cce40d2ac342200edc744a3bdea26c04a4f)) - [@piperun](https://github.com/piperun)
+- (**chenron**) split statistics load by time-range dependency - ([d318be7](https://github.com/piperun/chenron-flutter/commit/d318be7d53b62f08349b1e8df261c59ef73288b0)) - [@piperun](https://github.com/piperun)
+- (**database**) bound getAllBackgroundJobs to recent rows - ([85201b1](https://github.com/piperun/chenron-flutter/commit/85201b1a253a1ea298f5bd6cf03ccf8b63244eb5)) - [@piperun](https://github.com/piperun)
+- (**vibe**) batch the Nier grid into a single drawPath - ([647e59e](https://github.com/piperun/chenron-flutter/commit/647e59ef856e14c80adf4479fb40ca6c3280b86d)) - [@piperun](https://github.com/piperun)
+#### Refactoring
+- (**chenron**) consolidate responsive layer to MD3 size classes - ([42be851](https://github.com/piperun/chenron-flutter/commit/42be851df34296ec09407c556b70dbd3a83ea50e)) - [@piperun](https://github.com/piperun)
+- (**chenron**) remove dead displayItems and fix theme log - ([e8ec03b](https://github.com/piperun/chenron-flutter/commit/e8ec03bcf5f45c436b79615ab20161b6c8f545a5)) - [@piperun](https://github.com/piperun)
+- (**chenron**) drop dead appendRow, mark test-only aggregation seam - ([293099a](https://github.com/piperun/chenron-flutter/commit/293099ae5145592ed988cbb39d98489d0dbf03fc)) - [@piperun](https://github.com/piperun)
+- (**vibe**) share Nier pointer and use dart:ui lerpDouble - ([c1a9560](https://github.com/piperun/chenron-flutter/commit/c1a9560a9ae581e824696669fa399a508036ba0d)) - [@piperun](https://github.com/piperun)
+
+- - -
+
 ## [v1.14.2](https://github.com/piperun/chenron-flutter/compare/8ba73a03f1552e3e2fa4a3bc802aebb525205e46..v1.14.2) - 2026-06-02
 #### Bug Fixes
 - (**basedir**) make isDirWritable probe unique and always clean up - ([55125ed](https://github.com/piperun/chenron-flutter/commit/55125ed85ef801dd82d17490bbba2358188731a3)) - [@piperun](https://github.com/piperun)
