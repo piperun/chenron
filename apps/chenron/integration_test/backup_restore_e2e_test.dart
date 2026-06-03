@@ -151,8 +151,10 @@ void main() {
         queryExecutor: NativeDatabase(backupFile),
       );
       // Schema version must match the live DB — otherwise restore would
-      // trigger an unwanted migration and corrupt data.
-      expect(restored.schemaVersion, equals(18));
+      // trigger an unwanted migration and corrupt data. Bump this in lockstep
+      // with AppDatabase.schemaVersion; this assertion is the canary that
+      // forces a review of the backup/restore path whenever the schema moves.
+      expect(restored.schemaVersion, equals(19));
 
       final canaryLinks = await restored.getAllLinks();
       expect(
