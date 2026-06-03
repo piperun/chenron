@@ -1,14 +1,15 @@
 import "package:drift/drift.dart";
 import "package:database/models/document_file_type.dart";
 import "package:database/models/enums.dart";
+import "package:database/src/core/time.dart";
 
 export "package:database/schema/background_jobs_schema.dart";
 
 @TableIndex(name: "folder_title", columns: {#title})
 class Folders extends Table {
   TextColumn get id => text().withLength(min: 30, max: 60)();
-  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get createdAt => dateTime().withDefault(tsDefault)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(tsDefault)();
   TextColumn get title => text().withLength(min: 6, max: 30)();
   TextColumn get description => text().withLength(min: 0, max: 1000)();
   IntColumn get color => integer().nullable()();
@@ -19,7 +20,7 @@ class Folders extends Table {
 
 class Links extends Table {
   TextColumn get id => text().withLength(min: 30, max: 60)();
-  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get createdAt => dateTime().withDefault(tsDefault)();
   TextColumn get path => text().withLength(min: 10, max: 2048).unique()();
   TextColumn get archiveOrgUrl =>
       text().withLength(min: 10, max: 2048).nullable()();
@@ -35,8 +36,8 @@ class Links extends Table {
 @TableIndex(name: "document_title", columns: {#title})
 class Documents extends Table {
   TextColumn get id => text().withLength(min: 30, max: 60)();
-  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get createdAt => dateTime().withDefault(tsDefault)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(tsDefault)();
   TextColumn get title => text().withLength(min: 6, max: 100)();
   TextColumn get filePath => text().unique()();
   TextColumn get fileType => textEnum<DocumentFileType>()();
@@ -49,7 +50,7 @@ class Documents extends Table {
 
 class Tags extends Table {
   TextColumn get id => text().withLength(min: 30, max: 60)();
-  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get createdAt => dateTime().withDefault(tsDefault)();
   TextColumn get name => text().withLength(min: 3, max: 12).unique()();
   IntColumn get color => integer().nullable()();
 
@@ -61,8 +62,14 @@ class Tags extends Table {
 @TableIndex(name: "items_item_idx", columns: {#itemId})
 class Items extends Table {
   TextColumn get id => text().withLength(min: 30, max: 60)();
-  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
-  TextColumn get folderId => text().references(Folders, #id)();
+  DateTimeColumn get createdAt => dateTime().withDefault(tsDefault)();
+  // FK declared via customConstraint rather than .references(Folders, #id):
+  // drift_dev 2.31 (pinned by sqlite3 2.x) can't resolve the typed reference
+  // under analyzer 10.x, so it silently drops the FK. The literal-string form
+  // is generator-version-independent. Revert to .references once the sqlite3
+  // pin lifts and drift/drift_dev can move to a version built for analyzer 10+.
+  TextColumn get folderId =>
+      text().customConstraint("NOT NULL REFERENCES folders (id)")();
   TextColumn get itemId => text()();
   Column<int> get typeId => intEnum<FolderItemType>()();
 
@@ -78,7 +85,7 @@ class Items extends Table {
 )
 class MetadataRecords extends Table {
   TextColumn get id => text().withLength(min: 30, max: 60)();
-  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get createdAt => dateTime().withDefault(tsDefault)();
   Column<int> get typeId => intEnum<MetadataTypeEnum>()();
   TextColumn get itemId => text()();
   TextColumn get metadataId => text()();
@@ -90,7 +97,7 @@ class MetadataRecords extends Table {
 
 class Statistics extends Table {
   TextColumn get id => text().withLength(min: 30, max: 60)();
-  DateTimeColumn get recordedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get recordedAt => dateTime().withDefault(tsDefault)();
 
   // Item counts
   IntColumn get totalLinks => integer().withDefault(const Constant(0))();
@@ -107,7 +114,7 @@ class Statistics extends Table {
 class ActivityEvents extends Table {
   TextColumn get id => text().withLength(min: 30, max: 60)();
   DateTimeColumn get occurredAt =>
-      dateTime().withDefault(currentDateAndTime)();
+      dateTime().withDefault(tsDefault)();
   TextColumn get eventType => text()();
   TextColumn get entityType => text()();
   TextColumn get entityId => text().nullable()();

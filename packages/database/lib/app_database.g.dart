@@ -23,7 +23,7 @@ class $FoldersTable extends Folders with TableInfo<$FoldersTable, Folder> {
       'created_at', aliasedName, false,
       type: DriftSqlType.dateTime,
       requiredDuringInsert: false,
-      defaultValue: currentDateAndTime);
+      defaultValue: tsDefault);
   static const VerificationMeta _updatedAtMeta =
       const VerificationMeta('updatedAt');
   @override
@@ -31,7 +31,7 @@ class $FoldersTable extends Folders with TableInfo<$FoldersTable, Folder> {
       'updated_at', aliasedName, false,
       type: DriftSqlType.dateTime,
       requiredDuringInsert: false,
-      defaultValue: currentDateAndTime);
+      defaultValue: tsDefault);
   static const VerificationMeta _titleMeta = const VerificationMeta('title');
   @override
   late final GeneratedColumn<String> title = GeneratedColumn<String>(
@@ -377,7 +377,7 @@ class $LinksTable extends Links with TableInfo<$LinksTable, Link> {
       'created_at', aliasedName, false,
       type: DriftSqlType.dateTime,
       requiredDuringInsert: false,
-      defaultValue: currentDateAndTime);
+      defaultValue: tsDefault);
   static const VerificationMeta _pathMeta = const VerificationMeta('path');
   @override
   late final GeneratedColumn<String> path = GeneratedColumn<String>(
@@ -757,7 +757,7 @@ class $DocumentsTable extends Documents
       'created_at', aliasedName, false,
       type: DriftSqlType.dateTime,
       requiredDuringInsert: false,
-      defaultValue: currentDateAndTime);
+      defaultValue: tsDefault);
   static const VerificationMeta _updatedAtMeta =
       const VerificationMeta('updatedAt');
   @override
@@ -765,7 +765,7 @@ class $DocumentsTable extends Documents
       'updated_at', aliasedName, false,
       type: DriftSqlType.dateTime,
       requiredDuringInsert: false,
-      defaultValue: currentDateAndTime);
+      defaultValue: tsDefault);
   static const VerificationMeta _titleMeta = const VerificationMeta('title');
   @override
   late final GeneratedColumn<String> title = GeneratedColumn<String>(
@@ -1188,7 +1188,7 @@ class $TagsTable extends Tags with TableInfo<$TagsTable, Tag> {
       'created_at', aliasedName, false,
       type: DriftSqlType.dateTime,
       requiredDuringInsert: false,
-      defaultValue: currentDateAndTime);
+      defaultValue: tsDefault);
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   @override
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
@@ -1462,7 +1462,7 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
       'created_at', aliasedName, false,
       type: DriftSqlType.dateTime,
       requiredDuringInsert: false,
-      defaultValue: currentDateAndTime);
+      defaultValue: tsDefault);
   static const VerificationMeta _folderIdMeta =
       const VerificationMeta('folderId');
   @override
@@ -1470,8 +1470,7 @@ class $ItemsTable extends Items with TableInfo<$ItemsTable, Item> {
       'folder_id', aliasedName, false,
       type: DriftSqlType.string,
       requiredDuringInsert: true,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('REFERENCES folders (id)'));
+      $customConstraints: 'NOT NULL REFERENCES folders (id)');
   static const VerificationMeta _itemIdMeta = const VerificationMeta('itemId');
   @override
   late final GeneratedColumn<String> itemId = GeneratedColumn<String>(
@@ -1777,7 +1776,7 @@ class $MetadataRecordsTable extends MetadataRecords
       'created_at', aliasedName, false,
       type: DriftSqlType.dateTime,
       requiredDuringInsert: false,
-      defaultValue: currentDateAndTime);
+      defaultValue: tsDefault);
   @override
   late final GeneratedColumnWithTypeConverter<MetadataTypeEnum, int> typeId =
       GeneratedColumn<int>('type_id', aliasedName, false,
@@ -2131,7 +2130,7 @@ class $StatisticsTable extends Statistics
       'recorded_at', aliasedName, false,
       type: DriftSqlType.dateTime,
       requiredDuringInsert: false,
-      defaultValue: currentDateAndTime);
+      defaultValue: tsDefault);
   static const VerificationMeta _totalLinksMeta =
       const VerificationMeta('totalLinks');
   @override
@@ -2490,7 +2489,7 @@ class $ActivityEventsTable extends ActivityEvents
       'occurred_at', aliasedName, false,
       type: DriftSqlType.dateTime,
       requiredDuringInsert: false,
-      defaultValue: currentDateAndTime);
+      defaultValue: tsDefault);
   static const VerificationMeta _eventTypeMeta =
       const VerificationMeta('eventType');
   @override
@@ -3535,7 +3534,7 @@ class $BackgroundJobsTable extends BackgroundJobs
       'created_at', aliasedName, false,
       type: DriftSqlType.dateTime,
       requiredDuringInsert: false,
-      defaultValue: currentDateAndTime);
+      defaultValue: tsDefault);
   static const VerificationMeta _updatedAtMeta =
       const VerificationMeta('updatedAt');
   @override
@@ -3543,7 +3542,7 @@ class $BackgroundJobsTable extends BackgroundJobs
       'updated_at', aliasedName, false,
       type: DriftSqlType.dateTime,
       requiredDuringInsert: false,
-      defaultValue: currentDateAndTime);
+      defaultValue: tsDefault);
   @override
   List<GeneratedColumn> get $columns => [
         id,

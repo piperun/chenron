@@ -1,5 +1,6 @@
 import "package:database/database.dart";
 import "package:database/features.dart";
+import "package:database/src/core/time.dart";
 import "package:drift/drift.dart";
 
 extension StatisticsTracking on AppDatabase {
@@ -34,10 +35,10 @@ extension StatisticsTracking on AppDatabase {
       ..orderBy([(t) => OrderingTerm.desc(t.recordedAt)]);
 
     if (startDate != null) {
-      query.where((t) => t.recordedAt.isBiggerOrEqualValue(startDate));
+      query.where((t) => t.recordedAt.isBiggerOrEqualValue(dbBound(startDate)));
     }
     if (endDate != null) {
-      query.where((t) => t.recordedAt.isSmallerOrEqualValue(endDate));
+      query.where((t) => t.recordedAt.isSmallerOrEqualValue(dbBound(endDate)));
     }
 
     return query.get();

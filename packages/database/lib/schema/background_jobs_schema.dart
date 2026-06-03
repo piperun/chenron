@@ -1,4 +1,5 @@
 import "package:drift/drift.dart";
+import "package:database/src/core/time.dart";
 
 /// Queue of pending/in-progress background operations + audit log for
 /// completed ones.
@@ -29,8 +30,8 @@ class BackgroundJobs extends Table {
   TextColumn get resultUrl => text().nullable()();
   TextColumn get error => text().nullable()();
   IntColumn get attempts => integer().withDefault(const Constant(0))();
-  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get createdAt => dateTime().withDefault(tsDefault)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(tsDefault)();
 
   @override
   Set<Column> get primaryKey => {id};

@@ -228,7 +228,7 @@ extension BackgroundJobsCrudExtensions on AppDatabase {
         .write(BackgroundJobsCompanion(
       status: const Value(BackgroundJobStatus.failed),
       error: const Value("App killed mid-job (auto-recovered)"),
-      updatedAt: Value(DateTime.now()),
+      updatedAt: Value(dbNow()),
     ));
   }
 

@@ -1,4 +1,5 @@
 import "package:database/database.dart";
+import "package:database/src/core/time.dart";
 import "package:drift/drift.dart";
 
 extension DerivedStatistics on AppDatabase {
@@ -63,10 +64,10 @@ extension DerivedStatistics on AppDatabase {
     // Total events
     final totalResult = await customSelect(
       "SELECT COUNT(*) AS total FROM activity_events "
-      "WHERE datetime(occurred_at) >= datetime(?) AND datetime(occurred_at) <= datetime(?)",
+      "WHERE occurred_at >= ? AND occurred_at <= ?",
       variables: [
-        Variable.withDateTime(startDate),
-        Variable.withDateTime(endDate),
+        Variable.withDateTime(dbBound(startDate)),
+        Variable.withDateTime(dbBound(endDate)),
       ],
       readsFrom: {activityEvents},
     ).getSingle();
@@ -76,11 +77,11 @@ extension DerivedStatistics on AppDatabase {
     final dayResult = await customSelect(
       "SELECT DATE(occurred_at) AS day, COUNT(*) AS count "
       "FROM activity_events "
-      "WHERE datetime(occurred_at) >= datetime(?) AND datetime(occurred_at) <= datetime(?) "
+      "WHERE occurred_at >= ? AND occurred_at <= ? "
       "GROUP BY day ORDER BY count DESC LIMIT 1",
       variables: [
-        Variable.withDateTime(startDate),
-        Variable.withDateTime(endDate),
+        Variable.withDateTime(dbBound(startDate)),
+        Variable.withDateTime(dbBound(endDate)),
       ],
       readsFrom: {activityEvents},
     ).getSingleOrNull();
@@ -96,11 +97,11 @@ extension DerivedStatistics on AppDatabase {
     final actionResult = await customSelect(
       "SELECT event_type, COUNT(*) AS count "
       "FROM activity_events "
-      "WHERE datetime(occurred_at) >= datetime(?) AND datetime(occurred_at) <= datetime(?) "
+      "WHERE occurred_at >= ? AND occurred_at <= ? "
       "GROUP BY event_type ORDER BY count DESC LIMIT 1",
       variables: [
-        Variable.withDateTime(startDate),
-        Variable.withDateTime(endDate),
+        Variable.withDateTime(dbBound(startDate)),
+        Variable.withDateTime(dbBound(endDate)),
       ],
       readsFrom: {activityEvents},
     ).getSingleOrNull();

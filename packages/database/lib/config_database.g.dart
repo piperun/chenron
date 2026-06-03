@@ -24,7 +24,7 @@ class $UserConfigsTable extends UserConfigs
       'created_at', aliasedName, false,
       type: DriftSqlType.dateTime,
       requiredDuringInsert: false,
-      defaultValue: currentDateAndTime);
+      defaultValue: tsDefault);
   static const VerificationMeta _updatedAtMeta =
       const VerificationMeta('updatedAt');
   @override
@@ -32,7 +32,7 @@ class $UserConfigsTable extends UserConfigs
       'updated_at', aliasedName, false,
       type: DriftSqlType.dateTime,
       requiredDuringInsert: false,
-      defaultValue: currentDateAndTime);
+      defaultValue: tsDefault);
   static const VerificationMeta _darkModeMeta =
       const VerificationMeta('darkMode');
   @override
@@ -954,8 +954,7 @@ class $UserThemesTable extends UserThemes
       'user_config_id', aliasedName, false,
       type: DriftSqlType.string,
       requiredDuringInsert: true,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('REFERENCES user_configs (id)'));
+      $customConstraints: 'NOT NULL REFERENCES user_configs (id)');
   static const VerificationMeta _createdAtMeta =
       const VerificationMeta('createdAt');
   @override
@@ -963,7 +962,7 @@ class $UserThemesTable extends UserThemes
       'created_at', aliasedName, false,
       type: DriftSqlType.dateTime,
       requiredDuringInsert: false,
-      defaultValue: currentDateAndTime);
+      defaultValue: tsDefault);
   static const VerificationMeta _updatedAtMeta =
       const VerificationMeta('updatedAt');
   @override
@@ -971,7 +970,7 @@ class $UserThemesTable extends UserThemes
       'updated_at', aliasedName, false,
       type: DriftSqlType.dateTime,
       requiredDuringInsert: false,
-      defaultValue: currentDateAndTime);
+      defaultValue: tsDefault);
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   @override
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
@@ -1448,8 +1447,8 @@ class $BackupSettingsTable extends BackupSettings
       'user_config_id', aliasedName, false,
       type: DriftSqlType.string,
       requiredDuringInsert: true,
-      defaultConstraints: GeneratedColumn.constraintIsAlways(
-          'REFERENCES user_configs (id) ON DELETE CASCADE'));
+      $customConstraints:
+          'NOT NULL REFERENCES user_configs (id) ON DELETE CASCADE');
   static const VerificationMeta _backupIntervalMeta =
       const VerificationMeta('backupInterval');
   @override

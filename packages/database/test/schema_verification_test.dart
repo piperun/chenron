@@ -16,42 +16,52 @@ void main() {
       verifier = SchemaVerifier(app.GeneratedHelper());
     });
 
-    test("migrating from v12 produces the current v17 schema", () async {
+    test("migrating from v12 produces the current v19 schema", () async {
       final connection = await verifier.schemaAt(12);
       final db = AppDatabase(queryExecutor: connection.newConnection());
-      await verifier.migrateAndValidate(db, 17);
+      await verifier.migrateAndValidate(db, 19);
       await db.close();
     });
 
-    test("migrating from v14 produces the current v17 schema", () async {
+    test("migrating from v14 produces the current v19 schema", () async {
       final connection = await verifier.schemaAt(14);
       final db = AppDatabase(queryExecutor: connection.newConnection());
-      await verifier.migrateAndValidate(db, 17);
+      await verifier.migrateAndValidate(db, 19);
       await db.close();
     });
 
-    test("migrating from v15 produces the current v17 schema", () async {
+    test("migrating from v15 produces the current v19 schema", () async {
       final connection = await verifier.schemaAt(15);
       final db = AppDatabase(queryExecutor: connection.newConnection());
-      await verifier.migrateAndValidate(db, 17);
+      await verifier.migrateAndValidate(db, 19);
       await db.close();
     });
 
-    test("migrating from v16 produces the current v17 schema", () async {
+    test("migrating from v16 produces the current v19 schema", () async {
       final connection = await verifier.schemaAt(16);
       final db = AppDatabase(queryExecutor: connection.newConnection());
-      await verifier.migrateAndValidate(db, 17);
+      await verifier.migrateAndValidate(db, 19);
       await db.close();
     });
 
-    test("migrating from v17 produces the current v17 schema", () async {
+    // Starts one version below the timestamp standardization so the single
+    // jump exercises both the v18 trigger rebuild and the v19 default +
+    // value normalization branches of onUpgrade.
+    test("migrating from v17 produces the current v19 schema", () async {
       final connection = await verifier.schemaAt(17);
       final db = AppDatabase(queryExecutor: connection.newConnection());
-      await verifier.migrateAndValidate(db, 17);
+      await verifier.migrateAndValidate(db, 19);
       await db.close();
     });
 
-    test("v16 -> v17 collapses pre-existing duplicate metadata relations",
+    test("a fresh v19 database round-trips against its own schema", () async {
+      final connection = await verifier.schemaAt(19);
+      final db = AppDatabase(queryExecutor: connection.newConnection());
+      await verifier.migrateAndValidate(db, 19);
+      await db.close();
+    });
+
+    test("v16 -> v19 collapses pre-existing duplicate metadata relations",
         () async {
       final schema = await verifier.schemaAt(16);
 
@@ -72,7 +82,7 @@ void main() {
 
       // Run the real migration to the current version.
       final db = AppDatabase(queryExecutor: schema.newConnection());
-      await verifier.migrateAndValidate(db, 17);
+      await verifier.migrateAndValidate(db, 19);
 
       // The duplicate must be gone, exactly one survivor remains, and the
       // new unique index must now reject a re-inserted duplicate.
@@ -93,7 +103,7 @@ void main() {
       await db.close();
     });
 
-    test("v14 -> v17 shifts enum type ids down by one and preserves rows",
+    test("v14 -> v19 shifts enum type ids down by one and preserves rows",
         () async {
       final schema = await verifier.schemaAt(14);
 
@@ -117,7 +127,7 @@ void main() {
       await oldDb.close();
 
       final db = AppDatabase(queryExecutor: schema.newConnection());
-      await verifier.migrateAndValidate(db, 17);
+      await verifier.migrateAndValidate(db, 19);
 
       final item = await db
           .customSelect("SELECT type_id FROM items WHERE id = '$itemId'")
@@ -141,10 +151,17 @@ void main() {
       verifier = SchemaVerifier(config.GeneratedHelper());
     });
 
-    test("fresh database matches the v5 schema", () async {
+    test("migrating from v5 produces the current v6 schema", () async {
       final connection = await verifier.schemaAt(5);
       final db = ConfigDatabase(queryExecutor: connection.newConnection());
-      await verifier.migrateAndValidate(db, 5);
+      await verifier.migrateAndValidate(db, 6);
+      await db.close();
+    });
+
+    test("a fresh v6 database round-trips against its own schema", () async {
+      final connection = await verifier.schemaAt(6);
+      final db = ConfigDatabase(queryExecutor: connection.newConnection());
+      await verifier.migrateAndValidate(db, 6);
       await db.close();
     });
   });

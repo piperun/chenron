@@ -1,5 +1,6 @@
 import "package:database/schema/app_schema.dart";
 import "package:database/src/core/initial_data/app_database.dart";
+import "package:database/src/core/time.dart";
 import "package:drift/drift.dart";
 import "package:drift_flutter/drift_flutter.dart";
 import "package:basedir/directory.dart";
@@ -70,7 +71,7 @@ class AppDatabase extends _$AppDatabase {
   Future<void> setup() async {}
 
   @override
-  int get schemaVersion => 18;
+  int get schemaVersion => 19;
 
   @override
   MigrationStrategy get migration {
@@ -449,8 +450,68 @@ class AppDatabase extends _$AppDatabase {
               "DROP TRIGGER IF EXISTS update_documents_timestamp");
           await _createUpdateTriggers();
         }
+
+        // v18 -> v19: standardize every stored timestamp to canonical UTC
+        // ISO-8601 millisecond text (`YYYY-MM-DDTHH:MM:SS.fffZ`).
+        //
+        // Columns previously defaulted to SQLite's CURRENT_TIMESTAMP, which
+        // writes a space-separated, whole-second string; legacy app writes
+        // also leaked the local UTC offset (`…+02:00`). Mixed shapes made
+        // plain `col >= ?` range scans miss the date indexes, forcing
+        // `datetime()` wrappers that defeated those indexes entirely.
+        //
+        // (A) Rebuild each affected table so its DDL carries the new strftime
+        //     default (rows copy verbatim), then (B) normalize every existing
+        //     DateTime value with the direct strftime form. The expression
+        //     preserves milliseconds, truncates microseconds to ms, and folds
+        //     a trailing local offset into the UTC instant. The idempotent
+        //     guard skips rows already canonical, so re-running is a no-op.
+        if (from < 19) {
+          await migrator.alterTable(TableMigration(folders));
+          await migrator.alterTable(TableMigration(links));
+          await migrator.alterTable(TableMigration(documents));
+          await migrator.alterTable(TableMigration(tags));
+          await migrator.alterTable(TableMigration(items));
+          await migrator.alterTable(TableMigration(metadataRecords));
+          await migrator.alterTable(TableMigration(statistics));
+          await migrator.alterTable(TableMigration(activityEvents));
+          await migrator.alterTable(TableMigration(backgroundJobs));
+
+          await _normalizeTimestampColumns(const {
+            "folders": ["created_at", "updated_at"],
+            "links": ["created_at"],
+            "documents": ["created_at", "updated_at"],
+            "tags": ["created_at"],
+            "items": ["created_at"],
+            "metadata_records": ["created_at"],
+            "statistics": ["recorded_at"],
+            "activity_events": ["occurred_at"],
+            "background_jobs": ["created_at", "updated_at"],
+            "web_metadata_entries": ["fetched_at"],
+            "recent_access": ["last_accessed_at"],
+          });
+        }
       },
     );
+  }
+
+  /// Rewrites every listed DateTime column to canonical UTC ISO-8601
+  /// millisecond text. The `<>` guard makes each statement idempotent — a
+  /// row already in canonical form is left untouched, so re-running the
+  /// migration (or migrating an already-v19 database) writes nothing.
+  Future<void> _normalizeTimestampColumns(
+      Map<String, List<String>> tableColumns) async {
+    const fmt = "strftime('%Y-%m-%dT%H:%M:%fZ', %COL%)";
+    for (final entry in tableColumns.entries) {
+      final table = entry.key;
+      for (final col in entry.value) {
+        final canonical = fmt.replaceAll("%COL%", col);
+        await customStatement(
+          "UPDATE $table SET $col = $canonical "
+          "WHERE $col IS NOT NULL AND $col <> $canonical",
+        );
+      }
+    }
   }
 
   /// Helper to get document file for migration and file operations

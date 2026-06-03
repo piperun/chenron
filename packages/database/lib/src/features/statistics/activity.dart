@@ -31,12 +31,10 @@ extension ActivityTracking on AppDatabase {
       ..orderBy([(t) => OrderingTerm.desc(t.occurredAt)]);
 
     if (startDate != null) {
-      final start = startDate.toUtc();
-      query.where((t) => t.occurredAt.isBiggerOrEqualValue(start));
+      query.where((t) => t.occurredAt.isBiggerOrEqualValue(dbBound(startDate)));
     }
     if (endDate != null) {
-      final end = endDate.toUtc();
-      query.where((t) => t.occurredAt.isSmallerOrEqualValue(end));
+      query.where((t) => t.occurredAt.isSmallerOrEqualValue(dbBound(endDate)));
     }
     if (entityType != null) {
       query.where((t) => t.entityType.equals(entityType));
@@ -52,11 +50,11 @@ extension ActivityTracking on AppDatabase {
   }) async {
     final query = customSelect(
       "SELECT event_type, COUNT(*) as count FROM activity_events "
-      "WHERE datetime(occurred_at) >= datetime(?) AND datetime(occurred_at) <= datetime(?) "
+      "WHERE occurred_at >= ? AND occurred_at <= ? "
       "GROUP BY event_type ORDER BY count DESC",
       variables: [
-        Variable.withDateTime(startDate),
-        Variable.withDateTime(endDate),
+        Variable.withDateTime(dbBound(startDate)),
+        Variable.withDateTime(dbBound(endDate)),
       ],
       readsFrom: {activityEvents},
     );
@@ -76,11 +74,11 @@ extension ActivityTracking on AppDatabase {
     final query = customSelect(
       "SELECT DATE(occurred_at) as day, entity_type, COUNT(*) as count "
       "FROM activity_events "
-      "WHERE datetime(occurred_at) >= datetime(?) AND datetime(occurred_at) <= datetime(?) "
+      "WHERE occurred_at >= ? AND occurred_at <= ? "
       "GROUP BY day, entity_type ORDER BY day ASC",
       variables: [
-        Variable.withDateTime(startDate),
-        Variable.withDateTime(endDate),
+        Variable.withDateTime(dbBound(startDate)),
+        Variable.withDateTime(dbBound(endDate)),
       ],
       readsFrom: {activityEvents},
     );

@@ -87,7 +87,7 @@ void main() {
       expect(updatedFolder.title, equals("Updated Title"));
     });
 
-    test("updatedAt does NOT change when explicitly set to old value",
+    test("updatedAt keeps an explicit value distinct from the old one",
         () async {
       // Create a folder
       final folderDraft = FolderDraft(
@@ -104,15 +104,20 @@ void main() {
 
       final originalUpdatedAt = originalFolder.updatedAt;
 
-      await Future.delayed(const Duration(milliseconds: 1000));
+      // A timestamp standardization makes the read -> write round-trip
+      // byte-identical, so the trigger's `WHEN NEW.updated_at =
+      // OLD.updated_at` guard correctly fires whenever the caller does not
+      // supply a *different* value. To pin updatedAt to a chosen instant the
+      // caller must therefore write a value distinct from the stored one;
+      // that distinct value is then preserved (the guard is false, so no
+      // auto-bump). Pick an explicit instant clearly in the past.
+      final explicit = DateTime.utc(2020, 1, 2, 3, 4, 5, 678);
 
-      // Update the folder while EXPLICITLY setting updatedAt to the old value
-      // The trigger condition "WHEN NEW.updated_at = OLD.updated_at" should prevent update
       await (database.update(folders)
             ..where((tbl) => tbl.id.equals(result.folderId)))
           .write(FoldersCompanion(
         title: const Value("Explicitly Set Title"),
-        updatedAt: Value(originalUpdatedAt), // Explicitly set to old value
+        updatedAt: Value(explicit),
       ));
 
       // Get updated folder
@@ -120,8 +125,10 @@ void main() {
             ..where((tbl) => tbl.id.equals(result.folderId)))
           .getSingle();
 
-      // Verify updatedAt has stayed the same because we explicitly set it
-      expect(updatedFolder.updatedAt, equals(originalUpdatedAt));
+      // The explicit timestamp is honored (not auto-bumped) and is not the
+      // original default-generated one.
+      expect(updatedFolder.updatedAt, equals(explicit));
+      expect(updatedFolder.updatedAt, isNot(equals(originalUpdatedAt)));
       expect(updatedFolder.title, equals("Explicitly Set Title"));
     });
 

@@ -1,4 +1,5 @@
 import "package:database/database.dart";
+import "package:database/src/core/time.dart";
 import "package:drift/drift.dart";
 
 extension RecentAccessTracking on AppDatabase {
@@ -16,7 +17,7 @@ extension RecentAccessTracking on AppDatabase {
       [
         entityId,
         entityType,
-        DateTime.now().toUtc().toIso8601String(),
+        dbNow().toIso8601String(),
       ],
     );
   }

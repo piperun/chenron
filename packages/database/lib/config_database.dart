@@ -1,6 +1,7 @@
 import "package:database/models/enums.dart";
 import "package:database/schema/user_config_schema.dart";
 import "package:database/src/core/initial_data/config_database.dart";
+import "package:database/src/core/time.dart";
 import "package:drift/drift.dart";
 import "package:drift_flutter/drift_flutter.dart";
 import "package:basedir/directory.dart";
@@ -35,7 +36,7 @@ class ConfigDatabase extends _$ConfigDatabase {
                 debugMode: debugMode));
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration {
@@ -100,11 +101,64 @@ class ConfigDatabase extends _$ConfigDatabase {
             await customStatement("DROP TABLE IF EXISTS seed_types");
           }
         }
+
+        // v5 -> v6: standardize every stored timestamp to canonical UTC
+        // ISO-8601 millisecond text (`YYYY-MM-DDTHH:MM:SS.fffZ`), matching
+        // the app DB. The columns defaulted to SQLite's CURRENT_TIMESTAMP
+        // (space-separated, whole-second), and the update triggers stamped
+        // seconds (`%S`) — both diverge from canonical.
+        if (from < 6) {
+          // (A) Rebuild every table whose live DDL must match the v6 schema.
+          //     userConfigs/userThemes pick up the new strftime default;
+          //     backupSettings is rebuilt so its DDL is regenerated from the
+          //     current schema definition (rows copy verbatim in all cases).
+          await migrator.alterTable(TableMigration(userConfigs));
+          await migrator.alterTable(TableMigration(userThemes));
+          await migrator.alterTable(TableMigration(backupSettings));
+
+          // (B) Normalize existing values. The `<>` guard is idempotent —
+          //     already-canonical rows are skipped, so re-running is a no-op.
+          await _normalizeConfigTimestampColumns(const {
+            "user_configs": ["created_at", "updated_at"],
+            "user_themes": ["created_at", "updated_at"],
+            "backup_settings": ["last_backup_timestamp"],
+          });
+
+          // (C) Rebuild the update triggers at millisecond precision.
+          await customStatement(
+              "DROP TRIGGER IF EXISTS update_user_configs_timestamp");
+          await customStatement(
+              "DROP TRIGGER IF EXISTS update_user_themes_timestamp");
+          await _createConfigUpdateTriggers();
+        }
       },
     );
   }
 
-  /// Creates SQLite triggers to automatically update the updatedAt timestamp for config tables
+  /// Rewrites every listed DateTime column to canonical UTC ISO-8601
+  /// millisecond text. The `<>` guard makes each statement idempotent.
+  Future<void> _normalizeConfigTimestampColumns(
+      Map<String, List<String>> tableColumns) async {
+    const fmt = "strftime('%Y-%m-%dT%H:%M:%fZ', %COL%)";
+    for (final entry in tableColumns.entries) {
+      final table = entry.key;
+      for (final col in entry.value) {
+        final canonical = fmt.replaceAll("%COL%", col);
+        await customStatement(
+          "UPDATE $table SET $col = $canonical "
+          "WHERE $col IS NOT NULL AND $col <> $canonical",
+        );
+      }
+    }
+  }
+
+  /// Creates SQLite triggers to automatically update the updatedAt timestamp
+  /// for config tables.
+  ///
+  /// Stamps canonical UTC ISO-8601 millisecond text (`%f`, matching the app
+  /// DB triggers and column defaults). Seconds precision (`%S`) would collapse
+  /// two edits to the same row within one second to an identical timestamp,
+  /// which the `WHEN NEW.updated_at = OLD.updated_at` guard then suppresses.
   Future<void> _createConfigUpdateTriggers() async {
     // Trigger for UserConfigs table
     await customStatement("""
@@ -114,7 +168,7 @@ class ConfigDatabase extends _$ConfigDatabase {
       WHEN NEW.updated_at = OLD.updated_at
       BEGIN
         UPDATE user_configs
-        SET updated_at = (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+        SET updated_at = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
         WHERE id = NEW.id;
       END
     """);
@@ -127,7 +181,7 @@ class ConfigDatabase extends _$ConfigDatabase {
       WHEN NEW.updated_at = OLD.updated_at
       BEGIN
         UPDATE user_themes
-        SET updated_at = (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+        SET updated_at = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
         WHERE id = NEW.id;
       END
     """);

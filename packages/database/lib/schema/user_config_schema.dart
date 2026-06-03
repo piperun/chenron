@@ -1,10 +1,11 @@
 import "package:drift/drift.dart";
 import "package:database/models/enums.dart";
+import "package:database/src/core/time.dart";
 
 class UserConfigs extends Table {
   TextColumn get id => text().withLength(min: 30, max: 60)();
-  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get createdAt => dateTime().withDefault(tsDefault)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(tsDefault)();
 
   BoolColumn get darkMode => boolean().withDefault(const Constant(false))();
   BoolColumn get copyOnImport => boolean().withDefault(const Constant(true))();
@@ -42,9 +43,12 @@ class UserConfigs extends Table {
 class UserThemes extends Table {
   // Keep ID as text for uniqueness and referencing
   TextColumn get id => text().withLength(min: 30, max: 60)();
-  TextColumn get userConfigId => text().references(UserConfigs, #id)();
-  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  // FK via customConstraint — see the note in app_schema.dart; drift_dev 2.31
+  // can't resolve .references(UserConfigs, #id) under analyzer 10.x.
+  TextColumn get userConfigId =>
+      text().customConstraint("NOT NULL REFERENCES user_configs (id)")();
+  DateTimeColumn get createdAt => dateTime().withDefault(tsDefault)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(tsDefault)();
 
   TextColumn get name => text().unique()();
 
@@ -60,8 +64,9 @@ class UserThemes extends Table {
 
 class BackupSettings extends Table {
   TextColumn get id => text().withLength(min: 30, max: 60)();
-  TextColumn get userConfigId =>
-      text().references(UserConfigs, #id, onDelete: KeyAction.cascade)();
+  // FK via customConstraint — see the note in app_schema.dart.
+  TextColumn get userConfigId => text().customConstraint(
+      "NOT NULL REFERENCES user_configs (id) ON DELETE CASCADE")();
   TextColumn get backupInterval => text().nullable()();
   TextColumn get backupFilename => text().nullable()();
   TextColumn get backupPath => text().nullable()();
