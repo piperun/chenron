@@ -586,6 +586,20 @@ class AppDatabase extends _$AppDatabase {
       dbPath = () async => (await getDefaultApplicationDirectory()).path;
     }
 
+    // Runs SQLite on a dedicated background worker isolate. With
+    // drift_flutter's default `shareAcrossIsolates: false`, `driftDatabase`
+    // resolves to `NativeDatabase.createBackgroundConnection` (readPool: 0):
+    // exactly one worker isolate owns exactly one connection, while this
+    // (main) isolate holds only a `DatabaseConnection.delayed` proxy that
+    // forwards every query over a port. SQLite therefore stays single-writer
+    // and serialized — the migrator and all CRUD run on the worker — so the
+    // UI isolate never blocks on a query.
+    //
+    // INVARIANT: do not set `shareAcrossIsolates: true`, add a non-zero read
+    // pool, or open a second connection to this file from another isolate
+    // without revisiting that single-writer guarantee — concurrent opens of
+    // the same file are the corruption risk this design avoids. Keep `setup`
+    // free of captured variables; it is sent across the isolate boundary.
     return driftDatabase(
         name: databaseName,
         native: DriftNativeOptions(

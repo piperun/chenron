@@ -147,6 +147,16 @@ class ConfigDatabase extends _$ConfigDatabase {
     } else {
       path = () async => (await getDefaultApplicationDirectory()).path;
     }
+    // Like AppDatabase, this runs on its own dedicated worker isolate
+    // (drift_flutter default `shareAcrossIsolates: false` →
+    // `NativeDatabase.createBackgroundConnection`, readPool: 0): one worker,
+    // one connection, serialized single-writer access. The config DB is its
+    // own SQLite file and must NOT share a connection with the app DB.
+    //
+    // INVARIANT: do not set `shareAcrossIsolates: true`, add a read pool, or
+    // open this file from a second isolate without revisiting the
+    // single-writer guarantee. Keep `setup` capture-free — it crosses the
+    // isolate boundary.
     return driftDatabase(
         name: databaseName,
         native: DriftNativeOptions(
