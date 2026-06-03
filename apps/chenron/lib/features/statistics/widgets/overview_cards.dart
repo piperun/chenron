@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import "package:vibe/vibe.dart";
 
 class OverviewCards extends StatelessWidget {
   final int totalLinks;
@@ -16,6 +17,12 @@ class OverviewCards extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // These four stat cards are the same per-entity categorical identity
+    // the statistics charts use, so draw their accent icons from the same
+    // ChartPalette the charts read. A theme like Nier then recolors the
+    // cards in lockstep with its Growth Trend / Activity Timeline series.
+    final palette = ChartPalette.of(context);
+
     return Row(
       children: [
         Expanded(
@@ -23,7 +30,7 @@ class OverviewCards extends StatelessWidget {
             icon: Icons.link,
             label: "Links",
             count: totalLinks,
-            color: Colors.blue,
+            color: palette.links,
           ),
         ),
         const SizedBox(width: 12),
@@ -32,7 +39,7 @@ class OverviewCards extends StatelessWidget {
             icon: Icons.description,
             label: "Documents",
             count: totalDocuments,
-            color: Colors.purple,
+            color: palette.documents,
           ),
         ),
         const SizedBox(width: 12),
@@ -41,7 +48,7 @@ class OverviewCards extends StatelessWidget {
             icon: Icons.folder,
             label: "Folders",
             count: totalFolders,
-            color: Colors.orange,
+            color: palette.folders,
           ),
         ),
         const SizedBox(width: 12),
@@ -50,7 +57,7 @@ class OverviewCards extends StatelessWidget {
             icon: Icons.label,
             label: "Tags",
             count: totalTags,
-            color: Colors.teal,
+            color: palette.tags,
           ),
         ),
       ],
