@@ -79,6 +79,10 @@ class MainSetup {
       loggerGlobal.info(
           "MainSetup", "Logging and database setup complete.");
 
+      // Point the image cache at the user's configured directory before any
+      // item renders and lazily initializes it to the default.
+      await _applyImageCacheDirectory();
+
       // Theme registry is fast and synchronous.
       initializeThemeRegistry();
       loggerGlobal.info("MainSetup", "Theme registry initialized.");
@@ -140,6 +144,29 @@ class MainSetup {
     } catch (e, s) {
       loggerGlobal.warning(
           "MainSetup", "Background job cleanup failed: $e", e, s);
+    }
+  }
+
+  /// Redirect the image cache to the user's persisted cache directory. Without
+  /// this the `cacheDirectory` setting never takes effect — the cache would
+  /// lazily initialize to the default temp path on first image. Non-fatal:
+  /// falls back to the lazy default on any error.
+  static Future<void> _applyImageCacheDirectory() async {
+    try {
+      final configDb =
+          locator.get<Signal<ConfigDatabaseLifecycle>>().value.configDatabase;
+      final userConfig = await configDb.getUserConfig();
+      final cacheDirectory = userConfig?.data.cacheDirectory;
+      if (cacheDirectory != null && cacheDirectory.isNotEmpty) {
+        await locator
+            .get<ImageCacheManager>()
+            .initialize(customPath: cacheDirectory);
+        loggerGlobal.info(
+            "MainSetup", "Image cache directory set to: $cacheDirectory");
+      }
+    } catch (e, s) {
+      loggerGlobal.warning(
+          "MainSetup", "Failed to apply image cache directory: $e", e, s);
     }
   }
 

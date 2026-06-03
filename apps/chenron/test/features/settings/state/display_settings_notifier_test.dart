@@ -90,6 +90,33 @@ void main() {
     expect(notifier.isDirty, isFalse);
   });
 
+  test("save redirects the image cache to the saved directory", () async {
+    // Regression: persisting a custom cacheDirectory must apply it to the
+    // image cache. Before this wiring the setting was stored but never
+    // reached ImageCacheManager, so images kept caching to the default dir.
+    when(service.updateDisplaySection(
+      configId: anyNamed("configId"),
+      timeDisplayFormat: anyNamed("timeDisplayFormat"),
+      itemClickAction: anyNamed("itemClickAction"),
+      cacheDirectory: anyNamed("cacheDirectory"),
+      showDescription: anyNamed("showDescription"),
+      showImages: anyNamed("showImages"),
+      showTags: anyNamed("showTags"),
+      showCopyLink: anyNamed("showCopyLink"),
+    )).thenAnswer((_) => Future<void>.value());
+
+    String? appliedDir = "unset";
+    final withCallback = DisplaySettingsNotifier(
+      service,
+      onCacheDirectorySaved: (dir) async => appliedDir = dir,
+    );
+    withCallback.hydrate(stubConfig());
+    withCallback.update((s) => s.copyWith(cacheDirectory: "/custom/cache"));
+    await withCallback.save("cfg");
+
+    expect(appliedDir, "/custom/cache");
+  });
+
   test("save failure leaves saved snapshot unchanged", () async {
     when(service.updateDisplaySection(
       configId: anyNamed("configId"),

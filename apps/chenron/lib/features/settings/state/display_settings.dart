@@ -39,7 +39,16 @@ abstract class DisplaySettings with _$DisplaySettings {
 class DisplaySettingsNotifier implements SettingsSection {
   final ConfigService _service;
 
-  DisplaySettingsNotifier(this._service);
+  /// Applies a newly-saved cache directory to the image cache so a changed
+  /// location takes effect without a restart. Injected as a callback (rather
+  /// than reaching the locator) to keep this notifier decoupled and
+  /// unit-testable; `null` when no image cache is wired.
+  final Future<void> Function(String? cacheDirectory)? _onCacheDirectorySaved;
+
+  DisplaySettingsNotifier(
+    this._service, {
+    Future<void> Function(String? cacheDirectory)? onCacheDirectorySaved,
+  }) : _onCacheDirectorySaved = onCacheDirectorySaved;
 
   final current = signal(const DisplaySettings());
   final saved = signal(const DisplaySettings());
@@ -72,5 +81,8 @@ class DisplaySettingsNotifier implements SettingsSection {
       showCopyLink: s.showCopyLink,
     );
     saved.value = s;
+    // Point the image cache at the saved directory so the change takes
+    // effect immediately. No-op if the directory is unchanged.
+    await _onCacheDirectorySaved?.call(s.cacheDirectory);
   }
 }

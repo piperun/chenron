@@ -49,9 +49,11 @@ class SettingsCoordinator {
     required DataSettingsService dataService,
     required ThemeNotifier themeApplier,
     required ThemeOptionsStore optionsStore,
+    Future<void> Function(String? cacheDirectory)? onCacheDirectorySaved,
   }) : _configService = configService {
     archive = ArchiveSettingsNotifier(configService);
-    display = DisplaySettingsNotifier(configService);
+    display = DisplaySettingsNotifier(configService,
+        onCacheDirectorySaved: onCacheDirectorySaved);
     theme = ThemeSettingsNotifier(configService, themeApplier, optionsStore);
     backup = BackupSettingsNotifier(configService);
     database = DatabaseSettingsNotifier(dataService);

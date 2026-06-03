@@ -77,6 +77,10 @@ void locatorSetup() {
         dataService: locator.get<DataSettingsService>(),
         themeApplier: themeNotifierSignal.value,
         optionsStore: locator.get<ThemeOptionsStore>(),
+        // Persisting a new cache directory redirects the image cache so the
+        // change takes effect without a restart.
+        onCacheDirectorySaved: (dir) =>
+            locator.get<ImageCacheManager>().initialize(customPath: dir),
       ));
 
   // --- File services ---
