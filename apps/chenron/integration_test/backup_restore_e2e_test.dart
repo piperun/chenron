@@ -7,6 +7,7 @@ import "package:database/file_operations.dart";
 import "package:drift/native.dart";
 import "package:flutter_test/flutter_test.dart";
 import "package:integration_test/integration_test.dart";
+import "package:sqlite3/sqlite3.dart";
 
 /// Backup + restore round-trip: real on-disk SQLite, real `VACUUM INTO`,
 /// real file replacement. Catches regressions in
@@ -136,7 +137,7 @@ void main() {
       );
     });
 
-    test("backup file is a valid AppDatabase with the correct schema version",
+    test("backup file's stored schema version matches the code (no migration)",
         () async {
       final db = openDb();
       await db.createLink(link: "https://example.org/canary");
@@ -150,11 +151,17 @@ void main() {
       final restored = AppDatabase(
         queryExecutor: NativeDatabase(backupFile),
       );
-      // Schema version must match the live DB — otherwise restore would
-      // trigger an unwanted migration and corrupt data. Bump this in lockstep
-      // with AppDatabase.schemaVersion; this assertion is the canary that
-      // forces a review of the backup/restore path whenever the schema moves.
-      expect(restored.schemaVersion, equals(19));
+
+      // The real invariant: the backup file's STORED schema version equals the
+      // code's schemaVersion, so re-opening it is a no-op rather than a
+      // data-rewriting migration. Read the file's PRAGMA user_version directly
+      // (before drift could migrate it) and compare to AppDatabase.schemaVersion
+      // — derived, so it can never go stale the way the old hardcoded literal
+      // did (that drift to CI red is exactly what this replaces).
+      final backupVersion = _readUserVersion(backupFile);
+      expect(backupVersion, equals(restored.schemaVersion),
+          reason: "backup user_version ($backupVersion) must equal the code's "
+              "schemaVersion (${restored.schemaVersion})");
 
       final canaryLinks = await restored.getAllLinks();
       expect(
@@ -163,5 +170,48 @@ void main() {
       );
       await restored.close();
     });
+
+    test("the version check is not vacuous — fails on a stale backup",
+        () async {
+      // Deliberately prove the check above actually guards: make a real backup,
+      // rewrite its stored schema version to an ancient one (the exact hazard —
+      // restoring it would trigger a migration), and confirm the very same
+      // assertion the canary uses fails on it.
+      final db = openDb();
+      await db.createLink(link: "https://example.org/stale");
+      await db.close();
+
+      final backupFile = await DatabaseFileOperations().backupDatabase(
+        dbFile: dbFile,
+        backupDirectory: backupDir,
+      );
+
+      final tamper = sqlite3.open(backupFile.path);
+      tamper.execute("PRAGMA user_version = 1");
+      tamper.dispose();
+
+      final code = AppDatabase(queryExecutor: NativeDatabase.memory());
+      addTearDown(code.close);
+
+      final backupVersion = _readUserVersion(backupFile);
+      expect(backupVersion, equals(1), reason: "tamper should have taken");
+      expect(
+        () => expect(backupVersion, equals(code.schemaVersion)),
+        throwsA(isA<TestFailure>()),
+        reason: "a v1 backup must trip the canary's equality check",
+      );
+    });
   });
+}
+
+/// Reads a SQLite file's stored `user_version` (the schema version drift
+/// stamped on it) directly, without opening it through drift — so the read
+/// never triggers a migration.
+int _readUserVersion(File file) {
+  final db = sqlite3.open(file.path);
+  try {
+    return db.select("PRAGMA user_version").first.columnAt(0) as int;
+  } finally {
+    db.dispose();
+  }
 }
