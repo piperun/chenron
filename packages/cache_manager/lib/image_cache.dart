@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:file/file.dart' as fs;
 import 'package:file/local.dart';
-import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
@@ -28,21 +27,27 @@ class _BaseDirFileSystem implements FileSystem {
   }
 }
 
-/// Manages image caching using flutter_cache_manager
+/// Manages image caching using `flutter_cache_manager`.
+///
+/// One instance models the app's single on-disk image cache. Register it as
+/// a singleton (chenron does, in its locator) rather than constructing
+/// ad-hoc instances, so every caller shares the same lazily-built
+/// [CacheManager] and the same reported directory. Tests construct their own
+/// instance for isolation instead of resetting shared state.
 class ImageCacheManager {
   /// Default cache namespace key passed to `flutter_cache_manager`. Apps
   /// embedding this package can override via [initialize] to keep their
   /// caches isolated from a generic `images` namespace.
   static const String defaultCacheKey = "chenron_images";
 
-  static CacheManager? _cacheManager;
-  static String? _currentCachePath;
-  static String _currentCacheKey = defaultCacheKey;
+  CacheManager? _cacheManager;
+  String? _currentCachePath;
+  String _currentCacheKey = defaultCacheKey;
 
   /// Initialize or update the cache manager with a custom path and/or
   /// namespace key. If [customPath] is null, uses the system temp
   /// directory under [cacheKey].
-  static Future<void> initialize({
+  Future<void> initialize({
     String? customPath,
     String cacheKey = defaultCacheKey,
   }) async {
@@ -69,23 +74,14 @@ class ImageCacheManager {
     }
   }
 
-  /// Reset all cached static state. Intended for tests that need to
-  /// re-[initialize] with a different path/key within the same process.
-  @visibleForTesting
-  static void resetForTesting() {
-    _cacheManager = null;
-    _currentCachePath = null;
-    _currentCacheKey = defaultCacheKey;
-  }
-
   /// Get default cache path (system temp directory under [cacheKey])
-  static Future<String> _getDefaultCachePath(String cacheKey) async {
+  Future<String> _getDefaultCachePath(String cacheKey) async {
     final tempDir = await getTemporaryDirectory();
     return path.join(tempDir.path, cacheKey);
   }
 
   /// Get the cache manager instance (async, initializes if needed)
-  static Future<CacheManager> get instance async {
+  Future<CacheManager> get instance async {
     if (_cacheManager == null) {
       await initialize();
     }
@@ -93,13 +89,13 @@ class ImageCacheManager {
   }
 
   /// Clear all cached images
-  static Future<void> clearAll() async {
+  Future<void> clearAll() async {
     final manager = await instance;
     await manager.emptyCache();
   }
 
   /// Get cache size in bytes by iterating through cache directory
-  static Future<int> getCacheSize() async {
+  Future<int> getCacheSize() async {
     try {
       if (_currentCachePath == null) {
         await initialize();
@@ -135,13 +131,13 @@ class ImageCacheManager {
   }
 
   /// Remove a specific image from cache
-  static Future<void> removeFile(String url) async {
+  Future<void> removeFile(String url) async {
     final manager = await instance;
     await manager.removeFile(url);
   }
 
   /// Get current cache directory path
-  static Future<String> getCacheDirectory() async {
+  Future<String> getCacheDirectory() async {
     if (_currentCachePath == null) {
       await initialize();
     }

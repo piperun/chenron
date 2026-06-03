@@ -4,6 +4,8 @@ import "package:flutter/material.dart";
 import "package:flutter_cache_manager/flutter_cache_manager.dart" as fcm;
 import "package:signals/signals_flutter.dart";
 
+import "package:chenron/locator.dart";
+
 const _videoExtensions = {".mp4", ".webm", ".mov", ".avi", ".mkv", ".flv"};
 
 bool _isValidImageUrl(String url) {
@@ -14,6 +16,16 @@ bool _isValidImageUrl(String url) {
   // downloading entire video files into the image cache.
   final path = uri.path.toLowerCase();
   return !_videoExtensions.any(path.endsWith);
+}
+
+/// Resolves the shared [ImageCacheManager]'s underlying cache manager.
+///
+/// The locator lookup runs inside this async function so a missing
+/// registration (e.g. a widget test that doesn't set up the locator)
+/// surfaces as a failed future the [FutureBuilder] renders as a placeholder,
+/// rather than throwing synchronously in `initState`.
+Future<fcm.BaseCacheManager> _resolveImageCacheManager() async {
+  return locator.get<ImageCacheManager>().instance;
 }
 
 /// Card-mode "hero" image atop a viewer item.
@@ -44,7 +56,7 @@ class _ItemImageHeaderState extends State<ItemImageHeader> {
   @override
   void initState() {
     super.initState();
-    _cacheManagerFuture = ImageCacheManager.instance;
+    _cacheManagerFuture = _resolveImageCacheManager();
   }
 
   @override
@@ -109,7 +121,7 @@ class _ItemThumbnailState extends State<ItemThumbnail> {
   @override
   void initState() {
     super.initState();
-    _cacheManagerFuture = ImageCacheManager.instance;
+    _cacheManagerFuture = _resolveImageCacheManager();
   }
 
   @override

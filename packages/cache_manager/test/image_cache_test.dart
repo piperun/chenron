@@ -28,6 +28,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late Directory tempRoot;
+  late ImageCacheManager manager;
 
   setUp(() async {
     tempRoot = await Directory.systemTemp.createTemp("image_cache_test");
@@ -35,11 +36,11 @@ void main() {
       temp: tempRoot.path,
       support: tempRoot.path,
     );
-    ImageCacheManager.resetForTesting();
+    // A fresh instance per test gives isolation without shared static state.
+    manager = ImageCacheManager();
   });
 
   tearDown(() async {
-    ImageCacheManager.resetForTesting();
     if (await tempRoot.exists()) {
       await tempRoot.delete(recursive: true);
     }
@@ -50,16 +51,17 @@ void main() {
         "files written by the cache manager land under the reported "
         "cache directory", () async {
       final customPath = p.join(tempRoot.path, "my_cache");
-      await ImageCacheManager.initialize(customPath: customPath);
+      await manager.initialize(customPath: customPath);
 
-      final reportedDir = await ImageCacheManager.getCacheDirectory();
+      final reportedDir = await manager.getCacheDirectory();
       expect(reportedDir, customPath,
           reason: "getCacheDirectory must echo the supplied customPath");
 
       // Write through the cache manager's own file system — the exact path
       // WebHelper/putFile use to persist downloaded bytes.
-      final manager = await ImageCacheManager.instance;
-      final file = await manager.config.fileSystem.createFile("probe.file");
+      final cacheManager = await manager.instance;
+      final file =
+          await cacheManager.config.fileSystem.createFile("probe.file");
       await file.writeAsBytes(List<int>.filled(1234, 7));
 
       // The physical file must live UNDER the reported directory, otherwise
@@ -74,20 +76,20 @@ void main() {
         "getCacheSize reflects bytes actually stored via the cache "
         "manager", () async {
       final customPath = p.join(tempRoot.path, "sized_cache");
-      await ImageCacheManager.initialize(customPath: customPath);
+      await manager.initialize(customPath: customPath);
 
-      expect(await ImageCacheManager.getCacheSize(), 0,
+      expect(await manager.getCacheSize(), 0,
           reason: "fresh custom cache dir starts empty");
 
-      final manager = await ImageCacheManager.instance;
+      final cacheManager = await manager.instance;
       final file =
-          await manager.config.fileSystem.createFile("payload.file");
+          await cacheManager.config.fileSystem.createFile("payload.file");
       await file.writeAsBytes(List<int>.filled(2048, 1));
 
       // Reporting scans _currentCachePath; storage uses config.fileSystem.
       // With the fix they agree, so the byte count shows up. With the bug
       // (files land in temp/cacheKey, reporting scans customPath) this is 0.
-      expect(await ImageCacheManager.getCacheSize(), 2048,
+      expect(await manager.getCacheSize(), 2048,
           reason: "size reporting must see the file the cache manager "
               "actually wrote");
     });
@@ -96,15 +98,16 @@ void main() {
         () async {
       // No customPath: resolves to <temp>/<defaultCacheKey>. The fix must
       // also keep the default branch self-consistent.
-      await ImageCacheManager.initialize();
-      final manager = await ImageCacheManager.instance;
-      final reportedDir = await ImageCacheManager.getCacheDirectory();
-      expect(reportedDir, p.join(tempRoot.path, ImageCacheManager.defaultCacheKey));
+      await manager.initialize();
+      final cacheManager = await manager.instance;
+      final reportedDir = await manager.getCacheDirectory();
+      expect(reportedDir,
+          p.join(tempRoot.path, ImageCacheManager.defaultCacheKey));
 
-      final file = await manager.config.fileSystem.createFile("d.file");
+      final file = await cacheManager.config.fileSystem.createFile("d.file");
       await file.writeAsBytes(const [1, 2, 3]);
       expect(p.isWithin(reportedDir, file.path), isTrue);
-      expect(await ImageCacheManager.getCacheSize(), 3);
+      expect(await manager.getCacheSize(), 3);
     });
   });
 }

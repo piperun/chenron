@@ -58,6 +58,9 @@ void locatorSetup() {
     onFetchLogged: _onFetchLogged,
   ));
 
+  // One process-wide on-disk image cache, lazily built on first use.
+  locator.registerLazySingleton<ImageCacheManager>(ImageCacheManager.new);
+
   // --- Theming ---
   locator.registerLazySingleton<ThemeManager>(() => ThemeManager(
         locator<Signal<ConfigDatabaseLifecycle>>().value.configDatabase,

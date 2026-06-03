@@ -14,7 +14,7 @@ class CacheService {
     Future<void> Function()? clearImageCacheManager,
   })  : _resolveCachePath = resolveCachePath,
         _clearImageCacheManager =
-            clearImageCacheManager ?? ImageCacheManager.clearAll;
+            clearImageCacheManager ?? locator.get<ImageCacheManager>().clearAll;
 
   /// Delete downloaded image files and reset flutter_cache_manager state.
   Future<void> clearImageCache() async {
