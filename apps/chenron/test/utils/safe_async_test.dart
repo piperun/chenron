@@ -6,7 +6,13 @@ import "package:flutter/material.dart";
 import "package:flutter_test/flutter_test.dart";
 
 void main() {
-  setUpAll(installTestLogger);
+  // Capture logs instead of printing them: these tests deliberately trigger
+  // errors, so the SEVERE stack traces would otherwise flood the output and
+  // read like real failures. Capturing also lets us assert the error was
+  // actually logged (the wrappers' core contract).
+  late TestLogCapture logs;
+  setUp(() => logs = TestLogCapture.start());
+  tearDown(() => logs.stop());
 
   group("safeWatch", () {
     test("delivers data via onData while a healthy stream is running",
@@ -49,6 +55,10 @@ void main() {
       await Future<void>.delayed(Duration.zero);
 
       expect(capturedError, same(boom));
+      // "mandatory logging on error" is the wrapper's contract — assert it.
+      expect(logs.severe, hasLength(1));
+      expect(logs.severe.first.error, same(boom));
+      expect(logs.severe.first.message, "stream error");
 
       await sub.cancel();
       await controller.close();
@@ -64,11 +74,15 @@ void main() {
         onData: (_) {},
       );
 
-      controller.addError(StateError("boom"));
+      final boom = StateError("boom");
+      controller.addError(boom);
       await Future<void>.delayed(Duration.zero);
 
       // If the error escaped into the zone, the runZonedGuarded inside
-      // the test framework would have flagged it by now.
+      // the test framework would have flagged it by now. Without an
+      // onUiError callback the log is the only evidence it was consumed.
+      expect(logs.severe, hasLength(1));
+      expect(logs.severe.first.error, same(boom));
 
       await sub.cancel();
       await controller.close();
@@ -121,6 +135,7 @@ void main() {
       // The user-facing text is generic; the raw exception string is in
       // the log, not the UI.
       expect(find.textContaining("kaboom"), findsNothing);
+      expect(logs.severe.map((r) => r.message), contains("explode failed"));
     });
 
     testWidgets(
@@ -142,6 +157,9 @@ void main() {
       );
       await tester.pump();
       expect(find.byType(SnackBar), findsNothing);
+      // The test name promises it still logs — verify that half too.
+      expect(
+          logs.severe.map((r) => r.message), contains("silent failure failed"));
     });
 
     testWidgets("skips snackbar when the State has been unmounted",
@@ -172,6 +190,7 @@ void main() {
 
       expect(result, isNull);
       expect(find.byType(SnackBar), findsNothing);
+      expect(logs.severe.map((r) => r.message), contains("slow failed"));
     });
   });
 }
