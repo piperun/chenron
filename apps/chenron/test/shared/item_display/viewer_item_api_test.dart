@@ -11,7 +11,7 @@ import "package:flutter_test/flutter_test.dart";
 /// [ViewerItem] accept the already-resolved primitives instead.
 ///
 /// This test exists to fail loudly if anyone tries to re-introduce a
-/// `ConfigController` / `displayMode` / `Watch` dependency at the cell level.
+/// settings-controller / `displayMode` / `Watch` dependency at the cell level.
 /// The constructor is now the API contract: resolved primitives only.
 void main() {
   test("ViewerItem constructor accepts only resolved display primitives", () {

@@ -40,8 +40,8 @@ class SettingsCoordinator {
   final isLoading = signal<bool>(true);
   final error = signal<String?>(null);
 
-  /// Last loaded `UserConfig` row — exposed for UIs that still want
-  /// the whole record (e.g. legacy `ConfigController` bridge).
+  /// Last loaded `UserConfig` row — kept available for UIs that need the
+  /// whole record rather than an individual typed setting.
   final userConfig = signal<UserConfig?>(null);
 
   SettingsCoordinator({

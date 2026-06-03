@@ -69,10 +69,10 @@ void main() {
       );
     }
 
-    // Note: FolderHeader requires ConfigController in GetIt (deep
-    // dependency chain: ConfigService, ThemeNotifier, SharedPreferences).
-    // Tests below only exercise the loading/pre-header states to avoid
-    // that chain. Full header rendering is covered by integration tests.
+    // Note: FolderHeader pulls settings from GetIt (deep dependency
+    // chain: ConfigService, ThemeNotifier, SharedPreferences). Tests
+    // below only exercise the loading/pre-header states to avoid that
+    // chain. Full header rendering is covered by integration tests.
 
     group("Loading states", () {
       testWidgets("renders chrome immediately (back / home / lock buttons)",
