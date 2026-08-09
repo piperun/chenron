@@ -3,8 +3,17 @@ import "dart:collection";
 import "package:app_logger/app_logger.dart";
 import "package:cache_manager/src/metadata.dart";
 import "package:cache_manager/src/metadata_persistence.dart";
+import "package:cache_manager/src/metadata_refresh.dart";
 
 const _source = "MetadataCache";
+
+/// A verified cached snapshot paired with its freshness at lookup time.
+class MetadataCacheLookup {
+  final Metadata data;
+  final MetadataFreshness freshness;
+
+  const MetadataCacheLookup(this.data, this.freshness);
+}
 
 /// Typed metadata storage with an in-memory LRU layer plus a pluggable
 /// persistent backend ([MetadataPersistence]).
@@ -27,24 +36,22 @@ class MetadataCache {
     _persistence = persistence;
   }
 
-  /// Get fresh metadata. Returns `null` on miss OR if cached data is
-  /// stale (caller decides whether to re-fetch).
-  Future<Metadata?> get(String url) async {
+  /// Look up any verified snapshot and report whether it is fresh or stale.
+  ///
+  /// Both persistence hits and memory hits remain in the bounded LRU. A stale
+  /// snapshot is still useful while its refresh is pending or unsuccessful,
+  /// so expiration alone never deletes it.
+  Future<MetadataCacheLookup?> lookup(String url, {DateTime? now}) async {
+    final lookupTime = now ?? DateTime.now();
     final cached = _memoryCache.get(url);
     if (cached != null) {
-      if (isFresh(cached)) {
-        loggerGlobal.fine(
-          _source,
-          "Memory cache HIT (FRESH) for: $url | Title: ${cached.title ?? 'N/A'}",
-        );
-        return cached;
-      }
+      final freshness = _freshness(cached, lookupTime);
       loggerGlobal.fine(
         _source,
-        "Memory cache HIT (STALE) for: $url | Title: ${cached.title ?? 'N/A'}",
+        "Memory cache HIT (${freshness.name.toUpperCase()}) for: $url | "
+        "Title: ${cached.title ?? 'N/A'}",
       );
-      _memoryCache.remove(url);
-      return null;
+      return MetadataCacheLookup(cached, freshness);
     }
 
     if (_persistence == null) return null;
@@ -54,40 +61,30 @@ class MetadataCache {
         loggerGlobal.fine(_source, "Cache MISS for: $url");
         return null;
       }
-      if (isFresh(persisted)) {
-        _memoryCache.put(url, persisted);
-        loggerGlobal.fine(
-          _source,
-          "Persistent cache HIT (FRESH) for: $url | Title: ${persisted.title ?? 'N/A'}",
-        );
-        return persisted;
-      }
+
+      _memoryCache.put(url, persisted);
+      final freshness = _freshness(persisted, lookupTime);
       loggerGlobal.fine(
         _source,
-        "Persistent cache HIT (STALE) for: $url | Title: ${persisted.title ?? 'N/A'} | Needs refetch",
+        "Persistent cache HIT (${freshness.name.toUpperCase()}) for: $url | "
+        "Title: ${persisted.title ?? 'N/A'}",
       );
-      return null;
+      return MetadataCacheLookup(persisted, freshness);
     } catch (e) {
       loggerGlobal.warning(_source, "Cache error for: $url | Error: $e");
       return null;
     }
   }
 
-  /// Get any cached metadata, even if stale. Used by the fetcher to
-  /// compare against new fetches for change detection. Does not promote
-  /// into the LRU memory cache (the entry is, by definition, stale).
-  Future<Metadata?> getStale(String url) async {
-    final memCached = _memoryCache.get(url);
-    if (memCached != null) return memCached;
-
-    if (_persistence == null) return null;
-    try {
-      return await _persistence!.get(url);
-    } catch (e) {
-      loggerGlobal.warning(_source, "getStale error for: $url | Error: $e");
-      return null;
-    }
+  /// Transitional fresh-only adapter for callers migrated in Task 6.
+  @Deprecated("Use lookup; remove this adapter after Task 6 caller migration.")
+  Future<Metadata?> get(String url) async {
+    final result = await lookup(url);
+    return result?.freshness == MetadataFreshness.fresh ? result!.data : null;
   }
+
+  /// Transitional adapter that returns the snapshot regardless of freshness.
+  Future<Metadata?> getStale(String url) async => (await lookup(url))?.data;
 
   /// Store fresh metadata in both memory and persistence.
   ///
@@ -151,9 +148,14 @@ class MetadataCache {
 
   /// `true` iff [metadata.fetchedAt] + [metadata.ttlDays] is in the
   /// future. Public so `MetadataService` can decide refresh policy.
-  bool isFresh(Metadata metadata) {
-    final age = DateTime.now().difference(metadata.fetchedAt);
-    return age.inDays < metadata.ttlDays;
+  bool isFresh(Metadata metadata) =>
+      _freshness(metadata, DateTime.now()) == MetadataFreshness.fresh;
+
+  MetadataFreshness _freshness(Metadata metadata, DateTime now) {
+    final age = now.difference(metadata.fetchedAt);
+    return age.inDays < metadata.ttlDays
+        ? MetadataFreshness.fresh
+        : MetadataFreshness.stale;
   }
 
   /// Persistence backend (for use by `RefreshScheduler` /

@@ -246,9 +246,10 @@ class MainSetup {
       // Connect the locator-registered metadata cache to the drift
       // database. The cache instance was registered empty in
       // locatorSetup so callers can grab it without ordering pain.
-      locator.get<MetadataCache>().attachPersistence(
-            DriftMetadataPersistence(appDbHandler.value.appDatabase),
-          );
+      final persistence =
+          DriftMetadataPersistence(appDbHandler.value.appDatabase);
+      locator.get<MetadataCache>().attachPersistence(persistence);
+      locator.get<FailureTracker>().attachPersistence(persistence);
     } catch (e, s) {
       const errorMsg = "Configuration database setup failed.";
       loggerGlobal.severe("MainSetup", errorMsg, e, s);

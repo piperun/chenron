@@ -1,11 +1,152 @@
 import "package:cache_manager/cache_manager.dart";
 import "package:flutter_test/flutter_test.dart";
 
+class MutableClock {
+  DateTime now;
+
+  MutableClock(this.now);
+
+  DateTime call() => now;
+}
+
+class FakeMetadataRefreshPersistence implements MetadataRefreshPersistence {
+  final Map<String, MetadataRefreshRecord> records = {};
+
+  @override
+  Future<void> clearAllRefreshRecords() async => records.clear();
+
+  @override
+  Future<MetadataRefreshRecord?> getRefreshRecord(String url) async =>
+      records[url];
+
+  @override
+  Future<void> removeRefreshRecord(String url) async => records.remove(url);
+
+  @override
+  Future<void> setRefreshRecord(MetadataRefreshRecord record) async {
+    records[record.url] = record;
+  }
+}
+
 void main() {
   late FailureTracker tracker;
 
   setUp(() {
     tracker = FailureTracker();
+  });
+
+  group("FailureTracker persistent schedule", () {
+    const url = "https://example.com/post";
+    final initialNow = DateTime.utc(2026, 8, 9, 10);
+    late MutableClock clock;
+    late FakeMetadataRefreshPersistence persistence;
+
+    setUp(() {
+      clock = MutableClock(initialNow);
+      persistence = FakeMetadataRefreshPersistence();
+      tracker = FailureTracker(now: clock.call, persistence: persistence);
+    });
+
+    test("uses every backoff step after incrementing the failure count",
+        () async {
+      const expectedDelays = <Duration>[
+        Duration(minutes: 2),
+        Duration(minutes: 10),
+        Duration(hours: 1),
+        Duration(hours: 6),
+        Duration(hours: 24),
+        Duration(hours: 24),
+      ];
+
+      for (final delay in expectedDelays) {
+        final record = await tracker.recordFailure(
+          url,
+          kind: MetadataFailureKind.transport,
+        );
+        expect(record.nextRetryAt, initialNow.add(delay));
+      }
+    });
+
+    test("becomes retryable exactly at the persisted deadline", () async {
+      await tracker.recordFailure(
+        url,
+        kind: MetadataFailureKind.timeout,
+      );
+
+      expect(tracker.shouldRetry(url), isFalse);
+      clock.now = initialNow.add(const Duration(minutes: 2));
+      expect(tracker.shouldRetry(url), isTrue);
+    });
+
+    test("Retry-After replaces backoff only when it is longer", () async {
+      final long = await tracker.recordFailure(
+        url,
+        kind: MetadataFailureKind.rateLimited,
+        retryAfter: const Duration(hours: 2),
+      );
+      expect(long.nextRetryAt, initialNow.add(const Duration(hours: 2)));
+
+      final short = await tracker.recordFailure(
+        "https://example.com/other",
+        kind: MetadataFailureKind.rateLimited,
+        retryAfter: const Duration(minutes: 1),
+      );
+      expect(short.nextRetryAt, initialNow.add(const Duration(minutes: 2)));
+    });
+
+    test("hydrates persisted retry state after restart", () async {
+      await tracker.recordFailure(
+        url,
+        kind: MetadataFailureKind.httpStatus,
+        statusCode: 503,
+      );
+
+      final restarted = FailureTracker(
+        now: clock.call,
+        persistence: persistence,
+      );
+      await restarted.hydrate(url);
+
+      expect(restarted.shouldRetry(url), isFalse);
+      expect(restarted.recordFor(url)!.lastFailureKind,
+          MetadataFailureKind.httpStatus);
+      expect(restarted.recordFor(url)!.lastStatusCode, 503);
+      expect(restarted.failureCount(url), 1);
+    });
+
+    test("manual bypass is read-only and keeps persisted history", () async {
+      final recorded = await tracker.recordFailure(
+        url,
+        kind: MetadataFailureKind.blocked,
+      );
+
+      expect(tracker.shouldRetry(url, manual: true), isTrue);
+      expect(tracker.recordFor(url), same(recorded));
+      expect(persistence.records[url], same(recorded));
+      expect(tracker.shouldRetry(url), isFalse);
+    });
+
+    test("success clears memory and persistence", () async {
+      await tracker.recordFailure(
+        url,
+        kind: MetadataFailureKind.transport,
+      );
+
+      await tracker.recordSuccess(url);
+
+      expect(tracker.recordFor(url), isNull);
+      expect(tracker.nextRetryAt(url), isNull);
+      expect(tracker.shouldRetry(url), isTrue);
+      expect(persistence.records[url], isNull);
+    });
+
+    test("legacy ignored Future updates memory synchronously", () {
+      tracker.recordFailure(url);
+
+      expect(tracker.failureCount(url), 1);
+      expect(
+          tracker.nextRetryAt(url), initialNow.add(const Duration(minutes: 2)));
+    });
   });
 
   group("FailureTracker shouldRetry", () {
@@ -74,6 +215,25 @@ void main() {
       tracker.cleanupStale();
       // Recent failure was not purged — still blocked by back-off.
       expect(tracker.shouldRetry("https://recent.com"), isFalse);
+    });
+
+    test("keeps an aged record while Retry-After is still active", () async {
+      final clock = MutableClock(DateTime.utc(2026, 8, 9));
+      tracker = FailureTracker(now: clock.call);
+      await tracker.recordFailure(
+        "https://slow.example",
+        kind: MetadataFailureKind.rateLimited,
+        retryAfter: const Duration(days: 60),
+      );
+      clock.now = DateTime.utc(2026, 9, 9);
+
+      tracker.cleanupStale();
+
+      expect(tracker.shouldRetry("https://slow.example"), isFalse);
+      expect(
+        tracker.nextRetryAt("https://slow.example"),
+        DateTime.utc(2026, 10, 8),
+      );
     });
 
     test("safe to call with no recorded failures", () {

@@ -1,6 +1,7 @@
 library cache_manager;
 
 export 'metadata_cache.dart';
+export 'src/domain_circuit_breaker.dart';
 export 'src/failure_tracker.dart';
 export 'src/metadata.dart';
 export 'src/metadata_fetch_result.dart';

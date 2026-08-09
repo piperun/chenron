@@ -191,6 +191,34 @@ void main() {
   });
 
   group("MetadataCache freshness", () {
+    test("lookup returns stale data instead of deleting it", () async {
+      const url = "https://example.com/post";
+      fakePersistence.seed(_meta(
+        url,
+        title: "Known good title",
+        fetchedAt: DateTime.utc(2026, 7, 1),
+      ));
+
+      final result = await cache.lookup(
+        url,
+        now: DateTime.utc(2026, 8, 1),
+      );
+
+      expect(result!.data.title, "Known good title");
+      expect(result.freshness, MetadataFreshness.stale);
+      expect(fakePersistence.calls, isNot(contains("remove:$url")));
+
+      fakePersistence.calls.clear();
+      final promoted = await cache.lookup(
+        url,
+        now: DateTime.utc(2026, 8, 1),
+      );
+      expect(promoted!.data.title, "Known good title");
+      expect(
+        fakePersistence.calls.where((call) => call.startsWith("get:")),
+        isEmpty,
+      );
+    });
     test("returns data fetched less than 7 days ago", () async {
       await cache.set(_meta("https://fresh.com", title: "Fresh"));
 

@@ -24,6 +24,10 @@ void main() {
   });
 
   tearDown(() async {
+    await database.customStatement(
+      "DROP TRIGGER IF EXISTS prevent_refresh_clear",
+    );
+    await database.delete(database.webMetadataRefreshEntries).go();
     await database.delete(database.webMetadataEntries).go();
     await database.close();
   });
@@ -35,8 +39,12 @@ void main() {
     String? title,
     String? description,
     String? imageUrl,
+    String? resolvedUrl,
     DateTime? fetchedAt,
     int ttlDays = 7,
+    String? etag,
+    String? lastModified,
+    String? contentHash,
     int consecutiveUnchanged = 0,
   }) {
     return Metadata(
@@ -44,8 +52,12 @@ void main() {
       title: title,
       description: description,
       imageUrl: imageUrl,
+      resolvedUrl: resolvedUrl,
       fetchedAt: fetchedAt ?? DateTime.now(),
       ttlDays: ttlDays,
+      etag: etag,
+      lastModified: lastModified,
+      contentHash: contentHash,
       consecutiveUnchanged: consecutiveUnchanged,
     );
   }
@@ -76,8 +88,8 @@ void main() {
 
       test("fetchedAt round-trips", () async {
         final when = DateTime.now();
-        await persistence.set(build("https://example.com",
-            title: "T", fetchedAt: when));
+        await persistence
+            .set(build("https://example.com", title: "T", fetchedAt: when));
 
         final result = await persistence.get("https://example.com");
         expect(result, isNotNull);
@@ -111,6 +123,36 @@ void main() {
         final result = await persistence.get("https://x.com");
         expect(result!.consecutiveUnchanged, 4);
         expect(result.ttlDays, 21);
+      });
+      test("round-trips every snapshot validator field", () async {
+        final fetchedAt = DateTime.utc(2026, 8, 9, 10, 30);
+        await persistence.set(build(
+          "https://example.com/original",
+          title: "Title",
+          description: "Description",
+          imageUrl: "https://cdn.example.com/image.png",
+          resolvedUrl: "https://example.com/resolved",
+          fetchedAt: fetchedAt,
+          ttlDays: 21,
+          etag: '"validator"',
+          lastModified: "Sun, 09 Aug 2026 10:00:00 GMT",
+          contentHash: "sha256:abc123",
+          consecutiveUnchanged: 4,
+        ));
+
+        final result = await persistence.get("https://example.com/original");
+
+        expect(result!.url, "https://example.com/original");
+        expect(result.resolvedUrl, "https://example.com/resolved");
+        expect(result.title, "Title");
+        expect(result.description, "Description");
+        expect(result.imageUrl, "https://cdn.example.com/image.png");
+        expect(result.fetchedAt, fetchedAt);
+        expect(result.ttlDays, 21);
+        expect(result.etag, '"validator"');
+        expect(result.lastModified, "Sun, 09 Aug 2026 10:00:00 GMT");
+        expect(result.contentHash, "sha256:abc123");
+        expect(result.consecutiveUnchanged, 4);
       });
     });
 
@@ -226,6 +268,107 @@ void main() {
       test("returns empty when nothing is expired", () async {
         await persistence.set(build("https://fresh.com", title: "fresh"));
         expect(await persistence.getExpiredEntries(), isEmpty);
+      });
+    });
+
+    group("refresh persistence", () {
+      test("round-trips every refresh record field", () async {
+        final record = MetadataRefreshRecord(
+          url: "https://example.com/post",
+          lastAttemptAt: DateTime.utc(2026, 8, 9, 10),
+          lastFailureKind: MetadataFailureKind.challenge,
+          lastStatusCode: 403,
+          consecutiveFailures: 4,
+          nextRetryAt: DateTime.utc(2026, 8, 9, 16),
+        );
+
+        await persistence.setRefreshRecord(record);
+        final result = await persistence.getRefreshRecord(record.url);
+
+        expect(result!.url, record.url);
+        expect(result.lastAttemptAt, record.lastAttemptAt);
+        expect(result.lastFailureKind, MetadataFailureKind.challenge);
+        expect(result.lastStatusCode, 403);
+        expect(result.consecutiveFailures, 4);
+        expect(result.nextRetryAt, record.nextRetryAt);
+      });
+
+      test("round-trips every failure kind by enum name", () async {
+        for (final kind in MetadataFailureKind.values) {
+          final url = "https://example.com/${kind.name}";
+          await persistence.setRefreshRecord(MetadataRefreshRecord(
+            url: url,
+            lastAttemptAt: DateTime.utc(2026, 8, 9),
+            lastFailureKind: kind,
+            consecutiveFailures: 1,
+          ));
+
+          expect(
+            (await persistence.getRefreshRecord(url))!.lastFailureKind,
+            kind,
+          );
+        }
+      });
+
+      test("remove and refresh-only clear leave snapshots intact", () async {
+        const firstUrl = "https://example.com/first";
+        const secondUrl = "https://example.com/second";
+        await persistence.set(build(firstUrl, title: "First"));
+        for (final url in const [firstUrl, secondUrl]) {
+          await persistence.setRefreshRecord(MetadataRefreshRecord(
+            url: url,
+            lastAttemptAt: DateTime.utc(2026, 8, 9),
+            lastFailureKind: MetadataFailureKind.transport,
+            consecutiveFailures: 1,
+          ));
+        }
+
+        await persistence.removeRefreshRecord(firstUrl);
+        expect(await persistence.getRefreshRecord(firstUrl), isNull);
+        expect(await persistence.getRefreshRecord(secondUrl), isNotNull);
+
+        await persistence.clearAllRefreshRecords();
+        expect(await persistence.getRefreshRecord(secondUrl), isNull);
+        expect(await persistence.get(firstUrl), isNotNull);
+      });
+    });
+
+    group("combined clearAll", () {
+      test("clears snapshots and refresh records", () async {
+        const url = "https://example.com/post";
+        await persistence.set(build(url, title: "Snapshot"));
+        await persistence.setRefreshRecord(MetadataRefreshRecord(
+          url: url,
+          lastAttemptAt: DateTime.utc(2026, 8, 9),
+          lastFailureKind: MetadataFailureKind.timeout,
+          consecutiveFailures: 2,
+        ));
+
+        await persistence.clearAll();
+
+        expect(await persistence.get(url), isNull);
+        expect(await persistence.getRefreshRecord(url), isNull);
+      });
+
+      test("rolls back both deletes when either table cannot clear", () async {
+        const url = "https://example.com/post";
+        await persistence.set(build(url, title: "Snapshot"));
+        await persistence.setRefreshRecord(MetadataRefreshRecord(
+          url: url,
+          lastAttemptAt: DateTime.utc(2026, 8, 9),
+          lastFailureKind: MetadataFailureKind.blocked,
+          consecutiveFailures: 1,
+        ));
+        await database.customStatement(
+          "CREATE TRIGGER prevent_refresh_clear "
+          "BEFORE DELETE ON web_metadata_refresh_entries "
+          "BEGIN SELECT RAISE(ABORT, 'blocked'); END",
+        );
+
+        await expectLater(persistence.clearAll(), throwsA(anything));
+
+        expect((await persistence.get(url))!.title, "Snapshot");
+        expect(await persistence.getRefreshRecord(url), isNotNull);
       });
     });
   });
