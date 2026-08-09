@@ -50,6 +50,7 @@ class MetadataService {
   final MetadataFetcherFn _fetcher;
   final OnFetchLogged? _onFetchLogged;
   final DateTime Function() _now;
+  final Future<void> Function(Duration) _delay;
   final Random _ttlRandom;
   final int _maxConcurrent;
   final Duration _domainDelay;
@@ -67,7 +68,7 @@ class MetadataService {
   final int _signalCapacity;
 
   final Map<String, Future<MetadataRefreshResult>> _inFlight = {};
-  final Map<String, DateTime> _lastDomainFetch = {};
+  final Map<String, DateTime> _reservedDomainStart = {};
   int _activeFetches = 0;
   final Queue<Completer<void>> _slotQueue = Queue();
 
@@ -81,6 +82,7 @@ class MetadataService {
     required MetadataFetcherFn fetcher,
     OnFetchLogged? onFetchLogged,
     DateTime Function()? now,
+    Future<void> Function(Duration)? delay,
     Random? ttlRandom,
     int maxConcurrent = 3,
     Duration domainDelay = const Duration(milliseconds: 500),
@@ -91,6 +93,7 @@ class MetadataService {
         _fetcher = fetcher,
         _onFetchLogged = onFetchLogged,
         _now = now ?? DateTime.now,
+        _delay = delay ?? Future<void>.delayed,
         _ttlRandom = ttlRandom ?? Random(),
         _maxConcurrent = maxConcurrent,
         _domainDelay = domainDelay,
@@ -239,7 +242,7 @@ class MetadataService {
     if (existing != null) return existing;
 
     late final Future<MetadataRefreshResult> future;
-    future = _doFetchInner(url, previous).whenComplete(() {
+    future = _doFetchInner(url, previous, lookup?.freshness).whenComplete(() {
       if (identical(_inFlight[url], future)) {
         _inFlight.remove(url);
       }
@@ -285,12 +288,17 @@ class MetadataService {
   Future<MetadataRefreshResult> _doFetchInner(
     String url,
     Metadata? previous,
+    MetadataFreshness? previousFreshness,
   ) async {
     await _acquireSlot();
     try {
-      if (_disposed) return _disposedResult(url, previous);
+      if (_disposed) {
+        return _disposedResult(url, previous, previousFreshness);
+      }
       await _throttleDomain(url);
-      if (_disposed) return _disposedResult(url, previous);
+      if (_disposed) {
+        return _disposedResult(url, previous, previousFreshness);
+      }
 
       final stopwatch = Stopwatch()..start();
       MetadataFetchResult fetched;
@@ -303,18 +311,22 @@ class MetadataService {
           elapsed: stopwatch.elapsed,
         );
       }
-      return await _reduce(url, previous, fetched);
+      return await _reduce(url, previous, previousFreshness, fetched);
     } finally {
       _releaseSlot();
     }
   }
 
-  MetadataRefreshResult _disposedResult(String url, Metadata? previous) {
+  MetadataRefreshResult _disposedResult(
+    String url,
+    Metadata? previous,
+    MetadataFreshness? previousFreshness,
+  ) {
     final state = previous == null
         ? const MetadataState.unavailable()
         : MetadataState.available(
             data: previous,
-            freshness: MetadataFreshness.stale,
+            freshness: previousFreshness ?? MetadataFreshness.stale,
           );
     return MetadataRefreshResult(
       url: url,
@@ -326,6 +338,7 @@ class MetadataService {
   Future<MetadataRefreshResult> _reduce(
     String url,
     Metadata? previous,
+    MetadataFreshness? previousFreshness,
     MetadataFetchResult fetched,
   ) async {
     final result = switch (fetched) {
@@ -339,6 +352,7 @@ class MetadataService {
           statusCode: fetched.statusCode,
           retryAfter: fetched.retryAfter,
           outcome: MetadataRefreshOutcome.rejected,
+          previousFreshness: previousFreshness,
         ),
       MetadataFetchFailed() => await _reduceFailure(
           url,
@@ -347,6 +361,7 @@ class MetadataService {
           reason: fetched.reason,
           statusCode: fetched.statusCode,
           outcome: MetadataRefreshOutcome.failed,
+          previousFreshness: previousFreshness,
         ),
     };
     _logFetch(url, result);
@@ -361,11 +376,7 @@ class MetadataService {
     final candidate = fetched.candidate;
     final incomingTitle = _normalized(candidate.title);
     final previousTitle = previous?.title;
-    final title = incomingTitle != null &&
-            previousTitle != null &&
-            previousTitle.trim().isNotEmpty &&
-            !isDefaultTitle(previousTitle.trim(), url) &&
-            isDefaultTitle(incomingTitle, url)
+    final title = incomingTitle != null && isDefaultTitle(incomingTitle, url)
         ? previousTitle
         : _keepIncomingOrPrevious(candidate.title, previousTitle);
     final description =
@@ -430,6 +441,7 @@ class MetadataService {
         kind: MetadataFailureKind.malformed,
         reason: "304 response requires a previous metadata snapshot",
         outcome: MetadataRefreshOutcome.failed,
+        previousFreshness: null,
       );
     }
 
@@ -479,6 +491,7 @@ class MetadataService {
     required MetadataRefreshOutcome outcome,
     int? statusCode,
     Duration? retryAfter,
+    required MetadataFreshness? previousFreshness,
   }) async {
     final record = await _failures.recordFailure(
       url,
@@ -505,7 +518,7 @@ class MetadataService {
           )
         : MetadataState.available(
             data: previous,
-            freshness: MetadataFreshness.stale,
+            freshness: previousFreshness ?? MetadataFreshness.stale,
             refreshPhase: MetadataRefreshPhase.failed,
             lastFailure: failure,
           );
@@ -567,23 +580,27 @@ class MetadataService {
     if (domain.isEmpty) return;
 
     _pruneDomainThrottle();
+    final now = _now();
+    final previousReservation = _reservedDomainStart[domain];
+    final nextAfterPrevious = previousReservation?.add(_domainDelay);
+    final reservedStart =
+        nextAfterPrevious != null && nextAfterPrevious.isAfter(now)
+            ? nextAfterPrevious
+            : now;
+    _reservedDomainStart[domain] = reservedStart;
 
-    final last = _lastDomainFetch[domain];
-    if (last != null) {
-      final elapsed = _now().difference(last);
-      if (elapsed < _domainDelay) {
-        await Future<void>.delayed(_domainDelay - elapsed);
-      }
+    final wait = reservedStart.difference(now);
+    if (wait > Duration.zero) {
+      await _delay(wait);
     }
-    _lastDomainFetch[domain] = _now();
   }
 
   /// Drop throttle entries older than the delay window — they no longer
   /// affect throttling decisions.
   void _pruneDomainThrottle() {
-    if (_lastDomainFetch.isEmpty) return;
+    if (_reservedDomainStart.isEmpty) return;
     final cutoff = _now().subtract(_domainDelay);
-    _lastDomainFetch.removeWhere((_, when) => !when.isAfter(cutoff));
+    _reservedDomainStart.removeWhere((_, when) => !when.isAfter(cutoff));
   }
 
   // ---------------------------------------------------------------------------
@@ -647,7 +664,7 @@ class MetadataService {
     }
     _signals.clear();
     _inFlight.clear();
-    _lastDomainFetch.clear();
+    _reservedDomainStart.clear();
 
     // Wake anything still parked on a slot so awaiters don't hang.
     while (_slotQueue.isNotEmpty) {
@@ -667,5 +684,5 @@ class MetadataService {
   int get signalCacheCapacity => _signalCapacity;
 
   /// Number of domains currently tracked for throttling.
-  int get domainThrottleMapSize => _lastDomainFetch.length;
+  int get domainThrottleMapSize => _reservedDomainStart.length;
 }

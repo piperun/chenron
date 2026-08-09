@@ -30,41 +30,33 @@ int computeAdaptiveTtl({
 // 2. isDefaultTitle
 // ---------------------------------------------------------------------------
 
-/// Returns `true` when [title] appears to be the site's default homepage
-/// title (i.e. it just repeats the domain name rather than describing
-/// specific content).
+/// Returns `true` only when [title] is the site's domain-only placeholder.
 ///
-/// Normalizes both strings to lowercase, strips `www.` from the host, and
-/// extracts the domain core (first segment before the TLD). Returns `false`
-/// for null/empty titles, titles shorter than 3 characters, or malformed
-/// URLs.
+/// Title and host label are normalized to lowercase ASCII letters and digits,
+/// making `Media` equivalent to `media` while rejecting meaningful titles
+/// that merely contain the brand, such as `Media / sampletag`.
 bool isDefaultTitle(String? title, String url) {
-  if (title == null || title.isEmpty || title.length < 3) return false;
+  final normalizedTitle = _normalizeSiteLabel(title);
+  if (normalizedTitle == null || normalizedTitle.length < 3) return false;
 
   final uri = Uri.tryParse(url);
   if (uri == null || !uri.hasScheme || uri.host.isEmpty) return false;
-
-  // Strip www. and lowercase.
   final host = uri.host.toLowerCase().replaceFirst(RegExp(r"^www\."), "");
-  final normalizedTitle = title.toLowerCase();
-
-  // Extract domain core: first segment of the host, excluding TLD.
-  // e.g. "media.example" → "media", "docs.github.io" → "docs"
   final parts = host.split(".");
   if (parts.length < 2) return false;
+  final normalizedHost = _normalizeSiteLabel(parts.first);
+  if (normalizedHost == null || normalizedHost.length < 3) return false;
 
-  // The domain core is everything except the last part (TLD).
-  // For two-part domains like "example.com", core = "example".
-  // For three-part like "docs.github.io", core = "docs.github".
-  // We check the first meaningful segment individually.
-  final domainCore = parts.first;
-  if (domainCore.length < 3) return false;
-
-  // Check either direction: domain in title, or title in domain core.
-  return normalizedTitle.contains(domainCore) ||
-      domainCore.contains(normalizedTitle);
+  return normalizedTitle == normalizedHost;
 }
 
+String? _normalizeSiteLabel(String? value) {
+  final normalized = value?.toLowerCase().replaceAll(
+        RegExp("[^a-z0-9]"),
+        "",
+      );
+  return normalized == null || normalized.isEmpty ? null : normalized;
+}
 // ---------------------------------------------------------------------------
 // 3. TtlTier enum + classifyUrlTtlTier
 // ---------------------------------------------------------------------------

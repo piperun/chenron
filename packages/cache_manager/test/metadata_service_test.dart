@@ -158,6 +158,7 @@ void main() {
     int maxConcurrent = 3,
     int signalCapacity = MetadataService.defaultSignalCapacity,
     Duration domainDelay = Duration.zero,
+    Future<void> Function(Duration)? delay,
     OnFetchLogged? onFetchLogged,
   }) =>
       MetadataService(
@@ -170,6 +171,7 @@ void main() {
         ttlRandom: _NoJitterRandom(),
         maxConcurrent: maxConcurrent,
         domainDelay: domainDelay,
+        delay: delay,
         signalCapacity: signalCapacity,
       );
 
@@ -367,6 +369,37 @@ void main() {
     expect(data.ttlDays, 14);
   });
 
+  test("Media placeholder does not replace a meaningful Media title",
+      () async {
+    const mediaUrl =
+        "https://media.example/index.php?page=post&s=list&tags=sampletag";
+    final old = staleMetadata(
+      metadataUrl: mediaUrl,
+      title: "Media / sampletag",
+    );
+    persistence.seed(old);
+    fetcher.respond(mediaUrl, _modified(mediaUrl, title: "Media"));
+
+    final result = await buildService().forceFetch(mediaUrl);
+
+    expect(result.outcome, MetadataRefreshOutcome.unchanged);
+    expect(
+      (result.state as MetadataStateAvailable).data.title,
+      "Media / sampletag",
+    );
+  });
+
+  test("new domain-only title is not persisted without a previous title",
+      () async {
+    const mediaUrl = "https://media.example/post/1";
+    fetcher.respond(mediaUrl, _modified(mediaUrl, title: "Media"));
+
+    final result = await buildService().forceFetch(mediaUrl);
+
+    final data = (result.state as MetadataStateAvailable).data;
+    expect(data.title, isNull);
+    expect(data.ttlDays, TtlTier.medium.baseDays);
+  });
   test("saved requested URL remains cache key after redirect", () async {
     const redirected = "https://www.example.com/canonical/1";
     fetcher.respond(url, _modified(redirected, title: "Article"));
@@ -400,6 +433,39 @@ void main() {
     await forced;
   });
 
+  test("rejected force refresh preserves fresh snapshot freshness", () async {
+    final fresh = staleMetadata().copyWith(fetchedAt: now);
+    persistence.seed(fresh);
+    fetcher.respond(
+      url,
+      const MetadataRejected(
+        kind: MetadataFailureKind.blocked,
+        reason: "blocked",
+        statusCode: 403,
+        elapsed: Duration(milliseconds: 20),
+      ),
+    );
+
+    final result = await buildService().forceFetch(url);
+
+    final state = result.state as MetadataStateAvailable;
+    expect(state.data, fresh);
+    expect(state.freshness, MetadataFreshness.fresh);
+    expect(state.refreshPhase, MetadataRefreshPhase.failed);
+  });
+
+  test("thrown force refresh preserves fresh snapshot freshness", () async {
+    final fresh = staleMetadata().copyWith(fetchedAt: now);
+    persistence.seed(fresh);
+    fetcher.handlers[url] = (_) async => throw const SocketExceptionForTest();
+
+    final result = await buildService().forceFetch(url);
+
+    final state = result.state as MetadataStateAvailable;
+    expect(state.data, fresh);
+    expect(state.freshness, MetadataFreshness.fresh);
+    expect(state.lastFailure?.kind, MetadataFailureKind.transport);
+  });
   test("force refresh bypasses URL and domain waiting once without reset",
       () async {
     final old = staleMetadata();
@@ -571,6 +637,105 @@ void main() {
     now = now.add(const Duration(minutes: 2));
     service.cleanupStale();
     expect(service.domainThrottleMapSize, 0);
+  });
+  test("concurrent same-host starts reserve every pacing interval", () async {
+    final waits = <Duration>[];
+    final waiters = <Completer<void>>[];
+    Future<void> controlledDelay(Duration duration) {
+      waits.add(duration);
+      final completer = Completer<void>();
+      waiters.add(completer);
+      return completer.future;
+    }
+
+    final urls = [
+      "https://paced.example/1",
+      "https://paced.example/2",
+      "https://paced.example/3",
+    ];
+    for (final pacedUrl in urls) {
+      fetcher.respond(pacedUrl, _modified(pacedUrl, title: pacedUrl));
+    }
+    final service = buildService(
+      domainDelay: const Duration(milliseconds: 10),
+      delay: controlledDelay,
+    );
+
+    for (final pacedUrl in urls) {
+      service.watch(pacedUrl);
+    }
+    await pumpEventQueue();
+
+    expect(fetcher.calls.map((call) => call.$1), [urls.first]);
+    expect(waits, const [
+      Duration(milliseconds: 10),
+      Duration(milliseconds: 20),
+    ]);
+
+    waiters.first.complete();
+    await pumpEventQueue();
+    expect(fetcher.calls.map((call) => call.$1), urls.take(2));
+
+    waiters.last.complete();
+    await pumpEventQueue();
+    expect(fetcher.calls.map((call) => call.$1), urls);
+  });
+
+  test("disposed pacing waiter cannot resurrect host state or fetch", () async {
+    final waiter = Completer<void>();
+    final urls = ["https://paced.example/1", "https://paced.example/2"];
+    for (final pacedUrl in urls) {
+      fetcher.respond(pacedUrl, _modified(pacedUrl, title: pacedUrl));
+    }
+    final service = buildService(
+      domainDelay: const Duration(milliseconds: 10),
+      delay: (_) => waiter.future,
+    );
+    for (final pacedUrl in urls) {
+      service.watch(pacedUrl);
+    }
+    await pumpEventQueue();
+
+    service.dispose();
+    waiter.complete();
+    await pumpEventQueue();
+
+    expect(fetcher.calls.map((call) => call.$1), [urls.first]);
+    expect(service.domainThrottleMapSize, 0);
+  });
+
+  test("refreshStaleEntries processes expired entries only", () async {
+    const staleUrl = "https://stale.example/post";
+    const freshUrl = "https://fresh.example/post";
+    persistence.seed(staleMetadata(metadataUrl: staleUrl));
+    persistence.seed(
+      staleMetadata(metadataUrl: freshUrl).copyWith(fetchedAt: now),
+    );
+    fetcher.respond(staleUrl, _modified(staleUrl, title: "Refreshed"));
+
+    final count = await buildService().refreshStaleEntries();
+
+    expect(count, 1);
+    expect(fetcher.calls.map((call) => call.$1), [staleUrl]);
+  });
+
+  test("concurrent refreshStaleEntries calls collapse without duplicates",
+      () async {
+    const staleUrl = "https://stale.example/post";
+    persistence.seed(staleMetadata(metadataUrl: staleUrl));
+    final completer = Completer<MetadataFetchResult>();
+    fetcher.handlers[staleUrl] = (_) => completer.future;
+    final service = buildService();
+
+    final first = service.refreshStaleEntries();
+    final second = service.refreshStaleEntries();
+    await pumpEventQueue();
+    expect(await second, 0);
+    expect(fetcher.calls.map((call) => call.$1), [staleUrl]);
+
+    completer.complete(_modified(staleUrl, title: "Refreshed"));
+    expect(await first, 1);
+    expect(fetcher.calls.map((call) => call.$1), [staleUrl]);
   });
   test("signals remain bounded and dispose is idempotent", () async {
     final service = buildService(signalCapacity: 2);

@@ -37,14 +37,22 @@ void main() {
   });
 
   group("isDefaultTitle", () {
-    test("detects domain name in title (media / media.example)", () {
+    test("matches the site label despite spaces and punctuation", () {
       expect(isDefaultTitle("media", "https://media.example/page"), isTrue);
+      expect(isDefaultTitle("Media", "https://media.example/page"), isTrue);
+      expect(isDefaultTitle("Me-dia", "https://media.example/page"), isTrue);
     });
 
-    test("detects title substring in domain (both ways)", () {
+    test("requires strict site-label equivalence", () {
       expect(isDefaultTitle("GitHub", "https://github.com/user"), isTrue);
-      expect(isDefaultTitle("Welcome to My GitHub Page", "https://github.com"),
-          isTrue);
+      expect(
+        isDefaultTitle("Welcome to My GitHub Page", "https://github.com"),
+        isFalse,
+      );
+      expect(
+        isDefaultTitle("Media / sampletag", "https://media.example"),
+        isFalse,
+      );
     });
 
     test("case insensitive comparison", () {
@@ -53,8 +61,8 @@ void main() {
     });
 
     test("rejects custom titles that don't match domain", () {
-      expect(isDefaultTitle("How to bake a cake", "https://recipes.com"),
-          isFalse);
+      expect(
+          isDefaultTitle("How to bake a cake", "https://recipes.com"), isFalse);
     });
 
     test("rejects null title", () {
