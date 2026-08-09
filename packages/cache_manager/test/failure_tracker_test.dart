@@ -1,3 +1,5 @@
+import "dart:async";
+
 import "package:cache_manager/cache_manager.dart";
 import "package:flutter_test/flutter_test.dart";
 
@@ -24,6 +26,34 @@ class FakeMetadataRefreshPersistence implements MetadataRefreshPersistence {
 
   @override
   Future<void> setRefreshRecord(MetadataRefreshRecord record) async {
+    records[record.url] = record;
+  }
+}
+
+class ControlledMetadataRefreshPersistence
+    implements MetadataRefreshPersistence {
+  final Map<String, MetadataRefreshRecord> records = {};
+  final Map<String, Completer<void>> setGates = {};
+  Completer<MetadataRefreshRecord?>? getGate;
+  int getCalls = 0;
+
+  @override
+  Future<void> clearAllRefreshRecords() async => records.clear();
+
+  @override
+  Future<MetadataRefreshRecord?> getRefreshRecord(String url) async {
+    getCalls++;
+    final gate = getGate;
+    return gate == null ? records[url] : gate.future;
+  }
+
+  @override
+  Future<void> removeRefreshRecord(String url) async => records.remove(url);
+
+  @override
+  Future<void> setRefreshRecord(MetadataRefreshRecord record) async {
+    final gate = setGates[record.url];
+    if (gate != null) await gate.future;
     records[record.url] = record;
   }
 }
@@ -114,6 +144,102 @@ void main() {
       expect(restarted.failureCount(url), 1);
     });
 
+    test("coalesces concurrent hydration for the same URL", () async {
+      final controlled = ControlledMetadataRefreshPersistence();
+      controlled.getGate = Completer<MetadataRefreshRecord?>();
+      tracker = FailureTracker(now: clock.call, persistence: controlled);
+
+      final first = tracker.hydrate(url);
+      final second = tracker.hydrate(url);
+      controlled.getGate!.complete(null);
+      await Future.wait([first, second]);
+
+      expect(controlled.getCalls, 1);
+    });
+
+    test("delayed hydration cannot overwrite a newer failure", () async {
+      final controlled = ControlledMetadataRefreshPersistence();
+      controlled.getGate = Completer<MetadataRefreshRecord?>();
+      tracker = FailureTracker(now: clock.call, persistence: controlled);
+      final old = MetadataRefreshRecord(
+        url: url,
+        lastAttemptAt: initialNow.subtract(const Duration(days: 1)),
+        lastFailureKind: MetadataFailureKind.timeout,
+        consecutiveFailures: 4,
+        nextRetryAt: initialNow.subtract(const Duration(hours: 1)),
+      );
+
+      final hydration = tracker.hydrate(url);
+      final failure = tracker.recordFailure(
+        url,
+        kind: MetadataFailureKind.transport,
+      );
+      controlled.getGate!.complete(old);
+      await Future.wait([hydration, failure]);
+
+      expect(tracker.recordFor(url)!.lastFailureKind,
+          MetadataFailureKind.transport);
+      expect(tracker.recordFor(url)!.consecutiveFailures, 1);
+    });
+
+    test("delayed empty hydration cannot remove a newer failure", () async {
+      final controlled = ControlledMetadataRefreshPersistence();
+      controlled.getGate = Completer<MetadataRefreshRecord?>();
+      tracker = FailureTracker(now: clock.call, persistence: controlled);
+
+      final hydration = tracker.hydrate(url);
+      final failure = tracker.recordFailure(
+        url,
+        kind: MetadataFailureKind.httpStatus,
+        statusCode: 503,
+      );
+      controlled.getGate!.complete(null);
+      await Future.wait([hydration, failure]);
+
+      expect(tracker.recordFor(url)!.lastStatusCode, 503);
+      expect(tracker.failureCount(url), 1);
+    });
+
+    test("success deletion waits for a slow failure upsert", () async {
+      final controlled = ControlledMetadataRefreshPersistence();
+      controlled.setGates[url] = Completer<void>();
+      tracker = FailureTracker(now: clock.call, persistence: controlled);
+
+      final failure = tracker.recordFailure(
+        url,
+        kind: MetadataFailureKind.transport,
+      );
+      final success = tracker.recordSuccess(url);
+      expect(tracker.recordFor(url), isNull);
+
+      controlled.setGates[url]!.complete();
+      await Future.wait([failure, success]);
+
+      expect(controlled.records[url], isNull);
+    });
+
+    test("explicit hydration remains usable after a completed mutation",
+        () async {
+      final persistence = FakeMetadataRefreshPersistence();
+      tracker = FailureTracker(now: clock.call, persistence: persistence);
+      await tracker.recordFailure(
+        url,
+        kind: MetadataFailureKind.transport,
+      );
+      await tracker.recordSuccess(url);
+      final restored = MetadataRefreshRecord(
+        url: url,
+        lastAttemptAt: initialNow.add(const Duration(hours: 1)),
+        lastFailureKind: MetadataFailureKind.timeout,
+        consecutiveFailures: 2,
+        nextRetryAt: initialNow.add(const Duration(hours: 2)),
+      );
+      await persistence.setRefreshRecord(restored);
+
+      await tracker.hydrate(url);
+
+      expect(tracker.recordFor(url), restored);
+    });
     test("manual bypass is read-only and keeps persisted history", () async {
       final recorded = await tracker.recordFailure(
         url,

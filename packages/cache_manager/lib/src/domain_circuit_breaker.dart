@@ -61,7 +61,9 @@ class DomainCircuitBreaker {
     }
 
     DateTime? deadline;
-    if (opensImmediately || count >= _transientThreshold) {
+    if (opensImmediately ||
+        (previous?.halfOpenProbeClaimed ?? false) ||
+        count >= _transientThreshold) {
       final scheduleIndex = (count - 1).clamp(
         0,
         kFailureBackoffMinutes.length - 1,

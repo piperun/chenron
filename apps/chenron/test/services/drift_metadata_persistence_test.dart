@@ -27,6 +27,9 @@ void main() {
     await database.customStatement(
       "DROP TRIGGER IF EXISTS prevent_refresh_clear",
     );
+    await database.customStatement(
+      "DROP TRIGGER IF EXISTS prevent_snapshot_clear",
+    );
     await database.delete(database.webMetadataRefreshEntries).go();
     await database.delete(database.webMetadataEntries).go();
     await database.close();
@@ -348,6 +351,30 @@ void main() {
 
         expect(await persistence.get(url), isNull);
         expect(await persistence.getRefreshRecord(url), isNull);
+      });
+
+      test("cache and tracker clear preserve atomic rollback", () async {
+        const url = "https://example.com/atomic";
+        final cache = MetadataCache(persistence: persistence);
+        final failures = FailureTracker(persistence: persistence);
+        await cache.set(build(url, title: "Snapshot"));
+        await failures.recordFailure(
+          url,
+          kind: MetadataFailureKind.transport,
+        );
+        await database.customStatement(
+          "CREATE TRIGGER prevent_snapshot_clear "
+          "BEFORE DELETE ON web_metadata_entries "
+          "BEGIN SELECT RAISE(ABORT, 'blocked'); END",
+        );
+
+        await cache.clearAll();
+        // This regression exercises the compatibility adapter until Task 6.
+        // ignore: deprecated_member_use
+        failures.clearAll();
+
+        expect((await persistence.get(url))!.title, "Snapshot");
+        expect(await persistence.getRefreshRecord(url), isNotNull);
       });
 
       test("rolls back both deletes when either table cannot clear", () async {

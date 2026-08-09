@@ -27,12 +27,13 @@ class CacheService {
     await _clearImageCacheManager();
   }
 
-  /// Clear the persistent metadata table + the in-memory LRU, then wipe
-  /// the failure tracker so previously-blocked URLs aren't stuck in
-  /// back-off after a manual purge.
+  /// Wipe the failure tracker, persistent metadata table, and in-memory LRU
+  /// so previously-blocked URLs aren't stuck in back-off after a manual purge.
   Future<void> clearMetadataCache() async {
-    await locator.get<MetadataCache>().clearAll();
+    // Transitional adapter until Task 6 owns coordinated clearing.
+    // ignore: deprecated_member_use
     locator.get<FailureTracker>().clearAll();
+    await locator.get<MetadataCache>().clearAll();
   }
 
   /// Total bytes used by the image cache directory.

@@ -52,8 +52,10 @@ class _DataSettingsState extends State<DataSettings> {
     if (!confirmed || !context.mounted) return;
 
     try {
-      await locator.get<MetadataCache>().clearAll();
+      // Transitional adapter until Task 6 owns coordinated clearing.
+      // ignore: deprecated_member_use
       locator.get<FailureTracker>().clearAll();
+      await locator.get<MetadataCache>().clearAll();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

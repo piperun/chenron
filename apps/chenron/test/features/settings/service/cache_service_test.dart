@@ -1,3 +1,7 @@
+// Transitional Task 6 adapter behavior is exercised throughout this file.
+// ignore_for_file: deprecated_member_use
+
+import "dart:async";
 import "dart:io";
 
 import "package:cache_manager/cache_manager.dart";
@@ -33,6 +37,71 @@ class FakeMetadataPersistence implements MetadataPersistence {
     return _store.values
         .where((m) => now.difference(m.fetchedAt).inDays >= m.ttlDays)
         .toList();
+  }
+}
+
+/// Models Drift's serialized executor while allowing the first retry write to
+/// stay active long enough to queue a transactional clear behind it.
+class OrderedMetadataPersistence
+    implements MetadataPersistence, MetadataRefreshPersistence {
+  final Map<String, Metadata> metadata = {};
+  final Map<String, MetadataRefreshRecord> refreshRecords = {};
+  final Completer<void> firstRefreshWriteStarted = Completer<void>();
+  final Completer<void> releaseFirstRefreshWrite = Completer<void>();
+  Future<void> _tail = Future<void>.value();
+  int _refreshWrites = 0;
+
+  Future<void> _serialize(Future<void> Function() operation) {
+    final next = _tail.then((_) => operation());
+    _tail = next;
+    return next;
+  }
+
+  @override
+  Future<void> clearAll() => _serialize(() async {
+        metadata.clear();
+        refreshRecords.clear();
+      });
+
+  @override
+  Future<void> clearAllRefreshRecords() =>
+      _serialize(() async => refreshRecords.clear());
+
+  @override
+  Future<int> count() async => metadata.length;
+
+  @override
+  Future<Metadata?> get(String url) async => metadata[url];
+
+  @override
+  Future<List<Metadata>> getExpiredEntries() async => const [];
+
+  @override
+  Future<MetadataRefreshRecord?> getRefreshRecord(String url) async =>
+      refreshRecords[url];
+
+  @override
+  Future<void> remove(String url) =>
+      _serialize(() async => metadata.remove(url));
+
+  @override
+  Future<void> removeRefreshRecord(String url) =>
+      _serialize(() async => refreshRecords.remove(url));
+
+  @override
+  Future<void> set(Metadata value) =>
+      _serialize(() async => metadata[value.url] = value);
+
+  @override
+  Future<void> setRefreshRecord(MetadataRefreshRecord record) {
+    final writeNumber = ++_refreshWrites;
+    return _serialize(() async {
+      if (writeNumber == 1) {
+        firstRefreshWriteStarted.complete();
+        await releaseFirstRefreshWrite.future;
+      }
+      refreshRecords[record.url] = record;
+    });
   }
 }
 
@@ -118,7 +187,7 @@ void main() {
 
     test("calls ImageCacheManager.clearAll", () async {
       final service = createService();
-      await seedFiles({"img.jpg": [1, 2, 3]});
+            await seedFiles({"img.jpg": [1, 2, 3]});
 
       await service.clearImageCache();
 
@@ -158,6 +227,29 @@ void main() {
       await service.clearMetadataCache();
 
       expect(tracker.failureCount("https://err.com"), 0);
+    });
+
+    test("invalidates queued retry writes before the atomic clear", () async {
+      const url = "https://err.com/queued";
+      final persistence = OrderedMetadataPersistence();
+      GetIt.I.unregister<MetadataCache>();
+      GetIt.I.unregister<FailureTracker>();
+      GetIt.I.registerSingleton<MetadataCache>(
+        MetadataCache(persistence: persistence),
+      );
+      GetIt.I.registerSingleton<FailureTracker>(
+        FailureTracker(persistence: persistence),
+      );
+      final tracker = GetIt.I<FailureTracker>();
+      final first = tracker.recordFailure(url);
+      final second = tracker.recordFailure(url);
+      await persistence.firstRefreshWriteStarted.future;
+
+      final clear = createService().clearMetadataCache();
+      persistence.releaseFirstRefreshWrite.complete();
+      await Future.wait([first, second, clear]);
+
+      expect(persistence.refreshRecords[url], isNull);
     });
   });
 

@@ -18,7 +18,11 @@ const Duration kFailureStaleAge = Duration(days: 30);
 class FailureTracker {
   final DateTime Function() _now;
   final Map<String, MetadataRefreshRecord> _records = {};
+  final Map<String, Object> _hydrationTokens = {};
+  final Map<String, Future<void>> _hydrations = {};
+  final Map<String, Future<void>> _persistenceTails = {};
   MetadataRefreshPersistence? _persistence;
+  int _persistenceEpoch = 0;
 
   FailureTracker({
     DateTime Function()? now,
@@ -32,19 +36,31 @@ class FailureTracker {
   }
 
   /// Restore one URL's retry state after process startup.
-  Future<void> hydrate(String url) async {
+  ///
+  /// Concurrent calls for the same URL share one read. A local mutation that
+  /// happens before the read completes wins over the older persisted result.
+  Future<void> hydrate(String url) {
+    final existing = _hydrations[url];
+    if (existing != null) return existing;
+
     final persistence = _persistence;
-    if (persistence == null) return;
-    try {
-      final record = await persistence.getRefreshRecord(url);
-      if (record == null) {
-        _records.remove(url);
-      } else {
-        _records[url] = record;
+    if (persistence == null) return Future<void>.value();
+    final token = Object();
+    _hydrationTokens[url] = token;
+    final previous = _persistenceTails[url] ?? Future<void>.value();
+    late final Future<void> hydration;
+    hydration = previous
+        .then((_) => _loadHydration(url, persistence, token))
+        .whenComplete(() {
+      if (identical(_hydrations[url], hydration)) {
+        _hydrations.remove(url);
       }
-    } catch (_) {
-      // Persistence failure must not disable in-process retry tracking.
-    }
+      if (identical(_hydrationTokens[url], token)) {
+        _hydrationTokens.remove(url);
+      }
+    });
+    _hydrations[url] = hydration;
+    return hydration;
   }
 
   /// Record a failed attempt and persist its next retry deadline.
@@ -79,17 +95,30 @@ class FailureTracker {
       consecutiveFailures: count,
       nextRetryAt: attemptedAt.add(delay),
     );
+    _invalidateHydration(url);
     _records[url] = record;
 
-    return _persistRecord(record).then((_) => record);
+    final persistence = _persistence;
+    if (persistence == null) return Future.value(record);
+    return _enqueuePersistence(
+      url,
+      () => persistence.setRefreshRecord(record),
+    ).then((_) => record);
   }
 
   /// Clear retry state after a successful refresh.
   ///
-  /// Memory is cleared synchronously before persistence is awaited.
+  /// Memory is cleared synchronously before persistence is awaited. Per-URL
+  /// persistence ordering ensures this delete cannot overtake an earlier write.
   Future<void> recordSuccess(String url) {
+    _invalidateHydration(url);
     _records.remove(url);
-    return _removePersistedRecord(url);
+    final persistence = _persistence;
+    if (persistence == null) return Future<void>.value();
+    return _enqueuePersistence(
+      url,
+      () => persistence.removeRefreshRecord(url),
+    );
   }
 
   /// Whether the URL may be attempted now.
@@ -130,33 +159,77 @@ class FailureTracker {
         })
         .map((entry) => entry.key)
         .toList(growable: false);
+    final persistence = _persistence;
     for (final url in staleUrls) {
+      _invalidateHydration(url);
       _records.remove(url);
-      unawaited(_removePersistedRecord(url));
+      if (persistence != null) {
+        unawaited(_enqueuePersistence(
+          url,
+          () => persistence.removeRefreshRecord(url),
+        ));
+      }
     }
   }
 
-  /// Temporary synchronous compatibility adapter.
+  /// Clear in-memory compatibility state before the cache's atomic user clear.
+  ///
+  /// Persistence clearing belongs to `MetadataPersistence.clearAll`, which can
+  /// delete snapshot and retry tables in one transaction. Queued operations
+  /// that have not started are invalidated so they cannot repopulate that clear.
   @Deprecated("Use persistence clearing through Task 6 orchestration.")
   void clearAll() {
+    _persistenceEpoch++;
+    final affectedUrls = <String>{
+      ..._records.keys,
+      ..._hydrations.keys,
+      ..._persistenceTails.keys,
+    };
+    for (final url in affectedUrls) {
+      _invalidateHydration(url);
+    }
     _records.clear();
-    final persistence = _persistence;
-    if (persistence != null) {
-      unawaited(_ignorePersistenceErrors(persistence.clearAllRefreshRecords));
+  }
+
+  Future<void> _loadHydration(
+    String url,
+    MetadataRefreshPersistence persistence,
+    Object token,
+  ) async {
+    try {
+      if (!identical(_hydrationTokens[url], token)) return;
+      final record = await persistence.getRefreshRecord(url);
+      if (!identical(_hydrationTokens[url], token)) return;
+      if (record == null) {
+        _records.remove(url);
+      } else {
+        _records[url] = record;
+      }
+    } catch (_) {
+      // Persistence failure must not disable in-process retry tracking.
     }
   }
 
-  Future<void> _persistRecord(MetadataRefreshRecord record) async {
-    final persistence = _persistence;
-    if (persistence == null) return;
-    await _ignorePersistenceErrors(() => persistence.setRefreshRecord(record));
+  Future<void> _enqueuePersistence(
+    String url,
+    Future<void> Function() operation,
+  ) {
+    final previous = _persistenceTails[url] ?? Future<void>.value();
+    final epoch = _persistenceEpoch;
+    final next = previous.then((_) async {
+      if (epoch != _persistenceEpoch) return;
+      await _ignorePersistenceErrors(operation);
+    });
+    _persistenceTails[url] = next;
+    unawaited(next.then((_) {
+      if (identical(_persistenceTails[url], next)) {
+        _persistenceTails.remove(url);
+      }
+    }));
+    return next;
   }
 
-  Future<void> _removePersistedRecord(String url) async {
-    final persistence = _persistence;
-    if (persistence == null) return;
-    await _ignorePersistenceErrors(() => persistence.removeRefreshRecord(url));
-  }
+  void _invalidateHydration(String url) => _hydrationTokens.remove(url);
 
   Future<void> _ignorePersistenceErrors(
     Future<void> Function() operation,
