@@ -19,6 +19,12 @@ String contentHash(List<int> bytes) {
   return hash.toRadixString(16).padLeft(16, "0");
 }
 
+final class _MetadataTransportException implements Exception {
+  final Object error;
+
+  const _MetadataTransportException(this.error);
+}
+
 class MetadataFetchClient {
   static const defaultMaxBodyBytes = 2 * 1024 * 1024;
   static const defaultMaxRedirects = 5;
@@ -67,6 +73,12 @@ class MetadataFetchClient {
         reason: error.message,
         elapsed: stopwatch.elapsed,
       );
+    } on _MetadataTransportException catch (error) {
+      return MetadataFetchFailed(
+        kind: MetadataFailureKind.transport,
+        reason: error.error.toString(),
+        elapsed: stopwatch.elapsed,
+      );
     }
   }
 
@@ -88,12 +100,15 @@ class MetadataFetchClient {
       ..headers["accept"] = "text/html,application/xhtml+xml,image/*"
       ..headers["user-agent"] = "Chenron/metadata";
 
+    var sentValidators = false;
     if (_isValidatorResource(uri, previous)) {
       if (previous?.etag case final etag?) {
         request.headers["if-none-match"] = etag;
+        sentValidators = true;
       }
       if (previous?.lastModified case final lastModified?) {
         request.headers["if-modified-since"] = lastModified;
+        sentValidators = true;
       }
     }
 
@@ -101,6 +116,7 @@ class MetadataFetchClient {
     if (_isRedirect(response.statusCode)) {
       final location = response.headers["location"];
       if (location != null) {
+        await _cancelResponse(response);
         if (redirectCount >= maxRedirects) {
           return MetadataRejected(
             kind: MetadataFailureKind.tooManyRedirects,
@@ -109,8 +125,19 @@ class MetadataFetchClient {
             elapsed: stopwatch.elapsed,
           );
         }
+        late final Uri redirectUri;
+        try {
+          redirectUri = uri.resolve(location);
+        } on FormatException catch (error) {
+          return MetadataRejected(
+            kind: MetadataFailureKind.malformed,
+            reason: error.message,
+            statusCode: response.statusCode,
+            elapsed: stopwatch.elapsed,
+          );
+        }
         return _fetch(
-          uri.resolve(location),
+          redirectUri,
           requestedUrl: requestedUrl,
           previous: previous,
           stopwatch: stopwatch,
@@ -120,7 +147,8 @@ class MetadataFetchClient {
       }
     }
 
-    if (response.statusCode == 304) {
+    if (response.statusCode == 304 && sentValidators) {
+      await _cancelResponse(response);
       return MetadataNotModified(
         resolvedUrl: uri.toString(),
         etag: response.headers["etag"],
@@ -136,6 +164,7 @@ class MetadataFetchClient {
       final isHtml =
           mimeType == "text/html" || mimeType == "application/xhtml+xml";
       if (!isImage && !isHtml) {
+        await _cancelResponse(response);
         return MetadataRejected(
           kind: MetadataFailureKind.unsupportedContentType,
           reason: "unsupported metadata content type: ${contentType ?? "none"}",
@@ -145,16 +174,20 @@ class MetadataFetchClient {
       }
 
       final bytes = BytesBuilder(copy: false);
-      await for (final chunk in response.stream) {
-        if (bytes.length + chunk.length > maxBodyBytes) {
-          return MetadataRejected(
-            kind: MetadataFailureKind.oversized,
-            reason: "metadata response exceeded $maxBodyBytes bytes",
-            statusCode: response.statusCode,
-            elapsed: stopwatch.elapsed,
-          );
+      try {
+        await for (final chunk in response.stream) {
+          if (bytes.length + chunk.length > maxBodyBytes) {
+            return MetadataRejected(
+              kind: MetadataFailureKind.oversized,
+              reason: "metadata response exceeded $maxBodyBytes bytes",
+              statusCode: response.statusCode,
+              elapsed: stopwatch.elapsed,
+            );
+          }
+          bytes.add(chunk);
         }
-        bytes.add(chunk);
+      } catch (error) {
+        throw _MetadataTransportException(error);
       }
       final bodyBytes = bytes.takeBytes();
       if (isImage) {
@@ -218,6 +251,7 @@ class MetadataFetchClient {
     }
 
     if (response.statusCode == 429) {
+      await _cancelResponse(response);
       return MetadataRejected(
         kind: MetadataFailureKind.rateLimited,
         reason: "HTTP status 429",
@@ -228,6 +262,7 @@ class MetadataFetchClient {
     }
 
     if (response.statusCode == 403) {
+      await _cancelResponse(response);
       return MetadataRejected(
         kind: MetadataFailureKind.blocked,
         reason: "HTTP status 403",
@@ -236,12 +271,22 @@ class MetadataFetchClient {
       );
     }
 
+    await _cancelResponse(response);
     return MetadataRejected(
       kind: MetadataFailureKind.httpStatus,
       reason: "HTTP status ${response.statusCode}",
       statusCode: response.statusCode,
       elapsed: stopwatch.elapsed,
     );
+  }
+
+  Future<void> _cancelResponse(http.StreamedResponse response) async {
+    try {
+      final subscription = response.stream.listen(null);
+      await subscription.cancel();
+    } catch (error) {
+      throw _MetadataTransportException(error);
+    }
   }
 
   Duration? _retryAfter(String? value) {

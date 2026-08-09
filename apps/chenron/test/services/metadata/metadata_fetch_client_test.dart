@@ -16,6 +16,20 @@ final class ScriptedClient extends http.BaseClient {
       _handler(request);
 }
 
+final class CancellableResponse {
+  bool cancelled = false;
+  late final StreamController<List<int>> _controller =
+      StreamController<List<int>>(onCancel: () => cancelled = true);
+
+  final int statusCode;
+  final Map<String, String> headers;
+
+  CancellableResponse(this.statusCode, {this.headers = const {}});
+
+  http.StreamedResponse get response =>
+      http.StreamedResponse(_controller.stream, statusCode, headers: headers);
+}
+
 void main() {
   group("MetadataFetchClient", () {
     // Catches conditional validators being omitted or a 304 being rejected.
@@ -437,6 +451,157 @@ void main() {
       final rejected = result as MetadataRejected;
       expect(rejected.kind, MetadataFailureKind.httpStatus);
       expect(rejected.statusCode, 500);
+    });
+
+    // Catches abandoning response bodies on redirect and early terminal
+    // outcomes, which can retain sockets and prevent connection reuse.
+    test("cancels every unconsumed early response stream", () async {
+      final redirect = CancellableResponse(
+        302,
+        headers: {"location": "/resolved"},
+      );
+      var redirectRequests = 0;
+      final redirectResult = await MetadataFetchClient(
+        client: ScriptedClient((_) async {
+          redirectRequests++;
+          if (redirectRequests == 1) return redirect.response;
+          return http.StreamedResponse(
+            Stream.value("<title>Resolved</title>".codeUnits),
+            200,
+            headers: {"content-type": "text/html"},
+          );
+        }),
+      ).fetch("https://example.com/original");
+      expect(redirectResult, isA<MetadataModified>());
+      expect(redirect.cancelled, isTrue);
+
+      final notModified = CancellableResponse(304);
+      await MetadataFetchClient(
+        client: ScriptedClient((_) async => notModified.response),
+      ).fetch(
+        "https://example.com/post",
+        previous: Metadata(
+          url: "https://example.com/post",
+          fetchedAt: DateTime.utc(2026),
+          etag: '"v1"',
+        ),
+      );
+      expect(notModified.cancelled, isTrue);
+
+      for (final response in [
+        CancellableResponse(
+          200,
+          headers: {"content-type": "application/json"},
+        ),
+        CancellableResponse(403),
+        CancellableResponse(429),
+        CancellableResponse(500),
+      ]) {
+        await MetadataFetchClient(
+          client: ScriptedClient((_) async => response.response),
+        ).fetch("https://example.com/early-exit");
+        expect(
+          response.cancelled,
+          isTrue,
+          reason: "status ${response.statusCode} retained its response stream",
+        );
+      }
+    });
+
+    // Catches cancellation failures escaping the external response boundary.
+    test("returns transport failure when response cancellation fails",
+        () async {
+      final controller = StreamController<List<int>>(
+        onCancel: () => Future<void>.error(StateError("cancel failed")),
+      );
+      final client = ScriptedClient(
+        (_) async => http.StreamedResponse(controller.stream, 403),
+      );
+
+      final result = await MetadataFetchClient(client: client)
+          .fetch("https://example.com/blocked");
+
+      expect(result, isA<MetadataFetchFailed>());
+      final failed = result as MetadataFetchFailed;
+      expect(failed.kind, MetadataFailureKind.transport);
+      expect(failed.reason, contains("cancel failed"));
+    });
+
+    // Catches treating an unsolicited 304 on a redirect target as proof that
+    // metadata validated for a different resource is still current.
+    test("rejects redirect-target 304 when that request sent no validator",
+        () async {
+      final unsolicited = CancellableResponse(304);
+      var requests = 0;
+      final client = ScriptedClient((request) async {
+        requests++;
+        if (requests == 1) {
+          expect(request.headers["if-none-match"], '"original-v1"');
+          return http.StreamedResponse(
+            const Stream.empty(),
+            302,
+            headers: {"location": "https://other.example/target"},
+          );
+        }
+        expect(request.headers["if-none-match"], isNull);
+        return unsolicited.response;
+      });
+
+      final result = await MetadataFetchClient(client: client).fetch(
+        "https://example.com/post",
+        previous: Metadata(
+          url: "https://example.com/post",
+          fetchedAt: DateTime.utc(2026),
+          etag: '"original-v1"',
+        ),
+      );
+
+      expect(result, isA<MetadataRejected>());
+      final rejected = result as MetadataRejected;
+      expect(rejected.kind, MetadataFailureKind.httpStatus);
+      expect(rejected.statusCode, 304);
+      expect(unsolicited.cancelled, isTrue);
+    });
+
+    // Catches malformed Location values escaping URI resolution after a
+    // redirect response has already been received.
+    test("rejects malformed redirect Location after canceling its stream",
+        () async {
+      final redirect = CancellableResponse(
+        302,
+        headers: {"location": "https://[::1"},
+      );
+      final client = ScriptedClient((_) async => redirect.response);
+
+      final result = await MetadataFetchClient(client: client)
+          .fetch("https://example.com/original");
+
+      expect(result, isA<MetadataRejected>());
+      final rejected = result as MetadataRejected;
+      expect(rejected.kind, MetadataFailureKind.malformed);
+      expect(rejected.statusCode, 302);
+      expect(redirect.cancelled, isTrue);
+    });
+
+    // Catches non-http exceptions from the external response stream escaping
+    // the structured fetch-result boundary.
+    test("returns transport failure for a raw response stream error", () async {
+      final client = ScriptedClient(
+        (_) async => http.StreamedResponse(
+          Stream.error(StateError("socket stream failed")),
+          200,
+          headers: {"content-type": "text/html"},
+        ),
+      );
+
+      final result = await MetadataFetchClient(client: client)
+          .fetch("https://example.com/interrupted");
+
+      expect(result, isA<MetadataFetchFailed>());
+      final failed = result as MetadataFetchFailed;
+      expect(failed.kind, MetadataFailureKind.transport);
+      expect(failed.reason, contains("socket stream failed"));
+      expect(failed.elapsed, isA<Duration>());
     });
   });
 }
