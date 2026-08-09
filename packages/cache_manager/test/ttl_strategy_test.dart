@@ -43,6 +43,15 @@ void main() {
       expect(isDefaultTitle("Me-dia", "https://media.example/page"), isTrue);
     });
 
+    test("matches a literal domain-only hostname", () {
+      expect(isDefaultTitle("media.example", "https://media.example/page"), isTrue);
+      expect(isDefaultTitle("example.com", "https://example.com/page"), isTrue);
+      expect(
+        isDefaultTitle("example.com", "https://www.example.com/page"),
+        isTrue,
+      );
+    });
+
     test("requires strict site-label equivalence", () {
       expect(isDefaultTitle("GitHub", "https://github.com/user"), isTrue);
       expect(

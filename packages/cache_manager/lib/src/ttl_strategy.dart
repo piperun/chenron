@@ -32,9 +32,9 @@ int computeAdaptiveTtl({
 
 /// Returns `true` only when [title] is the site's domain-only placeholder.
 ///
-/// Title and host label are normalized to lowercase ASCII letters and digits,
-/// making `Media` equivalent to `media` while rejecting meaningful titles
-/// that merely contain the brand, such as `Media / sampletag`.
+/// Title, host label, and hostname are normalized to lowercase ASCII letters
+/// and digits, making `Media` and `media.example` domain-only equivalents while
+/// rejecting meaningful titles that merely contain the brand.
 bool isDefaultTitle(String? title, String url) {
   final normalizedTitle = _normalizeSiteLabel(title);
   if (normalizedTitle == null || normalizedTitle.length < 3) return false;
@@ -44,10 +44,12 @@ bool isDefaultTitle(String? title, String url) {
   final host = uri.host.toLowerCase().replaceFirst(RegExp(r"^www\."), "");
   final parts = host.split(".");
   if (parts.length < 2) return false;
-  final normalizedHost = _normalizeSiteLabel(parts.first);
-  if (normalizedHost == null || normalizedHost.length < 3) return false;
+  final normalizedLabel = _normalizeSiteLabel(parts.first);
+  final normalizedHostname = _normalizeSiteLabel(host);
+  if (normalizedLabel == null || normalizedLabel.length < 3) return false;
 
-  return normalizedTitle == normalizedHost;
+  return normalizedTitle == normalizedLabel ||
+      normalizedTitle == normalizedHostname;
 }
 
 String? _normalizeSiteLabel(String? value) {

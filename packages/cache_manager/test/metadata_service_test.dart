@@ -389,6 +389,27 @@ void main() {
     );
   });
 
+  test("literal Media hostname does not replace a meaningful title",
+      () async {
+    const mediaUrl =
+        "https://media.example/index.php?page=post&s=list&tags=sampletag";
+    persistence.seed(
+      staleMetadata(
+        metadataUrl: mediaUrl,
+        title: "Media / sampletag",
+      ),
+    );
+    fetcher.respond(mediaUrl, _modified(mediaUrl, title: "media.example"));
+
+    final result = await buildService().forceFetch(mediaUrl);
+
+    expect(result.outcome, MetadataRefreshOutcome.unchanged);
+    expect(
+      (result.state as MetadataStateAvailable).data.title,
+      "Media / sampletag",
+    );
+  });
+
   test("new domain-only title is not persisted without a previous title",
       () async {
     const mediaUrl = "https://media.example/post/1";
@@ -625,6 +646,30 @@ void main() {
 
     expect(watched.disposed, isTrue);
     expect(service.signalCacheSize, 0);
+  });
+
+  test("disposed force refresh preserves fresh snapshot freshness", () async {
+    const blockerUrl = "https://blocker.example/post";
+    final fresh = staleMetadata().copyWith(fetchedAt: now);
+    persistence.seed(fresh);
+    final blocker = Completer<MetadataFetchResult>();
+    fetcher.handlers[blockerUrl] = (_) => blocker.future;
+    final service = buildService(maxConcurrent: 1);
+    service.watch(blockerUrl);
+    await pumpEventQueue();
+
+    final forced = service.forceFetch(url);
+    await pumpEventQueue();
+    service.dispose();
+
+    final result = await forced;
+    final state = result.state as MetadataStateAvailable;
+    expect(result.outcome, MetadataRefreshOutcome.skipped);
+    expect(state.data, fresh);
+    expect(state.freshness, MetadataFreshness.fresh);
+
+    blocker.complete(_modified(blockerUrl, title: "Late"));
+    await pumpEventQueue();
   });
 
   test("host throttle state is pruned after its delay window", () async {
