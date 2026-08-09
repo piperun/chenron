@@ -44,7 +44,9 @@ class ItemTitle extends StatelessWidget {
       return SignalBuilder(builder: (context) {
         final state = metadataSignal.value;
         final title = switch (state) {
+          MetadataStateAvailable(:final data) => data.title ?? fallback,
           MetadataStateReady(:final data) => data.title ?? fallback,
+          MetadataStateUnavailable() => fallback,
           MetadataStateLoading() => fallback,
           MetadataStateFailed() => fallback,
         };

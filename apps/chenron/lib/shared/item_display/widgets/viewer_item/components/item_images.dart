@@ -77,7 +77,9 @@ class _ItemImageHeaderState extends State<ItemImageHeader> {
         return SignalBuilder(builder: (context) {
           final state = metadataSignal.value;
           final imageUrl = switch (state) {
+            MetadataStateAvailable(:final data) => data.imageUrl,
             MetadataStateReady(:final data) => data.imageUrl,
+            MetadataStateUnavailable() => null,
             MetadataStateLoading() => null,
             MetadataStateFailed() => null,
           };
@@ -152,7 +154,9 @@ class _ItemThumbnailState extends State<ItemThumbnail> {
         return SignalBuilder(builder: (context) {
           final state = metadataSignal.value;
           final imageUrl = switch (state) {
+            MetadataStateAvailable(:final data) => data.imageUrl,
             MetadataStateReady(:final data) => data.imageUrl,
+            MetadataStateUnavailable() => null,
             MetadataStateLoading() => null,
             MetadataStateFailed() => null,
           };
