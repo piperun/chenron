@@ -21,6 +21,7 @@ void main() {
   });
 
   tearDown(() async {
+    await database.delete(database.webMetadataRefreshEntries).go();
     await database.delete(database.webMetadataEntries).go();
     await database.close();
   });
@@ -38,6 +39,10 @@ void main() {
         title: "Example",
         description: "An example page",
         image: "https://example.com/og.png",
+        resolvedUrl: "https://www.example.com/final",
+        etag: '"example-v1"',
+        lastModified: "Sat, 09 Aug 2026 10:00:00 GMT",
+        contentHash: "sha256:example",
         fetchedAt: now,
       );
 
@@ -47,6 +52,10 @@ void main() {
       expect(result.title, "Example");
       expect(result.description, "An example page");
       expect(result.image, "https://example.com/og.png");
+      expect(result.resolvedUrl, "https://www.example.com/final");
+      expect(result.etag, '"example-v1"');
+      expect(result.lastModified, "Sat, 09 Aug 2026 10:00:00 GMT");
+      expect(result.contentHash, "sha256:example");
     });
 
     test("upsertWebMetadata updates existing entry on conflict", () async {
@@ -94,6 +103,10 @@ void main() {
       expect(result!.title, isNull);
       expect(result.description, isNull);
       expect(result.image, isNull);
+      expect(result.resolvedUrl, isNull);
+      expect(result.etag, isNull);
+      expect(result.lastModified, isNull);
+      expect(result.contentHash, isNull);
     });
 
     test("removeWebMetadata deletes an entry", () async {
@@ -319,6 +332,120 @@ void main() {
       // after the parallel search already filled metadataByUrl.
       final result = await database.getWebMetadataForUrls(const []);
       expect(result, isEmpty);
+    });
+
+    test("getWebMetadataRefresh returns null for unknown URL", () async {
+      final result =
+          await database.getWebMetadataRefresh("https://unknown.com");
+
+      expect(result, isNull);
+    });
+
+    test("upsertWebMetadataRefresh round-trips retry state", () async {
+      final lastAttemptAt = DateTime(2026, 8, 9, 10, 30);
+      final nextRetryAt = DateTime(2026, 8, 9, 11, 30);
+
+      await database.upsertWebMetadataRefresh(
+        url: "https://example.com",
+        lastAttemptAt: lastAttemptAt,
+        lastFailureKind: "serverError",
+        lastStatusCode: 503,
+        consecutiveFailures: 3,
+        nextRetryAt: nextRetryAt,
+      );
+
+      final result =
+          await database.getWebMetadataRefresh("https://example.com");
+      expect(result, isNotNull);
+      expect(result!.url, "https://example.com");
+      expect(result.lastAttemptAt, lastAttemptAt);
+      expect(result.lastFailureKind, "serverError");
+      expect(result.lastStatusCode, 503);
+      expect(result.consecutiveFailures, 3);
+      expect(result.nextRetryAt, nextRetryAt);
+    });
+
+    test("upsertWebMetadataRefresh updates the same retry URL", () async {
+      await database.upsertWebMetadataRefresh(
+        url: "https://example.com",
+        lastAttemptAt: DateTime(2026, 8, 9, 10),
+        lastFailureKind: "timeout",
+        lastStatusCode: null,
+        consecutiveFailures: 1,
+        nextRetryAt: DateTime(2026, 8, 9, 10, 5),
+      );
+      final updatedAttempt = DateTime(2026, 8, 9, 12);
+      await database.upsertWebMetadataRefresh(
+        url: "https://example.com",
+        lastAttemptAt: updatedAttempt,
+        lastFailureKind: null,
+        lastStatusCode: null,
+        consecutiveFailures: 0,
+        nextRetryAt: null,
+      );
+
+      final result =
+          await database.getWebMetadataRefresh("https://example.com");
+      expect(result, isNotNull);
+      expect(result!.lastAttemptAt, updatedAttempt);
+      expect(result.lastFailureKind, isNull);
+      expect(result.lastStatusCode, isNull);
+      expect(result.consecutiveFailures, 0);
+      expect(result.nextRetryAt, isNull);
+      final rows =
+          await database.select(database.webMetadataRefreshEntries).get();
+      expect(rows, hasLength(1));
+    });
+
+    test("removeWebMetadataRefresh deletes only the targeted URL", () async {
+      for (final url in ["https://keep.com", "https://delete.com"]) {
+        await database.upsertWebMetadataRefresh(
+          url: url,
+          lastAttemptAt: DateTime(2026, 8, 9),
+          lastFailureKind: "timeout",
+          lastStatusCode: null,
+          consecutiveFailures: 1,
+          nextRetryAt: null,
+        );
+      }
+
+      await database.removeWebMetadataRefresh("https://delete.com");
+
+      expect(
+          await database.getWebMetadataRefresh("https://keep.com"), isNotNull);
+      expect(
+          await database.getWebMetadataRefresh("https://delete.com"), isNull);
+    });
+
+    test("clearing retry rows preserves verified metadata snapshots", () async {
+      await database.upsertWebMetadata(
+        url: "https://example.com",
+        title: "Verified",
+        description: null,
+        image: null,
+        resolvedUrl: "https://example.com/final",
+        etag: '"verified"',
+        lastModified: null,
+        contentHash: "sha256:verified",
+        fetchedAt: DateTime(2026, 8, 9),
+      );
+      await database.upsertWebMetadataRefresh(
+        url: "https://example.com",
+        lastAttemptAt: DateTime(2026, 8, 9, 1),
+        lastFailureKind: "serverError",
+        lastStatusCode: 500,
+        consecutiveFailures: 2,
+        nextRetryAt: DateTime(2026, 8, 9, 2),
+      );
+
+      await database.clearAllWebMetadataRefresh();
+
+      expect(
+          await database.getWebMetadataRefresh("https://example.com"), isNull);
+      final snapshot = await database.getWebMetadata("https://example.com");
+      expect(snapshot, isNotNull);
+      expect(snapshot!.title, "Verified");
+      expect(snapshot.contentHash, "sha256:verified");
     });
 
     test("schema v12 indexes exist", () async {

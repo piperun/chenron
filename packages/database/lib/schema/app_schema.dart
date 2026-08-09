@@ -130,11 +130,28 @@ class WebMetadataEntries extends Table {
   TextColumn get title => text().nullable()();
   TextColumn get description => text().nullable()();
   TextColumn get image => text().nullable()();
+  TextColumn get resolvedUrl => text().nullable()();
+  TextColumn get etag => text().nullable()();
+  TextColumn get lastModified => text().nullable()();
+  TextColumn get contentHash => text().nullable()();
   DateTimeColumn get fetchedAt => dateTime()();
   IntColumn get consecutiveUnchanged =>
       integer().withDefault(const Constant(0))();
   IntColumn get ttlDays =>
       integer().withDefault(const Constant(7))();
+
+  @override
+  Set<Column> get primaryKey => {url};
+}
+
+class WebMetadataRefreshEntries extends Table {
+  TextColumn get url => text()();
+  DateTimeColumn get lastAttemptAt => dateTime()();
+  TextColumn get lastFailureKind => text().nullable()();
+  IntColumn get lastStatusCode => integer().nullable()();
+  IntColumn get consecutiveFailures =>
+      integer().withDefault(const Constant(0))();
+  DateTimeColumn get nextRetryAt => dateTime().nullable()();
 
   @override
   Set<Column> get primaryKey => {url};

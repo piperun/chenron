@@ -32,6 +32,10 @@ extension WebMetadataCrudExtensions on AppDatabase {
     String? title,
     String? description,
     String? image,
+    String? resolvedUrl,
+    String? etag,
+    String? lastModified,
+    String? contentHash,
     required DateTime fetchedAt,
     int consecutiveUnchanged = 0,
     int ttlDays = 7,
@@ -42,6 +46,10 @@ extension WebMetadataCrudExtensions on AppDatabase {
         title: Value(title),
         description: Value(description),
         image: Value(image),
+        resolvedUrl: Value(resolvedUrl),
+        etag: Value(etag),
+        lastModified: Value(lastModified),
+        contentHash: Value(contentHash),
         fetchedAt: fetchedAt,
         consecutiveUnchanged: Value(consecutiveUnchanged),
         ttlDays: Value(ttlDays),
@@ -57,6 +65,40 @@ extension WebMetadataCrudExtensions on AppDatabase {
 
   Future<void> clearAllWebMetadata() async {
     await delete(webMetadataEntries).go();
+  }
+
+  Future<WebMetadataRefreshEntry?> getWebMetadataRefresh(String url) async {
+    return (select(webMetadataRefreshEntries)..where((t) => t.url.equals(url)))
+        .getSingleOrNull();
+  }
+
+  Future<void> upsertWebMetadataRefresh({
+    required String url,
+    required DateTime lastAttemptAt,
+    String? lastFailureKind,
+    int? lastStatusCode,
+    required int consecutiveFailures,
+    DateTime? nextRetryAt,
+  }) async {
+    await into(webMetadataRefreshEntries).insertOnConflictUpdate(
+      WebMetadataRefreshEntriesCompanion.insert(
+        url: url,
+        lastAttemptAt: lastAttemptAt,
+        lastFailureKind: Value(lastFailureKind),
+        lastStatusCode: Value(lastStatusCode),
+        consecutiveFailures: Value(consecutiveFailures),
+        nextRetryAt: Value(nextRetryAt),
+      ),
+    );
+  }
+
+  Future<void> removeWebMetadataRefresh(String url) async {
+    await (delete(webMetadataRefreshEntries)..where((t) => t.url.equals(url)))
+        .go();
+  }
+
+  Future<void> clearAllWebMetadataRefresh() async {
+    await delete(webMetadataRefreshEntries).go();
   }
 
   Future<int> countWebMetadata() async {

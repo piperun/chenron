@@ -28,6 +28,7 @@ typedef DeleteRelationRecord = ({String id, IdType idType});
   ActivityEvents,
   RecentAccess,
   WebMetadataEntries,
+  WebMetadataRefreshEntries,
   BackgroundJobs,
 ])
 class AppDatabase extends _$AppDatabase {
@@ -71,7 +72,7 @@ class AppDatabase extends _$AppDatabase {
   Future<void> setup() async {}
 
   @override
-  int get schemaVersion => 19;
+  int get schemaVersion => 20;
 
   @override
   MigrationStrategy get migration {
@@ -490,6 +491,17 @@ class AppDatabase extends _$AppDatabase {
             "web_metadata_entries": ["fetched_at"],
             "recent_access": ["last_accessed_at"],
           });
+        }
+
+        if (from < 20 && to >= 20) {
+          await migrator.addColumn(
+              webMetadataEntries, webMetadataEntries.resolvedUrl);
+          await migrator.addColumn(webMetadataEntries, webMetadataEntries.etag);
+          await migrator.addColumn(
+              webMetadataEntries, webMetadataEntries.lastModified);
+          await migrator.addColumn(
+              webMetadataEntries, webMetadataEntries.contentHash);
+          await migrator.createTable(webMetadataRefreshEntries);
         }
       },
     );

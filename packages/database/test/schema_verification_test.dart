@@ -6,6 +6,7 @@ import "package:flutter_test/flutter_test.dart";
 import "generated_migrations/schema.dart" as app;
 import "generated_migrations/schema_v14.dart" as v14;
 import "generated_migrations/schema_v16.dart" as v16;
+import "generated_migrations/schema_v19.dart" as v19;
 import "generated_migrations_config/schema.dart" as config;
 
 void main() {
@@ -16,52 +17,96 @@ void main() {
       verifier = SchemaVerifier(app.GeneratedHelper());
     });
 
-    test("migrating from v12 produces the current v19 schema", () async {
+    test("migrating from v12 produces the current v20 schema", () async {
       final connection = await verifier.schemaAt(12);
       final db = AppDatabase(queryExecutor: connection.newConnection());
-      await verifier.migrateAndValidate(db, 19);
+      await verifier.migrateAndValidate(db, 20);
       await db.close();
     });
 
-    test("migrating from v14 produces the current v19 schema", () async {
+    test("migrating from v14 produces the current v20 schema", () async {
       final connection = await verifier.schemaAt(14);
       final db = AppDatabase(queryExecutor: connection.newConnection());
-      await verifier.migrateAndValidate(db, 19);
+      await verifier.migrateAndValidate(db, 20);
       await db.close();
     });
 
-    test("migrating from v15 produces the current v19 schema", () async {
+    test("migrating from v15 produces the current v20 schema", () async {
       final connection = await verifier.schemaAt(15);
       final db = AppDatabase(queryExecutor: connection.newConnection());
-      await verifier.migrateAndValidate(db, 19);
+      await verifier.migrateAndValidate(db, 20);
       await db.close();
     });
 
-    test("migrating from v16 produces the current v19 schema", () async {
+    test("migrating from v16 produces the current v20 schema", () async {
       final connection = await verifier.schemaAt(16);
       final db = AppDatabase(queryExecutor: connection.newConnection());
-      await verifier.migrateAndValidate(db, 19);
+      await verifier.migrateAndValidate(db, 20);
       await db.close();
     });
 
     // Starts one version below the timestamp standardization so the single
     // jump exercises both the v18 trigger rebuild and the v19 default +
     // value normalization branches of onUpgrade.
-    test("migrating from v17 produces the current v19 schema", () async {
+    test("migrating from v17 produces the current v20 schema", () async {
       final connection = await verifier.schemaAt(17);
       final db = AppDatabase(queryExecutor: connection.newConnection());
-      await verifier.migrateAndValidate(db, 19);
+      await verifier.migrateAndValidate(db, 20);
       await db.close();
     });
 
-    test("a fresh v19 database round-trips against its own schema", () async {
-      final connection = await verifier.schemaAt(19);
+    test("v19 metadata survives v20 migration with null validators", () async {
+      const savedUrl = "https://example.com/sample-entry";
+      final schema = await verifier.schemaAt(19);
+      final oldDb = v19.DatabaseAtV19(schema.newConnection());
+      await oldDb.customStatement(
+        "INSERT INTO web_metadata_entries "
+        "(url, title, fetched_at) VALUES "
+        "('$savedUrl', 'Media / sampletag', '2026-08-09T00:00:00Z')",
+      );
+      await oldDb.close();
+
+      final db = AppDatabase(queryExecutor: schema.newConnection());
+      await verifier.migrateAndValidate(db, 20);
+
+      final row = await db
+          .customSelect(
+            "SELECT url, title, resolved_url, etag, last_modified, "
+            "content_hash FROM web_metadata_entries WHERE url = '$savedUrl'",
+          )
+          .getSingle();
+      expect(row.read<String>("url"), savedUrl);
+      expect(row.read<String?>("title"), "Media / sampletag");
+      expect(row.read<String?>("resolved_url"), isNull);
+      expect(row.read<String?>("etag"), isNull);
+      expect(row.read<String?>("last_modified"), isNull);
+      expect(row.read<String?>("content_hash"), isNull);
+
+      final refreshTable = await db
+          .customSelect(
+            "SELECT name FROM sqlite_master "
+            "WHERE type = 'table' AND name = 'web_metadata_refresh_entries'",
+          )
+          .getSingleOrNull();
+      expect(refreshTable, isNotNull);
+      final refreshCount = await db
+          .customSelect(
+            "SELECT COUNT(*) AS c FROM web_metadata_refresh_entries",
+          )
+          .getSingle();
+      expect(refreshCount.read<int>("c"), 0);
+
+      await db.close();
+    });
+
+    test("a fresh v20 database round-trips against its own schema", () async {
+      final connection = await verifier.schemaAt(20);
       final db = AppDatabase(queryExecutor: connection.newConnection());
-      await verifier.migrateAndValidate(db, 19);
+      await verifier.migrateAndValidate(db, 20);
       await db.close();
     });
 
-    test("v16 -> v19 collapses pre-existing duplicate metadata relations",
+    test("v16 -> v20 collapses pre-existing duplicate metadata relations",
         () async {
       final schema = await verifier.schemaAt(16);
 
@@ -82,7 +127,7 @@ void main() {
 
       // Run the real migration to the current version.
       final db = AppDatabase(queryExecutor: schema.newConnection());
-      await verifier.migrateAndValidate(db, 19);
+      await verifier.migrateAndValidate(db, 20);
 
       // The duplicate must be gone, exactly one survivor remains, and the
       // new unique index must now reject a re-inserted duplicate.
@@ -103,7 +148,7 @@ void main() {
       await db.close();
     });
 
-    test("v14 -> v19 shifts enum type ids down by one and preserves rows",
+    test("v14 -> v20 shifts enum type ids down by one and preserves rows",
         () async {
       final schema = await verifier.schemaAt(14);
 
@@ -127,7 +172,7 @@ void main() {
       await oldDb.close();
 
       final db = AppDatabase(queryExecutor: schema.newConnection());
-      await verifier.migrateAndValidate(db, 19);
+      await verifier.migrateAndValidate(db, 20);
 
       final item = await db
           .customSelect("SELECT type_id FROM items WHERE id = '$itemId'")

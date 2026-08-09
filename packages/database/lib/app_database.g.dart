@@ -3099,6 +3099,29 @@ class $WebMetadataEntriesTable extends WebMetadataEntries
   late final GeneratedColumn<String> image = GeneratedColumn<String>(
       'image', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _resolvedUrlMeta =
+      const VerificationMeta('resolvedUrl');
+  @override
+  late final GeneratedColumn<String> resolvedUrl = GeneratedColumn<String>(
+      'resolved_url', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _etagMeta = const VerificationMeta('etag');
+  @override
+  late final GeneratedColumn<String> etag = GeneratedColumn<String>(
+      'etag', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _lastModifiedMeta =
+      const VerificationMeta('lastModified');
+  @override
+  late final GeneratedColumn<String> lastModified = GeneratedColumn<String>(
+      'last_modified', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _contentHashMeta =
+      const VerificationMeta('contentHash');
+  @override
+  late final GeneratedColumn<String> contentHash = GeneratedColumn<String>(
+      'content_hash', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _fetchedAtMeta =
       const VerificationMeta('fetchedAt');
   @override
@@ -3127,6 +3150,10 @@ class $WebMetadataEntriesTable extends WebMetadataEntries
         title,
         description,
         image,
+        resolvedUrl,
+        etag,
+        lastModified,
+        contentHash,
         fetchedAt,
         consecutiveUnchanged,
         ttlDays
@@ -3161,6 +3188,28 @@ class $WebMetadataEntriesTable extends WebMetadataEntries
       context.handle(
           _imageMeta, image.isAcceptableOrUnknown(data['image']!, _imageMeta));
     }
+    if (data.containsKey('resolved_url')) {
+      context.handle(
+          _resolvedUrlMeta,
+          resolvedUrl.isAcceptableOrUnknown(
+              data['resolved_url']!, _resolvedUrlMeta));
+    }
+    if (data.containsKey('etag')) {
+      context.handle(
+          _etagMeta, etag.isAcceptableOrUnknown(data['etag']!, _etagMeta));
+    }
+    if (data.containsKey('last_modified')) {
+      context.handle(
+          _lastModifiedMeta,
+          lastModified.isAcceptableOrUnknown(
+              data['last_modified']!, _lastModifiedMeta));
+    }
+    if (data.containsKey('content_hash')) {
+      context.handle(
+          _contentHashMeta,
+          contentHash.isAcceptableOrUnknown(
+              data['content_hash']!, _contentHashMeta));
+    }
     if (data.containsKey('fetched_at')) {
       context.handle(_fetchedAtMeta,
           fetchedAt.isAcceptableOrUnknown(data['fetched_at']!, _fetchedAtMeta));
@@ -3194,6 +3243,14 @@ class $WebMetadataEntriesTable extends WebMetadataEntries
           .read(DriftSqlType.string, data['${effectivePrefix}description']),
       image: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}image']),
+      resolvedUrl: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}resolved_url']),
+      etag: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}etag']),
+      lastModified: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}last_modified']),
+      contentHash: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}content_hash']),
       fetchedAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}fetched_at'])!,
       consecutiveUnchanged: attachedDatabase.typeMapping.read(
@@ -3215,6 +3272,10 @@ class WebMetadataEntry extends DataClass
   final String? title;
   final String? description;
   final String? image;
+  final String? resolvedUrl;
+  final String? etag;
+  final String? lastModified;
+  final String? contentHash;
   final DateTime fetchedAt;
   final int consecutiveUnchanged;
   final int ttlDays;
@@ -3223,6 +3284,10 @@ class WebMetadataEntry extends DataClass
       this.title,
       this.description,
       this.image,
+      this.resolvedUrl,
+      this.etag,
+      this.lastModified,
+      this.contentHash,
       required this.fetchedAt,
       required this.consecutiveUnchanged,
       required this.ttlDays});
@@ -3238,6 +3303,18 @@ class WebMetadataEntry extends DataClass
     }
     if (!nullToAbsent || image != null) {
       map['image'] = Variable<String>(image);
+    }
+    if (!nullToAbsent || resolvedUrl != null) {
+      map['resolved_url'] = Variable<String>(resolvedUrl);
+    }
+    if (!nullToAbsent || etag != null) {
+      map['etag'] = Variable<String>(etag);
+    }
+    if (!nullToAbsent || lastModified != null) {
+      map['last_modified'] = Variable<String>(lastModified);
+    }
+    if (!nullToAbsent || contentHash != null) {
+      map['content_hash'] = Variable<String>(contentHash);
     }
     map['fetched_at'] = Variable<DateTime>(fetchedAt);
     map['consecutive_unchanged'] = Variable<int>(consecutiveUnchanged);
@@ -3255,6 +3332,16 @@ class WebMetadataEntry extends DataClass
           : Value(description),
       image:
           image == null && nullToAbsent ? const Value.absent() : Value(image),
+      resolvedUrl: resolvedUrl == null && nullToAbsent
+          ? const Value.absent()
+          : Value(resolvedUrl),
+      etag: etag == null && nullToAbsent ? const Value.absent() : Value(etag),
+      lastModified: lastModified == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastModified),
+      contentHash: contentHash == null && nullToAbsent
+          ? const Value.absent()
+          : Value(contentHash),
       fetchedAt: Value(fetchedAt),
       consecutiveUnchanged: Value(consecutiveUnchanged),
       ttlDays: Value(ttlDays),
@@ -3269,6 +3356,10 @@ class WebMetadataEntry extends DataClass
       title: serializer.fromJson<String?>(json['title']),
       description: serializer.fromJson<String?>(json['description']),
       image: serializer.fromJson<String?>(json['image']),
+      resolvedUrl: serializer.fromJson<String?>(json['resolvedUrl']),
+      etag: serializer.fromJson<String?>(json['etag']),
+      lastModified: serializer.fromJson<String?>(json['lastModified']),
+      contentHash: serializer.fromJson<String?>(json['contentHash']),
       fetchedAt: serializer.fromJson<DateTime>(json['fetchedAt']),
       consecutiveUnchanged:
           serializer.fromJson<int>(json['consecutiveUnchanged']),
@@ -3283,6 +3374,10 @@ class WebMetadataEntry extends DataClass
       'title': serializer.toJson<String?>(title),
       'description': serializer.toJson<String?>(description),
       'image': serializer.toJson<String?>(image),
+      'resolvedUrl': serializer.toJson<String?>(resolvedUrl),
+      'etag': serializer.toJson<String?>(etag),
+      'lastModified': serializer.toJson<String?>(lastModified),
+      'contentHash': serializer.toJson<String?>(contentHash),
       'fetchedAt': serializer.toJson<DateTime>(fetchedAt),
       'consecutiveUnchanged': serializer.toJson<int>(consecutiveUnchanged),
       'ttlDays': serializer.toJson<int>(ttlDays),
@@ -3294,6 +3389,10 @@ class WebMetadataEntry extends DataClass
           Value<String?> title = const Value.absent(),
           Value<String?> description = const Value.absent(),
           Value<String?> image = const Value.absent(),
+          Value<String?> resolvedUrl = const Value.absent(),
+          Value<String?> etag = const Value.absent(),
+          Value<String?> lastModified = const Value.absent(),
+          Value<String?> contentHash = const Value.absent(),
           DateTime? fetchedAt,
           int? consecutiveUnchanged,
           int? ttlDays}) =>
@@ -3302,6 +3401,11 @@ class WebMetadataEntry extends DataClass
         title: title.present ? title.value : this.title,
         description: description.present ? description.value : this.description,
         image: image.present ? image.value : this.image,
+        resolvedUrl: resolvedUrl.present ? resolvedUrl.value : this.resolvedUrl,
+        etag: etag.present ? etag.value : this.etag,
+        lastModified:
+            lastModified.present ? lastModified.value : this.lastModified,
+        contentHash: contentHash.present ? contentHash.value : this.contentHash,
         fetchedAt: fetchedAt ?? this.fetchedAt,
         consecutiveUnchanged: consecutiveUnchanged ?? this.consecutiveUnchanged,
         ttlDays: ttlDays ?? this.ttlDays,
@@ -3313,6 +3417,14 @@ class WebMetadataEntry extends DataClass
       description:
           data.description.present ? data.description.value : this.description,
       image: data.image.present ? data.image.value : this.image,
+      resolvedUrl:
+          data.resolvedUrl.present ? data.resolvedUrl.value : this.resolvedUrl,
+      etag: data.etag.present ? data.etag.value : this.etag,
+      lastModified: data.lastModified.present
+          ? data.lastModified.value
+          : this.lastModified,
+      contentHash:
+          data.contentHash.present ? data.contentHash.value : this.contentHash,
       fetchedAt: data.fetchedAt.present ? data.fetchedAt.value : this.fetchedAt,
       consecutiveUnchanged: data.consecutiveUnchanged.present
           ? data.consecutiveUnchanged.value
@@ -3328,6 +3440,10 @@ class WebMetadataEntry extends DataClass
           ..write('title: $title, ')
           ..write('description: $description, ')
           ..write('image: $image, ')
+          ..write('resolvedUrl: $resolvedUrl, ')
+          ..write('etag: $etag, ')
+          ..write('lastModified: $lastModified, ')
+          ..write('contentHash: $contentHash, ')
           ..write('fetchedAt: $fetchedAt, ')
           ..write('consecutiveUnchanged: $consecutiveUnchanged, ')
           ..write('ttlDays: $ttlDays')
@@ -3337,7 +3453,17 @@ class WebMetadataEntry extends DataClass
 
   @override
   int get hashCode => Object.hash(
-      url, title, description, image, fetchedAt, consecutiveUnchanged, ttlDays);
+      url,
+      title,
+      description,
+      image,
+      resolvedUrl,
+      etag,
+      lastModified,
+      contentHash,
+      fetchedAt,
+      consecutiveUnchanged,
+      ttlDays);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3346,6 +3472,10 @@ class WebMetadataEntry extends DataClass
           other.title == this.title &&
           other.description == this.description &&
           other.image == this.image &&
+          other.resolvedUrl == this.resolvedUrl &&
+          other.etag == this.etag &&
+          other.lastModified == this.lastModified &&
+          other.contentHash == this.contentHash &&
           other.fetchedAt == this.fetchedAt &&
           other.consecutiveUnchanged == this.consecutiveUnchanged &&
           other.ttlDays == this.ttlDays);
@@ -3356,6 +3486,10 @@ class WebMetadataEntriesCompanion extends UpdateCompanion<WebMetadataEntry> {
   final Value<String?> title;
   final Value<String?> description;
   final Value<String?> image;
+  final Value<String?> resolvedUrl;
+  final Value<String?> etag;
+  final Value<String?> lastModified;
+  final Value<String?> contentHash;
   final Value<DateTime> fetchedAt;
   final Value<int> consecutiveUnchanged;
   final Value<int> ttlDays;
@@ -3365,6 +3499,10 @@ class WebMetadataEntriesCompanion extends UpdateCompanion<WebMetadataEntry> {
     this.title = const Value.absent(),
     this.description = const Value.absent(),
     this.image = const Value.absent(),
+    this.resolvedUrl = const Value.absent(),
+    this.etag = const Value.absent(),
+    this.lastModified = const Value.absent(),
+    this.contentHash = const Value.absent(),
     this.fetchedAt = const Value.absent(),
     this.consecutiveUnchanged = const Value.absent(),
     this.ttlDays = const Value.absent(),
@@ -3375,6 +3513,10 @@ class WebMetadataEntriesCompanion extends UpdateCompanion<WebMetadataEntry> {
     this.title = const Value.absent(),
     this.description = const Value.absent(),
     this.image = const Value.absent(),
+    this.resolvedUrl = const Value.absent(),
+    this.etag = const Value.absent(),
+    this.lastModified = const Value.absent(),
+    this.contentHash = const Value.absent(),
     required DateTime fetchedAt,
     this.consecutiveUnchanged = const Value.absent(),
     this.ttlDays = const Value.absent(),
@@ -3386,6 +3528,10 @@ class WebMetadataEntriesCompanion extends UpdateCompanion<WebMetadataEntry> {
     Expression<String>? title,
     Expression<String>? description,
     Expression<String>? image,
+    Expression<String>? resolvedUrl,
+    Expression<String>? etag,
+    Expression<String>? lastModified,
+    Expression<String>? contentHash,
     Expression<DateTime>? fetchedAt,
     Expression<int>? consecutiveUnchanged,
     Expression<int>? ttlDays,
@@ -3396,6 +3542,10 @@ class WebMetadataEntriesCompanion extends UpdateCompanion<WebMetadataEntry> {
       if (title != null) 'title': title,
       if (description != null) 'description': description,
       if (image != null) 'image': image,
+      if (resolvedUrl != null) 'resolved_url': resolvedUrl,
+      if (etag != null) 'etag': etag,
+      if (lastModified != null) 'last_modified': lastModified,
+      if (contentHash != null) 'content_hash': contentHash,
       if (fetchedAt != null) 'fetched_at': fetchedAt,
       if (consecutiveUnchanged != null)
         'consecutive_unchanged': consecutiveUnchanged,
@@ -3409,6 +3559,10 @@ class WebMetadataEntriesCompanion extends UpdateCompanion<WebMetadataEntry> {
       Value<String?>? title,
       Value<String?>? description,
       Value<String?>? image,
+      Value<String?>? resolvedUrl,
+      Value<String?>? etag,
+      Value<String?>? lastModified,
+      Value<String?>? contentHash,
       Value<DateTime>? fetchedAt,
       Value<int>? consecutiveUnchanged,
       Value<int>? ttlDays,
@@ -3418,6 +3572,10 @@ class WebMetadataEntriesCompanion extends UpdateCompanion<WebMetadataEntry> {
       title: title ?? this.title,
       description: description ?? this.description,
       image: image ?? this.image,
+      resolvedUrl: resolvedUrl ?? this.resolvedUrl,
+      etag: etag ?? this.etag,
+      lastModified: lastModified ?? this.lastModified,
+      contentHash: contentHash ?? this.contentHash,
       fetchedAt: fetchedAt ?? this.fetchedAt,
       consecutiveUnchanged: consecutiveUnchanged ?? this.consecutiveUnchanged,
       ttlDays: ttlDays ?? this.ttlDays,
@@ -3439,6 +3597,18 @@ class WebMetadataEntriesCompanion extends UpdateCompanion<WebMetadataEntry> {
     }
     if (image.present) {
       map['image'] = Variable<String>(image.value);
+    }
+    if (resolvedUrl.present) {
+      map['resolved_url'] = Variable<String>(resolvedUrl.value);
+    }
+    if (etag.present) {
+      map['etag'] = Variable<String>(etag.value);
+    }
+    if (lastModified.present) {
+      map['last_modified'] = Variable<String>(lastModified.value);
+    }
+    if (contentHash.present) {
+      map['content_hash'] = Variable<String>(contentHash.value);
     }
     if (fetchedAt.present) {
       map['fetched_at'] = Variable<DateTime>(fetchedAt.value);
@@ -3462,9 +3632,398 @@ class WebMetadataEntriesCompanion extends UpdateCompanion<WebMetadataEntry> {
           ..write('title: $title, ')
           ..write('description: $description, ')
           ..write('image: $image, ')
+          ..write('resolvedUrl: $resolvedUrl, ')
+          ..write('etag: $etag, ')
+          ..write('lastModified: $lastModified, ')
+          ..write('contentHash: $contentHash, ')
           ..write('fetchedAt: $fetchedAt, ')
           ..write('consecutiveUnchanged: $consecutiveUnchanged, ')
           ..write('ttlDays: $ttlDays, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $WebMetadataRefreshEntriesTable extends WebMetadataRefreshEntries
+    with TableInfo<$WebMetadataRefreshEntriesTable, WebMetadataRefreshEntry> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $WebMetadataRefreshEntriesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _urlMeta = const VerificationMeta('url');
+  @override
+  late final GeneratedColumn<String> url = GeneratedColumn<String>(
+      'url', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _lastAttemptAtMeta =
+      const VerificationMeta('lastAttemptAt');
+  @override
+  late final GeneratedColumn<DateTime> lastAttemptAt =
+      GeneratedColumn<DateTime>('last_attempt_at', aliasedName, false,
+          type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _lastFailureKindMeta =
+      const VerificationMeta('lastFailureKind');
+  @override
+  late final GeneratedColumn<String> lastFailureKind = GeneratedColumn<String>(
+      'last_failure_kind', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _lastStatusCodeMeta =
+      const VerificationMeta('lastStatusCode');
+  @override
+  late final GeneratedColumn<int> lastStatusCode = GeneratedColumn<int>(
+      'last_status_code', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _consecutiveFailuresMeta =
+      const VerificationMeta('consecutiveFailures');
+  @override
+  late final GeneratedColumn<int> consecutiveFailures = GeneratedColumn<int>(
+      'consecutive_failures', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _nextRetryAtMeta =
+      const VerificationMeta('nextRetryAt');
+  @override
+  late final GeneratedColumn<DateTime> nextRetryAt = GeneratedColumn<DateTime>(
+      'next_retry_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [
+        url,
+        lastAttemptAt,
+        lastFailureKind,
+        lastStatusCode,
+        consecutiveFailures,
+        nextRetryAt
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'web_metadata_refresh_entries';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<WebMetadataRefreshEntry> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('url')) {
+      context.handle(
+          _urlMeta, url.isAcceptableOrUnknown(data['url']!, _urlMeta));
+    } else if (isInserting) {
+      context.missing(_urlMeta);
+    }
+    if (data.containsKey('last_attempt_at')) {
+      context.handle(
+          _lastAttemptAtMeta,
+          lastAttemptAt.isAcceptableOrUnknown(
+              data['last_attempt_at']!, _lastAttemptAtMeta));
+    } else if (isInserting) {
+      context.missing(_lastAttemptAtMeta);
+    }
+    if (data.containsKey('last_failure_kind')) {
+      context.handle(
+          _lastFailureKindMeta,
+          lastFailureKind.isAcceptableOrUnknown(
+              data['last_failure_kind']!, _lastFailureKindMeta));
+    }
+    if (data.containsKey('last_status_code')) {
+      context.handle(
+          _lastStatusCodeMeta,
+          lastStatusCode.isAcceptableOrUnknown(
+              data['last_status_code']!, _lastStatusCodeMeta));
+    }
+    if (data.containsKey('consecutive_failures')) {
+      context.handle(
+          _consecutiveFailuresMeta,
+          consecutiveFailures.isAcceptableOrUnknown(
+              data['consecutive_failures']!, _consecutiveFailuresMeta));
+    }
+    if (data.containsKey('next_retry_at')) {
+      context.handle(
+          _nextRetryAtMeta,
+          nextRetryAt.isAcceptableOrUnknown(
+              data['next_retry_at']!, _nextRetryAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {url};
+  @override
+  WebMetadataRefreshEntry map(Map<String, dynamic> data,
+      {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return WebMetadataRefreshEntry(
+      url: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}url'])!,
+      lastAttemptAt: attachedDatabase.typeMapping.read(
+          DriftSqlType.dateTime, data['${effectivePrefix}last_attempt_at'])!,
+      lastFailureKind: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}last_failure_kind']),
+      lastStatusCode: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}last_status_code']),
+      consecutiveFailures: attachedDatabase.typeMapping.read(
+          DriftSqlType.int, data['${effectivePrefix}consecutive_failures'])!,
+      nextRetryAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}next_retry_at']),
+    );
+  }
+
+  @override
+  $WebMetadataRefreshEntriesTable createAlias(String alias) {
+    return $WebMetadataRefreshEntriesTable(attachedDatabase, alias);
+  }
+}
+
+class WebMetadataRefreshEntry extends DataClass
+    implements Insertable<WebMetadataRefreshEntry> {
+  final String url;
+  final DateTime lastAttemptAt;
+  final String? lastFailureKind;
+  final int? lastStatusCode;
+  final int consecutiveFailures;
+  final DateTime? nextRetryAt;
+  const WebMetadataRefreshEntry(
+      {required this.url,
+      required this.lastAttemptAt,
+      this.lastFailureKind,
+      this.lastStatusCode,
+      required this.consecutiveFailures,
+      this.nextRetryAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['url'] = Variable<String>(url);
+    map['last_attempt_at'] = Variable<DateTime>(lastAttemptAt);
+    if (!nullToAbsent || lastFailureKind != null) {
+      map['last_failure_kind'] = Variable<String>(lastFailureKind);
+    }
+    if (!nullToAbsent || lastStatusCode != null) {
+      map['last_status_code'] = Variable<int>(lastStatusCode);
+    }
+    map['consecutive_failures'] = Variable<int>(consecutiveFailures);
+    if (!nullToAbsent || nextRetryAt != null) {
+      map['next_retry_at'] = Variable<DateTime>(nextRetryAt);
+    }
+    return map;
+  }
+
+  WebMetadataRefreshEntriesCompanion toCompanion(bool nullToAbsent) {
+    return WebMetadataRefreshEntriesCompanion(
+      url: Value(url),
+      lastAttemptAt: Value(lastAttemptAt),
+      lastFailureKind: lastFailureKind == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastFailureKind),
+      lastStatusCode: lastStatusCode == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastStatusCode),
+      consecutiveFailures: Value(consecutiveFailures),
+      nextRetryAt: nextRetryAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(nextRetryAt),
+    );
+  }
+
+  factory WebMetadataRefreshEntry.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return WebMetadataRefreshEntry(
+      url: serializer.fromJson<String>(json['url']),
+      lastAttemptAt: serializer.fromJson<DateTime>(json['lastAttemptAt']),
+      lastFailureKind: serializer.fromJson<String?>(json['lastFailureKind']),
+      lastStatusCode: serializer.fromJson<int?>(json['lastStatusCode']),
+      consecutiveFailures:
+          serializer.fromJson<int>(json['consecutiveFailures']),
+      nextRetryAt: serializer.fromJson<DateTime?>(json['nextRetryAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'url': serializer.toJson<String>(url),
+      'lastAttemptAt': serializer.toJson<DateTime>(lastAttemptAt),
+      'lastFailureKind': serializer.toJson<String?>(lastFailureKind),
+      'lastStatusCode': serializer.toJson<int?>(lastStatusCode),
+      'consecutiveFailures': serializer.toJson<int>(consecutiveFailures),
+      'nextRetryAt': serializer.toJson<DateTime?>(nextRetryAt),
+    };
+  }
+
+  WebMetadataRefreshEntry copyWith(
+          {String? url,
+          DateTime? lastAttemptAt,
+          Value<String?> lastFailureKind = const Value.absent(),
+          Value<int?> lastStatusCode = const Value.absent(),
+          int? consecutiveFailures,
+          Value<DateTime?> nextRetryAt = const Value.absent()}) =>
+      WebMetadataRefreshEntry(
+        url: url ?? this.url,
+        lastAttemptAt: lastAttemptAt ?? this.lastAttemptAt,
+        lastFailureKind: lastFailureKind.present
+            ? lastFailureKind.value
+            : this.lastFailureKind,
+        lastStatusCode:
+            lastStatusCode.present ? lastStatusCode.value : this.lastStatusCode,
+        consecutiveFailures: consecutiveFailures ?? this.consecutiveFailures,
+        nextRetryAt: nextRetryAt.present ? nextRetryAt.value : this.nextRetryAt,
+      );
+  WebMetadataRefreshEntry copyWithCompanion(
+      WebMetadataRefreshEntriesCompanion data) {
+    return WebMetadataRefreshEntry(
+      url: data.url.present ? data.url.value : this.url,
+      lastAttemptAt: data.lastAttemptAt.present
+          ? data.lastAttemptAt.value
+          : this.lastAttemptAt,
+      lastFailureKind: data.lastFailureKind.present
+          ? data.lastFailureKind.value
+          : this.lastFailureKind,
+      lastStatusCode: data.lastStatusCode.present
+          ? data.lastStatusCode.value
+          : this.lastStatusCode,
+      consecutiveFailures: data.consecutiveFailures.present
+          ? data.consecutiveFailures.value
+          : this.consecutiveFailures,
+      nextRetryAt:
+          data.nextRetryAt.present ? data.nextRetryAt.value : this.nextRetryAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WebMetadataRefreshEntry(')
+          ..write('url: $url, ')
+          ..write('lastAttemptAt: $lastAttemptAt, ')
+          ..write('lastFailureKind: $lastFailureKind, ')
+          ..write('lastStatusCode: $lastStatusCode, ')
+          ..write('consecutiveFailures: $consecutiveFailures, ')
+          ..write('nextRetryAt: $nextRetryAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(url, lastAttemptAt, lastFailureKind,
+      lastStatusCode, consecutiveFailures, nextRetryAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is WebMetadataRefreshEntry &&
+          other.url == this.url &&
+          other.lastAttemptAt == this.lastAttemptAt &&
+          other.lastFailureKind == this.lastFailureKind &&
+          other.lastStatusCode == this.lastStatusCode &&
+          other.consecutiveFailures == this.consecutiveFailures &&
+          other.nextRetryAt == this.nextRetryAt);
+}
+
+class WebMetadataRefreshEntriesCompanion
+    extends UpdateCompanion<WebMetadataRefreshEntry> {
+  final Value<String> url;
+  final Value<DateTime> lastAttemptAt;
+  final Value<String?> lastFailureKind;
+  final Value<int?> lastStatusCode;
+  final Value<int> consecutiveFailures;
+  final Value<DateTime?> nextRetryAt;
+  final Value<int> rowid;
+  const WebMetadataRefreshEntriesCompanion({
+    this.url = const Value.absent(),
+    this.lastAttemptAt = const Value.absent(),
+    this.lastFailureKind = const Value.absent(),
+    this.lastStatusCode = const Value.absent(),
+    this.consecutiveFailures = const Value.absent(),
+    this.nextRetryAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  WebMetadataRefreshEntriesCompanion.insert({
+    required String url,
+    required DateTime lastAttemptAt,
+    this.lastFailureKind = const Value.absent(),
+    this.lastStatusCode = const Value.absent(),
+    this.consecutiveFailures = const Value.absent(),
+    this.nextRetryAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : url = Value(url),
+        lastAttemptAt = Value(lastAttemptAt);
+  static Insertable<WebMetadataRefreshEntry> custom({
+    Expression<String>? url,
+    Expression<DateTime>? lastAttemptAt,
+    Expression<String>? lastFailureKind,
+    Expression<int>? lastStatusCode,
+    Expression<int>? consecutiveFailures,
+    Expression<DateTime>? nextRetryAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (url != null) 'url': url,
+      if (lastAttemptAt != null) 'last_attempt_at': lastAttemptAt,
+      if (lastFailureKind != null) 'last_failure_kind': lastFailureKind,
+      if (lastStatusCode != null) 'last_status_code': lastStatusCode,
+      if (consecutiveFailures != null)
+        'consecutive_failures': consecutiveFailures,
+      if (nextRetryAt != null) 'next_retry_at': nextRetryAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  WebMetadataRefreshEntriesCompanion copyWith(
+      {Value<String>? url,
+      Value<DateTime>? lastAttemptAt,
+      Value<String?>? lastFailureKind,
+      Value<int?>? lastStatusCode,
+      Value<int>? consecutiveFailures,
+      Value<DateTime?>? nextRetryAt,
+      Value<int>? rowid}) {
+    return WebMetadataRefreshEntriesCompanion(
+      url: url ?? this.url,
+      lastAttemptAt: lastAttemptAt ?? this.lastAttemptAt,
+      lastFailureKind: lastFailureKind ?? this.lastFailureKind,
+      lastStatusCode: lastStatusCode ?? this.lastStatusCode,
+      consecutiveFailures: consecutiveFailures ?? this.consecutiveFailures,
+      nextRetryAt: nextRetryAt ?? this.nextRetryAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (url.present) {
+      map['url'] = Variable<String>(url.value);
+    }
+    if (lastAttemptAt.present) {
+      map['last_attempt_at'] = Variable<DateTime>(lastAttemptAt.value);
+    }
+    if (lastFailureKind.present) {
+      map['last_failure_kind'] = Variable<String>(lastFailureKind.value);
+    }
+    if (lastStatusCode.present) {
+      map['last_status_code'] = Variable<int>(lastStatusCode.value);
+    }
+    if (consecutiveFailures.present) {
+      map['consecutive_failures'] = Variable<int>(consecutiveFailures.value);
+    }
+    if (nextRetryAt.present) {
+      map['next_retry_at'] = Variable<DateTime>(nextRetryAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WebMetadataRefreshEntriesCompanion(')
+          ..write('url: $url, ')
+          ..write('lastAttemptAt: $lastAttemptAt, ')
+          ..write('lastFailureKind: $lastFailureKind, ')
+          ..write('lastStatusCode: $lastStatusCode, ')
+          ..write('consecutiveFailures: $consecutiveFailures, ')
+          ..write('nextRetryAt: $nextRetryAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -3987,6 +4546,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $RecentAccessTable recentAccess = $RecentAccessTable(this);
   late final $WebMetadataEntriesTable webMetadataEntries =
       $WebMetadataEntriesTable(this);
+  late final $WebMetadataRefreshEntriesTable webMetadataRefreshEntries =
+      $WebMetadataRefreshEntriesTable(this);
   late final $BackgroundJobsTable backgroundJobs = $BackgroundJobsTable(this);
   late final Index folderTitle =
       Index('folder_title', 'CREATE INDEX folder_title ON folders (title)');
@@ -4022,6 +4583,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         activityEvents,
         recentAccess,
         webMetadataEntries,
+        webMetadataRefreshEntries,
         backgroundJobs,
         folderTitle,
         documentTitle,
@@ -5827,6 +6389,10 @@ typedef $$WebMetadataEntriesTableCreateCompanionBuilder
   Value<String?> title,
   Value<String?> description,
   Value<String?> image,
+  Value<String?> resolvedUrl,
+  Value<String?> etag,
+  Value<String?> lastModified,
+  Value<String?> contentHash,
   required DateTime fetchedAt,
   Value<int> consecutiveUnchanged,
   Value<int> ttlDays,
@@ -5838,6 +6404,10 @@ typedef $$WebMetadataEntriesTableUpdateCompanionBuilder
   Value<String?> title,
   Value<String?> description,
   Value<String?> image,
+  Value<String?> resolvedUrl,
+  Value<String?> etag,
+  Value<String?> lastModified,
+  Value<String?> contentHash,
   Value<DateTime> fetchedAt,
   Value<int> consecutiveUnchanged,
   Value<int> ttlDays,
@@ -5864,6 +6434,18 @@ class $$WebMetadataEntriesTableFilterComposer
 
   ColumnFilters<String> get image => $composableBuilder(
       column: $table.image, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get resolvedUrl => $composableBuilder(
+      column: $table.resolvedUrl, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get etag => $composableBuilder(
+      column: $table.etag, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get lastModified => $composableBuilder(
+      column: $table.lastModified, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get contentHash => $composableBuilder(
+      column: $table.contentHash, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get fetchedAt => $composableBuilder(
       column: $table.fetchedAt, builder: (column) => ColumnFilters(column));
@@ -5897,6 +6479,19 @@ class $$WebMetadataEntriesTableOrderingComposer
   ColumnOrderings<String> get image => $composableBuilder(
       column: $table.image, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get resolvedUrl => $composableBuilder(
+      column: $table.resolvedUrl, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get etag => $composableBuilder(
+      column: $table.etag, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get lastModified => $composableBuilder(
+      column: $table.lastModified,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get contentHash => $composableBuilder(
+      column: $table.contentHash, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<DateTime> get fetchedAt => $composableBuilder(
       column: $table.fetchedAt, builder: (column) => ColumnOrderings(column));
 
@@ -5928,6 +6523,18 @@ class $$WebMetadataEntriesTableAnnotationComposer
 
   GeneratedColumn<String> get image =>
       $composableBuilder(column: $table.image, builder: (column) => column);
+
+  GeneratedColumn<String> get resolvedUrl => $composableBuilder(
+      column: $table.resolvedUrl, builder: (column) => column);
+
+  GeneratedColumn<String> get etag =>
+      $composableBuilder(column: $table.etag, builder: (column) => column);
+
+  GeneratedColumn<String> get lastModified => $composableBuilder(
+      column: $table.lastModified, builder: (column) => column);
+
+  GeneratedColumn<String> get contentHash => $composableBuilder(
+      column: $table.contentHash, builder: (column) => column);
 
   GeneratedColumn<DateTime> get fetchedAt =>
       $composableBuilder(column: $table.fetchedAt, builder: (column) => column);
@@ -5971,6 +6578,10 @@ class $$WebMetadataEntriesTableTableManager extends RootTableManager<
             Value<String?> title = const Value.absent(),
             Value<String?> description = const Value.absent(),
             Value<String?> image = const Value.absent(),
+            Value<String?> resolvedUrl = const Value.absent(),
+            Value<String?> etag = const Value.absent(),
+            Value<String?> lastModified = const Value.absent(),
+            Value<String?> contentHash = const Value.absent(),
             Value<DateTime> fetchedAt = const Value.absent(),
             Value<int> consecutiveUnchanged = const Value.absent(),
             Value<int> ttlDays = const Value.absent(),
@@ -5981,6 +6592,10 @@ class $$WebMetadataEntriesTableTableManager extends RootTableManager<
             title: title,
             description: description,
             image: image,
+            resolvedUrl: resolvedUrl,
+            etag: etag,
+            lastModified: lastModified,
+            contentHash: contentHash,
             fetchedAt: fetchedAt,
             consecutiveUnchanged: consecutiveUnchanged,
             ttlDays: ttlDays,
@@ -5991,6 +6606,10 @@ class $$WebMetadataEntriesTableTableManager extends RootTableManager<
             Value<String?> title = const Value.absent(),
             Value<String?> description = const Value.absent(),
             Value<String?> image = const Value.absent(),
+            Value<String?> resolvedUrl = const Value.absent(),
+            Value<String?> etag = const Value.absent(),
+            Value<String?> lastModified = const Value.absent(),
+            Value<String?> contentHash = const Value.absent(),
             required DateTime fetchedAt,
             Value<int> consecutiveUnchanged = const Value.absent(),
             Value<int> ttlDays = const Value.absent(),
@@ -6001,6 +6620,10 @@ class $$WebMetadataEntriesTableTableManager extends RootTableManager<
             title: title,
             description: description,
             image: image,
+            resolvedUrl: resolvedUrl,
+            etag: etag,
+            lastModified: lastModified,
+            contentHash: contentHash,
             fetchedAt: fetchedAt,
             consecutiveUnchanged: consecutiveUnchanged,
             ttlDays: ttlDays,
@@ -6028,6 +6651,208 @@ typedef $$WebMetadataEntriesTableProcessedTableManager = ProcessedTableManager<
     ),
     WebMetadataEntry,
     PrefetchHooks Function()>;
+typedef $$WebMetadataRefreshEntriesTableCreateCompanionBuilder
+    = WebMetadataRefreshEntriesCompanion Function({
+  required String url,
+  required DateTime lastAttemptAt,
+  Value<String?> lastFailureKind,
+  Value<int?> lastStatusCode,
+  Value<int> consecutiveFailures,
+  Value<DateTime?> nextRetryAt,
+  Value<int> rowid,
+});
+typedef $$WebMetadataRefreshEntriesTableUpdateCompanionBuilder
+    = WebMetadataRefreshEntriesCompanion Function({
+  Value<String> url,
+  Value<DateTime> lastAttemptAt,
+  Value<String?> lastFailureKind,
+  Value<int?> lastStatusCode,
+  Value<int> consecutiveFailures,
+  Value<DateTime?> nextRetryAt,
+  Value<int> rowid,
+});
+
+class $$WebMetadataRefreshEntriesTableFilterComposer
+    extends Composer<_$AppDatabase, $WebMetadataRefreshEntriesTable> {
+  $$WebMetadataRefreshEntriesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get url => $composableBuilder(
+      column: $table.url, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get lastAttemptAt => $composableBuilder(
+      column: $table.lastAttemptAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get lastFailureKind => $composableBuilder(
+      column: $table.lastFailureKind,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get lastStatusCode => $composableBuilder(
+      column: $table.lastStatusCode,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get consecutiveFailures => $composableBuilder(
+      column: $table.consecutiveFailures,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get nextRetryAt => $composableBuilder(
+      column: $table.nextRetryAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$WebMetadataRefreshEntriesTableOrderingComposer
+    extends Composer<_$AppDatabase, $WebMetadataRefreshEntriesTable> {
+  $$WebMetadataRefreshEntriesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get url => $composableBuilder(
+      column: $table.url, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get lastAttemptAt => $composableBuilder(
+      column: $table.lastAttemptAt,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get lastFailureKind => $composableBuilder(
+      column: $table.lastFailureKind,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get lastStatusCode => $composableBuilder(
+      column: $table.lastStatusCode,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get consecutiveFailures => $composableBuilder(
+      column: $table.consecutiveFailures,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get nextRetryAt => $composableBuilder(
+      column: $table.nextRetryAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$WebMetadataRefreshEntriesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $WebMetadataRefreshEntriesTable> {
+  $$WebMetadataRefreshEntriesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get url =>
+      $composableBuilder(column: $table.url, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get lastAttemptAt => $composableBuilder(
+      column: $table.lastAttemptAt, builder: (column) => column);
+
+  GeneratedColumn<String> get lastFailureKind => $composableBuilder(
+      column: $table.lastFailureKind, builder: (column) => column);
+
+  GeneratedColumn<int> get lastStatusCode => $composableBuilder(
+      column: $table.lastStatusCode, builder: (column) => column);
+
+  GeneratedColumn<int> get consecutiveFailures => $composableBuilder(
+      column: $table.consecutiveFailures, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get nextRetryAt => $composableBuilder(
+      column: $table.nextRetryAt, builder: (column) => column);
+}
+
+class $$WebMetadataRefreshEntriesTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $WebMetadataRefreshEntriesTable,
+    WebMetadataRefreshEntry,
+    $$WebMetadataRefreshEntriesTableFilterComposer,
+    $$WebMetadataRefreshEntriesTableOrderingComposer,
+    $$WebMetadataRefreshEntriesTableAnnotationComposer,
+    $$WebMetadataRefreshEntriesTableCreateCompanionBuilder,
+    $$WebMetadataRefreshEntriesTableUpdateCompanionBuilder,
+    (
+      WebMetadataRefreshEntry,
+      BaseReferences<_$AppDatabase, $WebMetadataRefreshEntriesTable,
+          WebMetadataRefreshEntry>
+    ),
+    WebMetadataRefreshEntry,
+    PrefetchHooks Function()> {
+  $$WebMetadataRefreshEntriesTableTableManager(
+      _$AppDatabase db, $WebMetadataRefreshEntriesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$WebMetadataRefreshEntriesTableFilterComposer(
+                  $db: db, $table: table),
+          createOrderingComposer: () =>
+              $$WebMetadataRefreshEntriesTableOrderingComposer(
+                  $db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$WebMetadataRefreshEntriesTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> url = const Value.absent(),
+            Value<DateTime> lastAttemptAt = const Value.absent(),
+            Value<String?> lastFailureKind = const Value.absent(),
+            Value<int?> lastStatusCode = const Value.absent(),
+            Value<int> consecutiveFailures = const Value.absent(),
+            Value<DateTime?> nextRetryAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              WebMetadataRefreshEntriesCompanion(
+            url: url,
+            lastAttemptAt: lastAttemptAt,
+            lastFailureKind: lastFailureKind,
+            lastStatusCode: lastStatusCode,
+            consecutiveFailures: consecutiveFailures,
+            nextRetryAt: nextRetryAt,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String url,
+            required DateTime lastAttemptAt,
+            Value<String?> lastFailureKind = const Value.absent(),
+            Value<int?> lastStatusCode = const Value.absent(),
+            Value<int> consecutiveFailures = const Value.absent(),
+            Value<DateTime?> nextRetryAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              WebMetadataRefreshEntriesCompanion.insert(
+            url: url,
+            lastAttemptAt: lastAttemptAt,
+            lastFailureKind: lastFailureKind,
+            lastStatusCode: lastStatusCode,
+            consecutiveFailures: consecutiveFailures,
+            nextRetryAt: nextRetryAt,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$WebMetadataRefreshEntriesTableProcessedTableManager
+    = ProcessedTableManager<
+        _$AppDatabase,
+        $WebMetadataRefreshEntriesTable,
+        WebMetadataRefreshEntry,
+        $$WebMetadataRefreshEntriesTableFilterComposer,
+        $$WebMetadataRefreshEntriesTableOrderingComposer,
+        $$WebMetadataRefreshEntriesTableAnnotationComposer,
+        $$WebMetadataRefreshEntriesTableCreateCompanionBuilder,
+        $$WebMetadataRefreshEntriesTableUpdateCompanionBuilder,
+        (
+          WebMetadataRefreshEntry,
+          BaseReferences<_$AppDatabase, $WebMetadataRefreshEntriesTable,
+              WebMetadataRefreshEntry>
+        ),
+        WebMetadataRefreshEntry,
+        PrefetchHooks Function()>;
 typedef $$BackgroundJobsTableCreateCompanionBuilder = BackgroundJobsCompanion
     Function({
   required String id,
@@ -6300,6 +7125,9 @@ class $AppDatabaseManager {
       $$RecentAccessTableTableManager(_db, _db.recentAccess);
   $$WebMetadataEntriesTableTableManager get webMetadataEntries =>
       $$WebMetadataEntriesTableTableManager(_db, _db.webMetadataEntries);
+  $$WebMetadataRefreshEntriesTableTableManager get webMetadataRefreshEntries =>
+      $$WebMetadataRefreshEntriesTableTableManager(
+          _db, _db.webMetadataRefreshEntries);
   $$BackgroundJobsTableTableManager get backgroundJobs =>
       $$BackgroundJobsTableTableManager(_db, _db.backgroundJobs);
 }
