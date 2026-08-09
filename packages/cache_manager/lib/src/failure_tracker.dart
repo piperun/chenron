@@ -20,6 +20,7 @@ class FailureTracker {
   final Map<String, MetadataRefreshRecord> _records = {};
   final Map<String, Object> _hydrationTokens = {};
   final Map<String, Future<void>> _hydrations = {};
+  final Map<String, Object> _localAuthorityTokens = {};
   final Map<String, Future<void>> _persistenceTails = {};
   MetadataRefreshPersistence? _persistence;
   int _persistenceEpoch = 0;
@@ -39,7 +40,11 @@ class FailureTracker {
   ///
   /// Concurrent calls for the same URL share one read. A local mutation that
   /// happens before the read completes wins over the older persisted result.
+  /// Failed persistence keeps that local state authoritative until superseded.
   Future<void> hydrate(String url) {
+    if (_localAuthorityTokens.containsKey(url)) {
+      return Future<void>.value();
+    }
     final existing = _hydrations[url];
     if (existing != null) return existing;
 
@@ -95,14 +100,18 @@ class FailureTracker {
       consecutiveFailures: count,
       nextRetryAt: attemptedAt.add(delay),
     );
-    _invalidateHydration(url);
+    final authorityToken = _beginMutation(url);
     _records[url] = record;
 
     final persistence = _persistence;
-    if (persistence == null) return Future.value(record);
+    if (persistence == null) {
+      _releaseAuthority(url, authorityToken);
+      return Future.value(record);
+    }
     return _enqueuePersistence(
       url,
       () => persistence.setRefreshRecord(record),
+      authorityToken,
     ).then((_) => record);
   }
 
@@ -111,13 +120,17 @@ class FailureTracker {
   /// Memory is cleared synchronously before persistence is awaited. Per-URL
   /// persistence ordering ensures this delete cannot overtake an earlier write.
   Future<void> recordSuccess(String url) {
-    _invalidateHydration(url);
+    final authorityToken = _beginMutation(url);
     _records.remove(url);
     final persistence = _persistence;
-    if (persistence == null) return Future<void>.value();
+    if (persistence == null) {
+      _releaseAuthority(url, authorityToken);
+      return Future<void>.value();
+    }
     return _enqueuePersistence(
       url,
       () => persistence.removeRefreshRecord(url),
+      authorityToken,
     );
   }
 
@@ -161,13 +174,16 @@ class FailureTracker {
         .toList(growable: false);
     final persistence = _persistence;
     for (final url in staleUrls) {
-      _invalidateHydration(url);
+      final authorityToken = _beginMutation(url);
       _records.remove(url);
       if (persistence != null) {
         unawaited(_enqueuePersistence(
           url,
           () => persistence.removeRefreshRecord(url),
+          authorityToken,
         ));
+      } else {
+        _releaseAuthority(url, authorityToken);
       }
     }
   }
@@ -183,12 +199,14 @@ class FailureTracker {
     final affectedUrls = <String>{
       ..._records.keys,
       ..._hydrations.keys,
+      ..._localAuthorityTokens.keys,
       ..._persistenceTails.keys,
     };
     for (final url in affectedUrls) {
       _invalidateHydration(url);
     }
     _records.clear();
+    _localAuthorityTokens.clear();
   }
 
   Future<void> _loadHydration(
@@ -213,12 +231,16 @@ class FailureTracker {
   Future<void> _enqueuePersistence(
     String url,
     Future<void> Function() operation,
+    Object authorityToken,
   ) {
     final previous = _persistenceTails[url] ?? Future<void>.value();
     final epoch = _persistenceEpoch;
     final next = previous.then((_) async {
       if (epoch != _persistenceEpoch) return;
-      await _ignorePersistenceErrors(operation);
+      final succeeded = await _tryPersistence(operation);
+      if (succeeded) {
+        _releaseAuthority(url, authorityToken);
+      }
     });
     _persistenceTails[url] = next;
     unawaited(next.then((_) {
@@ -231,13 +253,28 @@ class FailureTracker {
 
   void _invalidateHydration(String url) => _hydrationTokens.remove(url);
 
-  Future<void> _ignorePersistenceErrors(
+  Object _beginMutation(String url) {
+    _invalidateHydration(url);
+    final token = Object();
+    _localAuthorityTokens[url] = token;
+    return token;
+  }
+
+  void _releaseAuthority(String url, Object token) {
+    if (identical(_localAuthorityTokens[url], token)) {
+      _localAuthorityTokens.remove(url);
+    }
+  }
+
+  Future<bool> _tryPersistence(
     Future<void> Function() operation,
   ) async {
     try {
       await operation();
+      return true;
     } catch (_) {
       // In-memory retry state remains authoritative for this process.
+      return false;
     }
   }
 }

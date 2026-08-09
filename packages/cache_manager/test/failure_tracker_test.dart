@@ -35,6 +35,8 @@ class ControlledMetadataRefreshPersistence
   final Map<String, MetadataRefreshRecord> records = {};
   final Map<String, Completer<void>> setGates = {};
   Completer<MetadataRefreshRecord?>? getGate;
+  bool failRemoves = false;
+  bool failSets = false;
   int getCalls = 0;
 
   @override
@@ -48,12 +50,16 @@ class ControlledMetadataRefreshPersistence
   }
 
   @override
-  Future<void> removeRefreshRecord(String url) async => records.remove(url);
+  Future<void> removeRefreshRecord(String url) async {
+    if (failRemoves) throw StateError("remove failed");
+    records.remove(url);
+  }
 
   @override
   Future<void> setRefreshRecord(MetadataRefreshRecord record) async {
     final gate = setGates[record.url];
     if (gate != null) await gate.future;
+    if (failSets) throw StateError("set failed");
     records[record.url] = record;
   }
 }
@@ -216,6 +222,63 @@ void main() {
       await Future.wait([failure, success]);
 
       expect(controlled.records[url], isNull);
+    });
+
+    test("failed delete blocks hydrate until a later delete succeeds",
+        () async {
+      final controlled = ControlledMetadataRefreshPersistence();
+      controlled.setGates[url] = Completer<void>();
+      tracker = FailureTracker(now: clock.call, persistence: controlled);
+      final failure = tracker.recordFailure(
+        url,
+        kind: MetadataFailureKind.transport,
+      );
+      controlled.failRemoves = true;
+      final success = tracker.recordSuccess(url);
+
+      controlled.setGates[url]!.complete();
+      await Future.wait([failure, success]);
+      await tracker.hydrate(url);
+
+      expect(tracker.recordFor(url), isNull);
+
+      controlled.failRemoves = false;
+      await tracker.recordSuccess(url);
+      final restored = MetadataRefreshRecord(
+        url: url,
+        lastAttemptAt: initialNow.add(const Duration(hours: 1)),
+        lastFailureKind: MetadataFailureKind.timeout,
+        consecutiveFailures: 2,
+        nextRetryAt: initialNow.add(const Duration(hours: 2)),
+      );
+      controlled.records[url] = restored;
+
+      await tracker.hydrate(url);
+
+      expect(tracker.recordFor(url), restored);
+    });
+
+    test("failed upsert keeps newer memory authoritative during hydrate",
+        () async {
+      final controlled = ControlledMetadataRefreshPersistence();
+      final old = MetadataRefreshRecord(
+        url: url,
+        lastAttemptAt: initialNow.subtract(const Duration(days: 1)),
+        lastFailureKind: MetadataFailureKind.timeout,
+        consecutiveFailures: 4,
+        nextRetryAt: initialNow.subtract(const Duration(hours: 1)),
+      );
+      controlled.records[url] = old;
+      controlled.failSets = true;
+      tracker = FailureTracker(now: clock.call, persistence: controlled);
+
+      final newer = await tracker.recordFailure(
+        url,
+        kind: MetadataFailureKind.blocked,
+      );
+      await tracker.hydrate(url);
+
+      expect(tracker.recordFor(url), same(newer));
     });
 
     test("explicit hydration remains usable after a completed mutation",

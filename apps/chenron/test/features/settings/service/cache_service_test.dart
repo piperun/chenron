@@ -187,7 +187,7 @@ void main() {
 
     test("calls ImageCacheManager.clearAll", () async {
       final service = createService();
-            await seedFiles({"img.jpg": [1, 2, 3]});
+      await seedFiles({"img.jpg": [1, 2, 3]});
 
       await service.clearImageCache();
 
