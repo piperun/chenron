@@ -72,6 +72,9 @@ tmp/
 # Claude Code local state (scheduled task locks, per-user settings)
 .claude/
 
+# Isolated feature worktrees created by development tooling
+.worktrees/
+
 # Secrets and credentials
 .env*
 *.pem
