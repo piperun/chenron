@@ -157,23 +157,21 @@ class MetadataService {
   /// Background refresh of all expired entries.
   ///
   /// Idempotent — concurrent calls collapse into one run. Returns the
-  /// count of entries refreshed. Per-URL refreshes route through the
+  /// categorized terminal outcomes. Per-URL refreshes route through the
   /// same concurrency + throttling pipeline as [watch] / [forceFetch].
-  Future<int> refreshStaleEntries() async {
-    if (_disposed || _refreshingStale) return 0;
+  Future<MetadataRefreshSummary> refreshStaleEntries() async {
+    if (_disposed || _refreshingStale) {
+      return const MetadataRefreshSummary();
+    }
     _refreshingStale = true;
     try {
       cleanupStale();
       final persistence = _cache.persistence;
-      if (persistence == null) return 0;
+      if (persistence == null) return const MetadataRefreshSummary();
       return await RefreshScheduler.processQueue(
         persistence: persistence,
         shouldStop: () => _disposed,
-        refreshOne: (url) async {
-          final result = await _refresh(url, manual: false);
-          return result.outcome != MetadataRefreshOutcome.failed &&
-              result.outcome != MetadataRefreshOutcome.rejected;
-        },
+        refreshOne: (url) => _refresh(url, manual: false),
       );
     } finally {
       _refreshingStale = false;

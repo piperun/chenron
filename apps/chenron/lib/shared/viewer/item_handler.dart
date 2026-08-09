@@ -1,3 +1,5 @@
+import "dart:math";
+
 import "package:cache_manager/cache_manager.dart";
 import "package:flutter/material.dart";
 import "package:chenron/features/bulk_tag/pages/bulk_tag_dialog.dart";
@@ -198,37 +200,80 @@ Future<void> handleItemMetadataRefresh(
   BuildContext context,
   List<FolderItem> items,
 ) async {
-  final links = items
+  final urls = items
       .whereType<LinkItem>()
       .where((l) => l.url.isNotEmpty)
-      .toList();
+      .map((link) => link.url)
+      .toSet()
+      .toList(growable: false);
 
-  if (links.isEmpty) return;
+  if (urls.isEmpty) return;
 
   if (context.mounted) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text("Refreshing metadata for ${links.length} links..."),
+        content: Text("Refreshing metadata for ${urls.length} links..."),
         duration: const Duration(seconds: 2),
       ),
     );
   }
 
   final service = locator.get<MetadataService>();
-  final results = await Future.wait(
-    links.map((link) => service.forceFetch(link.url)),
+  final summary = await refreshMetadataUrls(
+    urls,
+    refreshOne: service.forceFetch,
   );
-  final successCount = results.whereType<MetadataStateReady>().length;
 
   if (context.mounted) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          "Refreshed $successCount of ${links.length} links",
-        ),
+        content: Text(metadataRefreshSummaryMessage(summary)),
         backgroundColor: Theme.of(context).colorScheme.primary,
         duration: const Duration(seconds: 3),
       ),
     );
   }
 }
+
+/// Refresh unique metadata URLs with a fixed number of workers.
+Future<MetadataRefreshSummary> refreshMetadataUrls(
+  Iterable<String> urls, {
+  required Future<MetadataRefreshResult> Function(String url) refreshOne,
+  int maxConcurrent = 3,
+}) async {
+  if (maxConcurrent <= 0) {
+    throw ArgumentError.value(
+      maxConcurrent,
+      "maxConcurrent",
+      "must be greater than zero",
+    );
+  }
+
+  final queue = urls.toSet().toList(growable: false);
+  if (queue.isEmpty) return const MetadataRefreshSummary();
+
+  var nextIndex = 0;
+  var summary = const MetadataRefreshSummary();
+
+  Future<void> worker() async {
+    while (true) {
+      final index = nextIndex;
+      if (index >= queue.length) return;
+      nextIndex = index + 1;
+
+      final result = await refreshOne(queue[index]);
+      summary = summary.add(result.outcome);
+    }
+  }
+
+  final workerCount = min(maxConcurrent, queue.length);
+  await Future.wait(List.generate(workerCount, (_) => worker()));
+  return summary;
+}
+
+String metadataRefreshSummaryMessage(MetadataRefreshSummary summary) =>
+    "Metadata: ${summary.updated} updated, "
+    "${summary.unchanged} unchanged, "
+    "${summary.skipped} skipped, "
+    "${summary.rejected} rejected, "
+    "${summary.failed} failed";

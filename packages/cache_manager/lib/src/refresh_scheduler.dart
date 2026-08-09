@@ -1,8 +1,10 @@
 import "dart:async";
+import "dart:math";
 
 import "package:app_logger/app_logger.dart";
 import "package:cache_manager/src/metadata.dart";
 import "package:cache_manager/src/metadata_persistence.dart";
+import "package:cache_manager/src/metadata_refresh.dart";
 
 const _source = "RefreshScheduler";
 
@@ -28,19 +30,8 @@ double computeRefreshPriority({
 }
 
 /// Builds a priority-sorted refresh queue from expired cache entries
-/// and processes them with rate limiting.
+/// and processes them with bounded concurrency.
 class RefreshScheduler {
-  /// Default delay between consecutive refresh operations.
-  ///
-  /// Zero by default — the actual rate-limiting (concurrency cap +
-  /// per-domain throttle) belongs to whatever `refreshOne` calls
-  /// (`MetadataService._doFetch` in production), which has the
-  /// context to throttle per host. The scheduler previously held a
-  /// 2-second hard delay between every refresh which, on top of the
-  /// service's own throttle, meant a queue of 1000 expired entries
-  /// took 33+ minutes regardless of how many domains were involved.
-  static const defaultDelay = Duration.zero;
-
   /// Sort expired entries by descending refresh priority.
   static List<Metadata> buildQueue(
     List<Metadata> entries, {
@@ -66,57 +57,69 @@ class RefreshScheduler {
     return scored.map((e) => e.$2).toList();
   }
 
-  /// Process expired entries in priority order.
+  /// Process unique expired entries in priority order with fixed workers.
   ///
-  /// Calls [refreshOne] for each URL with a delay between calls.
-  /// Stops early if [shouldStop] returns true or [refreshOne] returns
-  /// false.
-  static Future<int> processQueue({
+  /// Workers continue through every terminal refresh outcome and stop
+  /// claiming new work only when [shouldStop] returns true.
+  static Future<MetadataRefreshSummary> processQueue({
     required MetadataPersistence persistence,
-    required Future<bool> Function(String url) refreshOne,
+    required Future<MetadataRefreshResult> Function(String url) refreshOne,
     bool Function()? shouldStop,
-    Duration delay = defaultDelay,
+    int maxConcurrent = 3,
   }) async {
+    if (maxConcurrent <= 0) {
+      throw ArgumentError.value(
+        maxConcurrent,
+        "maxConcurrent",
+        "must be greater than zero",
+      );
+    }
+
     List<Metadata> expired;
     try {
       expired = await persistence.getExpiredEntries();
     } catch (e) {
       loggerGlobal.warning(_source, "Failed to query expired entries: $e");
-      return 0;
+      return const MetadataRefreshSummary();
     }
 
-    final queue = buildQueue(expired);
+    final seen = <String>{};
+    final queue = buildQueue(expired)
+        .where((entry) => seen.add(entry.url))
+        .toList(growable: false);
     if (queue.isEmpty) {
       loggerGlobal.info(_source, "No expired entries to refresh.");
-      return 0;
+      return const MetadataRefreshSummary();
     }
 
     loggerGlobal.info(
-        _source, "Refresh queue: ${queue.length} expired entries to process.");
+      _source,
+      "Refresh queue: ${queue.length} expired entries to process.",
+    );
 
-    var refreshed = 0;
-    for (final entry in queue) {
-      if (shouldStop?.call() ?? false) {
-        loggerGlobal.info(
-            _source, "Refresh stopped early after $refreshed entries.");
-        break;
-      }
+    var nextIndex = 0;
+    var summary = const MetadataRefreshSummary();
 
-      final success = await refreshOne(entry.url);
-      if (!success) {
-        loggerGlobal.info(_source,
-            "Refresh halted (rate limit or error) after $refreshed entries.");
-        break;
-      }
-      refreshed++;
+    Future<void> worker() async {
+      while (true) {
+        if (shouldStop?.call() ?? false) return;
 
-      if (delay > Duration.zero) {
-        await Future<void>.delayed(delay);
+        final index = nextIndex;
+        if (index >= queue.length) return;
+        nextIndex = index + 1;
+
+        final result = await refreshOne(queue[index].url);
+        summary = summary.add(result.outcome);
       }
     }
 
+    final workerCount = min(maxConcurrent, queue.length);
+    await Future.wait(List.generate(workerCount, (_) => worker()));
+
     loggerGlobal.info(
-        _source, "Refresh complete: $refreshed entries refreshed.");
-    return refreshed;
+      _source,
+      "Refresh complete: ${summary.total} terminal outcomes recorded.",
+    );
+    return summary;
   }
 }

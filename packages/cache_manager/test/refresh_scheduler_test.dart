@@ -1,3 +1,6 @@
+import "dart:async";
+import "dart:math";
+
 import "package:cache_manager/cache_manager.dart";
 import "package:flutter_test/flutter_test.dart";
 
@@ -108,45 +111,98 @@ void main() {
       expect(queue[0].url, "https://stale.com");
     });
 
-    test("processQueue calls refreshOne for each expired entry in order",
+    test("processQueue caps active workers and summarizes every outcome",
         () async {
       final now = DateTime.now();
-      final refreshedUrls = <String>[];
+      var active = 0;
+      var maxObserved = 0;
+      final gate = Completer<void>();
+      final outcomes = MetadataRefreshOutcome.values;
 
       final fakePersistence = _FakePersistenceWithExpired([
-        _meta("https://a.com", fetchedAt: now.subtract(const Duration(days: 20))),
-        _meta("https://b.com", fetchedAt: now.subtract(const Duration(days: 10))),
+        for (var index = 0; index < outcomes.length; index++)
+          _meta(
+            "https://example.com/$index",
+            fetchedAt: now.subtract(Duration(days: 20 - index)),
+          ),
       ]);
 
-      final count = await RefreshScheduler.processQueue(
+      final future = RefreshScheduler.processQueue(
         persistence: fakePersistence,
         refreshOne: (url) async {
-          refreshedUrls.add(url);
-          return true;
+          active++;
+          maxObserved = max(maxObserved, active);
+          await gate.future;
+          active--;
+          final index = int.parse(Uri.parse(url).pathSegments.single);
+          return _result(url, outcomes[index]);
         },
-        delay: Duration.zero,
+        maxConcurrent: 3,
       );
 
-      expect(count, 2);
-      expect(refreshedUrls[0], "https://a.com");
-      expect(refreshedUrls[1], "https://b.com");
+      await pumpEventQueue();
+      expect(maxObserved, 3);
+
+      gate.complete();
+      final summary = await future;
+
+      expect(summary.updated, 1);
+      expect(summary.unchanged, 1);
+      expect(summary.skipped, 1);
+      expect(summary.rejected, 1);
+      expect(summary.failed, 1);
+      expect(summary.total, outcomes.length);
     });
 
-    test("processQueue stops when refreshOne returns false", () async {
+    test("processQueue deduplicates URLs and continues after failures",
+        () async {
       final now = DateTime.now();
+      final processed = <String>[];
 
       final fakePersistence = _FakePersistenceWithExpired([
-        _meta("https://a.com", fetchedAt: now.subtract(const Duration(days: 20))),
-        _meta("https://b.com", fetchedAt: now.subtract(const Duration(days: 10))),
+        _meta(
+          "https://rejected.example/item",
+          fetchedAt: now.subtract(const Duration(days: 30)),
+        ),
+        _meta(
+          "https://failed.example/item",
+          fetchedAt: now.subtract(const Duration(days: 25)),
+        ),
+        _meta(
+          "https://later.example/item",
+          fetchedAt: now.subtract(const Duration(days: 20)),
+        ),
+        _meta(
+          "https://later.example/item",
+          fetchedAt: now.subtract(const Duration(days: 10)),
+        ),
       ]);
 
-      final count = await RefreshScheduler.processQueue(
+      final summary = await RefreshScheduler.processQueue(
         persistence: fakePersistence,
-        refreshOne: (url) async => false,
-        delay: Duration.zero,
+        refreshOne: (url) async {
+          processed.add(url);
+          return _result(
+            url,
+            switch (Uri.parse(url).host) {
+              "rejected.example" => MetadataRefreshOutcome.rejected,
+              "failed.example" => MetadataRefreshOutcome.failed,
+              _ => MetadataRefreshOutcome.updated,
+            },
+          );
+        },
+        maxConcurrent: 1,
       );
 
-      expect(count, 0);
+      expect(processed, [
+        "https://rejected.example/item",
+        "https://failed.example/item",
+        "https://later.example/item",
+      ]);
+      expect(summary.rejected, 1);
+      expect(summary.failed, 1);
+      expect(summary.updated, 1);
+      expect(summary.total, 3);
     });
 
     test("processQueue stops when shouldStop returns true", () async {
@@ -154,24 +210,56 @@ void main() {
       var callCount = 0;
 
       final fakePersistence = _FakePersistenceWithExpired([
-        _meta("https://a.com", fetchedAt: now.subtract(const Duration(days: 20))),
-        _meta("https://b.com", fetchedAt: now.subtract(const Duration(days: 10))),
+        _meta("https://a.com",
+            fetchedAt: now.subtract(const Duration(days: 20))),
+        _meta("https://b.com",
+            fetchedAt: now.subtract(const Duration(days: 10))),
       ]);
 
-      final count = await RefreshScheduler.processQueue(
+      final summary = await RefreshScheduler.processQueue(
         persistence: fakePersistence,
         refreshOne: (url) async {
           callCount++;
-          return true;
+          return _result(url, MetadataRefreshOutcome.updated);
         },
         shouldStop: () => callCount >= 1,
-        delay: Duration.zero,
+        maxConcurrent: 1,
       );
 
-      expect(count, 1);
+      expect(summary.updated, 1);
+      expect(summary.total, 1);
+    });
+    test("processQueue rejects a non-positive worker cap", () async {
+      final now = DateTime.now();
+      final fakePersistence = _FakePersistenceWithExpired([
+        _meta(
+          "https://example.com/item",
+          fetchedAt: now.subtract(const Duration(days: 20)),
+        ),
+      ]);
+
+      await expectLater(
+        RefreshScheduler.processQueue(
+          persistence: fakePersistence,
+          refreshOne: (url) async =>
+              _result(url, MetadataRefreshOutcome.updated),
+          maxConcurrent: 0,
+        ),
+        throwsArgumentError,
+      );
     });
   });
 }
+
+MetadataRefreshResult _result(
+  String url,
+  MetadataRefreshOutcome outcome,
+) =>
+    MetadataRefreshResult(
+      url: url,
+      outcome: outcome,
+      state: const MetadataState.unavailable(),
+    );
 
 class _FakePersistenceWithExpired implements MetadataPersistence {
   final List<Metadata> _expired;

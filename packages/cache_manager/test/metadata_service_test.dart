@@ -777,9 +777,10 @@ void main() {
     );
     fetcher.respond(staleUrl, _modified(staleUrl, title: "Refreshed"));
 
-    final count = await buildService().refreshStaleEntries();
+    final summary = await buildService().refreshStaleEntries();
 
-    expect(count, 1);
+    expect(summary.updated, 1);
+    expect(summary.total, 1);
     expect(fetcher.calls.map((call) => call.$1), [staleUrl]);
   });
 
@@ -794,11 +795,13 @@ void main() {
     final first = service.refreshStaleEntries();
     final second = service.refreshStaleEntries();
     await pumpEventQueue();
-    expect(await second, 0);
+    expect((await second).total, 0);
     expect(fetcher.calls.map((call) => call.$1), [staleUrl]);
 
     completer.complete(_modified(staleUrl, title: "Refreshed"));
-    expect(await first, 1);
+    final summary = await first;
+    expect(summary.updated, 1);
+    expect(summary.total, 1);
     expect(fetcher.calls.map((call) => call.$1), [staleUrl]);
   });
   test("signals remain bounded and dispose is idempotent", () async {
