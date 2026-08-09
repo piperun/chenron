@@ -16,12 +16,14 @@ part "metadata.g.dart";
 abstract class Metadata with _$Metadata {
   const factory Metadata({
     required String url,
+    String? resolvedUrl,
     String? title,
     String? description,
     String? imageUrl,
     required DateTime fetchedAt,
     @Default(7) int ttlDays,
     String? etag,
+    String? lastModified,
     String? contentHash,
     @Default(0) int consecutiveUnchanged,
   }) = _Metadata;

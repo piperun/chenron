@@ -15,12 +15,14 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Metadata {
   String get url;
+  String? get resolvedUrl;
   String? get title;
   String? get description;
   String? get imageUrl;
   DateTime get fetchedAt;
   int get ttlDays;
   String? get etag;
+  String? get lastModified;
   String? get contentHash;
   int get consecutiveUnchanged;
 
@@ -40,6 +42,8 @@ mixin _$Metadata {
         (other.runtimeType == runtimeType &&
             other is Metadata &&
             (identical(other.url, url) || other.url == url) &&
+            (identical(other.resolvedUrl, resolvedUrl) ||
+                other.resolvedUrl == resolvedUrl) &&
             (identical(other.title, title) || other.title == title) &&
             (identical(other.description, description) ||
                 other.description == description) &&
@@ -49,6 +53,8 @@ mixin _$Metadata {
                 other.fetchedAt == fetchedAt) &&
             (identical(other.ttlDays, ttlDays) || other.ttlDays == ttlDays) &&
             (identical(other.etag, etag) || other.etag == etag) &&
+            (identical(other.lastModified, lastModified) ||
+                other.lastModified == lastModified) &&
             (identical(other.contentHash, contentHash) ||
                 other.contentHash == contentHash) &&
             (identical(other.consecutiveUnchanged, consecutiveUnchanged) ||
@@ -57,12 +63,23 @@ mixin _$Metadata {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, url, title, description,
-      imageUrl, fetchedAt, ttlDays, etag, contentHash, consecutiveUnchanged);
+  int get hashCode => Object.hash(
+      runtimeType,
+      url,
+      resolvedUrl,
+      title,
+      description,
+      imageUrl,
+      fetchedAt,
+      ttlDays,
+      etag,
+      lastModified,
+      contentHash,
+      consecutiveUnchanged);
 
   @override
   String toString() {
-    return 'Metadata(url: $url, title: $title, description: $description, imageUrl: $imageUrl, fetchedAt: $fetchedAt, ttlDays: $ttlDays, etag: $etag, contentHash: $contentHash, consecutiveUnchanged: $consecutiveUnchanged)';
+    return 'Metadata(url: $url, resolvedUrl: $resolvedUrl, title: $title, description: $description, imageUrl: $imageUrl, fetchedAt: $fetchedAt, ttlDays: $ttlDays, etag: $etag, lastModified: $lastModified, contentHash: $contentHash, consecutiveUnchanged: $consecutiveUnchanged)';
   }
 }
 
@@ -73,12 +90,14 @@ abstract mixin class $MetadataCopyWith<$Res> {
   @useResult
   $Res call(
       {String url,
+      String? resolvedUrl,
       String? title,
       String? description,
       String? imageUrl,
       DateTime fetchedAt,
       int ttlDays,
       String? etag,
+      String? lastModified,
       String? contentHash,
       int consecutiveUnchanged});
 }
@@ -96,12 +115,14 @@ class _$MetadataCopyWithImpl<$Res> implements $MetadataCopyWith<$Res> {
   @override
   $Res call({
     Object? url = null,
+    Object? resolvedUrl = freezed,
     Object? title = freezed,
     Object? description = freezed,
     Object? imageUrl = freezed,
     Object? fetchedAt = null,
     Object? ttlDays = null,
     Object? etag = freezed,
+    Object? lastModified = freezed,
     Object? contentHash = freezed,
     Object? consecutiveUnchanged = null,
   }) {
@@ -110,6 +131,10 @@ class _$MetadataCopyWithImpl<$Res> implements $MetadataCopyWith<$Res> {
           ? _self.url
           : url // ignore: cast_nullable_to_non_nullable
               as String,
+      resolvedUrl: freezed == resolvedUrl
+          ? _self.resolvedUrl
+          : resolvedUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
       title: freezed == title
           ? _self.title
           : title // ignore: cast_nullable_to_non_nullable
@@ -133,6 +158,10 @@ class _$MetadataCopyWithImpl<$Res> implements $MetadataCopyWith<$Res> {
       etag: freezed == etag
           ? _self.etag
           : etag // ignore: cast_nullable_to_non_nullable
+              as String?,
+      lastModified: freezed == lastModified
+          ? _self.lastModified
+          : lastModified // ignore: cast_nullable_to_non_nullable
               as String?,
       contentHash: freezed == contentHash
           ? _self.contentHash
@@ -241,12 +270,14 @@ extension MetadataPatterns on Metadata {
   TResult maybeWhen<TResult extends Object?>(
     TResult Function(
             String url,
+            String? resolvedUrl,
             String? title,
             String? description,
             String? imageUrl,
             DateTime fetchedAt,
             int ttlDays,
             String? etag,
+            String? lastModified,
             String? contentHash,
             int consecutiveUnchanged)?
         $default, {
@@ -257,12 +288,14 @@ extension MetadataPatterns on Metadata {
       case _Metadata() when $default != null:
         return $default(
             _that.url,
+            _that.resolvedUrl,
             _that.title,
             _that.description,
             _that.imageUrl,
             _that.fetchedAt,
             _that.ttlDays,
             _that.etag,
+            _that.lastModified,
             _that.contentHash,
             _that.consecutiveUnchanged);
       case _:
@@ -287,12 +320,14 @@ extension MetadataPatterns on Metadata {
   TResult when<TResult extends Object?>(
     TResult Function(
             String url,
+            String? resolvedUrl,
             String? title,
             String? description,
             String? imageUrl,
             DateTime fetchedAt,
             int ttlDays,
             String? etag,
+            String? lastModified,
             String? contentHash,
             int consecutiveUnchanged)
         $default,
@@ -302,12 +337,14 @@ extension MetadataPatterns on Metadata {
       case _Metadata():
         return $default(
             _that.url,
+            _that.resolvedUrl,
             _that.title,
             _that.description,
             _that.imageUrl,
             _that.fetchedAt,
             _that.ttlDays,
             _that.etag,
+            _that.lastModified,
             _that.contentHash,
             _that.consecutiveUnchanged);
       case _:
@@ -331,12 +368,14 @@ extension MetadataPatterns on Metadata {
   TResult? whenOrNull<TResult extends Object?>(
     TResult? Function(
             String url,
+            String? resolvedUrl,
             String? title,
             String? description,
             String? imageUrl,
             DateTime fetchedAt,
             int ttlDays,
             String? etag,
+            String? lastModified,
             String? contentHash,
             int consecutiveUnchanged)?
         $default,
@@ -346,12 +385,14 @@ extension MetadataPatterns on Metadata {
       case _Metadata() when $default != null:
         return $default(
             _that.url,
+            _that.resolvedUrl,
             _that.title,
             _that.description,
             _that.imageUrl,
             _that.fetchedAt,
             _that.ttlDays,
             _that.etag,
+            _that.lastModified,
             _that.contentHash,
             _that.consecutiveUnchanged);
       case _:
@@ -365,12 +406,14 @@ extension MetadataPatterns on Metadata {
 class _Metadata implements Metadata {
   const _Metadata(
       {required this.url,
+      this.resolvedUrl,
       this.title,
       this.description,
       this.imageUrl,
       required this.fetchedAt,
       this.ttlDays = 7,
       this.etag,
+      this.lastModified,
       this.contentHash,
       this.consecutiveUnchanged = 0});
   factory _Metadata.fromJson(Map<String, dynamic> json) =>
@@ -378,6 +421,8 @@ class _Metadata implements Metadata {
 
   @override
   final String url;
+  @override
+  final String? resolvedUrl;
   @override
   final String? title;
   @override
@@ -391,6 +436,8 @@ class _Metadata implements Metadata {
   final int ttlDays;
   @override
   final String? etag;
+  @override
+  final String? lastModified;
   @override
   final String? contentHash;
   @override
@@ -418,6 +465,8 @@ class _Metadata implements Metadata {
         (other.runtimeType == runtimeType &&
             other is _Metadata &&
             (identical(other.url, url) || other.url == url) &&
+            (identical(other.resolvedUrl, resolvedUrl) ||
+                other.resolvedUrl == resolvedUrl) &&
             (identical(other.title, title) || other.title == title) &&
             (identical(other.description, description) ||
                 other.description == description) &&
@@ -427,6 +476,8 @@ class _Metadata implements Metadata {
                 other.fetchedAt == fetchedAt) &&
             (identical(other.ttlDays, ttlDays) || other.ttlDays == ttlDays) &&
             (identical(other.etag, etag) || other.etag == etag) &&
+            (identical(other.lastModified, lastModified) ||
+                other.lastModified == lastModified) &&
             (identical(other.contentHash, contentHash) ||
                 other.contentHash == contentHash) &&
             (identical(other.consecutiveUnchanged, consecutiveUnchanged) ||
@@ -435,12 +486,23 @@ class _Metadata implements Metadata {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, url, title, description,
-      imageUrl, fetchedAt, ttlDays, etag, contentHash, consecutiveUnchanged);
+  int get hashCode => Object.hash(
+      runtimeType,
+      url,
+      resolvedUrl,
+      title,
+      description,
+      imageUrl,
+      fetchedAt,
+      ttlDays,
+      etag,
+      lastModified,
+      contentHash,
+      consecutiveUnchanged);
 
   @override
   String toString() {
-    return 'Metadata(url: $url, title: $title, description: $description, imageUrl: $imageUrl, fetchedAt: $fetchedAt, ttlDays: $ttlDays, etag: $etag, contentHash: $contentHash, consecutiveUnchanged: $consecutiveUnchanged)';
+    return 'Metadata(url: $url, resolvedUrl: $resolvedUrl, title: $title, description: $description, imageUrl: $imageUrl, fetchedAt: $fetchedAt, ttlDays: $ttlDays, etag: $etag, lastModified: $lastModified, contentHash: $contentHash, consecutiveUnchanged: $consecutiveUnchanged)';
   }
 }
 
@@ -453,12 +515,14 @@ abstract mixin class _$MetadataCopyWith<$Res>
   @useResult
   $Res call(
       {String url,
+      String? resolvedUrl,
       String? title,
       String? description,
       String? imageUrl,
       DateTime fetchedAt,
       int ttlDays,
       String? etag,
+      String? lastModified,
       String? contentHash,
       int consecutiveUnchanged});
 }
@@ -476,12 +540,14 @@ class __$MetadataCopyWithImpl<$Res> implements _$MetadataCopyWith<$Res> {
   @pragma('vm:prefer-inline')
   $Res call({
     Object? url = null,
+    Object? resolvedUrl = freezed,
     Object? title = freezed,
     Object? description = freezed,
     Object? imageUrl = freezed,
     Object? fetchedAt = null,
     Object? ttlDays = null,
     Object? etag = freezed,
+    Object? lastModified = freezed,
     Object? contentHash = freezed,
     Object? consecutiveUnchanged = null,
   }) {
@@ -490,6 +556,10 @@ class __$MetadataCopyWithImpl<$Res> implements _$MetadataCopyWith<$Res> {
           ? _self.url
           : url // ignore: cast_nullable_to_non_nullable
               as String,
+      resolvedUrl: freezed == resolvedUrl
+          ? _self.resolvedUrl
+          : resolvedUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
       title: freezed == title
           ? _self.title
           : title // ignore: cast_nullable_to_non_nullable
@@ -513,6 +583,10 @@ class __$MetadataCopyWithImpl<$Res> implements _$MetadataCopyWith<$Res> {
       etag: freezed == etag
           ? _self.etag
           : etag // ignore: cast_nullable_to_non_nullable
+              as String?,
+      lastModified: freezed == lastModified
+          ? _self.lastModified
+          : lastModified // ignore: cast_nullable_to_non_nullable
               as String?,
       contentHash: freezed == contentHash
           ? _self.contentHash

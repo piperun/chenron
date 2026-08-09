@@ -50,6 +50,8 @@ extension MetadataStatePatterns on MetadataState {
 
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
+    TResult Function(MetadataStateUnavailable value)? unavailable,
+    TResult Function(MetadataStateAvailable value)? available,
     TResult Function(MetadataStateLoading value)? loading,
     TResult Function(MetadataStateReady value)? ready,
     TResult Function(MetadataStateFailed value)? failed,
@@ -57,6 +59,10 @@ extension MetadataStatePatterns on MetadataState {
   }) {
     final _that = this;
     switch (_that) {
+      case MetadataStateUnavailable() when unavailable != null:
+        return unavailable(_that);
+      case MetadataStateAvailable() when available != null:
+        return available(_that);
       case MetadataStateLoading() when loading != null:
         return loading(_that);
       case MetadataStateReady() when ready != null:
@@ -83,12 +89,18 @@ extension MetadataStatePatterns on MetadataState {
 
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
+    required TResult Function(MetadataStateUnavailable value) unavailable,
+    required TResult Function(MetadataStateAvailable value) available,
     required TResult Function(MetadataStateLoading value) loading,
     required TResult Function(MetadataStateReady value) ready,
     required TResult Function(MetadataStateFailed value) failed,
   }) {
     final _that = this;
     switch (_that) {
+      case MetadataStateUnavailable():
+        return unavailable(_that);
+      case MetadataStateAvailable():
+        return available(_that);
       case MetadataStateLoading():
         return loading(_that);
       case MetadataStateReady():
@@ -112,12 +124,18 @@ extension MetadataStatePatterns on MetadataState {
 
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(MetadataStateUnavailable value)? unavailable,
+    TResult? Function(MetadataStateAvailable value)? available,
     TResult? Function(MetadataStateLoading value)? loading,
     TResult? Function(MetadataStateReady value)? ready,
     TResult? Function(MetadataStateFailed value)? failed,
   }) {
     final _that = this;
     switch (_that) {
+      case MetadataStateUnavailable() when unavailable != null:
+        return unavailable(_that);
+      case MetadataStateAvailable() when available != null:
+        return available(_that);
       case MetadataStateLoading() when loading != null:
         return loading(_that);
       case MetadataStateReady() when ready != null:
@@ -143,6 +161,15 @@ extension MetadataStatePatterns on MetadataState {
 
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
+    TResult Function(MetadataRefreshPhase refreshPhase,
+            MetadataRefreshFailure? lastFailure)?
+        unavailable,
+    TResult Function(
+            Metadata data,
+            MetadataFreshness freshness,
+            MetadataRefreshPhase refreshPhase,
+            MetadataRefreshFailure? lastFailure)?
+        available,
     TResult Function()? loading,
     TResult Function(Metadata data)? ready,
     TResult Function(String reason, int attemptCount)? failed,
@@ -150,6 +177,11 @@ extension MetadataStatePatterns on MetadataState {
   }) {
     final _that = this;
     switch (_that) {
+      case MetadataStateUnavailable() when unavailable != null:
+        return unavailable(_that.refreshPhase, _that.lastFailure);
+      case MetadataStateAvailable() when available != null:
+        return available(
+            _that.data, _that.freshness, _that.refreshPhase, _that.lastFailure);
       case MetadataStateLoading() when loading != null:
         return loading();
       case MetadataStateReady() when ready != null:
@@ -176,12 +208,26 @@ extension MetadataStatePatterns on MetadataState {
 
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
+    required TResult Function(MetadataRefreshPhase refreshPhase,
+            MetadataRefreshFailure? lastFailure)
+        unavailable,
+    required TResult Function(
+            Metadata data,
+            MetadataFreshness freshness,
+            MetadataRefreshPhase refreshPhase,
+            MetadataRefreshFailure? lastFailure)
+        available,
     required TResult Function() loading,
     required TResult Function(Metadata data) ready,
     required TResult Function(String reason, int attemptCount) failed,
   }) {
     final _that = this;
     switch (_that) {
+      case MetadataStateUnavailable():
+        return unavailable(_that.refreshPhase, _that.lastFailure);
+      case MetadataStateAvailable():
+        return available(
+            _that.data, _that.freshness, _that.refreshPhase, _that.lastFailure);
       case MetadataStateLoading():
         return loading();
       case MetadataStateReady():
@@ -205,12 +251,26 @@ extension MetadataStatePatterns on MetadataState {
 
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(MetadataRefreshPhase refreshPhase,
+            MetadataRefreshFailure? lastFailure)?
+        unavailable,
+    TResult? Function(
+            Metadata data,
+            MetadataFreshness freshness,
+            MetadataRefreshPhase refreshPhase,
+            MetadataRefreshFailure? lastFailure)?
+        available,
     TResult? Function()? loading,
     TResult? Function(Metadata data)? ready,
     TResult? Function(String reason, int attemptCount)? failed,
   }) {
     final _that = this;
     switch (_that) {
+      case MetadataStateUnavailable() when unavailable != null:
+        return unavailable(_that.refreshPhase, _that.lastFailure);
+      case MetadataStateAvailable() when available != null:
+        return available(
+            _that.data, _that.freshness, _that.refreshPhase, _that.lastFailure);
       case MetadataStateLoading() when loading != null:
         return loading();
       case MetadataStateReady() when ready != null:
@@ -225,6 +285,197 @@ extension MetadataStatePatterns on MetadataState {
 
 /// @nodoc
 
+class MetadataStateUnavailable extends MetadataState {
+  const MetadataStateUnavailable(
+      {this.refreshPhase = MetadataRefreshPhase.idle, this.lastFailure})
+      : super._();
+
+  @JsonKey()
+  final MetadataRefreshPhase refreshPhase;
+  final MetadataRefreshFailure? lastFailure;
+
+  /// Create a copy of MetadataState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $MetadataStateUnavailableCopyWith<MetadataStateUnavailable> get copyWith =>
+      _$MetadataStateUnavailableCopyWithImpl<MetadataStateUnavailable>(
+          this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is MetadataStateUnavailable &&
+            (identical(other.refreshPhase, refreshPhase) ||
+                other.refreshPhase == refreshPhase) &&
+            (identical(other.lastFailure, lastFailure) ||
+                other.lastFailure == lastFailure));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, refreshPhase, lastFailure);
+
+  @override
+  String toString() {
+    return 'MetadataState.unavailable(refreshPhase: $refreshPhase, lastFailure: $lastFailure)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $MetadataStateUnavailableCopyWith<$Res>
+    implements $MetadataStateCopyWith<$Res> {
+  factory $MetadataStateUnavailableCopyWith(MetadataStateUnavailable value,
+          $Res Function(MetadataStateUnavailable) _then) =
+      _$MetadataStateUnavailableCopyWithImpl;
+  @useResult
+  $Res call(
+      {MetadataRefreshPhase refreshPhase, MetadataRefreshFailure? lastFailure});
+}
+
+/// @nodoc
+class _$MetadataStateUnavailableCopyWithImpl<$Res>
+    implements $MetadataStateUnavailableCopyWith<$Res> {
+  _$MetadataStateUnavailableCopyWithImpl(this._self, this._then);
+
+  final MetadataStateUnavailable _self;
+  final $Res Function(MetadataStateUnavailable) _then;
+
+  /// Create a copy of MetadataState
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? refreshPhase = null,
+    Object? lastFailure = freezed,
+  }) {
+    return _then(MetadataStateUnavailable(
+      refreshPhase: null == refreshPhase
+          ? _self.refreshPhase
+          : refreshPhase // ignore: cast_nullable_to_non_nullable
+              as MetadataRefreshPhase,
+      lastFailure: freezed == lastFailure
+          ? _self.lastFailure
+          : lastFailure // ignore: cast_nullable_to_non_nullable
+              as MetadataRefreshFailure?,
+    ));
+  }
+}
+
+/// @nodoc
+
+class MetadataStateAvailable extends MetadataState {
+  const MetadataStateAvailable(
+      {required this.data,
+      required this.freshness,
+      this.refreshPhase = MetadataRefreshPhase.idle,
+      this.lastFailure})
+      : super._();
+
+  final Metadata data;
+  final MetadataFreshness freshness;
+  @JsonKey()
+  final MetadataRefreshPhase refreshPhase;
+  final MetadataRefreshFailure? lastFailure;
+
+  /// Create a copy of MetadataState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $MetadataStateAvailableCopyWith<MetadataStateAvailable> get copyWith =>
+      _$MetadataStateAvailableCopyWithImpl<MetadataStateAvailable>(
+          this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is MetadataStateAvailable &&
+            (identical(other.data, data) || other.data == data) &&
+            (identical(other.freshness, freshness) ||
+                other.freshness == freshness) &&
+            (identical(other.refreshPhase, refreshPhase) ||
+                other.refreshPhase == refreshPhase) &&
+            (identical(other.lastFailure, lastFailure) ||
+                other.lastFailure == lastFailure));
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, data, freshness, refreshPhase, lastFailure);
+
+  @override
+  String toString() {
+    return 'MetadataState.available(data: $data, freshness: $freshness, refreshPhase: $refreshPhase, lastFailure: $lastFailure)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $MetadataStateAvailableCopyWith<$Res>
+    implements $MetadataStateCopyWith<$Res> {
+  factory $MetadataStateAvailableCopyWith(MetadataStateAvailable value,
+          $Res Function(MetadataStateAvailable) _then) =
+      _$MetadataStateAvailableCopyWithImpl;
+  @useResult
+  $Res call(
+      {Metadata data,
+      MetadataFreshness freshness,
+      MetadataRefreshPhase refreshPhase,
+      MetadataRefreshFailure? lastFailure});
+
+  $MetadataCopyWith<$Res> get data;
+}
+
+/// @nodoc
+class _$MetadataStateAvailableCopyWithImpl<$Res>
+    implements $MetadataStateAvailableCopyWith<$Res> {
+  _$MetadataStateAvailableCopyWithImpl(this._self, this._then);
+
+  final MetadataStateAvailable _self;
+  final $Res Function(MetadataStateAvailable) _then;
+
+  /// Create a copy of MetadataState
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? data = null,
+    Object? freshness = null,
+    Object? refreshPhase = null,
+    Object? lastFailure = freezed,
+  }) {
+    return _then(MetadataStateAvailable(
+      data: null == data
+          ? _self.data
+          : data // ignore: cast_nullable_to_non_nullable
+              as Metadata,
+      freshness: null == freshness
+          ? _self.freshness
+          : freshness // ignore: cast_nullable_to_non_nullable
+              as MetadataFreshness,
+      refreshPhase: null == refreshPhase
+          ? _self.refreshPhase
+          : refreshPhase // ignore: cast_nullable_to_non_nullable
+              as MetadataRefreshPhase,
+      lastFailure: freezed == lastFailure
+          ? _self.lastFailure
+          : lastFailure // ignore: cast_nullable_to_non_nullable
+              as MetadataRefreshFailure?,
+    ));
+  }
+
+  /// Create a copy of MetadataState
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $MetadataCopyWith<$Res> get data {
+    return $MetadataCopyWith<$Res>(_self.data, (value) {
+      return _then(_self.copyWith(data: value));
+    });
+  }
+}
+
+/// @nodoc
+
+@Deprecated("Use MetadataState.unavailable instead.")
 class MetadataStateLoading extends MetadataState {
   const MetadataStateLoading() : super._();
 
@@ -245,6 +496,7 @@ class MetadataStateLoading extends MetadataState {
 
 /// @nodoc
 
+@Deprecated("Use MetadataState.available instead.")
 class MetadataStateReady extends MetadataState {
   const MetadataStateReady(this.data) : super._();
 
@@ -321,6 +573,7 @@ class _$MetadataStateReadyCopyWithImpl<$Res>
 
 /// @nodoc
 
+@Deprecated("Use availability plus MetadataRefreshPhase.failed instead.")
 class MetadataStateFailed extends MetadataState {
   const MetadataStateFailed(this.reason, this.attemptCount) : super._();
 
