@@ -1,9 +1,13 @@
 import "dart:async";
 import "dart:collection";
+import "dart:math";
 
 import "package:app_logger/app_logger.dart";
 import "package:cache_manager/metadata_cache.dart";
+import "package:cache_manager/src/domain_circuit_breaker.dart";
 import "package:cache_manager/src/failure_tracker.dart";
+import "package:cache_manager/src/metadata_fetch_result.dart";
+import "package:cache_manager/src/metadata_refresh.dart";
 import "package:cache_manager/src/metadata.dart";
 import "package:cache_manager/src/metadata_state.dart";
 import "package:cache_manager/src/refresh_scheduler.dart";
@@ -12,52 +16,17 @@ import "package:signals/signals.dart";
 
 const _source = "MetadataService";
 
-/// Raw network result from a metadata fetcher.
-///
-/// The host app injects a fetcher callback that returns one of these.
-/// Keeping the type small and plain (no freezed) — it crosses the
-/// package boundary exactly once per fetch and doesn't need
-/// JSON/equality machinery. `etag` and `contentHash` are optional so
-/// fetchers that don't yet support conditional requests can return
-/// `null` for them.
-class RawFetchedMetadata {
-  final String? title;
-  final String? description;
-  final String? imageUrl;
-
-  /// Canonical URL reported by the fetcher (e.g. after redirects). The
-  /// orchestrator falls back to the requested URL when this is null.
-  final String? resolvedUrl;
-
-  /// HTTP ETag if the fetcher captured one. Reserved for conditional
-  /// request support; currently stored on [Metadata] but not used to
-  /// short-circuit fetches.
-  final String? etag;
-
-  /// Hash of the fetched content for change detection. Reserved for
-  /// future use; currently stored on [Metadata].
-  final String? contentHash;
-
-  const RawFetchedMetadata({
-    this.title,
-    this.description,
-    this.imageUrl,
-    this.resolvedUrl,
-    this.etag,
-    this.contentHash,
-  });
-}
-
-/// Optional callback used by the service to log every fetch attempt
-/// (e.g. into an activity-log table). Wrapping is the host app's job.
-typedef OnFetchLogged = void Function(
-  String url,
-  bool succeeded, {
-  String? error,
+/// Network fetcher injected by the host application's HTTP boundary.
+typedef MetadataFetcherFn = Future<MetadataFetchResult> Function(
+  String url, {
+  Metadata? previous,
 });
 
-/// Network fetcher signature injected by the host app.
-typedef MetadataFetcherFn = Future<RawFetchedMetadata> Function(String url);
+/// Best-effort hook for recording a terminal network refresh result.
+typedef OnFetchLogged = void Function(
+  String url,
+  MetadataRefreshResult result,
+);
 
 /// Long-lived orchestrator for metadata fetches.
 ///
@@ -77,8 +46,11 @@ typedef MetadataFetcherFn = Future<RawFetchedMetadata> Function(String url);
 class MetadataService {
   final MetadataCache _cache;
   final FailureTracker _failures;
+  final DomainCircuitBreaker _domainCircuitBreaker;
   final MetadataFetcherFn _fetcher;
   final OnFetchLogged? _onFetchLogged;
+  final DateTime Function() _now;
+  final Random _ttlRandom;
   final int _maxConcurrent;
   final Duration _domainDelay;
 
@@ -91,11 +63,10 @@ class MetadataService {
   /// last) so the head is the LRU eviction candidate. Bounded by
   /// [_signalCapacity]; an evicted signal is disposed. A consumer that
   /// re-watches an evicted URL just gets a fresh signal + re-resolution.
-  final LinkedHashMap<String, Signal<MetadataState>> _signals =
-      LinkedHashMap();
+  final LinkedHashMap<String, Signal<MetadataState>> _signals = LinkedHashMap();
   final int _signalCapacity;
 
-  final Map<String, Future<MetadataState>> _inFlight = {};
+  final Map<String, Future<MetadataRefreshResult>> _inFlight = {};
   final Map<String, DateTime> _lastDomainFetch = {};
   int _activeFetches = 0;
   final Queue<Completer<void>> _slotQueue = Queue();
@@ -106,15 +77,21 @@ class MetadataService {
   MetadataService({
     required MetadataCache cache,
     required FailureTracker failures,
+    required DomainCircuitBreaker domainCircuitBreaker,
     required MetadataFetcherFn fetcher,
     OnFetchLogged? onFetchLogged,
+    DateTime Function()? now,
+    Random? ttlRandom,
     int maxConcurrent = 3,
     Duration domainDelay = const Duration(milliseconds: 500),
     int signalCapacity = defaultSignalCapacity,
   })  : _cache = cache,
         _failures = failures,
+        _domainCircuitBreaker = domainCircuitBreaker,
         _fetcher = fetcher,
         _onFetchLogged = onFetchLogged,
+        _now = now ?? DateTime.now,
+        _ttlRandom = ttlRandom ?? Random(),
         _maxConcurrent = maxConcurrent,
         _domainDelay = domainDelay,
         _signalCapacity = signalCapacity;
@@ -126,61 +103,52 @@ class MetadataService {
   /// callers see the current state immediately.
   Signal<MetadataState> watch(String url) {
     if (_disposed) {
-      // Service is torn down — hand back an inert, already-disposed
-      // signal and fetch nothing. Callers re-watch on the next live
-      // service instance.
-      return signal<MetadataState>(const MetadataState.loading())..dispose();
+      return signal<MetadataState>(const MetadataState.unavailable())
+        ..dispose();
     }
 
     final existing = _signals[url];
     if (existing != null) {
-      _touch(url); // promote to most-recently-used
+      _touch(url);
       return existing;
     }
 
-    final s = signal<MetadataState>(const MetadataState.loading());
-    _putSignal(url, s);
-    // Kick off the initial resolution asynchronously; errors are
-    // absorbed into the signal state.
+    final state = signal<MetadataState>(const MetadataState.unavailable(
+      refreshPhase: MetadataRefreshPhase.refreshing,
+    ));
+    _putSignal(url, state);
     unawaited(_resolve(url));
-    return s;
+    return state;
   }
 
-  /// Synchronously read the latest cached state for [url] without
-  /// triggering a fetch. Returns [MetadataState.loading] if no signal
-  /// yet exists for the URL.
-  MetadataState peek(String url) {
-    final s = _signals[url];
-    if (s == null) return const MetadataState.loading();
-    return s.value;
-  }
+  /// Read the latest state without starting resolution.
+  MetadataState peek(String url) =>
+      _signals[url]?.value ?? const MetadataState.unavailable();
 
-  /// Force a fresh fetch, skipping the cache check and clearing failure
-  /// history for [url]. The associated signal (created if absent) is
-  /// flipped to `loading()` and then updated with the fetch result.
+  /// Refresh [url] manually, bypassing URL and domain waiting once.
   ///
-  /// If a fetch for [url] is already in flight, this coalesces onto it
-  /// (same as [watch]) rather than issuing a second network call — the
-  /// caller still gets the resolved state. Forcing is therefore safe to
-  /// call repeatedly on an in-flight URL: no duplicate fetch, and no
-  /// concurrency slot is stranded, because slot acquisition is owned by
-  /// the single underlying fetch ([_doFetchInner]), not by the caller.
-  Future<MetadataState> forceFetch(String url) {
+  /// Manual refresh never clears retry history before the outcome and never
+  /// replaces an available snapshot with an unavailable state.
+  Future<MetadataRefreshResult> forceFetch(String url) {
     loggerGlobal.info(_source, "Force refresh requested: $url");
-    if (_disposed) return Future.value(const MetadataState.loading());
-    _failures.clearFailure(url);
-    // Ensure the signal exists so observers don't miss the update.
-    final s = _signals[url];
-    if (s != null) {
-      _touch(url);
-      s.value = const MetadataState.loading();
-    } else {
-      _putSignal(url, signal<MetadataState>(const MetadataState.loading()));
+    if (_disposed) {
+      return Future.value(MetadataRefreshResult(
+        url: url,
+        outcome: MetadataRefreshOutcome.skipped,
+        state: const MetadataState.unavailable(),
+      ));
     }
-
-    // Slot acquire/release lives inside the real fetch path, so a
-    // coalesced call never acquires a slot it can't release.
-    return _doFetch(url);
+    if (_signals.containsKey(url)) {
+      _touch(url);
+    } else {
+      _putSignal(
+        url,
+        signal<MetadataState>(const MetadataState.unavailable(
+          refreshPhase: MetadataRefreshPhase.refreshing,
+        )),
+      );
+    }
+    return _refresh(url, manual: true);
   }
 
   /// Background refresh of all expired entries.
@@ -191,186 +159,379 @@ class MetadataService {
   Future<int> refreshStaleEntries() async {
     if (_disposed || _refreshingStale) return 0;
     _refreshingStale = true;
-    loggerGlobal.info(_source, "Background refresh started");
-
     try {
       cleanupStale();
       final persistence = _cache.persistence;
       if (persistence == null) return 0;
-
       return await RefreshScheduler.processQueue(
         persistence: persistence,
+        shouldStop: () => _disposed,
         refreshOne: (url) async {
-          if (_disposed) return false; // stop the queue; service is gone
-          if (_inFlight.containsKey(url)) return true; // skip; not an error
-          if (!_failures.shouldRetry(url)) return true; // backoff; skip
-          // Slot acquire/release is owned by _doFetchInner.
-          final state = await _doFetch(url);
-          // `false` halts the queue — only when we hit a hard error.
-          return state is! MetadataStateFailed;
+          final result = await _refresh(url, manual: false);
+          return result.outcome != MetadataRefreshOutcome.failed &&
+              result.outcome != MetadataRefreshOutcome.rejected;
         },
       );
     } finally {
       _refreshingStale = false;
     }
   }
-
   // ---------------------------------------------------------------------------
   // Internal: resolution
   // ---------------------------------------------------------------------------
 
   Future<void> _resolve(String url) async {
-    if (_signals[url] == null) {
-      return; // disposed/cleared between scheduling and execution
-    }
-
-    // 1. Cache check.
-    final cached = await _cache.get(url);
-    if (cached != null) {
-      _emit(url, MetadataState.ready(cached));
-      return;
-    }
-
-    // 2. Failure back-off check.
-    if (!_failures.shouldRetry(url)) {
-      final count = _failures.failureCount(url);
-      loggerGlobal.fine(_source, "Skipped (backoff): $url | failures=$count");
-      _emit(url, MetadataState.failed("backoff", count));
-      return;
-    }
-
-    // 3. In-flight coalescing — share a single fetch Future per URL.
-    final inFlight = _inFlight[url];
-    if (inFlight != null) {
-      // Another caller is already fetching; await its result. The
-      // signal will be updated by that fetch's _doFetchInner.
-      await inFlight;
-      return;
-    }
-
-    // Slot acquire/release is owned by _doFetchInner.
-    await _doFetch(url);
+    if (_signals[url] == null || _disposed) return;
+    await _refresh(url, manual: false);
   }
 
-  /// Register (or coalesce onto) the single in-flight fetch for [url].
-  ///
-  /// Concurrent callers — including [forceFetch] — share the returned
-  /// future. Slot acquisition is intentionally NOT done here: it lives
-  /// in [_doFetchInner], the one place that actually performs a fetch,
-  /// so a coalesced caller never acquires a slot it can't release.
-  Future<MetadataState> _doFetch(String url) {
+  /// Resolve in strict stale-while-revalidate order: lookup, visible state,
+  /// retry hydration/decisions, coalescing, slot/throttle, fetch, reduction.
+  Future<MetadataRefreshResult> _refresh(
+    String url, {
+    required bool manual,
+  }) async {
+    final lookup = await _cache.lookup(url, now: _now());
+    final previous = lookup?.data;
+
+    if (!manual && lookup?.freshness == MetadataFreshness.fresh) {
+      final state = MetadataState.available(
+        data: previous!,
+        freshness: MetadataFreshness.fresh,
+      );
+      _emit(url, state);
+      return MetadataRefreshResult(
+        url: url,
+        outcome: MetadataRefreshOutcome.skipped,
+        state: state,
+      );
+    }
+
+    if (lookup != null) {
+      _emit(
+        url,
+        MetadataState.available(
+          data: previous!,
+          freshness: lookup.freshness,
+          refreshPhase: MetadataRefreshPhase.refreshing,
+        ),
+      );
+    } else {
+      _emit(
+        url,
+        const MetadataState.unavailable(
+          refreshPhase: MetadataRefreshPhase.refreshing,
+        ),
+      );
+    }
+
+    await _failures.hydrate(url);
+    if (!manual) {
+      final urlAllowed = _failures.shouldRetry(url);
+      final domainDecision =
+          urlAllowed ? _domainCircuitBreaker.decisionFor(url) : null;
+      if (!urlAllowed || domainDecision == DomainRequestDecision.skip) {
+        return _skip(url, lookup);
+      }
+    }
+
     final existing = _inFlight[url];
     if (existing != null) return existing;
 
-    final future = _doFetchInner(url);
+    late final Future<MetadataRefreshResult> future;
+    future = _doFetchInner(url, previous).whenComplete(() {
+      if (identical(_inFlight[url], future)) {
+        _inFlight.remove(url);
+      }
+    });
     _inFlight[url] = future;
     return future;
   }
 
-  /// Perform the actual fetch with concurrency gating, throttling,
-  /// change detection, and state propagation. Acquires exactly one
-  /// concurrency slot and always releases it on exit, so acquire/release
-  /// are paired 1:1 with a real fetch.
-  Future<MetadataState> _doFetchInner(String url) async {
-    // One acquire here, one release in `finally` — never stranded, even
-    // when callers coalesce onto this future via [_doFetch].
+  MetadataRefreshResult _skip(String url, MetadataCacheLookup? lookup) {
+    final record = _failures.recordFor(url);
+    final failure = record == null
+        ? null
+        : MetadataRefreshFailure(
+            kind: record.lastFailureKind ?? MetadataFailureKind.transport,
+            reason: "retry waiting",
+            attemptCount: record.consecutiveFailures,
+            statusCode: record.lastStatusCode,
+            nextRetryAt: record.nextRetryAt,
+          );
+    final phase = failure == null
+        ? MetadataRefreshPhase.idle
+        : MetadataRefreshPhase.failed;
+    final state = lookup == null
+        ? MetadataState.unavailable(
+            refreshPhase: phase,
+            lastFailure: failure,
+          )
+        : MetadataState.available(
+            data: lookup.data,
+            freshness: lookup.freshness,
+            refreshPhase: phase,
+            lastFailure: failure,
+          );
+    _emit(url, state);
+    return MetadataRefreshResult(
+      url: url,
+      outcome: MetadataRefreshOutcome.skipped,
+      state: state,
+    );
+  }
+
+  /// Perform one real network attempt with one concurrency slot.
+  Future<MetadataRefreshResult> _doFetchInner(
+    String url,
+    Metadata? previous,
+  ) async {
     await _acquireSlot();
-
     try {
-      // Read stale entry BEFORE fetching (for change comparison).
-      final oldEntry = await _cache.getStale(url);
-      final isFirstFetch = oldEntry == null;
-
+      if (_disposed) return _disposedResult(url, previous);
       await _throttleDomain(url);
-      final fetched = await _fetcher(url);
-      final newTitle = fetched.title;
-      final newDescription = fetched.description;
-      final newImage = fetched.imageUrl;
-      final resolvedUrl = fetched.resolvedUrl ?? url;
+      if (_disposed) return _disposedResult(url, previous);
 
-      // Compute adaptive TTL.
-      int consecutiveUnchanged = 0;
-      int ttlDays;
-
-      if (oldEntry != null) {
-        final changed = hasContentChanged(
-          oldTitle: oldEntry.title,
-          oldDescription: oldEntry.description,
-          oldImage: oldEntry.imageUrl,
-          newTitle: newTitle,
-          newDescription: newDescription,
-          newImage: newImage,
-        );
-
-        if (changed) {
-          ttlDays = computeInitialTtl(title: newTitle, url: url);
-          loggerGlobal.fine(
-            _source,
-            "Content CHANGED for: $url | TTL reset to ${ttlDays}d",
-          );
-        } else {
-          consecutiveUnchanged = oldEntry.consecutiveUnchanged + 1;
-          final baseDays = computeInitialTtl(title: newTitle, url: url);
-          ttlDays = computeAdaptiveTtl(
-            baseDays: baseDays,
-            consecutiveUnchanged: consecutiveUnchanged,
-          );
-          loggerGlobal.fine(
-            _source,
-            "Content unchanged for: $url | streak=$consecutiveUnchanged | TTL escalated to ${ttlDays}d",
-          );
-        }
-      } else {
-        ttlDays = computeInitialTtl(title: newTitle, url: url);
-        loggerGlobal.fine(
-          _source,
-          "First fetch for: $url | initial TTL=${ttlDays}d",
+      final stopwatch = Stopwatch()..start();
+      MetadataFetchResult fetched;
+      try {
+        fetched = await _fetcher(url, previous: previous);
+      } catch (error) {
+        fetched = MetadataFetchFailed(
+          kind: MetadataFailureKind.transport,
+          reason: error.toString(),
+          elapsed: stopwatch.elapsed,
         );
       }
-
-      ttlDays = applyJitter(ttlDays);
-
-      final metadata = Metadata(
-        url: resolvedUrl,
-        title: newTitle,
-        description: newDescription,
-        imageUrl: newImage,
-        fetchedAt: DateTime.now(),
-        ttlDays: ttlDays,
-        etag: fetched.etag,
-        contentHash: fetched.contentHash,
-        consecutiveUnchanged: consecutiveUnchanged,
-      );
-
-      await _cache.set(metadata);
-      _failures.clearFailure(url);
-
-      final newState = MetadataState.ready(metadata);
-      _emit(url, newState);
-
-      // Per the existing activity-log policy: log every initial fetch,
-      // and only failures for subsequent fetches. TTL purges old rows.
-      if (isFirstFetch) {
-        _onFetchLogged?.call(url, true);
-      }
-      return newState;
-    } catch (e) {
-      _failures.recordFailure(url);
-      final count = _failures.failureCount(url);
-      loggerGlobal.warning(
-        _source,
-        "Fetch failed for: $url | failures=$count",
-      );
-      _onFetchLogged?.call(url, false, error: e.toString());
-      final newState = MetadataState.failed(e.toString(), count);
-      _emit(url, newState);
-      return newState;
+      return await _reduce(url, previous, fetched);
     } finally {
-      _inFlight.remove(url);
       _releaseSlot();
     }
   }
 
+  MetadataRefreshResult _disposedResult(String url, Metadata? previous) {
+    final state = previous == null
+        ? const MetadataState.unavailable()
+        : MetadataState.available(
+            data: previous,
+            freshness: MetadataFreshness.stale,
+          );
+    return MetadataRefreshResult(
+      url: url,
+      outcome: MetadataRefreshOutcome.skipped,
+      state: state,
+    );
+  }
+
+  Future<MetadataRefreshResult> _reduce(
+    String url,
+    Metadata? previous,
+    MetadataFetchResult fetched,
+  ) async {
+    final result = switch (fetched) {
+      MetadataModified() => await _reduceModified(url, previous, fetched),
+      MetadataNotModified() => await _reduceNotModified(url, previous, fetched),
+      MetadataRejected() => await _reduceFailure(
+          url,
+          previous,
+          kind: fetched.kind,
+          reason: fetched.reason,
+          statusCode: fetched.statusCode,
+          retryAfter: fetched.retryAfter,
+          outcome: MetadataRefreshOutcome.rejected,
+        ),
+      MetadataFetchFailed() => await _reduceFailure(
+          url,
+          previous,
+          kind: fetched.kind,
+          reason: fetched.reason,
+          statusCode: fetched.statusCode,
+          outcome: MetadataRefreshOutcome.failed,
+        ),
+    };
+    _logFetch(url, result);
+    return result;
+  }
+
+  Future<MetadataRefreshResult> _reduceModified(
+    String url,
+    Metadata? previous,
+    MetadataModified fetched,
+  ) async {
+    final candidate = fetched.candidate;
+    final incomingTitle = _normalized(candidate.title);
+    final previousTitle = previous?.title;
+    final title = incomingTitle != null &&
+            previousTitle != null &&
+            previousTitle.trim().isNotEmpty &&
+            !isDefaultTitle(previousTitle.trim(), url) &&
+            isDefaultTitle(incomingTitle, url)
+        ? previousTitle
+        : _keepIncomingOrPrevious(candidate.title, previousTitle);
+    final description =
+        _keepIncomingOrPrevious(candidate.description, previous?.description);
+    final imageUrl =
+        _keepIncomingOrPrevious(candidate.imageUrl, previous?.imageUrl);
+
+    final changed = previous == null ||
+        hasContentChanged(
+          oldTitle: previous.title,
+          newTitle: title,
+          oldDescription: previous.description,
+          newDescription: description,
+          oldImage: previous.imageUrl,
+          newImage: imageUrl,
+        );
+    final consecutiveUnchanged =
+        changed ? 0 : previous.consecutiveUnchanged + 1;
+    final baseDays = computeInitialTtl(title: title, url: url);
+    final ttlDays = applyJitter(
+      changed
+          ? baseDays
+          : computeAdaptiveTtl(
+              baseDays: baseDays,
+              consecutiveUnchanged: consecutiveUnchanged,
+            ),
+      random: _ttlRandom,
+    );
+    final metadata = Metadata(
+      url: url,
+      resolvedUrl:
+          _normalized(candidate.resolvedUrl) ?? previous?.resolvedUrl ?? url,
+      title: title,
+      description: description,
+      imageUrl: imageUrl,
+      fetchedAt: _now(),
+      ttlDays: ttlDays,
+      etag: candidate.etag ?? previous?.etag,
+      lastModified: candidate.lastModified ?? previous?.lastModified,
+      contentHash: candidate.contentHash ?? previous?.contentHash,
+      consecutiveUnchanged: consecutiveUnchanged,
+    );
+
+    return _saveSuccess(
+      url,
+      metadata,
+      changed
+          ? MetadataRefreshOutcome.updated
+          : MetadataRefreshOutcome.unchanged,
+    );
+  }
+
+  Future<MetadataRefreshResult> _reduceNotModified(
+    String url,
+    Metadata? previous,
+    MetadataNotModified fetched,
+  ) async {
+    if (previous == null) {
+      return _reduceFailure(
+        url,
+        null,
+        kind: MetadataFailureKind.malformed,
+        reason: "304 response requires a previous metadata snapshot",
+        outcome: MetadataRefreshOutcome.failed,
+      );
+    }
+
+    final consecutiveUnchanged = previous.consecutiveUnchanged + 1;
+    final baseDays = computeInitialTtl(title: previous.title, url: url);
+    final ttlDays = applyJitter(
+      computeAdaptiveTtl(
+        baseDays: baseDays,
+        consecutiveUnchanged: consecutiveUnchanged,
+      ),
+      random: _ttlRandom,
+    );
+    final metadata = previous.copyWith(
+      url: url,
+      resolvedUrl:
+          _normalized(fetched.resolvedUrl) ?? previous.resolvedUrl ?? url,
+      fetchedAt: _now(),
+      ttlDays: ttlDays,
+      etag: fetched.etag ?? previous.etag,
+      lastModified: fetched.lastModified ?? previous.lastModified,
+      consecutiveUnchanged: consecutiveUnchanged,
+    );
+    return _saveSuccess(url, metadata, MetadataRefreshOutcome.unchanged);
+  }
+
+  Future<MetadataRefreshResult> _saveSuccess(
+    String url,
+    Metadata metadata,
+    MetadataRefreshOutcome outcome,
+  ) async {
+    await _cache.set(metadata);
+    await _failures.recordSuccess(url);
+    _domainCircuitBreaker.recordSuccess(url);
+    final state = MetadataState.available(
+      data: metadata,
+      freshness: MetadataFreshness.fresh,
+    );
+    _emit(url, state);
+    return MetadataRefreshResult(url: url, outcome: outcome, state: state);
+  }
+
+  Future<MetadataRefreshResult> _reduceFailure(
+    String url,
+    Metadata? previous, {
+    required MetadataFailureKind kind,
+    required String reason,
+    required MetadataRefreshOutcome outcome,
+    int? statusCode,
+    Duration? retryAfter,
+  }) async {
+    final record = await _failures.recordFailure(
+      url,
+      kind: kind,
+      statusCode: statusCode,
+      retryAfter: retryAfter,
+    );
+    _domainCircuitBreaker.recordFailure(
+      url,
+      kind: kind,
+      retryAfter: retryAfter,
+    );
+    final failure = MetadataRefreshFailure(
+      kind: record.lastFailureKind ?? kind,
+      reason: reason,
+      attemptCount: record.consecutiveFailures,
+      statusCode: record.lastStatusCode,
+      nextRetryAt: record.nextRetryAt,
+    );
+    final state = previous == null
+        ? MetadataState.unavailable(
+            refreshPhase: MetadataRefreshPhase.failed,
+            lastFailure: failure,
+          )
+        : MetadataState.available(
+            data: previous,
+            freshness: MetadataFreshness.stale,
+            refreshPhase: MetadataRefreshPhase.failed,
+            lastFailure: failure,
+          );
+    _emit(url, state);
+    loggerGlobal.warning(
+      _source,
+      "Fetch ${outcome.name} for: $url | failures=${record.consecutiveFailures}",
+    );
+    return MetadataRefreshResult(url: url, outcome: outcome, state: state);
+  }
+
+  String? _normalized(String? value) {
+    final normalized = value?.trim();
+    return normalized == null || normalized.isEmpty ? null : normalized;
+  }
+
+  String? _keepIncomingOrPrevious(String? incoming, String? previous) =>
+      _normalized(incoming) ?? previous;
+
+  void _logFetch(String url, MetadataRefreshResult result) {
+    try {
+      _onFetchLogged?.call(url, result);
+    } catch (error) {
+      loggerGlobal.fine(_source, "Fetch log callback failed for $url: $error");
+    }
+  }
   // ---------------------------------------------------------------------------
   // Internal: concurrency + throttling
   // ---------------------------------------------------------------------------
@@ -402,27 +563,27 @@ class MetadataService {
   /// longer cause a wait, so keeping it would only grow the map without
   /// bound (one stranded entry per distinct host ever fetched).
   Future<void> _throttleDomain(String url) async {
-    final domain = Uri.tryParse(url)?.host;
-    if (domain == null || domain.isEmpty) return;
+    final domain = Uri.parse(url).host.toLowerCase();
+    if (domain.isEmpty) return;
 
     _pruneDomainThrottle();
 
     final last = _lastDomainFetch[domain];
     if (last != null) {
-      final elapsed = DateTime.now().difference(last);
+      final elapsed = _now().difference(last);
       if (elapsed < _domainDelay) {
         await Future<void>.delayed(_domainDelay - elapsed);
       }
     }
-    _lastDomainFetch[domain] = DateTime.now();
+    _lastDomainFetch[domain] = _now();
   }
 
   /// Drop throttle entries older than the delay window — they no longer
   /// affect throttling decisions.
   void _pruneDomainThrottle() {
     if (_lastDomainFetch.isEmpty) return;
-    final cutoff = DateTime.now().subtract(_domainDelay);
-    _lastDomainFetch.removeWhere((_, when) => when.isBefore(cutoff));
+    final cutoff = _now().subtract(_domainDelay);
+    _lastDomainFetch.removeWhere((_, when) => !when.isAfter(cutoff));
   }
 
   // ---------------------------------------------------------------------------
@@ -468,6 +629,7 @@ class MetadataService {
   void cleanupStale() {
     _pruneDomainThrottle();
     _failures.cleanupStale();
+    _domainCircuitBreaker.cleanup();
   }
 
   /// Release every owned resource: dispose all per-URL signals, clear

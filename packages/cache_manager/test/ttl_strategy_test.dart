@@ -141,10 +141,10 @@ void main() {
   });
 
   group("computeInitialTtl", () {
-    test("default title returns 30 days", () {
+    test("domain-default title uses the URL tier", () {
       expect(
         computeInitialTtl(title: "example", url: "https://example.com/post/1"),
-        kDefaultTitleBaseTtlDays,
+        TtlTier.medium.baseDays,
       );
     });
 
@@ -156,12 +156,11 @@ void main() {
       );
     });
 
-    test("default title overrides URL tier", () {
-      // /search?q= would normally be short (3 days), but default title → 30
+    test("domain-default title uses the short URL tier", () {
       expect(
         computeInitialTtl(
             title: "example", url: "https://example.com/search?q=test"),
-        kDefaultTitleBaseTtlDays,
+        TtlTier.short.baseDays,
       );
     });
 

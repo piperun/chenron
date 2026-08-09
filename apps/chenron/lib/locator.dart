@@ -51,9 +51,11 @@ void locatorSetup() {
   // MainSetup._setupConfig.
   locator.registerSingleton<MetadataCache>(MetadataCache());
   locator.registerSingleton<FailureTracker>(FailureTracker());
+  locator.registerSingleton<DomainCircuitBreaker>(DomainCircuitBreaker());
   locator.registerSingleton<MetadataService>(MetadataService(
     cache: locator.get<MetadataCache>(),
     failures: locator.get<FailureTracker>(),
+    domainCircuitBreaker: locator.get<DomainCircuitBreaker>(),
     fetcher: _fetcherAdapter,
     onFetchLogged: _onFetchLogged,
   ));
@@ -110,23 +112,41 @@ void locatorSetup() {
 
 const _metadataLogTag = "MetadataService";
 
-/// Adapts chenron's [MetadataFetcher.fetch] scraper to the
-/// [RawFetchedMetadata] DTO that the cache_manager package expects.
-Future<RawFetchedMetadata> _fetcherAdapter(String url) async {
-  final f = await MetadataFetcher.fetch(url);
-  return RawFetchedMetadata(
-    title: f.title,
-    description: f.description,
-    imageUrl: f.image,
-    resolvedUrl: f.url,
+/// Adapts Chenron's legacy scraper to the structured cache-manager boundary.
+/// The Task 8 HTTP-client cutover will replace this temporary app adapter.
+Future<MetadataFetchResult> _fetcherAdapter(
+  String url, {
+  Metadata? previous,
+}) async {
+  final stopwatch = Stopwatch()..start();
+  final fetched = await MetadataFetcher.fetch(url);
+  return MetadataModified(
+    candidate: MetadataCandidate(
+      title: fetched.title,
+      description: fetched.description,
+      imageUrl: fetched.image,
+      resolvedUrl: fetched.url ?? url,
+    ),
+    statusCode: 200,
+    responseBytes: 0,
+    elapsed: stopwatch.elapsed,
   );
 }
 
-/// Forwards every fetch outcome to the BackgroundJobs table so the
-/// activity log shows it. Fire-and-forget — failures here must not
-/// break the fetch itself.
-void _onFetchLogged(String url, bool succeeded, {String? error}) {
-  unawaited(_logMetadataFetch(url: url, succeeded: succeeded, error: error));
+/// Forwards a structured terminal result to the existing activity log.
+void _onFetchLogged(String url, MetadataRefreshResult result) {
+  final succeeded = result.outcome == MetadataRefreshOutcome.updated ||
+      result.outcome == MetadataRefreshOutcome.unchanged;
+  final failure = switch (result.state) {
+    MetadataStateAvailable(:final lastFailure) => lastFailure,
+    MetadataStateUnavailable(:final lastFailure) => lastFailure,
+    _ => null,
+  };
+  unawaited(_logMetadataFetch(
+    url: url,
+    succeeded: succeeded,
+    error: failure?.reason,
+  ));
 }
 
 /// Best-effort write of a metadata-fetch entry into the BackgroundJobs

@@ -102,6 +102,17 @@ void main() {
     );
   });
 
+  test("transient manual bypass failure keeps an open circuit delayed", () {
+    breaker.recordFailure(firstUrl, kind: MetadataFailureKind.blocked);
+
+    breaker.recordFailure(firstUrl, kind: MetadataFailureKind.transport);
+
+    expect(breaker.decisionFor(secondUrl), DomainRequestDecision.skip);
+    expect(
+      breaker.nextRetryAt(firstUrl),
+      initialNow.add(const Duration(minutes: 10)),
+    );
+  });
   test("non-domain half-open outcome releases the host", () {
     breaker.recordFailure(firstUrl, kind: MetadataFailureKind.blocked);
     clock.now = initialNow.add(const Duration(minutes: 2));

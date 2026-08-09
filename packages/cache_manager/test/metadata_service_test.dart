@@ -1,721 +1,606 @@
 import "dart:async";
+import "dart:math";
 
 import "package:cache_manager/cache_manager.dart";
 import "package:flutter_test/flutter_test.dart";
-import "package:signals/signals.dart";
 
-/// In-memory typed persistence backing the cache under test.
-class _FakePersistence implements MetadataPersistence {
-  final Map<String, Metadata> _store = {};
-
-  @override
-  Future<Metadata?> get(String url) async => _store[url];
+class _FakePersistence
+    implements MetadataPersistence, MetadataRefreshPersistence {
+  final Map<String, Metadata> metadata = {};
+  final Map<String, MetadataRefreshRecord> records = {};
+  DateTime now = DateTime.utc(2026, 8, 9, 12);
 
   @override
-  Future<void> set(Metadata metadata) async {
-    _store[metadata.url] = metadata;
+  Future<Metadata?> get(String url) async => metadata[url];
+
+  @override
+  Future<void> set(Metadata value) async {
+    metadata[value.url] = value;
   }
 
   @override
-  Future<void> remove(String url) async => _store.remove(url);
-
-  @override
-  Future<void> clearAll() async => _store.clear();
-
-  @override
-  Future<int> count() async => _store.length;
-
-  @override
-  Future<List<Metadata>> getExpiredEntries() async {
-    final now = DateTime.now();
-    return _store.values
-        .where((m) => now.difference(m.fetchedAt).inDays >= m.ttlDays)
-        .toList();
+  Future<void> remove(String url) async {
+    metadata.remove(url);
   }
 
-  void seed(Metadata m) => _store[m.url] = m;
+  @override
+  Future<void> clearAll() async {
+    metadata.clear();
+    records.clear();
+  }
+
+  @override
+  Future<int> count() async => metadata.length;
+
+  @override
+  Future<List<Metadata>> getExpiredEntries() async => metadata.values
+      .where((value) => now.difference(value.fetchedAt).inDays >= value.ttlDays)
+      .toList(growable: false);
+
+  @override
+  Future<MetadataRefreshRecord?> getRefreshRecord(String url) async =>
+      records[url];
+
+  @override
+  Future<void> setRefreshRecord(MetadataRefreshRecord record) async {
+    records[record.url] = record;
+  }
+
+  @override
+  Future<void> removeRefreshRecord(String url) async {
+    records.remove(url);
+  }
+
+  @override
+  Future<void> clearAllRefreshRecords() async {
+    records.clear();
+  }
+
+  void seed(Metadata value) => metadata[value.url] = value;
 }
 
-/// Programmable fake fetcher.
 class _FakeFetcher {
-  /// Per-URL canned response (or `null` to throw).
-  final Map<String, RawFetchedMetadata?> responses = {};
-  final List<String> calls = [];
+  final Map<String, Future<MetadataFetchResult> Function(Metadata?)> handlers =
+      {};
+  final List<(String, Metadata?)> calls = [];
+  int active = 0;
+  int maxActive = 0;
 
-  /// Resolves only after [release] is called for the URL — used to
-  /// test in-flight coalescing and concurrency.
-  final Map<String, Completer<void>> _gates = {};
-
-  Future<RawFetchedMetadata> fetch(String url) async {
-    calls.add(url);
-    final gate = _gates[url];
-    if (gate != null) await gate.future;
-    final response = responses[url];
-    if (response == null) throw Exception("boom: $url");
-    return response;
+  Future<MetadataFetchResult> fetch(
+    String url, {
+    Metadata? previous,
+  }) async {
+    calls.add((url, previous));
+    active++;
+    maxActive = max(maxActive, active);
+    try {
+      final handler = handlers[url];
+      if (handler == null) throw StateError("No response for $url");
+      return await handler(previous);
+    } finally {
+      active--;
+    }
   }
 
-  void gate(String url) {
-    _gates[url] = Completer<void>();
-  }
-
-  void release(String url) {
-    _gates.remove(url)?.complete();
+  void respond(String url, MetadataFetchResult result) {
+    handlers[url] = (_) async => result;
   }
 }
+
+class _NoJitterRandom implements Random {
+  @override
+  bool nextBool() => false;
+
+  @override
+  double nextDouble() => 0.5;
+
+  @override
+  int nextInt(int max) => 0;
+}
+
+MetadataModified _modified(
+  String url, {
+  String? title,
+  String? description,
+  String? imageUrl,
+  String? etag,
+  String? lastModified,
+  String? contentHash,
+}) =>
+    MetadataModified(
+      candidate: MetadataCandidate(
+        resolvedUrl: url,
+        title: title,
+        description: description,
+        imageUrl: imageUrl,
+        etag: etag,
+        lastModified: lastModified,
+        contentHash: contentHash,
+      ),
+      statusCode: 200,
+      responseBytes: 100,
+      elapsed: const Duration(milliseconds: 20),
+    );
 
 void main() {
+  const url = "https://example.com/post/1";
+  late DateTime now;
   late _FakePersistence persistence;
   late MetadataCache cache;
   late FailureTracker failures;
+  late DomainCircuitBreaker domains;
   late _FakeFetcher fetcher;
 
-  setUp(() {
-    persistence = _FakePersistence();
-    cache = MetadataCache(persistence: persistence);
-    failures = FailureTracker();
-    fetcher = _FakeFetcher();
-  });
+  Metadata staleMetadata({
+    String metadataUrl = url,
+    String title = "Known title",
+    String? description = "Known description",
+    String? imageUrl = "https://images.example/known.jpg",
+    String? etag = '"old"',
+    String? lastModified = "Fri, 01 Aug 2026 10:00:00 GMT",
+    String? contentHash = "old-hash",
+    int consecutiveUnchanged = 0,
+  }) =>
+      Metadata(
+        url: metadataUrl,
+        title: title,
+        description: description,
+        imageUrl: imageUrl,
+        fetchedAt: now.subtract(const Duration(days: 30)),
+        ttlDays: 7,
+        etag: etag,
+        lastModified: lastModified,
+        contentHash: contentHash,
+        consecutiveUnchanged: consecutiveUnchanged,
+      );
 
   MetadataService buildService({
     int maxConcurrent = 3,
+    int signalCapacity = MetadataService.defaultSignalCapacity,
     Duration domainDelay = Duration.zero,
     OnFetchLogged? onFetchLogged,
-  }) {
-    return MetadataService(
-      cache: cache,
-      failures: failures,
-      fetcher: fetcher.fetch,
-      onFetchLogged: onFetchLogged,
-      maxConcurrent: maxConcurrent,
-      domainDelay: domainDelay,
+  }) =>
+      MetadataService(
+        cache: cache,
+        failures: failures,
+        domainCircuitBreaker: domains,
+        fetcher: fetcher.fetch,
+        onFetchLogged: onFetchLogged,
+        now: () => now,
+        ttlRandom: _NoJitterRandom(),
+        maxConcurrent: maxConcurrent,
+        domainDelay: domainDelay,
+        signalCapacity: signalCapacity,
+      );
+
+  setUp(() {
+    now = DateTime.utc(2026, 8, 9, 12);
+    persistence = _FakePersistence()..now = now;
+    cache = MetadataCache(persistence: persistence);
+    failures = FailureTracker(persistence: persistence, now: () => now);
+    domains = DomainCircuitBreaker(now: () => now);
+    fetcher = _FakeFetcher();
+  });
+
+  test("stale cache is available and refreshing before fetch completes",
+      () async {
+    final old = staleMetadata();
+    persistence.seed(old);
+    final fetchCompleter = Completer<MetadataFetchResult>();
+    fetcher.handlers[url] = (previous) {
+      expect(previous, old);
+      return fetchCompleter.future;
+    };
+
+    final signal = buildService().watch(url);
+    await pumpEventQueue();
+
+    expect(signal.value, isA<MetadataStateAvailable>());
+    final during = signal.value as MetadataStateAvailable;
+    expect(during.data.title, "Known title");
+    expect(during.freshness, MetadataFreshness.stale);
+    expect(during.refreshPhase, MetadataRefreshPhase.refreshing);
+
+    fetchCompleter.complete(_modified(url, title: "New title"));
+    await pumpEventQueue();
+  });
+
+  test("rejected refresh keeps stale data and emits failed phase", () async {
+    final old = staleMetadata();
+    persistence.seed(old);
+    final fetchCompleter = Completer<MetadataFetchResult>();
+    fetcher.handlers[url] = (_) => fetchCompleter.future;
+    final service = buildService();
+
+    final signal = service.watch(url);
+    await pumpEventQueue();
+    expect(signal.value, isA<MetadataStateAvailable>());
+    expect((signal.value as MetadataStateAvailable).data.title, "Known title");
+    expect(
+      (signal.value as MetadataStateAvailable).refreshPhase,
+      MetadataRefreshPhase.refreshing,
     );
-  }
 
-  group("watch", () {
-    test("returns the same signal instance for the same URL", () {
-      final service = buildService();
-      final a = service.watch("https://x.com");
-      final b = service.watch("https://x.com");
-      expect(identical(a, b), isTrue);
-    });
+    fetchCompleter.complete(const MetadataRejected(
+      kind: MetadataFailureKind.blocked,
+      reason: "403",
+      statusCode: 403,
+      elapsed: Duration(milliseconds: 20),
+    ));
+    await pumpEventQueue();
 
-    test("initially emits loading()", () {
-      final service = buildService();
-      final s = service.watch("https://x.com");
-      expect(s.value, isA<MetadataStateLoading>());
-    });
-
-    test("emits ready() after a successful first fetch", () async {
-      fetcher.responses["https://x.com"] =
-          const RawFetchedMetadata(title: "X title");
-      final service = buildService();
-      final s = service.watch("https://x.com");
-
-      // Pump microtasks until we leave the loading state.
-      for (var i = 0; i < 10 && s.value is MetadataStateLoading; i++) {
-        await Future<void>.delayed(Duration.zero);
-      }
-
-      expect(s.value, isA<MetadataStateReady>());
-      final ready = s.value as MetadataStateReady;
-      expect(ready.data.title, "X title");
-      expect(ready.data.url, "https://x.com");
-    });
-
-    test("emits failed() after a fetch error and records failure", () async {
-      // No response registered → fetcher throws.
-      final service = buildService();
-      final s = service.watch("https://err.com");
-
-      for (var i = 0; i < 10 && s.value is MetadataStateLoading; i++) {
-        await Future<void>.delayed(Duration.zero);
-      }
-
-      expect(s.value, isA<MetadataStateFailed>());
-      final fail = s.value as MetadataStateFailed;
-      expect(fail.attemptCount, 1);
-      expect(failures.failureCount("https://err.com"), 1);
-    });
-
-    test("returns cached fresh data without fetching", () async {
-      persistence.seed(Metadata(
-        url: "https://cached.com",
-        title: "Cached",
-        fetchedAt: DateTime.now(),
-        ttlDays: 7,
-      ));
-
-      final service = buildService();
-      final s = service.watch("https://cached.com");
-
-      for (var i = 0; i < 10 && s.value is MetadataStateLoading; i++) {
-        await Future<void>.delayed(Duration.zero);
-      }
-
-      expect(s.value, isA<MetadataStateReady>());
-      expect((s.value as MetadataStateReady).data.title, "Cached");
-      expect(fetcher.calls, isEmpty);
-    });
-
-    test(
-        "emits failed(backoff) without fetching when failure tracker says no",
-        () async {
-      failures.recordFailure("https://blocked.com");
-
-      final service = buildService();
-      final s = service.watch("https://blocked.com");
-
-      for (var i = 0; i < 10 && s.value is MetadataStateLoading; i++) {
-        await Future<void>.delayed(Duration.zero);
-      }
-
-      expect(s.value, isA<MetadataStateFailed>());
-      expect((s.value as MetadataStateFailed).reason, "backoff");
-      expect(fetcher.calls, isEmpty);
-    });
+    final after = signal.value as MetadataStateAvailable;
+    expect(after.data, old);
+    expect(after.refreshPhase, MetadataRefreshPhase.failed);
+    expect(after.lastFailure?.kind, MetadataFailureKind.blocked);
+    expect(after.lastFailure?.reason, "403");
+    expect(after.lastFailure?.statusCode, 403);
+    expect(after.lastFailure?.attemptCount, 1);
+    expect(after.lastFailure?.nextRetryAt, now.add(const Duration(minutes: 2)));
+    expect(persistence.metadata[url], old);
+    expect(persistence.records[url]?.lastStatusCode, 403);
+    expect(domains.nextRetryAt(url), now.add(const Duration(minutes: 2)));
   });
 
-  group("in-flight coalescing", () {
-    test("concurrent watches for the same URL share one fetch", () async {
-      fetcher.gate("https://slow.com");
-      fetcher.responses["https://slow.com"] =
-          const RawFetchedMetadata(title: "Slow");
+  test("thrown transport failure keeps stale data and emits failed phase",
+      () async {
+    final old = staleMetadata();
+    persistence.seed(old);
+    fetcher.handlers[url] = (_) async => throw const SocketExceptionForTest();
+    final signal = buildService().watch(url);
 
-      final service = buildService();
-      final a = service.watch("https://slow.com");
-      final b = service.watch("https://slow.com");
+    await pumpEventQueue();
 
-      // Both should see the same signal — already covered by another
-      // test, but here we also confirm only ONE fetch was issued.
-      expect(identical(a, b), isTrue);
-
-      // Give microtasks a chance to run; nothing should fetch yet
-      // because we gated it.
-      await Future<void>.delayed(Duration.zero);
-      expect(fetcher.calls.length, 1);
-
-      fetcher.release("https://slow.com");
-      for (var i = 0; i < 10 && a.value is MetadataStateLoading; i++) {
-        await Future<void>.delayed(Duration.zero);
-      }
-      expect(a.value, isA<MetadataStateReady>());
-      // Still only one network call.
-      expect(fetcher.calls.length, 1);
-    });
+    final after = signal.value as MetadataStateAvailable;
+    expect(after.data, old);
+    expect(after.refreshPhase, MetadataRefreshPhase.failed);
+    expect(after.lastFailure?.kind, MetadataFailureKind.transport);
+    expect(after.lastFailure?.reason, contains("socket closed"));
+    expect(after.lastFailure?.attemptCount, 1);
+    expect(persistence.metadata[url], old);
   });
 
-  group("forceFetch", () {
-    test("bypasses cache and refetches fresh entries", () async {
-      persistence.seed(Metadata(
-        url: "https://x.com",
-        title: "Old",
-        fetchedAt: DateTime.now(),
-        ttlDays: 30,
-      ));
-      fetcher.responses["https://x.com"] =
-          const RawFetchedMetadata(title: "New");
+  test("no-cache failure emits unavailable failed", () async {
+    fetcher.respond(
+      url,
+      const MetadataFetchFailed(
+        kind: MetadataFailureKind.timeout,
+        reason: "deadline",
+        elapsed: Duration(seconds: 15),
+      ),
+    );
+    final signal = buildService().watch(url);
 
-      final service = buildService();
-      final state = await service.forceFetch("https://x.com");
+    await pumpEventQueue();
 
-      expect(state, isA<MetadataStateReady>());
-      expect((state as MetadataStateReady).data.title, "New");
-      expect(fetcher.calls, ["https://x.com"]);
-    });
-
-    test("clears failure history then fetches", () async {
-      failures.recordFailure("https://x.com");
-      fetcher.responses["https://x.com"] =
-          const RawFetchedMetadata(title: "OK");
-
-      final service = buildService();
-      final state = await service.forceFetch("https://x.com");
-
-      expect(state, isA<MetadataStateReady>());
-      expect(failures.failureCount("https://x.com"), 0);
-    });
-
-    test("updates the existing signal", () async {
-      fetcher.responses["https://x.com"] =
-          const RawFetchedMetadata(title: "First");
-      final service = buildService();
-      final s = service.watch("https://x.com");
-
-      for (var i = 0; i < 10 && s.value is MetadataStateLoading; i++) {
-        await Future<void>.delayed(Duration.zero);
-      }
-      expect((s.value as MetadataStateReady).data.title, "First");
-
-      fetcher.responses["https://x.com"] =
-          const RawFetchedMetadata(title: "Second");
-      await service.forceFetch("https://x.com");
-
-      expect((s.value as MetadataStateReady).data.title, "Second");
-    });
+    final state = signal.value as MetadataStateUnavailable;
+    expect(state.refreshPhase, MetadataRefreshPhase.failed);
+    expect(state.lastFailure?.kind, MetadataFailureKind.timeout);
+    expect(state.lastFailure?.reason, "deadline");
+    expect(state.lastFailure?.attemptCount, 1);
   });
 
-  group("peek", () {
-    test("returns loading() when no signal exists for the URL", () {
-      final service = buildService();
-      expect(service.peek("https://x.com"), isA<MetadataStateLoading>());
-    });
+  test("304 refreshes bookkeeping and returns unchanged while keeping fields",
+      () async {
+    final old = staleMetadata(consecutiveUnchanged: 2);
+    persistence.seed(old);
+    fetcher.respond(
+      url,
+      const MetadataNotModified(
+        resolvedUrl: "https://cdn.example.com/post/1",
+        etag: '"new"',
+        lastModified: "Sat, 09 Aug 2026 12:00:00 GMT",
+        elapsed: Duration(milliseconds: 15),
+      ),
+    );
+    final logged = <MetadataRefreshResult>[];
+    final service =
+        buildService(onFetchLogged: (_, result) => logged.add(result));
 
-    test("returns current signal value without fetching", () async {
-      fetcher.responses["https://x.com"] =
-          const RawFetchedMetadata(title: "X");
-      final service = buildService();
-      service.watch("https://x.com");
+    final result = await service.forceFetch(url);
 
-      // Drain the initial fetch.
-      for (var i = 0;
-          i < 10 && service.peek("https://x.com") is MetadataStateLoading;
-          i++) {
-        await Future<void>.delayed(Duration.zero);
-      }
-
-      final callsBefore = fetcher.calls.length;
-      final state = service.peek("https://x.com");
-      expect(state, isA<MetadataStateReady>());
-      expect(fetcher.calls.length, callsBefore); // no new fetch
-    });
+    expect(result.outcome, MetadataRefreshOutcome.unchanged);
+    final state = result.state as MetadataStateAvailable;
+    expect(state.refreshPhase, MetadataRefreshPhase.idle);
+    expect(state.freshness, MetadataFreshness.fresh);
+    expect(state.data.url, url);
+    expect(state.data.resolvedUrl, "https://cdn.example.com/post/1");
+    expect(state.data.title, old.title);
+    expect(state.data.description, old.description);
+    expect(state.data.imageUrl, old.imageUrl);
+    expect(state.data.fetchedAt, now);
+    expect(state.data.etag, '"new"');
+    expect(state.data.lastModified, "Sat, 09 Aug 2026 12:00:00 GMT");
+    expect(state.data.contentHash, old.contentHash);
+    expect(state.data.consecutiveUnchanged, 3);
+    expect(state.data.ttlDays, 56);
+    expect(logged.single, same(result));
   });
 
-  group("onFetchLogged", () {
-    test("fires on first successful fetch", () async {
-      final logged = <(String, bool, String?)>[];
-      fetcher.responses["https://x.com"] =
-          const RawFetchedMetadata(title: "X");
-      final service = buildService(
-        onFetchLogged: (url, ok, {error}) => logged.add((url, ok, error)),
-      );
+  test("modified accepted title replaces old title and returns updated",
+      () async {
+    persistence.seed(staleMetadata());
+    fetcher.respond(url, _modified(url, title: "  Better title  "));
 
-      service.watch("https://x.com");
-      for (var i = 0; i < 10 && logged.isEmpty; i++) {
-        await Future<void>.delayed(Duration.zero);
-      }
+    final result = await buildService().forceFetch(url);
 
-      expect(logged, [("https://x.com", true, null)]);
-    });
-
-    test("does NOT fire on subsequent (refresh) fetches", () async {
-      final logged = <(String, bool, String?)>[];
-      persistence.seed(Metadata(
-        url: "https://x.com",
-        title: "Old",
-        fetchedAt: DateTime.now().subtract(const Duration(days: 30)),
-        ttlDays: 7,
-      ));
-      fetcher.responses["https://x.com"] =
-          const RawFetchedMetadata(title: "Refreshed");
-
-      final service = buildService(
-        onFetchLogged: (url, ok, {error}) => logged.add((url, ok, error)),
-      );
-
-      service.watch("https://x.com");
-      for (var i = 0; i < 10; i++) {
-        await Future<void>.delayed(Duration.zero);
-      }
-
-      // Existing entry means !isFirstFetch — no success log.
-      expect(logged, isEmpty);
-    });
-
-    test("fires on failures (always)", () async {
-      final logged = <(String, bool, String?)>[];
-      // No response → fetcher throws.
-      final service = buildService(
-        onFetchLogged: (url, ok, {error}) => logged.add((url, ok, error)),
-      );
-
-      service.watch("https://bad.com");
-      for (var i = 0; i < 10 && logged.isEmpty; i++) {
-        await Future<void>.delayed(Duration.zero);
-      }
-
-      expect(logged.length, 1);
-      expect(logged.first.$1, "https://bad.com");
-      expect(logged.first.$2, isFalse);
-      expect(logged.first.$3, contains("boom"));
-    });
+    expect(result.outcome, MetadataRefreshOutcome.updated);
+    final data = (result.state as MetadataStateAvailable).data;
+    expect(data.title, "Better title");
+    expect(data.consecutiveUnchanged, 0);
+    expect(data.ttlDays, 7);
   });
 
-  group("concurrency", () {
-    test("respects maxConcurrent slot limit", () async {
-      // Three gated URLs, maxConcurrent=2 → only two start before
-      // a slot is released.
-      for (final url in ["https://a.com", "https://b.com", "https://c.com"]) {
-        fetcher.gate(url);
-        fetcher.responses[url] = RawFetchedMetadata(title: url);
-      }
+  test("modified missing description and image preserves verified fields",
+      () async {
+    final old = staleMetadata();
+    persistence.seed(old);
+    fetcher.respond(
+      url,
+      _modified(
+        url,
+        title: "Better title",
+        description: "   ",
+      ),
+    );
 
-      final service = buildService(maxConcurrent: 2);
-      service.watch("https://a.com");
-      service.watch("https://b.com");
-      service.watch("https://c.com");
+    final result = await buildService().forceFetch(url);
 
-      // Pump.
-      for (var i = 0; i < 5; i++) {
-        await Future<void>.delayed(Duration.zero);
-      }
-      expect(fetcher.calls.length, 2);
-
-      // Release one — third should now start.
-      fetcher.release("https://a.com");
-      for (var i = 0; i < 10 && fetcher.calls.length < 3; i++) {
-        await Future<void>.delayed(Duration.zero);
-      }
-      expect(fetcher.calls.length, 3);
-
-      // Cleanup.
-      fetcher.release("https://b.com");
-      fetcher.release("https://c.com");
-    });
+    final data = (result.state as MetadataStateAvailable).data;
+    expect(result.outcome, MetadataRefreshOutcome.updated);
+    expect(data.description, old.description);
+    expect(data.imageUrl, old.imageUrl);
   });
 
-  group("refreshStaleEntries", () {
-    test("refreshes only expired entries", () async {
-      persistence.seed(Metadata(
-        url: "https://fresh.com",
-        title: "Fresh",
-        fetchedAt: DateTime.now(),
-        ttlDays: 7,
-      ));
-      persistence.seed(Metadata(
-        url: "https://stale.com",
-        title: "Old",
-        fetchedAt: DateTime.now().subtract(const Duration(days: 30)),
-        ttlDays: 7,
-      ));
-      fetcher.responses["https://stale.com"] =
-          const RawFetchedMetadata(title: "Refreshed");
+  test("domain-only incoming title never replaces meaningful old title",
+      () async {
+    final old = staleMetadata(title: "A meaningful article");
+    persistence.seed(old);
+    fetcher.respond(url, _modified(url, title: "  example  "));
 
-      final service = buildService();
-      final count = await service.refreshStaleEntries();
+    final result = await buildService().forceFetch(url);
 
-      expect(count, 1);
-      expect(fetcher.calls, ["https://stale.com"]);
-    });
-
-    test("concurrent calls collapse to one run", () async {
-      persistence.seed(Metadata(
-        url: "https://stale.com",
-        title: "Old",
-        fetchedAt: DateTime.now().subtract(const Duration(days: 30)),
-        ttlDays: 7,
-      ));
-      fetcher.responses["https://stale.com"] =
-          const RawFetchedMetadata(title: "Refreshed");
-
-      final service = buildService();
-      final a = service.refreshStaleEntries();
-      final b = service.refreshStaleEntries();
-
-      final results = await Future.wait([a, b]);
-      // One of them did the work; the other returned 0 immediately.
-      expect(results.contains(1), isTrue);
-      expect(results.contains(0), isTrue);
-      // Only one fetch happened.
-      expect(fetcher.calls.length, 1);
-    });
+    expect(result.outcome, MetadataRefreshOutcome.unchanged);
+    final data = (result.state as MetadataStateAvailable).data;
+    expect(data.title, "A meaningful article");
+    expect(data.consecutiveUnchanged, 1);
+    expect(data.ttlDays, 14);
   });
 
-  group("change detection / adaptive TTL", () {
-    test("unchanged content increments consecutiveUnchanged", () async {
-      persistence.seed(Metadata(
-        url: "https://x.com",
-        title: "Same",
-        description: "Same desc",
-        imageUrl: "https://img/1",
-        fetchedAt: DateTime.now().subtract(const Duration(days: 30)),
-        ttlDays: 7,
-        consecutiveUnchanged: 2,
-      ));
-      fetcher.responses["https://x.com"] = const RawFetchedMetadata(
-        title: "Same",
-        description: "Same desc",
-        imageUrl: "https://img/1",
-      );
+  test("saved requested URL remains cache key after redirect", () async {
+    const redirected = "https://www.example.com/canonical/1";
+    fetcher.respond(url, _modified(redirected, title: "Article"));
 
-      final service = buildService();
-      final state = await service.forceFetch("https://x.com");
+    final result = await buildService().forceFetch(url);
 
-      expect(state, isA<MetadataStateReady>());
-      final m = (state as MetadataStateReady).data;
-      expect(m.consecutiveUnchanged, 3);
-    });
-
-    test("changed content resets consecutiveUnchanged to 0", () async {
-      persistence.seed(Metadata(
-        url: "https://x.com",
-        title: "Old",
-        fetchedAt: DateTime.now().subtract(const Duration(days: 30)),
-        ttlDays: 7,
-        consecutiveUnchanged: 5,
-      ));
-      fetcher.responses["https://x.com"] =
-          const RawFetchedMetadata(title: "Brand new");
-
-      final service = buildService();
-      final state = await service.forceFetch("https://x.com");
-
-      expect(state, isA<MetadataStateReady>());
-      expect((state as MetadataStateReady).data.consecutiveUnchanged, 0);
-    });
+    final data = (result.state as MetadataStateAvailable).data;
+    expect(data.url, url);
+    expect(data.resolvedUrl, redirected);
+    expect(persistence.metadata[url], data);
+    expect(persistence.metadata[redirected], isNull);
   });
 
-  group("forceFetch slot accounting (H9)", () {
-    test(
-        "force-refreshing an in-flight URL does not leak a concurrency slot",
-        () async {
-      // One URL already in-flight (gated), maxConcurrent=2.
-      fetcher.gate("https://slow.com");
-      fetcher.responses["https://slow.com"] =
-          const RawFetchedMetadata(title: "Slow");
+  test("force refresh never emits unavailable when cached data exists",
+      () async {
+    final old = staleMetadata();
+    persistence.seed(old);
+    final completer = Completer<MetadataFetchResult>();
+    fetcher.handlers[url] = (_) => completer.future;
+    final service = buildService();
+    final signal = service.watch(url);
+    await pumpEventQueue();
 
-      final service = buildService(maxConcurrent: 2);
+    final forced = service.forceFetch(url);
+    await pumpEventQueue();
 
-      // First observer kicks off the (gated) fetch -> 1 slot in use.
-      service.watch("https://slow.com");
-      await Future<void>.delayed(Duration.zero);
-      expect(fetcher.calls.length, 1);
-
-      // Force-refresh the SAME in-flight URL. It must coalesce onto the
-      // running fetch rather than acquiring (and stranding) a 2nd slot.
-      final forced = service.forceFetch("https://slow.com");
-      await Future<void>.delayed(Duration.zero);
-      // Still just the one network call — no duplicate fetch.
-      expect(fetcher.calls.length, 1);
-
-      // Resolve the in-flight fetch; the forced future resolves too.
-      fetcher.release("https://slow.com");
-      await forced;
-      for (var i = 0; i < 10; i++) {
-        await Future<void>.delayed(Duration.zero);
-      }
-
-      // The pool must be fully restored: two fresh gated fetches should
-      // both start concurrently. If forceFetch leaked a slot, only one
-      // would start.
-      for (final url in ["https://a.com", "https://b.com"]) {
-        fetcher.gate(url);
-        fetcher.responses[url] = RawFetchedMetadata(title: url);
-      }
-      service.watch("https://a.com");
-      service.watch("https://b.com");
-      for (var i = 0; i < 5; i++) {
-        await Future<void>.delayed(Duration.zero);
-      }
-      expect(
-        fetcher.calls.where((u) => u == "https://a.com" || u == "https://b.com").length,
-        2,
-        reason: "both slots should be free after the forced refresh resolved",
-      );
-
-      fetcher.release("https://a.com");
-      fetcher.release("https://b.com");
-    });
-
-    test(
-        "repeated force-refresh on a gated URL never exhausts the pool",
-        () async {
-      // Hammer forceFetch on the same gated URL; each coalesces onto the
-      // one in-flight fetch. None may strand a slot.
-      fetcher.gate("https://slow.com");
-      fetcher.responses["https://slow.com"] =
-          const RawFetchedMetadata(title: "Slow");
-
-      final service = buildService(maxConcurrent: 2);
-      service.watch("https://slow.com");
-      await Future<void>.delayed(Duration.zero);
-
-      final forced = <Future<MetadataState>>[];
-      for (var i = 0; i < 5; i++) {
-        forced.add(service.forceFetch("https://slow.com"));
-        await Future<void>.delayed(Duration.zero);
-      }
-      expect(fetcher.calls.length, 1); // all coalesced
-
-      fetcher.release("https://slow.com");
-      await Future.wait(forced);
-      for (var i = 0; i < 10; i++) {
-        await Future<void>.delayed(Duration.zero);
-      }
-
-      // Pool intact: maxConcurrent fresh fetches start together.
-      for (final url in ["https://a.com", "https://b.com"]) {
-        fetcher.gate(url);
-        fetcher.responses[url] = RawFetchedMetadata(title: url);
-      }
-      service.watch("https://a.com");
-      service.watch("https://b.com");
-      for (var i = 0; i < 5; i++) {
-        await Future<void>.delayed(Duration.zero);
-      }
-      expect(
-        fetcher.calls.where((u) => u == "https://a.com" || u == "https://b.com").length,
-        2,
-      );
-
-      fetcher.release("https://a.com");
-      fetcher.release("https://b.com");
-    });
+    final during = signal.value as MetadataStateAvailable;
+    expect(during.data, old);
+    expect(during.refreshPhase, MetadataRefreshPhase.refreshing);
+    completer.complete(_modified(url, title: "New title"));
+    await forced;
   });
 
-  group("dispose + signal-cache bounds (H8)", () {
-    test("dispose disposes all signals and clears the caches", () async {
-      fetcher.responses["https://x.com"] =
-          const RawFetchedMetadata(title: "X");
-      final service = buildService();
-      final s = service.watch("https://x.com");
-      for (var i = 0; i < 10 && s.value is MetadataStateLoading; i++) {
-        await Future<void>.delayed(Duration.zero);
-      }
-      expect(service.signalCacheSize, 1);
+  test("force refresh bypasses URL and domain waiting once without reset",
+      () async {
+    final old = staleMetadata();
+    persistence.seed(old);
+    await failures.recordFailure(
+      url,
+      kind: MetadataFailureKind.blocked,
+      statusCode: 403,
+    );
+    domains.recordFailure(url, kind: MetadataFailureKind.blocked);
+    fetcher.respond(
+      url,
+      const MetadataFetchFailed(
+        kind: MetadataFailureKind.transport,
+        reason: "connection reset",
+        elapsed: Duration(milliseconds: 20),
+      ),
+    );
+    final service = buildService();
 
-      service.dispose();
+    final result = await service.forceFetch(url);
 
-      expect(s.disposed, isTrue);
-      expect(service.signalCacheSize, 0);
-      expect(service.domainThrottleMapSize, 0);
-    });
+    expect(fetcher.calls.length, 1);
+    expect(result.outcome, MetadataRefreshOutcome.failed);
+    final state = result.state as MetadataStateAvailable;
+    expect(state.data, old);
+    expect(state.lastFailure?.attemptCount, 2);
+    expect(failures.recordFor(url)?.consecutiveFailures, 2);
+    expect(
+      failures.nextRetryAt(url),
+      now.add(const Duration(minutes: 10)),
+    );
+    expect(
+      domains.nextRetryAt(url),
+      now.add(const Duration(minutes: 10)),
+    );
 
-    test("a late fetch resolving after dispose does not throw or write",
-        () async {
-      // Gate the fetch so it's still in-flight when we dispose.
-      fetcher.gate("https://slow.com");
-      fetcher.responses["https://slow.com"] =
-          const RawFetchedMetadata(title: "Slow");
-
-      final service = buildService();
-      final s = service.watch("https://slow.com");
-      await Future<void>.delayed(Duration.zero);
-
-      service.dispose();
-      expect(s.disposed, isTrue);
-
-      // Let the gated fetch complete AFTER disposal. It must not throw a
-      // "wrote to disposed signal" error nor resurrect the signal.
-      fetcher.release("https://slow.com");
-      for (var i = 0; i < 10; i++) {
-        await Future<void>.delayed(Duration.zero);
-      }
-      expect(service.signalCacheSize, 0);
-    });
-
-    test("watch() after dispose is a no-op (returns disposed sentinel)",
-        () async {
-      final service = buildService();
-      service.dispose();
-      final s = service.watch("https://x.com");
-      // Whatever it returns must already be disposed; no fetch fires.
-      expect(s.disposed, isTrue);
-      expect(fetcher.calls, isEmpty);
-    });
-
-    test("_signals cache evicts LRU entries past the cap", () async {
-      // Cap is signalCacheCapacity; watch one more than the cap and the
-      // least-recently-used signal must be evicted (disposed + removed).
-      final service = buildService();
-      final cap = service.signalCacheCapacity;
-
-      Signal<MetadataState>? firstSignal;
-      for (var i = 0; i < cap; i++) {
-        final url = "https://host$i.com/page";
-        fetcher.responses[url] = RawFetchedMetadata(title: "t$i");
-        final s = service.watch(url);
-        firstSignal ??= s;
-      }
-      expect(service.signalCacheSize, cap);
-
-      // One more distinct URL -> overflow -> evict the oldest (host0).
-      const overflowUrl = "https://overflow.com/page";
-      fetcher.responses[overflowUrl] =
-          const RawFetchedMetadata(title: "overflow");
-      service.watch(overflowUrl);
-
-      expect(service.signalCacheSize, cap);
-      expect(firstSignal!.disposed, isTrue,
-          reason: "least-recently-used signal should be evicted + disposed");
-
-      // Drain pending fetches.
-      for (var i = 0; i < 20; i++) {
-        await Future<void>.delayed(Duration.zero);
-      }
-    });
-
-    test("watch() promotes recency so the active entry is not evicted",
-        () async {
-      final service = buildService();
-      final cap = service.signalCacheCapacity;
-
-      const keepUrl = "https://keep.com/page";
-      fetcher.responses[keepUrl] = const RawFetchedMetadata(title: "keep");
-      final keep = service.watch(keepUrl);
-
-      // Fill the rest of the cap with other URLs.
-      for (var i = 1; i < cap; i++) {
-        final url = "https://host$i.com/page";
-        fetcher.responses[url] = RawFetchedMetadata(title: "t$i");
-        service.watch(url);
-      }
-      // Touch keepUrl again so it becomes most-recently-used.
-      service.watch(keepUrl);
-
-      // Overflow: the oldest non-keep entry (host1) is evicted, not keep.
-      const overflowUrl = "https://overflow.com/page";
-      fetcher.responses[overflowUrl] =
-          const RawFetchedMetadata(title: "overflow");
-      service.watch(overflowUrl);
-
-      expect(keep.disposed, isFalse,
-          reason: "recently-watched signal must survive eviction");
-
-      for (var i = 0; i < 20; i++) {
-        await Future<void>.delayed(Duration.zero);
-      }
-    });
+    final callCount = fetcher.calls.length;
+    final secondService = buildService();
+    final skippedSignal = secondService.watch(url);
+    await pumpEventQueue();
+    expect(fetcher.calls.length, callCount);
+    expect(skippedSignal.value, isA<MetadataStateAvailable>());
+    expect((skippedSignal.value as MetadataStateAvailable).data, old);
   });
 
-  group("domain throttle map pruning (H18)", () {
-    test("stale _lastDomainFetch entries are pruned by cleanupStale",
-        () async {
-      // A short-but-not-instant window so both entries coexist until we
-      // deliberately age past it, then prune.
-      final service = buildService(
-        domainDelay: const Duration(milliseconds: 40),
-      );
+  test("in-flight calls coalesce and acquire exactly one concurrency slot",
+      () async {
+    final firstCompleter = Completer<MetadataFetchResult>();
+    fetcher.handlers[url] = (_) => firstCompleter.future;
+    const otherUrl = "https://other.example/post/2";
+    fetcher.respond(otherUrl, _modified(otherUrl, title: "Other"));
+    final service = buildService(maxConcurrent: 1);
 
-      fetcher.responses["https://a.com/x"] =
-          const RawFetchedMetadata(title: "a");
-      fetcher.responses["https://b.com/x"] =
-          const RawFetchedMetadata(title: "b");
+    final signal = service.watch(url);
+    await pumpEventQueue();
+    final forced = service.forceFetch(url);
+    service.watch(otherUrl);
+    await pumpEventQueue();
 
-      await service.forceFetch("https://a.com/x");
-      await service.forceFetch("https://b.com/x");
-      expect(service.domainThrottleMapSize, 2);
+    expect(signal.value, isA<MetadataStateUnavailable>());
+    expect(fetcher.calls.where((call) => call.$1 == url).length, 1);
+    expect(fetcher.calls.where((call) => call.$1 == otherUrl), isEmpty);
+    expect(fetcher.maxActive, 1);
 
-      // Wait past the throttle window, then prune.
-      await Future<void>.delayed(const Duration(milliseconds: 60));
-      service.cleanupStale();
-
-      expect(service.domainThrottleMapSize, 0);
-    });
-
-    test("a recently-touched domain entry is NOT pruned", () async {
-      final service = buildService(
-        domainDelay: const Duration(seconds: 30),
-      );
-
-      fetcher.responses["https://a.com/x"] =
-          const RawFetchedMetadata(title: "a");
-      await service.forceFetch("https://a.com/x");
-      expect(service.domainThrottleMapSize, 1);
-
-      // Within the 30s window -> must survive pruning.
-      service.cleanupStale();
-      expect(service.domainThrottleMapSize, 1);
-    });
+    firstCompleter.complete(_modified(url, title: "First"));
+    await forced;
+    await pumpEventQueue();
+    expect(fetcher.calls.where((call) => call.$1 == otherUrl).length, 1);
+    expect(fetcher.maxActive, 1);
   });
+
+  test("modified identical merged content returns unchanged and adapts TTL",
+      () async {
+    final old = staleMetadata(consecutiveUnchanged: 1);
+    persistence.seed(old);
+    fetcher.respond(
+      url,
+      _modified(
+        "https://redirect.example/post/1",
+        title: " Known title ",
+        description: " Known description ",
+        imageUrl: " https://images.example/known.jpg ",
+        etag: '"new"',
+      ),
+    );
+
+    final result = await buildService().forceFetch(url);
+
+    expect(result.outcome, MetadataRefreshOutcome.unchanged);
+    final data = (result.state as MetadataStateAvailable).data;
+    expect(data.consecutiveUnchanged, 2);
+    expect(data.ttlDays, 28);
+    expect(data.resolvedUrl, "https://redirect.example/post/1");
+    expect(data.etag, '"new"');
+  });
+
+  test("fresh lookup emits available idle and stops before retry decisions",
+      () async {
+    final fresh = staleMetadata().copyWith(fetchedAt: now);
+    persistence.seed(fresh);
+    await failures.recordFailure(url, kind: MetadataFailureKind.blocked);
+    domains.recordFailure(url, kind: MetadataFailureKind.blocked);
+
+    final signal = buildService().watch(url);
+    await pumpEventQueue();
+
+    final state = signal.value as MetadataStateAvailable;
+    expect(state.data, fresh);
+    expect(state.freshness, MetadataFreshness.fresh);
+    expect(state.refreshPhase, MetadataRefreshPhase.idle);
+    expect(fetcher.calls, isEmpty);
+  });
+
+  test("success clears URL and domain failure state", () async {
+    persistence.seed(staleMetadata());
+    await failures.recordFailure(url, kind: MetadataFailureKind.blocked);
+    domains.recordFailure(url, kind: MetadataFailureKind.blocked);
+    fetcher.respond(url, _modified(url, title: "Recovered"));
+
+    await buildService().forceFetch(url);
+
+    expect(failures.recordFor(url), isNull);
+    expect(domains.nextRetryAt(url), isNull);
+    expect(persistence.records[url], isNull);
+  });
+
+  test("skipped refresh records no new failure and preserves stale data",
+      () async {
+    final old = staleMetadata();
+    persistence.seed(old);
+    await failures.recordFailure(url, kind: MetadataFailureKind.blocked);
+    final existing = failures.recordFor(url)!;
+
+    final signal = buildService().watch(url);
+    await pumpEventQueue();
+
+    expect(fetcher.calls, isEmpty);
+    expect(failures.recordFor(url), same(existing));
+    final state = signal.value as MetadataStateAvailable;
+    expect(state.data, old);
+    expect(state.refreshPhase, MetadataRefreshPhase.failed);
+    expect(state.lastFailure?.attemptCount, 1);
+  });
+
+  test("late fetch after dispose does not write or resurrect a signal",
+      () async {
+    final completer = Completer<MetadataFetchResult>();
+    fetcher.handlers[url] = (_) => completer.future;
+    final service = buildService();
+    final watched = service.watch(url);
+    await pumpEventQueue();
+
+    service.dispose();
+    completer.complete(_modified(url, title: "Late"));
+    await pumpEventQueue();
+
+    expect(watched.disposed, isTrue);
+    expect(service.signalCacheSize, 0);
+  });
+
+  test("host throttle state is pruned after its delay window", () async {
+    fetcher.respond(url, _modified(url, title: "Known title"));
+    final service = buildService(domainDelay: const Duration(minutes: 1));
+
+    await service.forceFetch(url);
+    expect(service.domainThrottleMapSize, 1);
+
+    now = now.add(const Duration(minutes: 2));
+    service.cleanupStale();
+    expect(service.domainThrottleMapSize, 0);
+  });
+  test("signals remain bounded and dispose is idempotent", () async {
+    final service = buildService(signalCapacity: 2);
+    for (final entry in [
+      ("https://a.example/post", "A"),
+      ("https://b.example/post", "B"),
+      ("https://c.example/post", "C"),
+    ]) {
+      fetcher.respond(entry.$1, _modified(entry.$1, title: entry.$2));
+    }
+    final first = service.watch("https://a.example/post");
+    service.watch("https://b.example/post");
+    service.watch("https://c.example/post");
+
+    expect(service.signalCacheSize, 2);
+    expect(first.disposed, isTrue);
+    await pumpEventQueue();
+
+    service.dispose();
+    service.dispose();
+    expect(service.signalCacheSize, 0);
+    expect(service.domainThrottleMapSize, 0);
+    final inert = service.watch(url);
+    expect(inert.disposed, isTrue);
+  });
+}
+
+class SocketExceptionForTest implements Exception {
+  const SocketExceptionForTest();
+
+  @override
+  String toString() => "socket closed";
 }

@@ -175,11 +175,9 @@ TtlTier classifyUrlTtlTier(String url) {
 
 /// Determine the initial TTL (in days) for a freshly fetched page.
 ///
-/// If [title] looks like the site's default title ([isDefaultTitle]), the
-/// page probably has low-value metadata and gets a longer TTL
-/// ([kDefaultTitleBaseTtlDays]). Otherwise the TTL comes from the URL tier.
+/// Missing and domain-default placeholder titles use the same URL tier as
+/// accepted descriptive titles. A placeholder alone never earns a longer TTL.
 int computeInitialTtl({String? title, required String url}) {
-  if (isDefaultTitle(title, url)) return kDefaultTitleBaseTtlDays;
   return classifyUrlTtlTier(url).baseDays;
 }
 
