@@ -52,6 +52,12 @@ void main() {
       );
     });
 
+    test("matches a full hostname when the first label is short", () {
+      expect(isDefaultTitle("x.com", "https://x.com/page"), isTrue);
+      expect(isDefaultTitle("qq.com", "https://qq.com/page"), isTrue);
+      expect(isDefaultTitle("x", "https://x.com/page"), isFalse);
+    });
+
     test("requires strict site-label equivalence", () {
       expect(isDefaultTitle("GitHub", "https://github.com/user"), isTrue);
       expect(

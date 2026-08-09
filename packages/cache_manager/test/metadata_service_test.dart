@@ -410,6 +410,25 @@ void main() {
     );
   });
 
+  test("short-label hostname does not replace a meaningful title", () async {
+    const shortHostUrl = "https://x.com/post/1";
+    persistence.seed(
+      staleMetadata(
+        metadataUrl: shortHostUrl,
+        title: "A meaningful title",
+      ),
+    );
+    fetcher.respond(shortHostUrl, _modified(shortHostUrl, title: "x.com"));
+
+    final result = await buildService().forceFetch(shortHostUrl);
+
+    expect(result.outcome, MetadataRefreshOutcome.unchanged);
+    expect(
+      (result.state as MetadataStateAvailable).data.title,
+      "A meaningful title",
+    );
+  });
+
   test("new domain-only title is not persisted without a previous title",
       () async {
     const mediaUrl = "https://media.example/post/1";

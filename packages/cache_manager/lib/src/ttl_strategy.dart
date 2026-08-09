@@ -46,10 +46,11 @@ bool isDefaultTitle(String? title, String url) {
   if (parts.length < 2) return false;
   final normalizedLabel = _normalizeSiteLabel(parts.first);
   final normalizedHostname = _normalizeSiteLabel(host);
-  if (normalizedLabel == null || normalizedLabel.length < 3) return false;
+  final labelMatches = normalizedLabel != null &&
+      normalizedLabel.length >= 3 &&
+      normalizedTitle == normalizedLabel;
 
-  return normalizedTitle == normalizedLabel ||
-      normalizedTitle == normalizedHostname;
+  return labelMatches || normalizedTitle == normalizedHostname;
 }
 
 String? _normalizeSiteLabel(String? value) {
