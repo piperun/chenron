@@ -116,5 +116,54 @@ void main() {
 
       expect(decision.candidate.imageUrl, isNull);
     });
+
+    // Catches malformed HTTP-looking URLs being stored as preview images.
+    test("drops an HTTP image URL without an authority", () {
+      final decision = evaluateMetadataQuality(
+        requestedUrl: "https://example.com/post/1",
+        resolvedUrl: "https://example.com/post/1",
+        statusCode: 200,
+        contentType: "text/html",
+        body: "",
+        parsed: const ParsedMetadata(
+          title: "Meaningful title",
+          imageUrl: "https:/image.jpg",
+        ),
+      ) as AcceptedMetadataQuality;
+
+      expect(decision.candidate.imageUrl, isNull);
+    });
+
+    // Coverage: protects the requirement that one challenge signal is not enough.
+    test("accepts an ordinary page with only a challenge title", () {
+      final decision = evaluateMetadataQuality(
+        requestedUrl: "https://example.com/post/1",
+        resolvedUrl: "https://example.com/post/1",
+        statusCode: 200,
+        contentType: "text/html",
+        body: "<html></html>",
+        parsed: const ParsedMetadata(title: "Just a moment..."),
+      );
+
+      expect(decision, isA<AcceptedMetadataQuality>());
+    });
+
+    // Catches CAPTCHA forms being missed as the second challenge signal.
+    test("rejects a challenge title paired with an interstitial form", () {
+      final decision = evaluateMetadataQuality(
+        requestedUrl: "https://example.com/post/1",
+        resolvedUrl: "https://example.com/post/1",
+        statusCode: 200,
+        contentType: "text/html",
+        body: fixture("challenge_form.html"),
+        parsed: const ParsedMetadata(title: "Just a moment..."),
+      );
+
+      expect(decision, isA<RejectedMetadataQuality>());
+      expect(
+        (decision as RejectedMetadataQuality).kind,
+        MetadataFailureKind.challenge,
+      );
+    });
   });
 }

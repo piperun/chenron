@@ -69,7 +69,10 @@ MetadataQualityDecision evaluateMetadataQuality({
 
 String? _usableImageUrl(String? value) {
   final uri = value == null ? null : Uri.tryParse(value);
-  if (uri == null || (uri.scheme != "http" && uri.scheme != "https")) {
+  if (uri == null ||
+      !uri.hasAuthority ||
+      uri.host.isEmpty ||
+      (uri.scheme != "http" && uri.scheme != "https")) {
     return null;
   }
   const videoExtensions = [".mp4", ".webm", ".mov", ".avi", ".mkv", ".flv"];
@@ -91,7 +94,7 @@ bool _isChallengeDocument(String body, String? title) {
   return normalizedBody.contains("cf-chl-") ||
       normalizedBody.contains("__cf_chl_") ||
       normalizedBody.contains("/cdn-cgi/challenge-platform/") ||
-      RegExp(r"<form\\b[^>]+(?:challenge|captcha|interstitial)").hasMatch(
+      RegExp(r"<form\b[^>]+(?:challenge|captcha|interstitial)").hasMatch(
         normalizedBody,
       );
 }

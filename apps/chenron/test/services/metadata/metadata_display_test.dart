@@ -11,6 +11,11 @@ void main() {
 
       expect(inferMetadataTitle(url), "sampletag — Media");
     });
+
+    // Catches country-code public suffixes leaking into the site label.
+    test("strips a common second-level country suffix", () {
+      expect(inferMetadataTitle("https://www.example.co.uk"), "Example");
+    });
   });
 
   group("resolveMetadataDisplayTitle", () {

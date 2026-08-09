@@ -20,6 +20,16 @@ const _genericPathSegments = {
   "home",
 };
 
+const _commonCountrySecondLevelSuffixes = {
+  "co",
+  "com",
+  "org",
+  "net",
+  "gov",
+  "ac",
+  "edu",
+};
+
 String inferMetadataTitle(String url) {
   final uri = Uri.tryParse(url);
   if (uri == null || uri.host.isEmpty) return url;
@@ -75,8 +85,13 @@ String? _humanize(String? value) {
 String _siteLabel(String host) {
   final withoutWww = host.toLowerCase().replaceFirst(RegExp(r"^www\."), "");
   final labels = withoutWww.split(".");
-  final core = labels.length > 1
-      ? labels.sublist(0, labels.length - 1).join(".")
+  final suffixLength = labels.length >= 3 &&
+          labels.last.length == 2 &&
+          _commonCountrySecondLevelSuffixes.contains(labels[labels.length - 2])
+      ? 2
+      : 1;
+  final core = labels.length > suffixLength
+      ? labels.sublist(0, labels.length - suffixLength).join(".")
       : withoutWww;
   return core.isEmpty
       ? withoutWww
