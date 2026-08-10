@@ -1,13 +1,9 @@
-import "dart:io";
-
 import "package:cache_manager/cache_manager.dart";
 import "package:chenron/services/metadata/metadata_parser.dart";
 import "package:chenron/services/metadata/metadata_quality.dart";
 import "package:flutter_test/flutter_test.dart";
 
-String fixture(String name) => File(
-      "apps/chenron/test/services/metadata/fixtures/$name",
-    ).readAsStringSync();
+import "metadata_fixture.dart";
 
 void main() {
   group("evaluateMetadataQuality", () {
@@ -18,7 +14,7 @@ void main() {
         resolvedUrl: "https://example.com/post/1",
         statusCode: 200,
         contentType: "text/html; charset=utf-8",
-        body: fixture("challenge.html"),
+        body: readMetadataFixture("challenge.html"),
         parsed: const ParsedMetadata(title: "Just a moment..."),
       );
 
@@ -155,7 +151,7 @@ void main() {
         resolvedUrl: "https://example.com/post/1",
         statusCode: 200,
         contentType: "text/html",
-        body: fixture("challenge_form.html"),
+        body: readMetadataFixture("challenge_form.html"),
         parsed: const ParsedMetadata(title: "Just a moment..."),
       );
 

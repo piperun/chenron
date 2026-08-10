@@ -1,18 +1,14 @@
-import "dart:io";
-
 import "package:chenron/services/metadata/metadata_parser.dart";
 import "package:flutter_test/flutter_test.dart";
 
-String fixture(String name) => File(
-      "apps/chenron/test/services/metadata/fixtures/$name",
-    ).readAsStringSync();
+import "metadata_fixture.dart";
 
 void main() {
   group("parseMetadataDocument", () {
     // Catches a precedence regression that lets lower-priority tags replace OG.
     test("prefers OG over Twitter JSON-LD and title", () {
       final parsed = parseMetadataDocument(
-        fixture("all_sources.html"),
+        readMetadataFixture("all_sources.html"),
         baseUri: Uri.parse("https://example.com/post/1"),
       );
 
@@ -24,7 +20,7 @@ void main() {
     // Catches a fallback regression that skips valid JSON-LD without social tags.
     test("uses JSON-LD when social tags are absent", () {
       final parsed = parseMetadataDocument(
-        fixture("json_ld.html"),
+        readMetadataFixture("json_ld.html"),
         baseUri: Uri.parse("https://example.com/post/1"),
       );
 
