@@ -1,13 +1,12 @@
 import "dart:async";
 
 import "package:chenron/features/viewer/mvc/viewer_model.dart";
-import "package:chenron/features/viewer/ui/viewer_base_item.dart";
-
+import "package:chenron/features/viewer/state/viewer_page_source.dart";
 import "package:chenron/shared/item_display/item_toolbar.dart";
-import "package:chenron/utils/safe_async.dart";
+import "package:chenron/shared/search/query_parser.dart";
+import "package:chenron/shared/tag_filter/tag_filter_notifier.dart";
 import "package:database/database.dart";
-
-import "package:flutter/material.dart";
+import "package:database/features.dart";
 import "package:signals/signals_flutter.dart";
 
 class ViewerRetentionSnapshot {
@@ -23,79 +22,65 @@ class ViewerRetentionSnapshot {
 }
 
 class ViewerPresenter {
-  final Signal<Set<String>> selectedItemIds = signal({});
-  final Signal<Set<FolderItemType>> selectedTypes = signal({
-    FolderItemType.folder,
-    FolderItemType.link,
-    FolderItemType.document,
-  });
-  final SearchController searchController = SearchController();
-  final Signal<ViewMode> viewMode = signal(ViewMode.grid);
-  final Signal<SortMode> sortMode = signal(SortMode.nameAsc);
-
-  final _itemsController = StreamController<List<ViewerItem>>.broadcast();
-  final ViewerModel _model;
-  Stream<List<ViewerItem>>? _allItemsStream;
-  StreamSubscription<List<ViewerItem>>? _allItemsSubscription;
-  int _activeSubscriptions = 0;
-  List<ViewerItem> _currentItems = [];
-  bool _disposed = false;
-
-  Map<String, ViewerItem> get _currentItemsById =>
-      {for (final item in _currentItems) item.id: item};
-
-  Stream<List<ViewerItem>> get itemsStream => _itemsController.stream;
-  ViewerRetentionSnapshot get retentionSnapshot => ViewerRetentionSnapshot(
-        retainedRows: _currentItems.length,
-        activeSubscriptions: _activeSubscriptions,
-        disposed: _disposed,
-      );
-  late final StreamSignal<List<ViewerItem>> itemsSignal =
-      StreamSignal(() => _itemsController.stream);
-
-  ViewerPresenter({ViewerModel? model}) : _model = model ?? ViewerModel() {
-    searchController.addListener(_onSearchChanged);
+  ViewerPresenter({
+    ViewerPageRepository? repository,
+    ViewerModel? model,
+    SearchFilter? searchFilter,
+    TagFilterNotifier? tagFilterState,
+    String? folderId,
+  })  : searchFilter = searchFilter ?? SearchFilter(),
+        tagFilterState = tagFilterState ?? TagFilterNotifier(),
+        _ownsSearchFilter = searchFilter == null,
+        _ownsTagFilterState = tagFilterState == null,
+        _folderId = folderId,
+        pageSource = ViewerPageSource(
+          repository: repository ?? model ?? ViewerModel(),
+        ),
+        query = signal(ViewerQuery(folderId: folderId)) {
+    if (_ownsSearchFilter) this.searchFilter.setup();
   }
 
-  /// Subscribes to the reactive item stream exactly once.
-  ///
-  /// `Viewer` owns this presenter for one mounted page. Guarding here keeps
-  /// refresh callbacks from stacking another live `watchAllItems()`
-  /// subscription on top of the existing page subscription.
+  final Signal<Set<String>> selectedItemIds = signal(<String>{});
+  final Signal<Set<FolderItemType>> selectedTypes = signal(
+    const <FolderItemType>{
+      FolderItemType.folder,
+      FolderItemType.link,
+      FolderItemType.document,
+    },
+  );
+  final Signal<ViewMode> viewMode = signal(ViewMode.grid);
+  final Signal<SortMode> sortMode = signal(SortMode.nameAsc);
+  final SearchFilter searchFilter;
+  final TagFilterNotifier tagFilterState;
+  final ViewerPageSource pageSource;
+  final Signal<ViewerQuery> query;
+
+  final bool _ownsSearchFilter;
+  final bool _ownsTagFilterState;
+  final String? _folderId;
+  void Function()? _disposeQueryEffect;
+  ViewerQuery? _lastAppliedQuery;
+  Future<void>? _pendingQueryUpdate;
+  bool _disposed = false;
+
+  ViewerRetentionSnapshot get retentionSnapshot => ViewerRetentionSnapshot(
+        retainedRows: pageSource.cachedRowCount,
+        activeSubscriptions: pageSource.activeSubscriptionCount,
+        disposed: _disposed,
+      );
+
   Future<void> init() async {
     if (_disposed) return;
-    if (_allItemsSubscription != null) return;
-
-    _allItemsStream = _model.watchAllItems();
-    _allItemsSubscription = safeWatch<List<ViewerItem>>(
-      _allItemsStream!,
-      tag: "ViewerPresenter",
-      onData: _processItems,
-      onUiError: (_) {
-        // Push an empty list so the viewer renders the empty-state
-        // widget instead of stalling on the last successful payload.
-        if (!_itemsController.isClosed) _itemsController.add(const []);
-      },
-    );
-    _activeSubscriptions++;
+    _disposeQueryEffect ??= effect(_synchronizeQuery);
+    await _pendingQueryUpdate;
   }
 
   void clearSelectedItems() {
-    selectedItemIds.value = {};
+    selectedItemIds.value = <String>{};
   }
 
   void onTypesChanged(Set<FolderItemType> types) {
-    selectedTypes.value = Set.of(types);
-
-    final itemById = _currentItemsById;
-    selectedItemIds.value = Set.of(
-      selectedItemIds.value.where((itemId) {
-        final item = itemById[itemId];
-        return item != null && types.contains(item.type);
-      }),
-    );
-
-    _filterAndAddItems(_currentItems);
+    selectedTypes.value = Set<FolderItemType>.of(types);
   }
 
   void onViewModeChanged(ViewMode mode) {
@@ -104,106 +89,62 @@ class ViewerPresenter {
 
   void onSortChanged(SortMode mode) {
     sortMode.value = mode;
-    _filterAndAddItems(_currentItems);
+  }
+
+  void onSearchSubmitted(String rawQuery) {
+    final cleanQuery = tagFilterState.parseAndAddFromQuery(rawQuery);
+    searchFilter.controller.value = cleanQuery;
   }
 
   void toggleItemSelection(String itemId) {
     final current = Set<String>.of(selectedItemIds.value);
-    if (current.contains(itemId)) {
-      current.remove(itemId);
-    } else {
-      current.add(itemId);
-    }
+    if (!current.add(itemId)) current.remove(itemId);
     selectedItemIds.value = current;
   }
 
-  void _onSearchChanged() {
-    _filterAndAddItems(_currentItems);
-  }
-
-  void _processItems(List<ViewerItem> items) {
-    _currentItems = items;
-    _filterAndAddItems(items);
-  }
-
-  void _filterAndAddItems(List<ViewerItem> items) {
-    var filteredItems = filterItems(
-      items,
-      selectedTypes.value,
-      searchController.text,
+  void _synchronizeQuery() {
+    final parsed = QueryParser.parseTags(searchFilter.controller.query.value);
+    final nextQuery = ViewerQuery(
+      folderId: _folderId,
+      searchText: parsed.cleanQuery,
+      types: Set<FolderItemType>.of(selectedTypes.value),
+      includedTags: <String>{
+        ...tagFilterState.includedTags.value,
+        ...parsed.includedTags,
+      },
+      excludedTags: <String>{
+        ...tagFilterState.excludedTags.value,
+        ...parsed.excludedTags,
+      },
+      sort: _viewerSort(sortMode.value),
     );
-    filteredItems = _sortItems(filteredItems);
-    _itemsController.add(filteredItems);
+    if (_lastAppliedQuery == nextQuery) return;
+    _lastAppliedQuery = nextQuery;
+    query.value = nextQuery;
+    clearSelectedItems();
+    _pendingQueryUpdate = pageSource.setQuery(nextQuery);
+    unawaited(_pendingQueryUpdate);
   }
 
-  List<ViewerItem> _sortItems(List<ViewerItem> items) {
-    final sorted = List<ViewerItem>.from(items);
-    final mode = sortMode.value;
-
-    if (mode == SortMode.nameAsc || mode == SortMode.nameDesc) {
-      // Cache lowercased titles to avoid repeated toLowerCase() in comparator
-      final lowered = {
-        for (final item in sorted) item: item.title.toLowerCase()
+  ViewerSort _viewerSort(SortMode mode) => switch (mode) {
+        SortMode.nameAsc => ViewerSort.nameAsc,
+        SortMode.nameDesc => ViewerSort.nameDesc,
+        SortMode.dateAsc => ViewerSort.dateAsc,
+        SortMode.dateDesc => ViewerSort.dateDesc,
       };
-      final dir = mode == SortMode.nameAsc ? 1 : -1;
-      sorted.sort((a, b) => dir * lowered[a]!.compareTo(lowered[b]!));
-    } else {
-      final dir = mode == SortMode.dateAsc ? 1 : -1;
-      sorted.sort((a, b) => dir * a.createdAt.compareTo(b.createdAt));
-    }
-
-    return sorted;
-  }
 
   void dispose() {
     if (_disposed) return;
     _disposed = true;
-    unawaited(_allItemsSubscription?.cancel());
-    _allItemsSubscription = null;
-    _activeSubscriptions = 0;
-    _currentItems = const [];
-    searchController.removeListener(_onSearchChanged);
-    searchController.dispose();
-    unawaited(_itemsController.close());
+    _disposeQueryEffect?.call();
+    _disposeQueryEffect = null;
+    pageSource.dispose();
+    query.dispose();
     selectedItemIds.dispose();
     selectedTypes.dispose();
     viewMode.dispose();
     sortMode.dispose();
-  }
-
-  List<ViewerItem> filterItems(
-      List<ViewerItem> items, Set<FolderItemType> types, String searchQuery) {
-    final query = searchQuery.toLowerCase();
-    return items.where((item) {
-      final matchesType = types.contains(item.type);
-      final matchesSearch = query.isEmpty ||
-          item.title.toLowerCase().contains(query) ||
-          item.tags.any((tag) => tag.name.toLowerCase().contains(query));
-
-      return matchesType && matchesSearch;
-    }).toList();
-  }
-
-  Future<void> handleDeleteSelected() async {
-    if (selectedItemIds.value.isEmpty) return;
-
-    final itemById = _currentItemsById;
-    bool success = true;
-    for (final itemId in selectedItemIds.value) {
-      final item = itemById[itemId];
-      if (item == null) continue;
-
-      success = switch (item.type) {
-        FolderItemType.folder => await _model.removeFolder(itemId),
-        FolderItemType.link => await _model.removeLink(itemId),
-        FolderItemType.document => await _model.removeDocument(itemId),
-      };
-
-      if (!success) break;
-    }
-
-    if (success) {
-      clearSelectedItems();
-    }
+    if (_ownsTagFilterState) tagFilterState.dispose();
+    if (_ownsSearchFilter) searchFilter.dispose();
   }
 }

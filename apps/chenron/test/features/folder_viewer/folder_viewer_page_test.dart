@@ -1,6 +1,9 @@
+import "dart:async";
+
 import "package:flutter/material.dart";
 import "package:flutter_test/flutter_test.dart";
 import "package:chenron/features/folder_viewer/pages/folder_viewer_page.dart";
+import "package:chenron/features/folder_viewer/services/folder_viewer_service.dart";
 import "package:chenron/features/settings/coordinator/settings_coordinator.dart";
 import "package:chenron/features/settings/service/config_service.dart";
 import "package:chenron/features/settings/service/data_settings_service.dart";
@@ -42,6 +45,80 @@ class _MockConfigDatabaseLifecycle extends ConfigDatabaseLifecycle {
 
   @override
   ConfigDatabase get configDatabase => _injected;
+}
+
+class _BoundedFolderService extends FolderViewerService {
+  _BoundedFolderService({this.parentItems = const <FolderItem>[]});
+
+  final List<FolderItem> parentItems;
+  final StreamController<void> _invalidations =
+      StreamController<void>.broadcast();
+  final List<ViewerQuery> countQueries = <ViewerQuery>[];
+  final List<({ViewerQuery query, int limit, int offset})> pageRequests = [];
+
+  @override
+  Future<FolderResult> loadFolderMetadata(String folderId) async {
+    return FolderResult(
+      data: Folder(
+        id: folderId,
+        title: "Bounded Folder",
+        description: "",
+        createdAt: DateTime(2026, 8, 10),
+        updatedAt: DateTime(2026, 8, 10),
+      ),
+      tags: const <Tag>[],
+      items: parentItems,
+    );
+  }
+
+  @override
+  Future<int> count(ViewerQuery query) async {
+    countQueries.add(query);
+    return 100000;
+  }
+
+  @override
+  Future<List<ViewerTagFacet>> loadTagFacets(ViewerQuery query) async =>
+      const <ViewerTagFacet>[];
+
+  @override
+  Future<List<FolderItem>> loadPage(
+    ViewerQuery query, {
+    required int limit,
+    required int offset,
+  }) async {
+    pageRequests.add((query: query, limit: limit, offset: offset));
+    return List<FolderItem>.generate(
+      limit,
+      (index) => FolderItem.folder(
+        id: "child-${offset + index}",
+        itemId: "relation-${offset + index}",
+        folderId: "child-${offset + index}",
+        title: "Child ${offset + index}",
+        description: "",
+        createdAt: DateTime(2026, 8, 10),
+        tags: const <Tag>[],
+      ),
+    );
+  }
+
+  @override
+  Stream<void> invalidations() => _invalidations.stream;
+
+  @override
+  Future<bool> loadLockState() async => false;
+
+  @override
+  Future<void> saveLockState({required bool isLocked}) async {}
+
+  Future<void> disposeFake() => _invalidations.close();
+}
+
+void _unmountAfterTest(WidgetTester tester) {
+  addTearDown(() async {
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
 }
 
 void main() {
@@ -113,6 +190,7 @@ void main() {
 
     testWidgets("omitted item handler opens a nested folder without a viewer",
         (tester) async {
+      _unmountAfterTest(tester);
       await tester.binding.setSurfaceSize(const Size(2000, 900));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
@@ -144,10 +222,6 @@ void main() {
       );
 
       await tester.pumpWidget(buildViewer(folderId: testFolderId));
-      addTearDown(() async {
-        await tester.pumpWidget(const SizedBox());
-        await tester.pump();
-      });
       await tester.pump(const Duration(milliseconds: 500));
       await tester.pump();
 
@@ -163,6 +237,60 @@ void main() {
       expect(find.byType(Viewer), findsNothing);
     });
 
+    testWidgets("folder filters replace the query without loading all rows",
+        (tester) async {
+      _unmountAfterTest(tester);
+      await tester.binding.setSurfaceSize(const Size(2000, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final service = _BoundedFolderService(
+        parentItems: <FolderItem>[
+          FolderItem.folder(
+            id: "parent-relation",
+            itemId: null,
+            folderId: "parent-folder",
+            title: "Parent Folder",
+            description: "",
+            createdAt: DateTime(2026, 8, 10),
+            tags: const <Tag>[],
+          ),
+        ],
+      );
+      addTearDown(service.disposeFake);
+
+      await tester.pumpWidget(MaterialApp(
+        home: FolderViewerPage(
+          folderId: "bounded-folder",
+          serviceFactory: () => service,
+        ),
+      ));
+      await tester.pump();
+      await tester.pump();
+
+      expect(service.pageRequests, isNotEmpty);
+      expect(service.pageRequests.every((request) => request.limit == 100),
+          isTrue);
+      expect(
+          service.pageRequests.map((request) => request.offset).toSet(), {0});
+      expect(find.text("100001 items"), findsOneWidget);
+
+      await tester.enterText(find.byType(TextField).first, "needle");
+      await tester.pump();
+      await tester.pump();
+
+      expect(service.countQueries.last.searchText, "needle");
+      expect(service.pageRequests.last.query.searchText, "needle");
+      expect(
+        service.pageRequests.fold<int>(
+          0,
+          (total, request) => total + request.limit,
+        ),
+        lessThan(1000),
+      );
+
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump();
+    });
+
     // Note: FolderHeader pulls settings from GetIt (deep dependency
     // chain: ConfigService, ThemeNotifier, SharedPreferences). Tests
     // below only exercise the loading/pre-header states to avoid that
@@ -171,6 +299,9 @@ void main() {
     group("Loading states", () {
       testWidgets("renders chrome immediately (back / home / lock buttons)",
           (tester) async {
+        _unmountAfterTest(tester);
+        await tester.binding.setSurfaceSize(const Size(2000, 900));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
         await tester.pumpWidget(buildViewer(folderId: testFolderId));
 
         // The page no longer gates rendering behind a full-page
@@ -181,6 +312,9 @@ void main() {
       });
 
       testWidgets("shows error for non-existent folder", (tester) async {
+        _unmountAfterTest(tester);
+        await tester.binding.setSurfaceSize(const Size(2000, 900));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
         await tester.pumpWidget(buildViewer(folderId: "non-existent-id"));
         // Pump to let the future resolve.
         await tester.pump(const Duration(milliseconds: 500));

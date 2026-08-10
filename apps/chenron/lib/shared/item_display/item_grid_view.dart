@@ -1,3 +1,5 @@
+import "dart:async";
+
 import "package:flutter/material.dart";
 import "package:signals/signals_flutter.dart";
 import "package:database/models/item.dart";
@@ -7,9 +9,10 @@ import "package:chenron/shared/item_display/widgets/display_mode/display_mode.da
 import "package:chenron/shared/item_display/widgets/item_empty_state.dart";
 import "package:chenron/shared/item_display/widgets/selectable_item_wrapper.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/viewer_item.dart";
+import "package:chenron/shared/item_display/item_viewport_source.dart";
 
 class ItemGridView extends StatelessWidget {
-  final List<FolderItem> items;
+  final ItemViewportSource source;
   final double aspectRatio;
   final double maxCrossAxisExtent;
   final DisplayMode displayMode;
@@ -18,6 +21,7 @@ class ItemGridView extends StatelessWidget {
   final Set<String> excludedTagNames;
   final void Function(FolderItem)? onItemTap;
   final ValueChanged<String>? onTagFilterTap;
+  final ValueChanged<FolderItem>? onItemMaterialized;
   final bool isDeleteMode;
   final Set<String> selectedItemIds;
 
@@ -27,7 +31,7 @@ class ItemGridView extends StatelessWidget {
 
   const ItemGridView({
     super.key,
-    required this.items,
+    required this.source,
     this.aspectRatio = 0.72,
     this.maxCrossAxisExtent = 320,
     this.displayMode = DisplayMode.standard,
@@ -35,6 +39,7 @@ class ItemGridView extends StatelessWidget {
     this.excludedTagNames = const {},
     this.onItemTap,
     this.onTagFilterTap,
+    this.onItemMaterialized,
     this.isDeleteMode = false,
     this.selectedItemIds = const {},
     this.onLoadMore,
@@ -47,12 +52,12 @@ class ItemGridView extends StatelessWidget {
     final theme = Theme.of(context);
     final displayNotifier = locator.get<SettingsCoordinator>().display;
 
-    if (items.isEmpty) {
+    if (source.length == 0) {
       return const ItemEmptyState();
     }
 
     final showLoadingCell = hasMore && onLoadMore != null;
-    final totalCount = items.length + (showLoadingCell ? 1 : 0);
+    final totalCount = source.length + (showLoadingCell ? 1 : 0);
 
     return Container(
       color: theme.scaffoldBackgroundColor,
@@ -92,11 +97,35 @@ class ItemGridView extends StatelessWidget {
             ),
             itemCount: totalCount,
             itemBuilder: (context, index) {
-              if (index >= items.length) {
+              if (index >= source.length) {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              final item = items[index];
+              final item = source.itemAt(index);
+              if (item == null) {
+                final itemError = source.errorAt(index);
+                if (itemError != null) {
+                  return Center(
+                    child: OutlinedButton.icon(
+                      key: ValueKey("item-viewport-retry-$index"),
+                      onPressed: () => unawaited(source.retryAt(index)),
+                      icon: const Icon(Icons.refresh),
+                      label: const Text("Retry"),
+                    ),
+                  );
+                }
+                return Semantics(
+                  label: "Loading item",
+                  child: DecoratedBox(
+                    key: ValueKey("item-viewport-loading-$index"),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                );
+              }
+              onItemMaterialized?.call(item);
               final isSelected = isDeleteMode &&
                   item.id != null &&
                   selectedItemIds.contains(item.id);

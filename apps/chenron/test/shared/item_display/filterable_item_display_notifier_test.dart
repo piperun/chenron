@@ -4,6 +4,7 @@ import "package:database/database.dart";
 import "package:chenron/shared/item_display/filterable_item_display_notifier.dart";
 import "package:chenron/shared/item_display/widgets/display_mode/display_mode.dart";
 import "package:chenron/shared/item_display/item_toolbar.dart";
+import "package:chenron/shared/item_display/item_viewport_source.dart";
 import "package:chenron/shared/tag_filter/tag_filter_notifier.dart";
 
 final _epoch = DateTime(2024, 1, 1);
@@ -35,6 +36,31 @@ FolderItem _makeFolder(String id) {
     title: "Folder $id",
     tags: [],
   );
+}
+
+class _RecordingViewportSource implements ItemViewportSource {
+  _RecordingViewportSource(this.items);
+
+  final List<FolderItem> items;
+  final List<int> requestedIndexes = <int>[];
+  final List<int> retriedIndexes = <int>[];
+
+  @override
+  int get length => items.length;
+
+  @override
+  FolderItem? itemAt(int index) {
+    requestedIndexes.add(index);
+    return items[index];
+  }
+
+  @override
+  Object? errorAt(int index) => index == 1 ? StateError("failed") : null;
+
+  @override
+  Future<void> retryAt(int index) async {
+    retriedIndexes.add(index);
+  }
 }
 
 void main() {
@@ -557,6 +583,41 @@ void main() {
       final items = [_makeLink("1", "https://a.com")];
       final tags = collectAllTags(items);
       expect(tags, isEmpty);
+    });
+  });
+
+  group("materialized viewport adapter", () {
+    test("keeps existing local-list rows indexed", () async {
+      final items = <FolderItem>[
+        _makeFolder("first"),
+        _makeFolder("second"),
+      ];
+      final source = MaterializedItemViewportSource(items);
+
+      expect(source.length, 2);
+      expect(source.itemAt(0), same(items[0]));
+      expect(source.itemAt(1), same(items[1]));
+      expect(source.itemAt(2), isNull);
+      expect(source.errorAt(0), isNull);
+      await expectLater(source.retryAt(0), completes);
+    });
+
+    test("prefix translates item, error, and retry indexes", () async {
+      final prefix = <FolderItem>[_makeFolder("parent")];
+      final delegate = _RecordingViewportSource(<FolderItem>[
+        _makeFolder("child-0"),
+        _makeFolder("child-1"),
+      ]);
+      final source = PrefixedItemViewportSource(prefix, delegate);
+
+      expect(source.length, 3);
+      expect(source.itemAt(0), same(prefix[0]));
+      expect(source.itemAt(1), same(delegate.items[0]));
+      expect(source.itemAt(2), same(delegate.items[1]));
+      expect(delegate.requestedIndexes, <int>[0, 1]);
+      expect(source.errorAt(2), isA<StateError>());
+      await source.retryAt(2);
+      expect(delegate.retriedIndexes, <int>[1]);
     });
   });
 

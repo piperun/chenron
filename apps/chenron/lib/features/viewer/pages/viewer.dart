@@ -1,137 +1,69 @@
 import "dart:async";
+
 import "package:chenron/features/viewer/mvc/viewer_presenter.dart";
-import "package:chenron/shared/item_display/filterable_item_display.dart";
-import "package:database/models/item.dart";
+import "package:chenron/features/viewer/ui/paged_viewer_display.dart";
 import "package:chenron/shared/search/search_filter.dart";
-import "package:chenron/shared/tag_filter/tag_filter_notifier.dart";
-import "package:flutter/material.dart";
-import "package:signals/signals_flutter.dart";
-import "package:app_logger/app_logger.dart";
 import "package:chenron/shared/viewer/item_handler.dart";
-import "package:chenron/features/viewer/ui/viewer_base_item.dart";
+import "package:flutter/material.dart";
 
 class Viewer extends StatefulWidget {
+  const Viewer({
+    super.key,
+    this.searchFilter,
+    this.presenterFactory,
+  });
+
   final SearchFilter? searchFilter;
   final ViewerPresenter Function()? presenterFactory;
-
-  const Viewer({super.key, this.searchFilter, this.presenterFactory});
 
   @override
   State<Viewer> createState() => _ViewerState();
 }
 
 class _ViewerState extends State<Viewer> {
-  late final TagFilterNotifier _tagFilterState;
   late final ViewerPresenter _presenter;
-
-  FolderItem _viewerItemToFolderItem(ViewerItem viewerItem) {
-    return switch (viewerItem.type) {
-      FolderItemType.folder => FolderItem.folder(
-          id: viewerItem.id,
-          itemId: null,
-          folderId: viewerItem.id,
-          title: viewerItem.title,
-          description: viewerItem.description,
-          createdAt: viewerItem.createdAt,
-          tags: viewerItem.tags,
-        ),
-      FolderItemType.link => FolderItem.link(
-          id: viewerItem.id,
-          itemId: null,
-          url: viewerItem.description,
-          tags: viewerItem.tags,
-          createdAt: viewerItem.createdAt,
-        ),
-      FolderItemType.document => FolderItem.document(
-          id: viewerItem.id,
-          itemId: null,
-          title: viewerItem.title,
-          filePath: "",
-          tags: viewerItem.tags,
-          createdAt: viewerItem.createdAt,
-        ),
-    };
-  }
 
   @override
   void initState() {
     super.initState();
-    _tagFilterState = TagFilterNotifier();
-    _presenter = widget.presenterFactory?.call() ?? ViewerPresenter();
-    unawaited(_presenter.init());
-
-    // Set up search submission handler for tag parsing
+    _presenter = widget.presenterFactory?.call() ??
+        ViewerPresenter(searchFilter: widget.searchFilter);
     if (widget.searchFilter != null) {
-      widget.searchFilter!.controller.onSubmitted = (query) {
-        loggerGlobal.fine("VIEWER", 'Search submitted with query: "$query"');
-        if (query.contains("#")) {
-          final cleanQuery = _tagFilterState.parseAndAddFromQuery(query);
-          loggerGlobal.fine(
-              "VIEWER", 'Clean query after tag parse: "$cleanQuery"');
-          loggerGlobal.fine("VIEWER",
-              "Tags - included: ${_tagFilterState.includedTagNames}, excluded: ${_tagFilterState.excludedTagNames}");
-          // Update the search filter to remove tag patterns
-          widget.searchFilter!.controller.value = cleanQuery;
-        }
-      };
+      widget.searchFilter!.controller.onSubmitted =
+          _presenter.onSearchSubmitted;
     }
+    unawaited(_presenter.init());
   }
 
   @override
   void dispose() {
-    // Clear the submission handler when page is disposed
     if (widget.searchFilter != null) {
       widget.searchFilter!.controller.onSubmitted = null;
     }
     _presenter.dispose();
-    _tagFilterState.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SignalBuilder(
-        builder: (context) {
-          final snapshot = _presenter.itemsSignal.value;
-
-          return snapshot.map(
-            data: (data) {
-              final folderItems = data.map(_viewerItemToFolderItem).toList();
-
-              return FilterableItemDisplay(
-                items: folderItems,
-                externalSearchFilter: widget.searchFilter,
-                tagFilterState: _tagFilterState,
-                enableTagFiltering: true,
-                displayModeContext: "viewer",
-                showSearch: false,
-                onItemTap: (item) =>
-                    handleItemTap(context, item, openFolderItem),
-                onDeleteModeChanged: (
-                    {required bool isDeleteMode, required int selectedCount}) {
-                  // Optional: Track delete mode state if needed
-                },
-                onDeleteRequested: (items) => handleItemDeletion(
-                  context,
-                  items,
-                  _presenter.init,
-                ),
-                onTagRequested: (items) => handleItemTagging(
-                  context,
-                  items,
-                  _presenter.init,
-                ),
-                onRefreshMetadataRequested: (items) =>
-                    handleItemMetadataRefresh(context, items),
-              );
-            },
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (Object error, StackTrace stackTrace) {
-              return Center(child: Text("Error: $error"));
-            },
-          );
-        },
+      body: PagedViewerDisplay(
+        presenter: _presenter,
+        showSearch: false,
+        displayModeContext: "viewer",
+        onItemTap: (item) => handleItemTap(context, item, openFolderItem),
+        onDeleteRequested: (items) => handleItemDeletion(
+          context,
+          items,
+          _presenter.init,
+        ),
+        onTagRequested: (items) => handleItemTagging(
+          context,
+          items,
+          _presenter.init,
+        ),
+        onRefreshMetadataRequested: (items) =>
+            handleItemMetadataRefresh(context, items),
       ),
     );
   }

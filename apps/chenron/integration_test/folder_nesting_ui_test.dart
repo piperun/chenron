@@ -1,5 +1,7 @@
 import "package:chenron/features/folder_viewer/pages/folder_viewer_page.dart";
 import "package:chenron/features/folder_viewer/services/folder_viewer_service.dart";
+import "package:chenron/features/settings/coordinator/settings_coordinator.dart";
+import "package:chenron/features/theme/state/theme_options_store.dart";
 import "package:chenron_mockups/chenron_mockups.dart";
 import "package:database/database.dart";
 import "package:database/features.dart";
@@ -9,6 +11,8 @@ import "package:get_it/get_it.dart";
 import "package:integration_test/integration_test.dart";
 import "package:shared_preferences/shared_preferences.dart";
 import "package:signals/signals.dart";
+
+import "../test/features/viewer/viewer_test.mocks.dart";
 
 class _MockAppDatabaseLifecycle extends AppDatabaseLifecycle {
   final AppDatabase _injected;
@@ -61,6 +65,12 @@ void main() {
     GetIt.I.registerSingleton<Signal<AppDatabaseLifecycle>>(
       signal(_MockAppDatabaseLifecycle(mockDb.database)),
     );
+    GetIt.I.registerSingleton<SettingsCoordinator>(SettingsCoordinator(
+      configService: MockConfigService(),
+      dataService: MockDataSettingsService(),
+      themeApplier: MockThemeNotifier(),
+      optionsStore: ThemeOptionsStore(),
+    ));
 
     service = FolderViewerService();
 
@@ -91,13 +101,13 @@ void main() {
     grandchildId = grandchild.folderId;
 
     final linkA = await mockDb.database.createLink(
-      link: "https://example.org/link-a",
+      link: "https://link-a.example/path",
     );
     final linkB = await mockDb.database.createLink(
-      link: "https://example.org/link-b",
+      link: "https://link-b.example/path",
     );
     final deepLink = await mockDb.database.createLink(
-      link: "https://example.org/deep-link",
+      link: "https://deep-link.example/path",
     );
 
     // Attach children to their parents.
@@ -114,12 +124,12 @@ void main() {
           FolderItem.link(
             id: null,
             itemId: linkA.linkId,
-            url: "https://example.org/link-a",
+            url: "https://link-a.example/path",
           ),
           FolderItem.link(
             id: null,
             itemId: linkB.linkId,
-            url: "https://example.org/link-b",
+            url: "https://link-b.example/path",
           ),
         ],
       ),
@@ -144,7 +154,7 @@ void main() {
           FolderItem.link(
             id: null,
             itemId: deepLink.linkId,
-            url: "https://example.org/deep-link",
+            url: "https://deep-link.example/path",
           ),
         ],
       ),
@@ -182,8 +192,7 @@ void main() {
     });
 
     test("pagination yields all 3 items for parent", () async {
-      final items =
-          await service.getFolderItemsPaginated(parentId, 50, 0);
+      final items = await service.getFolderItemsPaginated(parentId, 50, 0);
       expect(items.length, equals(3));
       // Mix of one folder + two links
       final folderItems = items.whereType<FolderItemNested>().toList();
@@ -210,6 +219,8 @@ void main() {
   group("Folder + nested links — widget render", () {
     testWidgets("FolderViewerPage builds without throwing for nested data",
         (tester) async {
+      await tester.binding.setSurfaceSize(const Size(2000, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
       await tester.pumpWidget(
         MaterialApp(home: FolderViewerPage(folderId: parentId)),
       );
