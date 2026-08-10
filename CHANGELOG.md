@@ -2,6 +2,33 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [v1.15.0](https://github.com/piperun/chenron-flutter/compare/a6181b7bb687112f64afad961d16384409acc65f..v1.15.0) - 2026-08-10
+#### Features
+- (**cache_manager**) define metadata refresh contracts - ([2b4f0ae](https://github.com/piperun/chenron-flutter/commit/2b4f0aef7b949bc26828514dc42d645a8ab66c1f)) - [@piperun](https://github.com/piperun)
+- (**chenron**) add bounded metadata HTTP client - ([3812011](https://github.com/piperun/chenron-flutter/commit/3812011ac2e272ea256c8a6092c82535a6229d3a)) - [@piperun](https://github.com/piperun)
+- (**chenron**) parse and validate web metadata - ([8a89664](https://github.com/piperun/chenron-flutter/commit/8a89664ab08c31cee2361069400a586226d89ec6)) - [@piperun](https://github.com/piperun)
+- (**database**) persist metadata validators and retry state - ([7080fc5](https://github.com/piperun/chenron-flutter/commit/7080fc5e1c460cf7a62427ba24e9bd144c524127)) - [@piperun](https://github.com/piperun)
+- surface resilient metadata refresh state - ([7abbf96](https://github.com/piperun/chenron-flutter/commit/7abbf961f8298525dec5cb9e9e1373f6afd96f31)) - [@piperun](https://github.com/piperun)
+- bound metadata refresh queues - ([8350507](https://github.com/piperun/chenron-flutter/commit/835050724d55e91848ea68b840897cf064b0a17f)) - [@piperun](https://github.com/piperun)
+- persist resilient metadata cache state - ([037cb9a](https://github.com/piperun/chenron-flutter/commit/037cb9af4a4db85f65736baed3db995f1b3b6990)) - [@piperun](https://github.com/piperun)
+#### Bug Fixes
+- (**cache_manager**) handle short-label host placeholders - ([c9e0dd9](https://github.com/piperun/chenron-flutter/commit/c9e0dd97f8d522928de6364516709cbd1fe9c82a)) - [@piperun](https://github.com/piperun)
+- (**cache_manager**) recognize literal host placeholders - ([3efd490](https://github.com/piperun/chenron-flutter/commit/3efd490915a1e298f02cbc6c6ecc1d7b20443bed)) - [@piperun](https://github.com/piperun)
+- (**cache_manager**) preserve refresh invariants - ([f3f992e](https://github.com/piperun/chenron-flutter/commit/f3f992e578efd66ec636c0eb58c7d44276c5c692)) - [@piperun](https://github.com/piperun)
+- (**chenron**) release metadata response resources - ([87f5a63](https://github.com/piperun/chenron-flutter/commit/87f5a631cd970265560cc547bc7c372829f02bf2)) - [@piperun](https://github.com/piperun)
+- (**chenron**) harden metadata quality edge cases - ([c99d84d](https://github.com/piperun/chenron-flutter/commit/c99d84dd7ec4669d7213afd9efa6cbfe3cbed012)) - [@piperun](https://github.com/piperun)
+- (**chenron**) handle transitional metadata states - ([9de88b8](https://github.com/piperun/chenron-flutter/commit/9de88b87c52a2e8a635af2c6875cb264869da178)) - [@piperun](https://github.com/piperun)
+- (**database**) track migration schema inputs - ([1364b99](https://github.com/piperun/chenron-flutter/commit/1364b99034967c9122a148bd55263b32b3ddb196)) - [@piperun](https://github.com/piperun)
+- preserve local retry state after storage errors - ([87b007f](https://github.com/piperun/chenron-flutter/commit/87b007fde30cb220f4ac825f197e715fcb5bab8e)) - [@piperun](https://github.com/piperun)
+- serialize metadata retry state transitions - ([0cd35c1](https://github.com/piperun/chenron-flutter/commit/0cd35c16c0aa36155b57eed4372e538ac409d4c9)) - [@piperun](https://github.com/piperun)
+#### Documentation
+- clarify local diagnostic-data exception - ([41d7911](https://github.com/piperun/chenron-flutter/commit/41d79110d1fbba0c783449a01e55ecefc19d0f10)) - [@piperun](https://github.com/piperun)
+- enforce sensitive-data anonymization - ([31ada78](https://github.com/piperun/chenron-flutter/commit/31ada782860174265a7d5186189586310a18559b)) - [@piperun](https://github.com/piperun)
+#### Refactoring
+- preserve metadata during refresh - ([50bc812](https://github.com/piperun/chenron-flutter/commit/50bc812f83741fbf75c8ec345c2738ba4b9b8b45)) - [@piperun](https://github.com/piperun)
+
+- - -
+
 ## [v1.14.4](https://github.com/piperun/chenron-flutter/compare/eb350888d1efa5f976622ecf7545c76029943d02..v1.14.4) - 2026-06-03
 #### Bug Fixes
 - (**chenron**) apply the configured image cache directory - ([6821442](https://github.com/piperun/chenron-flutter/commit/6821442c057ccc65a004fd5475150bba5be4f13d)) - [@piperun](https://github.com/piperun)
