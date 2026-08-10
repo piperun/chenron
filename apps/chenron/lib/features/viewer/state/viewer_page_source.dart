@@ -69,8 +69,11 @@ class ViewerPageSource {
   final Signal<List<ViewerTagFacet>> tagFacets = signal(const []);
   final LinkedHashMap<int, List<FolderItem>> _pages = LinkedHashMap();
   final Map<int, Future<void>> _inFlight = <int, Future<void>>{};
+  final Map<int, Object> _loadIdentities = <int, Object>{};
   final Map<int, Object> _pageErrors = <int, Object>{};
   StreamSubscription<void>? _invalidationSubscription;
+  Future<void>? _invalidationCancellation;
+  Object? _subscriptionCancellationError;
   ViewerQuery? _query;
   Object _generation = Object();
   Timer? _invalidationTimer;
@@ -81,6 +84,19 @@ class ViewerPageSource {
       _pages.values.fold(0, (total, page) => total + page.length);
   int get activeLoadCount => _inFlight.length;
   int get activeSubscriptionCount => _invalidationSubscription == null ? 0 : 1;
+
+  /// Completes after invalidation-subscription cleanup settles during dispose.
+  ///
+  /// The future completes normally even when cancellation fails. In that case
+  /// [subscriptionCancellationError] retains the single failure object for
+  /// read-only lifecycle diagnostics. It is null before cancellation starts.
+  Future<void>? get invalidationCancellation => _invalidationCancellation;
+
+  /// The one bounded invalidation-subscription cancellation failure, if any.
+  ///
+  /// Load/query failures continue to use [error]. This separate read-only
+  /// value remains available after the reactive signals have been disposed.
+  Object? get subscriptionCancellationError => _subscriptionCancellationError;
 
   FolderItem? itemAt(int index) {
     if (_disposed || index < 0 || _query == null) return null;
@@ -125,10 +141,13 @@ class ViewerPageSource {
     _invalidationTimer?.cancel();
     _invalidationTimer = null;
     final invalidationSubscription = _invalidationSubscription;
-    _invalidationSubscription = null;
-    unawaited(invalidationSubscription?.cancel());
+    if (invalidationSubscription != null) {
+      _invalidationCancellation =
+          _cancelInvalidationSubscription(invalidationSubscription);
+    }
     _pages.clear();
     _inFlight.clear();
+    _loadIdentities.clear();
     _pageErrors.clear();
     totalCount.value = 0;
     tagFacets.value = const <ViewerTagFacet>[];
@@ -140,11 +159,26 @@ class ViewerPageSource {
     tagFacets.dispose();
   }
 
+  Future<void> _cancelInvalidationSubscription(
+    StreamSubscription<void> subscription,
+  ) async {
+    try {
+      await subscription.cancel();
+    } catch (caughtError) {
+      _subscriptionCancellationError = caughtError;
+    } finally {
+      if (identical(_invalidationSubscription, subscription)) {
+        _invalidationSubscription = null;
+      }
+    }
+  }
+
   Object _beginGeneration() {
     final generation = Object();
     _generation = generation;
     _pages.clear();
     _inFlight.clear();
+    _loadIdentities.clear();
     _pageErrors.clear();
     totalCount.value = 0;
     tagFacets.value = const <ViewerTagFacet>[];
@@ -194,14 +228,12 @@ class ViewerPageSource {
     final query = _query;
     if (_disposed || query == null) return Future<void>.value();
     final generation = _generation;
+    final loadIdentity = Object();
     late final Future<void> load;
-    load = _loadPage(pageIndex, query, generation).whenComplete(() {
-      _inFlight.removeWhere(
-        (index, activeLoad) =>
-            index == pageIndex && identical(activeLoad, load),
-      );
-    });
+    load = _loadPage(pageIndex, query, generation, loadIdentity)
+        .whenComplete(() => _finishPageLoad(pageIndex, loadIdentity));
     _inFlight[pageIndex] = load;
+    _loadIdentities[pageIndex] = loadIdentity;
     return load;
   }
 
@@ -209,6 +241,7 @@ class ViewerPageSource {
     int pageIndex,
     ViewerQuery query,
     Object generation,
+    Object loadIdentity,
   ) async {
     try {
       final loaded = await _repository.loadPage(
@@ -226,13 +259,22 @@ class ViewerPageSource {
       while (_pages.length > maxCachedPages) {
         _pages.remove(_pages.keys.first);
       }
+      _finishPageLoad(pageIndex, loadIdentity);
       revision.value++;
     } catch (caughtError) {
       if (!_isCurrent(generation)) return;
+      if (!_finishPageLoad(pageIndex, loadIdentity)) return;
       _pageErrors[pageIndex] = caughtError;
       error.value = caughtError;
       revision.value++;
     }
+  }
+
+  bool _finishPageLoad(int pageIndex, Object loadIdentity) {
+    if (!identical(_loadIdentities[pageIndex], loadIdentity)) return false;
+    _loadIdentities.remove(pageIndex);
+    _inFlight.removeWhere((index, _) => index == pageIndex);
+    return true;
   }
 
   bool _isCurrent(Object generation) =>

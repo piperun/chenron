@@ -14,23 +14,51 @@ typedef _PageLoader = Future<List<FolderItem>> Function(
 );
 
 class _FakeViewerPageRepository implements ViewerPageRepository {
-  _FakeViewerPageRepository({this.pageLoader}) {
-    _invalidationController = StreamController<void>.broadcast(
-      onListen: () => activeInvalidationListeners++,
-      onCancel: () => activeInvalidationListeners--,
-    );
-  }
+  _FakeViewerPageRepository({
+    this.pageLoader,
+    this.cancellationGate,
+    this.cancellationError,
+  });
 
   final _PageLoader? pageLoader;
-  late final StreamController<void> _invalidationController;
+  final Completer<void>? cancellationGate;
+  final Object? cancellationError;
+  final Set<StreamController<void>> _invalidationControllers =
+      <StreamController<void>>{};
+  final Completer<void> cancellationRequested = Completer<void>();
+  final Completer<void> cancellationFinished = Completer<void>();
   final Map<int, int> pageCalls = <int, int>{};
   int countCalls = 0;
   int facetCalls = 0;
   int activeInvalidationListeners = 0;
+  int cancellationRequests = 0;
 
-  void invalidate() => _invalidationController.add(null);
+  void invalidate() {
+    for (final controller in _invalidationControllers) {
+      controller.add(null);
+    }
+  }
 
-  Future<void> close() => _invalidationController.close();
+  Future<void> close() async {
+    for (final controller in _invalidationControllers.toList()) {
+      await controller.close();
+    }
+    _invalidationControllers.clear();
+  }
+
+  Future<void> _handleCancellation() async {
+    cancellationRequests++;
+    if (!cancellationRequested.isCompleted) cancellationRequested.complete();
+    try {
+      final gate = cancellationGate;
+      if (gate != null) await gate.future;
+      final cancellationFailure = cancellationError;
+      if (cancellationFailure != null) throw cancellationFailure;
+    } finally {
+      activeInvalidationListeners--;
+      if (!cancellationFinished.isCompleted) cancellationFinished.complete();
+    }
+  }
 
   @override
   Future<List<FolderItem>> loadPage(
@@ -60,7 +88,21 @@ class _FakeViewerPageRepository implements ViewerPageRepository {
   }
 
   @override
-  Stream<void> invalidations() => _invalidationController.stream;
+  Stream<void> invalidations() {
+    late final StreamController<void> controller;
+    controller = StreamController<void>(
+      onListen: () => activeInvalidationListeners++,
+      onCancel: () async {
+        try {
+          await _handleCancellation();
+        } finally {
+          _invalidationControllers.remove(controller);
+        }
+      },
+    );
+    _invalidationControllers.add(controller);
+    return controller.stream;
+  }
 
   @override
   Future<ViewerSelectionLease> createSelectionLease({
@@ -274,6 +316,36 @@ void main() {
       expect(repository.pageCalls[source.pageSize], 2);
     });
 
+    test("an error subscriber can retry the failed page synchronously",
+        () async {
+      var attempts = 0;
+      source.dispose();
+      await repository.close();
+      repository = _FakeViewerPageRepository(
+        pageLoader: (_, limit, offset) async {
+          attempts++;
+          if (attempts == 1) throw StateError("first page load failed");
+          return List<FolderItem>.generate(
+            limit,
+            (index) => _item(offset + index),
+          );
+        },
+      );
+      source = ViewerPageSource(repository: repository);
+      await source.setQuery(const ViewerQuery());
+      final unsubscribe = source.error.subscribe((pageError) {
+        if (pageError != null) unawaited(source.retryPage(1));
+      });
+      addTearDown(unsubscribe);
+
+      expect(source.itemAt(source.pageSize), isNull);
+      await _waitForLoads(source);
+
+      expect(repository.pageCalls[source.pageSize], 2);
+      expect(source.errorAt(source.pageSize), isNull);
+      expect(source.itemAt(source.pageSize)?.id, "item-${source.pageSize}");
+    });
+
     test("dispose clears state, cancels invalidation, and ignores late loads",
         () async {
       final pendingPage = Completer<List<FolderItem>>();
@@ -318,6 +390,62 @@ void main() {
       expect(source.cachedRowCount, 0);
       expect(source.itemAt(0), isNull);
       expect(repository.pageCalls[0], 1);
+    });
+
+    test("dispose counts invalidation until delayed cancellation completes",
+        () async {
+      final cancellationGate = Completer<void>();
+      final pendingPage = Completer<List<FolderItem>>();
+      source.dispose();
+      await repository.close();
+      repository = _FakeViewerPageRepository(
+        cancellationGate: cancellationGate,
+        pageLoader: (query, limit, offset) => pendingPage.future,
+      );
+      source = ViewerPageSource(repository: repository);
+      await source.setQuery(const ViewerQuery());
+      source.itemAt(0);
+
+      source.dispose();
+
+      expect(repository.cancellationRequests, 1);
+      expect(source.activeSubscriptionCount, 1);
+      expect(source.activeLoadCount, 0);
+      repository.invalidate();
+      pendingPage.complete(<FolderItem>[_item(0, prefix: "late")]);
+      cancellationGate.complete();
+      await repository.cancellationFinished.future;
+      await Future<void>.microtask(() {});
+
+      expect(source.activeSubscriptionCount, 0);
+      expect(source.cachedRowCount, 0);
+      expect(repository.countCalls, 1);
+      expect(repository.facetCalls, 1);
+    });
+
+    test("cancellation failure settles and remains available diagnostically",
+        () async {
+      final cancellationFailure = StateError("invalidation cancel failed");
+      source.dispose();
+      await repository.close();
+      repository = _FakeViewerPageRepository(
+        cancellationError: cancellationFailure,
+      );
+      source = ViewerPageSource(repository: repository);
+      await source.setQuery(const ViewerQuery());
+
+      source.dispose();
+      final cancellation = source.invalidationCancellation;
+
+      expect(cancellation, isNotNull);
+      expect(source.activeSubscriptionCount, 1);
+      await cancellation;
+      expect(source.activeSubscriptionCount, 0);
+      expect(
+        source.subscriptionCancellationError,
+        same(cancellationFailure),
+      );
+      expect(repository.cancellationRequests, 1);
     });
   });
 
