@@ -17,6 +17,9 @@ export "src/features/folder/item_pagination.dart";
 export "src/features/folder/item_membership.dart";
 export "src/features/folder/counts.dart";
 
+// Viewer operations
+export "src/features/viewer/query.dart";
+
 // Link operations
 export "src/features/link/create.dart";
 export "src/features/link/read.dart";
