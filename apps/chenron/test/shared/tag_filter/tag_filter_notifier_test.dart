@@ -184,6 +184,92 @@ void main() {
       state.dispose();
     });
 
+    test("add operations treat case variants as one logical tag", () {
+      final state = TagFilterNotifier();
+
+      state.addExcluded("topic");
+      state.addIncluded("TOPIC");
+      state.addIncluded("Topic");
+
+      expect(state.includedTagNames, {"topic"});
+      expect(state.excludedTagNames, isEmpty);
+
+      state.addExcluded("TOPIC");
+
+      expect(state.includedTagNames, isEmpty);
+      expect(state.excludedTagNames, {"topic"});
+
+      state.dispose();
+    });
+
+    test("many operations collapse variants and move opposite-set tags", () {
+      final state = TagFilterNotifier();
+
+      state.excludeMany({"topic", "TOPIC", "hidden"});
+      expect(state.excludedTagNames, {"topic", "hidden"});
+
+      state.includeMany({"TOPIC", "chosen", "CHOSEN"});
+
+      expect(state.includedTagNames, {"topic", "chosen"});
+      expect(state.excludedTagNames, {"hidden"});
+
+      state.excludeMany({"TOPIC", "HIDDEN"});
+
+      expect(state.includedTagNames, {"chosen"});
+      expect(state.excludedTagNames, {"hidden", "topic"});
+
+      state.dispose();
+    });
+
+    test("remove operations match logical tags case-insensitively", () {
+      final state = TagFilterNotifier();
+
+      state.includeMany({"topic", "chosen", "later"});
+      state.excludeMany({"hidden", "blocked", "denied"});
+
+      state.removeIncluded("TOPIC");
+      state.removeExcluded("HIDDEN");
+      state.removeIncludedMany({"CHOSEN", "missing"});
+      state.removeExcludedMany({"BLOCKED", "missing"});
+
+      expect(state.includedTagNames, {"later"});
+      expect(state.excludedTagNames, {"denied"});
+
+      state.dispose();
+    });
+
+    test("set operations collapse variants and win opposite conflicts", () {
+      final state = TagFilterNotifier();
+
+      state.addExcluded("topic");
+      state.setIncluded({"TOPIC", "chosen", "CHOSEN"});
+
+      expect(state.includedTagNames, {"topic", "chosen"});
+      expect(state.excludedTagNames, isEmpty);
+
+      state.setExcluded({"TOPIC", "hidden", "HIDDEN"});
+
+      expect(state.includedTagNames, {"chosen"});
+      expect(state.excludedTagNames, {"topic", "hidden"});
+
+      state.dispose();
+    });
+
+    test("updateTags gives included tags deterministic conflict precedence",
+        () {
+      final state = TagFilterNotifier();
+
+      state.updateTags(
+        included: {"Topic", "TOPIC", "chosen"},
+        excluded: {"topic", "hidden", "HIDDEN"},
+      );
+
+      expect(state.includedTagNames, {"Topic", "chosen"});
+      expect(state.excludedTagNames, {"hidden"});
+
+      state.dispose();
+    });
+
     test("parseAndAddFromQuery adds tags from query", () {
       final state = TagFilterNotifier();
 
@@ -210,6 +296,21 @@ void main() {
       // Second submission
       state.parseAndAddFromQuery("#tag2");
       expect(state.includedTagNames, {"tag1", "tag2"});
+
+      state.dispose();
+    });
+
+    test("parse moves case variants and gives inclusion conflict precedence",
+        () {
+      final state = TagFilterNotifier();
+
+      state.addExcluded("topic");
+      final cleanQuery =
+          state.parseAndAddFromQuery("needle #TOPIC -#Mixed #MIXED");
+
+      expect(cleanQuery, "needle");
+      expect(state.includedTagNames, {"topic", "MIXED"});
+      expect(state.excludedTagNames, isEmpty);
 
       state.dispose();
     });
@@ -258,4 +359,3 @@ void main() {
     });
   });
 }
-

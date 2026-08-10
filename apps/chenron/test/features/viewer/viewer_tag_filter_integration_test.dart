@@ -100,12 +100,16 @@ void main() {
     await _expectOnlyTaggedRow(tester, presenter, taggedId);
 
     presenter.tagFilterState.clear();
+    presenter.tagFilterState.addExcluded(tagName);
+    await tester.pumpAndSettle();
+    expect(presenter.pageSource.totalCount.value, 1);
     presenter.onSearchSubmitted("#TOPIC");
     await tester.pumpAndSettle();
 
-    expect(presenter.query.value.includedTags, const <String>{"TOPIC"});
     expect(presenter.pageSource.totalCount.value, 1);
     await _expectOnlyTaggedRow(tester, presenter, taggedId);
+    expect(presenter.query.value.includedTags, const <String>{tagName});
+    expect(presenter.query.value.excludedTags, isEmpty);
   });
 }
 

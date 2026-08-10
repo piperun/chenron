@@ -189,6 +189,29 @@ void main() {
     expect(repository.facetQueries.last, repository.countQueries.last);
   });
 
+  test("submitted case variant moves an excluded tag in one query", () async {
+    presenter = ViewerPresenter(repository: repository);
+    await presenter.init();
+    presenter.tagFilterState.addExcluded("topic");
+    await Future<void>.delayed(Duration.zero);
+    final countLoadsBeforeSubmission = repository.countQueries.length;
+    final facetLoadsBeforeSubmission = repository.facetQueries.length;
+
+    presenter.onSearchSubmitted("#TOPIC");
+    await Future<void>.delayed(Duration.zero);
+
+    expect(presenter.tagFilterState.includedTagNames, {"topic"});
+    expect(presenter.tagFilterState.excludedTagNames, isEmpty);
+    expect(
+      presenter.query.value,
+      const ViewerQuery(includedTags: <String>{"topic"}),
+    );
+    expect(repository.countQueries, hasLength(countLoadsBeforeSubmission + 1));
+    expect(repository.facetQueries, hasLength(facetLoadsBeforeSubmission + 1));
+    expect(repository.countQueries.last, presenter.query.value);
+    expect(repository.facetQueries.last, presenter.query.value);
+  });
+
   test("folder presenter keeps the folder scope across query changes",
       () async {
     final searchFilter = SearchFilter();
