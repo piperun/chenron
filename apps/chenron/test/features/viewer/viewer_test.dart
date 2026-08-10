@@ -34,8 +34,8 @@ void main() {
     ));
   });
 
-  tearDown(() async {
-    await fakeViewerModel.dispose();
+  tearDown(() {
+    fakeViewerModel.dispose();
   });
 
   testWidgets("Viewer widget builds successfully", (WidgetTester tester) async {
@@ -48,7 +48,7 @@ void main() {
     );
 
     expect(find.byType(Viewer), findsOneWidget);
-    await tester.pumpWidget(const MaterialApp(home: SizedBox()));
+    await tester.pumpWidget(const SizedBox());
     await tester.pump();
   });
 
@@ -67,13 +67,14 @@ void main() {
       await tester.pump();
       expect(model.activeSubscriptions, 1, reason: "mount $cycle");
 
-      await tester.pumpWidget(const MaterialApp(home: SizedBox()));
+      await tester.pumpWidget(const SizedBox());
       await tester.pump();
+      expect(presenter.retentionSnapshot.disposed, isTrue);
       expect(model.activeSubscriptions, 0, reason: "unmount $cycle");
       expect(presenter.retentionSnapshot.retainedRows, 0);
       expect(presenter.retentionSnapshot.activeSubscriptions, 0);
 
-      await model.dispose();
+      model.dispose();
     }
 
     expect(
@@ -84,23 +85,19 @@ void main() {
 }
 
 class FakeViewerModel extends Fake implements ViewerModel {
-  final StreamController<List<ViewerItem>> _controller =
-      StreamController<List<ViewerItem>>.broadcast();
   int _activeSubscriptions = 0;
+  late final StreamController<List<ViewerItem>> _controller =
+      StreamController<List<ViewerItem>>(
+    onListen: () => _activeSubscriptions++,
+    onCancel: () {
+      _activeSubscriptions--;
+    },
+  );
 
   int get activeSubscriptions => _activeSubscriptions;
 
   @override
-  Stream<List<ViewerItem>> watchAllItems() {
-    return _controller.stream
-        .transform(
-          StreamTransformer<List<ViewerItem>, List<ViewerItem>>.fromHandlers(
-            handleData: (data, sink) => sink.add(data),
-          ),
-        )
-        .trackSubscriptions(
-            () => _activeSubscriptions++, () => _activeSubscriptions--);
-  }
+  Stream<List<ViewerItem>> watchAllItems() => _controller.stream;
 
   @override
   Future<bool> removeFolder(String? folder) async => true;
@@ -113,30 +110,7 @@ class FakeViewerModel extends Fake implements ViewerModel {
     return Stream.value([]);
   }
 
-  Future<void> dispose() => _controller.close();
-}
-
-extension _TrackSubscriptions<T> on Stream<T> {
-  Stream<T> trackSubscriptions(
-    void Function() onListen,
-    void Function() onCancel,
-  ) {
-    late StreamController<T> wrapper;
-    StreamSubscription<T>? subscription;
-    wrapper = StreamController<T>(
-      onListen: () {
-        onListen();
-        subscription = listen(
-          wrapper.add,
-          onError: wrapper.addError,
-          onDone: wrapper.close,
-        );
-      },
-      onCancel: () {
-        onCancel();
-        return subscription?.cancel();
-      },
-    );
-    return wrapper.stream;
+  void dispose() {
+    unawaited(_controller.close());
   }
 }

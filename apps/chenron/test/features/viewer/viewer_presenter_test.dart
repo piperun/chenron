@@ -15,26 +15,48 @@ import "viewer_test.mocks.dart";
 /// tests can observe how many live subscriptions the presenter holds.
 ///
 /// `watchAllItems()` hands out a single-listener stream backed by a
-/// broadcast controller, but counts every `listen` and every `cancel`
+/// controller, but counts every `listen` and every `cancel`
 /// so a test can assert the presenter never stacks subscriptions.
 class _FakeViewerModel extends Fake implements ViewerModel {
-  final StreamController<List<ViewerItem>> controller =
-      StreamController<List<ViewerItem>>.broadcast();
+  late final StreamController<List<ViewerItem>> controller =
+      StreamController<List<ViewerItem>>(
+    onCancel: () => _cancellationGate?.future,
+  );
 
   int listenCount = 0;
   int cancelCount = 0;
+  Completer<void>? _cancellationGate;
+  Completer<void>? _cancellationFinished;
 
   int get activeSubscriptions => listenCount - cancelCount;
+
+  void deferCancellation() {
+    _cancellationGate = Completer<void>();
+    _cancellationFinished = Completer<void>();
+  }
+
+  void completeCancellation() {
+    final gate = _cancellationGate;
+    if (gate != null && !gate.isCompleted) gate.complete();
+  }
+
+  Future<void> get cancellationFinished =>
+      _cancellationFinished?.future ?? Future<void>.value();
 
   @override
   Stream<List<ViewerItem>> watchAllItems() {
     // Wrap the broadcast stream so each subscription is observable via
     // the onListen / onCancel transformer hooks.
-    return controller.stream.transform(
+    return controller.stream
+        .transform(
       StreamTransformer<List<ViewerItem>, List<ViewerItem>>.fromHandlers(
         handleData: (data, sink) => sink.add(data),
       ),
-    ).doOnSubscribe(() => listenCount++, () => cancelCount++);
+    )
+        .doOnSubscribe(() => listenCount++, () {
+      cancelCount++;
+      _cancellationFinished?.complete();
+    });
   }
 
   @override
@@ -62,16 +84,17 @@ extension _DoOnSubscribe<T> on Stream<T> {
           onDone: wrapper.close,
         );
       },
-      onCancel: () {
+      onCancel: () async {
+        await sub?.cancel();
         onCancel();
-        return sub?.cancel();
       },
     );
     return wrapper.stream;
   }
 }
 
-ViewerItem _item(String id, {String title = "", FolderItemType type = FolderItemType.link}) {
+ViewerItem _item(String id,
+    {String title = "", FolderItemType type = FolderItemType.link}) {
   return ViewerItem(
     id: id,
     title: title,
@@ -111,8 +134,7 @@ void main() {
       expect(model.activeSubscriptions, 1);
     });
 
-    test("calling init() twice does NOT stack a second subscription",
-        () async {
+    test("calling init() twice does NOT stack a second subscription", () async {
       await presenter.init();
       await presenter.init();
       await Future<void>.delayed(Duration.zero);
@@ -165,8 +187,24 @@ void main() {
       expect(model.activeSubscriptions, 0);
     });
 
-    test("dispose closes the items controller and disposes signals",
-        () async {
+    test("cancellation accounting waits for the source cancellation", () async {
+      model.deferCancellation();
+      addTearDown(model.completeCancellation);
+      await presenter.init();
+      await Future<void>.delayed(Duration.zero);
+      expect(model.activeSubscriptions, 1);
+
+      presenter.dispose();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(model.activeSubscriptions, 1);
+
+      model.completeCancellation();
+      await model.cancellationFinished;
+      expect(model.activeSubscriptions, 0);
+    });
+
+    test("dispose closes the items controller and disposes signals", () async {
       await presenter.init();
       await Future<void>.delayed(Duration.zero);
 
