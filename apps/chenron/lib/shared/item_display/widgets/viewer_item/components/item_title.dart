@@ -3,6 +3,7 @@ import "package:flutter/material.dart";
 import "package:database/models/item.dart";
 import "package:signals/signals_flutter.dart";
 
+import "package:chenron/services/metadata/metadata_display.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/item_utils.dart";
 
 /// Title text for a [FolderItem] inside a viewer card.
@@ -43,13 +44,7 @@ class ItemTitle extends StatelessWidget {
       final fallback = url ?? "";
       return SignalBuilder(builder: (context) {
         final state = metadataSignal.value;
-        final title = switch (state) {
-          MetadataStateAvailable(:final data) => data.title ?? fallback,
-          MetadataStateReady(:final data) => data.title ?? fallback,
-          MetadataStateUnavailable() => fallback,
-          MetadataStateLoading() => fallback,
-          MetadataStateFailed() => fallback,
-        };
+        final title = resolveMetadataDisplayTitle(fallback, state);
         return Tooltip(
           message: _truncateTooltip(title),
           child: Text(

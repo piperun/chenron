@@ -9,6 +9,8 @@ import "package:vibe/vibe.dart";
 
 import "package:chenron/components/favicon_display/favicon.dart";
 import "package:chenron/locator.dart";
+import "package:chenron/services/metadata/metadata_display.dart";
+import "package:chenron/shared/item_detail/components/metadata_refresh_status.dart";
 import "package:chenron/shared/item_detail/item_detail_data.dart";
 import "package:chenron/shared/item_detail/components/type_chip.dart";
 
@@ -25,7 +27,7 @@ class _LinkHeroState extends State<LinkHero> {
   /// Long-lived metadata signal owned by [MetadataService]. Hoisted
   /// once so the [SignalBuilder] in `build()` doesn't allocate on rebuild.
   Signal<MetadataState>? _metadataSignal;
-  bool _isRefreshing = false;
+  bool _refreshTapInFlight = false;
 
   @override
   void initState() {
@@ -38,12 +40,12 @@ class _LinkHeroState extends State<LinkHero> {
 
   Future<void> _handleRefreshMetadata() async {
     final url = widget.data.url;
-    if (url == null || _isRefreshing) return;
-    setState(() => _isRefreshing = true);
+    if (url == null || _refreshTapInFlight) return;
+    _refreshTapInFlight = true;
     try {
       await locator.get<MetadataService>().forceFetch(url);
     } finally {
-      if (mounted) setState(() => _isRefreshing = false);
+      _refreshTapInFlight = false;
     }
   }
 
@@ -108,14 +110,20 @@ class _LinkHeroState extends State<LinkHero> {
         if (metadataSignal != null)
           SignalBuilder(builder: (context) {
             final state = metadataSignal.value;
-            final ready = state is MetadataStateReady ? state.data : null;
-            final title = ready?.title;
-            final description = ready?.description;
+            final data = switch (state) {
+              MetadataStateAvailable(:final data) => data,
+              MetadataStateUnavailable() => null,
+            };
+            final title = resolveMetadataDisplayTitle(
+              widget.data.url!,
+              state,
+            );
+            final description = data?.description;
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (title != null && title.isNotEmpty) ...[
+                if (title.isNotEmpty) ...[
                   Text(
                     title,
                     style: TextStyle(
@@ -138,6 +146,8 @@ class _LinkHeroState extends State<LinkHero> {
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                   ),
+                const SizedBox(height: 12),
+                MetadataRefreshStatus(state: state),
               ],
             );
           }),
@@ -158,17 +168,25 @@ class _LinkHeroState extends State<LinkHero> {
               icon: Icons.copy,
               onPressed: _handleCopyUrl,
             ),
-            OutlinedButton.icon(
-              onPressed: _isRefreshing ? null : _handleRefreshMetadata,
-              icon: _isRefreshing
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.refresh, size: 16),
-              label: const Text("Refresh"),
-            ),
+            if (metadataSignal != null)
+              SignalBuilder(builder: (context) {
+                final refreshing = switch (metadataSignal.value) {
+                  MetadataStateAvailable(:final refreshPhase) ||
+                  MetadataStateUnavailable(:final refreshPhase) =>
+                    refreshPhase == MetadataRefreshPhase.refreshing,
+                };
+                return OutlinedButton.icon(
+                  onPressed: refreshing ? null : _handleRefreshMetadata,
+                  icon: refreshing
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.refresh, size: 16),
+                  label: const Text("Refresh"),
+                );
+              }),
           ],
         ),
       ],

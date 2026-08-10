@@ -78,10 +78,7 @@ class _ItemImageHeaderState extends State<ItemImageHeader> {
           final state = metadataSignal.value;
           final imageUrl = switch (state) {
             MetadataStateAvailable(:final data) => data.imageUrl,
-            MetadataStateReady(:final data) => data.imageUrl,
             MetadataStateUnavailable() => null,
-            MetadataStateLoading() => null,
-            MetadataStateFailed() => null,
           };
           if (imageUrl != null && _isValidImageUrl(imageUrl)) {
             return _NetworkImageBox(
@@ -155,10 +152,7 @@ class _ItemThumbnailState extends State<ItemThumbnail> {
           final state = metadataSignal.value;
           final imageUrl = switch (state) {
             MetadataStateAvailable(:final data) => data.imageUrl,
-            MetadataStateReady(:final data) => data.imageUrl,
             MetadataStateUnavailable() => null,
-            MetadataStateLoading() => null,
-            MetadataStateFailed() => null,
           };
           if (imageUrl != null && _isValidImageUrl(imageUrl)) {
             return SizedBox(

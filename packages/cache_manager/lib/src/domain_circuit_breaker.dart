@@ -39,6 +39,7 @@ class DomainCircuitBreaker {
   void recordFailure(
     String url, {
     required MetadataFailureKind kind,
+    int? statusCode,
     Duration? retryAfter,
   }) {
     final host = _hostFor(url);
@@ -81,6 +82,8 @@ class DomainCircuitBreaker {
     _circuits[host] = _DomainCircuitState(
       consecutiveFailures: count,
       lastFailureAt: attemptedAt,
+      lastFailureKind: kind,
+      lastStatusCode: statusCode,
       nextRetryAt: deadline,
     );
   }
@@ -92,6 +95,18 @@ class DomainCircuitBreaker {
 
   /// Return the host circuit's open deadline, if any.
   DateTime? nextRetryAt(String url) => _circuits[_hostFor(url)]?.nextRetryAt;
+
+  /// Return the most recent host-level failure kind, if one is recorded.
+  MetadataFailureKind? lastFailureKind(String url) =>
+      _circuits[_hostFor(url)]?.lastFailureKind;
+
+  /// Return the most recent host-level HTTP status, if one was recorded.
+  int? lastStatusCode(String url) =>
+      _circuits[_hostFor(url)]?.lastStatusCode;
+
+  /// Return the host's consecutive failure count.
+  int failureCount(String url) =>
+      _circuits[_hostFor(url)]?.consecutiveFailures ?? 0;
 
   /// Remove host state that has not seen a failure for 30 days.
   void cleanup() {
@@ -110,12 +125,16 @@ class DomainCircuitBreaker {
 class _DomainCircuitState {
   final int consecutiveFailures;
   final DateTime lastFailureAt;
+  final MetadataFailureKind lastFailureKind;
+  final int? lastStatusCode;
   final DateTime? nextRetryAt;
   bool halfOpenProbeClaimed = false;
 
   _DomainCircuitState({
     required this.consecutiveFailures,
     required this.lastFailureAt,
+    required this.lastFailureKind,
+    required this.lastStatusCode,
     required this.nextRetryAt,
   });
 }

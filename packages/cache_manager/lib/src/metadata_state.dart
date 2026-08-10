@@ -21,23 +21,4 @@ sealed class MetadataState with _$MetadataState {
     @Default(MetadataRefreshPhase.idle) MetadataRefreshPhase refreshPhase,
     MetadataRefreshFailure? lastFailure,
   }) = MetadataStateAvailable;
-
-  /// Compatibility state retained until all consumers migrate to
-  /// [MetadataState.unavailable] and its refresh phase.
-  @Deprecated("Use MetadataState.unavailable instead.")
-  const factory MetadataState.loading() = MetadataStateLoading;
-
-  /// Compatibility state retained until all consumers migrate to
-  /// [MetadataState.available] and its freshness.
-  @Deprecated("Use MetadataState.available instead.")
-  const factory MetadataState.ready(Metadata data) = MetadataStateReady;
-
-  /// Compatibility state retained until all consumers migrate to
-  /// [MetadataState.unavailable] or [MetadataState.available] with a failed
-  /// refresh phase.
-  @Deprecated("Use availability plus MetadataRefreshPhase.failed instead.")
-  const factory MetadataState.failed(
-    String reason,
-    int attemptCount,
-  ) = MetadataStateFailed;
 }

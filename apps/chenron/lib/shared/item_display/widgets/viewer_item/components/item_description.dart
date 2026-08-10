@@ -8,9 +8,8 @@ import "package:chenron/shared/item_display/widgets/viewer_item/item_utils.dart"
 /// Description / subtitle text for a [FolderItem] inside a viewer card.
 ///
 /// For link items with an injected [metadata] signal, reactively shows
-/// the fetched OG description. While loading or after failure, renders
-/// nothing — current UX intentionally hides the line until real data
-/// arrives.
+/// the fetched description whenever cached data is available. Refreshing or
+/// failed refresh attempts do not hide that cached content.
 ///
 /// For non-link items (no [metadata]), shows the static subtitle from
 /// [ItemUtils.getItemSubtitle].
@@ -38,10 +37,7 @@ class ItemDescription extends StatelessWidget {
         final state = metadataSignal.value;
         final description = switch (state) {
           MetadataStateAvailable(:final data) => data.description,
-          MetadataStateReady(:final data) => data.description,
           MetadataStateUnavailable() => null,
-          MetadataStateLoading() => null,
-          MetadataStateFailed() => null,
         };
         if (description != null && description.isNotEmpty) {
           return Text(

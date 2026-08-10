@@ -17,7 +17,7 @@ import "package:signals/signals.dart";
 const _source = "MetadataService";
 
 /// Network fetcher injected by the host application's HTTP boundary.
-typedef MetadataFetcherFn = Future<MetadataFetchResult> Function(
+typedef MetadataFetchCallback = Future<MetadataFetchResult> Function(
   String url, {
   Metadata? previous,
 });
@@ -47,7 +47,7 @@ class MetadataService {
   final MetadataCache _cache;
   final FailureTracker _failures;
   final DomainCircuitBreaker _domainCircuitBreaker;
-  final MetadataFetcherFn _fetcher;
+  final MetadataFetchCallback _fetcher;
   final OnFetchLogged? _onFetchLogged;
   final DateTime Function() _now;
   final Future<void> Function(Duration) _delay;
@@ -79,7 +79,7 @@ class MetadataService {
     required MetadataCache cache,
     required FailureTracker failures,
     required DomainCircuitBreaker domainCircuitBreaker,
-    required MetadataFetcherFn fetcher,
+    required MetadataFetchCallback fetcher,
     OnFetchLogged? onFetchLogged,
     DateTime Function()? now,
     Future<void> Function(Duration)? delay,
@@ -231,8 +231,9 @@ class MetadataService {
       final urlAllowed = _failures.shouldRetry(url);
       final domainDecision =
           urlAllowed ? _domainCircuitBreaker.decisionFor(url) : null;
-      if (!urlAllowed || domainDecision == DomainRequestDecision.skip) {
-        return _skip(url, lookup);
+      final skippedByDomain = domainDecision == DomainRequestDecision.skip;
+      if (!urlAllowed || skippedByDomain) {
+        return _skip(url, lookup, skippedByDomain: skippedByDomain);
       }
     }
 
@@ -249,17 +250,32 @@ class MetadataService {
     return future;
   }
 
-  MetadataRefreshResult _skip(String url, MetadataCacheLookup? lookup) {
+  MetadataRefreshResult _skip(
+    String url,
+    MetadataCacheLookup? lookup, {
+    bool skippedByDomain = false,
+  }) {
     final record = _failures.recordFor(url);
-    final failure = record == null
-        ? null
-        : MetadataRefreshFailure(
-            kind: record.lastFailureKind ?? MetadataFailureKind.transport,
-            reason: "retry waiting",
-            attemptCount: record.consecutiveFailures,
-            statusCode: record.lastStatusCode,
-            nextRetryAt: record.nextRetryAt,
-          );
+    final domainRetryAt =
+        skippedByDomain ? _domainCircuitBreaker.nextRetryAt(url) : null;
+    final failure = domainRetryAt != null
+        ? MetadataRefreshFailure(
+            kind: _domainCircuitBreaker.lastFailureKind(url) ??
+                MetadataFailureKind.transport,
+            reason: "domain retry waiting",
+            attemptCount: _domainCircuitBreaker.failureCount(url),
+            statusCode: _domainCircuitBreaker.lastStatusCode(url),
+            nextRetryAt: domainRetryAt,
+          )
+        : record != null
+            ? MetadataRefreshFailure(
+                kind: record.lastFailureKind ?? MetadataFailureKind.transport,
+                reason: "retry waiting",
+                attemptCount: record.consecutiveFailures,
+                statusCode: record.lastStatusCode,
+                nextRetryAt: record.nextRetryAt,
+              )
+            : null;
     final phase = failure == null
         ? MetadataRefreshPhase.idle
         : MetadataRefreshPhase.failed;
@@ -308,6 +324,9 @@ class MetadataService {
           reason: error.toString(),
           elapsed: stopwatch.elapsed,
         );
+      }
+      if (_disposed) {
+        return _disposedResult(url, previous, previousFreshness);
       }
       return await _reduce(url, previous, previousFreshness, fetched);
     } finally {
@@ -500,6 +519,7 @@ class MetadataService {
     _domainCircuitBreaker.recordFailure(
       url,
       kind: kind,
+      statusCode: statusCode,
       retryAfter: retryAfter,
     );
     final failure = MetadataRefreshFailure(

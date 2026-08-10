@@ -651,11 +651,14 @@ void main() {
     expect(state.lastFailure?.attemptCount, 1);
   });
 
-  test("late fetch after dispose does not write or resurrect a signal",
+  test("late success after dispose does not write, log, or resurrect",
       () async {
     final completer = Completer<MetadataFetchResult>();
     fetcher.handlers[url] = (_) => completer.future;
-    final service = buildService();
+    final logged = <MetadataRefreshResult>[];
+    final service = buildService(
+      onFetchLogged: (_, result) => logged.add(result),
+    );
     final watched = service.watch(url);
     await pumpEventQueue();
 
@@ -665,6 +668,60 @@ void main() {
 
     expect(watched.disposed, isTrue);
     expect(service.signalCacheSize, 0);
+    expect(persistence.metadata[url], isNull);
+    expect(logged, isEmpty);
+  });
+
+  test("late failure after dispose does not persist retry or open circuit",
+      () async {
+    final completer = Completer<MetadataFetchResult>();
+    fetcher.handlers[url] = (_) => completer.future;
+    final logged = <MetadataRefreshResult>[];
+    final service = buildService(
+      onFetchLogged: (_, result) => logged.add(result),
+    );
+    service.watch(url);
+    await pumpEventQueue();
+
+    service.dispose();
+    completer.complete(const MetadataRejected(
+      kind: MetadataFailureKind.blocked,
+      reason: "request blocked",
+      statusCode: 403,
+      elapsed: Duration(milliseconds: 10),
+    ));
+    await pumpEventQueue();
+
+    expect(failures.recordFor(url), isNull);
+    expect(persistence.records[url], isNull);
+    expect(domains.nextRetryAt(url), isNull);
+    expect(logged, isEmpty);
+  });
+
+  test("domain skip exposes the host failure and retry deadline", () async {
+    const otherUrl = "https://example.com/post/2";
+    await failures.recordFailure(
+      otherUrl,
+      kind: MetadataFailureKind.timeout,
+    );
+    now = now.add(const Duration(minutes: 3));
+    domains.recordFailure(
+      url,
+      kind: MetadataFailureKind.blocked,
+      statusCode: 403,
+      retryAfter: const Duration(minutes: 10),
+    );
+
+    final signal = buildService().watch(otherUrl);
+    await pumpEventQueue();
+
+    expect(fetcher.calls, isEmpty);
+    final state = signal.value as MetadataStateUnavailable;
+    expect(state.refreshPhase, MetadataRefreshPhase.failed);
+    expect(state.lastFailure?.kind, MetadataFailureKind.blocked);
+    expect(state.lastFailure?.statusCode, 403);
+    expect(
+        state.lastFailure?.nextRetryAt, now.add(const Duration(minutes: 10)));
   });
 
   test("disposed force refresh preserves fresh snapshot freshness", () async {

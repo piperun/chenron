@@ -18,8 +18,8 @@ import "package:chenron/providers/appdatabase_provider.dart";
 import "package:chenron/providers/basedir.dart";
 import "package:chenron/providers/configdatabase.dart";
 import "package:chenron/providers/theme_notifier_signal.dart";
+import "package:chenron/services/metadata/metadata_fetch_client.dart";
 import "package:chenron/services/activity_tracker.dart";
-import "package:chenron/utils/metadata.dart";
 
 /// Process-wide service locator. [locatorSetup] runs once at startup;
 /// everywhere else, services resolve via `locator.get<T>()`.
@@ -52,13 +52,20 @@ void locatorSetup() {
   locator.registerSingleton<MetadataCache>(MetadataCache());
   locator.registerSingleton<FailureTracker>(FailureTracker());
   locator.registerSingleton<DomainCircuitBreaker>(DomainCircuitBreaker());
-  locator.registerSingleton<MetadataService>(MetadataService(
-    cache: locator.get<MetadataCache>(),
-    failures: locator.get<FailureTracker>(),
-    domainCircuitBreaker: locator.get<DomainCircuitBreaker>(),
-    fetcher: _fetcherAdapter,
-    onFetchLogged: _onFetchLogged,
-  ));
+  locator.registerSingleton<MetadataFetchClient>(
+    MetadataFetchClient(),
+    dispose: (client) => client.close(),
+  );
+  locator.registerSingleton<MetadataService>(
+    MetadataService(
+      cache: locator.get<MetadataCache>(),
+      failures: locator.get<FailureTracker>(),
+      domainCircuitBreaker: locator.get<DomainCircuitBreaker>(),
+      fetcher: locator.get<MetadataFetchClient>().fetch,
+      onFetchLogged: _onFetchLogged,
+    ),
+    dispose: (service) => service.dispose(),
+  );
 
   // One process-wide on-disk image cache, lazily built on first use.
   locator.registerLazySingleton<ImageCacheManager>(ImageCacheManager.new);
@@ -112,41 +119,29 @@ void locatorSetup() {
 
 const _metadataLogTag = "MetadataService";
 
-/// Adapts Chenron's legacy scraper to the structured cache-manager boundary.
-/// The Task 8 HTTP-client cutover will replace this temporary app adapter.
-Future<MetadataFetchResult> _fetcherAdapter(
-  String url, {
-  Metadata? previous,
-}) async {
-  final stopwatch = Stopwatch()..start();
-  final fetched = await MetadataFetcher.fetch(url);
-  return MetadataModified(
-    candidate: MetadataCandidate(
-      title: fetched.title,
-      description: fetched.description,
-      imageUrl: fetched.image,
-      resolvedUrl: fetched.url ?? url,
-    ),
-    statusCode: 200,
-    responseBytes: 0,
-    elapsed: stopwatch.elapsed,
-  );
-}
-
 /// Forwards a structured terminal result to the existing activity log.
 void _onFetchLogged(String url, MetadataRefreshResult result) {
+  if (result.outcome == MetadataRefreshOutcome.skipped) return;
   final succeeded = result.outcome == MetadataRefreshOutcome.updated ||
       result.outcome == MetadataRefreshOutcome.unchanged;
   final failure = switch (result.state) {
     MetadataStateAvailable(:final lastFailure) => lastFailure,
     MetadataStateUnavailable(:final lastFailure) => lastFailure,
-    _ => null,
   };
   unawaited(_logMetadataFetch(
     url: url,
     succeeded: succeeded,
-    error: failure?.reason,
+    error: succeeded ? null : _formatMetadataFailure(failure),
   ));
+}
+
+String _formatMetadataFailure(MetadataRefreshFailure? failure) {
+  if (failure == null) return "metadata refresh failed";
+  final status = failure.statusCode;
+  final category = failure.kind.name;
+  return status == null
+      ? "$category: ${failure.reason}"
+      : "$category (HTTP $status): ${failure.reason}";
 }
 
 /// Best-effort write of a metadata-fetch entry into the BackgroundJobs
