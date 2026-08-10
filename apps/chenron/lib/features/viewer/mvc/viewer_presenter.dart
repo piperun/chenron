@@ -17,6 +17,18 @@ import "package:chenron/features/settings/state/display_settings.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/shared/item_detail/item_detail_dialog.dart";
 
+class ViewerRetentionSnapshot {
+  const ViewerRetentionSnapshot({
+    required this.retainedRows,
+    required this.activeSubscriptions,
+    required this.disposed,
+  });
+
+  final int retainedRows;
+  final int activeSubscriptions;
+  final bool disposed;
+}
+
 class ViewerPresenter {
   final Signal<Set<String>> selectedItemIds = signal({});
   final Signal<Set<FolderItemType>> selectedTypes = signal({
@@ -34,6 +46,7 @@ class ViewerPresenter {
       locator.get<SettingsCoordinator>().display;
   Stream<List<ViewerItem>>? _allItemsStream;
   StreamSubscription<List<ViewerItem>>? _allItemsSubscription;
+  int _activeSubscriptions = 0;
   List<ViewerItem> _currentItems = [];
   bool _disposed = false;
 
@@ -41,6 +54,11 @@ class ViewerPresenter {
       {for (final item in _currentItems) item.id: item};
 
   Stream<List<ViewerItem>> get itemsStream => _itemsController.stream;
+  ViewerRetentionSnapshot get retentionSnapshot => ViewerRetentionSnapshot(
+        retainedRows: _currentItems.length,
+        activeSubscriptions: _activeSubscriptions,
+        disposed: _disposed,
+      );
   late final StreamSignal<List<ViewerItem>> itemsSignal =
       StreamSignal(() => _itemsController.stream);
 
@@ -73,6 +91,7 @@ class ViewerPresenter {
         if (!_itemsController.isClosed) _itemsController.add(const []);
       },
     );
+    _activeSubscriptions++;
   }
 
   void clearSelectedItems() {
@@ -176,6 +195,8 @@ class ViewerPresenter {
     _disposed = true;
     unawaited(_allItemsSubscription?.cancel());
     _allItemsSubscription = null;
+    _activeSubscriptions = 0;
+    _currentItems = const [];
     searchController.removeListener(_onSearchChanged);
     searchController.dispose();
     unawaited(_itemsController.close());

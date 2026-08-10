@@ -141,6 +141,19 @@ void main() {
   });
 
   group("dispose() releases resources (H7)", () {
+    test("dispose releases every retained viewer row", () async {
+      await presenter.init();
+      model.controller.add(List.generate(100000, (i) => _item("item-$i")));
+      await Future<void>.delayed(Duration.zero);
+      expect(presenter.retentionSnapshot.retainedRows, 100000);
+
+      presenter.dispose();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(presenter.retentionSnapshot.retainedRows, 0);
+      expect(presenter.retentionSnapshot.activeSubscriptions, 0);
+    });
+
     test("dispose cancels the active upstream subscription", () async {
       await presenter.init();
       await Future<void>.delayed(Duration.zero);
