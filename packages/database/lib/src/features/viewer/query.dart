@@ -100,6 +100,28 @@ extension ViewerQueryExtensions on AppDatabase {
     return _materializeRows(rows, limit: limit);
   }
 
+  /// Returns SQLite's plan for the exact statement built by [getViewerPage].
+  ///
+  /// This diagnostic keeps every query value bound and is intended only for
+  /// regression tests and local performance investigation.
+  @visibleForTesting
+  Future<List<String>> debugExplainViewerPageQueryPlan(
+    ViewerQuery query, {
+    required int limit,
+    required int offset,
+  }) async {
+    _validatePageArguments(limit: limit, offset: offset);
+    final variables = _viewerFilterVariables(query)
+      ..add(Variable<int>(limit))
+      ..add(Variable<int>(offset));
+    final rows = await customSelect(
+      "EXPLAIN QUERY PLAN " + _viewerPageSql(query),
+      variables: variables,
+      readsFrom: _viewerTables,
+    ).get();
+    return rows.map((row) => row.read<String>("detail")).toList();
+  }
+
   Future<int> getViewerItemCount(ViewerQuery query) async {
     final row = await customSelect(
       query.folderId == null ? _topLevelCountSql : _folderCountSql,
@@ -137,6 +159,7 @@ extension ViewerQueryExtensions on AppDatabase {
             folders,
             links,
             documents,
+            items,
             metadataRecords,
             tags,
           ],
@@ -574,6 +597,8 @@ CREATE TEMP TABLE IF NOT EXISTS viewer_selection_keys (
   session_id TEXT NOT NULL,
   type_id INTEGER NOT NULL,
   item_id TEXT NOT NULL,
+  relation_id TEXT,
+  added_at TEXT,
   PRIMARY KEY (session_id, type_id, item_id)
 )
 """;
@@ -593,8 +618,10 @@ DELETE FROM viewer_selection_keys WHERE session_id = ?
 """;
 
 const _populateTopLevelSelectionSql = """
-INSERT OR IGNORE INTO viewer_selection_keys (session_id, type_id, item_id)
-SELECT ?, type_id, id
+INSERT OR IGNORE INTO viewer_selection_keys (
+  session_id, type_id, item_id, relation_id, added_at
+)
+SELECT ?, type_id, id, relation_id, created_at
 FROM (
 """ +
     _topLevelSourceSql +
@@ -604,8 +631,10 @@ FROM (
 """;
 
 const _populateFolderSelectionSql = """
-INSERT OR IGNORE INTO viewer_selection_keys (session_id, type_id, item_id)
-SELECT ?, type_id, id
+INSERT OR IGNORE INTO viewer_selection_keys (
+  session_id, type_id, item_id, relation_id, added_at
+)
+SELECT ?, type_id, id, relation_id, created_at
 FROM (
 """ +
     _folderSourceSql +
@@ -621,7 +650,7 @@ SELECT item_id AS id, type_id, relation_id, display_name, description, url,
 FROM (
   SELECT selection.item_id AS item_id,
          selection.type_id AS type_id,
-         NULL AS relation_id,
+         selection.relation_id AS relation_id,
          CASE selection.type_id
            WHEN 0 THEN links.path
            WHEN 1 THEN documents.title
@@ -633,11 +662,14 @@ FROM (
            WHEN 2 THEN folders.description
          END AS description,
          links.path AS url,
-         CASE selection.type_id
-           WHEN 0 THEN links.created_at
-           WHEN 1 THEN documents.created_at
-           WHEN 2 THEN folders.created_at
-         END AS created_at,
+         COALESCE(
+           selection.added_at,
+           CASE selection.type_id
+             WHEN 0 THEN links.created_at
+             WHEN 1 THEN documents.created_at
+             WHEN 2 THEN folders.created_at
+           END
+         ) AS created_at,
          CASE selection.type_id
            WHEN 0 THEN links.created_at
            WHEN 1 THEN documents.created_at

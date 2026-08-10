@@ -250,6 +250,44 @@ void main() {
       );
     });
 
+    test("cross-type name and date ties use type then id for every sort mode",
+        () async {
+      final tiedAt = DateTime.utc(2025, 3, 1);
+      const displayName = "https://same.example/path";
+      final folderId = await _insertFolder(
+        database,
+        44,
+        title: displayName,
+        createdAt: tiedAt,
+      );
+      final linkId = await _insertLink(
+        database,
+        44,
+        path: displayName,
+        createdAt: tiedAt,
+      );
+
+      for (final sort in ViewerSort.values) {
+        final page = await database.getViewerPage(
+          ViewerQuery(
+            types: const <FolderItemType>{
+              FolderItemType.link,
+              FolderItemType.folder,
+            },
+            sort: sort,
+          ),
+          limit: 10,
+          offset: 0,
+        );
+
+        expect(
+          page.map((item) => item.id),
+          <String?>[linkId, folderId],
+          reason: "$sort must keep ascending type and id tie-breakers",
+        );
+      }
+    });
+
     test("count is exact and page argument bounds reject invalid values",
         () async {
       await _insertFolder(database, 50, title: "Count Folder");
@@ -308,6 +346,50 @@ void main() {
       await expectLater(
           invalidation.timeout(const Duration(seconds: 2)), completes);
     });
+
+    test(
+        "invalidation emits when folder membership is inserted moved or deleted",
+        () async {
+      final firstFolder =
+          await _insertFolder(database, 71, title: "First Membership Folder");
+      final secondFolder =
+          await _insertFolder(database, 72, title: "Second Membership Folder");
+      final linkId = await _insertLink(
+        database,
+        71,
+        path: "https://membership.example/path",
+      );
+      final relationId = _id("relation", 71);
+
+      await _expectViewerInvalidation(
+        database,
+        () async {
+          await _insertItem(
+            database,
+            71,
+            folderId: firstFolder,
+            itemId: linkId,
+            type: FolderItemType.link,
+          );
+        },
+      );
+      await _expectViewerInvalidation(
+        database,
+        () async {
+          await (database.update(database.items)
+                ..where((item) => item.id.equals(relationId)))
+              .write(ItemsCompanion(folderId: Value(secondFolder)));
+        },
+      );
+      await _expectViewerInvalidation(
+        database,
+        () async {
+          await (database.delete(database.items)
+                ..where((item) => item.id.equals(relationId)))
+              .go();
+        },
+      );
+    });
   });
 
   group("viewer selection leases", () {
@@ -326,6 +408,8 @@ void main() {
       expect(
           firstBatch.map((item) => item.id).toSet(), <String>{first, second});
       expect(firstBatch.map((item) => item.id), isNot(contains(later)));
+      expect(firstBatch.every((item) => item.itemId == null), isTrue);
+      expect(firstBatch.every((item) => item.addedAt == null), isTrue);
 
       await database.consumeViewerSelectionLeaseBatch(
         lease,
@@ -366,11 +450,53 @@ void main() {
 
       expect(batch, hasLength(2));
       expect(batch.map((item) => item.id), isNot(contains(ids.last)));
+      expect(batch.every((item) => item.itemId == null), isTrue);
+      expect(batch.every((item) => item.addedAt == null), isTrue);
       await expectLater(
         database.getViewerSelectionLeaseBatch(lease, limit: 0),
         throwsArgumentError,
       );
       await database.releaseViewerSelectionLease(lease);
+    });
+
+    test("folder selection batches preserve relation identity and added time",
+        () async {
+      final folderId =
+          await _insertFolder(database, 100, title: "Lease Context Folder");
+      final linkId = await _insertLink(
+        database,
+        100,
+        path: "https://lease-context.example/path",
+      );
+      await _insertItem(
+        database,
+        100,
+        folderId: folderId,
+        itemId: linkId,
+        type: FolderItemType.link,
+      );
+      final query = ViewerQuery(folderId: folderId);
+      final selected = (await database.getViewerPage(
+        query,
+        limit: 10,
+        offset: 0,
+      ))
+          .single;
+      final lease = await database.createViewerSelectionLease(query: query);
+
+      try {
+        final leased = (await database.getViewerSelectionLeaseBatch(
+          lease,
+          limit: 10,
+        ))
+            .single;
+
+        expect(leased.id, selected.id);
+        expect(leased.itemId, selected.itemId);
+        expect(leased.addedAt, selected.addedAt);
+      } finally {
+        await database.releaseViewerSelectionLease(lease);
+      }
     });
   });
 
@@ -414,10 +540,28 @@ FROM sequence
       final datePage0 = await timePage(ViewerSort.dateAsc, 0);
       final datePage999 = await timePage(ViewerSort.dateAsc, 99900);
 
-      final namePlan = await _topLevelPlan(database,
-          orderBy: "display_name COLLATE NOCASE, type_id, id");
-      final datePlan =
-          await _topLevelPlan(database, orderBy: "created_at, type_id, id");
+      final namePlan = await database.debugExplainViewerPageQueryPlan(
+        const ViewerQuery(sort: ViewerSort.nameAsc),
+        limit: 100,
+        offset: 99900,
+      );
+      final datePlan = await database.debugExplainViewerPageQueryPlan(
+        const ViewerQuery(sort: ViewerSort.dateAsc),
+        limit: 100,
+        offset: 99900,
+      );
+      expect(namePlan, isNotEmpty);
+      expect(datePlan, isNotEmpty);
+      expect(
+        namePlan
+            .any((detail) => detail.contains("metadata_records_relation_idx")),
+        isTrue,
+      );
+      expect(
+        datePlan
+            .any((detail) => detail.contains("metadata_records_relation_idx")),
+        isTrue,
+      );
       // These records are intentionally generic and are copied to the private
       // task report after the run.
       // ignore: avoid_print
@@ -551,87 +695,19 @@ Future<void> _attachTag(
       );
 }
 
+Future<void> _expectViewerInvalidation(
+  AppDatabase database,
+  Future<void> Function() mutation,
+) async {
+  final invalidation = database
+      .watchViewerInvalidations()
+      .first
+      .timeout(const Duration(seconds: 2));
+  await mutation();
+  await invalidation;
+}
+
 String _id(String prefix, int index) {
   final suffix = index.toString().padLeft(29 - prefix.length, "0");
   return "$prefix-$suffix";
-}
-
-Future<List<String>> _topLevelPlan(
-  AppDatabase database, {
-  required String orderBy,
-}) async {
-  final rows = await database.customSelect(
-    """
-EXPLAIN QUERY PLAN
-SELECT id, type_id, display_name, description, url, created_at
-FROM (
-  SELECT id, 2 AS type_id, title AS display_name,
-         description, NULL AS url, created_at FROM folders
-  UNION ALL
-  SELECT id, 0 AS type_id, path AS display_name,
-         path AS description, path AS url, created_at FROM links
-) AS viewer_items
-WHERE ((? = 1 AND type_id = 0)
-    OR (? = 1 AND type_id = 1)
-    OR (? = 1 AND type_id = 2))
-  AND display_name IS NOT NULL
-  AND (
-    ? = ''
-    OR instr(lower(display_name), lower(?)) > 0
-    OR EXISTS (
-      SELECT 1
-      FROM metadata_records search_metadata
-      INNER JOIN tags search_tags
-        ON search_tags.id = search_metadata.metadata_id
-      WHERE search_metadata.item_id = viewer_items.id
-        AND search_metadata.type_id = ?
-        AND instr(lower(search_tags.name), lower(?)) > 0
-    )
-  )
-  AND (
-    json_array_length(?) = 0
-    OR EXISTS (
-      SELECT 1
-      FROM metadata_records included_metadata
-      WHERE included_metadata.item_id = viewer_items.id
-        AND included_metadata.type_id = ?
-        AND included_metadata.metadata_id IN (
-          SELECT value FROM json_each(?)
-        )
-    )
-  )
-  AND (
-    json_array_length(?) = 0
-    OR NOT EXISTS (
-      SELECT 1
-      FROM metadata_records excluded_metadata
-      WHERE excluded_metadata.item_id = viewer_items.id
-        AND excluded_metadata.type_id = ?
-        AND excluded_metadata.metadata_id IN (
-          SELECT value FROM json_each(?)
-        )
-    )
-  )
-ORDER BY $orderBy
-LIMIT ? OFFSET ?
-""",
-    variables: <Variable<Object>>[
-      const Variable<int>(1),
-      const Variable<int>(1),
-      const Variable<int>(1),
-      const Variable<String>(""),
-      const Variable<String>(""),
-      const Variable<int>(0),
-      const Variable<String>(""),
-      const Variable<String>("[]"),
-      const Variable<int>(0),
-      const Variable<String>("[]"),
-      const Variable<String>("[]"),
-      const Variable<int>(0),
-      const Variable<String>("[]"),
-      const Variable<int>(100),
-      const Variable<int>(99900),
-    ],
-  ).get();
-  return rows.map((row) => row.read<String>("detail")).toList();
 }
