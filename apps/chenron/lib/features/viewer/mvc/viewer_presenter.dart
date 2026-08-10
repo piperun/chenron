@@ -1,7 +1,5 @@
 import "dart:async";
 
-import "package:chenron/features/folder_editor/pages/folder_editor.dart";
-import "package:chenron/features/folder_viewer/pages/folder_viewer_page.dart";
 import "package:chenron/features/viewer/mvc/viewer_model.dart";
 import "package:chenron/features/viewer/ui/viewer_base_item.dart";
 
@@ -10,12 +8,7 @@ import "package:chenron/utils/safe_async.dart";
 import "package:database/database.dart";
 
 import "package:flutter/material.dart";
-import "package:url_launcher/url_launcher.dart";
 import "package:signals/signals_flutter.dart";
-import "package:chenron/features/settings/coordinator/settings_coordinator.dart";
-import "package:chenron/features/settings/state/display_settings.dart";
-import "package:chenron/locator.dart";
-import "package:chenron/shared/item_detail/item_detail_dialog.dart";
 
 class ViewerRetentionSnapshot {
   const ViewerRetentionSnapshot({
@@ -42,8 +35,6 @@ class ViewerPresenter {
 
   final _itemsController = StreamController<List<ViewerItem>>.broadcast();
   final ViewerModel _model;
-  final DisplaySettingsNotifier _displayNotifier =
-      locator.get<SettingsCoordinator>().display;
   Stream<List<ViewerItem>>? _allItemsStream;
   StreamSubscription<List<ViewerItem>>? _allItemsSubscription;
   int _activeSubscriptions = 0;
@@ -68,14 +59,9 @@ class ViewerPresenter {
 
   /// Subscribes to the reactive item stream exactly once.
   ///
-  /// This presenter is an app-lifetime singleton (held by
-  /// `viewerViewModelSignal`) while `Viewer` mounts and unmounts
-  /// repeatedly, calling `init()` on every mount. `watchAllItems()` is a
-  /// live Drift stream that already pushes updates on every DB change,
-  /// so a single subscription suffices for the app's lifetime. Guarding
-  /// here keeps each visit (and the refresh-callback `init()` calls)
-  /// from stacking another live `watchAllItems()` subscription on top of
-  /// the previous one.
+  /// `Viewer` owns this presenter for one mounted page. Guarding here keeps
+  /// refresh callbacks from stacking another live `watchAllItems()`
+  /// subscription on top of the existing page subscription.
   Future<void> init() async {
     if (_disposed) return;
     if (_allItemsSubscription != null) return;
@@ -121,29 +107,6 @@ class ViewerPresenter {
     _filterAndAddItems(_currentItems);
   }
 
-  void handleFolderTap(BuildContext context, FolderResult folder) {
-    unawaited(Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => FolderViewerPage(
-          folderId: folder.data.id,
-          onItemTap: handleFolderItemTap,
-        ),
-      ),
-    ));
-  }
-
-  void handleEditTap(BuildContext context, String folderId) {
-    unawaited(Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => FolderEditor(
-          folderId: folderId,
-        ),
-      ),
-    ));
-  }
-
   void toggleItemSelection(String itemId) {
     final current = Set<String>.of(selectedItemIds.value);
     if (current.contains(itemId)) {
@@ -179,7 +142,9 @@ class ViewerPresenter {
 
     if (mode == SortMode.nameAsc || mode == SortMode.nameDesc) {
       // Cache lowercased titles to avoid repeated toLowerCase() in comparator
-      final lowered = {for (final item in sorted) item: item.title.toLowerCase()};
+      final lowered = {
+        for (final item in sorted) item: item.title.toLowerCase()
+      };
       final dir = mode == SortMode.nameAsc ? 1 : -1;
       sorted.sort((a, b) => dir * lowered[a]!.compareTo(lowered[b]!));
     } else {
@@ -217,81 +182,6 @@ class ViewerPresenter {
 
       return matchesType && matchesSearch;
     }).toList();
-  }
-
-  void handleItemTap(BuildContext context, ViewerItem item) {
-    final action =
-        ItemClickAction.values[_displayNotifier.current.peek().itemClickAction];
-
-    if (action == ItemClickAction.showDetails) {
-      showItemDetailDialog(context,
-          itemId: item.id, itemType: item.type);
-      return;
-    }
-
-    // Default: Open Item
-    switch (item.type) {
-      case FolderItemType.folder:
-        unawaited(Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => FolderViewerPage(
-              folderId: item.id,
-              onItemTap: handleFolderItemTap,
-            ),
-          ),
-        ));
-      case FolderItemType.link:
-        if (item.url != null) {
-          unawaited(onOpenUrl(item.url!));
-        }
-        break;
-      case FolderItemType.document:
-        // Future implementation
-        break;
-    }
-  }
-
-  /// Routes a [FolderItem] tap based on the user's click-action preference.
-  /// Used by callers outside the viewer feature (e.g. FolderViewerPage)
-  /// so they don't need to know about ViewerItem or the presenter signal.
-  void handleFolderItemTap(BuildContext context, FolderItem item) {
-    final action =
-        ItemClickAction.values[_displayNotifier.current.peek().itemClickAction];
-
-    if (action == ItemClickAction.showDetails) {
-      showItemDetailDialog(context, itemId: item.id!, itemType: item.type);
-      return;
-    }
-
-    switch (item.type) {
-      case FolderItemType.folder:
-        unawaited(Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => FolderViewerPage(
-              folderId: item.id!,
-              onItemTap: handleFolderItemTap,
-            ),
-          ),
-        ));
-      case FolderItemType.link:
-        final url = item.map(
-          link: (l) => l.url,
-          document: (_) => null,
-          folder: (_) => null,
-        );
-        if (url != null && url.isNotEmpty) unawaited(onOpenUrl(url));
-      case FolderItemType.document:
-        break;
-    }
-  }
-
-  Future<void> onOpenUrl(String url) async {
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
-    }
   }
 
   Future<void> handleDeleteSelected() async {

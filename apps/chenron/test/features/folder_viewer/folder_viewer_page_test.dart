@@ -1,6 +1,7 @@
 import "package:flutter/material.dart";
 import "package:flutter_test/flutter_test.dart";
 import "package:chenron/features/folder_viewer/pages/folder_viewer_page.dart";
+import "package:chenron/shared/viewer/item_handler.dart";
 import "package:chenron_mockups/chenron_mockups.dart";
 import "package:database/database.dart";
 import "package:signals/signals.dart";
@@ -68,6 +69,12 @@ void main() {
         home: FolderViewerPage(folderId: folderId),
       );
     }
+
+    test("the default folder-item route uses the shared opener", () {
+      final defaultItemOpener = openFolderItem;
+
+      expect(defaultItemOpener, isA<void Function(BuildContext, FolderItem)>());
+    });
 
     // Note: FolderHeader pulls settings from GetIt (deep dependency
     // chain: ConfigService, ThemeNotifier, SharedPreferences). Tests

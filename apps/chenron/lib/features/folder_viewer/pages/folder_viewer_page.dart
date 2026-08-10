@@ -16,13 +16,12 @@ import "package:app_logger/app_logger.dart";
 import "package:chenron/shared/errors/error_snack_bar.dart";
 import "package:chenron/shared/errors/user_error_message.dart";
 import "package:chenron/shared/viewer/item_handler.dart";
-import "package:chenron/features/viewer/state/viewer_state.dart";
 
 class FolderViewerPage extends StatefulWidget {
   final String folderId;
 
   /// Routes an item tap (e.g. open URL, navigate to folder, show details).
-  /// When null, falls back to the global presenter signal.
+  /// When null, falls back to [openFolderItem].
   final void Function(BuildContext, FolderItem)? onItemTap;
 
   /// Called when a tag chip is tapped in the folder header.
@@ -394,17 +393,8 @@ class _FolderItemDisplay extends StatelessWidget {
         tagFilterState: tagFilterState,
         enableTagFiltering: true,
         displayModeContext: "folder_viewer",
-        // Resolve the viewer fallback lazily on tap rather than during
-        // build — looking up `viewerViewModelSignal.value` early
-        // constructs a `ViewerPresenter` that hits the locator for
-        // `SettingsCoordinator`, which isn't registered in widget
-        // tests. Deferring keeps build() side-effect-free and lets
-        // the page render its skeleton even before the locator has
-        // every service.
         onItemTap: (item) {
-          final effectiveOnItemTap =
-              onItemTap ?? viewerViewModelSignal.value.handleFolderItemTap;
-          handleItemTap(context, item, effectiveOnItemTap);
+          handleItemTap(context, item, onItemTap ?? openFolderItem);
         },
         onDeleteRequested: (items) => handleItemDeletion(
           context,
