@@ -12,15 +12,21 @@ typedef _PageLoader = Future<List<FolderItem>> Function(
   int limit,
   int offset,
 );
+typedef _CountLoader = Future<int> Function(ViewerQuery query);
+typedef _FacetLoader = Future<List<ViewerTagFacet>> Function(ViewerQuery query);
 
 class _FakeViewerPageRepository implements ViewerPageRepository {
   _FakeViewerPageRepository({
     this.pageLoader,
+    this.countLoader,
+    this.facetLoader,
     this.cancellationGate,
     this.cancellationError,
   });
 
   final _PageLoader? pageLoader;
+  final _CountLoader? countLoader;
+  final _FacetLoader? facetLoader;
   final Completer<void>? cancellationGate;
   final Object? cancellationError;
   final Set<StreamController<void>> _invalidationControllers =
@@ -78,12 +84,16 @@ class _FakeViewerPageRepository implements ViewerPageRepository {
   @override
   Future<int> count(ViewerQuery query) async {
     countCalls++;
+    final loader = countLoader;
+    if (loader != null) return loader(query);
     return 100000;
   }
 
   @override
   Future<List<ViewerTagFacet>> loadTagFacets(ViewerQuery query) async {
     facetCalls++;
+    final loader = facetLoader;
+    if (loader != null) return loader(query);
     return const <ViewerTagFacet>[];
   }
 
@@ -304,6 +314,8 @@ void main() {
 
       await _loadPage(source, 1);
       expect(source.errorAt(source.pageSize), isA<StateError>());
+      expect(source.countError.value, isNull);
+      expect(source.tagFacetsError.value, isNull);
       expect(source.itemAt(0)?.id, "item-0");
       expect(source.cachedPageCount, 1);
 
@@ -316,34 +328,141 @@ void main() {
       expect(repository.pageCalls[source.pageSize], 2);
     });
 
-    test("an error subscriber can retry the failed page synchronously",
+    test("count failure retries once for concurrent callers and recovers",
         () async {
-      var attempts = 0;
+      var countAttempts = 0;
+      final retryGate = Completer<int>();
       source.dispose();
       await repository.close();
       repository = _FakeViewerPageRepository(
-        pageLoader: (_, limit, offset) async {
-          attempts++;
-          if (attempts == 1) throw StateError("first page load failed");
-          return List<FolderItem>.generate(
-            limit,
-            (index) => _item(offset + index),
-          );
+        countLoader: (_) {
+          countAttempts++;
+          if (countAttempts == 1) {
+            throw StateError("count failed");
+          }
+          return retryGate.future;
         },
       );
       source = ViewerPageSource(repository: repository);
       await source.setQuery(const ViewerQuery());
-      final unsubscribe = source.error.subscribe((pageError) {
-        if (pageError != null) unawaited(source.retryPage(1));
-      });
-      addTearDown(unsubscribe);
 
-      expect(source.itemAt(source.pageSize), isNull);
-      await _waitForLoads(source);
+      expect(source.countError.value, isA<StateError>());
+      expect(source.tagFacetsError.value, isNull);
+      expect(source.totalCount.value, 0);
 
-      expect(repository.pageCalls[source.pageSize], 2);
-      expect(source.errorAt(source.pageSize), isNull);
-      expect(source.itemAt(source.pageSize)?.id, "item-${source.pageSize}");
+      final firstRetry = source.retrySummary();
+      final duplicateRetry = source.retrySummary();
+
+      expect(identical(firstRetry, duplicateRetry), isTrue);
+      expect(repository.countCalls, 2);
+      expect(repository.facetCalls, 1);
+      retryGate.complete(42);
+      await firstRetry;
+
+      expect(source.totalCount.value, 42);
+      expect(source.countError.value, isNull);
+      expect(source.tagFacetsError.value, isNull);
+    });
+
+    test("facet failure retries without discarding a healthy count", () async {
+      var facetAttempts = 0;
+      final recoveredFacet = ViewerTagFacet(
+        tag: Tag(
+          id: "tag-id-not-name",
+          name: "topic",
+          createdAt: DateTime.utc(2026, 1, 1),
+        ),
+        itemCount: 7,
+      );
+      source.dispose();
+      await repository.close();
+      repository = _FakeViewerPageRepository(
+        facetLoader: (_) async {
+          facetAttempts++;
+          if (facetAttempts == 1) throw StateError("facets failed");
+          return <ViewerTagFacet>[recoveredFacet];
+        },
+      );
+      source = ViewerPageSource(repository: repository);
+      await source.setQuery(const ViewerQuery());
+
+      expect(source.totalCount.value, 100000);
+      expect(source.countError.value, isNull);
+      expect(source.tagFacetsError.value, isA<StateError>());
+      expect(source.tagFacets.value, isEmpty);
+
+      await source.retrySummary();
+
+      expect(source.totalCount.value, 100000);
+      expect(source.tagFacetsError.value, isNull);
+      expect(source.tagFacets.value, <ViewerTagFacet>[recoveredFacet]);
+      expect(repository.countCalls, 1);
+      expect(repository.facetCalls, 2);
+    });
+
+    test("a query change ignores a stale summary retry completion", () async {
+      final staleRetry = Completer<int>();
+      var oldCountCalls = 0;
+      source.dispose();
+      await repository.close();
+      repository = _FakeViewerPageRepository(
+        countLoader: (query) {
+          if (query.searchText == "old") {
+            oldCountCalls++;
+            if (oldCountCalls == 1) throw StateError("old count failed");
+            return staleRetry.future;
+          }
+          return Future<int>.value(9);
+        },
+      );
+      source = ViewerPageSource(repository: repository);
+      await source.setQuery(const ViewerQuery(searchText: "old"));
+      final retry = source.retrySummary();
+
+      await source.setQuery(const ViewerQuery(searchText: "new"));
+      expect(source.totalCount.value, 9);
+      expect(source.countError.value, isNull);
+
+      staleRetry.complete(999);
+      await retry;
+
+      expect(source.totalCount.value, 9);
+      expect(source.countError.value, isNull);
+    });
+
+    test("dispose ignores a pending summary retry completion", () async {
+      final retryGate = Completer<List<ViewerTagFacet>>();
+      var facetAttempts = 0;
+      source.dispose();
+      await repository.close();
+      repository = _FakeViewerPageRepository(
+        facetLoader: (_) {
+          facetAttempts++;
+          if (facetAttempts == 1) throw StateError("facets failed");
+          return retryGate.future;
+        },
+      );
+      source = ViewerPageSource(repository: repository);
+      await source.setQuery(const ViewerQuery());
+      final retry = source.retrySummary();
+
+      source.dispose();
+      retryGate.complete(<ViewerTagFacet>[
+        ViewerTagFacet(
+          tag: Tag(
+            id: "late-id",
+            name: "late",
+            createdAt: DateTime.utc(2026, 1, 1),
+          ),
+          itemCount: 1,
+        ),
+      ]);
+      await retry;
+
+      expect(source.cachedRowCount, 0);
+      expect(source.activeSummaryLoadCount, 0);
+      expect(source.countError.disposed, isTrue);
+      expect(source.tagFacetsError.disposed, isTrue);
     });
 
     test("dispose clears state, cancels invalidation, and ignores late loads",

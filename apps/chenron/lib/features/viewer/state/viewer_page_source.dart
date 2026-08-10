@@ -65,12 +65,15 @@ class ViewerPageSource {
   final int maxCachedPages;
   final Signal<int> revision = signal(0);
   final Signal<int> totalCount = signal(0);
-  final Signal<Object?> error = signal(null);
+  final Signal<Object?> countError = signal(null);
+  final Signal<Object?> tagFacetsError = signal(null);
   final Signal<List<ViewerTagFacet>> tagFacets = signal(const []);
   final LinkedHashMap<int, List<FolderItem>> _pages = LinkedHashMap();
   final Map<int, Future<void>> _inFlight = <int, Future<void>>{};
   final Map<int, Object> _loadIdentities = <int, Object>{};
   final Map<int, Object> _pageErrors = <int, Object>{};
+  Future<void>? _summaryLoad;
+  Object? _summaryLoadIdentity;
   StreamSubscription<void>? _invalidationSubscription;
   Future<void>? _invalidationCancellation;
   Object? _subscriptionCancellationError;
@@ -83,6 +86,7 @@ class ViewerPageSource {
   int get cachedRowCount =>
       _pages.values.fold(0, (total, page) => total + page.length);
   int get activeLoadCount => _inFlight.length;
+  int get activeSummaryLoadCount => _summaryLoad == null ? 0 : 1;
   int get activeSubscriptionCount => _invalidationSubscription == null ? 0 : 1;
 
   /// Completes after invalidation-subscription cleanup settles during dispose.
@@ -94,8 +98,8 @@ class ViewerPageSource {
 
   /// The one bounded invalidation-subscription cancellation failure, if any.
   ///
-  /// Load/query failures continue to use [error]. This separate read-only
-  /// value remains available after the reactive signals have been disposed.
+  /// Query and page-load failures use their dedicated reactive state. This
+  /// separate read-only value remains available after signals are disposed.
   Object? get subscriptionCancellationError => _subscriptionCancellationError;
 
   FolderItem? itemAt(int index) {
@@ -122,15 +126,38 @@ class ViewerPageSource {
     _invalidationTimer = null;
     _query = query;
     final generation = _beginGeneration();
-    await _loadSummary(query, generation);
+    await _startSummaryLoad(
+      query,
+      generation,
+      loadCount: true,
+      loadTagFacets: true,
+    );
   }
 
   Future<void> retryPage(int pageIndex) async {
     if (_disposed || _query == null || pageIndex < 0) return;
-    final pageError = _pageErrors.remove(pageIndex);
-    if (identical(error.value, pageError)) error.value = null;
+    _pageErrors.remove(pageIndex);
     revision.value++;
     await _startPageLoad(pageIndex);
+  }
+
+  Future<void> retrySummary() {
+    final existing = _summaryLoad;
+    if (existing != null) return existing;
+    final query = _query;
+    if (_disposed || query == null) return Future<void>.value();
+    final retryCount = countError.value != null;
+    final retryTagFacets = tagFacetsError.value != null;
+    if (!retryCount && !retryTagFacets) return Future<void>.value();
+    if (retryCount) countError.value = null;
+    if (retryTagFacets) tagFacetsError.value = null;
+    revision.value++;
+    return _startSummaryLoad(
+      query,
+      _generation,
+      loadCount: retryCount,
+      loadTagFacets: retryTagFacets,
+    );
   }
 
   void dispose() {
@@ -149,13 +176,17 @@ class ViewerPageSource {
     _inFlight.clear();
     _loadIdentities.clear();
     _pageErrors.clear();
+    _summaryLoad = null;
+    _summaryLoadIdentity = null;
     totalCount.value = 0;
     tagFacets.value = const <ViewerTagFacet>[];
-    error.value = null;
+    countError.value = null;
+    tagFacetsError.value = null;
     revision.value++;
     revision.dispose();
     totalCount.dispose();
-    error.dispose();
+    countError.dispose();
+    tagFacetsError.dispose();
     tagFacets.dispose();
   }
 
@@ -180,18 +211,39 @@ class ViewerPageSource {
     _inFlight.clear();
     _loadIdentities.clear();
     _pageErrors.clear();
+    _summaryLoad = null;
+    _summaryLoadIdentity = null;
     totalCount.value = 0;
     tagFacets.value = const <ViewerTagFacet>[];
-    error.value = null;
+    countError.value = null;
+    tagFacetsError.value = null;
     revision.value++;
     return generation;
   }
 
-  Future<void> _loadSummary(ViewerQuery query, Object generation) async {
-    await Future.wait<void>(<Future<void>>[
-      _loadCount(query, generation),
-      _loadTagFacets(query, generation),
-    ]);
+  Future<void> _startSummaryLoad(
+    ViewerQuery query,
+    Object generation, {
+    required bool loadCount,
+    required bool loadTagFacets,
+  }) {
+    final existing = _summaryLoad;
+    if (existing != null) return existing;
+    final loadIdentity = Object();
+    late final Future<void> load;
+    load = Future.wait<void>(<Future<void>>[
+      if (loadCount) _loadCount(query, generation),
+      if (loadTagFacets) _loadTagFacets(query, generation),
+    ]).whenComplete(() => _finishSummaryLoad(loadIdentity));
+    _summaryLoadIdentity = loadIdentity;
+    _summaryLoad = load;
+    return load;
+  }
+
+  void _finishSummaryLoad(Object loadIdentity) {
+    if (!identical(_summaryLoadIdentity, loadIdentity)) return;
+    _summaryLoadIdentity = null;
+    _summaryLoad = null;
   }
 
   Future<void> _loadCount(ViewerQuery query, Object generation) async {
@@ -199,9 +251,12 @@ class ViewerPageSource {
       final count = await _repository.count(query);
       if (!_isCurrent(generation)) return;
       totalCount.value = count;
+      countError.value = null;
       revision.value++;
     } catch (caughtError) {
-      _recordSummaryError(caughtError, generation);
+      if (!_isCurrent(generation)) return;
+      countError.value = caughtError;
+      revision.value++;
     }
   }
 
@@ -210,16 +265,13 @@ class ViewerPageSource {
       final facets = await _repository.loadTagFacets(query);
       if (!_isCurrent(generation)) return;
       tagFacets.value = List<ViewerTagFacet>.unmodifiable(facets);
+      tagFacetsError.value = null;
       revision.value++;
     } catch (caughtError) {
-      _recordSummaryError(caughtError, generation);
+      if (!_isCurrent(generation)) return;
+      tagFacetsError.value = caughtError;
+      revision.value++;
     }
-  }
-
-  void _recordSummaryError(Object caughtError, Object generation) {
-    if (!_isCurrent(generation)) return;
-    error.value = caughtError;
-    revision.value++;
   }
 
   Future<void> _startPageLoad(int pageIndex) {
@@ -265,7 +317,6 @@ class ViewerPageSource {
       if (!_isCurrent(generation)) return;
       if (!_finishPageLoad(pageIndex, loadIdentity)) return;
       _pageErrors[pageIndex] = caughtError;
-      error.value = caughtError;
       revision.value++;
     }
   }
@@ -288,7 +339,12 @@ class ViewerPageSource {
       final query = _query;
       if (query == null) return;
       final generation = _beginGeneration();
-      unawaited(_loadSummary(query, generation));
+      unawaited(_startSummaryLoad(
+        query,
+        generation,
+        loadCount: true,
+        loadTagFacets: true,
+      ));
     });
   }
 }

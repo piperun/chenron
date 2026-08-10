@@ -43,6 +43,7 @@ class _RecordingViewportSource implements ItemViewportSource {
 
   final List<FolderItem> items;
   final List<int> requestedIndexes = <int>[];
+  final List<int> requestedErrorIndexes = <int>[];
   final List<int> retriedIndexes = <int>[];
 
   @override
@@ -55,7 +56,10 @@ class _RecordingViewportSource implements ItemViewportSource {
   }
 
   @override
-  Object? errorAt(int index) => index == 1 ? StateError("failed") : null;
+  Object? errorAt(int index) {
+    requestedErrorIndexes.add(index);
+    return index == 1 ? StateError("failed") : null;
+  }
 
   @override
   Future<void> retryAt(int index) async {
@@ -598,8 +602,20 @@ void main() {
       expect(source.itemAt(0), same(items[0]));
       expect(source.itemAt(1), same(items[1]));
       expect(source.itemAt(2), isNull);
+      expect(source.itemAt(-1), isNull);
       expect(source.errorAt(0), isNull);
+      expect(source.errorAt(-1), isNull);
+      expect(source.errorAt(2), isNull);
       await expectLater(source.retryAt(0), completes);
+      await expectLater(source.retryAt(-1), completes);
+      await expectLater(source.retryAt(2), completes);
+
+      items.add(_makeFolder("late-caller-mutation"));
+      expect(source.length, 2);
+      expect(
+        () => source.items.add(_makeFolder("direct-mutation")),
+        throwsUnsupportedError,
+      );
     });
 
     test("prefix translates item, error, and retry indexes", () async {
@@ -618,6 +634,55 @@ void main() {
       expect(source.errorAt(2), isA<StateError>());
       await source.retryAt(2);
       expect(delegate.retriedIndexes, <int>[1]);
+
+      prefix.add(_makeFolder("late-prefix-mutation"));
+      expect(source.length, 3);
+      expect(
+        () => source.prefix.add(_makeFolder("direct-prefix-mutation")),
+        throwsUnsupportedError,
+      );
+
+      expect(source.itemAt(-1), isNull);
+      expect(source.itemAt(3), isNull);
+      expect(source.errorAt(-1), isNull);
+      expect(source.errorAt(3), isNull);
+      await source.retryAt(-1);
+      await source.retryAt(3);
+      expect(delegate.requestedIndexes, <int>[0, 1]);
+      expect(delegate.requestedErrorIndexes, <int>[1]);
+      expect(delegate.retriedIndexes, <int>[1]);
+    });
+
+    test("delegating adapter rejects invalid indexes before callbacks",
+        () async {
+      final requestedItems = <int>[];
+      final requestedErrors = <int>[];
+      final requestedRetries = <int>[];
+      final source = DelegatingItemViewportSource(
+        length: () => 2,
+        itemAt: (index) {
+          requestedItems.add(index);
+          return null;
+        },
+        errorAt: (index) {
+          requestedErrors.add(index);
+          return null;
+        },
+        retryAt: (index) async {
+          requestedRetries.add(index);
+        },
+      );
+
+      expect(source.itemAt(-1), isNull);
+      expect(source.itemAt(2), isNull);
+      expect(source.errorAt(-1), isNull);
+      expect(source.errorAt(2), isNull);
+      await source.retryAt(-1);
+      await source.retryAt(2);
+
+      expect(requestedItems, isEmpty);
+      expect(requestedErrors, isEmpty);
+      expect(requestedRetries, isEmpty);
     });
   });
 

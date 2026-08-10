@@ -80,6 +80,7 @@ class FilterableItemDisplayNotifier {
     viewMode.value = mode;
     await ViewModePreference.setViewMode(mode, context: context);
   }
+
   void setSortMode(SortMode mode) => sortMode.value = mode;
   void setSelectedTypes(Set<FolderItemType> types) =>
       selectedTypes.value = types;
@@ -143,8 +144,10 @@ class FilterableItemDisplayNotifier {
   }
 
   void handleSearchSubmitted(String query) {
-    final cleanQuery = tagFilterState.parseAndAddFromQuery(query);
-    searchFilter.controller.value = cleanQuery;
+    batch(() {
+      final cleanQuery = tagFilterState.parseAndAddFromQuery(query);
+      searchFilter.controller.value = cleanQuery;
+    });
   }
 
   List<FolderItem> getFilteredAndSortedItems({
@@ -156,10 +159,8 @@ class FilterableItemDisplayNotifier {
       items: items,
       query: query,
       types: selectedTypes.value,
-      includedTags:
-          enableTagFiltering ? tagFilterState.includedTagNames : null,
-      excludedTags:
-          enableTagFiltering ? tagFilterState.excludedTagNames : null,
+      includedTags: enableTagFiltering ? tagFilterState.includedTagNames : null,
+      excludedTags: enableTagFiltering ? tagFilterState.excludedTagNames : null,
       sortMode: sortMode.value,
     );
   }

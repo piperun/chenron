@@ -11,7 +11,8 @@ abstract interface class ItemViewportSource {
 }
 
 class MaterializedItemViewportSource implements ItemViewportSource {
-  const MaterializedItemViewportSource(this.items);
+  MaterializedItemViewportSource(List<FolderItem> items)
+      : items = List<FolderItem>.unmodifiable(items);
 
   final List<FolderItem> items;
 
@@ -30,7 +31,10 @@ class MaterializedItemViewportSource implements ItemViewportSource {
 }
 
 class PrefixedItemViewportSource implements ItemViewportSource {
-  const PrefixedItemViewportSource(this.prefix, this.delegate);
+  PrefixedItemViewportSource(
+    List<FolderItem> prefix,
+    this.delegate,
+  ) : prefix = List<FolderItem>.unmodifiable(prefix);
 
   final List<FolderItem> prefix;
   final ItemViewportSource delegate;
@@ -40,19 +44,21 @@ class PrefixedItemViewportSource implements ItemViewportSource {
 
   @override
   FolderItem? itemAt(int index) {
-    if (index < 0) return null;
+    if (index < 0 || index >= length) return null;
     if (index < prefix.length) return prefix[index];
     return delegate.itemAt(index - prefix.length);
   }
 
   @override
   Object? errorAt(int index) {
+    if (index < 0 || index >= length) return null;
     if (index < prefix.length) return null;
     return delegate.errorAt(index - prefix.length);
   }
 
   @override
   Future<void> retryAt(int index) {
+    if (index < 0 || index >= length) return Future<void>.value();
     if (index < prefix.length) return Future<void>.value();
     return delegate.retryAt(index - prefix.length);
   }
@@ -76,14 +82,20 @@ class DelegatingItemViewportSource implements ItemViewportSource {
   final Future<void> Function(int index) _retryAt;
 
   @override
-  int get length => _length();
+  int get length {
+    final currentLength = _length();
+    return currentLength < 0 ? 0 : currentLength;
+  }
 
   @override
-  FolderItem? itemAt(int index) => _itemAt(index);
+  FolderItem? itemAt(int index) =>
+      index < 0 || index >= length ? null : _itemAt(index);
 
   @override
-  Object? errorAt(int index) => _errorAt(index);
+  Object? errorAt(int index) =>
+      index < 0 || index >= length ? null : _errorAt(index);
 
   @override
-  Future<void> retryAt(int index) => _retryAt(index);
+  Future<void> retryAt(int index) =>
+      index < 0 || index >= length ? Future<void>.value() : _retryAt(index);
 }

@@ -190,14 +190,14 @@ void main() {
       await _attachTag(database, 33, itemId: third, tagId: betaTag);
 
       final included = await database.getViewerPage(
-        ViewerQuery(includedTags: <String>{alphaTag, betaTag}),
+        const ViewerQuery(includedTags: <String>{"ALPHA", "bravo"}),
         limit: 10,
         offset: 0,
       );
       final excluded = await database.getViewerPage(
-        ViewerQuery(
-          includedTags: <String>{alphaTag},
-          excludedTags: <String>{betaTag},
+        const ViewerQuery(
+          includedTags: <String>{"alpha"},
+          excludedTags: <String>{"BRAVO"},
         ),
         limit: 10,
         offset: 0,
@@ -321,11 +321,11 @@ void main() {
       await _attachTag(database, 62, itemId: second, tagId: betaTag);
 
       final facets = await database.getViewerTagFacets(
-        ViewerQuery(
+        const ViewerQuery(
           searchText: "facet-",
-          types: const <FolderItemType>{FolderItemType.link},
-          includedTags: <String>{alphaTag},
-          excludedTags: <String>{betaTag},
+          types: <FolderItemType>{FolderItemType.link},
+          includedTags: <String>{"alpha"},
+          excludedTags: <String>{"bravo"},
         ),
       );
 

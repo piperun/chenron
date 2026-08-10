@@ -92,8 +92,10 @@ class ViewerPresenter {
   }
 
   void onSearchSubmitted(String rawQuery) {
-    final cleanQuery = tagFilterState.parseAndAddFromQuery(rawQuery);
-    searchFilter.controller.value = cleanQuery;
+    batch(() {
+      final cleanQuery = tagFilterState.parseAndAddFromQuery(rawQuery);
+      searchFilter.controller.value = cleanQuery;
+    });
   }
 
   void toggleItemSelection(String itemId) {

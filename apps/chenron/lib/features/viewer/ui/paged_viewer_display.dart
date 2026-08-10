@@ -178,6 +178,8 @@ class _PagedViewerDisplayState extends State<PagedViewerDisplay> {
       final prefix = _filterAndSortPrefix(widget.prefixItems, query);
       final pageSource = _presenter.pageSource;
       pageSource.revision.value;
+      final countError = pageSource.countError.value;
+      final tagFacetsError = pageSource.tagFacetsError.value;
       final delegate = DelegatingItemViewportSource(
         length: () => pageSource.totalCount.value,
         itemAt: pageSource.itemAt,
@@ -225,6 +227,12 @@ class _PagedViewerDisplayState extends State<PagedViewerDisplay> {
               onDelete: () => widget.onDeleteRequested?.call(_selectedValues),
               onCancel: _toggleSelectMode,
             ),
+          if (countError != null || tagFacetsError != null)
+            _ViewerSummaryErrorBanner(
+              countFailed: countError != null,
+              tagFacetsFailed: tagFacetsError != null,
+              onRetry: () => unawaited(pageSource.retrySummary()),
+            ),
           Expanded(
             child: _presenter.viewMode.value == ViewMode.grid
                 ? ItemGridView(
@@ -258,6 +266,52 @@ class _PagedViewerDisplayState extends State<PagedViewerDisplay> {
         ],
       );
     });
+  }
+}
+
+class _ViewerSummaryErrorBanner extends StatelessWidget {
+  const _ViewerSummaryErrorBanner({
+    required this.countFailed,
+    required this.tagFacetsFailed,
+    required this.onRetry,
+  });
+
+  final bool countFailed;
+  final bool tagFacetsFailed;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final message = switch ((countFailed, tagFacetsFailed)) {
+      (true, true) => "Unable to load items and tag filters.",
+      (true, false) => "Unable to load items.",
+      (false, true) => "Unable to load tag filters.",
+      (false, false) => "",
+    };
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      key: const ValueKey("viewer-summary-error"),
+      width: double.infinity,
+      color: colors.errorContainer,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: <Widget>[
+          Icon(Icons.error_outline, color: colors.onErrorContainer),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(color: colors.onErrorContainer),
+            ),
+          ),
+          TextButton(
+            key: const ValueKey("viewer-summary-retry"),
+            onPressed: onRetry,
+            child: const Text("Retry"),
+          ),
+        ],
+      ),
+    );
   }
 }
 

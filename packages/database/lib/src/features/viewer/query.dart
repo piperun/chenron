@@ -416,10 +416,12 @@ WHERE ((? = 1 AND type_id = 0)
     OR EXISTS (
       SELECT 1
       FROM metadata_records included_metadata
+      INNER JOIN tags included_tags
+        ON included_tags.id = included_metadata.metadata_id
       WHERE included_metadata.item_id = viewer_items.id
         AND included_metadata.type_id = ?
-        AND included_metadata.metadata_id IN (
-          SELECT value FROM json_each(?)
+        AND lower(included_tags.name) IN (
+          SELECT lower(CAST(value AS TEXT)) FROM json_each(?)
         )
     )
   )
@@ -428,10 +430,12 @@ WHERE ((? = 1 AND type_id = 0)
     OR NOT EXISTS (
       SELECT 1
       FROM metadata_records excluded_metadata
+      INNER JOIN tags excluded_tags
+        ON excluded_tags.id = excluded_metadata.metadata_id
       WHERE excluded_metadata.item_id = viewer_items.id
         AND excluded_metadata.type_id = ?
-        AND excluded_metadata.metadata_id IN (
-          SELECT value FROM json_each(?)
+        AND lower(excluded_tags.name) IN (
+          SELECT lower(CAST(value AS TEXT)) FROM json_each(?)
         )
     )
   )

@@ -145,6 +145,50 @@ void main() {
     expect(repository.facetQueries.last, presenter.query.value);
   });
 
+  test("modal tag update emits one final query and one summary reload",
+      () async {
+    presenter = ViewerPresenter(repository: repository);
+    await presenter.init();
+
+    presenter.tagFilterState.updateTags(
+      included: const <String>{"chosen"},
+      excluded: const <String>{"hidden"},
+    );
+    await Future<void>.delayed(Duration.zero);
+
+    expect(repository.countQueries, hasLength(2));
+    expect(repository.facetQueries, hasLength(2));
+    expect(
+      repository.countQueries.last,
+      const ViewerQuery(
+        includedTags: <String>{"chosen"},
+        excludedTags: <String>{"hidden"},
+      ),
+    );
+    expect(repository.facetQueries.last, repository.countQueries.last);
+  });
+
+  test("submitted tag query emits one final query and one summary reload",
+      () async {
+    presenter = ViewerPresenter(repository: repository);
+    await presenter.init();
+
+    presenter.onSearchSubmitted("needle #chosen -#hidden");
+    await Future<void>.delayed(Duration.zero);
+
+    expect(repository.countQueries, hasLength(2));
+    expect(repository.facetQueries, hasLength(2));
+    expect(
+      repository.countQueries.last,
+      const ViewerQuery(
+        searchText: "needle",
+        includedTags: <String>{"chosen"},
+        excludedTags: <String>{"hidden"},
+      ),
+    );
+    expect(repository.facetQueries.last, repository.countQueries.last);
+  });
+
   test("folder presenter keeps the folder scope across query changes",
       () async {
     final searchFilter = SearchFilter();

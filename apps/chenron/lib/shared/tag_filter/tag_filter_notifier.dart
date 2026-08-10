@@ -34,32 +34,42 @@ class TagFilterNotifier {
   void addIncluded(String tag) {
     final updatedIncluded = Set<String>.from(_includedTags.value)..add(tag);
     final updatedExcluded = Set<String>.from(_excludedTags.value)..remove(tag);
-    _includedTags.value = updatedIncluded;
-    _excludedTags.value = updatedExcluded;
+    batch(() {
+      _includedTags.value = updatedIncluded;
+      _excludedTags.value = updatedExcluded;
+    });
   }
 
   /// Add a tag to the excluded set (and remove from included)
   void addExcluded(String tag) {
     final updatedExcluded = Set<String>.from(_excludedTags.value)..add(tag);
     final updatedIncluded = Set<String>.from(_includedTags.value)..remove(tag);
-    _excludedTags.value = updatedExcluded;
-    _includedTags.value = updatedIncluded;
+    batch(() {
+      _excludedTags.value = updatedExcluded;
+      _includedTags.value = updatedIncluded;
+    });
   }
 
   /// Add many tags to the included set (and remove them from excluded)
   void includeMany(Iterable<String> tags) {
     final updatedIncluded = Set<String>.from(_includedTags.value)..addAll(tags);
-    final updatedExcluded = Set<String>.from(_excludedTags.value)..removeAll(tags);
-    _includedTags.value = updatedIncluded;
-    _excludedTags.value = updatedExcluded;
+    final updatedExcluded = Set<String>.from(_excludedTags.value)
+      ..removeAll(tags);
+    batch(() {
+      _includedTags.value = updatedIncluded;
+      _excludedTags.value = updatedExcluded;
+    });
   }
 
   /// Add many tags to the excluded set (and remove them from included)
   void excludeMany(Iterable<String> tags) {
     final updatedExcluded = Set<String>.from(_excludedTags.value)..addAll(tags);
-    final updatedIncluded = Set<String>.from(_includedTags.value)..removeAll(tags);
-    _excludedTags.value = updatedExcluded;
-    _includedTags.value = updatedIncluded;
+    final updatedIncluded = Set<String>.from(_includedTags.value)
+      ..removeAll(tags);
+    batch(() {
+      _excludedTags.value = updatedExcluded;
+      _includedTags.value = updatedIncluded;
+    });
   }
 
   /// Remove a tag from the included set
@@ -101,8 +111,10 @@ class TagFilterNotifier {
     required Set<String> included,
     required Set<String> excluded,
   }) {
-    _includedTags.value = Set.from(included);
-    _excludedTags.value = Set.from(excluded);
+    batch(() {
+      _includedTags.value = Set.from(included);
+      _excludedTags.value = Set.from(excluded);
+    });
   }
 
   /// Parse and add tags from a query string
@@ -111,20 +123,24 @@ class TagFilterNotifier {
   /// adds them to the state, and returns the clean query.
   String parseAndAddFromQuery(String query) {
     final parsed = QueryParser.parseTags(query);
-    // Add parsed tags to state; ensure conflicts are resolved
-    if (parsed.includedTags.isNotEmpty) {
-      includeMany(parsed.includedTags);
-    }
-    if (parsed.excludedTags.isNotEmpty) {
-      excludeMany(parsed.excludedTags);
-    }
+    batch(() {
+      // Add parsed tags to state; ensure conflicts are resolved.
+      if (parsed.includedTags.isNotEmpty) {
+        includeMany(parsed.includedTags);
+      }
+      if (parsed.excludedTags.isNotEmpty) {
+        excludeMany(parsed.excludedTags);
+      }
+    });
     return parsed.cleanQuery;
   }
 
   /// Clear all tag filters
   void clear() {
-    _includedTags.value = {};
-    _excludedTags.value = {};
+    batch(() {
+      _includedTags.value = {};
+      _excludedTags.value = {};
+    });
   }
 
   /// Dispose of signals
@@ -133,4 +149,3 @@ class TagFilterNotifier {
     _excludedTags.dispose();
   }
 }
-
