@@ -110,9 +110,11 @@ class ViewerInvalidationCoordinator {
         .where((source) => _sources.contains(source) && !source.isDisposed)
         .toList(growable: false);
     _dirtySources.clear();
-    await Future.wait<void>(
-      sources.map((source) => source._refreshAfterInvalidation()),
-    );
+    final refreshes = <Future<void>>[];
+    for (final source in sources) {
+      refreshes.add(Future<void>.sync(source._refreshAfterInvalidation));
+    }
+    await Future.wait<void>(refreshes);
   }
 }
 

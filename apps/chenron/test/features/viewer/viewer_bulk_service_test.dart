@@ -8,6 +8,7 @@ import "package:chenron/features/viewer/state/viewer_selection_state.dart";
 import "package:database/database.dart";
 import "package:database/features.dart";
 import "package:flutter_test/flutter_test.dart";
+import "package:signals/signals.dart";
 
 FolderItem _link(int index) => FolderItem.link(
       id: "link-$index",
@@ -353,6 +354,62 @@ void main() {
       expect(sourceB.summaryGeneration.value - baselineGenerationB, 1);
       expect(repositoryA.countCalls - baselineCountA, 1);
       expect(repositoryB.countCalls - baselineCountB, 1);
+    } finally {
+      await sourceA.disposeAndWait();
+      await sourceB.disposeAndWait();
+      await invalidations.close();
+    }
+  });
+
+  test("shared flush starts later sources before propagating a sync error",
+      () async {
+    final invalidations = _SharedViewerInvalidations();
+    final rows = List<FolderItem>.generate(3, _link);
+    final repositoryA = _LeaseRepository(rows, invalidations: invalidations);
+    final repositoryB = _LeaseRepository(rows, invalidations: invalidations);
+    final sourceA = ViewerPageSource(repository: repositoryA);
+    final sourceB = ViewerPageSource(repository: repositoryB);
+
+    try {
+      await sourceA.setQuery(const ViewerQuery(searchText: "first"));
+      await sourceB.setQuery(const ViewerQuery(searchText: "second"));
+      final baselineGenerationA = sourceA.summaryGeneration.value;
+      final baselineGenerationB = sourceB.summaryGeneration.value;
+      final baselineCountB = repositoryB.countCalls;
+      final baselineFacetsB = repositoryB.facetCalls;
+      final subscriberFailure = StateError("source A subscriber failed");
+      var failNextGeneration = false;
+      final unsubscribe = sourceA.summaryGeneration.subscribe((generation) {
+        if (failNextGeneration && generation > baselineGenerationA) {
+          throw subscriberFailure;
+        }
+      });
+
+      try {
+        failNextGeneration = true;
+        await expectLater(
+          sourceB.runBulkUpdate(() async {
+            repositoryB.invalidate();
+            await Future<void>.delayed(Duration.zero);
+          }),
+          throwsA(
+            isA<SignalEffectException>().having(
+              (error) => error.error,
+              "original error",
+              same(subscriberFailure),
+            ),
+          ),
+        );
+
+        expect(sourceA.summaryGeneration.value - baselineGenerationA, 1);
+        expect(sourceB.summaryGeneration.value - baselineGenerationB, 1);
+        expect(repositoryB.countCalls - baselineCountB, 1);
+        expect(repositoryB.facetCalls - baselineFacetsB, 1);
+        expect(sourceB.invalidationCoordinator.dirtySourceCount, 0);
+      } finally {
+        failNextGeneration = false;
+        unsubscribe();
+      }
     } finally {
       await sourceA.disposeAndWait();
       await sourceB.disposeAndWait();
