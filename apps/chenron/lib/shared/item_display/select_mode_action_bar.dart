@@ -3,7 +3,7 @@ import "package:flutter/material.dart";
 class SelectModeActionBar extends StatelessWidget {
   final int selectedCount;
   final int linkCount;
-  final VoidCallback onSelectAll;
+  final VoidCallback? onSelectAll;
   final VoidCallback onTag;
   final VoidCallback onRefreshMetadata;
   final VoidCallback onDelete;
@@ -54,9 +54,7 @@ class SelectModeActionBar extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           Text(
-            selectedCount > 0
-                ? "$selectedCount selected"
-                : "None selected",
+            selectedCount > 0 ? "$selectedCount selected" : "None selected",
             style: TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 13,
@@ -90,8 +88,7 @@ class SelectModeActionBar extends StatelessWidget {
             icon: const Icon(Icons.delete, size: 16),
             label: Text("Delete ($selectedCount)"),
             style: FilledButton.styleFrom(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),

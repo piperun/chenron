@@ -13,6 +13,8 @@ class Favicon extends StatelessWidget {
   /// to prevent unbounded growth across long sessions.
   static const int _maxCacheSize = 500;
   static final LinkedHashMap<String, Future<String?>> _cache = LinkedHashMap();
+  @visibleForTesting
+  static Future<String?> Function(String url)? debugResolver;
 
   factory Favicon({Key? key, required String url}) {
     return Favicon._internal(key: key, url: url);
@@ -27,9 +29,11 @@ class Favicon extends StatelessWidget {
       return existing;
     }
 
-    final pending = FaviconFinder.getBest(url).then((favicon) {
-      return favicon?.url;
-    }).catchError((Object error) {
+    final resolver = debugResolver;
+    final pending = (resolver == null
+            ? FaviconFinder.getBest(url).then((favicon) => favicon?.url)
+            : resolver(url))
+        .catchError((Object error) {
       // Log the error once and cache the null result
       loggerGlobal.warning("FavIcon", "Error while fetching favicon: $error");
       return null;
@@ -118,4 +122,3 @@ class Favicon extends StatelessWidget {
     );
   }
 }
-

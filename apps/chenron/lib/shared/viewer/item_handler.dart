@@ -1,8 +1,14 @@
+import "dart:async";
 import "dart:math";
 
 import "package:cache_manager/cache_manager.dart";
 import "package:flutter/material.dart";
 import "package:chenron/features/bulk_tag/pages/bulk_tag_dialog.dart";
+import "package:chenron/features/folder_viewer/pages/folder_viewer_page.dart";
+import "package:chenron/features/viewer/services/viewer_bulk_service.dart";
+import "package:chenron/features/viewer/state/viewer_selection_state.dart";
+import "package:chenron/features/settings/coordinator/settings_coordinator.dart";
+import "package:chenron/shared/item_detail/item_detail_dialog.dart";
 import "package:chenron/shared/dialogs/delete_confirmation_dialog.dart";
 import "package:chenron/shared/viewer/item_deletion_service.dart";
 import "package:chenron/shared/viewer/item_tagging_service.dart";
@@ -12,6 +18,7 @@ import "package:chenron/locator.dart";
 import "package:chenron/services/activity_tracker.dart";
 import "package:chenron/shared/errors/error_snack_bar.dart";
 import "package:signals/signals.dart";
+import "package:url_launcher/url_launcher.dart";
 
 /// Tracks the item view event and delegates the tap to [onTap].
 ///
@@ -43,6 +50,49 @@ void handleItemTap(
   }
 
   onTap(context, item);
+}
+
+/// Opens a [FolderItem] according to the user's item-click preference.
+///
+/// This is deliberately stateless so folder pages can preserve the main
+/// viewer's routing behaviour without constructing a viewer presenter.
+void openFolderItem(BuildContext context, FolderItem item) {
+  final action = ItemClickAction.values[locator
+      .get<SettingsCoordinator>()
+      .display
+      .current
+      .peek()
+      .itemClickAction];
+  if (action == ItemClickAction.showDetails) {
+    showItemDetailDialog(context, itemId: item.id!, itemType: item.type);
+    return;
+  }
+  switch (item.type) {
+    case FolderItemType.folder:
+      unawaited(Navigator.push(
+        context,
+        MaterialPageRoute<void>(
+          builder: (_) => FolderViewerPage(
+            folderId: item.id!,
+            onItemTap: openFolderItem,
+          ),
+        ),
+      ));
+    case FolderItemType.link:
+      final url = item.map(
+        link: (link) => link.url,
+        document: (_) => null,
+        folder: (_) => null,
+      );
+      if (url != null && url.isNotEmpty) unawaited(openExternalUrl(url));
+    case FolderItemType.document:
+      break;
+  }
+}
+
+Future<void> openExternalUrl(String url) async {
+  final uri = Uri.parse(url);
+  if (await canLaunchUrl(uri)) await launchUrl(uri);
 }
 
 /// Handles deletion of multiple items with confirmation dialog.
@@ -106,6 +156,38 @@ Future<void> handleItemDeletion(
   }
 }
 
+Future<void> handleViewerSelectionDeletion(
+  BuildContext context,
+  ViewerSelectionTarget target,
+  ViewerBulkService service,
+  VoidCallback onRefresh,
+) async {
+  if (target.selectedCount == 0 || !target.isCurrent) return;
+  final confirmed = await showDeleteConfirmationDialog(
+    context: context,
+    itemCount: target.selectedCount,
+  );
+  if (!confirmed || !context.mounted || !target.isCurrent) return;
+
+  try {
+    final result = await service.delete(
+      target.selection,
+      expectedCount: target.selectedCount,
+    );
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(_viewerBulkMessage("Deleted", result)),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+    onRefresh();
+  } catch (error) {
+    if (context.mounted) showErrorSnackBar(context, error);
+  }
+}
+
 /// Handles bulk tag management (add + remove) for multiple items.
 ///
 /// Shows the tag dialog, processes the result for both additions and
@@ -128,8 +210,7 @@ Future<void> handleItemTagging(
     final messages = <String>[];
 
     if (result.tagsToAdd.isNotEmpty) {
-      final addResult =
-          await service.addTagToItems(items, result.tagsToAdd);
+      final addResult = await service.addTagToItems(items, result.tagsToAdd);
       messages.add(_buildTaggingMessage(addResult));
     }
 
@@ -162,6 +243,46 @@ Future<void> handleItemTagging(
     if (context.mounted) {
       showErrorSnackBar(context, e);
     }
+  }
+}
+
+Future<void> handleViewerSelectionTagging(
+  BuildContext context,
+  ViewerSelectionTarget target,
+  ViewerBulkService service,
+  VoidCallback onRefresh,
+) async {
+  if (target.selectedCount == 0 || !target.isCurrent) return;
+  final tagResult = await showBulkTagDialog(
+    context: context,
+    itemCount: target.selectedCount,
+  );
+  if (tagResult == null ||
+      tagResult.isEmpty ||
+      !context.mounted ||
+      !target.isCurrent) {
+    return;
+  }
+
+  try {
+    final result = await service.tag(
+      target.selection,
+      tagsToAdd: tagResult.tagsToAdd.toSet(),
+      tagsToRemove: tagResult.tagsToRemove.toSet(),
+      colorChanges: tagResult.colorChanges,
+      expectedCount: target.selectedCount,
+    );
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(_viewerBulkMessage("Tagged", result)),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+    onRefresh();
+  } catch (error) {
+    if (context.mounted) showErrorSnackBar(context, error);
   }
 }
 
@@ -235,6 +356,36 @@ Future<void> handleItemMetadataRefresh(
   }
 }
 
+Future<void> handleViewerSelectionMetadataRefresh(
+  BuildContext context,
+  ViewerSelectionTarget target,
+  ViewerBulkService service,
+) async {
+  if (target.selectedCount == 0 || !target.isCurrent) return;
+  try {
+    final result = await service.refreshMetadata(
+      target.selection,
+      expectedCount: target.selectedCount,
+    );
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(_viewerBulkMessage("Metadata refreshed for", result)),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  } catch (error) {
+    if (context.mounted) showErrorSnackBar(context, error);
+  }
+}
+
+String _viewerBulkMessage(String action, ViewerBulkResult result) {
+  final failureSuffix = result.failed == 0 ? "" : ", ${result.failed} failed";
+  return "$action ${result.succeeded} of ${result.processed} items"
+      "$failureSuffix";
+}
+
 /// Refresh unique metadata URLs with a fixed number of workers.
 Future<MetadataRefreshSummary> refreshMetadataUrls(
   Iterable<String> urls, {
@@ -261,8 +412,12 @@ Future<MetadataRefreshSummary> refreshMetadataUrls(
       if (index >= queue.length) return;
       nextIndex = index + 1;
 
-      final result = await refreshOne(queue[index]);
-      summary = summary.add(result.outcome);
+      try {
+        final result = await refreshOne(queue[index]);
+        summary = summary.add(result.outcome);
+      } catch (_) {
+        summary = summary.add(MetadataRefreshOutcome.failed);
+      }
     }
   }
 

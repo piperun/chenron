@@ -17,6 +17,14 @@ void main() {
         const DeletableItem(id: "3", title: "Item Three"),
       ];
 
+  List<DeletableItem> items(int count) => List<DeletableItem>.generate(
+        count,
+        (index) => DeletableItem(
+          id: "$index",
+          title: "Item $index",
+        ),
+      );
+
   group("DeletableItem", () {
     test("stores id and title", () {
       const item = DeletableItem(id: "abc", title: "My Item");
@@ -59,8 +67,7 @@ void main() {
           builder: (context) => ElevatedButton(
             onPressed: () => showDialog<bool>(
               context: context,
-              builder: (_) =>
-                  DeleteConfirmationDialog(items: multipleItems()),
+              builder: (_) => DeleteConfirmationDialog(items: multipleItems()),
             ),
             child: const Text("Open"),
           ),
@@ -82,8 +89,7 @@ void main() {
           builder: (context) => ElevatedButton(
             onPressed: () => showDialog<bool>(
               context: context,
-              builder: (_) =>
-                  DeleteConfirmationDialog(items: multipleItems()),
+              builder: (_) => DeleteConfirmationDialog(items: multipleItems()),
             ),
             child: const Text("Open"),
           ),
@@ -137,13 +143,14 @@ void main() {
       expect(find.textContaining("cannot be undone"), findsOneWidget);
     });
 
-    testWidgets("shows DELETE confirmation field", (tester) async {
+    testWidgets("shows DELETE confirmation field for four items",
+        (tester) async {
       await tester.pumpWidget(buildApp(
         child: Builder(
           builder: (context) => ElevatedButton(
             onPressed: () => showDialog<bool>(
               context: context,
-              builder: (_) => DeleteConfirmationDialog(items: singleItem()),
+              builder: (_) => DeleteConfirmationDialog(items: items(4)),
             ),
             child: const Text("Open"),
           ),
@@ -155,16 +162,17 @@ void main() {
 
       expect(find.text("Type DELETE to confirm:"), findsOneWidget);
     });
-  });
 
-  group("DeleteConfirmationDialog interaction", () {
-    testWidgets("delete button disabled initially", (tester) async {
+    testWidgets("count-only deletion shows count and no materialized item list",
+        (tester) async {
       await tester.pumpWidget(buildApp(
         child: Builder(
           builder: (context) => ElevatedButton(
             onPressed: () => showDialog<bool>(
               context: context,
-              builder: (_) => DeleteConfirmationDialog(items: singleItem()),
+              builder: (_) => DeleteConfirmationDialog(
+                itemCount: 100000,
+              ),
             ),
             child: const Text("Open"),
           ),
@@ -174,20 +182,119 @@ void main() {
       await tester.tap(find.text("Open"));
       await tester.pumpAndSettle();
 
-      // "Delete" button should be disabled
+      expect(find.text("Delete 100000 Items?"), findsOneWidget);
+      expect(find.textContaining("cannot be undone"), findsOneWidget);
+      expect(find.byType(ListTile), findsNothing);
+      expect(find.text("Type DELETE to confirm:"), findsOneWidget);
       final deleteButton = tester.widget<FilledButton>(
-        find.widgetWithText(FilledButton, "Delete"),
+        find.widgetWithText(FilledButton, "Delete All"),
+      );
+      expect(deleteButton.onPressed, isNull);
+
+      await tester.enterText(find.byType(TextField), "DELETE");
+      await tester.pumpAndSettle();
+      final enabledDeleteButton = tester.widget<FilledButton>(
+        find.widgetWithText(FilledButton, "Delete All"),
+      );
+      expect(enabledDeleteButton.onPressed, isNotNull);
+    });
+
+    test("items and itemCount are mutually exclusive", () {
+      expect(
+        () => DeleteConfirmationDialog(
+          items: singleItem(),
+          itemCount: 1,
+        ),
+        throwsArgumentError,
+      );
+    });
+
+    testWidgets("list mode requires no typed confirmation at three",
+        (tester) async {
+      await tester.pumpWidget(buildApp(
+        child: DeleteConfirmationDialog(items: items(3)),
+      ));
+
+      expect(find.byType(TextField), findsNothing);
+      final deleteButton = tester.widget<FilledButton>(
+        find.widgetWithText(FilledButton, "Delete All"),
+      );
+      expect(deleteButton.onPressed, isNotNull);
+    });
+
+    testWidgets("list mode requires typed confirmation at four",
+        (tester) async {
+      await tester.pumpWidget(buildApp(
+        child: DeleteConfirmationDialog(items: items(4)),
+      ));
+
+      expect(find.byType(TextField), findsOneWidget);
+      final deleteButton = tester.widget<FilledButton>(
+        find.widgetWithText(FilledButton, "Delete All"),
       );
       expect(deleteButton.onPressed, isNull);
     });
 
-    testWidgets("delete button enabled after typing DELETE", (tester) async {
+    testWidgets("count-only mode requires no typed confirmation at three",
+        (tester) async {
+      await tester.pumpWidget(buildApp(
+        child: DeleteConfirmationDialog(itemCount: 3),
+      ));
+
+      expect(find.byType(TextField), findsNothing);
+      final deleteButton = tester.widget<FilledButton>(
+        find.widgetWithText(FilledButton, "Delete All"),
+      );
+      expect(deleteButton.onPressed, isNotNull);
+    });
+
+    testWidgets("count-only mode requires typed confirmation at four",
+        (tester) async {
+      await tester.pumpWidget(buildApp(
+        child: DeleteConfirmationDialog(itemCount: 4),
+      ));
+
+      expect(find.byType(TextField), findsOneWidget);
+      final deleteButton = tester.widget<FilledButton>(
+        find.widgetWithText(FilledButton, "Delete All"),
+      );
+      expect(deleteButton.onPressed, isNull);
+    });
+  });
+
+  group("DeleteConfirmationDialog interaction", () {
+    testWidgets("delete button disabled initially for four items",
+        (tester) async {
       await tester.pumpWidget(buildApp(
         child: Builder(
           builder: (context) => ElevatedButton(
             onPressed: () => showDialog<bool>(
               context: context,
-              builder: (_) => DeleteConfirmationDialog(items: singleItem()),
+              builder: (_) => DeleteConfirmationDialog(items: items(4)),
+            ),
+            child: const Text("Open"),
+          ),
+        ),
+      ));
+
+      await tester.tap(find.text("Open"));
+      await tester.pumpAndSettle();
+
+      // Bulk delete should be disabled until the typed confirmation matches.
+      final deleteButton = tester.widget<FilledButton>(
+        find.widgetWithText(FilledButton, "Delete All"),
+      );
+      expect(deleteButton.onPressed, isNull);
+    });
+
+    testWidgets("delete button enabled after typing DELETE for four items",
+        (tester) async {
+      await tester.pumpWidget(buildApp(
+        child: Builder(
+          builder: (context) => ElevatedButton(
+            onPressed: () => showDialog<bool>(
+              context: context,
+              builder: (_) => DeleteConfirmationDialog(items: items(4)),
             ),
             child: const Text("Open"),
           ),
@@ -204,7 +311,7 @@ void main() {
 
       // Delete button should now be enabled
       final deleteButton = tester.widget<FilledButton>(
-        find.widgetWithText(FilledButton, "Delete"),
+        find.widgetWithText(FilledButton, "Delete All"),
       );
       expect(deleteButton.onPressed, isNotNull);
     });
@@ -216,7 +323,7 @@ void main() {
           builder: (context) => ElevatedButton(
             onPressed: () => showDialog<bool>(
               context: context,
-              builder: (_) => DeleteConfirmationDialog(items: singleItem()),
+              builder: (_) => DeleteConfirmationDialog(items: items(4)),
             ),
             child: const Text("Open"),
           ),
@@ -231,7 +338,7 @@ void main() {
       await tester.pumpAndSettle();
 
       final deleteButton = tester.widget<FilledButton>(
-        find.widgetWithText(FilledButton, "Delete"),
+        find.widgetWithText(FilledButton, "Delete All"),
       );
       expect(deleteButton.onPressed, isNull);
     });
@@ -244,8 +351,7 @@ void main() {
             onPressed: () async {
               result = await showDialog<bool>(
                 context: context,
-                builder: (_) =>
-                    DeleteConfirmationDialog(items: singleItem()),
+                builder: (_) => DeleteConfirmationDialog(items: singleItem()),
               );
             },
             child: const Text("Open"),
@@ -262,7 +368,8 @@ void main() {
       expect(result, false);
     });
 
-    testWidgets("confirm returns true after typing DELETE", (tester) async {
+    testWidgets("confirm returns true after typing DELETE for four items",
+        (tester) async {
       bool? result;
       await tester.pumpWidget(buildApp(
         child: Builder(
@@ -270,8 +377,7 @@ void main() {
             onPressed: () async {
               result = await showDialog<bool>(
                 context: context,
-                builder: (_) =>
-                    DeleteConfirmationDialog(items: singleItem()),
+                builder: (_) => DeleteConfirmationDialog(items: items(4)),
               );
             },
             child: const Text("Open"),
@@ -287,7 +393,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Tap delete
-      await tester.tap(find.widgetWithText(FilledButton, "Delete"));
+      await tester.tap(find.widgetWithText(FilledButton, "Delete All"));
       await tester.pumpAndSettle();
 
       expect(result, true);
@@ -299,8 +405,7 @@ void main() {
           builder: (context) => ElevatedButton(
             onPressed: () => showDialog<bool>(
               context: context,
-              builder: (_) =>
-                  DeleteConfirmationDialog(items: multipleItems()),
+              builder: (_) => DeleteConfirmationDialog(items: multipleItems()),
             ),
             child: const Text("Open"),
           ),
@@ -313,14 +418,14 @@ void main() {
       expect(find.text("Delete All"), findsOneWidget);
     });
 
-    testWidgets("shows check icon when DELETE typed correctly",
+    testWidgets("shows check icon when DELETE typed for four items",
         (tester) async {
       await tester.pumpWidget(buildApp(
         child: Builder(
           builder: (context) => ElevatedButton(
             onPressed: () => showDialog<bool>(
               context: context,
-              builder: (_) => DeleteConfirmationDialog(items: singleItem()),
+              builder: (_) => DeleteConfirmationDialog(items: items(4)),
             ),
             child: const Text("Open"),
           ),

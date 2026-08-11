@@ -703,4 +703,23 @@ class MetadataService {
 
   /// Number of domains currently tracked for throttling.
   int get domainThrottleMapSize => _reservedDomainStart.length;
+
+  /// Current network-orchestration diagnostics used by Profile verification.
+  int get inFlightRequestCount => _inFlight.length;
+  int get activeFetchCount => _activeFetches;
+  int get queuedFetchCount => _slotQueue.length;
+  int get maxConcurrentFetches => _maxConcurrent;
+
+  /// Waits for currently requested metadata work and any bounded slot queue.
+  Future<void> settle() async {
+    while (
+        _inFlight.isNotEmpty || _activeFetches > 0 || _slotQueue.isNotEmpty) {
+      final pending = _inFlight.values.toList(growable: false);
+      if (pending.isNotEmpty) {
+        await Future.wait<MetadataRefreshResult>(pending);
+      } else {
+        await Future<void>.delayed(Duration.zero);
+      }
+    }
+  }
 }

@@ -21,6 +21,7 @@ void main() {
     Widget buildModal({
       Set<String>? initialIncluded,
       Set<String>? initialExcluded,
+      Future<List<Tag>> Function(String searchText)? onSearchTags,
     }) {
       return MaterialApp(
         home: Scaffold(
@@ -33,6 +34,7 @@ void main() {
                     availableTags: mockTags,
                     initialIncludedTags: initialIncluded ?? {},
                     initialExcludedTags: initialExcluded ?? {},
+                    onSearchTags: onSearchTags,
                   ));
                 },
                 child: const Text("Open Modal"),
@@ -382,6 +384,45 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.text("No matching tags"), findsOneWidget);
+      });
+
+      testWidgets("server tag searches serialize and publish only latest",
+          (tester) async {
+        final first = Completer<List<Tag>>();
+        final second = Completer<List<Tag>>();
+        final searches = <String>[];
+        await tester.pumpWidget(buildModal(
+          onSearchTags: (searchText) {
+            searches.add(searchText);
+            return searchText == "first" ? first.future : second.future;
+          },
+        ));
+        await tester.tap(find.text("Open Modal"));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text("Available Tags"));
+        await tester.pumpAndSettle();
+
+        final searchField = find.byType(TextField).first;
+        await tester.enterText(searchField, "first");
+        await tester.pump(const Duration(milliseconds: 250));
+        expect(searches, <String>["first"]);
+
+        await tester.enterText(searchField, "second");
+        await tester.pump(const Duration(milliseconds: 250));
+        expect(searches, <String>["first"]);
+
+        first.complete(<Tag>[
+          Tag(id: "first", name: "first", createdAt: DateTime(2026)),
+        ]);
+        await tester.pump();
+        expect(searches, <String>["first", "second"]);
+        expect(find.text("first"), findsNothing);
+
+        second.complete(<Tag>[
+          Tag(id: "second", name: "second", createdAt: DateTime(2026)),
+        ]);
+        await tester.pump();
+        expect(find.text("second"), findsOneWidget);
       });
     });
   });

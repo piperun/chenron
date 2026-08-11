@@ -1,3 +1,5 @@
+import "dart:async";
+
 import "package:chenron/features/folder_viewer/ui/components/tag_filter/active_filters_tab.dart";
 import "package:chenron/features/folder_viewer/ui/components/tag_filter/available_tags_tab.dart";
 import "package:database/database.dart";
@@ -9,12 +11,14 @@ class TagFilterModal extends StatefulWidget {
   final List<Tag> availableTags;
   final Set<String> initialIncludedTags;
   final Set<String> initialExcludedTags;
+  final Future<List<Tag>> Function(String searchText)? onSearchTags;
 
   const TagFilterModal({
     super.key,
     required this.availableTags,
     this.initialIncludedTags = const {},
     this.initialExcludedTags = const {},
+    this.onSearchTags,
   });
 
   @override
@@ -25,6 +29,7 @@ class TagFilterModal extends StatefulWidget {
     required List<Tag> availableTags,
     Set<String> initialIncludedTags = const {},
     Set<String> initialExcludedTags = const {},
+    Future<List<Tag>> Function(String searchText)? onSearchTags,
   }) {
     return showDialog<({Set<String> included, Set<String> excluded})>(
       context: context,
@@ -32,6 +37,7 @@ class TagFilterModal extends StatefulWidget {
         availableTags: availableTags,
         initialIncludedTags: initialIncludedTags,
         initialExcludedTags: initialExcludedTags,
+        onSearchTags: onSearchTags,
       ),
     );
   }
@@ -45,6 +51,10 @@ class _TagFilterModalState extends State<TagFilterModal> {
   // Available tab search state
   String _availableSearchQuery = "";
   late final TextEditingController _availableSearchController;
+  late List<Tag> _availableTags;
+  Timer? _searchDebounce;
+  String? _pendingSearchText;
+  bool _searchRunning = false;
 
   // Active tab search state
   late final TextEditingController _activeSearchController;
@@ -54,6 +64,7 @@ class _TagFilterModalState extends State<TagFilterModal> {
     super.initState();
     _includedTags = Set.from(widget.initialIncludedTags);
     _excludedTags = Set.from(widget.initialExcludedTags);
+    _availableTags = List<Tag>.of(widget.availableTags);
 
     _availableSearchController = TextEditingController();
     _availableSearchController.addListener(_handleAvailableSearchChanged);
@@ -70,7 +81,7 @@ class _TagFilterModalState extends State<TagFilterModal> {
       if (token.startsWith("-#") && token.length > 2) {
         final raw = token.substring(2).trim();
         if (raw.isEmpty) continue;
-        final match = widget.availableTags.firstWhere(
+        final match = _availableTags.firstWhere(
           (t) => t.name.toLowerCase() == raw.toLowerCase(),
           orElse: () => Tag(id: "", createdAt: DateTime.now(), name: ""),
         );
@@ -88,7 +99,7 @@ class _TagFilterModalState extends State<TagFilterModal> {
       else if (token.startsWith("#") && token.length > 1) {
         final raw = token.substring(1).trim();
         if (raw.isEmpty) continue;
-        final match = widget.availableTags.firstWhere(
+        final match = _availableTags.firstWhere(
           (t) => t.name.toLowerCase() == raw.toLowerCase(),
           orElse: () => Tag(id: "", createdAt: DateTime.now(), name: ""),
         );
@@ -115,8 +126,43 @@ class _TagFilterModalState extends State<TagFilterModal> {
           ..selection = TextSelection.collapsed(offset: remaining.length);
       }
     }
-    setState(
-        () => _availableSearchQuery = _availableSearchController.text.trim());
+    final searchText = _availableSearchController.text.trim();
+    setState(() => _availableSearchQuery = searchText);
+    _scheduleTagSearch(searchText);
+  }
+
+  void _scheduleTagSearch(String searchText) {
+    if (widget.onSearchTags == null) return;
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 250), () {
+      _pendingSearchText = searchText;
+      unawaited(_runTagSearches());
+    });
+  }
+
+  Future<void> _runTagSearches() async {
+    if (_searchRunning) return;
+    _searchRunning = true;
+    try {
+      while (mounted) {
+        final searchText = _pendingSearchText;
+        if (searchText == null) break;
+        _pendingSearchText = null;
+        try {
+          final tags = await widget.onSearchTags!(searchText);
+          if (mounted &&
+              _pendingSearchText == null &&
+              _availableSearchController.text.trim() == searchText) {
+            setState(() => _availableTags = List<Tag>.unmodifiable(tags));
+          }
+        } catch (_) {
+          // Keep the last successful bounded result. Summary loading exposes
+          // repository failures through its normal retry banner.
+        }
+      }
+    } finally {
+      _searchRunning = false;
+    }
   }
 
   void _addToIncluded(String tagName) {
@@ -155,6 +201,8 @@ class _TagFilterModalState extends State<TagFilterModal> {
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
+    _pendingSearchText = null;
     _availableSearchController.dispose();
     _activeSearchController.dispose();
     super.dispose();
@@ -240,7 +288,7 @@ class _TagFilterModalState extends State<TagFilterModal> {
                   ),
                   _TabButton(
                     label: "Available Tags",
-                    count: widget.availableTags.length,
+                    count: _availableTags.length,
                     isActive: _activeTab == TagFilterTab.available,
                     onTap: () =>
                         setState(() => _activeTab = TagFilterTab.available),
@@ -268,7 +316,7 @@ class _TagFilterModalState extends State<TagFilterModal> {
                       ),
                     )
                   : AvailableTagsTab(
-                      availableTags: widget.availableTags,
+                      availableTags: _availableTags,
                       includedTags: _includedTags,
                       excludedTags: _excludedTags,
                       searchController: _availableSearchController,

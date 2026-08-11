@@ -1,136 +1,81 @@
 import "dart:async";
-import "package:chenron/features/viewer/state/viewer_state.dart";
-import "package:chenron/shared/item_display/filterable_item_display.dart";
-import "package:database/models/item.dart";
+
+import "package:chenron/features/viewer/mvc/viewer_presenter.dart";
+import "package:chenron/features/viewer/services/viewer_bulk_service.dart";
+import "package:chenron/features/viewer/ui/paged_viewer_display.dart";
 import "package:chenron/shared/search/search_filter.dart";
-import "package:chenron/shared/tag_filter/tag_filter_notifier.dart";
-import "package:flutter/material.dart";
-import "package:signals/signals_flutter.dart";
-import "package:app_logger/app_logger.dart";
 import "package:chenron/shared/viewer/item_handler.dart";
-import "package:chenron/features/viewer/ui/viewer_base_item.dart";
+import "package:flutter/material.dart";
 
 class Viewer extends StatefulWidget {
-  final SearchFilter? searchFilter;
+  const Viewer({
+    super.key,
+    this.searchFilter,
+    this.presenterFactory,
+  });
 
-  const Viewer({super.key, this.searchFilter});
+  final SearchFilter? searchFilter;
+  final ViewerPresenter Function()? presenterFactory;
 
   @override
   State<Viewer> createState() => _ViewerState();
 }
 
 class _ViewerState extends State<Viewer> {
-  late final TagFilterNotifier _tagFilterState;
-
-  FolderItem _viewerItemToFolderItem(ViewerItem viewerItem) {
-    return switch (viewerItem.type) {
-      FolderItemType.folder => FolderItem.folder(
-          id: viewerItem.id,
-          itemId: null,
-          folderId: viewerItem.id,
-          title: viewerItem.title,
-          description: viewerItem.description,
-          createdAt: viewerItem.createdAt,
-          tags: viewerItem.tags,
-        ),
-      FolderItemType.link => FolderItem.link(
-          id: viewerItem.id,
-          itemId: null,
-          url: viewerItem.description,
-          tags: viewerItem.tags,
-          createdAt: viewerItem.createdAt,
-        ),
-      FolderItemType.document => FolderItem.document(
-          id: viewerItem.id,
-          itemId: null,
-          title: viewerItem.title,
-          filePath: "",
-          tags: viewerItem.tags,
-          createdAt: viewerItem.createdAt,
-        ),
-    };
-  }
+  late final ViewerPresenter _presenter;
+  late final ViewerBulkService _bulkService;
 
   @override
   void initState() {
     super.initState();
-    _tagFilterState = TagFilterNotifier();
-    final presenter = viewerViewModelSignal.value;
-    unawaited(presenter.init());
-
-    // Set up search submission handler for tag parsing
+    _presenter = widget.presenterFactory?.call() ??
+        ViewerPresenter(searchFilter: widget.searchFilter);
+    _bulkService = ViewerBulkService(
+      repository: _presenter.pageSource.repository,
+      bulkUpdateBoundary: _presenter.pageSource,
+    );
     if (widget.searchFilter != null) {
-      widget.searchFilter!.controller.onSubmitted = (query) {
-        loggerGlobal.fine("VIEWER", 'Search submitted with query: "$query"');
-        if (query.contains("#")) {
-          final cleanQuery = _tagFilterState.parseAndAddFromQuery(query);
-          loggerGlobal.fine(
-              "VIEWER", 'Clean query after tag parse: "$cleanQuery"');
-          loggerGlobal.fine("VIEWER",
-              "Tags - included: ${_tagFilterState.includedTagNames}, excluded: ${_tagFilterState.excludedTagNames}");
-          // Update the search filter to remove tag patterns
-          widget.searchFilter!.controller.value = cleanQuery;
-        }
-      };
+      widget.searchFilter!.controller.onSubmitted =
+          _presenter.onSearchSubmitted;
     }
+    unawaited(_presenter.init());
   }
 
   @override
   void dispose() {
-    // Clear the submission handler when page is disposed
     if (widget.searchFilter != null) {
       widget.searchFilter!.controller.onSubmitted = null;
     }
-    _tagFilterState.dispose();
+    _presenter.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final presenter = viewerViewModelSignal.value;
-
     return Scaffold(
-      body: SignalBuilder(
-        builder: (context) {
-          final snapshot = presenter.itemsSignal.value;
-
-          return snapshot.map(
-            data: (data) {
-              final folderItems = data.map(_viewerItemToFolderItem).toList();
-
-              return FilterableItemDisplay(
-                items: folderItems,
-                externalSearchFilter: widget.searchFilter,
-                tagFilterState: _tagFilterState,
-                enableTagFiltering: true,
-                displayModeContext: "viewer",
-                showSearch: false,
-                onItemTap: (item) =>
-                    handleItemTap(context, item, presenter.handleFolderItemTap),
-                onDeleteModeChanged: (
-                    {required bool isDeleteMode, required int selectedCount}) {
-                  // Optional: Track delete mode state if needed
-                },
-                onDeleteRequested: (items) => handleItemDeletion(
-                  context,
-                  items,
-                  () => viewerViewModelSignal.value.init(),
-                ),
-                onTagRequested: (items) => handleItemTagging(
-                  context,
-                  items,
-                  () => viewerViewModelSignal.value.init(),
-                ),
-                onRefreshMetadataRequested: (items) =>
-                    handleItemMetadataRefresh(context, items),
-              );
-            },
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (Object error, StackTrace stackTrace) {
-              return Center(child: Text("Error: $error"));
-            },
-          );
-        },
+      body: PagedViewerDisplay(
+        presenter: _presenter,
+        showSearch: false,
+        displayModeContext: "viewer",
+        onItemTap: (item) => handleItemTap(context, item, openFolderItem),
+        onDeleteRequested: (selection) => handleViewerSelectionDeletion(
+          context,
+          selection,
+          _bulkService,
+          _presenter.init,
+        ),
+        onTagRequested: (selection) => handleViewerSelectionTagging(
+          context,
+          selection,
+          _bulkService,
+          _presenter.init,
+        ),
+        onRefreshMetadataRequested: (selection) =>
+            handleViewerSelectionMetadataRefresh(
+          context,
+          selection,
+          _bulkService,
+        ),
       ),
     );
   }

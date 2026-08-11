@@ -5,6 +5,7 @@ import "package:chenron/shared/item_display/item_toolbar.dart";
 import "package:chenron/shared/item_display/select_mode_action_bar.dart";
 import "package:chenron/shared/item_display/item_grid_view.dart";
 import "package:chenron/shared/item_display/item_list_view.dart";
+import "package:chenron/shared/item_display/item_viewport_source.dart";
 import "package:chenron/shared/item_display/filterable_item_display_notifier.dart";
 import "package:chenron/features/folder_viewer/ui/components/tag_filter_modal.dart";
 import "package:database/database.dart";
@@ -293,6 +294,7 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
 
               // Memoized: only recomputes when actual filter inputs change.
               final filtered = _notifier.filteredAndSortedItems.value;
+              final source = MaterializedItemViewportSource(filtered);
 
               // Disable lazy loading while filtering (all items loaded).
               final VoidCallback? loadMore =
@@ -301,7 +303,7 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
 
               return viewMode == ViewMode.grid
                   ? ItemGridView(
-                      items: filtered,
+                      source: source,
                       displayMode: displayModeVal,
                       includedTagNames:
                           _notifier.tagFilterState.includedTagNames,
@@ -318,7 +320,7 @@ class _FilterableItemDisplayState extends State<FilterableItemDisplay> {
                       hasMore: showHasMore,
                     )
                   : ItemListView(
-                      items: filtered,
+                      source: source,
                       displayMode: displayModeVal,
                       includedTagNames:
                           _notifier.tagFilterState.includedTagNames,

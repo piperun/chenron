@@ -67,8 +67,7 @@ class ItemTaggingService {
         case FolderItemType.link:
           newIds = await db.addTagsToLink(linkId: item.id!, tags: tags);
         case FolderItemType.document:
-          newIds =
-              await db.addTagsToDocument(documentId: item.id!, tags: tags);
+          newIds = await db.addTagsToDocument(documentId: item.id!, tags: tags);
         case FolderItemType.folder:
           newIds = await db.addTagsToFolder(folderId: item.id!, tags: tags);
       }
@@ -96,9 +95,9 @@ class ItemTaggingService {
 
   /// Removes tags from multiple items.
   ///
-  /// Resolves tag names to IDs via each item's existing [FolderItem.tags]
-  /// (which carry [Tag] objects with `.id` and `.name`), then calls the
-  /// appropriate `db.removeTagsFrom*` method.
+  /// Resolves the requested names directly from the database. Viewer cards
+  /// intentionally hydrate a bounded tag subset, so their in-memory tags are
+  /// not authoritative for destructive operations.
   Future<TagRemovalResult> removeTagFromItems(
     List<FolderItem> items,
     List<String> tagNames,
@@ -114,22 +113,21 @@ class ItemTaggingService {
     for (final item in items) {
       if (item.id == null) continue;
 
-      // Resolve tag names → IDs from this item's tag list.
-      final matchingTags =
-          item.tags.where((t) => tagNameSet.contains(t.name)).toList();
+      final matchingTags = await db.getViewerItemTagsByNames(
+        itemId: item.id!,
+        tagNames: tagNameSet,
+      );
       final tagIds = matchingTags.map((t) => t.id).toList();
 
       if (tagIds.isNotEmpty) {
         switch (item.type) {
           case FolderItemType.link:
-            await db.removeTagsFromLink(
-                linkId: item.id!, tagIds: tagIds);
+            await db.removeTagsFromLink(linkId: item.id!, tagIds: tagIds);
           case FolderItemType.document:
             await db.removeTagsFromDocument(
                 documentId: item.id!, tagIds: tagIds);
           case FolderItemType.folder:
-            await db.removeTagsFromFolder(
-                folderId: item.id!, tagIds: tagIds);
+            await db.removeTagsFromFolder(folderId: item.id!, tagIds: tagIds);
         }
 
         for (final tag in matchingTags) {

@@ -20,7 +20,8 @@ class DeletableItem {
 /// Returns true if user confirms, false if cancelled.
 Future<bool> showDeleteConfirmationDialog({
   required BuildContext context,
-  required List<DeletableItem> items,
+  List<DeletableItem> items = const <DeletableItem>[],
+  int? itemCount,
   String? customMessage,
 }) async {
   final result = await showDialog<bool>(
@@ -28,6 +29,7 @@ Future<bool> showDeleteConfirmationDialog({
     barrierDismissible: false,
     builder: (context) => DeleteConfirmationDialog(
       items: items,
+      itemCount: itemCount,
       customMessage: customMessage,
     ),
   );
@@ -36,12 +38,38 @@ Future<bool> showDeleteConfirmationDialog({
 
 class DeleteConfirmationDialog extends StatefulWidget {
   final List<DeletableItem> items;
+  final int? itemCount;
   final String? customMessage;
 
-  const DeleteConfirmationDialog({
+  factory DeleteConfirmationDialog({
+    Key? key,
+    List<DeletableItem> items = const <DeletableItem>[],
+    int? itemCount,
+    String? customMessage,
+  }) {
+    if (itemCount != null && items.isNotEmpty) {
+      throw ArgumentError("items and itemCount are mutually exclusive");
+    }
+    if (itemCount != null && itemCount < 0) {
+      throw ArgumentError.value(
+        itemCount,
+        "itemCount",
+        "must not be negative",
+      );
+    }
+    return DeleteConfirmationDialog._(
+      key: key,
+      items: items,
+      itemCount: itemCount,
+      customMessage: customMessage,
+    );
+  }
+
+  const DeleteConfirmationDialog._({
     super.key,
     required this.items,
-    this.customMessage,
+    required this.itemCount,
+    required this.customMessage,
   });
 
   @override
@@ -75,7 +103,9 @@ class _DeleteConfirmationDialogState extends State<DeleteConfirmationDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final count = widget.items.length;
+    final count = widget.itemCount ?? widget.items.length;
+    final isCountOnly = widget.itemCount != null;
+    final requiresTypedConfirmation = count > 3;
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -90,19 +120,23 @@ class _DeleteConfirmationDialogState extends State<DeleteConfirmationDialog> {
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
               child: Text(
                 widget.customMessage ??
-                    "This action cannot be undone. The following items "
-                        "will be permanently deleted:",
+                    (isCountOnly
+                        ? "This action cannot be undone. $count items will "
+                            "be permanently deleted."
+                        : "This action cannot be undone. The following items "
+                            "will be permanently deleted:"),
                 style: theme.textTheme.bodyMedium,
               ),
             ),
-            Flexible(child: _ItemList(items: widget.items)),
-            _DeleteConfirmationField(
-              controller: _confirmationController,
-              isValid: _isConfirmationValid,
-            ),
+            if (!isCountOnly) Flexible(child: _ItemList(items: widget.items)),
+            if (requiresTypedConfirmation)
+              _DeleteConfirmationField(
+                controller: _confirmationController,
+                isValid: _isConfirmationValid,
+              ),
             _DialogActions(
               count: count,
-              canConfirm: _isConfirmationValid,
+              canConfirm: !requiresTypedConfirmation || _isConfirmationValid,
             ),
           ],
         ),

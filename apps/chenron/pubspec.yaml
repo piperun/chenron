@@ -102,8 +102,6 @@ dev_dependencies:
   plugin_platform_interface: any
   chenron_mockups: any
   mockito: ^5.6.1
-  flutter_driver:
-    sdk: flutter
   integration_test:
     sdk: flutter
 

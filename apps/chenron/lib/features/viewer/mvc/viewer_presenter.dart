@@ -1,96 +1,132 @@
 import "dart:async";
 
-import "package:chenron/features/folder_editor/pages/folder_editor.dart";
-import "package:chenron/features/folder_viewer/pages/folder_viewer_page.dart";
 import "package:chenron/features/viewer/mvc/viewer_model.dart";
-import "package:chenron/features/viewer/ui/viewer_base_item.dart";
-
+import "package:chenron/features/viewer/state/viewer_page_source.dart";
+import "package:chenron/features/viewer/state/viewer_selection_state.dart";
 import "package:chenron/shared/item_display/item_toolbar.dart";
-import "package:chenron/utils/safe_async.dart";
+import "package:chenron/shared/search/query_parser.dart";
+import "package:chenron/shared/tag_filter/tag_filter_notifier.dart";
 import "package:database/database.dart";
-
-import "package:flutter/material.dart";
-import "package:url_launcher/url_launcher.dart";
+import "package:database/features.dart";
 import "package:signals/signals_flutter.dart";
-import "package:chenron/features/settings/coordinator/settings_coordinator.dart";
-import "package:chenron/features/settings/state/display_settings.dart";
-import "package:chenron/locator.dart";
-import "package:chenron/shared/item_detail/item_detail_dialog.dart";
+
+class ViewerRetentionSnapshot {
+  const ViewerRetentionSnapshot({
+    required this.retainedRows,
+    required this.activeSubscriptions,
+    required this.disposed,
+    this.cachedPages = 0,
+    this.activePageLoads = 0,
+    this.queuedPageLoads = 0,
+    this.retainedPageErrors = 0,
+    this.droppedPageRequests = 0,
+    this.activeSummaryLoads = 0,
+    this.queuedSummaryRequests = 0,
+    this.retainedSummaryRequests = 0,
+    this.dirtySummaryRefresh = false,
+    this.registeredInvalidationSources = 0,
+    this.dirtyInvalidationSources = 0,
+    this.bulkUpdateDepth = 0,
+    this.settled = false,
+  });
+
+  final int retainedRows;
+  final int activeSubscriptions;
+  final bool disposed;
+  final int cachedPages;
+  final int activePageLoads;
+  final int queuedPageLoads;
+  final int retainedPageErrors;
+  final int droppedPageRequests;
+  final int activeSummaryLoads;
+  final int queuedSummaryRequests;
+  final int retainedSummaryRequests;
+  final bool dirtySummaryRefresh;
+  final int registeredInvalidationSources;
+  final int dirtyInvalidationSources;
+  final int bulkUpdateDepth;
+  final bool settled;
+}
 
 class ViewerPresenter {
-  final Signal<Set<String>> selectedItemIds = signal({});
-  final Signal<Set<FolderItemType>> selectedTypes = signal({
-    FolderItemType.folder,
-    FolderItemType.link,
-    FolderItemType.document,
-  });
-  final SearchController searchController = SearchController();
+  ViewerPresenter({
+    ViewerPageRepository? repository,
+    ViewerModel? model,
+    SearchFilter? searchFilter,
+    TagFilterNotifier? tagFilterState,
+    ViewerSelectionState? selectionState,
+    String? folderId,
+  })  : searchFilter = searchFilter ?? SearchFilter(),
+        tagFilterState = tagFilterState ?? TagFilterNotifier(),
+        _ownsSearchFilter = searchFilter == null,
+        _ownsTagFilterState = tagFilterState == null,
+        _folderId = folderId,
+        selectionState = selectionState ?? ViewerSelectionState(),
+        pageSource = ViewerPageSource(
+          repository: repository ?? model ?? ViewerModel(),
+        ),
+        query = signal(ViewerQuery(
+          folderId: folderId,
+          includeFolderParents: folderId != null,
+        )) {
+    if (_ownsSearchFilter) this.searchFilter.setup();
+  }
+
+  final Signal<Set<FolderItemType>> selectedTypes = signal(
+    const <FolderItemType>{
+      FolderItemType.folder,
+      FolderItemType.link,
+      FolderItemType.document,
+    },
+  );
   final Signal<ViewMode> viewMode = signal(ViewMode.grid);
   final Signal<SortMode> sortMode = signal(SortMode.nameAsc);
+  final SearchFilter searchFilter;
+  final TagFilterNotifier tagFilterState;
+  final ViewerPageSource pageSource;
+  final ViewerSelectionState selectionState;
+  final Signal<ViewerQuery> query;
 
-  final _itemsController = StreamController<List<ViewerItem>>.broadcast();
-  final ViewerModel _model;
-  final DisplaySettingsNotifier _displayNotifier =
-      locator.get<SettingsCoordinator>().display;
-  Stream<List<ViewerItem>>? _allItemsStream;
-  StreamSubscription<List<ViewerItem>>? _allItemsSubscription;
-  List<ViewerItem> _currentItems = [];
+  final bool _ownsSearchFilter;
+  final bool _ownsTagFilterState;
+  final String? _folderId;
+  void Function()? _disposeQueryEffect;
+  void Function()? _disposeSummarySelectionEffect;
+  ViewerQuery? _lastAppliedQuery;
+  int? _selectionSummaryGeneration;
+  Future<void>? _pendingQueryUpdate;
   bool _disposed = false;
 
-  Map<String, ViewerItem> get _currentItemsById =>
-      {for (final item in _currentItems) item.id: item};
+  ViewerRetentionSnapshot get retentionSnapshot => ViewerRetentionSnapshot(
+        retainedRows: pageSource.cachedRowCount,
+        activeSubscriptions: pageSource.activeSubscriptionCount,
+        disposed: _disposed,
+        cachedPages: pageSource.cachedPageCount,
+        activePageLoads: pageSource.activeLoadCount,
+        queuedPageLoads: pageSource.queuedLoadCount,
+        retainedPageErrors: pageSource.retainedPageErrorCount,
+        droppedPageRequests: pageSource.droppedPageRequestCount,
+        activeSummaryLoads: pageSource.activeSummaryLoadCount,
+        queuedSummaryRequests: pageSource.queuedSummaryRequestCount,
+        retainedSummaryRequests: pageSource.retainedSummaryRequestCount,
+        dirtySummaryRefresh: pageSource.hasDirtySummaryRefresh,
+        registeredInvalidationSources:
+            pageSource.invalidationCoordinator.registeredSourceCount,
+        dirtyInvalidationSources:
+            pageSource.invalidationCoordinator.dirtySourceCount,
+        bulkUpdateDepth: pageSource.invalidationCoordinator.bulkUpdateDepth,
+        settled: pageSource.isSettled,
+      );
 
-  Stream<List<ViewerItem>> get itemsStream => _itemsController.stream;
-  late final StreamSignal<List<ViewerItem>> itemsSignal =
-      StreamSignal(() => _itemsController.stream);
-
-  ViewerPresenter({ViewerModel? model}) : _model = model ?? ViewerModel() {
-    searchController.addListener(_onSearchChanged);
-  }
-
-  /// Subscribes to the reactive item stream exactly once.
-  ///
-  /// This presenter is an app-lifetime singleton (held by
-  /// `viewerViewModelSignal`) while `Viewer` mounts and unmounts
-  /// repeatedly, calling `init()` on every mount. `watchAllItems()` is a
-  /// live Drift stream that already pushes updates on every DB change,
-  /// so a single subscription suffices for the app's lifetime. Guarding
-  /// here keeps each visit (and the refresh-callback `init()` calls)
-  /// from stacking another live `watchAllItems()` subscription on top of
-  /// the previous one.
   Future<void> init() async {
     if (_disposed) return;
-    if (_allItemsSubscription != null) return;
-
-    _allItemsStream = _model.watchAllItems();
-    _allItemsSubscription = safeWatch<List<ViewerItem>>(
-      _allItemsStream!,
-      tag: "ViewerPresenter",
-      onData: _processItems,
-      onUiError: (_) {
-        // Push an empty list so the viewer renders the empty-state
-        // widget instead of stalling on the last successful payload.
-        if (!_itemsController.isClosed) _itemsController.add(const []);
-      },
-    );
-  }
-
-  void clearSelectedItems() {
-    selectedItemIds.value = {};
+    _disposeQueryEffect ??= effect(_synchronizeQuery);
+    _disposeSummarySelectionEffect ??= effect(_synchronizeSelectionSummary);
+    await _pendingQueryUpdate;
   }
 
   void onTypesChanged(Set<FolderItemType> types) {
-    selectedTypes.value = Set.of(types);
-
-    final itemById = _currentItemsById;
-    selectedItemIds.value = Set.of(
-      selectedItemIds.value.where((itemId) {
-        final item = itemById[itemId];
-        return item != null && types.contains(item.type);
-      }),
-    );
-
-    _filterAndAddItems(_currentItems);
+    selectedTypes.value = Set<FolderItemType>.of(types);
   }
 
   void onViewModeChanged(ViewMode mode) {
@@ -99,200 +135,73 @@ class ViewerPresenter {
 
   void onSortChanged(SortMode mode) {
     sortMode.value = mode;
-    _filterAndAddItems(_currentItems);
   }
 
-  void handleFolderTap(BuildContext context, FolderResult folder) {
-    unawaited(Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => FolderViewerPage(
-          folderId: folder.data.id,
-          onItemTap: handleFolderItemTap,
-        ),
-      ),
-    ));
+  void onSearchSubmitted(String rawQuery) {
+    batch(() {
+      final cleanQuery = tagFilterState.parseAndAddFromQuery(rawQuery);
+      searchFilter.controller.value = cleanQuery;
+    });
   }
 
-  void handleEditTap(BuildContext context, String folderId) {
-    unawaited(Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => FolderEditor(
-          folderId: folderId,
-        ),
-      ),
-    ));
-  }
-
-  void toggleItemSelection(String itemId) {
-    final current = Set<String>.of(selectedItemIds.value);
-    if (current.contains(itemId)) {
-      current.remove(itemId);
-    } else {
-      current.add(itemId);
-    }
-    selectedItemIds.value = current;
-  }
-
-  void _onSearchChanged() {
-    _filterAndAddItems(_currentItems);
-  }
-
-  void _processItems(List<ViewerItem> items) {
-    _currentItems = items;
-    _filterAndAddItems(items);
-  }
-
-  void _filterAndAddItems(List<ViewerItem> items) {
-    var filteredItems = filterItems(
-      items,
-      selectedTypes.value,
-      searchController.text,
+  void _synchronizeQuery() {
+    final parsed = QueryParser.parseTags(searchFilter.controller.query.value);
+    final resolvedTags = tagFilterState.resolveMergedTags(
+      included: parsed.includedTags,
+      excluded: parsed.excludedTags,
     );
-    filteredItems = _sortItems(filteredItems);
-    _itemsController.add(filteredItems);
+    final nextQuery = ViewerQuery(
+      folderId: _folderId,
+      includeFolderParents: _folderId != null,
+      searchText: parsed.cleanQuery,
+      types: Set<FolderItemType>.of(selectedTypes.value),
+      includedTags: resolvedTags.included,
+      excludedTags: resolvedTags.excluded,
+      sort: _viewerSort(sortMode.value),
+    );
+    if (_lastAppliedQuery == nextQuery) return;
+    _lastAppliedQuery = nextQuery;
+    query.value = nextQuery;
+    selectionState.synchronizeQuery(nextQuery);
+    _pendingQueryUpdate = pageSource.setQuery(nextQuery);
+    unawaited(_pendingQueryUpdate);
   }
 
-  List<ViewerItem> _sortItems(List<ViewerItem> items) {
-    final sorted = List<ViewerItem>.from(items);
-    final mode = sortMode.value;
-
-    if (mode == SortMode.nameAsc || mode == SortMode.nameDesc) {
-      // Cache lowercased titles to avoid repeated toLowerCase() in comparator
-      final lowered = {for (final item in sorted) item: item.title.toLowerCase()};
-      final dir = mode == SortMode.nameAsc ? 1 : -1;
-      sorted.sort((a, b) => dir * lowered[a]!.compareTo(lowered[b]!));
-    } else {
-      final dir = mode == SortMode.dateAsc ? 1 : -1;
-      sorted.sort((a, b) => dir * a.createdAt.compareTo(b.createdAt));
+  void _synchronizeSelectionSummary() {
+    final generation = pageSource.summaryGeneration.value;
+    final previous = _selectionSummaryGeneration;
+    _selectionSummaryGeneration = generation;
+    if (previous != null && previous != generation) {
+      selectionState.clear();
     }
-
-    return sorted;
   }
+
+  ViewerSort _viewerSort(SortMode mode) => switch (mode) {
+        SortMode.nameAsc => ViewerSort.nameAsc,
+        SortMode.nameDesc => ViewerSort.nameDesc,
+        SortMode.dateAsc => ViewerSort.dateAsc,
+        SortMode.dateDesc => ViewerSort.dateDesc,
+      };
 
   void dispose() {
     if (_disposed) return;
     _disposed = true;
-    unawaited(_allItemsSubscription?.cancel());
-    _allItemsSubscription = null;
-    searchController.removeListener(_onSearchChanged);
-    searchController.dispose();
-    unawaited(_itemsController.close());
-    selectedItemIds.dispose();
+    _disposeQueryEffect?.call();
+    _disposeQueryEffect = null;
+    _disposeSummarySelectionEffect?.call();
+    _disposeSummarySelectionEffect = null;
+    pageSource.dispose();
+    query.dispose();
+    selectionState.dispose();
     selectedTypes.dispose();
     viewMode.dispose();
     sortMode.dispose();
+    if (_ownsTagFilterState) tagFilterState.dispose();
+    if (_ownsSearchFilter) searchFilter.dispose();
   }
 
-  List<ViewerItem> filterItems(
-      List<ViewerItem> items, Set<FolderItemType> types, String searchQuery) {
-    final query = searchQuery.toLowerCase();
-    return items.where((item) {
-      final matchesType = types.contains(item.type);
-      final matchesSearch = query.isEmpty ||
-          item.title.toLowerCase().contains(query) ||
-          item.tags.any((tag) => tag.name.toLowerCase().contains(query));
-
-      return matchesType && matchesSearch;
-    }).toList();
-  }
-
-  void handleItemTap(BuildContext context, ViewerItem item) {
-    final action =
-        ItemClickAction.values[_displayNotifier.current.peek().itemClickAction];
-
-    if (action == ItemClickAction.showDetails) {
-      showItemDetailDialog(context,
-          itemId: item.id, itemType: item.type);
-      return;
-    }
-
-    // Default: Open Item
-    switch (item.type) {
-      case FolderItemType.folder:
-        unawaited(Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => FolderViewerPage(
-              folderId: item.id,
-              onItemTap: handleFolderItemTap,
-            ),
-          ),
-        ));
-      case FolderItemType.link:
-        if (item.url != null) {
-          unawaited(onOpenUrl(item.url!));
-        }
-        break;
-      case FolderItemType.document:
-        // Future implementation
-        break;
-    }
-  }
-
-  /// Routes a [FolderItem] tap based on the user's click-action preference.
-  /// Used by callers outside the viewer feature (e.g. FolderViewerPage)
-  /// so they don't need to know about ViewerItem or the presenter signal.
-  void handleFolderItemTap(BuildContext context, FolderItem item) {
-    final action =
-        ItemClickAction.values[_displayNotifier.current.peek().itemClickAction];
-
-    if (action == ItemClickAction.showDetails) {
-      showItemDetailDialog(context, itemId: item.id!, itemType: item.type);
-      return;
-    }
-
-    switch (item.type) {
-      case FolderItemType.folder:
-        unawaited(Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => FolderViewerPage(
-              folderId: item.id!,
-              onItemTap: handleFolderItemTap,
-            ),
-          ),
-        ));
-      case FolderItemType.link:
-        final url = item.map(
-          link: (l) => l.url,
-          document: (_) => null,
-          folder: (_) => null,
-        );
-        if (url != null && url.isNotEmpty) unawaited(onOpenUrl(url));
-      case FolderItemType.document:
-        break;
-    }
-  }
-
-  Future<void> onOpenUrl(String url) async {
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
-    }
-  }
-
-  Future<void> handleDeleteSelected() async {
-    if (selectedItemIds.value.isEmpty) return;
-
-    final itemById = _currentItemsById;
-    bool success = true;
-    for (final itemId in selectedItemIds.value) {
-      final item = itemById[itemId];
-      if (item == null) continue;
-
-      success = switch (item.type) {
-        FolderItemType.folder => await _model.removeFolder(itemId),
-        FolderItemType.link => await _model.removeLink(itemId),
-        FolderItemType.document => await _model.removeDocument(itemId),
-      };
-
-      if (!success) break;
-    }
-
-    if (success) {
-      clearSelectedItems();
-    }
+  Future<void> disposeAndWait() {
+    dispose();
+    return pageSource.disposeAndWait();
   }
 }

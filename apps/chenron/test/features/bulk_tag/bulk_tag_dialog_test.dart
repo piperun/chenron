@@ -52,12 +52,17 @@ void main() {
   /// `_loadTags()`, and one to flush the resulting [setState].
   Future<void> openDialog(
     WidgetTester tester, {
-    required List<FolderItem> items,
+    List<FolderItem> items = const <FolderItem>[],
+    int? itemCount,
   }) async {
     await tester.pumpWidget(buildApp(
       child: Builder(
         builder: (context) => ElevatedButton(
-          onPressed: () => showBulkTagDialog(context: context, items: items),
+          onPressed: () => showBulkTagDialog(
+            context: context,
+            items: items,
+            itemCount: itemCount,
+          ),
           child: const Text("Open"),
         ),
       ),
@@ -82,6 +87,35 @@ void main() {
       await openDialog(tester, items: []);
 
       expect(find.text("Tag editor"), findsOneWidget);
+    });
+
+    testWidgets("count-only mode shows count without fabricated coverage",
+        (tester) async {
+      await database.addTag("topic");
+
+      await openDialog(tester, itemCount: 100000);
+
+      expect(find.text("Manage tags for 100000 items"), findsOneWidget);
+      expect(find.textContaining("/100000 already"), findsNothing);
+    });
+
+    testWidgets("count-only tag action cycles add remove and neutral",
+        (tester) async {
+      await database.addTag("topic");
+      await openDialog(tester, itemCount: 100000);
+
+      await tester.tap(find.text("topic"));
+      await tester.pump();
+      expect(find.text("+topic"), findsOneWidget);
+
+      await tester.tap(find.text("topic"));
+      await tester.pump();
+      expect(find.text("-topic"), findsOneWidget);
+
+      await tester.tap(find.text("topic"));
+      await tester.pump();
+      expect(find.text("+topic"), findsNothing);
+      expect(find.text("-topic"), findsNothing);
     });
 
     testWidgets("shows search field", (tester) async {
@@ -109,8 +143,7 @@ void main() {
       expect(find.text("dart"), findsOneWidget);
     });
 
-    testWidgets("shows coverage counts when items have tags",
-        (tester) async {
+    testWidgets("shows coverage counts when items have tags", (tester) async {
       // Create links with tags
       await database.createLink(
         link: "https://example.com/1",
@@ -126,10 +159,7 @@ void main() {
                 url: l.path,
                 tags: [
                   if (l.path == "https://example.com/1")
-                    Tag(
-                        id: "t",
-                        createdAt: DateTime.now(),
-                        name: "flutter"),
+                    Tag(id: "t", createdAt: DateTime.now(), name: "flutter"),
                 ],
               ))
           .toList();
@@ -159,8 +189,7 @@ void main() {
   });
 
   group("BulkTagDialog interaction", () {
-    testWidgets("Apply button disabled when nothing selected",
-        (tester) async {
+    testWidgets("Apply button disabled when nothing selected", (tester) async {
       await openDialog(tester, items: []);
 
       final applyButton = tester.widget<FilledButton>(
@@ -185,8 +214,7 @@ void main() {
       expect(applyButton.onPressed, isNotNull);
     });
 
-    testWidgets("selecting multiple tags updates button text",
-        (tester) async {
+    testWidgets("selecting multiple tags updates button text", (tester) async {
       await database.addTag("flutter");
       await database.addTag("dart");
 
@@ -241,8 +269,7 @@ void main() {
       expect(find.textContaining('Create "newtag"'), findsOneWidget);
     });
 
-    testWidgets("does not show Create button when tag exists",
-        (tester) async {
+    testWidgets("does not show Create button when tag exists", (tester) async {
       await database.addTag("flutter");
 
       await openDialog(tester, items: []);
@@ -463,8 +490,7 @@ void main() {
       expect(find.text("Apply"), findsOneWidget);
     });
 
-    testWidgets("mixed add and remove shows combined label",
-        (tester) async {
+    testWidgets("mixed add and remove shows combined label", (tester) async {
       await database.addTag("keep");
       await database.addTag("remove_me");
 

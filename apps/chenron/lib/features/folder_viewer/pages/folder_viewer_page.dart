@@ -5,35 +5,36 @@ import "package:signals/signals_flutter.dart";
 import "package:chenron/shared/constants/durations.dart";
 import "package:chenron/features/folder_viewer/ui/components/folder_header.dart";
 import "package:chenron/features/folder_viewer/ui/components/collapsed_header.dart";
-import "package:chenron/shared/item_display/filterable_item_display.dart";
 import "package:chenron/shared/dialogs/delete_confirmation_dialog.dart";
 import "package:chenron/features/folder_viewer/services/folder_viewer_service.dart";
-import "package:chenron/shared/infinite_scroll/infinite_scroll_notifier.dart";
-
-import "package:chenron/shared/tag_filter/tag_filter_notifier.dart";
+import "package:chenron/features/viewer/mvc/viewer_presenter.dart";
+import "package:chenron/features/viewer/services/viewer_bulk_service.dart";
+import "package:chenron/features/viewer/state/viewer_page_source.dart";
+import "package:chenron/features/viewer/ui/paged_viewer_display.dart";
 import "package:chenron/features/folder_editor/pages/folder_editor.dart";
 import "package:app_logger/app_logger.dart";
 import "package:chenron/shared/errors/error_snack_bar.dart";
 import "package:chenron/shared/errors/user_error_message.dart";
 import "package:chenron/shared/viewer/item_handler.dart";
-import "package:chenron/features/viewer/state/viewer_state.dart";
 
 class FolderViewerPage extends StatefulWidget {
   final String folderId;
 
   /// Routes an item tap (e.g. open URL, navigate to folder, show details).
-  /// When null, falls back to the global presenter signal.
+  /// When null, falls back to [openFolderItem].
   final void Function(BuildContext, FolderItem)? onItemTap;
 
   /// Called when a tag chip is tapped in the folder header.
   /// The caller (typically root) uses this to pop and apply a search query.
   final ValueChanged<String>? onTagSearch;
+  final FolderViewerService Function()? serviceFactory;
 
   const FolderViewerPage({
     super.key,
     required this.folderId,
     this.onItemTap,
     this.onTagSearch,
+    this.serviceFactory,
   });
 
   @override
@@ -41,34 +42,33 @@ class FolderViewerPage extends StatefulWidget {
 }
 
 class _FolderViewerPageState extends State<FolderViewerPage> {
-  final _service = FolderViewerService();
+  late final FolderViewerService _service;
   late Future<FolderResult> _metadata;
-  late final InfiniteScrollNotifier<FolderItem> _infiniteScroll;
-  late final TagFilterNotifier _tagFilterState;
+  late final ViewerPresenter _presenter;
+  late final ViewerBulkService _bulkService;
   bool _isHeaderExpanded = true;
   bool _isHeaderLocked = false;
 
   @override
   void initState() {
     super.initState();
-    _tagFilterState = TagFilterNotifier();
-    _infiniteScroll = InfiniteScrollNotifier<FolderItem>(
-      loader: (limit, offset) => _service.getFolderItemsPaginated(
-        widget.folderId,
-        limit,
-        offset,
-      ),
-      countLoader: () => _service.getFolderItemCount(widget.folderId),
+    _service = widget.serviceFactory?.call() ?? FolderViewerService();
+    _presenter = ViewerPresenter(
+      repository: _service,
+      folderId: widget.folderId,
+    );
+    _bulkService = ViewerBulkService(
+      repository: _service,
+      bulkUpdateBoundary: _presenter.pageSource,
     );
     unawaited(_loadLockState());
     _metadata = _service.loadFolderMetadata(widget.folderId);
-    unawaited(_infiniteScroll.loadInitial());
+    unawaited(_presenter.init());
   }
 
   @override
   void dispose() {
-    _tagFilterState.dispose();
-    _infiniteScroll.dispose();
+    _presenter.dispose();
     super.dispose();
   }
 
@@ -162,11 +162,9 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
   }
 
   void _refreshFolderData() {
-    _infiniteScroll.reset();
     setState(() {
       _metadata = _service.loadFolderMetadata(widget.folderId);
     });
-    unawaited(_infiniteScroll.loadInitial());
   }
 
   @override
@@ -175,8 +173,8 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
       // Stream the metadata result instead of gating the whole page on
       // it — the header skeleton + item display render as soon as the
       // page mounts, then the FolderHeader content + parentItems
-      // populate once the metadata Future resolves. Items load in
-      // parallel via _infiniteScroll (kicked off in initState).
+      // populate once the metadata Future resolves. Direct items load
+      // independently through the bounded page source.
       body: FutureBuilder<FolderResult>(
         future: _metadata,
         builder: (context, snapshot) {
@@ -197,8 +195,6 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
           }
 
           final result = snapshot.data;
-          final parentItems = result?.items ?? const <FolderItem>[];
-
           return Column(
             children: [
               if (result == null)
@@ -209,8 +205,7 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
               else
                 _CollapsibleHeader(
                   result: result,
-                  parentItems: parentItems,
-                  infiniteScroll: _infiniteScroll,
+                  pageSource: _presenter.pageSource,
                   isHeaderExpanded: _isHeaderExpanded,
                   isHeaderLocked: _isHeaderLocked,
                   onToggleExpanded: () =>
@@ -221,12 +216,33 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
                   onTagSearch: widget.onTagSearch,
                 ),
               Expanded(
-                child: _FolderItemDisplay(
-                  parentItems: parentItems,
-                  infiniteScroll: _infiniteScroll,
-                  tagFilterState: _tagFilterState,
-                  onRefresh: _refreshFolderData,
-                  onItemTap: widget.onItemTap,
+                child: PagedViewerDisplay(
+                  presenter: _presenter,
+                  displayModeContext: "folder_viewer",
+                  onItemTap: (item) => handleItemTap(
+                    context,
+                    item,
+                    widget.onItemTap ?? openFolderItem,
+                  ),
+                  onDeleteRequested: (selection) =>
+                      handleViewerSelectionDeletion(
+                    context,
+                    selection,
+                    _bulkService,
+                    _refreshFolderData,
+                  ),
+                  onTagRequested: (selection) => handleViewerSelectionTagging(
+                    context,
+                    selection,
+                    _bulkService,
+                    _refreshFolderData,
+                  ),
+                  onRefreshMetadataRequested: (selection) =>
+                      handleViewerSelectionMetadataRefresh(
+                    context,
+                    selection,
+                    _bulkService,
+                  ),
                 ),
               ),
             ],
@@ -298,8 +314,7 @@ class _HeaderSkeleton extends StatelessWidget {
 
 class _CollapsibleHeader extends StatelessWidget {
   final FolderResult result;
-  final List<FolderItem> parentItems;
-  final InfiniteScrollNotifier<FolderItem> infiniteScroll;
+  final ViewerPageSource pageSource;
   final bool isHeaderExpanded;
   final bool isHeaderLocked;
   final VoidCallback onToggleExpanded;
@@ -310,8 +325,7 @@ class _CollapsibleHeader extends StatelessWidget {
 
   const _CollapsibleHeader({
     required this.result,
-    required this.parentItems,
-    required this.infiniteScroll,
+    required this.pageSource,
     required this.isHeaderExpanded,
     required this.isHeaderLocked,
     required this.onToggleExpanded,
@@ -324,7 +338,7 @@ class _CollapsibleHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SignalBuilder(builder: (context) {
-      final totalItems = infiniteScroll.estimatedTotal + parentItems.length;
+      final totalItems = pageSource.totalCount.value;
 
       return GestureDetector(
         onTap: isHeaderLocked ? null : onToggleExpanded,
@@ -363,65 +377,6 @@ class _CollapsibleHeader extends StatelessWidget {
                   onToggleLock: onToggleLock,
                 ),
         ),
-      );
-    });
-  }
-}
-
-class _FolderItemDisplay extends StatelessWidget {
-  final List<FolderItem> parentItems;
-  final InfiniteScrollNotifier<FolderItem> infiniteScroll;
-  final TagFilterNotifier tagFilterState;
-  final VoidCallback onRefresh;
-  final void Function(BuildContext, FolderItem)? onItemTap;
-
-  const _FolderItemDisplay({
-    required this.parentItems,
-    required this.infiniteScroll,
-    required this.tagFilterState,
-    required this.onRefresh,
-    this.onItemTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SignalBuilder(builder: (context) {
-      final loadedItems = infiniteScroll.loadedItems.value;
-      final allItems = [...parentItems, ...loadedItems];
-
-      return FilterableItemDisplay(
-        items: allItems,
-        tagFilterState: tagFilterState,
-        enableTagFiltering: true,
-        displayModeContext: "folder_viewer",
-        // Resolve the viewer fallback lazily on tap rather than during
-        // build — looking up `viewerViewModelSignal.value` early
-        // constructs a `ViewerPresenter` that hits the locator for
-        // `SettingsCoordinator`, which isn't registered in widget
-        // tests. Deferring keeps build() side-effect-free and lets
-        // the page render its skeleton even before the locator has
-        // every service.
-        onItemTap: (item) {
-          final effectiveOnItemTap =
-              onItemTap ?? viewerViewModelSignal.value.handleFolderItemTap;
-          handleItemTap(context, item, effectiveOnItemTap);
-        },
-        onDeleteRequested: (items) => handleItemDeletion(
-          context,
-          items,
-          onRefresh,
-        ),
-        onTagRequested: (items) => handleItemTagging(
-          context,
-          items,
-          onRefresh,
-        ),
-        onRefreshMetadataRequested: (items) =>
-            handleItemMetadataRefresh(context, items),
-        onLoadMore: infiniteScroll.loadNextPage,
-        isLoadingMore: infiniteScroll.isLoadingMore.value,
-        hasMore: infiniteScroll.hasMore.value,
-        onLoadAllRemaining: infiniteScroll.loadAll,
       );
     });
   }
