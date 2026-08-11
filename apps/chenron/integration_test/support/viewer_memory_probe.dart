@@ -22,6 +22,25 @@ class ViewerMemorySnapshot {
     required this.liveImages,
     required this.retainedViewerRows,
     required this.viewerSubscriptions,
+    required this.cachedViewerPages,
+    required this.activeViewerPageLoads,
+    required this.queuedViewerPageLoads,
+    required this.retainedViewerPageErrors,
+    required this.droppedViewerPageRequests,
+    required this.activeViewerSummaryLoads,
+    required this.dirtyViewerSummaryRefresh,
+    required this.viewerSettled,
+    required this.metadataCacheSize,
+    required this.metadataCacheCapacity,
+    required this.metadataSignalCacheSize,
+    required this.metadataSignalCacheCapacity,
+    required this.metadataDomainThrottleSize,
+    required this.metadataInFlightRequests,
+    required this.metadataActiveFetches,
+    required this.metadataQueuedFetches,
+    required this.metadataMaxConcurrentFetches,
+    required this.faviconCacheSize,
+    required this.faviconCacheCapacity,
   });
 
   final String label;
@@ -36,6 +55,25 @@ class ViewerMemorySnapshot {
   final int liveImages;
   final int retainedViewerRows;
   final int viewerSubscriptions;
+  final int cachedViewerPages;
+  final int activeViewerPageLoads;
+  final int queuedViewerPageLoads;
+  final int retainedViewerPageErrors;
+  final int droppedViewerPageRequests;
+  final int activeViewerSummaryLoads;
+  final bool dirtyViewerSummaryRefresh;
+  final bool viewerSettled;
+  final int metadataCacheSize;
+  final int metadataCacheCapacity;
+  final int metadataSignalCacheSize;
+  final int metadataSignalCacheCapacity;
+  final int metadataDomainThrottleSize;
+  final int metadataInFlightRequests;
+  final int metadataActiveFetches;
+  final int metadataQueuedFetches;
+  final int metadataMaxConcurrentFetches;
+  final int faviconCacheSize;
+  final int faviconCacheCapacity;
 
   Map<String, Object?> toJson() => <String, Object?>{
         "label": label,
@@ -50,7 +88,54 @@ class ViewerMemorySnapshot {
         "liveImages": liveImages,
         "retainedViewerRows": retainedViewerRows,
         "viewerSubscriptions": viewerSubscriptions,
+        "cachedViewerPages": cachedViewerPages,
+        "activeViewerPageLoads": activeViewerPageLoads,
+        "queuedViewerPageLoads": queuedViewerPageLoads,
+        "retainedViewerPageErrors": retainedViewerPageErrors,
+        "droppedViewerPageRequests": droppedViewerPageRequests,
+        "activeViewerSummaryLoads": activeViewerSummaryLoads,
+        "dirtyViewerSummaryRefresh": dirtyViewerSummaryRefresh,
+        "viewerSettled": viewerSettled,
+        "metadataCacheSize": metadataCacheSize,
+        "metadataCacheCapacity": metadataCacheCapacity,
+        "metadataSignalCacheSize": metadataSignalCacheSize,
+        "metadataSignalCacheCapacity": metadataSignalCacheCapacity,
+        "metadataDomainThrottleSize": metadataDomainThrottleSize,
+        "metadataInFlightRequests": metadataInFlightRequests,
+        "metadataActiveFetches": metadataActiveFetches,
+        "metadataQueuedFetches": metadataQueuedFetches,
+        "metadataMaxConcurrentFetches": metadataMaxConcurrentFetches,
+        "faviconCacheSize": faviconCacheSize,
+        "faviconCacheCapacity": faviconCacheCapacity,
       };
+}
+
+class ViewerRuntimeCacheSnapshot {
+  const ViewerRuntimeCacheSnapshot({
+    required this.metadataCacheSize,
+    required this.metadataCacheCapacity,
+    required this.metadataSignalCacheSize,
+    required this.metadataSignalCacheCapacity,
+    required this.metadataDomainThrottleSize,
+    required this.metadataInFlightRequests,
+    required this.metadataActiveFetches,
+    required this.metadataQueuedFetches,
+    required this.metadataMaxConcurrentFetches,
+    required this.faviconCacheSize,
+    required this.faviconCacheCapacity,
+  });
+
+  final int metadataCacheSize;
+  final int metadataCacheCapacity;
+  final int metadataSignalCacheSize;
+  final int metadataSignalCacheCapacity;
+  final int metadataDomainThrottleSize;
+  final int metadataInFlightRequests;
+  final int metadataActiveFetches;
+  final int metadataQueuedFetches;
+  final int metadataMaxConcurrentFetches;
+  final int faviconCacheSize;
+  final int faviconCacheCapacity;
 }
 
 final class ViewerMemoryProbe {
@@ -92,6 +177,7 @@ final class ViewerMemoryProbe {
   Future<ViewerMemorySnapshot> capture(
     String label,
     ViewerRetentionSnapshot retention,
+    ViewerRuntimeCacheSnapshot runtimeCaches,
   ) async {
     Map<String, Object?>? memory;
     final isolateId = _isolateId;
@@ -122,6 +208,25 @@ final class ViewerMemoryProbe {
       liveImages: cache.liveImageCount,
       retainedViewerRows: retention.retainedRows,
       viewerSubscriptions: retention.activeSubscriptions,
+      cachedViewerPages: retention.cachedPages,
+      activeViewerPageLoads: retention.activePageLoads,
+      queuedViewerPageLoads: retention.queuedPageLoads,
+      retainedViewerPageErrors: retention.retainedPageErrors,
+      droppedViewerPageRequests: retention.droppedPageRequests,
+      activeViewerSummaryLoads: retention.activeSummaryLoads,
+      dirtyViewerSummaryRefresh: retention.dirtySummaryRefresh,
+      viewerSettled: retention.settled,
+      metadataCacheSize: runtimeCaches.metadataCacheSize,
+      metadataCacheCapacity: runtimeCaches.metadataCacheCapacity,
+      metadataSignalCacheSize: runtimeCaches.metadataSignalCacheSize,
+      metadataSignalCacheCapacity: runtimeCaches.metadataSignalCacheCapacity,
+      metadataDomainThrottleSize: runtimeCaches.metadataDomainThrottleSize,
+      metadataInFlightRequests: runtimeCaches.metadataInFlightRequests,
+      metadataActiveFetches: runtimeCaches.metadataActiveFetches,
+      metadataQueuedFetches: runtimeCaches.metadataQueuedFetches,
+      metadataMaxConcurrentFetches: runtimeCaches.metadataMaxConcurrentFetches,
+      faviconCacheSize: runtimeCaches.faviconCacheSize,
+      faviconCacheCapacity: runtimeCaches.faviconCacheCapacity,
     );
   }
 
