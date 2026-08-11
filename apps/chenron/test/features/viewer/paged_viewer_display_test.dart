@@ -4,9 +4,11 @@ import "package:chenron/features/settings/coordinator/settings_coordinator.dart"
 import "package:chenron/features/theme/state/theme_options_store.dart";
 import "package:chenron/features/viewer/mvc/viewer_presenter.dart";
 import "package:chenron/features/viewer/state/viewer_page_source.dart";
+import "package:chenron/features/viewer/state/viewer_selection_state.dart";
 import "package:chenron/features/viewer/ui/paged_viewer_display.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/shared/item_display/item_list_view.dart";
+import "package:chenron/shared/item_display/widgets/selectable_item_wrapper.dart";
 import "package:chenron/shared/item_display/widgets/viewer_item/viewer_item.dart";
 import "package:database/database.dart";
 import "package:database/features.dart";
@@ -38,6 +40,8 @@ class _PagedRepository implements ViewerPageRepository {
   bool failNextFacets = false;
   int countCalls = 0;
   int facetCalls = 0;
+  int totalItemCount = 100000;
+  List<FolderItem>? pageRows;
   List<ViewerTagFacet> facets = const <ViewerTagFacet>[];
 
   @override
@@ -49,7 +53,7 @@ class _PagedRepository implements ViewerPageRepository {
     }
     final gate = countGate;
     if (gate != null) return gate.future;
-    return 100000;
+    return totalItemCount;
   }
 
   @override
@@ -77,6 +81,10 @@ class _PagedRepository implements ViewerPageRepository {
     }
     final gate = pageGate;
     if (gate != null) return gate.future;
+    final configuredRows = pageRows;
+    if (configuredRows != null) {
+      return configuredRows.skip(offset).take(limit).toList(growable: false);
+    }
     return List<FolderItem>.generate(
       limit,
       (index) => _folderItem(offset + index),
@@ -115,11 +123,18 @@ class _PagedRepository implements ViewerPageRepository {
   Future<void> dispose() => invalidationController.close();
 }
 
-Widget _host(ViewerPresenter presenter) => MaterialApp(
+Widget _host(
+  ViewerPresenter presenter, {
+  List<FolderItem> prefixItems = const <FolderItem>[],
+  ValueChanged<ViewerSelectionTarget>? onDeleteRequested,
+}) =>
+    MaterialApp(
       home: Scaffold(
         body: PagedViewerDisplay(
           presenter: presenter,
           showSearch: false,
+          prefixItems: prefixItems,
+          onDeleteRequested: onDeleteRequested,
         ),
       ),
     );
@@ -385,6 +400,167 @@ void main() {
     expect(
       repository.pageRequests.map((request) => request.offset).toSet(),
       {0},
+    );
+  });
+
+  testWidgets("select-all captures 100,000 query rows without page visits",
+      (tester) async {
+    _unmountAfterTest(tester);
+    await _useWideSurface(tester);
+    repository = _PagedRepository();
+    presenter = ViewerPresenter(repository: repository);
+    await presenter.init();
+    ViewerSelectionTarget? requested;
+
+    await tester.pumpWidget(_host(
+      presenter,
+      onDeleteRequested: (target) => requested = target,
+    ));
+    await tester.pump();
+    await tester.pump();
+    await tester.tap(find.text("Select"));
+    await tester.pump();
+    repository.pageRequests.clear();
+
+    await tester.tap(find.text("Select All"));
+    await tester.pump();
+
+    expect(find.text("100000 selected"), findsOneWidget);
+    expect(repository.pageRequests, isEmpty);
+    expect(presenter.selectionState.value, isA<AllMatchingViewerSelection>());
+    final selection =
+        presenter.selectionState.value as AllMatchingViewerSelection;
+    expect(selection.query, presenter.query.value);
+    expect(selection.totalCount, 100000);
+
+    await tester.tap(find.text("Delete (100000)"));
+    expect(requested, isNotNull);
+    expect(requested!.selection, same(selection));
+    expect(requested!.additionalKeys, isEmpty);
+    expect(requested!.selectedCount, 100000);
+  });
+
+  testWidgets(
+      "folder select-all adds explicit parent keys to direct query rows",
+      (tester) async {
+    _unmountAfterTest(tester);
+    await _useWideSurface(tester);
+    final parent = _folderItem(999999);
+    repository = _PagedRepository()..totalItemCount = 100000;
+    presenter = ViewerPresenter(
+      repository: repository,
+      folderId: "folder-current",
+    );
+    await presenter.init();
+    ViewerSelectionTarget? requested;
+
+    await tester.pumpWidget(_host(
+      presenter,
+      prefixItems: <FolderItem>[parent],
+      onDeleteRequested: (target) => requested = target,
+    ));
+    await tester.pump();
+    await tester.pump();
+    await tester.tap(find.text("Select"));
+    await tester.pump();
+    repository.pageRequests.clear();
+
+    await tester.tap(find.text("Select All"));
+    await tester.pump();
+    await tester.tap(find.text("Delete (100001)"));
+
+    expect(repository.pageRequests, isEmpty);
+    expect(requested, isNotNull);
+    expect(requested!.selection, isA<AllMatchingViewerSelection>());
+    expect(
+      (requested!.selection as AllMatchingViewerSelection).totalCount,
+      100000,
+    );
+    expect(requested!.additionalKeys, <ViewerItemKey>{
+      (type: FolderItemType.folder, id: parent.id!),
+    });
+    expect(requested!.selectedCount, 100001);
+  });
+
+  testWidgets("query changes clear a query-backed selection", (tester) async {
+    _unmountAfterTest(tester);
+    await _useWideSurface(tester);
+    repository = _PagedRepository();
+    presenter = ViewerPresenter(repository: repository);
+    await presenter.init();
+
+    await tester.pumpWidget(_host(
+      presenter,
+      onDeleteRequested: (_) {},
+    ));
+    await tester.pump();
+    await tester.pump();
+    await tester.tap(find.text("Select"));
+    await tester.pump();
+    await tester.tap(find.text("Select All"));
+    await tester.pump();
+    expect(find.text("100000 selected"), findsOneWidget);
+
+    presenter.onSearchSubmitted("changed");
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text("None selected"), findsOneWidget);
+    expect(presenter.selectionState.selectedCount, 0);
+  });
+
+  testWidgets("same-id rows of different types select as distinct keys",
+      (tester) async {
+    _unmountAfterTest(tester);
+    await _useWideSurface(tester);
+    final document = FolderItem.document(
+      id: "same-id",
+      itemId: null,
+      title: "Same ID document",
+      filePath: "same-id.txt",
+      createdAt: DateTime.utc(2026, 8, 10),
+      tags: const <Tag>[],
+    );
+    final folder = FolderItem.folder(
+      id: "same-id",
+      itemId: null,
+      folderId: "same-id",
+      title: "Same ID folder",
+      description: "",
+      createdAt: DateTime.utc(2026, 8, 10),
+      tags: const <Tag>[],
+    );
+    repository = _PagedRepository()
+      ..totalItemCount = 2
+      ..pageRows = <FolderItem>[document, folder];
+    presenter = ViewerPresenter(repository: repository);
+    await presenter.init();
+    ViewerSelectionTarget? requested;
+
+    await tester.pumpWidget(_host(
+      presenter,
+      onDeleteRequested: (target) => requested = target,
+    ));
+    await tester.pump();
+    await tester.pump();
+    await tester.tap(find.text("Select"));
+    await tester.pump();
+
+    final rows = find.byType(SelectableItemWrapper);
+    expect(rows, findsNWidgets(2));
+    await tester.tap(rows.at(0));
+    await tester.pump();
+    await tester.tap(rows.at(1));
+    await tester.pump();
+    await tester.tap(find.text("Delete (2)"));
+
+    expect(requested, isNotNull);
+    expect(
+      (requested!.selection as ExplicitViewerSelection).keys,
+      <ViewerItemKey>{
+        (type: FolderItemType.document, id: "same-id"),
+        (type: FolderItemType.folder, id: "same-id"),
+      },
     );
   });
 }

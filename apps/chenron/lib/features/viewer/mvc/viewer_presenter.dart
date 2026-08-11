@@ -2,6 +2,7 @@ import "dart:async";
 
 import "package:chenron/features/viewer/mvc/viewer_model.dart";
 import "package:chenron/features/viewer/state/viewer_page_source.dart";
+import "package:chenron/features/viewer/state/viewer_selection_state.dart";
 import "package:chenron/shared/item_display/item_toolbar.dart";
 import "package:chenron/shared/search/query_parser.dart";
 import "package:chenron/shared/tag_filter/tag_filter_notifier.dart";
@@ -27,12 +28,14 @@ class ViewerPresenter {
     ViewerModel? model,
     SearchFilter? searchFilter,
     TagFilterNotifier? tagFilterState,
+    ViewerSelectionState? selectionState,
     String? folderId,
   })  : searchFilter = searchFilter ?? SearchFilter(),
         tagFilterState = tagFilterState ?? TagFilterNotifier(),
         _ownsSearchFilter = searchFilter == null,
         _ownsTagFilterState = tagFilterState == null,
         _folderId = folderId,
+        selectionState = selectionState ?? ViewerSelectionState(),
         pageSource = ViewerPageSource(
           repository: repository ?? model ?? ViewerModel(),
         ),
@@ -40,7 +43,6 @@ class ViewerPresenter {
     if (_ownsSearchFilter) this.searchFilter.setup();
   }
 
-  final Signal<Set<String>> selectedItemIds = signal(<String>{});
   final Signal<Set<FolderItemType>> selectedTypes = signal(
     const <FolderItemType>{
       FolderItemType.folder,
@@ -53,6 +55,7 @@ class ViewerPresenter {
   final SearchFilter searchFilter;
   final TagFilterNotifier tagFilterState;
   final ViewerPageSource pageSource;
+  final ViewerSelectionState selectionState;
   final Signal<ViewerQuery> query;
 
   final bool _ownsSearchFilter;
@@ -75,10 +78,6 @@ class ViewerPresenter {
     await _pendingQueryUpdate;
   }
 
-  void clearSelectedItems() {
-    selectedItemIds.value = <String>{};
-  }
-
   void onTypesChanged(Set<FolderItemType> types) {
     selectedTypes.value = Set<FolderItemType>.of(types);
   }
@@ -98,12 +97,6 @@ class ViewerPresenter {
     });
   }
 
-  void toggleItemSelection(String itemId) {
-    final current = Set<String>.of(selectedItemIds.value);
-    if (!current.add(itemId)) current.remove(itemId);
-    selectedItemIds.value = current;
-  }
-
   void _synchronizeQuery() {
     final parsed = QueryParser.parseTags(searchFilter.controller.query.value);
     final resolvedTags = tagFilterState.resolveMergedTags(
@@ -121,7 +114,7 @@ class ViewerPresenter {
     if (_lastAppliedQuery == nextQuery) return;
     _lastAppliedQuery = nextQuery;
     query.value = nextQuery;
-    clearSelectedItems();
+    selectionState.synchronizeQuery(nextQuery);
     _pendingQueryUpdate = pageSource.setQuery(nextQuery);
     unawaited(_pendingQueryUpdate);
   }
@@ -140,7 +133,7 @@ class ViewerPresenter {
     _disposeQueryEffect = null;
     pageSource.dispose();
     query.dispose();
-    selectedItemIds.dispose();
+    selectionState.dispose();
     selectedTypes.dispose();
     viewMode.dispose();
     sortMode.dispose();

@@ -1,6 +1,8 @@
 import "dart:async";
 
+import "package:chenron/features/viewer/mvc/viewer_model.dart";
 import "package:chenron/features/viewer/mvc/viewer_presenter.dart";
+import "package:chenron/features/viewer/services/viewer_bulk_service.dart";
 import "package:chenron/features/viewer/ui/paged_viewer_display.dart";
 import "package:chenron/shared/search/search_filter.dart";
 import "package:chenron/shared/viewer/item_handler.dart";
@@ -22,12 +24,14 @@ class Viewer extends StatefulWidget {
 
 class _ViewerState extends State<Viewer> {
   late final ViewerPresenter _presenter;
+  late final ViewerBulkService _bulkService;
 
   @override
   void initState() {
     super.initState();
     _presenter = widget.presenterFactory?.call() ??
         ViewerPresenter(searchFilter: widget.searchFilter);
+    _bulkService = ViewerBulkService(repository: ViewerModel());
     if (widget.searchFilter != null) {
       widget.searchFilter!.controller.onSubmitted =
           _presenter.onSearchSubmitted;
@@ -52,18 +56,24 @@ class _ViewerState extends State<Viewer> {
         showSearch: false,
         displayModeContext: "viewer",
         onItemTap: (item) => handleItemTap(context, item, openFolderItem),
-        onDeleteRequested: (items) => handleItemDeletion(
+        onDeleteRequested: (selection) => handleViewerSelectionDeletion(
           context,
-          items,
+          selection,
+          _bulkService,
           _presenter.init,
         ),
-        onTagRequested: (items) => handleItemTagging(
+        onTagRequested: (selection) => handleViewerSelectionTagging(
           context,
-          items,
+          selection,
+          _bulkService,
           _presenter.init,
         ),
-        onRefreshMetadataRequested: (items) =>
-            handleItemMetadataRefresh(context, items),
+        onRefreshMetadataRequested: (selection) =>
+            handleViewerSelectionMetadataRefresh(
+          context,
+          selection,
+          _bulkService,
+        ),
       ),
     );
   }

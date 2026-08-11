@@ -1,8 +1,8 @@
 import "dart:async";
-import "dart:collection";
 
 import "package:chenron/features/folder_viewer/ui/components/tag_filter_modal.dart";
 import "package:chenron/features/viewer/mvc/viewer_presenter.dart";
+import "package:chenron/features/viewer/state/viewer_selection_state.dart";
 import "package:chenron/shared/item_display/item_grid_view.dart";
 import "package:chenron/shared/item_display/item_list_view.dart";
 import "package:chenron/shared/item_display/item_toolbar.dart";
@@ -34,9 +34,9 @@ class PagedViewerDisplay extends StatefulWidget {
   final bool showSearch;
   final String? displayModeContext;
   final ValueChanged<FolderItem>? onItemTap;
-  final ValueChanged<List<FolderItem>>? onDeleteRequested;
-  final ValueChanged<List<FolderItem>>? onTagRequested;
-  final ValueChanged<List<FolderItem>>? onRefreshMetadataRequested;
+  final ValueChanged<ViewerSelectionTarget>? onDeleteRequested;
+  final ValueChanged<ViewerSelectionTarget>? onTagRequested;
+  final ValueChanged<ViewerSelectionTarget>? onRefreshMetadataRequested;
 
   @override
   State<PagedViewerDisplay> createState() => _PagedViewerDisplayState();
@@ -45,11 +45,9 @@ class PagedViewerDisplay extends StatefulWidget {
 class _PagedViewerDisplayState extends State<PagedViewerDisplay> {
   final Signal<DisplayMode> _displayMode = signal(DisplayMode.standard);
   final Signal<bool> _isSelectMode = signal(false);
-  final Signal<Map<String, FolderItem>> _selectedItems = signal(
-    <String, FolderItem>{},
+  final Signal<Set<ViewerItemKey>> _selectedPrefixKeys = signal(
+    <ViewerItemKey>{},
   );
-  final LinkedHashMap<String, FolderItem> _materializedItems =
-      LinkedHashMap<String, FolderItem>();
   late final void Function() _disposeQuerySelectionEffect;
   ViewerQuery? _selectionQuery;
   bool _disposed = false;
@@ -63,8 +61,7 @@ class _PagedViewerDisplayState extends State<PagedViewerDisplay> {
       final currentQuery = _presenter.query.value;
       if (_selectionQuery == currentQuery) return;
       _selectionQuery = currentQuery;
-      _selectedItems.value = <String, FolderItem>{};
-      _materializedItems.clear();
+      _selectedPrefixKeys.value = <ViewerItemKey>{};
     });
     unawaited(_loadDisplayPreferences());
   }
@@ -85,10 +82,9 @@ class _PagedViewerDisplayState extends State<PagedViewerDisplay> {
   void dispose() {
     _disposed = true;
     _disposeQuerySelectionEffect();
-    _materializedItems.clear();
     _displayMode.dispose();
     _isSelectMode.dispose();
-    _selectedItems.dispose();
+    _selectedPrefixKeys.dispose();
     super.dispose();
   }
 
@@ -112,20 +108,8 @@ class _PagedViewerDisplayState extends State<PagedViewerDisplay> {
     final entering = !_isSelectMode.value;
     _isSelectMode.value = entering;
     if (!entering) {
-      _selectedItems.value = <String, FolderItem>{};
-      _presenter.clearSelectedItems();
-    }
-  }
-
-  void _rememberMaterialized(FolderItem item) {
-    final id = item.id;
-    if (id == null) return;
-    _materializedItems.remove(id);
-    _materializedItems[id] = item;
-    final maxRemembered =
-        _presenter.pageSource.pageSize * _presenter.pageSource.maxCachedPages;
-    while (_materializedItems.length > maxRemembered) {
-      _materializedItems.remove(_materializedItems.keys.first);
+      _selectedPrefixKeys.value = <ViewerItemKey>{};
+      _presenter.selectionState.clear();
     }
   }
 
@@ -135,22 +119,58 @@ class _PagedViewerDisplayState extends State<PagedViewerDisplay> {
       widget.onItemTap?.call(item);
       return;
     }
-    final selected = Map<String, FolderItem>.of(_selectedItems.value);
-    if (selected.remove(id) == null) {
-      selected[id] = item;
+    final key = (type: item.type, id: id);
+    if (_prefixItemKeys.contains(key)) {
+      final selected = Set<ViewerItemKey>.of(_selectedPrefixKeys.value);
+      if (!selected.add(key)) selected.remove(key);
+      _selectedPrefixKeys.value = Set<ViewerItemKey>.unmodifiable(selected);
+    } else {
+      _presenter.selectionState.toggle(key);
     }
-    _selectedItems.value = selected;
-    _presenter.toggleItemSelection(id);
   }
 
-  void _selectMaterializedItems() {
+  void _selectAllItems() {
     if (!_isSelectMode.value) return;
-    _selectedItems.value = Map<String, FolderItem>.of(_materializedItems);
-    _presenter.selectedItemIds.value = _materializedItems.keys.toSet();
+    final query = _presenter.query.value;
+    _presenter.selectionState.selectAllMatching(
+      query,
+      _presenter.pageSource.totalCount.value,
+    );
+    _selectedPrefixKeys.value = Set<ViewerItemKey>.unmodifiable(
+      _filterAndSortPrefix(widget.prefixItems, query).map(_itemKey),
+    );
   }
 
-  List<FolderItem> get _selectedValues =>
-      _selectedItems.value.values.toList(growable: false);
+  Set<ViewerItemKey> get _prefixItemKeys =>
+      widget.prefixItems.map(_itemKey).toSet();
+
+  ViewerSelectionTarget get _selectionTarget => ViewerSelectionTarget(
+        selection: _presenter.selectionState.value,
+        additionalKeys: _selectedPrefixKeys.value,
+      );
+
+  bool _isItemSelected(FolderItem item) {
+    final key = _itemKey(item);
+    if (_prefixItemKeys.contains(key)) {
+      return _selectedPrefixKeys.value.contains(key);
+    }
+    return _presenter.selectionState.isSelected(key);
+  }
+
+  int get _selectedLinkCount {
+    final prefixLinks = _selectedPrefixKeys.value
+        .where((key) => key.type == FolderItemType.link)
+        .length;
+    return switch (_presenter.selectionState.value) {
+      ExplicitViewerSelection(:final keys) => prefixLinks +
+          keys.where((key) => key.type == FolderItemType.link).length,
+      AllMatchingViewerSelection(:final query, :final totalCount) =>
+        prefixLinks +
+            (totalCount > 0 && query.types.contains(FolderItemType.link)
+                ? 1
+                : 0),
+    };
+  }
 
   Future<void> _openTagFilterModal() async {
     final facets = _combinedTagFacets(
@@ -187,6 +207,7 @@ class _PagedViewerDisplayState extends State<PagedViewerDisplay> {
         retryAt: (index) => pageSource.retryPage(index ~/ pageSource.pageSize),
       );
       final source = PrefixedItemViewportSource(prefix, delegate);
+      final selectionTarget = _selectionTarget;
 
       return Column(
         children: <Widget>[
@@ -216,15 +237,13 @@ class _PagedViewerDisplayState extends State<PagedViewerDisplay> {
           ),
           if (_isSelectMode.value)
             SelectModeActionBar(
-              selectedCount: _selectedItems.value.length,
-              linkCount: _selectedItems.value.values
-                  .where((item) => item.type == FolderItemType.link)
-                  .length,
-              onSelectAll: _selectMaterializedItems,
-              onTag: () => widget.onTagRequested?.call(_selectedValues),
+              selectedCount: selectionTarget.selectedCount,
+              linkCount: _selectedLinkCount,
+              onSelectAll: _selectAllItems,
+              onTag: () => widget.onTagRequested?.call(selectionTarget),
               onRefreshMetadata: () =>
-                  widget.onRefreshMetadataRequested?.call(_selectedValues),
-              onDelete: () => widget.onDeleteRequested?.call(_selectedValues),
+                  widget.onRefreshMetadataRequested?.call(selectionTarget),
+              onDelete: () => widget.onDeleteRequested?.call(selectionTarget),
               onCancel: _toggleSelectMode,
             ),
           if (countError != null || tagFacetsError != null)
@@ -243,12 +262,11 @@ class _PagedViewerDisplayState extends State<PagedViewerDisplay> {
                     excludedTagNames:
                         _presenter.tagFilterState.excludedTagNames,
                     onItemTap: _handleItemTap,
-                    onItemMaterialized: _rememberMaterialized,
                     onTagFilterTap: _presenter.tagFilterState.addIncluded,
                     aspectRatio: _displayMode.value.aspectRatio,
                     maxCrossAxisExtent: _displayMode.value.maxCrossAxisExtent,
                     isDeleteMode: _isSelectMode.value,
-                    selectedItemIds: _presenter.selectedItemIds.value,
+                    isItemSelected: _isItemSelected,
                   )
                 : ItemListView(
                     source: source,
@@ -258,9 +276,8 @@ class _PagedViewerDisplayState extends State<PagedViewerDisplay> {
                     excludedTagNames:
                         _presenter.tagFilterState.excludedTagNames,
                     onItemTap: _handleItemTap,
-                    onItemMaterialized: _rememberMaterialized,
                     isDeleteMode: _isSelectMode.value,
-                    selectedItemIds: _presenter.selectedItemIds.value,
+                    isItemSelected: _isItemSelected,
                   ),
           ),
         ],
@@ -405,3 +422,5 @@ DateTime _createdAt(FolderItem item) => item.map(
       folder: (folder) =>
           folder.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0),
     );
+
+ViewerItemKey _itemKey(FolderItem item) => (type: item.type, id: item.id!);

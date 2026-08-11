@@ -306,7 +306,7 @@ void main() {
     expect(presenter.viewMode.disposed, isTrue);
     expect(presenter.sortMode.disposed, isTrue);
     expect(presenter.selectedTypes.disposed, isTrue);
-    expect(presenter.selectedItemIds.disposed, isTrue);
+    expect(presenter.selectionState.selection.disposed, isTrue);
     expect(presenter.pageSource.revision.disposed, isTrue);
   });
 

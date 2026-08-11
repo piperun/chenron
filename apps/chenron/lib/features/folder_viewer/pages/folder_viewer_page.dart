@@ -8,6 +8,7 @@ import "package:chenron/features/folder_viewer/ui/components/collapsed_header.da
 import "package:chenron/shared/dialogs/delete_confirmation_dialog.dart";
 import "package:chenron/features/folder_viewer/services/folder_viewer_service.dart";
 import "package:chenron/features/viewer/mvc/viewer_presenter.dart";
+import "package:chenron/features/viewer/services/viewer_bulk_service.dart";
 import "package:chenron/features/viewer/state/viewer_page_source.dart";
 import "package:chenron/features/viewer/ui/paged_viewer_display.dart";
 import "package:chenron/features/folder_editor/pages/folder_editor.dart";
@@ -44,6 +45,7 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
   late final FolderViewerService _service;
   late Future<FolderResult> _metadata;
   late final ViewerPresenter _presenter;
+  late final ViewerBulkService _bulkService;
   bool _isHeaderExpanded = true;
   bool _isHeaderLocked = false;
 
@@ -51,6 +53,7 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
   void initState() {
     super.initState();
     _service = widget.serviceFactory?.call() ?? FolderViewerService();
+    _bulkService = ViewerBulkService(repository: _service);
     _presenter = ViewerPresenter(
       repository: _service,
       folderId: widget.folderId,
@@ -222,18 +225,25 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
                     item,
                     widget.onItemTap ?? openFolderItem,
                   ),
-                  onDeleteRequested: (items) => handleItemDeletion(
+                  onDeleteRequested: (selection) =>
+                      handleViewerSelectionDeletion(
                     context,
-                    items,
+                    selection,
+                    _bulkService,
                     _refreshFolderData,
                   ),
-                  onTagRequested: (items) => handleItemTagging(
+                  onTagRequested: (selection) => handleViewerSelectionTagging(
                     context,
-                    items,
+                    selection,
+                    _bulkService,
                     _refreshFolderData,
                   ),
-                  onRefreshMetadataRequested: (items) =>
-                      handleItemMetadataRefresh(context, items),
+                  onRefreshMetadataRequested: (selection) =>
+                      handleViewerSelectionMetadataRefresh(
+                    context,
+                    selection,
+                    _bulkService,
+                  ),
                 ),
               ),
             ],

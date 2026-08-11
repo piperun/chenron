@@ -24,18 +24,29 @@ export "package:chenron/features/bulk_tag/models/bulk_tag_result.dart";
 /// cancelled.
 Future<BulkTagResult?> showBulkTagDialog({
   required BuildContext context,
-  required List<FolderItem> items,
+  List<FolderItem> items = const <FolderItem>[],
+  int? itemCount,
 }) async {
+  if (itemCount != null && items.isNotEmpty) {
+    throw ArgumentError("items and itemCount are mutually exclusive");
+  }
+  if (itemCount != null && itemCount < 0) {
+    throw ArgumentError.value(itemCount, "itemCount", "must not be negative");
+  }
   return showDialog<BulkTagResult>(
     context: context,
-    builder: (context) => _BulkTagDialog(items: items),
+    builder: (context) => _BulkTagDialog(
+      items: items,
+      itemCount: itemCount,
+    ),
   );
 }
 
 class _BulkTagDialog extends StatefulWidget {
   final List<FolderItem> items;
+  final int? itemCount;
 
-  const _BulkTagDialog({required this.items});
+  const _BulkTagDialog({required this.items, required this.itemCount});
 
   @override
   State<_BulkTagDialog> createState() => _BulkTagDialogState();
@@ -112,16 +123,12 @@ class _BulkTagDialogState extends State<_BulkTagDialog> {
     final query = _searchController.text.trim().toLowerCase();
     final names = query.isEmpty
         ? List.of(_allTagNames)
-        : _allTagNames
-            .where((n) => n.toLowerCase().contains(query))
-            .toList();
+        : _allTagNames.where((n) => n.toLowerCase().contains(query)).toList();
 
     // Sort: tags with actions first, then alphabetical
     names.sort((a, b) {
-      final aHasAction =
-          _tagsToAdd.contains(a) || _tagsToRemove.contains(a);
-      final bHasAction =
-          _tagsToAdd.contains(b) || _tagsToRemove.contains(b);
+      final aHasAction = _tagsToAdd.contains(a) || _tagsToRemove.contains(a);
+      final bHasAction = _tagsToAdd.contains(b) || _tagsToRemove.contains(b);
       if (aHasAction && !bHasAction) return -1;
       if (!aHasAction && bHasAction) return 1;
       return a.toLowerCase().compareTo(b.toLowerCase());
@@ -164,6 +171,16 @@ class _BulkTagDialogState extends State<_BulkTagDialog> {
   }
 
   void _handleToggleTag(String tagName) {
+    if (widget.itemCount != null) {
+      setState(() {
+        if (_tagsToAdd.remove(tagName)) {
+          _tagsToRemove.add(tagName);
+        } else if (!_tagsToRemove.remove(tagName)) {
+          _tagsToAdd.add(tagName);
+        }
+      });
+      return;
+    }
     final coverage = _tagCoverage[tagName] ?? 0;
     final itemCount = widget.items.length;
     final allHaveIt = itemCount > 0 && coverage == itemCount;
@@ -229,7 +246,7 @@ class _BulkTagDialogState extends State<_BulkTagDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final itemCount = widget.items.length;
+    final itemCount = widget.itemCount ?? widget.items.length;
     final hasItems = itemCount > 0;
 
     return Dialog(
@@ -306,6 +323,7 @@ class _BulkTagDialogState extends State<_BulkTagDialog> {
                       tagNames: _filteredTagNames,
                       searchQuery: _searchController.text.trim(),
                       hasItems: hasItems,
+                      showCoverage: widget.itemCount == null,
                       itemCount: itemCount,
                       tagCoverage: _tagCoverage,
                       tagColors: _tagColors,
@@ -442,8 +460,7 @@ class _DialogFooter extends StatelessWidget {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                           side: BorderSide(
-                            color: colorScheme.primary
-                                .withValues(alpha: 0.5),
+                            color: colorScheme.primary.withValues(alpha: 0.5),
                           ),
                         ),
                       );
@@ -459,8 +476,7 @@ class _DialogFooter extends StatelessWidget {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20),
                             side: BorderSide(
-                              color: colorScheme.error
-                                  .withValues(alpha: 0.5),
+                              color: colorScheme.error.withValues(alpha: 0.5),
                             ),
                           ),
                         )),

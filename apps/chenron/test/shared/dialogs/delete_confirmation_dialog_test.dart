@@ -59,8 +59,7 @@ void main() {
           builder: (context) => ElevatedButton(
             onPressed: () => showDialog<bool>(
               context: context,
-              builder: (_) =>
-                  DeleteConfirmationDialog(items: multipleItems()),
+              builder: (_) => DeleteConfirmationDialog(items: multipleItems()),
             ),
             child: const Text("Open"),
           ),
@@ -82,8 +81,7 @@ void main() {
           builder: (context) => ElevatedButton(
             onPressed: () => showDialog<bool>(
               context: context,
-              builder: (_) =>
-                  DeleteConfirmationDialog(items: multipleItems()),
+              builder: (_) => DeleteConfirmationDialog(items: multipleItems()),
             ),
             child: const Text("Open"),
           ),
@@ -154,6 +152,52 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text("Type DELETE to confirm:"), findsOneWidget);
+    });
+
+    testWidgets("count-only deletion shows count and no materialized item list",
+        (tester) async {
+      await tester.pumpWidget(buildApp(
+        child: Builder(
+          builder: (context) => ElevatedButton(
+            onPressed: () => showDialog<bool>(
+              context: context,
+              builder: (_) => DeleteConfirmationDialog(
+                itemCount: 100000,
+              ),
+            ),
+            child: const Text("Open"),
+          ),
+        ),
+      ));
+
+      await tester.tap(find.text("Open"));
+      await tester.pumpAndSettle();
+
+      expect(find.text("Delete 100000 Items?"), findsOneWidget);
+      expect(find.textContaining("cannot be undone"), findsOneWidget);
+      expect(find.byType(ListTile), findsNothing);
+      expect(find.text("Type DELETE to confirm:"), findsOneWidget);
+      final deleteButton = tester.widget<FilledButton>(
+        find.widgetWithText(FilledButton, "Delete All"),
+      );
+      expect(deleteButton.onPressed, isNull);
+
+      await tester.enterText(find.byType(TextField), "DELETE");
+      await tester.pumpAndSettle();
+      final enabledDeleteButton = tester.widget<FilledButton>(
+        find.widgetWithText(FilledButton, "Delete All"),
+      );
+      expect(enabledDeleteButton.onPressed, isNotNull);
+    });
+
+    test("items and itemCount are mutually exclusive", () {
+      expect(
+        () => DeleteConfirmationDialog(
+          items: singleItem(),
+          itemCount: 1,
+        ),
+        throwsArgumentError,
+      );
     });
   });
 
@@ -244,8 +288,7 @@ void main() {
             onPressed: () async {
               result = await showDialog<bool>(
                 context: context,
-                builder: (_) =>
-                    DeleteConfirmationDialog(items: singleItem()),
+                builder: (_) => DeleteConfirmationDialog(items: singleItem()),
               );
             },
             child: const Text("Open"),
@@ -270,8 +313,7 @@ void main() {
             onPressed: () async {
               result = await showDialog<bool>(
                 context: context,
-                builder: (_) =>
-                    DeleteConfirmationDialog(items: singleItem()),
+                builder: (_) => DeleteConfirmationDialog(items: singleItem()),
               );
             },
             child: const Text("Open"),
@@ -299,8 +341,7 @@ void main() {
           builder: (context) => ElevatedButton(
             onPressed: () => showDialog<bool>(
               context: context,
-              builder: (_) =>
-                  DeleteConfirmationDialog(items: multipleItems()),
+              builder: (_) => DeleteConfirmationDialog(items: multipleItems()),
             ),
             child: const Text("Open"),
           ),
@@ -313,8 +354,7 @@ void main() {
       expect(find.text("Delete All"), findsOneWidget);
     });
 
-    testWidgets("shows check icon when DELETE typed correctly",
-        (tester) async {
+    testWidgets("shows check icon when DELETE typed correctly", (tester) async {
       await tester.pumpWidget(buildApp(
         child: Builder(
           builder: (context) => ElevatedButton(

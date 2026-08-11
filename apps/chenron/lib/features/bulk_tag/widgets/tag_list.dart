@@ -6,6 +6,7 @@ class BulkTagList extends StatelessWidget {
   final List<String> tagNames;
   final String searchQuery;
   final bool hasItems;
+  final bool showCoverage;
   final int itemCount;
   final Map<String, int> tagCoverage;
   final Map<String, int?> tagColors;
@@ -18,6 +19,7 @@ class BulkTagList extends StatelessWidget {
     required this.tagNames,
     required this.searchQuery,
     required this.hasItems,
+    this.showCoverage = true,
     required this.itemCount,
     required this.tagCoverage,
     required this.tagColors,
@@ -45,8 +47,8 @@ class BulkTagList extends StatelessWidget {
           tagName: name,
           action: action,
           tagColor: tagColors[name],
-          coverage: hasItems ? coverage : null,
-          itemCount: hasItems ? itemCount : null,
+          coverage: hasItems && showCoverage ? coverage : null,
+          itemCount: hasItems && showCoverage ? itemCount : null,
           allHaveIt: allHaveIt,
           onToggle: () => onToggle(name),
           onColorChanged: (color) => onColorChanged(name, color),
@@ -72,8 +74,7 @@ class _BulkTagEmptyState extends StatelessWidget {
           Icon(
             Icons.sell_outlined,
             size: 48,
-            color: theme.textTheme.bodyMedium?.color
-                ?.withValues(alpha: 0.3),
+            color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.3),
           ),
           const SizedBox(height: 16),
           Text(
@@ -81,8 +82,7 @@ class _BulkTagEmptyState extends StatelessWidget {
                 ? "No tags yet"
                 : 'No tags match "$searchQuery"',
             style: TextStyle(
-              color: theme.textTheme.bodyMedium?.color
-                  ?.withValues(alpha: 0.6),
+              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
             ),
           ),
         ],

@@ -21,6 +21,7 @@ class ItemListView extends StatelessWidget {
   final ValueChanged<FolderItem>? onItemMaterialized;
   final bool isDeleteMode;
   final Set<String> selectedItemIds;
+  final bool Function(FolderItem item)? isItemSelected;
 
   final VoidCallback? onLoadMore;
   final bool isLoadingMore;
@@ -36,6 +37,7 @@ class ItemListView extends StatelessWidget {
     this.onItemMaterialized,
     this.isDeleteMode = false,
     this.selectedItemIds = const {},
+    this.isItemSelected,
     this.onLoadMore,
     this.isLoadingMore = false,
     this.hasMore = false,
@@ -129,7 +131,8 @@ class ItemListView extends StatelessWidget {
                 onItemMaterialized?.call(item);
                 final isSelected = isDeleteMode &&
                     item.id != null &&
-                    selectedItemIds.contains(item.id);
+                    (isItemSelected?.call(item) ??
+                        selectedItemIds.contains(item.id));
 
                 return RepaintBoundary(
                   key: ValueKey(item.id ?? index),
