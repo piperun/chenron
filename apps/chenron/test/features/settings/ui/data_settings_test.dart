@@ -6,6 +6,7 @@ import "package:mockito/annotations.dart";
 import "package:chenron/features/settings/coordinator/settings_coordinator.dart";
 import "package:chenron/features/settings/models/settings_category.dart";
 import "package:chenron/features/settings/service/config_service.dart";
+import "package:chenron/features/settings/service/cache_service.dart";
 import "package:chenron/features/settings/service/data_settings_service.dart";
 import "package:chenron/features/settings/ui/data/data_settings.dart";
 import "package:chenron/features/theme/state/theme_notifier.dart";
@@ -85,6 +86,25 @@ void main() {
   group("DataSettings widget — Metadata Cache section", () {
     late FakeMetadataPersistence fakePersistence;
 
+    Future<void> resetMetadataState() async {
+      final hasCache = locator.isRegistered<MetadataCache>();
+      final hasFailures = locator.isRegistered<FailureTracker>();
+      if (hasCache && hasFailures) {
+        await CacheService(
+          resolveCachePath: () async => ".",
+          clearImageCacheManager: () async {},
+        ).clearMetadataCache();
+      } else if (hasCache) {
+        await locator<MetadataCache>().clearAll();
+      }
+      if (hasCache) {
+        locator.unregister<MetadataCache>();
+      }
+      if (hasFailures) {
+        locator.unregister<FailureTracker>();
+      }
+    }
+
     Metadata buildMetadata(String url, {String? title}) {
       return Metadata(
         url: url,
@@ -112,14 +132,7 @@ void main() {
       ));
 
       fakePersistence = FakeMetadataPersistence();
-      if (locator.isRegistered<MetadataCache>()) {
-        await locator<MetadataCache>().clearAll();
-        locator.unregister<MetadataCache>();
-      }
-      if (locator.isRegistered<FailureTracker>()) {
-        locator<FailureTracker>().clearAll();
-        locator.unregister<FailureTracker>();
-      }
+      await resetMetadataState();
       locator.registerSingleton<MetadataCache>(
         MetadataCache(persistence: fakePersistence),
       );
@@ -127,14 +140,7 @@ void main() {
     });
 
     tearDown(() async {
-      if (locator.isRegistered<MetadataCache>()) {
-        await locator<MetadataCache>().clearAll();
-        locator.unregister<MetadataCache>();
-      }
-      if (locator.isRegistered<FailureTracker>()) {
-        locator<FailureTracker>().clearAll();
-        locator.unregister<FailureTracker>();
-      }
+      await resetMetadataState();
       if (locator.isRegistered<SettingsCoordinator>()) {
         await locator.unregister<SettingsCoordinator>();
       }
