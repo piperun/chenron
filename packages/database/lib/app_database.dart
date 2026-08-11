@@ -1,3 +1,7 @@
+// `TableMigration` is Drift's required schema-rebuild API for these historical
+// migrations. It is intentionally marked experimental upstream.
+// ignore_for_file: experimental_member_use
+
 import "package:database/schema/app_schema.dart";
 import "package:database/src/core/initial_data/app_database.dart";
 import "package:database/src/core/time.dart";
