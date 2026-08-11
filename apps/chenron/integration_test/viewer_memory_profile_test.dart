@@ -3,20 +3,28 @@ import "dart:convert";
 import "dart:io";
 import "dart:math";
 
+import "package:chenron/features/settings/coordinator/settings_coordinator.dart";
+import "package:chenron/features/theme/state/theme_options_store.dart";
 import "package:chenron/features/viewer/mvc/viewer_presenter.dart";
+import "package:chenron/features/viewer/pages/viewer.dart";
 import "package:chenron/features/viewer/state/viewer_page_source.dart";
+import "package:chenron/locator.dart";
 import "package:database/database.dart";
 import "package:database/features.dart";
 import "package:flutter/foundation.dart";
+import "package:flutter/material.dart";
 import "package:flutter_test/flutter_test.dart";
 import "package:integration_test/integration_test.dart";
+import "package:shared_preferences/shared_preferences.dart";
 
+import "../test/features/viewer/viewer_test.mocks.dart";
 import "support/viewer_memory_probe.dart";
 
 class _ProfileViewerRepository implements ViewerPageRepository {
   _ProfileViewerRepository(this.itemCount);
 
   final int itemCount;
+  final List<({int limit, int offset})> pageRequests = [];
   final StreamController<void> _invalidations =
       StreamController<void>.broadcast();
 
@@ -33,6 +41,7 @@ class _ProfileViewerRepository implements ViewerPageRepository {
     required int limit,
     required int offset,
   }) async {
+    pageRequests.add((limit: limit, offset: offset));
     final length = min(limit, max(0, itemCount - offset));
     return List<FolderItem>.generate(
       length,
@@ -118,40 +127,125 @@ Future<ViewerMemorySnapshot> _capture(
 }
 
 final class _ProfileCycle {
-  _ProfileCycle(int itemCount)
-      : repository = _ProfileViewerRepository(itemCount) {
-    presenter = ViewerPresenter(repository: repository);
-  }
+  _ProfileCycle(this.itemCount)
+      : repository = _ProfileViewerRepository(itemCount);
 
+  final int itemCount;
   final _ProfileViewerRepository repository;
-  late final ViewerPresenter presenter;
-  var _disposed = false;
+  ViewerPresenter? _presenter;
+  var _viewerPumped = false;
+  var _left = false;
 
-  Future<void> init() => presenter.init();
+  ViewerPresenter get presenter => _presenter!;
 
-  Future<void> requestPage(WidgetTester tester, int page) async {
-    expect(
-      presenter.pageSource.itemAt(
-        page * ViewerPageSource.defaultPageSize,
+  int get distinctRequestedPages => repository.pageRequests
+      .map((request) => request.offset ~/ ViewerPageSource.defaultPageSize)
+      .toSet()
+      .length;
+
+  Future<void> mount(WidgetTester tester) async {
+    expect(_viewerPumped, isFalse);
+    _viewerPumped = true;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Viewer(
+          presenterFactory: () {
+            if (_presenter != null) {
+              throw StateError("Viewer requested more than one presenter.");
+            }
+            return _presenter = ViewerPresenter(repository: repository);
+          },
+        ),
       ),
-      isNull,
     );
+    for (var attempt = 0;
+        attempt < 20 && repository.pageRequests.isEmpty;
+        attempt++) {
+      await tester.pump();
+    }
     await tester.pump();
+
+    expect(find.byType(Viewer), findsOneWidget);
+    expect(_presenter, isNotNull);
+    expect(repository.pageRequests, isNotEmpty);
+    expect(repository.pageRequests.first.offset, 0);
     expect(
-      presenter.pageSource.itemAt(
-        page * ViewerPageSource.defaultPageSize,
-      ),
-      isNotNull,
+        repository.pageRequests.first.limit, ViewerPageSource.defaultPageSize);
+    expect(
+      presenter.pageSource.cachedRowCount,
+      min(itemCount, ViewerPageSource.defaultPageSize),
     );
   }
 
-  Future<void> dispose(WidgetTester tester) async {
-    if (_disposed) return;
-    _disposed = true;
-    presenter.dispose();
-    final cancellation = presenter.pageSource.invalidationCancellation;
-    if (cancellation != null) {
-      await tester.runAsync(() => cancellation);
+  Future<void> scroll(WidgetTester tester) async {
+    final grid = find.descendant(
+      of: find.byType(Viewer),
+      matching: find.byType(GridView),
+    );
+    final scrollable = find.descendant(
+      of: grid,
+      matching: find.byType(Scrollable),
+    );
+    expect(grid, findsOneWidget);
+    expect(scrollable, findsOneWidget);
+    final position = tester.state<ScrollableState>(scrollable).position;
+    final initialPixels = position.pixels;
+    final expectedPages = min(
+      ViewerPageSource.defaultMaxCachedPages + 1,
+      (itemCount + ViewerPageSource.defaultPageSize - 1) ~/
+          ViewerPageSource.defaultPageSize,
+    );
+    final pageDistance = max(
+      600.0,
+      position.maxScrollExtent *
+          min(ViewerPageSource.defaultPageSize, itemCount) /
+          itemCount,
+    );
+    var attempts = 0;
+    do {
+      await tester.drag(grid, Offset(0, -pageDistance));
+      await tester.pump();
+      await tester.pump();
+      attempts++;
+    } while (distinctRequestedPages < expectedPages && attempts < 12);
+
+    expect(position.pixels, greaterThan(initialPixels));
+    expect(
+      distinctRequestedPages,
+      greaterThanOrEqualTo(expectedPages),
+    );
+    expect(
+      repository.pageRequests.every(
+        (request) => request.limit == ViewerPageSource.defaultPageSize,
+      ),
+      isTrue,
+    );
+    expect(
+      presenter.pageSource.cachedRowCount,
+      min(
+        itemCount,
+        ViewerPageSource.defaultPageSize *
+            ViewerPageSource.defaultMaxCachedPages,
+      ),
+    );
+  }
+
+  Future<void> leave(WidgetTester tester) async {
+    if (_left) return;
+    _left = true;
+    if (_viewerPumped) {
+      await tester.pumpWidget(
+        const MaterialApp(home: SizedBox.shrink()),
+      );
+      await tester.pump();
+    }
+    final createdPresenter = _presenter;
+    if (createdPresenter != null) {
+      expect(find.byType(Viewer), findsNothing);
+      expect(createdPresenter.retentionSnapshot.disposed, isTrue);
+      final cancellation = createdPresenter.pageSource.invalidationCancellation;
+      expect(cancellation, isNotNull);
+      await tester.runAsync(() => cancellation!);
     }
     await repository.dispose();
   }
@@ -168,6 +262,21 @@ void main() {
           const String.fromEnvironment("CHENRON_MEMORY_ITEM_COUNT"),
         ) ??
         defaultItemCount;
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    await locator.reset();
+    locator.registerSingleton<SettingsCoordinator>(SettingsCoordinator(
+      configService: MockConfigService(),
+      dataService: MockDataSettingsService(),
+      themeApplier: MockThemeNotifier(),
+      optionsStore: ThemeOptionsStore(),
+    ));
+    await tester.binding.setSurfaceSize(const Size(1600, 900));
+    addTearDown(() async {
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+      await tester.binding.setSurfaceSize(null);
+      await locator.reset();
+    });
     final probe = (await tester.runAsync(ViewerMemoryProbe.connect))!;
     addTearDown(probe.close);
 
@@ -185,9 +294,8 @@ void main() {
     expect(cold.imageCacheBytes, 0);
 
     final firstCycle = _ProfileCycle(itemCount);
-    addTearDown(() => firstCycle.dispose(tester));
-    await firstCycle.init();
-    await firstCycle.requestPage(tester, 0);
+    addTearDown(() => firstCycle.leave(tester));
+    await firstCycle.mount(tester);
 
     final afterOpen = await _capture(
       tester,
@@ -200,14 +308,7 @@ void main() {
     expect(afterOpen.viewerSubscriptions, 1);
     expect(afterOpen.imageCacheBytes, 0);
 
-    final requestedPages = min(
-      ViewerPageSource.defaultMaxCachedPages + 1,
-      (itemCount + ViewerPageSource.defaultPageSize - 1) ~/
-          ViewerPageSource.defaultPageSize,
-    );
-    for (var page = 1; page < requestedPages; page++) {
-      await firstCycle.requestPage(tester, page);
-    }
+    await firstCycle.scroll(tester);
 
     final afterScroll = await _capture(
       tester,
@@ -228,7 +329,7 @@ void main() {
     expect(afterScroll.viewerSubscriptions, 1);
     expect(afterScroll.imageCacheBytes, 0);
 
-    await firstCycle.dispose(tester);
+    await firstCycle.leave(tester);
 
     final afterLeave = await _capture(
       tester,
@@ -244,11 +345,12 @@ void main() {
     late ViewerMemorySnapshot afterTenCycles;
     for (var cycle = 2; cycle <= 10; cycle++) {
       final profileCycle = _ProfileCycle(itemCount);
-      await profileCycle.init();
-      for (var page = 0; page < requestedPages; page++) {
-        await profileCycle.requestPage(tester, page);
+      try {
+        await profileCycle.mount(tester);
+        await profileCycle.scroll(tester);
+      } finally {
+        await profileCycle.leave(tester);
       }
-      await profileCycle.dispose(tester);
       final snapshot = await _capture(
         tester,
         probe,
