@@ -2,6 +2,28 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [v1.16.0](https://github.com/piperun/chenron-flutter/compare/2f0c62167d1162f24febf1fcee0bc61b6c50b30c..v1.16.0) - 2026-08-11
+#### Features
+- (**chenron**) batch large viewer selections - ([b9b34a7](https://github.com/piperun/chenron-flutter/commit/b9b34a788d5a3bbb8c269358714900474949d545)) - [@piperun](https://github.com/piperun)
+- (**chenron**) add a bounded viewer page cache - ([1e3402a](https://github.com/piperun/chenron-flutter/commit/1e3402a7517f719698b721c87c350d8207948846)) - [@piperun](https://github.com/piperun)
+- (**database**) add bounded viewer queries - ([a015f89](https://github.com/piperun/chenron-flutter/commit/a015f892f1678552c3ab80b64a39ddcbaa08a6a0)) - [@piperun](https://github.com/piperun)
+#### Bug Fixes
+- (**chenron**) complete shared invalidation flushes - ([420b9ed](https://github.com/piperun/chenron-flutter/commit/420b9ed8aa520bfeb4720746b22b78ca36c9e65a)) - [@piperun](https://github.com/piperun)
+- (**chenron**) coordinate viewer invalidations by database - ([f898584](https://github.com/piperun/chenron-flutter/commit/f898584e0fba403dc9468da922fa95ed5b29a034)) - [@piperun](https://github.com/piperun)
+- (**chenron**) stabilize viewer summary and live tags - ([b4a7e9f](https://github.com/piperun/chenron-flutter/commit/b4a7e9f4610053cfe0272fcb666e03e8bec2bc62)) - [@piperun](https://github.com/piperun)
+- (**chenron**) isolate viewer summary retries - ([0a8cd6f](https://github.com/piperun/chenron-flutter/commit/0a8cd6f1f5911bd6fe3d75540b40fe1daa9ee35c)) - [@piperun](https://github.com/piperun)
+- (**chenron**) enforce case-insensitive tag conflicts - ([f4ba3eb](https://github.com/piperun/chenron-flutter/commit/f4ba3eb68743fb744cdc54459e4564b0056ba301)) - [@piperun](https://github.com/piperun)
+- (**chenron**) close viewer page source races - ([bcf7940](https://github.com/piperun/chenron-flutter/commit/bcf7940f68b8cc456fc30b75c636aededb3d4c0c)) - [@piperun](https://github.com/piperun)
+- (**database**) preserve viewer membership context - ([bbc58e3](https://github.com/piperun/chenron-flutter/commit/bbc58e37f454c1b5aae9b61dc9b344b5c45d02ad)) - [@piperun](https://github.com/piperun)
+- enforce bounded viewer operations - ([477addd](https://github.com/piperun/chenron-flutter/commit/477adddaa418e44f28ce5a7cb0c9f88ba57bf658)) - [@piperun](https://github.com/piperun)
+- validate viewer bulk lease counts - ([ad51e02](https://github.com/piperun/chenron-flutter/commit/ad51e02124f436535e734895367993f8d6d1d14d)) - [@piperun](https://github.com/piperun)
+- align bounded viewer tag and retry behavior - ([2b2e5c2](https://github.com/piperun/chenron-flutter/commit/2b2e5c2cc1107688a7ac3ebc137ce224723a772c)) - [@piperun](https://github.com/piperun)
+#### Refactoring
+- (**chenron**) virtualize the main viewer - ([0d48f0c](https://github.com/piperun/chenron-flutter/commit/0d48f0c8950e459307fe8e9c5e4b94e8332d94ad)) - [@piperun](https://github.com/piperun)
+- (**chenron**) scope viewer state to the mounted page - ([c3dccbb](https://github.com/piperun/chenron-flutter/commit/c3dccbb55797f1adb0111a1a525cd3f92218ac3d)) - [@piperun](https://github.com/piperun)
+
+- - -
+
 ## [v1.15.0](https://github.com/piperun/chenron-flutter/compare/a6181b7bb687112f64afad961d16384409acc65f..v1.15.0) - 2026-08-10
 #### Features
 - (**cache_manager**) define metadata refresh contracts - ([2b4f0ae](https://github.com/piperun/chenron-flutter/commit/2b4f0aef7b949bc26828514dc42d645a8ab66c1f)) - [@piperun](https://github.com/piperun)
