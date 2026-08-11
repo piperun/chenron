@@ -131,6 +131,9 @@ class _FakeViewerPageRepository implements ViewerPageRepository {
       const <FolderItem>[];
 
   @override
+  Future<int> countSelectionLease(ViewerSelectionLease lease) async => 0;
+
+  @override
   Future<void> consumeSelectionLeaseBatch(
     ViewerSelectionLease lease,
     Iterable<ViewerItemKey> consumed,

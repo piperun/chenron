@@ -105,6 +105,7 @@ class _DeleteConfirmationDialogState extends State<DeleteConfirmationDialog> {
     final theme = Theme.of(context);
     final count = widget.itemCount ?? widget.items.length;
     final isCountOnly = widget.itemCount != null;
+    final requiresTypedConfirmation = count > 3;
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -128,13 +129,14 @@ class _DeleteConfirmationDialogState extends State<DeleteConfirmationDialog> {
               ),
             ),
             if (!isCountOnly) Flexible(child: _ItemList(items: widget.items)),
-            _DeleteConfirmationField(
-              controller: _confirmationController,
-              isValid: _isConfirmationValid,
-            ),
+            if (requiresTypedConfirmation)
+              _DeleteConfirmationField(
+                controller: _confirmationController,
+                isValid: _isConfirmationValid,
+              ),
             _DialogActions(
               count: count,
-              canConfirm: _isConfirmationValid,
+              canConfirm: !requiresTypedConfirmation || _isConfirmationValid,
             ),
           ],
         ),

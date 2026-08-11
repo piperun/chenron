@@ -231,6 +231,16 @@ extension ViewerQueryExtensions on AppDatabase {
     return _materializeRows(rows, limit: limit);
   }
 
+  Future<int> getViewerSelectionLeaseCount(
+    ViewerSelectionLease lease,
+  ) async {
+    final row = await customSelect(
+      _selectionCountSql,
+      variables: <Variable<Object>>[Variable<String>(lease.id)],
+    ).getSingle();
+    return row.read<int>("item_count");
+  }
+
   Future<void> consumeViewerSelectionLeaseBatch(
     ViewerSelectionLease lease,
     Iterable<ViewerItemKey> consumed,
@@ -619,6 +629,23 @@ WHERE session_id = ? AND type_id = ? AND item_id = ?
 
 const _releaseSelectionSql = """
 DELETE FROM viewer_selection_keys WHERE session_id = ?
+""";
+
+const _selectionCountSql = """
+SELECT COUNT(*) AS item_count
+FROM viewer_selection_keys AS selection
+WHERE selection.session_id = ?
+  AND (
+    (selection.type_id = 0 AND EXISTS (
+      SELECT 1 FROM links WHERE links.id = selection.item_id
+    ))
+    OR (selection.type_id = 1 AND EXISTS (
+      SELECT 1 FROM documents WHERE documents.id = selection.item_id
+    ))
+    OR (selection.type_id = 2 AND EXISTS (
+      SELECT 1 FROM folders WHERE folders.id = selection.item_id
+    ))
+  )
 """;
 
 const _populateTopLevelSelectionSql = """

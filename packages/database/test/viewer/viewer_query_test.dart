@@ -393,6 +393,51 @@ void main() {
   });
 
   group("viewer selection leases", () {
+    test("lease count follows stable membership and consumption", () async {
+      final first = await _insertLink(
+        database,
+        77,
+        path: "https://lease-count-1.example/path",
+      );
+      await _insertLink(
+        database,
+        78,
+        path: "https://lease-count-2.example/path",
+      );
+      final lease =
+          await database.createViewerSelectionLease(query: const ViewerQuery());
+
+      expect(await database.getViewerSelectionLeaseCount(lease), 2);
+
+      await database.consumeViewerSelectionLeaseBatch(
+        lease,
+        <ViewerItemKey>[(type: FolderItemType.link, id: first)],
+      );
+      expect(await database.getViewerSelectionLeaseCount(lease), 1);
+
+      await database.releaseViewerSelectionLease(lease);
+      expect(await database.getViewerSelectionLeaseCount(lease), 0);
+    });
+
+    test("lease count ignores explicit keys that cannot materialize", () async {
+      final lease = await database.createViewerSelectionLease(
+        query: const ViewerQuery(),
+        onlyKeys: const <ViewerItemKey>{
+          (type: FolderItemType.link, id: "missing-link"),
+        },
+      );
+
+      try {
+        expect(await database.getViewerSelectionLeaseCount(lease), 0);
+        expect(
+          await database.getViewerSelectionLeaseBatch(lease, limit: 100),
+          isEmpty,
+        );
+      } finally {
+        await database.releaseViewerSelectionLease(lease);
+      }
+    });
+
     test("membership is stable and only consumed keys are deleted", () async {
       final first =
           await _insertLink(database, 80, path: "https://lease-1.example/path");

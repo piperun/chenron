@@ -41,6 +41,19 @@ class ViewerBulkResult {
       );
 }
 
+class ViewerSelectionChangedException implements Exception {
+  const ViewerSelectionChangedException({
+    required this.expectedCount,
+    required this.actualCount,
+  });
+
+  final int expectedCount;
+  final int actualCount;
+
+  @override
+  String toString() => "Selection changed. Select the items again.";
+}
+
 class ViewerBulkService {
   ViewerBulkService({
     required ViewerPageRepository repository,
@@ -76,10 +89,12 @@ class ViewerBulkService {
   Future<ViewerBulkResult> delete(
     ViewerSelection selection, {
     Set<ViewerItemKey> additionalKeys = const <ViewerItemKey>{},
+    int? expectedCount,
   }) =>
       _run(
         selection,
         additionalKeys: additionalKeys,
+        expectedCount: expectedCount,
         processBatch: (batch) => _processItems(
           batch,
           _deleteItem,
@@ -92,6 +107,7 @@ class ViewerBulkService {
     Set<String> tagsToRemove = const <String>{},
     Map<String, int?> colorChanges = const <String, int?>{},
     Set<ViewerItemKey> additionalKeys = const <ViewerItemKey>{},
+    int? expectedCount,
   }) async {
     var result = const ViewerBulkResult();
     if (tagsToAdd.isNotEmpty || tagsToRemove.isNotEmpty) {
@@ -100,6 +116,7 @@ class ViewerBulkService {
       result = await _run(
         selection,
         additionalKeys: additionalKeys,
+        expectedCount: expectedCount,
         processBatch: (batch) => _processItems(
           batch,
           (item) => _tagItem(item, additions, removals),
@@ -115,38 +132,67 @@ class ViewerBulkService {
   Future<ViewerBulkResult> refreshMetadata(
     ViewerSelection selection, {
     Set<ViewerItemKey> additionalKeys = const <ViewerItemKey>{},
+    int? expectedCount,
   }) =>
       _run(
         selection,
         additionalKeys: additionalKeys,
+        expectedCount: expectedCount,
         processBatch: _refreshMetadataBatch,
       );
 
   Future<ViewerBulkResult> _run(
     ViewerSelection selection, {
     required Set<ViewerItemKey> additionalKeys,
+    required int? expectedCount,
     required Future<ViewerBulkResult> Function(List<FolderItem> batch)
         processBatch,
   }) async {
-    var result = await _runSelection(selection, processBatch);
+    final leases = <ViewerSelectionLease>[];
     final supplementalKeys = switch (selection) {
       ExplicitViewerSelection(:final keys) => additionalKeys.difference(keys),
       AllMatchingViewerSelection() => additionalKeys,
     };
-    if (supplementalKeys.isNotEmpty) {
-      result += await _runSelection(
-        ExplicitViewerSelection(
-          Set<ViewerItemKey>.unmodifiable(supplementalKeys),
-        ),
-        processBatch,
+    try {
+      await _appendLease(leases, selection);
+      if (supplementalKeys.isNotEmpty) {
+        await _appendLease(
+          leases,
+          ExplicitViewerSelection(
+            Set<ViewerItemKey>.unmodifiable(supplementalKeys),
+          ),
+        );
+      }
+
+      if (expectedCount != null) {
+        final counts = await Future.wait<int>(
+          leases.map(_repository.countSelectionLease),
+        );
+        final actualCount = counts.fold<int>(0, (sum, count) => sum + count);
+        if (actualCount != expectedCount) {
+          throw ViewerSelectionChangedException(
+            expectedCount: expectedCount,
+            actualCount: actualCount,
+          );
+        }
+      }
+
+      var result = const ViewerBulkResult();
+      for (final lease in leases) {
+        result += await _runLease(lease, processBatch);
+      }
+      return result;
+    } finally {
+      _retainedBatchRowCount = 0;
+      await Future.wait<void>(
+        leases.map(_repository.releaseSelectionLease),
       );
     }
-    return result;
   }
 
-  Future<ViewerBulkResult> _runSelection(
+  Future<void> _appendLease(
+    List<ViewerSelectionLease> leases,
     ViewerSelection selection,
-    Future<ViewerBulkResult> Function(List<FolderItem> batch) processBatch,
   ) async {
     final (query, onlyKeys, excludedKeys) = switch (selection) {
       ExplicitViewerSelection(:final keys) => (
@@ -160,38 +206,38 @@ class ViewerBulkService {
           excluded,
         ),
     };
-    if (onlyKeys?.isEmpty ?? false) return const ViewerBulkResult();
-
-    final lease = await _repository.createSelectionLease(
+    if (onlyKeys?.isEmpty ?? false) return;
+    leases.add(await _repository.createSelectionLease(
       query: query,
       onlyKeys: onlyKeys,
       excludedKeys: excludedKeys,
-    );
+    ));
+  }
+
+  Future<ViewerBulkResult> _runLease(
+    ViewerSelectionLease lease,
+    Future<ViewerBulkResult> Function(List<FolderItem> batch) processBatch,
+  ) async {
     var result = const ViewerBulkResult();
-    try {
-      while (true) {
-        var batch = await _repository.loadSelectionLeaseBatch(
+    while (true) {
+      var batch = await _repository.loadSelectionLeaseBatch(
+        lease,
+        limit: batchSize,
+      );
+      if (batch.isEmpty) break;
+      _retainedBatchRowCount = batch.length;
+      try {
+        result += await processBatch(batch);
+        await _repository.consumeSelectionLeaseBatch(
           lease,
-          limit: batchSize,
+          batch.map((item) => (type: item.type, id: item.id!)),
         );
-        if (batch.isEmpty) break;
-        _retainedBatchRowCount = batch.length;
-        try {
-          result += await processBatch(batch);
-          await _repository.consumeSelectionLeaseBatch(
-            lease,
-            batch.map((item) => (type: item.type, id: item.id!)),
-          );
-        } finally {
-          batch = const <FolderItem>[];
-          _retainedBatchRowCount = 0;
-        }
+      } finally {
+        batch = const <FolderItem>[];
+        _retainedBatchRowCount = 0;
       }
-      return result;
-    } finally {
-      _retainedBatchRowCount = 0;
-      await _repository.releaseSelectionLease(lease);
     }
+    return result;
   }
 
   Future<ViewerBulkResult> _processItems(
@@ -233,8 +279,8 @@ class ViewerBulkService {
     );
     return ViewerBulkResult(
       processed: summary.total,
-      succeeded: summary.total - summary.failed,
-      failed: summary.failed,
+      succeeded: summary.updated + summary.unchanged,
+      failed: summary.rejected + summary.failed + summary.skipped,
     );
   }
 

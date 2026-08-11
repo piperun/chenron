@@ -29,6 +29,8 @@ abstract interface class ViewerPageRepository {
     required int limit,
   });
 
+  Future<int> countSelectionLease(ViewerSelectionLease lease);
+
   Future<void> consumeSelectionLeaseBatch(
     ViewerSelectionLease lease,
     Iterable<ViewerItemKey> consumed,
@@ -64,6 +66,7 @@ class ViewerPageSource {
   final int pageSize;
   final int maxCachedPages;
   final Signal<int> revision = signal(0);
+  final Signal<int> summaryGeneration = signal(0);
   final Signal<int> totalCount = signal(0);
   final Signal<Object?> countError = signal(null);
   final Signal<Object?> tagFacetsError = signal(null);
@@ -89,6 +92,11 @@ class ViewerPageSource {
   int get cachedRowCount =>
       _pages.values.fold(0, (total, page) => total + page.length);
   int get activeLoadCount => _inFlight.length;
+  bool get isCountReady =>
+      !_disposed &&
+      _query != null &&
+      _countLoad == null &&
+      countError.value == null;
 
   /// Number of independently active count and tag-facet loads (zero to two).
   int get activeSummaryLoadCount =>
@@ -190,6 +198,7 @@ class ViewerPageSource {
       revision.value++;
     });
     revision.dispose();
+    summaryGeneration.dispose();
     totalCount.dispose();
     countError.dispose();
     tagFacetsError.dispose();
@@ -223,6 +232,7 @@ class ViewerPageSource {
     _tagFacetsLoadIdentity = null;
     _summaryAggregateLoad = null;
     batch(() {
+      summaryGeneration.value++;
       totalCount.value = 0;
       tagFacets.value = const <ViewerTagFacet>[];
       countError.value = null;

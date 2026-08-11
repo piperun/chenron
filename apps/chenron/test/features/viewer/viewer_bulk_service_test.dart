@@ -45,6 +45,7 @@ class _LeaseRepository implements ViewerPageRepository {
   int releaseCalls = 0;
   int loadCalls = 0;
   int consumeCalls = 0;
+  int countLeaseCalls = 0;
   bool failNextConsume = false;
 
   @override
@@ -100,6 +101,12 @@ class _LeaseRepository implements ViewerPageRepository {
   }
 
   @override
+  Future<int> countSelectionLease(ViewerSelectionLease lease) async {
+    countLeaseCalls++;
+    return _leases[lease.id]!.length;
+  }
+
+  @override
   Future<int> count(ViewerQuery query) => throw UnimplementedError();
 
   @override
@@ -149,6 +156,7 @@ void main() {
     final result = await service.delete(
       selection,
       additionalKeys: <ViewerItemKey>{_key(prefix)},
+      expectedCount: 233,
     );
 
     expect(result.processed, 233);
@@ -160,6 +168,7 @@ void main() {
     expect(repository.requestedLimits, isNotEmpty);
     expect(repository.requestedLimits.every((limit) => limit <= 100), isTrue);
     expect(repository.releaseCalls, 2);
+    expect(repository.countLeaseCalls, 2);
     expect(service.retainedBatchRowCount, 0);
     expect(repository.createdOnlyKeys.first, isNull);
     expect(repository.createdExcludedKeys.first, exclusions);
@@ -265,6 +274,67 @@ void main() {
     expect(refreshed, hasLength(205));
     expect(maxActive, 3);
     expect(repository.requestedLimits.every((limit) => limit <= 100), isTrue);
+    expect(repository.releaseCalls, 1);
+    expect(service.retainedBatchRowCount, 0);
+  });
+
+  test("metadata treats only updated and unchanged as success", () async {
+    final rows = List<FolderItem>.generate(5, _link);
+    final repository = _LeaseRepository(rows);
+    final outcomes = <MetadataRefreshOutcome>[
+      MetadataRefreshOutcome.updated,
+      MetadataRefreshOutcome.unchanged,
+      MetadataRefreshOutcome.rejected,
+      MetadataRefreshOutcome.failed,
+      MetadataRefreshOutcome.skipped,
+    ];
+    var index = 0;
+    final service = ViewerBulkService(
+      repository: repository,
+      refreshMetadata: (url) async => MetadataRefreshResult(
+        url: url,
+        outcome: outcomes[index++],
+        state: const MetadataState.unavailable(),
+      ),
+    );
+
+    final result = await service.refreshMetadata(
+      ExplicitViewerSelection(rows.map(_key).toSet()),
+    );
+
+    expect(result.processed, 5);
+    expect(result.succeeded, 2);
+    expect(result.failed, 3);
+  });
+
+  test("expected count mismatch aborts the same lease before processing",
+      () async {
+    final rows = List<FolderItem>.generate(3, _link);
+    final repository = _LeaseRepository(rows);
+    var processed = 0;
+    final service = ViewerBulkService(
+      repository: repository,
+      deleteItem: (item) async {
+        processed++;
+        return true;
+      },
+    );
+
+    await expectLater(
+      service.delete(
+        const AllMatchingViewerSelection(
+          query: ViewerQuery(),
+          totalCount: 2,
+        ),
+        expectedCount: 2,
+      ),
+      throwsA(isA<ViewerSelectionChangedException>()),
+    );
+
+    expect(processed, 0);
+    expect(repository.loadCalls, 0);
+    expect(repository.consumeCalls, 0);
+    expect(repository.countLeaseCalls, 1);
     expect(repository.releaseCalls, 1);
     expect(service.retainedBatchRowCount, 0);
   });

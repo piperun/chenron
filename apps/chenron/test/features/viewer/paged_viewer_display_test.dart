@@ -110,6 +110,10 @@ class _PagedRepository implements ViewerPageRepository {
       throw UnimplementedError();
 
   @override
+  Future<int> countSelectionLease(ViewerSelectionLease lease) =>
+      throw UnimplementedError();
+
+  @override
   Future<void> consumeSelectionLeaseBatch(
     ViewerSelectionLease lease,
     Iterable<ViewerItemKey> consumed,
@@ -438,6 +442,92 @@ void main() {
     expect(requested!.selection, same(selection));
     expect(requested!.additionalKeys, isEmpty);
     expect(requested!.selectedCount, 100000);
+  });
+
+  testWidgets("select-all stays disabled until the current count is ready",
+      (tester) async {
+    _unmountAfterTest(tester);
+    await _useWideSurface(tester);
+    final countGate = Completer<int>();
+    repository = _PagedRepository()..countGate = countGate;
+    presenter = ViewerPresenter(repository: repository);
+    final initialization = presenter.init();
+
+    try {
+      await tester.pumpWidget(_host(
+        presenter,
+        onDeleteRequested: (_) {},
+      ));
+      await tester.pump();
+      await tester.tap(find.text("Select"));
+      await tester.pump();
+
+      var selectAll = tester.widget<OutlinedButton>(
+        find.widgetWithText(OutlinedButton, "Select All"),
+      );
+      expect(selectAll.onPressed, isNull);
+      expect(presenter.selectionState.selectedCount, 0);
+
+      countGate.complete(37);
+      await initialization;
+      await tester.pump();
+
+      selectAll = tester.widget<OutlinedButton>(
+        find.widgetWithText(OutlinedButton, "Select All"),
+      );
+      expect(selectAll.onPressed, isNotNull);
+      await tester.tap(find.text("Select All"));
+      await tester.pump();
+      expect(find.text("37 selected"), findsOneWidget);
+    } finally {
+      if (!countGate.isCompleted) countGate.complete(37);
+      await initialization;
+    }
+  });
+
+  testWidgets("summary invalidation clears select-all until reselected",
+      (tester) async {
+    _unmountAfterTest(tester);
+    await _useWideSurface(tester);
+    repository = _PagedRepository()..totalItemCount = 100;
+    presenter = ViewerPresenter(repository: repository);
+    await presenter.init();
+    final refreshedCount = Completer<int>();
+
+    await tester.pumpWidget(_host(
+      presenter,
+      onDeleteRequested: (_) {},
+    ));
+    await tester.pump();
+    await tester.tap(find.text("Select"));
+    await tester.pump();
+    await tester.tap(find.text("Select All"));
+    await tester.pump();
+    expect(find.text("100 selected"), findsOneWidget);
+
+    repository.countGate = refreshedCount;
+    repository.invalidationController.add(null);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 1));
+
+    expect(presenter.pageSource.summaryGeneration.value, 2);
+    expect(presenter.selectionState.selectedCount, 0);
+    expect(find.text("None selected"), findsOneWidget);
+    var selectAll = tester.widget<OutlinedButton>(
+      find.widgetWithText(OutlinedButton, "Select All"),
+    );
+    expect(selectAll.onPressed, isNull);
+
+    refreshedCount.complete(75);
+    await tester.pump();
+    await tester.pump();
+    selectAll = tester.widget<OutlinedButton>(
+      find.widgetWithText(OutlinedButton, "Select All"),
+    );
+    expect(selectAll.onPressed, isNotNull);
+    await tester.tap(find.text("Select All"));
+    await tester.pump();
+    expect(find.text("75 selected"), findsOneWidget);
   });
 
   testWidgets(

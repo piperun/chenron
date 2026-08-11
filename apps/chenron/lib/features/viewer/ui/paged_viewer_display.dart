@@ -50,6 +50,7 @@ class _PagedViewerDisplayState extends State<PagedViewerDisplay> {
   );
   late final void Function() _disposeQuerySelectionEffect;
   ViewerQuery? _selectionQuery;
+  int? _selectionSummaryGeneration;
   bool _disposed = false;
 
   ViewerPresenter get _presenter => widget.presenter;
@@ -59,8 +60,13 @@ class _PagedViewerDisplayState extends State<PagedViewerDisplay> {
     super.initState();
     _disposeQuerySelectionEffect = effect(() {
       final currentQuery = _presenter.query.value;
-      if (_selectionQuery == currentQuery) return;
+      final summaryGeneration = _presenter.pageSource.summaryGeneration.value;
+      if (_selectionQuery == currentQuery &&
+          _selectionSummaryGeneration == summaryGeneration) {
+        return;
+      }
       _selectionQuery = currentQuery;
+      _selectionSummaryGeneration = summaryGeneration;
       _selectedPrefixKeys.value = <ViewerItemKey>{};
     });
     unawaited(_loadDisplayPreferences());
@@ -130,7 +136,7 @@ class _PagedViewerDisplayState extends State<PagedViewerDisplay> {
   }
 
   void _selectAllItems() {
-    if (!_isSelectMode.value) return;
+    if (!_isSelectMode.value || !_presenter.pageSource.isCountReady) return;
     final query = _presenter.query.value;
     _presenter.selectionState.selectAllMatching(
       query,
@@ -144,10 +150,20 @@ class _PagedViewerDisplayState extends State<PagedViewerDisplay> {
   Set<ViewerItemKey> get _prefixItemKeys =>
       widget.prefixItems.map(_itemKey).toSet();
 
-  ViewerSelectionTarget get _selectionTarget => ViewerSelectionTarget(
-        selection: _presenter.selectionState.value,
-        additionalKeys: _selectedPrefixKeys.value,
-      );
+  ViewerSelectionTarget get _selectionTarget {
+    final selection = _presenter.selectionState.value;
+    final prefixKeys = _selectedPrefixKeys.value;
+    final summaryGeneration = _presenter.pageSource.summaryGeneration.value;
+    return ViewerSelectionTarget(
+      selection: selection,
+      additionalKeys: prefixKeys,
+      isCurrent: () =>
+          !_disposed &&
+          identical(_presenter.selectionState.value, selection) &&
+          identical(_selectedPrefixKeys.value, prefixKeys) &&
+          _presenter.pageSource.summaryGeneration.value == summaryGeneration,
+    );
+  }
 
   bool _isItemSelected(FolderItem item) {
     final key = _itemKey(item);
@@ -239,7 +255,7 @@ class _PagedViewerDisplayState extends State<PagedViewerDisplay> {
             SelectModeActionBar(
               selectedCount: selectionTarget.selectedCount,
               linkCount: _selectedLinkCount,
-              onSelectAll: _selectAllItems,
+              onSelectAll: pageSource.isCountReady ? _selectAllItems : null,
               onTag: () => widget.onTagRequested?.call(selectionTarget),
               onRefreshMetadata: () =>
                   widget.onRefreshMetadataRequested?.call(selectionTarget),

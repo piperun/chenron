@@ -145,8 +145,6 @@ void main() {
 
     expect(find.text("Delete Item?"), findsOneWidget);
     expect(find.byType(ListTile), findsNothing);
-    await tester.enterText(find.byType(TextField), "DELETE");
-    await tester.pump();
     await tester.tap(find.widgetWithText(FilledButton, "Delete"));
     for (var attempt = 0; attempt < 20; attempt++) {
       await tester.pump();
@@ -158,6 +156,42 @@ void main() {
     expect(repository.consumeCalls, 1);
     expect(repository.releaseCalls, 1);
     expect(service.retainedBatchRowCount, 0);
+  });
+
+  testWidgets("selection invalidated during confirmation never opens a lease",
+      (tester) async {
+    _unmountAfterTest(tester);
+    final item = _folder("stale-delete-folder");
+    final repository = _HandlerRepository(item);
+    final service = ViewerBulkService(
+      repository: repository,
+      deleteItem: (_) async => true,
+    );
+    var isCurrent = true;
+    final target = ViewerSelectionTarget(
+      selection: ExplicitViewerSelection(<ViewerItemKey>{_key(item)}),
+      isCurrent: () => isCurrent,
+    );
+
+    await tester.pumpWidget(_handlerHost(
+      onPressed: (context) => handleViewerSelectionDeletion(
+        context,
+        target,
+        service,
+        () {},
+      ),
+    ));
+    await tester.tap(find.text("Run"));
+    await tester.pumpAndSettle();
+    expect(find.text("Delete Item?"), findsOneWidget);
+
+    isCurrent = false;
+    await tester.tap(find.widgetWithText(FilledButton, "Delete"));
+    await tester.pumpAndSettle();
+
+    expect(repository.countLeaseCalls, 0);
+    expect(repository.consumeCalls, 0);
+    expect(repository.releaseCalls, 0);
   });
 
   testWidgets("selection tag sends primitive intent through a released lease",
@@ -307,6 +341,7 @@ class _HandlerRepository implements ViewerPageRepository {
   bool _consumed = false;
   int consumeCalls = 0;
   int releaseCalls = 0;
+  int countLeaseCalls = 0;
 
   @override
   Future<ViewerSelectionLease> createSelectionLease({
@@ -335,6 +370,12 @@ class _HandlerRepository implements ViewerPageRepository {
   @override
   Future<void> releaseSelectionLease(ViewerSelectionLease lease) async {
     releaseCalls++;
+  }
+
+  @override
+  Future<int> countSelectionLease(ViewerSelectionLease lease) async {
+    countLeaseCalls++;
+    return _consumed ? 0 : 1;
   }
 
   @override

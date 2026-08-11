@@ -29,12 +29,17 @@ final class ViewerSelectionTarget {
   ViewerSelectionTarget({
     required this.selection,
     Set<ViewerItemKey> additionalKeys = const <ViewerItemKey>{},
-  }) : additionalKeys = UnmodifiableSetView<ViewerItemKey>(
+    bool Function()? isCurrent,
+  })  : additionalKeys = UnmodifiableSetView<ViewerItemKey>(
           Set<ViewerItemKey>.of(additionalKeys),
-        );
+        ),
+        _isCurrent = isCurrent;
 
   final ViewerSelection selection;
   final Set<ViewerItemKey> additionalKeys;
+  final bool Function()? _isCurrent;
+
+  bool get isCurrent => _isCurrent?.call() ?? true;
 
   int get selectedCount => switch (selection) {
         ExplicitViewerSelection(:final keys) =>

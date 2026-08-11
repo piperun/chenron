@@ -62,7 +62,9 @@ class ViewerPresenter {
   final bool _ownsTagFilterState;
   final String? _folderId;
   void Function()? _disposeQueryEffect;
+  void Function()? _disposeSummarySelectionEffect;
   ViewerQuery? _lastAppliedQuery;
+  int? _selectionSummaryGeneration;
   Future<void>? _pendingQueryUpdate;
   bool _disposed = false;
 
@@ -75,6 +77,7 @@ class ViewerPresenter {
   Future<void> init() async {
     if (_disposed) return;
     _disposeQueryEffect ??= effect(_synchronizeQuery);
+    _disposeSummarySelectionEffect ??= effect(_synchronizeSelectionSummary);
     await _pendingQueryUpdate;
   }
 
@@ -119,6 +122,15 @@ class ViewerPresenter {
     unawaited(_pendingQueryUpdate);
   }
 
+  void _synchronizeSelectionSummary() {
+    final generation = pageSource.summaryGeneration.value;
+    final previous = _selectionSummaryGeneration;
+    _selectionSummaryGeneration = generation;
+    if (previous != null && previous != generation) {
+      selectionState.clear();
+    }
+  }
+
   ViewerSort _viewerSort(SortMode mode) => switch (mode) {
         SortMode.nameAsc => ViewerSort.nameAsc,
         SortMode.nameDesc => ViewerSort.nameDesc,
@@ -131,6 +143,8 @@ class ViewerPresenter {
     _disposed = true;
     _disposeQueryEffect?.call();
     _disposeQueryEffect = null;
+    _disposeSummarySelectionEffect?.call();
+    _disposeSummarySelectionEffect = null;
     pageSource.dispose();
     query.dispose();
     selectionState.dispose();

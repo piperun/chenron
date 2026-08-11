@@ -147,6 +147,10 @@ class FakeViewerRepository implements ViewerPageRepository {
       throw UnimplementedError();
 
   @override
+  Future<int> countSelectionLease(ViewerSelectionLease lease) =>
+      throw UnimplementedError();
+
+  @override
   Future<void> consumeSelectionLeaseBatch(
     ViewerSelectionLease lease,
     Iterable<ViewerItemKey> consumed,

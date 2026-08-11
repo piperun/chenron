@@ -162,17 +162,18 @@ Future<void> handleViewerSelectionDeletion(
   ViewerBulkService service,
   VoidCallback onRefresh,
 ) async {
-  if (target.selectedCount == 0) return;
+  if (target.selectedCount == 0 || !target.isCurrent) return;
   final confirmed = await showDeleteConfirmationDialog(
     context: context,
     itemCount: target.selectedCount,
   );
-  if (!confirmed || !context.mounted) return;
+  if (!confirmed || !context.mounted || !target.isCurrent) return;
 
   try {
     final result = await service.delete(
       target.selection,
       additionalKeys: target.additionalKeys,
+      expectedCount: target.selectedCount,
     );
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -252,12 +253,17 @@ Future<void> handleViewerSelectionTagging(
   ViewerBulkService service,
   VoidCallback onRefresh,
 ) async {
-  if (target.selectedCount == 0) return;
+  if (target.selectedCount == 0 || !target.isCurrent) return;
   final tagResult = await showBulkTagDialog(
     context: context,
     itemCount: target.selectedCount,
   );
-  if (tagResult == null || tagResult.isEmpty || !context.mounted) return;
+  if (tagResult == null ||
+      tagResult.isEmpty ||
+      !context.mounted ||
+      !target.isCurrent) {
+    return;
+  }
 
   try {
     final result = await service.tag(
@@ -266,6 +272,7 @@ Future<void> handleViewerSelectionTagging(
       tagsToRemove: tagResult.tagsToRemove.toSet(),
       colorChanges: tagResult.colorChanges,
       additionalKeys: target.additionalKeys,
+      expectedCount: target.selectedCount,
     );
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -356,11 +363,12 @@ Future<void> handleViewerSelectionMetadataRefresh(
   ViewerSelectionTarget target,
   ViewerBulkService service,
 ) async {
-  if (target.selectedCount == 0) return;
+  if (target.selectedCount == 0 || !target.isCurrent) return;
   try {
     final result = await service.refreshMetadata(
       target.selection,
       additionalKeys: target.additionalKeys,
+      expectedCount: target.selectedCount,
     );
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(

@@ -54,6 +54,10 @@ class ViewerModel implements ViewerPageRepository {
       _db.getViewerSelectionLeaseBatch(lease, limit: limit);
 
   @override
+  Future<int> countSelectionLease(ViewerSelectionLease lease) =>
+      _db.getViewerSelectionLeaseCount(lease);
+
+  @override
   Future<void> consumeSelectionLeaseBatch(
     ViewerSelectionLease lease,
     Iterable<ViewerItemKey> consumed,
