@@ -46,6 +46,76 @@ abstract interface class ViewerTagFacetSearchRepository {
   });
 }
 
+abstract interface class ViewerInvalidationDomainRepository {
+  Object get viewerInvalidationDomain;
+}
+
+final Expando<ViewerInvalidationCoordinator> _invalidationCoordinators =
+    Expando<ViewerInvalidationCoordinator>("viewer invalidation coordinator");
+
+ViewerInvalidationCoordinator _resolveInvalidationCoordinator(
+  ViewerPageRepository repository,
+) {
+  final domain = repository is ViewerInvalidationDomainRepository
+      ? (repository as ViewerInvalidationDomainRepository)
+          .viewerInvalidationDomain
+      : repository;
+  return _invalidationCoordinators[domain] ??= ViewerInvalidationCoordinator();
+}
+
+class ViewerInvalidationCoordinator {
+  final Set<ViewerPageSource> _sources = <ViewerPageSource>{};
+  final Set<ViewerPageSource> _dirtySources = <ViewerPageSource>{};
+  int _bulkUpdateDepth = 0;
+
+  int get registeredSourceCount => _sources.length;
+  int get dirtySourceCount => _dirtySources.length;
+  int get bulkUpdateDepth => _bulkUpdateDepth;
+  bool get isBulkUpdateActive => _bulkUpdateDepth > 0;
+
+  Future<T> runBulkUpdate<T>(Future<T> Function() operation) async {
+    _bulkUpdateDepth++;
+    try {
+      return await operation();
+    } finally {
+      // Async broadcast streams deliver the final committed invalidation on
+      // the next event turn. Keep the outer boundary raised through that turn
+      // so every registered source joins the same trailing refresh.
+      if (_bulkUpdateDepth == 1) {
+        await Future<void>.delayed(Duration.zero);
+      }
+      _bulkUpdateDepth--;
+      if (_bulkUpdateDepth == 0) await _flushDirtySources();
+    }
+  }
+
+  void _register(ViewerPageSource source) {
+    _sources.add(source);
+  }
+
+  void _unregister(ViewerPageSource source) {
+    _dirtySources.remove(source);
+    _sources.remove(source);
+  }
+
+  void _markDirty(ViewerPageSource source) {
+    if (_sources.contains(source) && !source.isDisposed) {
+      _dirtySources.add(source);
+    }
+  }
+
+  Future<void> _flushDirtySources() async {
+    if (_dirtySources.isEmpty) return;
+    final sources = _dirtySources
+        .where((source) => _sources.contains(source) && !source.isDisposed)
+        .toList(growable: false);
+    _dirtySources.clear();
+    await Future.wait<void>(
+      sources.map((source) => source._refreshAfterInvalidation()),
+    );
+  }
+}
+
 abstract interface class ViewerBulkUpdateBoundary {
   Future<T> runBulkUpdate<T>(Future<T> Function() operation);
 }
@@ -58,7 +128,10 @@ class ViewerPageSource implements ViewerBulkUpdateBoundary {
     this.maxActivePageLoads = defaultMaxActivePageLoads,
     this.maxQueuedPageLoads = defaultMaxQueuedPageLoads,
     this.maxPageErrors = defaultMaxPageErrors,
-  }) : _repository = repository {
+    ViewerInvalidationCoordinator? invalidationCoordinator,
+  })  : _repository = repository,
+        _invalidationCoordinator = invalidationCoordinator ??
+            _resolveInvalidationCoordinator(repository) {
     if (pageSize <= 0) {
       throw ArgumentError.value(pageSize, "pageSize", "must be positive");
     }
@@ -76,6 +149,7 @@ class ViewerPageSource implements ViewerBulkUpdateBoundary {
     }
     _invalidationSubscription =
         _repository.invalidations().listen((_) => _scheduleInvalidation());
+    _invalidationCoordinator._register(this);
   }
 
   static const int defaultPageSize = 100;
@@ -85,6 +159,7 @@ class ViewerPageSource implements ViewerBulkUpdateBoundary {
   static const int defaultMaxPageErrors = 20;
 
   final ViewerPageRepository _repository;
+  final ViewerInvalidationCoordinator _invalidationCoordinator;
   final int pageSize;
   final int maxCachedPages;
   final int maxActivePageLoads;
@@ -103,7 +178,7 @@ class ViewerPageSource implements ViewerBulkUpdateBoundary {
   final LinkedHashMap<int, _QueuedPageLoad> _queuedPageLoads = LinkedHashMap();
   final LinkedHashMap<int, Object> _pageErrors = LinkedHashMap();
   _ActiveSummaryLoad? _activeSummaryLoad;
-  _SummaryRequest? _queuedSummaryRequest;
+  _QueuedSummarySlot? _queuedSummarySlot;
   StreamSubscription<void>? _invalidationSubscription;
   Future<void>? _invalidationCancellation;
   Future<void>? _disposalSettlement;
@@ -111,9 +186,7 @@ class ViewerPageSource implements ViewerBulkUpdateBoundary {
   ViewerQuery? _query;
   Object _generation = Object();
   Timer? _invalidationTimer;
-  int _bulkUpdateDepth = 0;
   int _droppedPageRequestCount = 0;
-  bool _bulkInvalidationDirty = false;
   bool _disposed = false;
 
   int get cachedPageCount => _pages.length;
@@ -125,14 +198,19 @@ class ViewerPageSource implements ViewerBulkUpdateBoundary {
   int get retainedPageErrorCount => _pageErrors.length;
   int get droppedPageRequestCount => _droppedPageRequestCount;
   int get activeSummaryLoadCount => _activeSummaryLoad == null ? 0 : 1;
-  bool get hasDirtySummaryRefresh => _queuedSummaryRequest != null;
+  int get queuedSummaryRequestCount => _queuedSummarySlot == null ? 0 : 1;
+  int get retainedSummaryRequestCount =>
+      activeSummaryLoadCount + queuedSummaryRequestCount;
+  bool get hasDirtySummaryRefresh => _queuedSummarySlot != null;
   int get activeSubscriptionCount => _invalidationSubscription == null ? 0 : 1;
+  ViewerInvalidationCoordinator get invalidationCoordinator =>
+      _invalidationCoordinator;
   bool get isDisposed => _disposed;
   bool get isSettled =>
       _activePageLoads.isEmpty &&
       _activeSummaryLoad == null &&
       _queuedPageLoads.isEmpty &&
-      _queuedSummaryRequest == null &&
+      _queuedSummarySlot == null &&
       _invalidationSubscription == null;
   bool get isCountReady =>
       !_disposed &&
@@ -151,7 +229,7 @@ class ViewerPageSource implements ViewerBulkUpdateBoundary {
         active.loadCount) {
       return true;
     }
-    final queued = _queuedSummaryRequest;
+    final queued = _queuedSummarySlot;
     return queued != null &&
         identical(queued.generation, _generation) &&
         queued.loadCount;
@@ -175,13 +253,13 @@ class ViewerPageSource implements ViewerBulkUpdateBoundary {
   Object? errorAt(int index) =>
       index < 0 ? null : _pageErrors[index ~/ pageSize];
 
-  Future<void> setQuery(ViewerQuery query) async {
-    if (_disposed || _query == query) return;
+  Future<void> setQuery(ViewerQuery query) {
+    if (_disposed || _query == query) return Future<void>.value();
     _invalidationTimer?.cancel();
     _invalidationTimer = null;
     _query = query;
     final generation = _beginGeneration();
-    await _requestSummaryLoad(
+    return _requestSummaryLoad(
       query,
       generation,
       loadCount: true,
@@ -231,24 +309,8 @@ class ViewerPageSource implements ViewerBulkUpdateBoundary {
   }
 
   @override
-  Future<T> runBulkUpdate<T>(Future<T> Function() operation) async {
-    _bulkUpdateDepth++;
-    try {
-      return await operation();
-    } finally {
-      // Async broadcast streams deliver the final committed invalidation on
-      // the next event turn. Keep the outer boundary raised through that turn
-      // so the notification joins the same single trailing refresh.
-      if (_bulkUpdateDepth == 1) {
-        await Future<void>.delayed(Duration.zero);
-      }
-      _bulkUpdateDepth--;
-      if (_bulkUpdateDepth == 0 && _bulkInvalidationDirty) {
-        _bulkInvalidationDirty = false;
-        await _refreshAfterInvalidation();
-      }
-    }
-  }
+  Future<T> runBulkUpdate<T>(Future<T> Function() operation) =>
+      _invalidationCoordinator.runBulkUpdate(operation);
 
   void dispose() {
     if (_disposed) return;
@@ -257,15 +319,15 @@ class ViewerPageSource implements ViewerBulkUpdateBoundary {
     _query = null;
     _invalidationTimer?.cancel();
     _invalidationTimer = null;
-    _bulkInvalidationDirty = false;
+    _invalidationCoordinator._unregister(this);
 
     for (final queued in _queuedPageLoads.values) {
       queued.complete();
     }
     _queuedPageLoads.clear();
     _currentPageLoads.clear();
-    final queuedSummary = _queuedSummaryRequest;
-    _queuedSummaryRequest = null;
+    final queuedSummary = _queuedSummarySlot;
+    _queuedSummarySlot = null;
     queuedSummary?.complete();
 
     final invalidationSubscription = _invalidationSubscription;
@@ -366,20 +428,32 @@ class ViewerPageSource implements ViewerBulkUpdateBoundary {
       return active.request.future;
     }
 
-    final queued = _queuedSummaryRequest;
-    if (queued != null && identical(queued.generation, generation)) {
-      queued.merge(loadCount: loadCount, loadTagFacets: loadTagFacets);
-      return Future<void>.value();
+    final queued = _queuedSummarySlot;
+    if (queued == null) {
+      final slot = _QueuedSummarySlot(
+        query: query,
+        generation: generation,
+        loadCount: loadCount,
+        loadTagFacets: loadTagFacets,
+      );
+      _queuedSummarySlot = slot;
+      return slot.future;
     }
-    final replacement = _SummaryRequest(
-      query: query,
-      generation: generation,
-      loadCount: loadCount,
-      loadTagFacets: loadTagFacets,
-    );
-    if (queued != null) replacement.completeAfter(queued);
-    _queuedSummaryRequest = replacement;
-    return Future<void>.value();
+    if (identical(queued.generation, generation)) {
+      queued.merge(
+        query: query,
+        loadCount: loadCount,
+        loadTagFacets: loadTagFacets,
+      );
+    } else {
+      queued.replace(
+        query: query,
+        generation: generation,
+        loadCount: loadCount,
+        loadTagFacets: loadTagFacets,
+      );
+    }
+    return queued.future;
   }
 
   void _startSummaryLoad(_SummaryRequest request) {
@@ -452,11 +526,11 @@ class ViewerPageSource implements ViewerBulkUpdateBoundary {
     _activeSummaryLoad = null;
     active.request.complete(error, stackTrace);
     if (_disposed) return;
-    final queued = _queuedSummaryRequest;
-    _queuedSummaryRequest = null;
+    final queued = _queuedSummarySlot;
+    _queuedSummarySlot = null;
     if (queued == null) return;
     if (_isCurrent(queued.generation)) {
-      _startSummaryLoad(queued);
+      _startSummaryLoad(queued.toRequest());
     } else {
       queued.complete();
     }
@@ -582,14 +656,18 @@ class ViewerPageSource implements ViewerBulkUpdateBoundary {
 
   void _scheduleInvalidation() {
     if (_disposed) return;
-    if (_bulkUpdateDepth > 0) {
-      _bulkInvalidationDirty = true;
+    if (_invalidationCoordinator.isBulkUpdateActive) {
+      _invalidationCoordinator._markDirty(this);
       return;
     }
     if (_invalidationTimer != null) return;
     _invalidationTimer = Timer(Duration.zero, () {
       _invalidationTimer = null;
       if (_disposed) return;
+      if (_invalidationCoordinator.isBulkUpdateActive) {
+        _invalidationCoordinator._markDirty(this);
+        return;
+      }
       unawaited(_refreshAfterInvalidation());
     });
   }
@@ -631,14 +709,14 @@ final class _SummaryRequest {
     required this.generation,
     required this.loadCount,
     required this.loadTagFacets,
-  });
+    Completer<void>? completer,
+  }) : _completer = completer ?? Completer<void>();
 
   final ViewerQuery query;
   final Object generation;
   bool loadCount;
   bool loadTagFacets;
-  final Completer<void> _completer = Completer<void>();
-  final List<_SummaryRequest> _superseded = <_SummaryRequest>[];
+  final Completer<void> _completer;
 
   Future<void> get future => _completer.future;
 
@@ -651,15 +729,6 @@ final class _SummaryRequest {
       (!loadCount || this.loadCount) &&
       (!loadTagFacets || this.loadTagFacets);
 
-  void merge({required bool loadCount, required bool loadTagFacets}) {
-    this.loadCount = this.loadCount || loadCount;
-    this.loadTagFacets = this.loadTagFacets || loadTagFacets;
-  }
-
-  void completeAfter(_SummaryRequest request) {
-    _superseded.add(request);
-  }
-
   void complete([Object? error, StackTrace? stackTrace]) {
     if (!_completer.isCompleted) {
       if (error == null) {
@@ -668,10 +737,62 @@ final class _SummaryRequest {
         _completer.completeError(error, stackTrace);
       }
     }
-    for (final request in _superseded) {
-      request.complete(error, stackTrace);
+  }
+}
+
+final class _QueuedSummarySlot {
+  _QueuedSummarySlot({
+    required this.query,
+    required this.generation,
+    required this.loadCount,
+    required this.loadTagFacets,
+  });
+
+  ViewerQuery query;
+  Object generation;
+  bool loadCount;
+  bool loadTagFacets;
+  final Completer<void> _completer = Completer<void>();
+
+  Future<void> get future => _completer.future;
+
+  void merge({
+    required ViewerQuery query,
+    required bool loadCount,
+    required bool loadTagFacets,
+  }) {
+    this.query = query;
+    this.loadCount = this.loadCount || loadCount;
+    this.loadTagFacets = this.loadTagFacets || loadTagFacets;
+  }
+
+  void replace({
+    required ViewerQuery query,
+    required Object generation,
+    required bool loadCount,
+    required bool loadTagFacets,
+  }) {
+    this.query = query;
+    this.generation = generation;
+    this.loadCount = loadCount;
+    this.loadTagFacets = loadTagFacets;
+  }
+
+  _SummaryRequest toRequest() => _SummaryRequest(
+        query: query,
+        generation: generation,
+        loadCount: loadCount,
+        loadTagFacets: loadTagFacets,
+        completer: _completer,
+      );
+
+  void complete([Object? error, StackTrace? stackTrace]) {
+    if (_completer.isCompleted) return;
+    if (error == null) {
+      _completer.complete();
+    } else {
+      _completer.completeError(error, stackTrace);
     }
-    _superseded.clear();
   }
 }
 

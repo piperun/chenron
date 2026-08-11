@@ -8,7 +8,10 @@ import "package:app_logger/app_logger.dart";
 import "package:shared_preferences/shared_preferences.dart";
 
 class FolderViewerService
-    implements ViewerPageRepository, ViewerTagFacetSearchRepository {
+    implements
+        ViewerPageRepository,
+        ViewerTagFacetSearchRepository,
+        ViewerInvalidationDomainRepository {
   FolderViewerService({AppDatabase? database}) : _database = database;
 
   static const _lockKey = "folder_viewer_header_locked";
@@ -17,6 +20,9 @@ class FolderViewerService
   AppDatabase get _db =>
       _database ??
       locator.get<Signal<AppDatabaseLifecycle>>().value.appDatabase;
+
+  @override
+  Object get viewerInvalidationDomain => _db;
 
   /// Loads only folder metadata and tags.
   ///

@@ -28,7 +28,12 @@ class ViewerMemorySnapshot {
     required this.retainedViewerPageErrors,
     required this.droppedViewerPageRequests,
     required this.activeViewerSummaryLoads,
+    required this.queuedViewerSummaryRequests,
+    required this.retainedViewerSummaryRequests,
     required this.dirtyViewerSummaryRefresh,
+    required this.registeredViewerInvalidationSources,
+    required this.dirtyViewerInvalidationSources,
+    required this.viewerBulkUpdateDepth,
     required this.viewerSettled,
     required this.metadataCacheSize,
     required this.metadataCacheCapacity,
@@ -61,7 +66,12 @@ class ViewerMemorySnapshot {
   final int retainedViewerPageErrors;
   final int droppedViewerPageRequests;
   final int activeViewerSummaryLoads;
+  final int queuedViewerSummaryRequests;
+  final int retainedViewerSummaryRequests;
   final bool dirtyViewerSummaryRefresh;
+  final int registeredViewerInvalidationSources;
+  final int dirtyViewerInvalidationSources;
+  final int viewerBulkUpdateDepth;
   final bool viewerSettled;
   final int metadataCacheSize;
   final int metadataCacheCapacity;
@@ -94,7 +104,13 @@ class ViewerMemorySnapshot {
         "retainedViewerPageErrors": retainedViewerPageErrors,
         "droppedViewerPageRequests": droppedViewerPageRequests,
         "activeViewerSummaryLoads": activeViewerSummaryLoads,
+        "queuedViewerSummaryRequests": queuedViewerSummaryRequests,
+        "retainedViewerSummaryRequests": retainedViewerSummaryRequests,
         "dirtyViewerSummaryRefresh": dirtyViewerSummaryRefresh,
+        "registeredViewerInvalidationSources":
+            registeredViewerInvalidationSources,
+        "dirtyViewerInvalidationSources": dirtyViewerInvalidationSources,
+        "viewerBulkUpdateDepth": viewerBulkUpdateDepth,
         "viewerSettled": viewerSettled,
         "metadataCacheSize": metadataCacheSize,
         "metadataCacheCapacity": metadataCacheCapacity,
@@ -214,7 +230,13 @@ final class ViewerMemoryProbe {
       retainedViewerPageErrors: retention.retainedPageErrors,
       droppedViewerPageRequests: retention.droppedPageRequests,
       activeViewerSummaryLoads: retention.activeSummaryLoads,
+      queuedViewerSummaryRequests: retention.queuedSummaryRequests,
+      retainedViewerSummaryRequests: retention.retainedSummaryRequests,
       dirtyViewerSummaryRefresh: retention.dirtySummaryRefresh,
+      registeredViewerInvalidationSources:
+          retention.registeredInvalidationSources,
+      dirtyViewerInvalidationSources: retention.dirtyInvalidationSources,
+      viewerBulkUpdateDepth: retention.bulkUpdateDepth,
       viewerSettled: retention.settled,
       metadataCacheSize: runtimeCaches.metadataCacheSize,
       metadataCacheCapacity: runtimeCaches.metadataCacheCapacity,

@@ -161,11 +161,17 @@ final class _ProfileDatabaseFixture {
 }
 
 class _ProfileViewerRepository
-    implements ViewerPageRepository, ViewerTagFacetSearchRepository {
+    implements
+        ViewerPageRepository,
+        ViewerTagFacetSearchRepository,
+        ViewerInvalidationDomainRepository {
   _ProfileViewerRepository(this.database);
 
   final AppDatabase database;
   final List<({int limit, int offset})> pageRequests = [];
+
+  @override
+  Object get viewerInvalidationDomain => database;
 
   @override
   Future<int> count(ViewerQuery query) => database.getViewerItemCount(query);
@@ -270,6 +276,14 @@ Future<ViewerMemorySnapshot> _capture(
   expect(snapshot.queuedViewerPageLoads, lessThanOrEqualTo(16));
   expect(snapshot.retainedViewerPageErrors, lessThanOrEqualTo(20));
   expect(snapshot.activeViewerSummaryLoads, lessThanOrEqualTo(1));
+  expect(snapshot.queuedViewerSummaryRequests, lessThanOrEqualTo(1));
+  expect(snapshot.retainedViewerSummaryRequests, lessThanOrEqualTo(2));
+  expect(snapshot.registeredViewerInvalidationSources, lessThanOrEqualTo(1));
+  expect(
+    snapshot.dirtyViewerInvalidationSources,
+    lessThanOrEqualTo(snapshot.registeredViewerInvalidationSources),
+  );
+  expect(snapshot.viewerBulkUpdateDepth, 0);
   expect(snapshot.metadataCacheSize, lessThanOrEqualTo(100));
   expect(snapshot.metadataSignalCacheSize, lessThanOrEqualTo(100));
   expect(
@@ -553,7 +567,12 @@ void _expectSettledAfterLeave(
   expect(snapshot.activeViewerPageLoads, 0, reason: reason);
   expect(snapshot.queuedViewerPageLoads, 0, reason: reason);
   expect(snapshot.activeViewerSummaryLoads, 0, reason: reason);
+  expect(snapshot.queuedViewerSummaryRequests, 0, reason: reason);
+  expect(snapshot.retainedViewerSummaryRequests, 0, reason: reason);
   expect(snapshot.dirtyViewerSummaryRefresh, isFalse, reason: reason);
+  expect(snapshot.registeredViewerInvalidationSources, 0, reason: reason);
+  expect(snapshot.dirtyViewerInvalidationSources, 0, reason: reason);
+  expect(snapshot.viewerBulkUpdateDepth, 0, reason: reason);
   expect(snapshot.viewerSubscriptions, 0, reason: reason);
   expect(snapshot.viewerSettled, isTrue, reason: reason);
   expect(snapshot.metadataInFlightRequests, 0, reason: reason);

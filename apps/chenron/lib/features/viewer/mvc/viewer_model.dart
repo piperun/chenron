@@ -8,7 +8,10 @@ import "package:app_logger/app_logger.dart";
 import "package:signals/signals.dart";
 
 class ViewerModel
-    implements ViewerPageRepository, ViewerTagFacetSearchRepository {
+    implements
+        ViewerPageRepository,
+        ViewerTagFacetSearchRepository,
+        ViewerInvalidationDomainRepository {
   ViewerModel({AppDatabase? database}) : _database = database;
 
   final AppDatabase? _database;
@@ -16,6 +19,9 @@ class ViewerModel
   AppDatabase get _db =>
       _database ??
       locator.get<Signal<AppDatabaseLifecycle>>().value.appDatabase;
+
+  @override
+  Object get viewerInvalidationDomain => _db;
 
   @override
   Future<List<FolderItem>> loadPage(

@@ -21,7 +21,12 @@ class ViewerRetentionSnapshot {
     this.retainedPageErrors = 0,
     this.droppedPageRequests = 0,
     this.activeSummaryLoads = 0,
+    this.queuedSummaryRequests = 0,
+    this.retainedSummaryRequests = 0,
     this.dirtySummaryRefresh = false,
+    this.registeredInvalidationSources = 0,
+    this.dirtyInvalidationSources = 0,
+    this.bulkUpdateDepth = 0,
     this.settled = false,
   });
 
@@ -34,7 +39,12 @@ class ViewerRetentionSnapshot {
   final int retainedPageErrors;
   final int droppedPageRequests;
   final int activeSummaryLoads;
+  final int queuedSummaryRequests;
+  final int retainedSummaryRequests;
   final bool dirtySummaryRefresh;
+  final int registeredInvalidationSources;
+  final int dirtyInvalidationSources;
+  final int bulkUpdateDepth;
   final bool settled;
 }
 
@@ -97,7 +107,14 @@ class ViewerPresenter {
         retainedPageErrors: pageSource.retainedPageErrorCount,
         droppedPageRequests: pageSource.droppedPageRequestCount,
         activeSummaryLoads: pageSource.activeSummaryLoadCount,
+        queuedSummaryRequests: pageSource.queuedSummaryRequestCount,
+        retainedSummaryRequests: pageSource.retainedSummaryRequestCount,
         dirtySummaryRefresh: pageSource.hasDirtySummaryRefresh,
+        registeredInvalidationSources:
+            pageSource.invalidationCoordinator.registeredSourceCount,
+        dirtyInvalidationSources:
+            pageSource.invalidationCoordinator.dirtySourceCount,
+        bulkUpdateDepth: pageSource.invalidationCoordinator.bulkUpdateDepth,
         settled: pageSource.isSettled,
       );
 

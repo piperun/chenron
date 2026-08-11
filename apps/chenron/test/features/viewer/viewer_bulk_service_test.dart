@@ -31,9 +31,29 @@ FolderItem _folder(String id) => FolderItem.folder(
 
 ViewerItemKey _key(FolderItem item) => (type: item.type, id: item.id!);
 
-class _LeaseRepository implements ViewerPageRepository {
-  _LeaseRepository(List<FolderItem> rows)
-      : _rowsByKey = <ViewerItemKey, FolderItem>{
+final class _SharedViewerInvalidations {
+  final StreamController<void> _controller =
+      StreamController<void>.broadcast(sync: true);
+  bool _closed = false;
+
+  Stream<void> get stream => _controller.stream;
+
+  void invalidate() => _controller.add(null);
+
+  Future<void> close() {
+    if (_closed) return Future<void>.value();
+    _closed = true;
+    return _controller.close();
+  }
+}
+
+class _LeaseRepository
+    implements ViewerPageRepository, ViewerInvalidationDomainRepository {
+  _LeaseRepository(
+    List<FolderItem> rows, {
+    _SharedViewerInvalidations? invalidations,
+  })  : _invalidations = invalidations ?? _SharedViewerInvalidations(),
+        _rowsByKey = <ViewerItemKey, FolderItem>{
           for (final row in rows) _key(row): row,
         };
 
@@ -42,8 +62,7 @@ class _LeaseRepository implements ViewerPageRepository {
   final List<int> requestedLimits = <int>[];
   final List<Set<ViewerItemKey>?> createdOnlyKeys = <Set<ViewerItemKey>?>[];
   final List<Set<ViewerItemKey>> createdExcludedKeys = <Set<ViewerItemKey>>[];
-  final StreamController<void> _invalidations =
-      StreamController<void>.broadcast(sync: true);
+  final _SharedViewerInvalidations _invalidations;
   int releaseCalls = 0;
   int loadCalls = 0;
   int consumeCalls = 0;
@@ -52,7 +71,10 @@ class _LeaseRepository implements ViewerPageRepository {
   int facetCalls = 0;
   bool failNextConsume = false;
 
-  void invalidate() => _invalidations.add(null);
+  @override
+  Object get viewerInvalidationDomain => _invalidations;
+
+  void invalidate() => _invalidations.invalidate();
 
   Future<void> close() => _invalidations.close();
 
@@ -227,6 +249,174 @@ void main() {
     source.dispose();
     await source.invalidationCancellation;
     await repository.close();
+  });
+
+  test("shared-domain nested bulk refreshes every live source exactly once",
+      () async {
+    final invalidations = _SharedViewerInvalidations();
+    final rows = List<FolderItem>.generate(3, _link);
+    final repositoryA = _LeaseRepository(rows, invalidations: invalidations);
+    final repositoryB = _LeaseRepository(rows, invalidations: invalidations);
+    final sourceA = ViewerPageSource(repository: repositoryA);
+    final sourceB = ViewerPageSource(repository: repositoryB);
+
+    try {
+      await sourceA.setQuery(const ViewerQuery(searchText: "retained"));
+      await sourceB.setQuery(const ViewerQuery(searchText: "active"));
+      final baselineGenerationA = sourceA.summaryGeneration.value;
+      final baselineGenerationB = sourceB.summaryGeneration.value;
+      final baselineCountA = repositoryA.countCalls;
+      final baselineCountB = repositoryB.countCalls;
+      final baselineFacetsA = repositoryA.facetCalls;
+      final baselineFacetsB = repositoryB.facetCalls;
+      var processed = 0;
+      final service = ViewerBulkService(
+        repository: repositoryB,
+        bulkUpdateBoundary: sourceB,
+        batchSize: 1,
+        deleteItem: (item) async {
+          processed++;
+          if (processed == 1) {
+            await sourceA.runBulkUpdate(() async {
+              repositoryB.invalidate();
+              await Future<void>.delayed(Duration.zero);
+            });
+          } else {
+            repositoryB.invalidate();
+            await Future<void>.delayed(Duration.zero);
+          }
+          return true;
+        },
+      );
+
+      final result = await service.delete(
+        AllMatchingViewerSelection(
+          query: const ViewerQuery(),
+          totalCount: rows.length,
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(result.processed, 3);
+      expect(sourceA.summaryGeneration.value - baselineGenerationA, 1);
+      expect(sourceB.summaryGeneration.value - baselineGenerationB, 1);
+      expect(repositoryA.countCalls - baselineCountA, 1);
+      expect(repositoryB.countCalls - baselineCountB, 1);
+      expect(repositoryA.facetCalls - baselineFacetsA, 1);
+      expect(repositoryB.facetCalls - baselineFacetsB, 1);
+    } finally {
+      await sourceA.disposeAndWait();
+      await sourceB.disposeAndWait();
+      await invalidations.close();
+    }
+  });
+
+  test("shared-domain exception refreshes every live source exactly once",
+      () async {
+    final invalidations = _SharedViewerInvalidations();
+    final rows = List<FolderItem>.generate(3, _link);
+    final repositoryA = _LeaseRepository(rows, invalidations: invalidations);
+    final repositoryB = _LeaseRepository(rows, invalidations: invalidations)
+      ..failNextConsume = true;
+    final sourceA = ViewerPageSource(repository: repositoryA);
+    final sourceB = ViewerPageSource(repository: repositoryB);
+
+    try {
+      await sourceA.setQuery(const ViewerQuery(searchText: "retained"));
+      await sourceB.setQuery(const ViewerQuery(searchText: "active"));
+      final baselineGenerationA = sourceA.summaryGeneration.value;
+      final baselineGenerationB = sourceB.summaryGeneration.value;
+      final baselineCountA = repositoryA.countCalls;
+      final baselineCountB = repositoryB.countCalls;
+      final service = ViewerBulkService(
+        repository: repositoryB,
+        bulkUpdateBoundary: sourceB,
+        deleteItem: (item) async {
+          repositoryB.invalidate();
+          await Future<void>.delayed(Duration.zero);
+          return true;
+        },
+      );
+
+      await expectLater(
+        service.delete(
+          AllMatchingViewerSelection(
+            query: const ViewerQuery(),
+            totalCount: rows.length,
+          ),
+        ),
+        throwsStateError,
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(sourceA.summaryGeneration.value - baselineGenerationA, 1);
+      expect(sourceB.summaryGeneration.value - baselineGenerationB, 1);
+      expect(repositoryA.countCalls - baselineCountA, 1);
+      expect(repositoryB.countCalls - baselineCountB, 1);
+    } finally {
+      await sourceA.disposeAndWait();
+      await sourceB.disposeAndWait();
+      await invalidations.close();
+    }
+  });
+
+  test("dirty shared-domain source unregisters when disposed during bulk",
+      () async {
+    final invalidations = _SharedViewerInvalidations();
+    final rows = List<FolderItem>.generate(3, _link);
+    final repositoryA = _LeaseRepository(rows, invalidations: invalidations);
+    final repositoryB = _LeaseRepository(rows, invalidations: invalidations);
+    final sourceA = ViewerPageSource(repository: repositoryA);
+    final sourceB = ViewerPageSource(repository: repositoryB);
+
+    try {
+      await sourceA.setQuery(const ViewerQuery(searchText: "disposed"));
+      await sourceB.setQuery(const ViewerQuery(searchText: "active"));
+      final baselineCountA = repositoryA.countCalls;
+      final baselineFacetsA = repositoryA.facetCalls;
+      final baselineGenerationB = sourceB.summaryGeneration.value;
+      expect(
+        identical(
+          sourceA.invalidationCoordinator,
+          sourceB.invalidationCoordinator,
+        ),
+        isTrue,
+      );
+      expect(sourceB.invalidationCoordinator.registeredSourceCount, 2);
+      var disposedA = false;
+      final service = ViewerBulkService(
+        repository: repositoryB,
+        bulkUpdateBoundary: sourceB,
+        batchSize: 1,
+        deleteItem: (item) async {
+          repositoryB.invalidate();
+          await Future<void>.delayed(Duration.zero);
+          if (!disposedA) {
+            disposedA = true;
+            await sourceA.disposeAndWait();
+          }
+          return true;
+        },
+      );
+
+      await service.delete(
+        AllMatchingViewerSelection(
+          query: const ViewerQuery(),
+          totalCount: rows.length,
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(repositoryA.countCalls, baselineCountA);
+      expect(repositoryA.facetCalls, baselineFacetsA);
+      expect(sourceB.summaryGeneration.value - baselineGenerationB, 1);
+      expect(sourceB.invalidationCoordinator.registeredSourceCount, 1);
+      expect(sourceB.invalidationCoordinator.dirtySourceCount, 0);
+    } finally {
+      await sourceA.disposeAndWait();
+      await sourceB.disposeAndWait();
+      await invalidations.close();
+    }
   });
 
   test("delete batches query rows including virtual parents in one lease",

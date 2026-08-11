@@ -1,5 +1,6 @@
 import "dart:async";
 
+import "package:chenron/features/folder_viewer/services/folder_viewer_service.dart";
 import "package:chenron/features/viewer/mvc/viewer_model.dart";
 import "package:chenron/features/viewer/state/viewer_page_source.dart";
 import "package:database/database.dart";
@@ -396,6 +397,26 @@ void main() {
       expect(repository.facetCalls - baselineFacetCalls, 1);
     });
 
+    test("a debounce scheduled before bulk joins its trailing refresh",
+        () async {
+      final baselineGeneration = source.summaryGeneration.value;
+      final baselineCountCalls = repository.countCalls;
+      final baselineFacetCalls = repository.facetCalls;
+
+      repository.invalidate();
+      await Future<void>.microtask(() {});
+      await source.runBulkUpdate(() async {
+        await Future<void>.delayed(Duration.zero);
+        expect(source.summaryGeneration.value, baselineGeneration);
+        repository.invalidate();
+      });
+      await Future<void>.delayed(Duration.zero);
+
+      expect(source.summaryGeneration.value - baselineGeneration, 1);
+      expect(repository.countCalls - baselineCountCalls, 1);
+      expect(repository.facetCalls - baselineFacetCalls, 1);
+    });
+
     test("summary invalidations retain one active count and one dirty refresh",
         () async {
       final countLoads = <Completer<int>>[];
@@ -433,6 +454,70 @@ void main() {
           if (!completer.isCompleted) completer.complete(100000);
         }
         await Future<void>.delayed(Duration.zero);
+      }
+    });
+
+    test("thousands of summary replacements share one latest queued future",
+        () async {
+      final activeCountGate = Completer<int>();
+      final loadedCountQueries = <String>[];
+      final loadedFacetQueries = <String>[];
+      source.dispose();
+      await repository.close();
+      repository = _FakeViewerPageRepository(
+        countLoader: (query) {
+          loadedCountQueries.add(query.searchText);
+          if (loadedCountQueries.length == 1) return activeCountGate.future;
+          return Future<int>.value(77);
+        },
+        facetLoader: (query) async {
+          loadedFacetQueries.add(query.searchText);
+          return const <ViewerTagFacet>[];
+        },
+      );
+      source = ViewerPageSource(repository: repository);
+      final initialLoad =
+          source.setQuery(const ViewerQuery(searchText: "initial"));
+      await _waitForCondition(
+        () => repository.countCalls == 1,
+        "initial summary did not stall",
+      );
+
+      final queuedFutures = <Future<void>>[];
+      for (var index = 0; index < 2048; index++) {
+        queuedFutures.add(
+          source.setQuery(ViewerQuery(searchText: "query-$index")),
+        );
+      }
+
+      try {
+        expect(source.activeSummaryLoadCount, 1);
+        expect(source.hasDirtySummaryRefresh, isTrue);
+        expect(source.queuedSummaryRequestCount, 1);
+        expect(source.retainedSummaryRequestCount, 2);
+        expect(
+          queuedFutures.skip(1).every(
+                (future) => identical(future, queuedFutures.first),
+              ),
+          isTrue,
+        );
+
+        activeCountGate.complete(1);
+        await initialLoad;
+        await queuedFutures.first;
+        await _waitForCondition(
+          () => source.activeSummaryLoadCount == 0,
+          "latest queued summary did not settle",
+        );
+
+        expect(loadedCountQueries, <String>["initial", "query-2047"]);
+        expect(loadedFacetQueries, <String>["initial", "query-2047"]);
+        expect(source.totalCount.value, 77);
+        expect(source.queuedSummaryRequestCount, 0);
+        expect(source.retainedSummaryRequestCount, 0);
+      } finally {
+        if (!activeCountGate.isCompleted) activeCountGate.complete(1);
+        await initialLoad;
       }
     });
 
@@ -550,6 +635,7 @@ void main() {
         final firstRetry = source.retrySummary();
         final duplicateRetry = source.retrySummary();
 
+        expect(identical(firstRetry, duplicateRetry), isTrue);
         expect(repository.countCalls, 1);
         expect(repository.facetCalls, 1);
         expect(source.activeSummaryLoadCount, 1);
@@ -558,8 +644,6 @@ void main() {
 
         facetGate.complete(const <ViewerTagFacet>[]);
         await initialLoad;
-        await firstRetry;
-        await duplicateRetry;
         await _waitForCondition(
           () => repository.countCalls == 2,
           "queued count retry did not start",
@@ -568,6 +652,8 @@ void main() {
         expect(source.activeSummaryLoadCount, 1);
 
         countRetryGate.complete(42);
+        await firstRetry;
+        await duplicateRetry;
         await _waitForCondition(
           () => source.activeSummaryLoadCount == 0,
           "queued count retry did not settle",
@@ -657,6 +743,7 @@ void main() {
         final firstRetry = source.retrySummary();
         final duplicateRetry = source.retrySummary();
 
+        expect(identical(firstRetry, duplicateRetry), isTrue);
         expect(repository.countCalls, 1);
         expect(repository.facetCalls, 1);
         expect(source.activeSummaryLoadCount, 1);
@@ -665,8 +752,6 @@ void main() {
 
         countGate.complete(42);
         await initialLoad;
-        await firstRetry;
-        await duplicateRetry;
         await _waitForCondition(
           () => repository.facetCalls == 2,
           "queued facet retry did not start",
@@ -675,6 +760,8 @@ void main() {
         expect(source.activeSummaryLoadCount, 1);
 
         facetRetryGate.complete(<ViewerTagFacet>[recoveredFacet]);
+        await firstRetry;
+        await duplicateRetry;
         await _waitForCondition(
           () => source.activeSummaryLoadCount == 0,
           "queued facet retry did not settle",
@@ -778,7 +865,7 @@ void main() {
       final stalePair = source.retrySummary();
       expect(identical(stalePair, source.retrySummary()), isTrue);
 
-      await source.setQuery(const ViewerQuery(searchText: "new"));
+      final latest = source.setQuery(const ViewerQuery(searchText: "new"));
       expect(source.totalCount.value, 0);
       expect(source.countError.value, isNull);
       expect(source.tagFacetsError.value, isNull);
@@ -788,6 +875,7 @@ void main() {
       staleCountRetry.complete(999);
       staleFacetRetry.complete(const <ViewerTagFacet>[]);
       await stalePair;
+      await latest;
       await _waitForCondition(
         () => source.totalCount.value == 9,
         "latest queued summary did not publish",
@@ -1029,12 +1117,13 @@ void main() {
       await source.setQuery(const ViewerQuery(searchText: "old"));
       final retry = source.retrySummary();
 
-      await source.setQuery(const ViewerQuery(searchText: "new"));
+      final latest = source.setQuery(const ViewerQuery(searchText: "new"));
       expect(source.totalCount.value, 0);
       expect(source.countError.value, isNull);
 
       staleRetry.complete(999);
       await retry;
+      await latest;
       await _waitForCondition(
         () => source.totalCount.value == 9,
         "latest queued count did not publish",
@@ -1229,5 +1318,31 @@ void main() {
       const <ViewerItemKey>[],
     );
     await repository.releaseSelectionLease(lease);
+  });
+
+  test("viewer and folder repositories share their database coordinator",
+      () async {
+    final database = AppDatabase(queryExecutor: NativeDatabase.memory());
+    final viewerSource = ViewerPageSource(
+      repository: ViewerModel(database: database),
+    );
+    final folderSource = ViewerPageSource(
+      repository: FolderViewerService(database: database),
+    );
+
+    try {
+      expect(
+        identical(
+          viewerSource.invalidationCoordinator,
+          folderSource.invalidationCoordinator,
+        ),
+        isTrue,
+      );
+      expect(viewerSource.invalidationCoordinator.registeredSourceCount, 2);
+    } finally {
+      await viewerSource.disposeAndWait();
+      await folderSource.disposeAndWait();
+      await database.close();
+    }
   });
 }
