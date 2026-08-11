@@ -153,6 +153,17 @@ Future<void> _waitForLoads(ViewerPageSource source) async {
   fail("page source did not settle");
 }
 
+Future<void> _waitForCondition(
+  bool Function() condition,
+  String failureMessage,
+) async {
+  for (var attempt = 0; attempt < 100; attempt++) {
+    await Future<void>.delayed(Duration.zero);
+    if (condition()) return;
+  }
+  fail(failureMessage);
+}
+
 Future<void> _loadPage(ViewerPageSource source, int pageIndex) async {
   source.itemAt(pageIndex * source.pageSize);
   await _waitForLoads(source);
@@ -364,6 +375,61 @@ void main() {
       expect(source.tagFacetsError.value, isNull);
     });
 
+    test("count retry does not wait for pending initial facets", () async {
+      final facetGate = Completer<List<ViewerTagFacet>>();
+      final countRetryGate = Completer<int>();
+      var countAttempts = 0;
+      source.dispose();
+      await repository.close();
+      repository = _FakeViewerPageRepository(
+        countLoader: (_) {
+          countAttempts++;
+          if (countAttempts == 1) throw StateError("count failed");
+          return countRetryGate.future;
+        },
+        facetLoader: (_) => facetGate.future,
+      );
+      source = ViewerPageSource(repository: repository);
+      final initialLoad = source.setQuery(const ViewerQuery());
+
+      try {
+        await _waitForCondition(
+          () => source.countError.value != null,
+          "count error was not published while facets remained pending",
+        );
+        expect(source.activeSummaryLoadCount, 1);
+        var initialCompleted = false;
+        unawaited(initialLoad.then((_) => initialCompleted = true));
+
+        final firstRetry = source.retrySummary();
+        final duplicateRetry = source.retrySummary();
+
+        expect(identical(firstRetry, duplicateRetry), isTrue);
+        expect(repository.countCalls, 2);
+        expect(repository.facetCalls, 1);
+        expect(source.activeSummaryLoadCount, 2);
+        expect(source.countError.value, isA<StateError>());
+
+        countRetryGate.complete(42);
+        await firstRetry;
+
+        expect(initialCompleted, isFalse);
+        expect(source.totalCount.value, 42);
+        expect(source.countError.value, isNull);
+        expect(source.activeSummaryLoadCount, 1);
+
+        facetGate.complete(const <ViewerTagFacet>[]);
+        await initialLoad;
+        expect(source.activeSummaryLoadCount, 0);
+      } finally {
+        if (!countRetryGate.isCompleted) countRetryGate.complete(42);
+        if (!facetGate.isCompleted) {
+          facetGate.complete(const <ViewerTagFacet>[]);
+        }
+        await initialLoad;
+      }
+    });
+
     test("facet failure retries without discarding a healthy count", () async {
       var facetAttempts = 0;
       final recoveredFacet = ViewerTagFacet(
@@ -398,6 +464,70 @@ void main() {
       expect(source.tagFacets.value, <ViewerTagFacet>[recoveredFacet]);
       expect(repository.countCalls, 1);
       expect(repository.facetCalls, 2);
+    });
+
+    test("facet retry does not wait for a pending initial count", () async {
+      final countGate = Completer<int>();
+      final facetRetryGate = Completer<List<ViewerTagFacet>>();
+      var facetAttempts = 0;
+      final recoveredFacet = ViewerTagFacet(
+        tag: Tag(
+          id: "tag-id-not-name",
+          name: "topic",
+          createdAt: DateTime.utc(2026, 1, 1),
+        ),
+        itemCount: 7,
+      );
+      source.dispose();
+      await repository.close();
+      repository = _FakeViewerPageRepository(
+        countLoader: (_) => countGate.future,
+        facetLoader: (_) {
+          facetAttempts++;
+          if (facetAttempts == 1) throw StateError("facets failed");
+          return facetRetryGate.future;
+        },
+      );
+      source = ViewerPageSource(repository: repository);
+      final initialLoad = source.setQuery(const ViewerQuery());
+
+      try {
+        await _waitForCondition(
+          () => source.tagFacetsError.value != null,
+          "facet error was not published while count remained pending",
+        );
+        expect(source.activeSummaryLoadCount, 1);
+        var initialCompleted = false;
+        unawaited(initialLoad.then((_) => initialCompleted = true));
+
+        final firstRetry = source.retrySummary();
+        final duplicateRetry = source.retrySummary();
+
+        expect(identical(firstRetry, duplicateRetry), isTrue);
+        expect(repository.countCalls, 1);
+        expect(repository.facetCalls, 2);
+        expect(source.activeSummaryLoadCount, 2);
+        expect(source.tagFacetsError.value, isA<StateError>());
+
+        facetRetryGate.complete(<ViewerTagFacet>[recoveredFacet]);
+        await firstRetry;
+
+        expect(initialCompleted, isFalse);
+        expect(source.tagFacets.value, <ViewerTagFacet>[recoveredFacet]);
+        expect(source.tagFacetsError.value, isNull);
+        expect(source.activeSummaryLoadCount, 1);
+
+        countGate.complete(42);
+        await initialLoad;
+        expect(source.totalCount.value, 42);
+        expect(source.activeSummaryLoadCount, 0);
+      } finally {
+        if (!facetRetryGate.isCompleted) {
+          facetRetryGate.complete(<ViewerTagFacet>[recoveredFacet]);
+        }
+        if (!countGate.isCompleted) countGate.complete(42);
+        await initialLoad;
+      }
     });
 
     test("a query change ignores a stale summary retry completion", () async {

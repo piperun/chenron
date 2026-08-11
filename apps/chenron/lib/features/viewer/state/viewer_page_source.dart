@@ -72,8 +72,10 @@ class ViewerPageSource {
   final Map<int, Future<void>> _inFlight = <int, Future<void>>{};
   final Map<int, Object> _loadIdentities = <int, Object>{};
   final Map<int, Object> _pageErrors = <int, Object>{};
-  Future<void>? _summaryLoad;
-  Object? _summaryLoadIdentity;
+  Future<void>? _countLoad;
+  Object? _countLoadIdentity;
+  Future<void>? _tagFacetsLoad;
+  Object? _tagFacetsLoadIdentity;
   StreamSubscription<void>? _invalidationSubscription;
   Future<void>? _invalidationCancellation;
   Object? _subscriptionCancellationError;
@@ -86,7 +88,10 @@ class ViewerPageSource {
   int get cachedRowCount =>
       _pages.values.fold(0, (total, page) => total + page.length);
   int get activeLoadCount => _inFlight.length;
-  int get activeSummaryLoadCount => _summaryLoad == null ? 0 : 1;
+
+  /// Number of independently active count and tag-facet loads (zero to two).
+  int get activeSummaryLoadCount =>
+      (_countLoad == null ? 0 : 1) + (_tagFacetsLoad == null ? 0 : 1);
   int get activeSubscriptionCount => _invalidationSubscription == null ? 0 : 1;
 
   /// Completes after invalidation-subscription cleanup settles during dispose.
@@ -142,16 +147,11 @@ class ViewerPageSource {
   }
 
   Future<void> retrySummary() {
-    final existing = _summaryLoad;
-    if (existing != null) return existing;
     final query = _query;
     if (_disposed || query == null) return Future<void>.value();
     final retryCount = countError.value != null;
     final retryTagFacets = tagFacetsError.value != null;
     if (!retryCount && !retryTagFacets) return Future<void>.value();
-    if (retryCount) countError.value = null;
-    if (retryTagFacets) tagFacetsError.value = null;
-    revision.value++;
     return _startSummaryLoad(
       query,
       _generation,
@@ -176,8 +176,10 @@ class ViewerPageSource {
     _inFlight.clear();
     _loadIdentities.clear();
     _pageErrors.clear();
-    _summaryLoad = null;
-    _summaryLoadIdentity = null;
+    _countLoad = null;
+    _countLoadIdentity = null;
+    _tagFacetsLoad = null;
+    _tagFacetsLoadIdentity = null;
     totalCount.value = 0;
     tagFacets.value = const <ViewerTagFacet>[];
     countError.value = null;
@@ -211,8 +213,10 @@ class ViewerPageSource {
     _inFlight.clear();
     _loadIdentities.clear();
     _pageErrors.clear();
-    _summaryLoad = null;
-    _summaryLoadIdentity = null;
+    _countLoad = null;
+    _countLoadIdentity = null;
+    _tagFacetsLoad = null;
+    _tagFacetsLoadIdentity = null;
     totalCount.value = 0;
     tagFacets.value = const <ViewerTagFacet>[];
     countError.value = null;
@@ -227,51 +231,103 @@ class ViewerPageSource {
     required bool loadCount,
     required bool loadTagFacets,
   }) {
-    final existing = _summaryLoad;
+    final loads = <Future<void>>[
+      if (loadCount) _startCountLoad(query, generation),
+      if (loadTagFacets) _startTagFacetsLoad(query, generation),
+    ];
+    if (loads.isEmpty) return Future<void>.value();
+    if (loads.length == 1) return loads.single;
+    return Future.wait<void>(loads);
+  }
+
+  Future<void> _startCountLoad(ViewerQuery query, Object generation) {
+    final existing = _countLoad;
     if (existing != null) return existing;
     final loadIdentity = Object();
-    late final Future<void> load;
-    load = Future.wait<void>(<Future<void>>[
-      if (loadCount) _loadCount(query, generation),
-      if (loadTagFacets) _loadTagFacets(query, generation),
-    ]).whenComplete(() => _finishSummaryLoad(loadIdentity));
-    _summaryLoadIdentity = loadIdentity;
-    _summaryLoad = load;
+    final loadCompleter = Completer<void>();
+    final load = loadCompleter.future;
+    _countLoadIdentity = loadIdentity;
+    _countLoad = load;
+    unawaited(
+      _loadCount(query, generation, loadIdentity).then<void>(
+        (_) => loadCompleter.complete(),
+        onError: loadCompleter.completeError,
+      ),
+    );
     return load;
   }
 
-  void _finishSummaryLoad(Object loadIdentity) {
-    if (!identical(_summaryLoadIdentity, loadIdentity)) return;
-    _summaryLoadIdentity = null;
-    _summaryLoad = null;
+  Future<void> _startTagFacetsLoad(ViewerQuery query, Object generation) {
+    final existing = _tagFacetsLoad;
+    if (existing != null) return existing;
+    final loadIdentity = Object();
+    final loadCompleter = Completer<void>();
+    final load = loadCompleter.future;
+    _tagFacetsLoadIdentity = loadIdentity;
+    _tagFacetsLoad = load;
+    unawaited(
+      _loadTagFacets(query, generation, loadIdentity).then<void>(
+        (_) => loadCompleter.complete(),
+        onError: loadCompleter.completeError,
+      ),
+    );
+    return load;
   }
 
-  Future<void> _loadCount(ViewerQuery query, Object generation) async {
+  Future<void> _loadCount(
+    ViewerQuery query,
+    Object generation,
+    Object loadIdentity,
+  ) async {
+    if (!_isCurrent(generation)) return;
     try {
       final count = await _repository.count(query);
       if (!_isCurrent(generation)) return;
+      if (!_finishCountLoad(loadIdentity)) return;
       totalCount.value = count;
       countError.value = null;
       revision.value++;
     } catch (caughtError) {
       if (!_isCurrent(generation)) return;
+      if (!_finishCountLoad(loadIdentity)) return;
       countError.value = caughtError;
       revision.value++;
     }
   }
 
-  Future<void> _loadTagFacets(ViewerQuery query, Object generation) async {
+  Future<void> _loadTagFacets(
+    ViewerQuery query,
+    Object generation,
+    Object loadIdentity,
+  ) async {
+    if (!_isCurrent(generation)) return;
     try {
       final facets = await _repository.loadTagFacets(query);
       if (!_isCurrent(generation)) return;
+      if (!_finishTagFacetsLoad(loadIdentity)) return;
       tagFacets.value = List<ViewerTagFacet>.unmodifiable(facets);
       tagFacetsError.value = null;
       revision.value++;
     } catch (caughtError) {
       if (!_isCurrent(generation)) return;
+      if (!_finishTagFacetsLoad(loadIdentity)) return;
       tagFacetsError.value = caughtError;
       revision.value++;
     }
+  }
+
+  bool _finishCountLoad(Object loadIdentity) {
+    if (!identical(_countLoadIdentity, loadIdentity)) return false;
+    _countLoadIdentity = null;
+    _countLoad = null;
+    return true;
+  }
+
+  bool _finishTagFacetsLoad(Object loadIdentity) {
+    if (!identical(_tagFacetsLoadIdentity, loadIdentity)) return false;
+    _tagFacetsLoadIdentity = null;
+    _tagFacetsLoad = null;
+    return true;
   }
 
   Future<void> _startPageLoad(int pageIndex) {

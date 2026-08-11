@@ -31,6 +31,8 @@ class _PagedRepository implements ViewerPageRepository {
   final StreamController<void> invalidationController =
       StreamController<void>.broadcast();
   Completer<List<FolderItem>>? pageGate;
+  Completer<int>? countGate;
+  Completer<List<ViewerTagFacet>>? facetGate;
   bool failNextPage = false;
   bool failNextCount = false;
   bool failNextFacets = false;
@@ -45,6 +47,8 @@ class _PagedRepository implements ViewerPageRepository {
       failNextCount = false;
       throw StateError("count failed");
     }
+    final gate = countGate;
+    if (gate != null) return gate.future;
     return 100000;
   }
 
@@ -55,6 +59,8 @@ class _PagedRepository implements ViewerPageRepository {
       failNextFacets = false;
       throw StateError("facets failed");
     }
+    final gate = facetGate;
+    if (gate != null) return gate.future;
     return facets;
   }
 
@@ -252,6 +258,63 @@ void main() {
       findsNothing,
     );
     expect(find.byType(ViewerItem), findsWidgets);
+  });
+
+  testWidgets("visible count retry starts while facets remain pending",
+      (tester) async {
+    _unmountAfterTest(tester);
+    await _useWideSurface(tester);
+    final countRetryGate = Completer<int>();
+    final facetGate = Completer<List<ViewerTagFacet>>();
+    repository = _PagedRepository()
+      ..failNextCount = true
+      ..countGate = countRetryGate
+      ..facetGate = facetGate;
+    presenter = ViewerPresenter(repository: repository);
+    final initialization = presenter.init();
+
+    try {
+      for (var attempt = 0; attempt < 20; attempt++) {
+        await tester.pump();
+        if (presenter.pageSource.countError.value != null) break;
+      }
+      await tester.pumpWidget(_host(presenter));
+      await tester.pump();
+      expect(
+        find.byKey(const ValueKey("viewer-summary-error")),
+        findsOneWidget,
+      );
+
+      await tester.tap(
+        find.byKey(const ValueKey("viewer-summary-retry")),
+      );
+      await tester.pump();
+
+      expect(repository.countCalls, 2);
+      expect(repository.facetCalls, 1);
+      expect(presenter.pageSource.activeSummaryLoadCount, 2);
+      expect(presenter.pageSource.countError.value, isA<StateError>());
+
+      countRetryGate.complete(100000);
+      await tester.pump();
+      await tester.pump();
+
+      expect(
+        find.byKey(const ValueKey("viewer-summary-error")),
+        findsNothing,
+      );
+      expect(presenter.pageSource.activeSummaryLoadCount, 1);
+
+      facetGate.complete(const <ViewerTagFacet>[]);
+      await initialization;
+      expect(presenter.pageSource.activeSummaryLoadCount, 0);
+    } finally {
+      if (!countRetryGate.isCompleted) countRetryGate.complete(100000);
+      if (!facetGate.isCompleted) {
+        facetGate.complete(const <ViewerTagFacet>[]);
+      }
+      await initialization;
+    }
   });
 
   testWidgets("facet failure keeps rows visible and recovers tag modal",
