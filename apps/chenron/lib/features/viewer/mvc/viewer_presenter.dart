@@ -106,18 +106,16 @@ class ViewerPresenter {
 
   void _synchronizeQuery() {
     final parsed = QueryParser.parseTags(searchFilter.controller.query.value);
+    final resolvedTags = tagFilterState.resolveMergedTags(
+      included: parsed.includedTags,
+      excluded: parsed.excludedTags,
+    );
     final nextQuery = ViewerQuery(
       folderId: _folderId,
       searchText: parsed.cleanQuery,
       types: Set<FolderItemType>.of(selectedTypes.value),
-      includedTags: <String>{
-        ...tagFilterState.includedTags.value,
-        ...parsed.includedTags,
-      },
-      excludedTags: <String>{
-        ...tagFilterState.excludedTags.value,
-        ...parsed.excludedTags,
-      },
+      includedTags: resolvedTags.included,
+      excludedTags: resolvedTags.excluded,
       sort: _viewerSort(sortMode.value),
     );
     if (_lastAppliedQuery == nextQuery) return;

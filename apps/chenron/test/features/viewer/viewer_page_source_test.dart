@@ -6,6 +6,7 @@ import "package:database/database.dart";
 import "package:database/features.dart";
 import "package:drift/native.dart";
 import "package:flutter_test/flutter_test.dart";
+import "package:signals/signals.dart";
 
 typedef _PageLoader = Future<List<FolderItem>> Function(
   ViewerQuery query,
@@ -528,6 +529,318 @@ void main() {
         if (!countGate.isCompleted) countGate.complete(42);
         await initialLoad;
       }
+    });
+
+    test("dual summary retries reuse the same aggregate until its pair changes",
+        () async {
+      final firstCountRetry = Completer<int>();
+      final firstFacetRetry = Completer<List<ViewerTagFacet>>();
+      final secondCountRetry = Completer<int>();
+      final secondFacetRetry = Completer<List<ViewerTagFacet>>();
+      var countAttempts = 0;
+      var facetAttempts = 0;
+      source.dispose();
+      await repository.close();
+      repository = _FakeViewerPageRepository(
+        countLoader: (_) {
+          countAttempts++;
+          if (countAttempts == 1) throw StateError("count failed initially");
+          if (countAttempts == 2) return firstCountRetry.future;
+          return secondCountRetry.future;
+        },
+        facetLoader: (_) {
+          facetAttempts++;
+          if (facetAttempts == 1) throw StateError("facets failed initially");
+          if (facetAttempts == 2) return firstFacetRetry.future;
+          return secondFacetRetry.future;
+        },
+      );
+      source = ViewerPageSource(repository: repository);
+      await source.setQuery(const ViewerQuery());
+
+      final firstPair = source.retrySummary();
+      final duplicateFirstPair = source.retrySummary();
+
+      expect(identical(firstPair, duplicateFirstPair), isTrue);
+      expect(repository.countCalls, 2);
+      expect(repository.facetCalls, 2);
+
+      firstCountRetry.completeError(StateError("count retry failed"));
+      firstFacetRetry.completeError(StateError("facet retry failed"));
+      await firstPair;
+
+      final secondPair = source.retrySummary();
+      final duplicateSecondPair = source.retrySummary();
+
+      expect(identical(secondPair, firstPair), isFalse);
+      expect(identical(secondPair, duplicateSecondPair), isTrue);
+      expect(repository.countCalls, 3);
+      expect(repository.facetCalls, 3);
+
+      secondCountRetry.complete(17);
+      secondFacetRetry.complete(const <ViewerTagFacet>[]);
+      await secondPair;
+      expect(source.totalCount.value, 17);
+      expect(source.countError.value, isNull);
+      expect(source.tagFacetsError.value, isNull);
+    });
+
+    test("a query change invalidates a stale dual-summary aggregate", () async {
+      final staleCountRetry = Completer<int>();
+      final staleFacetRetry = Completer<List<ViewerTagFacet>>();
+      var oldCountAttempts = 0;
+      var oldFacetAttempts = 0;
+      source.dispose();
+      await repository.close();
+      repository = _FakeViewerPageRepository(
+        countLoader: (query) {
+          if (query.searchText == "old") {
+            oldCountAttempts++;
+            if (oldCountAttempts == 1) throw StateError("old count failed");
+            return staleCountRetry.future;
+          }
+          return Future<int>.value(9);
+        },
+        facetLoader: (query) {
+          if (query.searchText == "old") {
+            oldFacetAttempts++;
+            if (oldFacetAttempts == 1) throw StateError("old facets failed");
+            return staleFacetRetry.future;
+          }
+          return Future<List<ViewerTagFacet>>.value(
+            const <ViewerTagFacet>[],
+          );
+        },
+      );
+      source = ViewerPageSource(repository: repository);
+      await source.setQuery(const ViewerQuery(searchText: "old"));
+      final stalePair = source.retrySummary();
+      expect(identical(stalePair, source.retrySummary()), isTrue);
+
+      await source.setQuery(const ViewerQuery(searchText: "new"));
+      expect(source.totalCount.value, 9);
+      expect(source.countError.value, isNull);
+      expect(source.tagFacetsError.value, isNull);
+
+      staleCountRetry.complete(999);
+      staleFacetRetry.complete(const <ViewerTagFacet>[]);
+      await stalePair;
+
+      expect(source.totalCount.value, 9);
+      expect(source.countError.value, isNull);
+      expect(source.tagFacetsError.value, isNull);
+      expect(source.activeSummaryLoadCount, 0);
+    });
+
+    test("count publication cannot write revision after a reentrant query",
+        () async {
+      final oldCount = Completer<int>();
+      final oldFacets = Completer<List<ViewerTagFacet>>();
+      final newCount = Completer<int>();
+      final newFacets = Completer<List<ViewerTagFacet>>();
+      source.dispose();
+      await repository.close();
+      repository = _FakeViewerPageRepository(
+        countLoader: (query) =>
+            query.searchText == "old" ? oldCount.future : newCount.future,
+        facetLoader: (query) =>
+            query.searchText == "old" ? oldFacets.future : newFacets.future,
+      );
+      source = ViewerPageSource(repository: repository);
+      final initialLoad = source.setQuery(const ViewerQuery(searchText: "old"));
+      Future<void>? replacementLoad;
+      int? revisionAfterReplacement;
+      var reacted = false;
+      final unsubscribe = source.totalCount.subscribe((count) {
+        if (reacted || count != 7) return;
+        reacted = true;
+        replacementLoad = source.setQuery(const ViewerQuery(searchText: "new"));
+        revisionAfterReplacement = source.revision.value;
+      });
+
+      try {
+        oldCount.complete(7);
+        await _waitForCondition(
+          () => reacted,
+          "count result did not trigger the reentrant query",
+        );
+
+        expect(source.revision.value, revisionAfterReplacement);
+      } finally {
+        unsubscribe();
+        oldFacets.complete(const <ViewerTagFacet>[]);
+        newCount.complete(11);
+        newFacets.complete(const <ViewerTagFacet>[]);
+        await initialLoad;
+        await replacementLoad;
+      }
+      expect(source.totalCount.value, 11);
+    });
+
+    test("facet publication cannot write revision after a reentrant query",
+        () async {
+      final oldCount = Completer<int>();
+      final oldFacets = Completer<List<ViewerTagFacet>>();
+      final newCount = Completer<int>();
+      final newFacets = Completer<List<ViewerTagFacet>>();
+      final oldFacet = ViewerTagFacet(
+        tag: Tag(
+          id: "old-tag-id",
+          name: "old-tag",
+          createdAt: DateTime.utc(2026, 1, 1),
+        ),
+        itemCount: 1,
+      );
+      source.dispose();
+      await repository.close();
+      repository = _FakeViewerPageRepository(
+        countLoader: (query) =>
+            query.searchText == "old" ? oldCount.future : newCount.future,
+        facetLoader: (query) =>
+            query.searchText == "old" ? oldFacets.future : newFacets.future,
+      );
+      source = ViewerPageSource(repository: repository);
+      final initialLoad = source.setQuery(const ViewerQuery(searchText: "old"));
+      Future<void>? replacementLoad;
+      int? revisionAfterReplacement;
+      var reacted = false;
+      final unsubscribe = source.tagFacets.subscribe((facets) {
+        if (reacted || facets.isEmpty) return;
+        reacted = true;
+        replacementLoad = source.setQuery(const ViewerQuery(searchText: "new"));
+        revisionAfterReplacement = source.revision.value;
+      });
+
+      try {
+        oldFacets.complete(<ViewerTagFacet>[oldFacet]);
+        await _waitForCondition(
+          () => reacted,
+          "facet result did not trigger the reentrant query",
+        );
+
+        expect(source.revision.value, revisionAfterReplacement);
+      } finally {
+        unsubscribe();
+        oldCount.complete(7);
+        newCount.complete(11);
+        newFacets.complete(const <ViewerTagFacet>[]);
+        await initialLoad;
+        await replacementLoad;
+      }
+      expect(source.totalCount.value, 11);
+      expect(source.tagFacets.value, isEmpty);
+    });
+
+    test("count error publication may dispose the source reentrantly",
+        () async {
+      final facetGate = Completer<List<ViewerTagFacet>>();
+      source.dispose();
+      await repository.close();
+      repository = _FakeViewerPageRepository(
+        countLoader: (_) => throw StateError("count failed"),
+        facetLoader: (_) => facetGate.future,
+      );
+      source = ViewerPageSource(repository: repository);
+      late final void Function() disposeEffect;
+      disposeEffect = effect(() {
+        final error = source.countError.value;
+        if (error == null) return;
+        disposeEffect();
+        source.dispose();
+      });
+
+      final load = source.setQuery(const ViewerQuery());
+      await _waitForCondition(
+        () => source.countError.disposed,
+        "count error did not trigger reentrant disposal",
+      );
+      facetGate.complete(const <ViewerTagFacet>[]);
+
+      await expectLater(load, completes);
+      expect(source.revision.disposed, isTrue);
+    });
+
+    test("facet error publication may dispose the source reentrantly",
+        () async {
+      final countGate = Completer<int>();
+      source.dispose();
+      await repository.close();
+      repository = _FakeViewerPageRepository(
+        countLoader: (_) => countGate.future,
+        facetLoader: (_) => throw StateError("facets failed"),
+      );
+      source = ViewerPageSource(repository: repository);
+      late final void Function() disposeEffect;
+      disposeEffect = effect(() {
+        final error = source.tagFacetsError.value;
+        if (error == null) return;
+        disposeEffect();
+        source.dispose();
+      });
+
+      final load = source.setQuery(const ViewerQuery());
+      await _waitForCondition(
+        () => source.tagFacetsError.disposed,
+        "facet error did not trigger reentrant disposal",
+      );
+      countGate.complete(7);
+
+      await expectLater(load, completes);
+      expect(source.revision.disposed, isTrue);
+    });
+
+    test("a generation reset may dispose without starting stale summaries",
+        () async {
+      expect(source.totalCount.value, 100000);
+      final countCallsBeforeReset = repository.countCalls;
+      final facetCallsBeforeReset = repository.facetCalls;
+      var disposedDuringReset = false;
+      final unsubscribe = source.totalCount.subscribe((count) {
+        if (disposedDuringReset || count != 0) return;
+        disposedDuringReset = true;
+        source.dispose();
+      });
+
+      await expectLater(
+        source.setQuery(const ViewerQuery(searchText: "replacement")),
+        completes,
+      );
+
+      unsubscribe();
+      expect(disposedDuringReset, isTrue);
+      expect(source.activeSummaryLoadCount, 0);
+      expect(repository.countCalls, countCallsBeforeReset);
+      expect(repository.facetCalls, facetCallsBeforeReset);
+      expect(source.revision.disposed, isTrue);
+    });
+
+    test("summary publication does not hide subscriber failures", () async {
+      final countGate = Completer<int>();
+      final subscriberFailure = StateError("count subscriber failed");
+      source.dispose();
+      await repository.close();
+      repository = _FakeViewerPageRepository(
+        countLoader: (_) => countGate.future,
+      );
+      source = ViewerPageSource(repository: repository);
+      final unsubscribe = source.totalCount.subscribe((count) {
+        if (count == 7) throw subscriberFailure;
+      });
+
+      final load = source.setQuery(const ViewerQuery());
+      countGate.complete(7);
+
+      await expectLater(
+        load,
+        throwsA(
+          isA<SignalEffectException>().having(
+            (error) => error.error,
+            "original error",
+            same(subscriberFailure),
+          ),
+        ),
+      );
+      unsubscribe();
     });
 
     test("a query change ignores a stale summary retry completion", () async {

@@ -1,5 +1,16 @@
-import "package:signals/signals.dart";
 import "package:chenron/shared/search/query_parser.dart";
+import "package:signals/signals.dart";
+
+class ResolvedTagFilters {
+  ResolvedTagFilters({
+    required Iterable<String> included,
+    required Iterable<String> excluded,
+  })  : included = Set<String>.unmodifiable(included),
+        excluded = Set<String>.unmodifiable(excluded);
+
+  final Set<String> included;
+  final Set<String> excluded;
+}
 
 /// State management for tag filters using signals
 ///
@@ -38,20 +49,12 @@ class TagFilterNotifier {
 
   /// Add many tags to the included set (and remove them from excluded)
   void includeMany(Iterable<String> tags) {
-    _moveTags(
-      tags: tags,
-      target: _includedTags,
-      opposite: _excludedTags,
-    );
+    _publish(resolveMergedTags(included: tags));
   }
 
   /// Add many tags to the excluded set (and remove them from included)
   void excludeMany(Iterable<String> tags) {
-    _moveTags(
-      tags: tags,
-      target: _excludedTags,
-      opposite: _includedTags,
-    );
+    _publish(resolveMergedTags(excluded: tags));
   }
 
   /// Remove a tag from the included set
@@ -113,12 +116,25 @@ class TagFilterNotifier {
     required Set<String> included,
     required Set<String> excluded,
   }) {
-    final updatedIncluded = _collapseTags(included);
-    final updatedExcluded = _withoutTags(excluded, updatedIncluded);
-    batch(() {
-      _includedTags.value = updatedIncluded;
-      _excludedTags.value = updatedExcluded;
-    });
+    _publish(_resolveTagMoves(included: included, excluded: excluded));
+  }
+
+  /// Resolves additional filters without mutating the persistent tag state.
+  ///
+  /// Incoming exclusions move matching persistent inclusions, then incoming
+  /// inclusions move matching exclusions. Inclusion therefore wins conflicts
+  /// within one update, while an existing spelling is retained for a moved
+  /// logical tag.
+  ResolvedTagFilters resolveMergedTags({
+    Iterable<String> included = const <String>[],
+    Iterable<String> excluded = const <String>[],
+  }) {
+    return _resolveTagMoves(
+      baseIncluded: _includedTags.value,
+      baseExcluded: _excludedTags.value,
+      included: included,
+      excluded: excluded,
+    );
   }
 
   /// Parse and add tags from a query string
@@ -127,31 +143,58 @@ class TagFilterNotifier {
   /// adds them to the state, and returns the clean query.
   String parseAndAddFromQuery(String query) {
     final parsed = QueryParser.parseTags(query);
-    final includedIdentities = parsed.includedTags.map(_identity).toSet();
-    final excluded = parsed.excludedTags.where(
-      (tag) => !includedIdentities.contains(_identity(tag)),
+    _publish(
+      resolveMergedTags(
+        included: parsed.includedTags,
+        excluded: parsed.excludedTags,
+      ),
     );
-    batch(() {
-      if (excluded.isNotEmpty) excludeMany(excluded);
-      if (parsed.includedTags.isNotEmpty) includeMany(parsed.includedTags);
-    });
     return parsed.cleanQuery;
   }
 
-  void _moveTags({
-    required Iterable<String> tags,
-    required Signal<Set<String>> target,
-    required Signal<Set<String>> opposite,
+  ResolvedTagFilters _resolveTagMoves({
+    Iterable<String> baseIncluded = const <String>[],
+    Iterable<String> baseExcluded = const <String>[],
+    required Iterable<String> included,
+    required Iterable<String> excluded,
   }) {
-    final moved = _collapseTags(
-      tags,
-      preferredSpellings: <String>[...target.value, ...opposite.value],
+    var resolvedIncluded = _collapseTags(baseIncluded);
+    var resolvedExcluded = _withoutTags(baseExcluded, resolvedIncluded);
+    final includedMoves = _collapseTags(
+      included,
+      preferredSpellings: <String>[
+        ...resolvedIncluded,
+        ...resolvedExcluded,
+      ],
     );
-    final updatedTarget = _withoutTags(target.value, moved)..addAll(moved);
-    final updatedOpposite = _withoutTags(opposite.value, moved);
+    final includedIdentities = includedMoves.map(_identity).toSet();
+    final excludedMoves = _collapseTags(
+      excluded.where(
+        (tag) => !includedIdentities.contains(_identity(tag)),
+      ),
+      preferredSpellings: <String>[
+        ...resolvedExcluded,
+        ...resolvedIncluded,
+      ],
+    );
+
+    resolvedIncluded = _withoutTags(resolvedIncluded, excludedMoves);
+    resolvedExcluded = _withoutTags(resolvedExcluded, excludedMoves)
+      ..addAll(excludedMoves);
+    resolvedExcluded = _withoutTags(resolvedExcluded, includedMoves);
+    resolvedIncluded = _withoutTags(resolvedIncluded, includedMoves)
+      ..addAll(includedMoves);
+
+    return ResolvedTagFilters(
+      included: resolvedIncluded,
+      excluded: resolvedExcluded,
+    );
+  }
+
+  void _publish(ResolvedTagFilters resolved) {
     batch(() {
-      target.value = updatedTarget;
-      opposite.value = updatedOpposite;
+      _includedTags.value = resolved.included;
+      _excludedTags.value = resolved.excluded;
     });
   }
 

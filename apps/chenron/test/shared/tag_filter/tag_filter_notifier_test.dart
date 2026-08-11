@@ -315,6 +315,24 @@ void main() {
       state.dispose();
     });
 
+    test("resolveMergedTags applies moves without mutating persistent state",
+        () {
+      final state = TagFilterNotifier();
+      state.addExcluded("topic");
+
+      final resolved = state.resolveMergedTags(
+        included: const <String>{"TOPIC", "chosen"},
+        excluded: const <String>{"topic", "hidden"},
+      );
+
+      expect(resolved.included, const <String>{"topic", "chosen"});
+      expect(resolved.excluded, const <String>{"hidden"});
+      expect(state.includedTagNames, isEmpty);
+      expect(state.excludedTagNames, const <String>{"topic"});
+
+      state.dispose();
+    });
+
     test("clear removes all tags", () {
       final state = TagFilterNotifier();
 

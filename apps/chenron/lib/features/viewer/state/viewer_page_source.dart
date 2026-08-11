@@ -76,6 +76,7 @@ class ViewerPageSource {
   Object? _countLoadIdentity;
   Future<void>? _tagFacetsLoad;
   Object? _tagFacetsLoadIdentity;
+  _SummaryAggregateLoad? _summaryAggregateLoad;
   StreamSubscription<void>? _invalidationSubscription;
   Future<void>? _invalidationCancellation;
   Object? _subscriptionCancellationError;
@@ -180,11 +181,14 @@ class ViewerPageSource {
     _countLoadIdentity = null;
     _tagFacetsLoad = null;
     _tagFacetsLoadIdentity = null;
-    totalCount.value = 0;
-    tagFacets.value = const <ViewerTagFacet>[];
-    countError.value = null;
-    tagFacetsError.value = null;
-    revision.value++;
+    _summaryAggregateLoad = null;
+    batch(() {
+      totalCount.value = 0;
+      tagFacets.value = const <ViewerTagFacet>[];
+      countError.value = null;
+      tagFacetsError.value = null;
+      revision.value++;
+    });
     revision.dispose();
     totalCount.dispose();
     countError.dispose();
@@ -217,11 +221,14 @@ class ViewerPageSource {
     _countLoadIdentity = null;
     _tagFacetsLoad = null;
     _tagFacetsLoadIdentity = null;
-    totalCount.value = 0;
-    tagFacets.value = const <ViewerTagFacet>[];
-    countError.value = null;
-    tagFacetsError.value = null;
-    revision.value++;
+    _summaryAggregateLoad = null;
+    batch(() {
+      totalCount.value = 0;
+      tagFacets.value = const <ViewerTagFacet>[];
+      countError.value = null;
+      tagFacetsError.value = null;
+      revision.value++;
+    });
     return generation;
   }
 
@@ -231,13 +238,42 @@ class ViewerPageSource {
     required bool loadCount,
     required bool loadTagFacets,
   }) {
-    final loads = <Future<void>>[
-      if (loadCount) _startCountLoad(query, generation),
-      if (loadTagFacets) _startTagFacetsLoad(query, generation),
-    ];
-    if (loads.isEmpty) return Future<void>.value();
-    if (loads.length == 1) return loads.single;
-    return Future.wait<void>(loads);
+    if (!_isCurrent(generation)) return Future<void>.value();
+    final countLoad = loadCount ? _startCountLoad(query, generation) : null;
+    final tagFacetsLoad =
+        loadTagFacets ? _startTagFacetsLoad(query, generation) : null;
+    if (countLoad == null && tagFacetsLoad == null) {
+      return Future<void>.value();
+    }
+    if (countLoad == null) return tagFacetsLoad!;
+    if (tagFacetsLoad == null) return countLoad;
+
+    final existing = _summaryAggregateLoad;
+    if (existing != null &&
+        identical(existing.countLoad, countLoad) &&
+        identical(existing.tagFacetsLoad, tagFacetsLoad)) {
+      return existing.future;
+    }
+
+    final aggregateFuture = Future.wait<void>(<Future<void>>[
+      countLoad,
+      tagFacetsLoad,
+    ]);
+    final aggregate = _SummaryAggregateLoad(
+      countLoad: countLoad,
+      tagFacetsLoad: tagFacetsLoad,
+      future: aggregateFuture,
+    );
+    _summaryAggregateLoad = aggregate;
+    unawaited(
+      aggregateFuture.then<void>(
+        (_) => _finishSummaryAggregateLoad(aggregate),
+        onError: (Object _, StackTrace __) {
+          _finishSummaryAggregateLoad(aggregate);
+        },
+      ),
+    );
+    return aggregateFuture;
   }
 
   Future<void> _startCountLoad(ViewerQuery query, Object generation) {
@@ -280,19 +316,27 @@ class ViewerPageSource {
     Object loadIdentity,
   ) async {
     if (!_isCurrent(generation)) return;
+    late final int count;
     try {
-      final count = await _repository.count(query);
-      if (!_isCurrent(generation)) return;
-      if (!_finishCountLoad(loadIdentity)) return;
-      totalCount.value = count;
-      countError.value = null;
-      revision.value++;
+      count = await _repository.count(query);
     } catch (caughtError) {
       if (!_isCurrent(generation)) return;
       if (!_finishCountLoad(loadIdentity)) return;
-      countError.value = caughtError;
-      revision.value++;
+      if (!_isCurrent(generation)) return;
+      batch(() {
+        countError.value = caughtError;
+        revision.value++;
+      });
+      return;
     }
+    if (!_isCurrent(generation)) return;
+    if (!_finishCountLoad(loadIdentity)) return;
+    if (!_isCurrent(generation)) return;
+    batch(() {
+      totalCount.value = count;
+      countError.value = null;
+      revision.value++;
+    });
   }
 
   Future<void> _loadTagFacets(
@@ -301,18 +345,32 @@ class ViewerPageSource {
     Object loadIdentity,
   ) async {
     if (!_isCurrent(generation)) return;
+    late final List<ViewerTagFacet> facets;
     try {
-      final facets = await _repository.loadTagFacets(query);
-      if (!_isCurrent(generation)) return;
-      if (!_finishTagFacetsLoad(loadIdentity)) return;
-      tagFacets.value = List<ViewerTagFacet>.unmodifiable(facets);
-      tagFacetsError.value = null;
-      revision.value++;
+      facets = await _repository.loadTagFacets(query);
     } catch (caughtError) {
       if (!_isCurrent(generation)) return;
       if (!_finishTagFacetsLoad(loadIdentity)) return;
-      tagFacetsError.value = caughtError;
+      if (!_isCurrent(generation)) return;
+      batch(() {
+        tagFacetsError.value = caughtError;
+        revision.value++;
+      });
+      return;
+    }
+    if (!_isCurrent(generation)) return;
+    if (!_finishTagFacetsLoad(loadIdentity)) return;
+    if (!_isCurrent(generation)) return;
+    batch(() {
+      tagFacets.value = List<ViewerTagFacet>.unmodifiable(facets);
+      tagFacetsError.value = null;
       revision.value++;
+    });
+  }
+
+  void _finishSummaryAggregateLoad(_SummaryAggregateLoad aggregate) {
+    if (identical(_summaryAggregateLoad, aggregate)) {
+      _summaryAggregateLoad = null;
     }
   }
 
@@ -403,4 +461,16 @@ class ViewerPageSource {
       ));
     });
   }
+}
+
+final class _SummaryAggregateLoad {
+  const _SummaryAggregateLoad({
+    required this.countLoad,
+    required this.tagFacetsLoad,
+    required this.future,
+  });
+
+  final Future<void> countLoad;
+  final Future<void> tagFacetsLoad;
+  final Future<void> future;
 }

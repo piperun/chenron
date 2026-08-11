@@ -103,7 +103,7 @@ void main() {
     presenter.tagFilterState.addExcluded(tagName);
     await tester.pumpAndSettle();
     expect(presenter.pageSource.totalCount.value, 1);
-    presenter.onSearchSubmitted("#TOPIC");
+    presenter.searchFilter.controller.value = "#TOPIC";
     await tester.pumpAndSettle();
 
     expect(presenter.pageSource.totalCount.value, 1);

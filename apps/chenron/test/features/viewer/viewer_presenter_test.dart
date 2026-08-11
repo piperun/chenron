@@ -212,6 +212,61 @@ void main() {
     expect(repository.facetQueries.last, presenter.query.value);
   });
 
+  test("live included tag moves a persistent case-variant exclusion", () async {
+    presenter = ViewerPresenter(repository: repository);
+    await presenter.init();
+    presenter.tagFilterState.addExcluded("topic");
+    await Future<void>.delayed(Duration.zero);
+    final countLoadsBeforeTyping = repository.countQueries.length;
+    final facetLoadsBeforeTyping = repository.facetQueries.length;
+
+    presenter.searchFilter.controller.value = "#TOPIC";
+    await Future<void>.delayed(Duration.zero);
+
+    expect(
+      presenter.query.value,
+      const ViewerQuery(includedTags: <String>{"topic"}),
+    );
+    expect(repository.countQueries, hasLength(countLoadsBeforeTyping + 1));
+    expect(repository.facetQueries, hasLength(facetLoadsBeforeTyping + 1));
+  });
+
+  test("live excluded tag moves a persistent case-variant inclusion", () async {
+    presenter = ViewerPresenter(repository: repository);
+    await presenter.init();
+    presenter.tagFilterState.addIncluded("topic");
+    await Future<void>.delayed(Duration.zero);
+    final countLoadsBeforeTyping = repository.countQueries.length;
+    final facetLoadsBeforeTyping = repository.facetQueries.length;
+
+    presenter.searchFilter.controller.value = "-#TOPIC";
+    await Future<void>.delayed(Duration.zero);
+
+    expect(
+      presenter.query.value,
+      const ViewerQuery(excludedTags: <String>{"topic"}),
+    );
+    expect(repository.countQueries, hasLength(countLoadsBeforeTyping + 1));
+    expect(repository.facetQueries, hasLength(facetLoadsBeforeTyping + 1));
+  });
+
+  test("live parsed conflicts give inclusion one final query", () async {
+    presenter = ViewerPresenter(repository: repository);
+    await presenter.init();
+    final countLoadsBeforeTyping = repository.countQueries.length;
+    final facetLoadsBeforeTyping = repository.facetQueries.length;
+
+    presenter.searchFilter.controller.value = "#Topic -#TOPIC";
+    await Future<void>.delayed(Duration.zero);
+
+    expect(
+      presenter.query.value,
+      const ViewerQuery(includedTags: <String>{"Topic"}),
+    );
+    expect(repository.countQueries, hasLength(countLoadsBeforeTyping + 1));
+    expect(repository.facetQueries, hasLength(facetLoadsBeforeTyping + 1));
+  });
+
   test("folder presenter keeps the folder scope across query changes",
       () async {
     final searchFilter = SearchFilter();
