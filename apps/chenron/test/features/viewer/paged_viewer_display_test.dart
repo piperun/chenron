@@ -129,7 +129,6 @@ class _PagedRepository implements ViewerPageRepository {
 
 Widget _host(
   ViewerPresenter presenter, {
-  List<FolderItem> prefixItems = const <FolderItem>[],
   ValueChanged<ViewerSelectionTarget>? onDeleteRequested,
 }) =>
     MaterialApp(
@@ -137,7 +136,6 @@ Widget _host(
         body: PagedViewerDisplay(
           presenter: presenter,
           showSearch: false,
-          prefixItems: prefixItems,
           onDeleteRequested: onDeleteRequested,
         ),
       ),
@@ -279,7 +277,7 @@ void main() {
     expect(find.byType(ViewerItem), findsWidgets);
   });
 
-  testWidgets("visible count retry starts while facets remain pending",
+  testWidgets("visible count retry queues while facets remain pending",
       (tester) async {
     _unmountAfterTest(tester);
     await _useWideSurface(tester);
@@ -309,10 +307,20 @@ void main() {
       );
       await tester.pump();
 
-      expect(repository.countCalls, 2);
+      expect(repository.countCalls, 1);
       expect(repository.facetCalls, 1);
-      expect(presenter.pageSource.activeSummaryLoadCount, 2);
+      expect(presenter.pageSource.activeSummaryLoadCount, 1);
+      expect(presenter.pageSource.hasDirtySummaryRefresh, isTrue);
       expect(presenter.pageSource.countError.value, isA<StateError>());
+
+      facetGate.complete(const <ViewerTagFacet>[]);
+      await initialization;
+      for (var attempt = 0; attempt < 20; attempt++) {
+        await tester.pump();
+        if (repository.countCalls == 2) break;
+      }
+      expect(repository.countCalls, 2);
+      expect(presenter.pageSource.activeSummaryLoadCount, 1);
 
       countRetryGate.complete(100000);
       await tester.pump();
@@ -322,10 +330,6 @@ void main() {
         find.byKey(const ValueKey("viewer-summary-error")),
         findsNothing,
       );
-      expect(presenter.pageSource.activeSummaryLoadCount, 1);
-
-      facetGate.complete(const <ViewerTagFacet>[]);
-      await initialization;
       expect(presenter.pageSource.activeSummaryLoadCount, 0);
     } finally {
       if (!countRetryGate.isCompleted) countRetryGate.complete(100000);
@@ -440,7 +444,6 @@ void main() {
     await tester.tap(find.text("Delete (100000)"));
     expect(requested, isNotNull);
     expect(requested!.selection, same(selection));
-    expect(requested!.additionalKeys, isEmpty);
     expect(requested!.selectedCount, 100000);
   });
 
@@ -531,12 +534,14 @@ void main() {
   });
 
   testWidgets(
-      "folder select-all adds explicit parent keys to direct query rows",
+      "folder select-all keeps virtual parent keys in the query selection",
       (tester) async {
     _unmountAfterTest(tester);
     await _useWideSurface(tester);
     final parent = _folderItem(999999);
-    repository = _PagedRepository()..totalItemCount = 100000;
+    repository = _PagedRepository()
+      ..totalItemCount = 100001
+      ..pageRows = <FolderItem>[parent];
     presenter = ViewerPresenter(
       repository: repository,
       folderId: "folder-current",
@@ -546,7 +551,6 @@ void main() {
 
     await tester.pumpWidget(_host(
       presenter,
-      prefixItems: <FolderItem>[parent],
       onDeleteRequested: (target) => requested = target,
     ));
     await tester.pump();
@@ -564,11 +568,8 @@ void main() {
     expect(requested!.selection, isA<AllMatchingViewerSelection>());
     expect(
       (requested!.selection as AllMatchingViewerSelection).totalCount,
-      100000,
+      100001,
     );
-    expect(requested!.additionalKeys, <ViewerItemKey>{
-      (type: FolderItemType.folder, id: parent.id!),
-    });
     expect(requested!.selectedCount, 100001);
   });
 
@@ -651,6 +652,41 @@ void main() {
         (type: FolderItemType.document, id: "same-id"),
         (type: FolderItemType.folder, id: "same-id"),
       },
+    );
+  });
+
+  testWidgets("manual selection cap explains how to select the full result",
+      (tester) async {
+    _unmountAfterTest(tester);
+    await _useWideSurface(tester);
+    repository = _PagedRepository()
+      ..totalItemCount = 2
+      ..pageRows = <FolderItem>[_folderItem(0), _folderItem(1)];
+    presenter = ViewerPresenter(
+      repository: repository,
+      selectionState: ViewerSelectionState(maxManualKeys: 1),
+    );
+    await presenter.init();
+
+    await tester.pumpWidget(_host(
+      presenter,
+      onDeleteRequested: (_) {},
+    ));
+    await tester.pump();
+    await tester.pump();
+    await tester.tap(find.text("Select"));
+    await tester.pump();
+
+    final rows = find.byType(SelectableItemWrapper);
+    await tester.tap(rows.at(0));
+    await tester.pump();
+    await tester.tap(rows.at(1));
+    await tester.pump();
+
+    expect(presenter.selectionState.selectedCount, 1);
+    expect(
+      find.text("Manual selection is limited to 1 item. Use Select All."),
+      findsOneWidget,
     );
   });
 }

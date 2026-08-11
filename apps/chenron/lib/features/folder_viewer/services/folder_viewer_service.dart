@@ -7,7 +7,8 @@ import "package:signals/signals_flutter.dart";
 import "package:app_logger/app_logger.dart";
 import "package:shared_preferences/shared_preferences.dart";
 
-class FolderViewerService implements ViewerPageRepository {
+class FolderViewerService
+    implements ViewerPageRepository, ViewerTagFacetSearchRepository {
   FolderViewerService({AppDatabase? database}) : _database = database;
 
   static const _lockKey = "folder_viewer_header_locked";
@@ -17,8 +18,9 @@ class FolderViewerService implements ViewerPageRepository {
       _database ??
       locator.get<Signal<AppDatabaseLifecycle>>().value.appDatabase;
 
-  /// Loads folder metadata (data + tags) and parent folder items.
-  /// Does NOT load the folder's own items — those come via pagination.
+  /// Loads only folder metadata and tags.
+  ///
+  /// Parent and direct rows share the bounded viewer query path.
   Future<FolderResult> loadFolderMetadata(String folderId) async {
     final folder = await _db.getFolder(
       folderId: folderId,
@@ -29,15 +31,10 @@ class FolderViewerService implements ViewerPageRepository {
       throw Exception("Folder not found");
     }
 
-    final parentFolders = await _loadParentFolders(_db, folderId);
-    final parentItems = parentFolders
-        .map((parentFolder) => parentFolder.toFolderItem(null))
-        .toList();
-
     return FolderResult(
       data: folder.data,
       tags: folder.tags,
-      items: parentItems,
+      items: const <FolderItem>[],
     );
   }
 
@@ -55,25 +52,6 @@ class FolderViewerService implements ViewerPageRepository {
         offset: offset,
       );
 
-  Future<FolderResult> loadFolderWithParents(String folderId) async {
-    final folder = await _db.getFolder(
-      folderId: folderId,
-      includeOptions:
-          const IncludeOptions({AppDataInclude.items, AppDataInclude.tags}),
-    );
-    if (folder == null) throw Exception("Folder not found");
-
-    final parentFolders = await _loadParentFolders(_db, folderId);
-    return FolderResult(
-      data: folder.data,
-      tags: folder.tags,
-      items: <FolderItem>[
-        ...parentFolders.map((folder) => folder.toFolderItem(null)),
-        ...folder.items,
-      ],
-    );
-  }
-
   @override
   Future<List<FolderItem>> loadPage(
     ViewerQuery query, {
@@ -86,8 +64,11 @@ class FolderViewerService implements ViewerPageRepository {
   Future<int> count(ViewerQuery query) => _db.getViewerItemCount(query);
 
   @override
-  Future<List<ViewerTagFacet>> loadTagFacets(ViewerQuery query) =>
-      _db.getViewerTagFacets(query);
+  Future<List<ViewerTagFacet>> loadTagFacets(
+    ViewerQuery query, {
+    String searchText = "",
+  }) =>
+      _db.getViewerTagFacets(query, searchText: searchText);
 
   @override
   Stream<void> invalidations() => _db.watchViewerInvalidations();
@@ -125,26 +106,6 @@ class FolderViewerService implements ViewerPageRepository {
   @override
   Future<void> releaseSelectionLease(ViewerSelectionLease lease) =>
       _db.releaseViewerSelectionLease(lease);
-
-  Future<List<Folder>> _loadParentFolders(
-      AppDatabase db, String folderId) async {
-    try {
-      final items = db.items;
-      final query = db.select(items)
-        ..where((item) => item.itemId.equals(folderId));
-      final results = await query.get();
-      final parentFolderIds = results.map((item) => item.folderId).toList();
-
-      if (parentFolderIds.isEmpty) return [];
-
-      final folderQuery = db.select(db.folders)
-        ..where((folder) => folder.id.isIn(parentFolderIds));
-      return await folderQuery.get();
-    } catch (e) {
-      loggerGlobal.warning("FOLDER_VIEWER", "Error loading parent folders: $e");
-      return [];
-    }
-  }
 
   Future<bool> deleteFolder(String folderId) {
     return _db.removeFolder(folderId);

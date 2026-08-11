@@ -239,6 +239,85 @@ void main() {
       expect(source.itemAt(source.pageSize * 2)?.id, "item-0");
     });
 
+    test("simultaneous page loads never exceed four active futures", () async {
+      final pending = <Completer<List<FolderItem>>>[];
+      source.dispose();
+      await repository.close();
+      repository = _FakeViewerPageRepository(
+        pageLoader: (_, __, ___) {
+          final completer = Completer<List<FolderItem>>();
+          pending.add(completer);
+          return completer.future;
+        },
+      );
+      source = ViewerPageSource(repository: repository);
+      await source.setQuery(const ViewerQuery());
+
+      for (var page = 0; page < 25; page++) {
+        source.itemAt(page * source.pageSize);
+      }
+      await Future<void>.delayed(Duration.zero);
+
+      try {
+        expect(source.activeLoadCount, lessThanOrEqualTo(4));
+        expect(source.queuedLoadCount, lessThanOrEqualTo(16));
+        expect(source.droppedPageRequestCount, 5);
+      } finally {
+        for (final completer in pending) {
+          if (!completer.isCompleted) {
+            completer.complete(const <FolderItem>[]);
+          }
+        }
+        await Future<void>.delayed(Duration.zero);
+      }
+    });
+
+    test("failed page bookkeeping retains at most twenty errors", () async {
+      source.dispose();
+      await repository.close();
+      repository = _FakeViewerPageRepository(
+        pageLoader: (_, __, offset) async =>
+            throw StateError("page ${offset ~/ 100} failed"),
+      );
+      source = ViewerPageSource(repository: repository);
+      await source.setQuery(const ViewerQuery());
+
+      for (var page = 0; page < 25; page++) {
+        source.itemAt(page * source.pageSize);
+        await _waitForLoads(source);
+      }
+
+      final retainedErrors = List<int>.generate(25, (page) => page)
+          .where((page) => source.errorAt(page * source.pageSize) != null)
+          .length;
+      expect(retainedErrors, lessThanOrEqualTo(20));
+    });
+
+    test("dispose reports an uncancellable page future until it settles",
+        () async {
+      final pending = Completer<List<FolderItem>>();
+      source.dispose();
+      await repository.close();
+      repository = _FakeViewerPageRepository(
+        pageLoader: (_, __, ___) => pending.future,
+      );
+      source = ViewerPageSource(repository: repository);
+      await source.setQuery(const ViewerQuery());
+      source.itemAt(0);
+      await Future<void>.delayed(Duration.zero);
+      expect(source.activeLoadCount, 1);
+
+      source.dispose();
+
+      try {
+        expect(source.activeLoadCount, 1);
+      } finally {
+        pending.complete(const <FolderItem>[]);
+        await Future<void>.delayed(Duration.zero);
+      }
+      expect(source.activeLoadCount, 0);
+    });
+
     test("changing query discards a pending page completion", () async {
       final oldPageCompleter = Completer<List<FolderItem>>();
       final newPageCompleter = Completer<List<FolderItem>>();
@@ -256,9 +335,10 @@ void main() {
       expect(source.activeLoadCount, 1);
 
       await source.setQuery(const ViewerQuery(searchText: "new"));
-      expect(source.activeLoadCount, 0);
-      expect(source.itemAt(0), isNull);
       expect(source.activeLoadCount, 1);
+      expect(source.itemAt(0), isNull);
+      expect(source.activeLoadCount, 2);
+      expect(source.queuedLoadCount, 0);
       oldPageCompleter.complete(<FolderItem>[_item(0, prefix: "old")]);
       await Future<void>.delayed(Duration.zero);
       await Future<void>.delayed(Duration.zero);
@@ -292,6 +372,68 @@ void main() {
 
       expect(repository.countCalls, 3);
       expect(repository.facetCalls, 3);
+    });
+
+    test("nested bulk boundaries defer one refresh until the outer exit",
+        () async {
+      final baselineGeneration = source.summaryGeneration.value;
+      final baselineCountCalls = repository.countCalls;
+      final baselineFacetCalls = repository.facetCalls;
+
+      await source.runBulkUpdate(() async {
+        repository.invalidate();
+        await source.runBulkUpdate(() async {
+          repository.invalidate();
+          await Future<void>.delayed(Duration.zero);
+        });
+        expect(source.summaryGeneration.value, baselineGeneration);
+        repository.invalidate();
+      });
+      await Future<void>.delayed(Duration.zero);
+
+      expect(source.summaryGeneration.value - baselineGeneration, 1);
+      expect(repository.countCalls - baselineCountCalls, 1);
+      expect(repository.facetCalls - baselineFacetCalls, 1);
+    });
+
+    test("summary invalidations retain one active count and one dirty refresh",
+        () async {
+      final countLoads = <Completer<int>>[];
+      var activeCounts = 0;
+      var maxActiveCounts = 0;
+      source.dispose();
+      await repository.close();
+      repository = _FakeViewerPageRepository(
+        countLoader: (_) {
+          activeCounts++;
+          if (activeCounts > maxActiveCounts) maxActiveCounts = activeCounts;
+          final completer = Completer<int>();
+          countLoads.add(completer);
+          return completer.future.whenComplete(() => activeCounts--);
+        },
+      );
+      source = ViewerPageSource(repository: repository);
+      final initial = source.setQuery(const ViewerQuery());
+      await Future<void>.delayed(Duration.zero);
+
+      for (var turn = 0; turn < 3; turn++) {
+        repository.invalidate();
+        await Future<void>.delayed(Duration.zero);
+      }
+
+      try {
+        expect(maxActiveCounts, 1);
+      } finally {
+        for (final completer in countLoads) {
+          if (!completer.isCompleted) completer.complete(100000);
+        }
+        await initial;
+        await Future<void>.delayed(Duration.zero);
+        for (final completer in countLoads) {
+          if (!completer.isCompleted) completer.complete(100000);
+        }
+        await Future<void>.delayed(Duration.zero);
+      }
     });
 
     test("a query change supersedes a pending invalidation reset", () async {
@@ -379,7 +521,7 @@ void main() {
       expect(source.tagFacetsError.value, isNull);
     });
 
-    test("count retry does not wait for pending initial facets", () async {
+    test("count retry queues behind pending initial facets", () async {
       final facetGate = Completer<List<ViewerTagFacet>>();
       final countRetryGate = Completer<int>();
       var countAttempts = 0;
@@ -408,22 +550,30 @@ void main() {
         final firstRetry = source.retrySummary();
         final duplicateRetry = source.retrySummary();
 
-        expect(identical(firstRetry, duplicateRetry), isTrue);
-        expect(repository.countCalls, 2);
+        expect(repository.countCalls, 1);
         expect(repository.facetCalls, 1);
-        expect(source.activeSummaryLoadCount, 2);
-        expect(source.countError.value, isA<StateError>());
-
-        countRetryGate.complete(42);
-        await firstRetry;
-
-        expect(initialCompleted, isFalse);
-        expect(source.totalCount.value, 42);
-        expect(source.countError.value, isNull);
         expect(source.activeSummaryLoadCount, 1);
+        expect(source.hasDirtySummaryRefresh, isTrue);
+        expect(source.countError.value, isA<StateError>());
 
         facetGate.complete(const <ViewerTagFacet>[]);
         await initialLoad;
+        await firstRetry;
+        await duplicateRetry;
+        await _waitForCondition(
+          () => repository.countCalls == 2,
+          "queued count retry did not start",
+        );
+        expect(initialCompleted, isTrue);
+        expect(source.activeSummaryLoadCount, 1);
+
+        countRetryGate.complete(42);
+        await _waitForCondition(
+          () => source.activeSummaryLoadCount == 0,
+          "queued count retry did not settle",
+        );
+        expect(source.totalCount.value, 42);
+        expect(source.countError.value, isNull);
         expect(source.activeSummaryLoadCount, 0);
       } finally {
         if (!countRetryGate.isCompleted) countRetryGate.complete(42);
@@ -470,7 +620,7 @@ void main() {
       expect(repository.facetCalls, 2);
     });
 
-    test("facet retry does not wait for a pending initial count", () async {
+    test("facet retry queues behind a pending initial count", () async {
       final countGate = Completer<int>();
       final facetRetryGate = Completer<List<ViewerTagFacet>>();
       var facetAttempts = 0;
@@ -507,22 +657,30 @@ void main() {
         final firstRetry = source.retrySummary();
         final duplicateRetry = source.retrySummary();
 
-        expect(identical(firstRetry, duplicateRetry), isTrue);
         expect(repository.countCalls, 1);
-        expect(repository.facetCalls, 2);
-        expect(source.activeSummaryLoadCount, 2);
-        expect(source.tagFacetsError.value, isA<StateError>());
-
-        facetRetryGate.complete(<ViewerTagFacet>[recoveredFacet]);
-        await firstRetry;
-
-        expect(initialCompleted, isFalse);
-        expect(source.tagFacets.value, <ViewerTagFacet>[recoveredFacet]);
-        expect(source.tagFacetsError.value, isNull);
+        expect(repository.facetCalls, 1);
         expect(source.activeSummaryLoadCount, 1);
+        expect(source.hasDirtySummaryRefresh, isTrue);
+        expect(source.tagFacetsError.value, isA<StateError>());
 
         countGate.complete(42);
         await initialLoad;
+        await firstRetry;
+        await duplicateRetry;
+        await _waitForCondition(
+          () => repository.facetCalls == 2,
+          "queued facet retry did not start",
+        );
+        expect(initialCompleted, isTrue);
+        expect(source.activeSummaryLoadCount, 1);
+
+        facetRetryGate.complete(<ViewerTagFacet>[recoveredFacet]);
+        await _waitForCondition(
+          () => source.activeSummaryLoadCount == 0,
+          "queued facet retry did not settle",
+        );
+        expect(source.tagFacets.value, <ViewerTagFacet>[recoveredFacet]);
+        expect(source.tagFacetsError.value, isNull);
         expect(source.totalCount.value, 42);
         expect(source.activeSummaryLoadCount, 0);
       } finally {
@@ -621,13 +779,19 @@ void main() {
       expect(identical(stalePair, source.retrySummary()), isTrue);
 
       await source.setQuery(const ViewerQuery(searchText: "new"));
-      expect(source.totalCount.value, 9);
+      expect(source.totalCount.value, 0);
       expect(source.countError.value, isNull);
       expect(source.tagFacetsError.value, isNull);
+      expect(source.activeSummaryLoadCount, 1);
+      expect(source.hasDirtySummaryRefresh, isTrue);
 
       staleCountRetry.complete(999);
       staleFacetRetry.complete(const <ViewerTagFacet>[]);
       await stalePair;
+      await _waitForCondition(
+        () => source.totalCount.value == 9,
+        "latest queued summary did not publish",
+      );
 
       expect(source.totalCount.value, 9);
       expect(source.countError.value, isNull);
@@ -866,11 +1030,15 @@ void main() {
       final retry = source.retrySummary();
 
       await source.setQuery(const ViewerQuery(searchText: "new"));
-      expect(source.totalCount.value, 9);
+      expect(source.totalCount.value, 0);
       expect(source.countError.value, isNull);
 
       staleRetry.complete(999);
       await retry;
+      await _waitForCondition(
+        () => source.totalCount.value == 9,
+        "latest queued count did not publish",
+      );
 
       expect(source.totalCount.value, 9);
       expect(source.countError.value, isNull);
@@ -879,7 +1047,7 @@ void main() {
     test("dispose ignores a pending summary retry completion", () async {
       final retryGate = Completer<List<ViewerTagFacet>>();
       var facetAttempts = 0;
-      source.dispose();
+      final settlement = source.disposeAndWait();
       await repository.close();
       repository = _FakeViewerPageRepository(
         facetLoader: (_) {
@@ -904,6 +1072,7 @@ void main() {
         ),
       ]);
       await retry;
+      await settlement;
 
       expect(source.cachedRowCount, 0);
       expect(source.activeSummaryLoadCount, 0);
@@ -937,21 +1106,21 @@ void main() {
       repository.invalidate();
       await Future<void>.microtask(() {});
 
-      source.dispose();
+      final settlement = source.disposeAndWait();
       await Future<void>.delayed(Duration.zero);
       await Future<void>.delayed(Duration.zero);
 
       expect(source.cachedRowCount, 0);
       expect(source.cachedPageCount, 0);
-      expect(source.activeLoadCount, 0);
+      expect(source.activeLoadCount, 1);
       expect(source.activeSubscriptionCount, 0);
       expect(repository.activeInvalidationListeners, 0);
       expect(repository.countCalls, 1);
       expect(repository.facetCalls, 1);
 
       pendingPage.complete(<FolderItem>[_item(0, prefix: "late")]);
-      await Future<void>.delayed(Duration.zero);
-      await Future<void>.delayed(Duration.zero);
+      await settlement;
+      expect(source.activeLoadCount, 0);
       expect(source.cachedRowCount, 0);
       expect(source.itemAt(0), isNull);
       expect(repository.pageCalls[0], 1);
@@ -961,7 +1130,7 @@ void main() {
         () async {
       final cancellationGate = Completer<void>();
       final pendingPage = Completer<List<FolderItem>>();
-      source.dispose();
+      final settlement = source.disposeAndWait();
       await repository.close();
       repository = _FakeViewerPageRepository(
         cancellationGate: cancellationGate,
@@ -975,12 +1144,12 @@ void main() {
 
       expect(repository.cancellationRequests, 1);
       expect(source.activeSubscriptionCount, 1);
-      expect(source.activeLoadCount, 0);
+      expect(source.activeLoadCount, 1);
       repository.invalidate();
       pendingPage.complete(<FolderItem>[_item(0, prefix: "late")]);
       cancellationGate.complete();
       await repository.cancellationFinished.future;
-      await Future<void>.microtask(() {});
+      await settlement;
 
       expect(source.activeSubscriptionCount, 0);
       expect(source.cachedRowCount, 0);

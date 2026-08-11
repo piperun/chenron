@@ -28,29 +28,35 @@ final class AllMatchingViewerSelection extends ViewerSelection {
 final class ViewerSelectionTarget {
   ViewerSelectionTarget({
     required this.selection,
-    Set<ViewerItemKey> additionalKeys = const <ViewerItemKey>{},
     bool Function()? isCurrent,
-  })  : additionalKeys = UnmodifiableSetView<ViewerItemKey>(
-          Set<ViewerItemKey>.of(additionalKeys),
-        ),
-        _isCurrent = isCurrent;
+  }) : _isCurrent = isCurrent;
 
   final ViewerSelection selection;
-  final Set<ViewerItemKey> additionalKeys;
   final bool Function()? _isCurrent;
 
   bool get isCurrent => _isCurrent?.call() ?? true;
 
   int get selectedCount => switch (selection) {
-        ExplicitViewerSelection(:final keys) =>
-          <ViewerItemKey>{...keys, ...additionalKeys}.length,
+        ExplicitViewerSelection(:final keys) => keys.length,
         AllMatchingViewerSelection(:final totalCount, :final excluded) =>
-          _boundedSelectedCount(totalCount, excluded.length) +
-              additionalKeys.length,
+          _boundedSelectedCount(totalCount, excluded.length),
       };
 }
 
 class ViewerSelectionState {
+  ViewerSelectionState({this.maxManualKeys = defaultMaxManualKeys}) {
+    if (maxManualKeys <= 0) {
+      throw ArgumentError.value(
+        maxManualKeys,
+        "maxManualKeys",
+        "must be positive",
+      );
+    }
+  }
+
+  static const int defaultMaxManualKeys = 1000;
+
+  final int maxManualKeys;
   final Signal<ViewerSelection> selection = signal<ViewerSelection>(
     const ExplicitViewerSelection(<ViewerItemKey>{}),
   );
@@ -71,11 +77,18 @@ class ViewerSelectionState {
     if (previous != null && previous != query) clear();
   }
 
-  void toggle(ViewerItemKey key) {
-    selection.value = switch (selection.value) {
-      ExplicitViewerSelection(:final keys) => ExplicitViewerSelection(
-          _toggled(keys, key),
-        ),
+  ViewerSelectionToggleResult toggle(ViewerItemKey key) {
+    final current = selection.value;
+    final keys = switch (current) {
+      ExplicitViewerSelection(:final keys) => keys,
+      AllMatchingViewerSelection(:final excluded) => excluded,
+    };
+    if (!keys.contains(key) && keys.length >= maxManualKeys) {
+      return ViewerSelectionToggleResult.limitReached;
+    }
+    selection.value = switch (current) {
+      ExplicitViewerSelection(:final keys) =>
+        ExplicitViewerSelection(_toggled(keys, key)),
       AllMatchingViewerSelection(
         :final query,
         :final totalCount,
@@ -87,6 +100,7 @@ class ViewerSelectionState {
           excluded: _toggled(excluded, key),
         ),
     };
+    return ViewerSelectionToggleResult.changed;
   }
 
   void clear() {
@@ -117,6 +131,8 @@ class ViewerSelectionState {
     selection.dispose();
   }
 }
+
+enum ViewerSelectionToggleResult { changed, limitReached }
 
 Set<ViewerItemKey> _toggled(Set<ViewerItemKey> source, ViewerItemKey key) {
   final next = Set<ViewerItemKey>.of(source);

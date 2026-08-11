@@ -7,7 +7,8 @@ import "package:chenron/locator.dart";
 import "package:app_logger/app_logger.dart";
 import "package:signals/signals.dart";
 
-class ViewerModel implements ViewerPageRepository {
+class ViewerModel
+    implements ViewerPageRepository, ViewerTagFacetSearchRepository {
   ViewerModel({AppDatabase? database}) : _database = database;
 
   final AppDatabase? _database;
@@ -28,8 +29,11 @@ class ViewerModel implements ViewerPageRepository {
   Future<int> count(ViewerQuery query) => _db.getViewerItemCount(query);
 
   @override
-  Future<List<ViewerTagFacet>> loadTagFacets(ViewerQuery query) =>
-      _db.getViewerTagFacets(query);
+  Future<List<ViewerTagFacet>> loadTagFacets(
+    ViewerQuery query, {
+    String searchText = "",
+  }) =>
+      _db.getViewerTagFacets(query, searchText: searchText);
 
   @override
   Stream<void> invalidations() => _db.watchViewerInvalidations();

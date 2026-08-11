@@ -202,13 +202,13 @@ void main() {
       expect(folderItems.first.title, equals("Child Folder"));
     });
 
-    test("child folder loadFolderWithParents includes the parent as an item",
-        () async {
-      final result = await service.loadFolderWithParents(childId);
-      expect(result.data.id, equals(childId));
-      // The parent appears as a FolderItem.folder so the UI can render
-      // the breadcrumb back-link.
-      final nestedParents = result.items.whereType<FolderItemNested>();
+    test("child folder query includes the parent as a virtual row", () async {
+      final items = await mockDb.database.getViewerPage(
+        ViewerQuery(folderId: childId, includeFolderParents: true),
+        limit: 50,
+        offset: 0,
+      );
+      final nestedParents = items.whereType<FolderItemNested>();
       final parentItem =
           nestedParents.where((item) => item.folderId == parentId).firstOrNull;
       expect(parentItem, isNotNull);

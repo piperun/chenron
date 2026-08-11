@@ -172,7 +172,6 @@ Future<void> handleViewerSelectionDeletion(
   try {
     final result = await service.delete(
       target.selection,
-      additionalKeys: target.additionalKeys,
       expectedCount: target.selectedCount,
     );
     if (!context.mounted) return;
@@ -271,7 +270,6 @@ Future<void> handleViewerSelectionTagging(
       tagsToAdd: tagResult.tagsToAdd.toSet(),
       tagsToRemove: tagResult.tagsToRemove.toSet(),
       colorChanges: tagResult.colorChanges,
-      additionalKeys: target.additionalKeys,
       expectedCount: target.selectedCount,
     );
     if (!context.mounted) return;
@@ -367,7 +365,6 @@ Future<void> handleViewerSelectionMetadataRefresh(
   try {
     final result = await service.refreshMetadata(
       target.selection,
-      additionalKeys: target.additionalKeys,
       expectedCount: target.selectedCount,
     );
     if (!context.mounted) return;

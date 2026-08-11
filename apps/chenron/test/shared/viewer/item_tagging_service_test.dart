@@ -70,8 +70,7 @@ void main() {
 
   group("ItemTaggingService.addTagToItems()", () {
     test("adds single tag to single link", () async {
-      final linkResult =
-          await database.createLink(link: "https://example.com");
+      final linkResult = await database.createLink(link: "https://example.com");
 
       final items = [
         FolderItem.link(
@@ -97,8 +96,7 @@ void main() {
     });
 
     test("adds multiple tags to single link", () async {
-      final linkResult =
-          await database.createLink(link: "https://example.com");
+      final linkResult = await database.createLink(link: "https://example.com");
 
       final items = [
         FolderItem.link(
@@ -124,12 +122,9 @@ void main() {
     });
 
     test("adds tags to multiple links", () async {
-      final link1 =
-          await database.createLink(link: "https://example.com/1");
-      final link2 =
-          await database.createLink(link: "https://example.com/2");
-      final link3 =
-          await database.createLink(link: "https://example.com/3");
+      final link1 = await database.createLink(link: "https://example.com/1");
+      final link2 = await database.createLink(link: "https://example.com/2");
+      final link3 = await database.createLink(link: "https://example.com/3");
 
       final items = [
         FolderItem.link(
@@ -195,8 +190,7 @@ void main() {
         tags: [Metadata(value: "flutter", type: MetadataTypeEnum.tag)],
       );
       // Link 2 does not have "flutter"
-      final link2 =
-          await database.createLink(link: "https://example.com/2");
+      final link2 = await database.createLink(link: "https://example.com/2");
 
       final items = [
         FolderItem.link(
@@ -241,8 +235,7 @@ void main() {
         ),
       ];
 
-      final result =
-          await ItemTaggingService().addTagToItems(items, ["notes"]);
+      final result = await ItemTaggingService().addTagToItems(items, ["notes"]);
 
       expect(result.itemCount, equals(1));
       expect(result.newCountPerTag["notes"], equals(1));
@@ -284,8 +277,7 @@ void main() {
     });
 
     test("adds tags to mixed item types", () async {
-      final linkResult =
-          await database.createLink(link: "https://example.com");
+      final linkResult = await database.createLink(link: "https://example.com");
       final docResult = await database.createDocument(
         title: "Test Doc",
         filePath: "/path/to/doc.md",
@@ -297,9 +289,7 @@ void main() {
 
       final items = [
         FolderItem.link(
-            id: linkResult.linkId,
-            itemId: null,
-            url: "https://example.com"),
+            id: linkResult.linkId, itemId: null, url: "https://example.com"),
         FolderItem.document(
             id: docResult.documentId,
             itemId: null,
@@ -321,29 +311,24 @@ void main() {
 
     test("skips items with null id", () async {
       final items = [
-        const FolderItem.link(
-            url: "https://example.com"),
+        const FolderItem.link(url: "https://example.com"),
       ];
 
-      final result =
-          await ItemTaggingService().addTagToItems(items, ["test"]);
+      final result = await ItemTaggingService().addTagToItems(items, ["test"]);
 
       expect(result.itemCount, equals(0));
     });
 
     test("handles empty items list", () async {
-      final result =
-          await ItemTaggingService().addTagToItems([], ["flutter"]);
+      final result = await ItemTaggingService().addTagToItems([], ["flutter"]);
 
       expect(result.itemCount, equals(0));
       expect(result.totalNew, equals(0));
     });
 
     test("tag is shared across items via same tag row", () async {
-      final link1 =
-          await database.createLink(link: "https://example.com/1");
-      final link2 =
-          await database.createLink(link: "https://example.com/2");
+      final link1 = await database.createLink(link: "https://example.com/1");
+      final link2 = await database.createLink(link: "https://example.com/2");
 
       final items = [
         FolderItem.link(
@@ -356,8 +341,7 @@ void main() {
 
       // Both should reference the same tag
       final allTags = await database.getAllTags();
-      final sharedTags =
-          allTags.where((t) => t.data.name == "shared").toList();
+      final sharedTags = allTags.where((t) => t.data.name == "shared").toList();
       expect(sharedTags.length, equals(1));
     });
   });
@@ -381,6 +365,33 @@ void main() {
   });
 
   group("ItemTaggingService.removeTagFromItems()", () {
+    test("removes a stored tag when the bounded card omits that tag", () async {
+      final linkResult = await database.createLink(
+        link: "https://bounded-card.example/item",
+        tags: <Metadata>[
+          Metadata(value: "hidden", type: MetadataTypeEnum.tag),
+        ],
+      );
+      final boundedCard = FolderItem.link(
+        id: linkResult.linkId,
+        itemId: null,
+        url: "https://bounded-card.example/item",
+        tags: const <Tag>[],
+      );
+
+      final result = await ItemTaggingService().removeTagFromItems(
+        <FolderItem>[boundedCard],
+        <String>["hidden"],
+      );
+
+      expect(result.removedCountPerTag["hidden"], 1);
+      final updated = await database.getLink(
+        linkId: linkResult.linkId,
+        includeOptions: const IncludeOptions({AppDataInclude.tags}),
+      );
+      expect(updated!.tags, isEmpty);
+    });
+
     test("removes single tag from single link", () async {
       final linkResult = await database.createLink(
         link: "https://example.com",
@@ -403,8 +414,8 @@ void main() {
         ),
       ];
 
-      final result = await ItemTaggingService()
-          .removeTagFromItems(items, ["flutter"]);
+      final result =
+          await ItemTaggingService().removeTagFromItems(items, ["flutter"]);
 
       expect(result.itemCount, equals(1));
       expect(result.removedCountPerTag["flutter"], equals(1));
@@ -453,8 +464,8 @@ void main() {
         ),
       ];
 
-      final result = await ItemTaggingService()
-          .removeTagFromItems(items, ["shared"]);
+      final result =
+          await ItemTaggingService().removeTagFromItems(items, ["shared"]);
 
       expect(result.itemCount, equals(2));
       expect(result.removedCountPerTag["shared"], equals(2));
@@ -481,8 +492,8 @@ void main() {
       ];
 
       // Try to remove a tag that doesn't exist on the item
-      final result = await ItemTaggingService()
-          .removeTagFromItems(items, ["nonexistent"]);
+      final result =
+          await ItemTaggingService().removeTagFromItems(items, ["nonexistent"]);
 
       expect(result.itemCount, equals(1));
       expect(result.removedCountPerTag["nonexistent"], equals(0));
@@ -520,8 +531,8 @@ void main() {
         ),
       ];
 
-      final result = await ItemTaggingService()
-          .removeTagFromItems(items, ["notes"]);
+      final result =
+          await ItemTaggingService().removeTagFromItems(items, ["notes"]);
 
       expect(result.itemCount, equals(1));
       expect(result.removedCountPerTag["notes"], equals(1));
@@ -554,8 +565,8 @@ void main() {
         ),
       ];
 
-      final result = await ItemTaggingService()
-          .removeTagFromItems(items, ["archive"]);
+      final result =
+          await ItemTaggingService().removeTagFromItems(items, ["archive"]);
 
       expect(result.itemCount, equals(1));
       expect(result.removedCountPerTag["archive"], equals(1));
@@ -568,8 +579,8 @@ void main() {
     });
 
     test("handles empty items list", () async {
-      final result = await ItemTaggingService()
-          .removeTagFromItems([], ["flutter"]);
+      final result =
+          await ItemTaggingService().removeTagFromItems([], ["flutter"]);
 
       expect(result.itemCount, equals(0));
       expect(result.totalRemoved, equals(0));
@@ -580,8 +591,8 @@ void main() {
         const FolderItem.link(url: "https://example.com"),
       ];
 
-      final result = await ItemTaggingService()
-          .removeTagFromItems(items, ["test"]);
+      final result =
+          await ItemTaggingService().removeTagFromItems(items, ["test"]);
 
       expect(result.itemCount, equals(0));
     });

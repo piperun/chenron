@@ -1,3 +1,4 @@
+import "package:core/patterns/include_options.dart";
 import "package:database/database.dart";
 import "package:database/features.dart";
 import "package:drift/drift.dart" hide isNotNull, isNull;
@@ -135,6 +136,102 @@ void main() {
       );
     });
 
+    test(
+        "folder parents are pinned, filtered, counted, and leased as unique keys",
+        () async {
+      final viewedId =
+          await _insertFolder(database, 12, title: "Viewed Folder");
+      final firstParentId =
+          await _insertFolder(database, 13, title: "Zulu Parent");
+      final secondParentId =
+          await _insertFolder(database, 14, title: "Yankee Parent");
+      final directLinkId = await _insertLink(
+        database,
+        12,
+        path: "https://aaa-direct.example/path",
+      );
+      await _insertItem(
+        database,
+        120,
+        folderId: firstParentId,
+        itemId: viewedId,
+        type: FolderItemType.folder,
+      );
+      await _insertItem(
+        database,
+        121,
+        folderId: secondParentId,
+        itemId: viewedId,
+        type: FolderItemType.folder,
+      );
+      await _insertItem(
+        database,
+        122,
+        folderId: viewedId,
+        itemId: firstParentId,
+        type: FolderItemType.folder,
+      );
+      await _insertItem(
+        database,
+        123,
+        folderId: viewedId,
+        itemId: directLinkId,
+        type: FolderItemType.link,
+      );
+      final parentTag = await _insertTag(database, 12, name: "parent-tag");
+      await _attachTag(
+        database,
+        120,
+        itemId: secondParentId,
+        tagId: parentTag,
+      );
+      final query = ViewerQuery(
+        folderId: viewedId,
+        includeFolderParents: true,
+        sort: ViewerSort.nameAsc,
+      );
+
+      final page = await database.getViewerPage(query, limit: 10, offset: 0);
+
+      expect(
+        page.map((item) => item.id),
+        <String?>[secondParentId, firstParentId, directLinkId],
+      );
+      expect(page.map((item) => (type: item.type, id: item.id)).toSet(),
+          hasLength(3));
+      expect(await database.getViewerItemCount(query), 3);
+
+      final filteredQuery = ViewerQuery(
+        folderId: viewedId,
+        includeFolderParents: true,
+        includedTags: const <String>{"PARENT-TAG"},
+      );
+      final filtered = await database.getViewerPage(
+        filteredQuery,
+        limit: 10,
+        offset: 0,
+      );
+      expect(filtered.map((item) => item.id), <String?>[secondParentId]);
+      expect(await database.getViewerItemCount(filteredQuery), 1);
+      expect(
+        (await database.getViewerTagFacets(query.withoutTagFilters()))
+            .single
+            .itemCount,
+        1,
+      );
+
+      final lease = await database.createViewerSelectionLease(query: query);
+      try {
+        expect(await database.getViewerSelectionLeaseCount(lease), 3);
+        final batch =
+            await database.getViewerSelectionLeaseBatch(lease, limit: 10);
+        expect(batch.map((item) => (type: item.type, id: item.id)).toSet(),
+            hasLength(3));
+      } finally {
+        await database.releaseViewerSelectionLease(lease);
+      }
+    });
+
     test("search is a case-insensitive substring over names, paths, and tags",
         () async {
       final folderId =
@@ -172,6 +269,70 @@ void main() {
       expect(folderMatches.map((item) => item.id), <String>[folderId]);
       expect(pathMatches.map((item) => item.id), <String>[linkId]);
       expect(tagMatches.map((item) => item.id), <String>[documentId]);
+    });
+
+    test("document search matches the file path independently of its title",
+        () async {
+      final folderId =
+          await _insertFolder(database, 21, title: "Document Parent");
+      final documentId = await _insertDocument(
+        database,
+        21,
+        title: "Unrelated title",
+        filePath: "vault/reports/path-only-needle.pdf",
+      );
+      await _insertItem(
+        database,
+        21,
+        folderId: folderId,
+        itemId: documentId,
+        type: FolderItemType.document,
+      );
+
+      final matches = await database.getViewerPage(
+        ViewerQuery(folderId: folderId, searchText: "PATH-ONLY-NEEDLE"),
+        limit: 10,
+        offset: 0,
+      );
+
+      expect(matches.map((item) => item.id), <String>[documentId]);
+    });
+
+    test("card tag hydration is capped while the full item fetch is exact",
+        () async {
+      final linkId = await _insertLink(
+        database,
+        22,
+        path: "https://many-tags.example/item",
+      );
+      for (var index = 0; index < 25; index++) {
+        final tagId = await _insertTag(
+          database,
+          2200 + index,
+          name: "card-tag-${index.toString().padLeft(2, '0')}",
+        );
+        await _attachTag(
+          database,
+          2200 + index,
+          itemId: linkId,
+          tagId: tagId,
+        );
+      }
+
+      final card = (await database.getViewerPage(
+        const ViewerQuery(types: <FolderItemType>{FolderItemType.link}),
+        limit: 10,
+        offset: 0,
+      ))
+          .single;
+      final full = await database.getLink(
+        linkId: linkId,
+        includeOptions:
+            const IncludeOptions<AppDataInclude>({AppDataInclude.tags}),
+      );
+
+      expect(card.tags, hasLength(20));
+      expect(full!.tags, hasLength(25));
     });
 
     test("included tags use ANY semantics and excluded tags use NONE semantics",
@@ -335,6 +496,39 @@ void main() {
         },
         <String, int>{"alpha": 1, "bravo": 2},
       );
+    });
+
+    test("tag facet responses never materialize more than one hundred tags",
+        () async {
+      final linkId = await _insertLink(
+        database,
+        63,
+        path: "https://facet-bound.example/item",
+      );
+      for (var index = 0; index < 125; index++) {
+        final tagId = await _insertTag(
+          database,
+          6300 + index,
+          name: "f${index.toString().padLeft(3, '0')}",
+        );
+        await _attachTag(
+          database,
+          6300 + index,
+          itemId: linkId,
+          tagId: tagId,
+        );
+      }
+
+      final facets = await database.getViewerTagFacets(
+        const ViewerQuery(types: <FolderItemType>{FolderItemType.link}),
+      );
+
+      expect(facets, hasLength(100));
+      final searched = await database.getViewerTagFacets(
+        const ViewerQuery(types: <FolderItemType>{FolderItemType.link}),
+        searchText: "F124",
+      );
+      expect(searched.map((facet) => facet.tag.name), <String>["f124"]);
     });
 
     test("invalidation emits after a watched entity table changes", () async {
@@ -677,13 +871,14 @@ Future<String> _insertDocument(
   AppDatabase database,
   int index, {
   required String title,
+  String? filePath,
 }) async {
   final id = _id("document", index);
   await database.into(database.documents).insert(
         DocumentsCompanion.insert(
           id: id,
           title: title,
-          filePath: "documents/generic-$index.md",
+          filePath: filePath ?? "documents/generic-$index.md",
           fileType: DocumentFileType.markdown,
           createdAt: Value(DateTime.utc(2025, 1, 1, 0, 0, index)),
           updatedAt: Value(DateTime.utc(2025, 1, 1, 0, 0, index)),

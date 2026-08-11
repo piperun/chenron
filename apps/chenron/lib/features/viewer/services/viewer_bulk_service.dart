@@ -57,12 +57,14 @@ class ViewerSelectionChangedException implements Exception {
 class ViewerBulkService {
   ViewerBulkService({
     required ViewerPageRepository repository,
+    required ViewerBulkUpdateBoundary bulkUpdateBoundary,
     this.batchSize = 100,
     ViewerDeleteItem? deleteItem,
     ViewerTagItem? tagItem,
     ViewerMetadataRefresh? refreshMetadata,
     ViewerTagColorUpdate? updateTagColor,
   })  : _repository = repository,
+        _bulkUpdateBoundary = bulkUpdateBoundary,
         _deleteItem = deleteItem ?? _defaultDeleteItem,
         _tagItem = tagItem ?? _defaultTagItem,
         _refreshMetadata = refreshMetadata ?? _defaultRefreshMetadata,
@@ -77,6 +79,7 @@ class ViewerBulkService {
   }
 
   final ViewerPageRepository _repository;
+  final ViewerBulkUpdateBoundary _bulkUpdateBoundary;
   final int batchSize;
   final ViewerDeleteItem _deleteItem;
   final ViewerTagItem _tagItem;
@@ -88,16 +91,16 @@ class ViewerBulkService {
 
   Future<ViewerBulkResult> delete(
     ViewerSelection selection, {
-    Set<ViewerItemKey> additionalKeys = const <ViewerItemKey>{},
     int? expectedCount,
   }) =>
-      _run(
-        selection,
-        additionalKeys: additionalKeys,
-        expectedCount: expectedCount,
-        processBatch: (batch) => _processItems(
-          batch,
-          _deleteItem,
+      _bulkUpdateBoundary.runBulkUpdate(
+        () => _run(
+          selection,
+          expectedCount: expectedCount,
+          processBatch: (batch) => _processItems(
+            batch,
+            _deleteItem,
+          ),
         ),
       );
 
@@ -106,63 +109,49 @@ class ViewerBulkService {
     Set<String> tagsToAdd = const <String>{},
     Set<String> tagsToRemove = const <String>{},
     Map<String, int?> colorChanges = const <String, int?>{},
-    Set<ViewerItemKey> additionalKeys = const <ViewerItemKey>{},
     int? expectedCount,
-  }) async {
-    var result = const ViewerBulkResult();
-    if (tagsToAdd.isNotEmpty || tagsToRemove.isNotEmpty) {
-      final additions = Set<String>.unmodifiable(tagsToAdd);
-      final removals = Set<String>.unmodifiable(tagsToRemove);
-      result = await _run(
-        selection,
-        additionalKeys: additionalKeys,
-        expectedCount: expectedCount,
-        processBatch: (batch) => _processItems(
-          batch,
-          (item) => _tagItem(item, additions, removals),
-        ),
-      );
-    }
-    for (final entry in colorChanges.entries) {
-      await _updateTagColor(entry.key, entry.value);
-    }
-    return result;
-  }
+  }) =>
+      _bulkUpdateBoundary.runBulkUpdate(() async {
+        var result = const ViewerBulkResult();
+        if (tagsToAdd.isNotEmpty || tagsToRemove.isNotEmpty) {
+          final additions = Set<String>.unmodifiable(tagsToAdd);
+          final removals = Set<String>.unmodifiable(tagsToRemove);
+          result = await _run(
+            selection,
+            expectedCount: expectedCount,
+            processBatch: (batch) => _processItems(
+              batch,
+              (item) => _tagItem(item, additions, removals),
+            ),
+          );
+        }
+        for (final entry in colorChanges.entries) {
+          await _updateTagColor(entry.key, entry.value);
+        }
+        return result;
+      });
 
   Future<ViewerBulkResult> refreshMetadata(
     ViewerSelection selection, {
-    Set<ViewerItemKey> additionalKeys = const <ViewerItemKey>{},
     int? expectedCount,
   }) =>
-      _run(
-        selection,
-        additionalKeys: additionalKeys,
-        expectedCount: expectedCount,
-        processBatch: _refreshMetadataBatch,
+      _bulkUpdateBoundary.runBulkUpdate(
+        () => _run(
+          selection,
+          expectedCount: expectedCount,
+          processBatch: _refreshMetadataBatch,
+        ),
       );
 
   Future<ViewerBulkResult> _run(
     ViewerSelection selection, {
-    required Set<ViewerItemKey> additionalKeys,
     required int? expectedCount,
     required Future<ViewerBulkResult> Function(List<FolderItem> batch)
         processBatch,
   }) async {
     final leases = <ViewerSelectionLease>[];
-    final supplementalKeys = switch (selection) {
-      ExplicitViewerSelection(:final keys) => additionalKeys.difference(keys),
-      AllMatchingViewerSelection() => additionalKeys,
-    };
     try {
       await _appendLease(leases, selection);
-      if (supplementalKeys.isNotEmpty) {
-        await _appendLease(
-          leases,
-          ExplicitViewerSelection(
-            Set<ViewerItemKey>.unmodifiable(supplementalKeys),
-          ),
-        );
-      }
 
       if (expectedCount != null) {
         final counts = await Future.wait<int>(

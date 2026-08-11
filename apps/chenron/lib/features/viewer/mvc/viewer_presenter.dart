@@ -15,11 +15,27 @@ class ViewerRetentionSnapshot {
     required this.retainedRows,
     required this.activeSubscriptions,
     required this.disposed,
+    this.cachedPages = 0,
+    this.activePageLoads = 0,
+    this.queuedPageLoads = 0,
+    this.retainedPageErrors = 0,
+    this.droppedPageRequests = 0,
+    this.activeSummaryLoads = 0,
+    this.dirtySummaryRefresh = false,
+    this.settled = false,
   });
 
   final int retainedRows;
   final int activeSubscriptions;
   final bool disposed;
+  final int cachedPages;
+  final int activePageLoads;
+  final int queuedPageLoads;
+  final int retainedPageErrors;
+  final int droppedPageRequests;
+  final int activeSummaryLoads;
+  final bool dirtySummaryRefresh;
+  final bool settled;
 }
 
 class ViewerPresenter {
@@ -39,7 +55,10 @@ class ViewerPresenter {
         pageSource = ViewerPageSource(
           repository: repository ?? model ?? ViewerModel(),
         ),
-        query = signal(ViewerQuery(folderId: folderId)) {
+        query = signal(ViewerQuery(
+          folderId: folderId,
+          includeFolderParents: folderId != null,
+        )) {
     if (_ownsSearchFilter) this.searchFilter.setup();
   }
 
@@ -72,6 +91,14 @@ class ViewerPresenter {
         retainedRows: pageSource.cachedRowCount,
         activeSubscriptions: pageSource.activeSubscriptionCount,
         disposed: _disposed,
+        cachedPages: pageSource.cachedPageCount,
+        activePageLoads: pageSource.activeLoadCount,
+        queuedPageLoads: pageSource.queuedLoadCount,
+        retainedPageErrors: pageSource.retainedPageErrorCount,
+        droppedPageRequests: pageSource.droppedPageRequestCount,
+        activeSummaryLoads: pageSource.activeSummaryLoadCount,
+        dirtySummaryRefresh: pageSource.hasDirtySummaryRefresh,
+        settled: pageSource.isSettled,
       );
 
   Future<void> init() async {
@@ -108,6 +135,7 @@ class ViewerPresenter {
     );
     final nextQuery = ViewerQuery(
       folderId: _folderId,
+      includeFolderParents: _folderId != null,
       searchText: parsed.cleanQuery,
       types: Set<FolderItemType>.of(selectedTypes.value),
       includedTags: resolvedTags.included,
@@ -153,5 +181,10 @@ class ViewerPresenter {
     sortMode.dispose();
     if (_ownsTagFilterState) tagFilterState.dispose();
     if (_ownsSearchFilter) searchFilter.dispose();
+  }
+
+  Future<void> disposeAndWait() {
+    dispose();
+    return pageSource.disposeAndWait();
   }
 }

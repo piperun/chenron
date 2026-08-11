@@ -53,10 +53,13 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
   void initState() {
     super.initState();
     _service = widget.serviceFactory?.call() ?? FolderViewerService();
-    _bulkService = ViewerBulkService(repository: _service);
     _presenter = ViewerPresenter(
       repository: _service,
       folderId: widget.folderId,
+    );
+    _bulkService = ViewerBulkService(
+      repository: _service,
+      bulkUpdateBoundary: _presenter.pageSource,
     );
     unawaited(_loadLockState());
     _metadata = _service.loadFolderMetadata(widget.folderId);
@@ -192,8 +195,6 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
           }
 
           final result = snapshot.data;
-          final parentItems = result?.items ?? const <FolderItem>[];
-
           return Column(
             children: [
               if (result == null)
@@ -204,7 +205,6 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
               else
                 _CollapsibleHeader(
                   result: result,
-                  parentItems: parentItems,
                   pageSource: _presenter.pageSource,
                   isHeaderExpanded: _isHeaderExpanded,
                   isHeaderLocked: _isHeaderLocked,
@@ -218,7 +218,6 @@ class _FolderViewerPageState extends State<FolderViewerPage> {
               Expanded(
                 child: PagedViewerDisplay(
                   presenter: _presenter,
-                  prefixItems: parentItems,
                   displayModeContext: "folder_viewer",
                   onItemTap: (item) => handleItemTap(
                     context,
@@ -315,7 +314,6 @@ class _HeaderSkeleton extends StatelessWidget {
 
 class _CollapsibleHeader extends StatelessWidget {
   final FolderResult result;
-  final List<FolderItem> parentItems;
   final ViewerPageSource pageSource;
   final bool isHeaderExpanded;
   final bool isHeaderLocked;
@@ -327,7 +325,6 @@ class _CollapsibleHeader extends StatelessWidget {
 
   const _CollapsibleHeader({
     required this.result,
-    required this.parentItems,
     required this.pageSource,
     required this.isHeaderExpanded,
     required this.isHeaderLocked,
@@ -341,7 +338,7 @@ class _CollapsibleHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SignalBuilder(builder: (context) {
-      final totalItems = pageSource.totalCount.value + parentItems.length;
+      final totalItems = pageSource.totalCount.value;
 
       return GestureDetector(
         onTap: isHeaderLocked ? null : onToggleExpanded,

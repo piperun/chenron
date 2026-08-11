@@ -1,6 +1,5 @@
 import "dart:async";
 
-import "package:chenron/features/viewer/mvc/viewer_model.dart";
 import "package:chenron/features/viewer/mvc/viewer_presenter.dart";
 import "package:chenron/features/viewer/services/viewer_bulk_service.dart";
 import "package:chenron/features/viewer/ui/paged_viewer_display.dart";
@@ -31,7 +30,10 @@ class _ViewerState extends State<Viewer> {
     super.initState();
     _presenter = widget.presenterFactory?.call() ??
         ViewerPresenter(searchFilter: widget.searchFilter);
-    _bulkService = ViewerBulkService(repository: ViewerModel());
+    _bulkService = ViewerBulkService(
+      repository: _presenter.pageSource.repository,
+      bulkUpdateBoundary: _presenter.pageSource,
+    );
     if (widget.searchFilter != null) {
       widget.searchFilter!.controller.onSubmitted =
           _presenter.onSearchSubmitted;

@@ -42,11 +42,19 @@ class _LeaseRepository implements ViewerPageRepository {
   final List<int> requestedLimits = <int>[];
   final List<Set<ViewerItemKey>?> createdOnlyKeys = <Set<ViewerItemKey>?>[];
   final List<Set<ViewerItemKey>> createdExcludedKeys = <Set<ViewerItemKey>>[];
+  final StreamController<void> _invalidations =
+      StreamController<void>.broadcast(sync: true);
   int releaseCalls = 0;
   int loadCalls = 0;
   int consumeCalls = 0;
   int countLeaseCalls = 0;
+  int countCalls = 0;
+  int facetCalls = 0;
   bool failNextConsume = false;
+
+  void invalidate() => _invalidations.add(null);
+
+  Future<void> close() => _invalidations.close();
 
   @override
   Future<ViewerSelectionLease> createSelectionLease({
@@ -107,26 +115,121 @@ class _LeaseRepository implements ViewerPageRepository {
   }
 
   @override
-  Future<int> count(ViewerQuery query) => throw UnimplementedError();
+  Future<int> count(ViewerQuery query) async {
+    countCalls++;
+    return _rowsByKey.length;
+  }
 
   @override
-  Stream<void> invalidations() => const Stream<void>.empty();
+  Stream<void> invalidations() => _invalidations.stream;
 
   @override
   Future<List<FolderItem>> loadPage(
     ViewerQuery query, {
     required int limit,
     required int offset,
-  }) =>
-      throw UnimplementedError();
+  }) async =>
+      _rowsByKey.values.skip(offset).take(limit).toList(growable: false);
 
   @override
-  Future<List<ViewerTagFacet>> loadTagFacets(ViewerQuery query) =>
-      throw UnimplementedError();
+  Future<List<ViewerTagFacet>> loadTagFacets(ViewerQuery query) async {
+    facetCalls++;
+    return const <ViewerTagFacet>[];
+  }
 }
 
+final class _ImmediateBulkBoundary implements ViewerBulkUpdateBoundary {
+  const _ImmediateBulkBoundary();
+
+  @override
+  Future<T> runBulkUpdate<T>(Future<T> Function() operation) => operation();
+}
+
+const _immediateBulkBoundary = _ImmediateBulkBoundary();
+
 void main() {
-  test("delete batches query rows and explicit prefix keys without retention",
+  test("bulk invalidations across async batches produce one trailing refresh",
+      () async {
+    final rows = List<FolderItem>.generate(201, _link);
+    final repository = _LeaseRepository(rows);
+    final source = ViewerPageSource(repository: repository);
+    await source.setQuery(const ViewerQuery());
+    final baselineGeneration = source.summaryGeneration.value;
+    final baselineCountCalls = repository.countCalls;
+    final baselineFacetCalls = repository.facetCalls;
+    var processed = 0;
+    final service = ViewerBulkService(
+      repository: repository,
+      bulkUpdateBoundary: source,
+      deleteItem: (item) async {
+        processed++;
+        if (processed == 1 || processed == 101 || processed == 201) {
+          repository.invalidate();
+          await Future<void>.delayed(Duration.zero);
+        }
+        return true;
+      },
+    );
+
+    final result = await service.delete(
+      AllMatchingViewerSelection(
+        query: const ViewerQuery(),
+        totalCount: rows.length,
+      ),
+    );
+    await Future<void>.delayed(Duration.zero);
+    await Future<void>.delayed(Duration.zero);
+
+    expect(result.processed, rows.length);
+    expect(source.summaryGeneration.value - baselineGeneration, 1);
+    expect(repository.countCalls - baselineCountCalls, 1);
+    expect(repository.facetCalls - baselineFacetCalls, 1);
+
+    source.dispose();
+    await source.invalidationCancellation;
+    await repository.close();
+  });
+
+  test("bulk exception still produces exactly one trailing refresh", () async {
+    final rows = List<FolderItem>.generate(100, _link);
+    final repository = _LeaseRepository(rows)..failNextConsume = true;
+    final source = ViewerPageSource(repository: repository);
+    await source.setQuery(const ViewerQuery());
+    final baselineGeneration = source.summaryGeneration.value;
+    var processed = 0;
+    final service = ViewerBulkService(
+      repository: repository,
+      bulkUpdateBoundary: source,
+      deleteItem: (item) async {
+        processed++;
+        if (processed <= 2) {
+          repository.invalidate();
+          await Future<void>.delayed(Duration.zero);
+        }
+        return true;
+      },
+    );
+
+    await expectLater(
+      service.delete(
+        AllMatchingViewerSelection(
+          query: const ViewerQuery(),
+          totalCount: rows.length,
+        ),
+      ),
+      throwsStateError,
+    );
+    await Future<void>.delayed(Duration.zero);
+    await Future<void>.delayed(Duration.zero);
+
+    expect(source.summaryGeneration.value - baselineGeneration, 1);
+
+    source.dispose();
+    await source.invalidationCancellation;
+    await repository.close();
+  });
+
+  test("delete batches query rows including virtual parents in one lease",
       () async {
     final rows = List<FolderItem>.generate(235, _link);
     final prefix = _folder("parent");
@@ -135,13 +238,18 @@ void main() {
     final processed = <ViewerItemKey>[];
     final service = ViewerBulkService(
       repository: repository,
+      bulkUpdateBoundary: _immediateBulkBoundary,
       deleteItem: (item) async {
         processed.add(_key(item));
         if (_key(item) == failedKey) throw StateError("structured failure");
         return true;
       },
     );
-    const query = ViewerQuery(types: <FolderItemType>{FolderItemType.link});
+    const query = ViewerQuery(
+      folderId: "current-folder",
+      includeFolderParents: true,
+      types: <FolderItemType>{FolderItemType.folder, FolderItemType.link},
+    );
     final exclusions = <ViewerItemKey>{
       _key(rows[1]),
       _key(rows[2]),
@@ -149,13 +257,12 @@ void main() {
     };
     final selection = AllMatchingViewerSelection(
       query: query,
-      totalCount: rows.length,
+      totalCount: rows.length + 1,
       excluded: exclusions,
     );
 
     final result = await service.delete(
       selection,
-      additionalKeys: <ViewerItemKey>{_key(prefix)},
       expectedCount: 233,
     );
 
@@ -167,12 +274,11 @@ void main() {
     expect(processed, contains(_key(prefix)));
     expect(repository.requestedLimits, isNotEmpty);
     expect(repository.requestedLimits.every((limit) => limit <= 100), isTrue);
-    expect(repository.releaseCalls, 2);
-    expect(repository.countLeaseCalls, 2);
+    expect(repository.releaseCalls, 1);
+    expect(repository.countLeaseCalls, 1);
     expect(service.retainedBatchRowCount, 0);
     expect(repository.createdOnlyKeys.first, isNull);
     expect(repository.createdExcludedKeys.first, exclusions);
-    expect(repository.createdOnlyKeys.last, <ViewerItemKey>{_key(prefix)});
   });
 
   test("tag continues after one item failure and preserves typed key identity",
@@ -194,6 +300,7 @@ void main() {
     final calls = <ViewerItemKey>[];
     final service = ViewerBulkService(
       repository: repository,
+      bulkUpdateBoundary: _immediateBulkBoundary,
       tagItem: (item, tagsToAdd, tagsToRemove) async {
         expect(tagsToAdd, <String>{"add"});
         expect(tagsToRemove, <String>{"remove"});
@@ -237,6 +344,7 @@ void main() {
     final refreshed = <String>[];
     final service = ViewerBulkService(
       repository: repository,
+      bulkUpdateBoundary: _immediateBulkBoundary,
       refreshMetadata: (url) async {
         active++;
         maxActive = max(maxActive, active);
@@ -291,6 +399,7 @@ void main() {
     var index = 0;
     final service = ViewerBulkService(
       repository: repository,
+      bulkUpdateBoundary: _immediateBulkBoundary,
       refreshMetadata: (url) async => MetadataRefreshResult(
         url: url,
         outcome: outcomes[index++],
@@ -314,6 +423,7 @@ void main() {
     var processed = 0;
     final service = ViewerBulkService(
       repository: repository,
+      bulkUpdateBoundary: _immediateBulkBoundary,
       deleteItem: (item) async {
         processed++;
         return true;
@@ -346,6 +456,7 @@ void main() {
     var terminalItems = 0;
     final service = ViewerBulkService(
       repository: repository,
+      bulkUpdateBoundary: _immediateBulkBoundary,
       deleteItem: (item) async {
         terminalItems++;
         return true;
@@ -373,11 +484,19 @@ void main() {
     final repository = _LeaseRepository(<FolderItem>[]);
 
     expect(
-      () => ViewerBulkService(repository: repository, batchSize: 0),
+      () => ViewerBulkService(
+        repository: repository,
+        bulkUpdateBoundary: _immediateBulkBoundary,
+        batchSize: 0,
+      ),
       throwsArgumentError,
     );
     expect(
-      () => ViewerBulkService(repository: repository, batchSize: 101),
+      () => ViewerBulkService(
+        repository: repository,
+        bulkUpdateBoundary: _immediateBulkBoundary,
+        batchSize: 101,
+      ),
       throwsArgumentError,
     );
   });

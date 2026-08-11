@@ -95,6 +95,30 @@ void main() {
     expect(state.isSelected(folderKey), isTrue);
   });
 
+  test("manual explicit selection never retains more than one thousand keys",
+      () {
+    for (var index = 0; index < 1001; index++) {
+      state.toggle(_key(FolderItemType.link, "link-$index"));
+    }
+
+    final selection = state.value as ExplicitViewerSelection;
+    expect(selection.keys, hasLength(1000));
+    expect(state.selectedCount, 1000);
+  });
+
+  test("select-all exclusions never retain more than one thousand keys", () {
+    const query = ViewerQuery();
+    state.selectAllMatching(query, 100000);
+
+    for (var index = 0; index < 1001; index++) {
+      state.toggle(_key(FolderItemType.link, "link-$index"));
+    }
+
+    final selection = state.value as AllMatchingViewerSelection;
+    expect(selection.excluded, hasLength(1000));
+    expect(state.selectedCount, 99000);
+  });
+
   test("select-all rejects a negative total count", () {
     const query = ViewerQuery();
     state.synchronizeQuery(query);

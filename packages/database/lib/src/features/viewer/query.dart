@@ -11,6 +11,9 @@ import "package:meta/meta.dart";
 
 enum ViewerSort { nameAsc, nameDesc, dateAsc, dateDesc }
 
+const int viewerCardTagLimit = 20;
+const int viewerTagFacetLimit = 100;
+
 typedef ViewerItemKey = ({FolderItemType type, String id});
 
 class ViewerSelectionLease {
@@ -23,6 +26,7 @@ class ViewerSelectionLease {
 class ViewerQuery {
   const ViewerQuery({
     this.folderId,
+    this.includeFolderParents = false,
     this.searchText = "",
     this.types = const <FolderItemType>{
       FolderItemType.link,
@@ -38,6 +42,7 @@ class ViewerQuery {
   /// Non-null selects direct items of this folder through `items`, including
   /// links, documents, and nested folders.
   final String? folderId;
+  final bool includeFolderParents;
   final String searchText;
   final Set<FolderItemType> types;
   final Set<String> includedTags;
@@ -46,6 +51,7 @@ class ViewerQuery {
 
   ViewerQuery withoutTagFilters() => ViewerQuery(
         folderId: folderId,
+        includeFolderParents: includeFolderParents,
         searchText: searchText,
         types: types,
         sort: sort,
@@ -55,6 +61,7 @@ class ViewerQuery {
   bool operator ==(Object other) =>
       other is ViewerQuery &&
       other.folderId == folderId &&
+      other.includeFolderParents == includeFolderParents &&
       other.searchText == searchText &&
       other.sort == sort &&
       _sameSet(other.types, types) &&
@@ -64,6 +71,7 @@ class ViewerQuery {
   @override
   int get hashCode => Object.hash(
         folderId,
+        includeFolderParents,
         searchText,
         sort,
         Object.hashAllUnordered(types),
@@ -124,18 +132,35 @@ extension ViewerQueryExtensions on AppDatabase {
 
   Future<int> getViewerItemCount(ViewerQuery query) async {
     final row = await customSelect(
-      query.folderId == null ? _topLevelCountSql : _folderCountSql,
+      query.folderId == null
+          ? _topLevelCountSql
+          : query.includeFolderParents
+              ? _folderWithParentsCountSql
+              : _folderCountSql,
       variables: _viewerFilterVariables(query),
       readsFrom: _viewerTables,
     ).getSingle();
     return row.read<int>("item_count");
   }
 
-  Future<List<ViewerTagFacet>> getViewerTagFacets(ViewerQuery query) async {
+  Future<List<ViewerTagFacet>> getViewerTagFacets(
+    ViewerQuery query, {
+    String searchText = "",
+  }) async {
     final facetQuery = query.withoutTagFilters();
+    final variables = _viewerFilterVariables(facetQuery)
+      ..add(Variable<String>(searchText))
+      ..add(Variable<String>(searchText))
+      ..add(const Variable<int>(viewerTagFacetLimit));
     final rows = await customSelect(
-      facetQuery.folderId == null ? _topLevelFacetSql : _folderFacetSql,
-      variables: _viewerFilterVariables(facetQuery),
+      facetQuery.folderId == null
+          ? _topLevelFacetSql
+          : facetQuery.includeFolderParents
+              ? _folderWithParentsFacetSql
+              : _folderFacetSql,
+      // Folder facets use the same virtual parent/direct source as pages.
+      // This keeps filter counts exact without a materialized prefix.
+      variables: variables,
       readsFrom: _viewerTables,
     ).get();
     return rows
@@ -182,7 +207,9 @@ extension ViewerQueryExtensions on AppDatabase {
         await customStatement(
           query.folderId == null
               ? _populateTopLevelSelectionSql
-              : _populateFolderSelectionSql,
+              : query.includeFolderParents
+                  ? _populateFolderWithParentsSelectionSql
+                  : _populateFolderSelectionSql,
           variables.map((variable) => variable.value).toList(),
         );
       } else if (onlyKeys.isNotEmpty) {
@@ -263,6 +290,39 @@ extension ViewerQueryExtensions on AppDatabase {
     await customStatement(_releaseSelectionSql, <Object?>[lease.id]);
   }
 
+  /// Loads only the requested tags for one item, independently of the
+  /// card-hydration cap used by viewer pages and selection batches.
+  Future<List<Tag>> getViewerItemTagsByNames({
+    required String itemId,
+    required Set<String> tagNames,
+  }) async {
+    if (tagNames.isEmpty) return const <Tag>[];
+    final normalizedNames = tagNames.map((name) => name.toLowerCase()).toList()
+      ..sort();
+    final rows = await customSelect(
+      _loadItemTagsByNamesSql,
+      variables: <Variable<Object>>[
+        Variable<String>(itemId),
+        Variable<int>(MetadataTypeEnum.tag.index),
+        Variable<String>(jsonEncode(normalizedNames)),
+      ],
+      readsFrom: <ResultSetImplementation<Table, Object?>>{
+        metadataRecords,
+        tags,
+      },
+    ).get();
+    return rows
+        .map(
+          (row) => Tag(
+            id: row.read<String>("tag_id"),
+            createdAt: row.read<DateTime>("tag_created_at"),
+            name: row.read<String>("tag_name"),
+            color: row.readNullable<int>("tag_color"),
+          ),
+        )
+        .toList(growable: false);
+  }
+
   Future<List<FolderItem>> _materializeRows(
     List<QueryRow> rows, {
     required int limit,
@@ -325,6 +385,7 @@ extension ViewerQueryExtensions on AppDatabase {
       variables: <Variable<Object>>[
         Variable<int>(MetadataTypeEnum.tag.index),
         Variable<String>(jsonEncode(itemIds)),
+        const Variable<int>(viewerCardTagLimit),
       ],
       readsFrom: <ResultSetImplementation<Table, Object?>>{
         metadataRecords,
@@ -358,13 +419,19 @@ extension ViewerQueryExtensions on AppDatabase {
 }
 
 extension on ViewerSort {
+  // Folder viewers intentionally pin virtual parent rows (rank 0) before
+  // direct rows (rank 1) for every sort, then use typed stable tie-breakers.
   String get orderBy => switch (this) {
         ViewerSort.nameAsc =>
-          "display_name COLLATE NOCASE ASC, type_id ASC, id ASC",
+          "source_rank ASC, display_name COLLATE NOCASE ASC, "
+              "type_id ASC, id ASC",
         ViewerSort.nameDesc =>
-          "display_name COLLATE NOCASE DESC, type_id ASC, id ASC",
-        ViewerSort.dateAsc => "created_at ASC, type_id ASC, id ASC",
-        ViewerSort.dateDesc => "created_at DESC, type_id ASC, id ASC",
+          "source_rank ASC, display_name COLLATE NOCASE DESC, "
+              "type_id ASC, id ASC",
+        ViewerSort.dateAsc =>
+          "source_rank ASC, created_at ASC, type_id ASC, id ASC",
+        ViewerSort.dateDesc =>
+          "source_rank ASC, created_at DESC, type_id ASC, id ASC",
       };
 }
 
@@ -378,7 +445,11 @@ void _validatePageArguments({required int limit, required int offset}) {
 }
 
 String _viewerPageSql(ViewerQuery query) {
-  final template = query.folderId == null ? _topLevelPageSql : _folderPageSql;
+  final template = query.folderId == null
+      ? _topLevelPageSql
+      : query.includeFolderParents
+          ? _folderWithParentsPageSql
+          : _folderPageSql;
   return template.replaceFirst("@ORDER_BY@", query.sort.orderBy);
 }
 
@@ -386,10 +457,14 @@ List<Variable<Object>> _viewerFilterVariables(ViewerQuery query) {
   final includedTags = query.includedTags.toList()..sort();
   final excludedTags = query.excludedTags.toList()..sort();
   return <Variable<Object>>[
-    if (query.folderId case final folderId?) Variable<String>(folderId),
+    if (query.folderId case final folderId?) ...<Variable<Object>>[
+      if (query.includeFolderParents) Variable<String>(folderId),
+      Variable<String>(folderId),
+    ],
     Variable<int>(query.types.contains(FolderItemType.link) ? 1 : 0),
     Variable<int>(query.types.contains(FolderItemType.document) ? 1 : 0),
     Variable<int>(query.types.contains(FolderItemType.folder) ? 1 : 0),
+    Variable<String>(query.searchText),
     Variable<String>(query.searchText),
     Variable<String>(query.searchText),
     Variable<int>(MetadataTypeEnum.tag.index),
@@ -411,6 +486,7 @@ WHERE ((? = 1 AND type_id = 0)
   AND (
     ? = ''
     OR instr(lower(display_name), lower(?)) > 0
+    OR instr(lower(COALESCE(file_path, '')), lower(?)) > 0
     OR EXISTS (
       SELECT 1
       FROM metadata_records search_metadata
@@ -454,19 +530,20 @@ WHERE ((? = 1 AND type_id = 0)
 const _topLevelSourceSql = """
 SELECT id, type_id, relation_id, display_name, description, url, created_at,
        entity_created_at, updated_at, file_path, file_type, file_size,
-       checksum, archive_org_url, archive_is_url
+       checksum, archive_org_url, archive_is_url, source_rank
 FROM (
   SELECT id, 2 AS type_id, NULL AS relation_id, title AS display_name,
          description, NULL AS url, created_at, created_at AS entity_created_at,
          updated_at, NULL AS file_path, NULL AS file_type, NULL AS file_size,
-         NULL AS checksum, NULL AS archive_org_url, NULL AS archive_is_url
+         NULL AS checksum, NULL AS archive_org_url, NULL AS archive_is_url,
+         0 AS source_rank
   FROM folders
   UNION ALL
   SELECT id, 0 AS type_id, NULL AS relation_id, path AS display_name,
          path AS description, path AS url, created_at,
          created_at AS entity_created_at, NULL AS updated_at,
          NULL AS file_path, NULL AS file_type, NULL AS file_size,
-         NULL AS checksum, archive_org_url, archive_is_url
+         NULL AS checksum, archive_org_url, archive_is_url, 0 AS source_rank
   FROM links
 ) AS viewer_items
 """;
@@ -474,7 +551,7 @@ FROM (
 const _folderSourceSql = """
 SELECT id, type_id, relation_id, display_name, description,
        url, created_at, entity_created_at, updated_at, file_path, file_type,
-       file_size, checksum, archive_org_url, archive_is_url
+       file_size, checksum, archive_org_url, archive_is_url, source_rank
 FROM (
   SELECT items.item_id AS id,
          items.type_id AS type_id,
@@ -505,7 +582,8 @@ FROM (
          documents.file_size AS file_size,
          documents.checksum AS checksum,
          links.archive_org_url AS archive_org_url,
-         links.archive_is_url AS archive_is_url
+         links.archive_is_url AS archive_is_url,
+         1 AS source_rank
   FROM items
   LEFT JOIN links
     ON items.type_id = 0 AND links.id = items.item_id
@@ -517,6 +595,88 @@ FROM (
 ) AS viewer_items
 """;
 
+const _folderWithParentsSourceSql = """
+SELECT id, type_id, relation_id, display_name, description,
+       url, created_at, entity_created_at, updated_at, file_path, file_type,
+       file_size, checksum, archive_org_url, archive_is_url, source_rank
+FROM (
+  SELECT id, type_id, relation_id, display_name, description,
+         url, created_at, entity_created_at, updated_at, file_path, file_type,
+         file_size, checksum, archive_org_url, archive_is_url, source_rank
+  FROM (
+    SELECT ranked_items.*,
+         ROW_NUMBER() OVER (
+           PARTITION BY ranked_items.type_id, ranked_items.id
+           ORDER BY ranked_items.source_rank
+         ) AS source_row
+    FROM (
+    SELECT parent_folders.id AS id,
+           2 AS type_id,
+           NULL AS relation_id,
+           parent_folders.title AS display_name,
+           parent_folders.description AS description,
+           NULL AS url,
+           parent_folders.created_at AS created_at,
+           parent_folders.created_at AS entity_created_at,
+           parent_folders.updated_at AS updated_at,
+           NULL AS file_path,
+           NULL AS file_type,
+           NULL AS file_size,
+           NULL AS checksum,
+           NULL AS archive_org_url,
+           NULL AS archive_is_url,
+           0 AS source_rank
+    FROM items AS parent_relations
+    INNER JOIN folders AS parent_folders
+      ON parent_folders.id = parent_relations.folder_id
+    WHERE parent_relations.item_id = ?
+      AND parent_relations.type_id = 2
+    UNION ALL
+    SELECT items.item_id AS id,
+           items.type_id AS type_id,
+           items.id AS relation_id,
+           CASE items.type_id
+             WHEN 0 THEN links.path
+             WHEN 1 THEN documents.title
+             WHEN 2 THEN folders.title
+           END AS display_name,
+           CASE items.type_id
+             WHEN 0 THEN links.path
+             WHEN 1 THEN documents.file_path
+             WHEN 2 THEN folders.description
+           END AS description,
+           links.path AS url,
+           items.created_at AS created_at,
+           CASE items.type_id
+             WHEN 0 THEN links.created_at
+             WHEN 1 THEN documents.created_at
+             WHEN 2 THEN folders.created_at
+           END AS entity_created_at,
+           CASE items.type_id
+             WHEN 1 THEN documents.updated_at
+             WHEN 2 THEN folders.updated_at
+           END AS updated_at,
+           documents.file_path AS file_path,
+           documents.file_type AS file_type,
+           documents.file_size AS file_size,
+           documents.checksum AS checksum,
+           links.archive_org_url AS archive_org_url,
+           links.archive_is_url AS archive_is_url,
+           1 AS source_rank
+    FROM items
+    LEFT JOIN links
+      ON items.type_id = 0 AND links.id = items.item_id
+    LEFT JOIN documents
+      ON items.type_id = 1 AND documents.id = items.item_id
+    LEFT JOIN folders
+      ON items.type_id = 2 AND folders.id = items.item_id
+    WHERE items.folder_id = ?
+    ) AS ranked_items
+  ) AS deduplicated_items
+  WHERE source_row = 1
+) AS viewer_items
+""";
+
 const _topLevelPageSql = _topLevelSourceSql +
     _viewerFilterSql +
     """
@@ -525,6 +685,13 @@ LIMIT ? OFFSET ?
 """;
 
 const _folderPageSql = _folderSourceSql +
+    _viewerFilterSql +
+    """
+ORDER BY @ORDER_BY@
+LIMIT ? OFFSET ?
+""";
+
+const _folderWithParentsPageSql = _folderWithParentsSourceSql +
     _viewerFilterSql +
     """
 ORDER BY @ORDER_BY@
@@ -551,6 +718,16 @@ FROM (
 )
 """;
 
+const _folderWithParentsCountSql = """
+SELECT COUNT(*) AS item_count
+FROM (
+""" +
+    _folderWithParentsSourceSql +
+    _viewerFilterSql +
+    """
+)
+""";
+
 const _topLevelFacetSql = """
 SELECT facet_tags.id AS tag_id,
        facet_tags.created_at AS tag_created_at,
@@ -568,8 +745,10 @@ INNER JOIN metadata_records facet_metadata
  AND facet_metadata.type_id = 0
 INNER JOIN tags facet_tags
   ON facet_tags.id = facet_metadata.metadata_id
+WHERE (? = '' OR instr(lower(facet_tags.name), lower(?)) > 0)
 GROUP BY facet_tags.id, facet_tags.created_at, facet_tags.name, facet_tags.color
 ORDER BY facet_tags.name COLLATE NOCASE, facet_tags.id
+LIMIT ?
 """;
 
 const _folderFacetSql = """
@@ -589,21 +768,69 @@ INNER JOIN metadata_records facet_metadata
  AND facet_metadata.type_id = 0
 INNER JOIN tags facet_tags
   ON facet_tags.id = facet_metadata.metadata_id
+WHERE (? = '' OR instr(lower(facet_tags.name), lower(?)) > 0)
 GROUP BY facet_tags.id, facet_tags.created_at, facet_tags.name, facet_tags.color
 ORDER BY facet_tags.name COLLATE NOCASE, facet_tags.id
+LIMIT ?
+""";
+
+const _folderWithParentsFacetSql = """
+SELECT facet_tags.id AS tag_id,
+       facet_tags.created_at AS tag_created_at,
+       facet_tags.name AS tag_name,
+       facet_tags.color AS tag_color,
+       COUNT(*) AS item_count
+FROM (
+""" +
+    _folderWithParentsSourceSql +
+    _viewerFilterSql +
+    """
+) AS filtered_items
+INNER JOIN metadata_records facet_metadata
+  ON facet_metadata.item_id = filtered_items.id
+ AND facet_metadata.type_id = 0
+INNER JOIN tags facet_tags
+  ON facet_tags.id = facet_metadata.metadata_id
+WHERE (? = '' OR instr(lower(facet_tags.name), lower(?)) > 0)
+GROUP BY facet_tags.id, facet_tags.created_at, facet_tags.name, facet_tags.color
+ORDER BY facet_tags.name COLLATE NOCASE, facet_tags.id
+LIMIT ?
 """;
 
 const _loadTagsSql = """
-SELECT metadata_records.item_id AS item_id,
-       tags.id AS tag_id,
+SELECT item_id, tag_id, tag_created_at, tag_name, tag_color
+FROM (
+  SELECT metadata_records.item_id AS item_id,
+         tags.id AS tag_id,
+         tags.created_at AS tag_created_at,
+         tags.name AS tag_name,
+         tags.color AS tag_color,
+         ROW_NUMBER() OVER (
+           PARTITION BY metadata_records.item_id
+           ORDER BY tags.name COLLATE NOCASE, tags.id
+         ) AS tag_row
+  FROM metadata_records
+  INNER JOIN tags ON tags.id = metadata_records.metadata_id
+  WHERE metadata_records.type_id = ?
+    AND metadata_records.item_id IN (SELECT value FROM json_each(?))
+)
+WHERE tag_row <= ?
+ORDER BY item_id, tag_name COLLATE NOCASE, tag_id
+""";
+
+const _loadItemTagsByNamesSql = """
+SELECT tags.id AS tag_id,
        tags.created_at AS tag_created_at,
        tags.name AS tag_name,
        tags.color AS tag_color
 FROM metadata_records
 INNER JOIN tags ON tags.id = metadata_records.metadata_id
-WHERE metadata_records.type_id = ?
-  AND metadata_records.item_id IN (SELECT value FROM json_each(?))
-ORDER BY metadata_records.item_id, tags.name COLLATE NOCASE, tags.id
+WHERE metadata_records.item_id = ?
+  AND metadata_records.type_id = ?
+  AND lower(tags.name) IN (
+    SELECT lower(CAST(value AS TEXT)) FROM json_each(?)
+  )
+ORDER BY tags.name COLLATE NOCASE, tags.id
 """;
 
 const _createSelectionTableSql = """
@@ -669,6 +896,19 @@ SELECT ?, type_id, id, relation_id, created_at
 FROM (
 """ +
     _folderSourceSql +
+    _viewerFilterSql +
+    """
+)
+""";
+
+const _populateFolderWithParentsSelectionSql = """
+INSERT OR IGNORE INTO viewer_selection_keys (
+  session_id, type_id, item_id, relation_id, added_at
+)
+SELECT ?, type_id, id, relation_id, created_at
+FROM (
+""" +
+    _folderWithParentsSourceSql +
     _viewerFilterSql +
     """
 )

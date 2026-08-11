@@ -20,7 +20,6 @@ class PagedViewerDisplay extends StatefulWidget {
   const PagedViewerDisplay({
     super.key,
     required this.presenter,
-    this.prefixItems = const <FolderItem>[],
     this.showSearch = true,
     this.displayModeContext,
     this.onItemTap,
@@ -30,7 +29,6 @@ class PagedViewerDisplay extends StatefulWidget {
   });
 
   final ViewerPresenter presenter;
-  final List<FolderItem> prefixItems;
   final bool showSearch;
   final String? displayModeContext;
   final ValueChanged<FolderItem>? onItemTap;
@@ -45,12 +43,6 @@ class PagedViewerDisplay extends StatefulWidget {
 class _PagedViewerDisplayState extends State<PagedViewerDisplay> {
   final Signal<DisplayMode> _displayMode = signal(DisplayMode.standard);
   final Signal<bool> _isSelectMode = signal(false);
-  final Signal<Set<ViewerItemKey>> _selectedPrefixKeys = signal(
-    <ViewerItemKey>{},
-  );
-  late final void Function() _disposeQuerySelectionEffect;
-  ViewerQuery? _selectionQuery;
-  int? _selectionSummaryGeneration;
   bool _disposed = false;
 
   ViewerPresenter get _presenter => widget.presenter;
@@ -58,17 +50,6 @@ class _PagedViewerDisplayState extends State<PagedViewerDisplay> {
   @override
   void initState() {
     super.initState();
-    _disposeQuerySelectionEffect = effect(() {
-      final currentQuery = _presenter.query.value;
-      final summaryGeneration = _presenter.pageSource.summaryGeneration.value;
-      if (_selectionQuery == currentQuery &&
-          _selectionSummaryGeneration == summaryGeneration) {
-        return;
-      }
-      _selectionQuery = currentQuery;
-      _selectionSummaryGeneration = summaryGeneration;
-      _selectedPrefixKeys.value = <ViewerItemKey>{};
-    });
     unawaited(_loadDisplayPreferences());
   }
 
@@ -87,10 +68,8 @@ class _PagedViewerDisplayState extends State<PagedViewerDisplay> {
   @override
   void dispose() {
     _disposed = true;
-    _disposeQuerySelectionEffect();
     _displayMode.dispose();
     _isSelectMode.dispose();
-    _selectedPrefixKeys.dispose();
     super.dispose();
   }
 
@@ -114,7 +93,6 @@ class _PagedViewerDisplayState extends State<PagedViewerDisplay> {
     final entering = !_isSelectMode.value;
     _isSelectMode.value = entering;
     if (!entering) {
-      _selectedPrefixKeys.value = <ViewerItemKey>{};
       _presenter.selectionState.clear();
     }
   }
@@ -126,12 +104,17 @@ class _PagedViewerDisplayState extends State<PagedViewerDisplay> {
       return;
     }
     final key = (type: item.type, id: id);
-    if (_prefixItemKeys.contains(key)) {
-      final selected = Set<ViewerItemKey>.of(_selectedPrefixKeys.value);
-      if (!selected.add(key)) selected.remove(key);
-      _selectedPrefixKeys.value = Set<ViewerItemKey>.unmodifiable(selected);
-    } else {
-      _presenter.selectionState.toggle(key);
+    final result = _presenter.selectionState.toggle(key);
+    if (result == ViewerSelectionToggleResult.limitReached) {
+      final limit = _presenter.selectionState.maxManualKeys;
+      final noun = limit == 1 ? "item" : "items";
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Manual selection is limited to $limit $noun. Use Select All.",
+          ),
+        ),
+      );
     }
   }
 
@@ -142,63 +125,45 @@ class _PagedViewerDisplayState extends State<PagedViewerDisplay> {
       query,
       _presenter.pageSource.totalCount.value,
     );
-    _selectedPrefixKeys.value = Set<ViewerItemKey>.unmodifiable(
-      _filterAndSortPrefix(widget.prefixItems, query).map(_itemKey),
-    );
   }
-
-  Set<ViewerItemKey> get _prefixItemKeys =>
-      widget.prefixItems.map(_itemKey).toSet();
 
   ViewerSelectionTarget get _selectionTarget {
     final selection = _presenter.selectionState.value;
-    final prefixKeys = _selectedPrefixKeys.value;
     final summaryGeneration = _presenter.pageSource.summaryGeneration.value;
     return ViewerSelectionTarget(
       selection: selection,
-      additionalKeys: prefixKeys,
       isCurrent: () =>
           !_disposed &&
           identical(_presenter.selectionState.value, selection) &&
-          identical(_selectedPrefixKeys.value, prefixKeys) &&
           _presenter.pageSource.summaryGeneration.value == summaryGeneration,
     );
   }
 
   bool _isItemSelected(FolderItem item) {
-    final key = _itemKey(item);
-    if (_prefixItemKeys.contains(key)) {
-      return _selectedPrefixKeys.value.contains(key);
-    }
-    return _presenter.selectionState.isSelected(key);
+    return _presenter.selectionState.isSelected(_itemKey(item));
   }
 
   int get _selectedLinkCount {
-    final prefixLinks = _selectedPrefixKeys.value
-        .where((key) => key.type == FolderItemType.link)
-        .length;
     return switch (_presenter.selectionState.value) {
-      ExplicitViewerSelection(:final keys) => prefixLinks +
-          keys.where((key) => key.type == FolderItemType.link).length,
+      ExplicitViewerSelection(:final keys) =>
+        keys.where((key) => key.type == FolderItemType.link).length,
       AllMatchingViewerSelection(:final query, :final totalCount) =>
-        prefixLinks +
-            (totalCount > 0 && query.types.contains(FolderItemType.link)
-                ? 1
-                : 0),
+        totalCount > 0 && query.types.contains(FolderItemType.link) ? 1 : 0,
     };
   }
 
   Future<void> _openTagFilterModal() async {
-    final facets = _combinedTagFacets(
-      _presenter.pageSource.tagFacets.value,
-      widget.prefixItems,
-      _presenter.query.value,
-    );
+    final facets = _presenter.pageSource.tagFacets.value;
     final result = await TagFilterModal.show(
       context: context,
       availableTags: facets.map((facet) => facet.tag).toList(growable: false),
       initialIncludedTags: _presenter.tagFilterState.includedTagNames,
       initialExcludedTags: _presenter.tagFilterState.excludedTagNames,
+      onSearchTags: (searchText) async {
+        final searched =
+            await _presenter.pageSource.searchTagFacets(searchText);
+        return searched.map((facet) => facet.tag).toList(growable: false);
+      },
     );
     if (result == null) return;
     _presenter.tagFilterState.updateTags(
@@ -210,8 +175,6 @@ class _PagedViewerDisplayState extends State<PagedViewerDisplay> {
   @override
   Widget build(BuildContext context) {
     return SignalBuilder(builder: (context) {
-      final query = _presenter.query.value;
-      final prefix = _filterAndSortPrefix(widget.prefixItems, query);
       final pageSource = _presenter.pageSource;
       pageSource.revision.value;
       final countError = pageSource.countError.value;
@@ -222,7 +185,6 @@ class _PagedViewerDisplayState extends State<PagedViewerDisplay> {
         errorAt: pageSource.errorAt,
         retryAt: (index) => pageSource.retryPage(index ~/ pageSource.pageSize),
       );
-      final source = PrefixedItemViewportSource(prefix, delegate);
       final selectionTarget = _selectionTarget;
 
       return Column(
@@ -271,7 +233,7 @@ class _PagedViewerDisplayState extends State<PagedViewerDisplay> {
           Expanded(
             child: _presenter.viewMode.value == ViewMode.grid
                 ? ItemGridView(
-                    source: source,
+                    source: delegate,
                     displayMode: _displayMode.value,
                     includedTagNames:
                         _presenter.tagFilterState.includedTagNames,
@@ -285,7 +247,7 @@ class _PagedViewerDisplayState extends State<PagedViewerDisplay> {
                     isItemSelected: _isItemSelected,
                   )
                 : ItemListView(
-                    source: source,
+                    source: delegate,
                     displayMode: _displayMode.value,
                     includedTagNames:
                         _presenter.tagFilterState.includedTagNames,
@@ -347,96 +309,5 @@ class _ViewerSummaryErrorBanner extends StatelessWidget {
     );
   }
 }
-
-List<FolderItem> _filterAndSortPrefix(
-  List<FolderItem> items,
-  ViewerQuery query,
-) {
-  if (items.isEmpty) return const <FolderItem>[];
-  final searchText = query.searchText.toLowerCase();
-  final included = query.includedTags.map((tag) => tag.toLowerCase()).toSet();
-  final excluded = query.excludedTags.map((tag) => tag.toLowerCase()).toSet();
-  final filtered = items.where((item) {
-    if (!query.types.contains(item.type)) return false;
-    final tags = item.tags.map((tag) => tag.name.toLowerCase()).toSet();
-    if (included.isNotEmpty && !tags.any(included.contains)) return false;
-    if (excluded.isNotEmpty && tags.any(excluded.contains)) return false;
-    if (searchText.isEmpty) return true;
-    return _searchableText(item).contains(searchText) ||
-        tags.any((tag) => tag.contains(searchText));
-  }).toList(growable: false);
-  final direction = switch (query.sort) {
-    ViewerSort.nameAsc || ViewerSort.dateAsc => 1,
-    ViewerSort.nameDesc || ViewerSort.dateDesc => -1,
-  };
-  filtered.sort((left, right) {
-    final primary = switch (query.sort) {
-      ViewerSort.nameAsc ||
-      ViewerSort.nameDesc =>
-        _displayName(left).toLowerCase().compareTo(
-              _displayName(right).toLowerCase(),
-            ),
-      ViewerSort.dateAsc ||
-      ViewerSort.dateDesc =>
-        _createdAt(left).compareTo(_createdAt(right)),
-    };
-    if (primary != 0) return direction * primary;
-    final typeOrder = left.type.index.compareTo(right.type.index);
-    if (typeOrder != 0) return typeOrder;
-    return (left.id ?? "").compareTo(right.id ?? "");
-  });
-  return filtered;
-}
-
-List<ViewerTagFacet> _combinedTagFacets(
-  List<ViewerTagFacet> databaseFacets,
-  List<FolderItem> prefixItems,
-  ViewerQuery query,
-) {
-  final byId = <String, ViewerTagFacet>{
-    for (final facet in databaseFacets) facet.tag.id: facet,
-  };
-  for (final item in _filterAndSortPrefix(
-    prefixItems,
-    query.withoutTagFilters(),
-  )) {
-    for (final tag in item.tags) {
-      final existing = byId[tag.id];
-      byId[tag.id] = ViewerTagFacet(
-        tag: tag,
-        itemCount: (existing?.itemCount ?? 0) + 1,
-      );
-    }
-  }
-  final facets = byId.values.toList(growable: false);
-  facets.sort(
-    (left, right) =>
-        left.tag.name.toLowerCase().compareTo(right.tag.name.toLowerCase()),
-  );
-  return facets;
-}
-
-String _searchableText(FolderItem item) => item.map(
-      link: (link) => link.url.toLowerCase(),
-      document: (document) =>
-          "${document.title} ${document.filePath}".toLowerCase(),
-      folder: (folder) =>
-          "${folder.title} ${folder.description} ${folder.folderId}"
-              .toLowerCase(),
-    );
-
-String _displayName(FolderItem item) => item.map(
-      link: (link) => link.url,
-      document: (document) => document.title,
-      folder: (folder) => folder.title,
-    );
-
-DateTime _createdAt(FolderItem item) => item.map(
-      link: (link) => link.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0),
-      document: (document) =>
-          document.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0),
-      folder: (folder) =>
-          folder.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0),
-    );
 
 ViewerItemKey _itemKey(FolderItem item) => (type: item.type, id: item.id!);

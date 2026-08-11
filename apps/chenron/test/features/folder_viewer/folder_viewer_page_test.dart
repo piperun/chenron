@@ -67,18 +67,21 @@ class _BoundedFolderService extends FolderViewerService {
         updatedAt: DateTime(2026, 8, 10),
       ),
       tags: const <Tag>[],
-      items: parentItems,
+      items: const <FolderItem>[],
     );
   }
 
   @override
   Future<int> count(ViewerQuery query) async {
     countQueries.add(query);
-    return 100000;
+    return 100000 + (query.includeFolderParents ? parentItems.length : 0);
   }
 
   @override
-  Future<List<ViewerTagFacet>> loadTagFacets(ViewerQuery query) async =>
+  Future<List<ViewerTagFacet>> loadTagFacets(
+    ViewerQuery query, {
+    String searchText = "",
+  }) async =>
       const <ViewerTagFacet>[];
 
   @override
@@ -88,18 +91,26 @@ class _BoundedFolderService extends FolderViewerService {
     required int offset,
   }) async {
     pageRequests.add((query: query, limit: limit, offset: offset));
-    return List<FolderItem>.generate(
-      limit,
-      (index) => FolderItem.folder(
-        id: "child-${offset + index}",
-        itemId: "relation-${offset + index}",
-        folderId: "child-${offset + index}",
-        title: "Child ${offset + index}",
+    final rows = <FolderItem>[];
+    final virtualParents =
+        query.includeFolderParents ? parentItems : const <FolderItem>[];
+    for (var index = offset; index < offset + limit; index++) {
+      if (index < virtualParents.length) {
+        rows.add(virtualParents[index]);
+        continue;
+      }
+      final childIndex = index - virtualParents.length;
+      rows.add(FolderItem.folder(
+        id: "child-$childIndex",
+        itemId: "relation-$childIndex",
+        folderId: "child-$childIndex",
+        title: "Child $childIndex",
         description: "",
         createdAt: DateTime(2026, 8, 10),
         tags: const <Tag>[],
-      ),
-    );
+      ));
+    }
+    return rows;
   }
 
   @override

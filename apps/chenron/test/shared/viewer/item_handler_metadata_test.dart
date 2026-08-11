@@ -126,6 +126,7 @@ void main() {
     final repository = _HandlerRepository(item);
     final service = ViewerBulkService(
       repository: repository,
+      bulkUpdateBoundary: const _ImmediateBulkBoundary(),
       deleteItem: (_) async => true,
     );
     final target = ViewerSelectionTarget(
@@ -165,6 +166,7 @@ void main() {
     final repository = _HandlerRepository(item);
     final service = ViewerBulkService(
       repository: repository,
+      bulkUpdateBoundary: const _ImmediateBulkBoundary(),
       deleteItem: (_) async => true,
     );
     var isCurrent = true;
@@ -218,6 +220,7 @@ void main() {
     Set<String>? removals;
     final service = ViewerBulkService(
       repository: repository,
+      bulkUpdateBoundary: const _ImmediateBulkBoundary(),
       tagItem: (_, tagsToAdd, tagsToRemove) async {
         additions = tagsToAdd;
         removals = tagsToRemove;
@@ -265,6 +268,7 @@ void main() {
     final repository = _HandlerRepository(item);
     final service = ViewerBulkService(
       repository: repository,
+      bulkUpdateBoundary: const _ImmediateBulkBoundary(),
       refreshMetadata: (_) async => throw StateError("refresh failed"),
     );
     final target = ViewerSelectionTarget(
@@ -395,6 +399,13 @@ class _HandlerRepository implements ViewerPageRepository {
   @override
   Future<List<ViewerTagFacet>> loadTagFacets(ViewerQuery query) =>
       throw UnimplementedError();
+}
+
+final class _ImmediateBulkBoundary implements ViewerBulkUpdateBoundary {
+  const _ImmediateBulkBoundary();
+
+  @override
+  Future<T> runBulkUpdate<T>(Future<T> Function() operation) => operation();
 }
 
 class _TestAppDatabaseLifecycle extends AppDatabaseLifecycle {
