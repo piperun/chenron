@@ -200,7 +200,7 @@ void main() {
       metadata: state,
     )));
 
-    expect(find.text("sampletag — Media"), findsOneWidget);
+    expect(find.text("sampletag - Media"), findsOneWidget);
     expect(find.text(_mediaUrl), findsNothing);
   });
 
@@ -219,7 +219,7 @@ void main() {
       metadata: state,
     )));
 
-    expect(find.text("sampletag — Media"), findsOneWidget);
+    expect(find.text("sampletag - Media"), findsOneWidget);
     expect(find.text("Media"), findsNothing);
   });
 }

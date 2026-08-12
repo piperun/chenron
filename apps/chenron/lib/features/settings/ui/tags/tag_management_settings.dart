@@ -176,7 +176,7 @@ class _TagManagementSettingsState extends State<TagManagementSettings> {
       children: [
         const SettingsSectionHeader(
           title: "All Tags",
-          description: "Manage your tags — rename, delete, or change colors.",
+          description: "Manage your tags - rename, delete, or change colors.",
         ),
         if (_isLoading)
           const Center(child: CircularProgressIndicator())

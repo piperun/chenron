@@ -9,7 +9,7 @@ void main() {
       const url =
           "https://media.example/index.php?page=post&s=list&tags=sampletag";
 
-      expect(inferMetadataTitle(url), "sampletag — Media");
+      expect(inferMetadataTitle(url), "sampletag - Media");
     });
 
     // Catches country-code public suffixes leaking into the site label.
@@ -54,7 +54,7 @@ void main() {
         resolveMetadataDisplayTitle(
             "https://media.example/index.php?page=post&s=list&tags=sampletag",
             state),
-        "sampletag — Media",
+        "sampletag - Media",
       );
     });
   });

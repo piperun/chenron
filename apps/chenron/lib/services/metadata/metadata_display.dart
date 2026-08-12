@@ -39,7 +39,7 @@ String inferMetadataTitle(String url) {
   final pathValue = _meaningfulPathSegment(uri);
   final subject = _humanize(queryValue ?? pathValue);
   if (subject == null) return siteLabel;
-  return "$subject — $siteLabel";
+  return "$subject - $siteLabel";
 }
 
 String resolveMetadataDisplayTitle(String url, MetadataState state) {

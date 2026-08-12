@@ -35,7 +35,7 @@ String _sqliteMessage(SqliteException e) {
     // SQLITE_CONSTRAINT_UNIQUE (2067) and SQLITE_CONSTRAINT_PRIMARYKEY (1555)
     2067 || 1555 => "This item already exists.",
     // SQLITE_CONSTRAINT_FOREIGNKEY (787)
-    787 => "Cannot complete — a related item is missing or was removed.",
+    787 => "Cannot complete - a related item is missing or was removed.",
     // SQLITE_CONSTRAINT_NOTNULL (1299)
     1299 => "A required field is empty.",
     // SQLITE_BUSY (5) / SQLITE_LOCKED (6)
