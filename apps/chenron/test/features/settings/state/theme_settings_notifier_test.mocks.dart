@@ -93,6 +93,17 @@ class MockThemeNotifier extends _i1.Mock implements _i3.ThemeNotifier {
       ) as _i5.Future<void>);
 
   @override
+  _i5.Future<void> applyOptions(Map<String, Object?>? opts) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #applyOptions,
+          [opts],
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
+
+  @override
   _i5.Future<void> setCurrentTheme() => (super.noSuchMethod(
         Invocation.method(
           #setCurrentTheme,

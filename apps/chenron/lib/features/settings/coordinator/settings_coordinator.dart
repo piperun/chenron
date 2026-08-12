@@ -8,6 +8,7 @@ import "package:chenron/features/settings/state/backup_settings.dart";
 import "package:chenron/features/settings/state/database_settings.dart";
 import "package:chenron/features/settings/state/display_settings.dart";
 import "package:chenron/features/settings/state/settings_section.dart";
+import "package:chenron/features/settings/state/storage_settings.dart";
 import "package:chenron/features/settings/state/theme_settings.dart";
 import "package:chenron/features/theme/state/theme_notifier.dart";
 import "package:chenron/features/theme/state/theme_options_store.dart";
@@ -18,16 +19,18 @@ import "package:app_logger/app_logger.dart";
 ///
 /// Sections come in two flavours:
 ///   - Conform to [SettingsSection] (hydrate from `UserConfig`, write
-///     back via the [ConfigService]): [archive], [display], [theme].
+///     back via the [ConfigService]): [archive], [display], [storage],
+///     [theme].
 ///   - Have their own load/save story: [backup] (separate row in the
 ///     `BackupSettings` table), [database] (SharedPreferences).
 ///
-/// `hasUnsavedChanges` aggregates across all five.
+/// `hasUnsavedChanges` aggregates across all six.
 class SettingsCoordinator {
   final ConfigService _configService;
 
   late final ArchiveSettingsNotifier archive;
   late final DisplaySettingsNotifier display;
+  late final StorageSettingsNotifier storage;
   late final ThemeSettingsNotifier theme;
   late final BackupSettingsNotifier backup;
   late final DatabaseSettingsNotifier database;
@@ -52,12 +55,13 @@ class SettingsCoordinator {
     Future<void> Function(String? cacheDirectory)? onCacheDirectorySaved,
   }) : _configService = configService {
     archive = ArchiveSettingsNotifier(configService);
-    display = DisplaySettingsNotifier(configService,
+    display = DisplaySettingsNotifier(configService);
+    storage = StorageSettingsNotifier(configService,
         onCacheDirectorySaved: onCacheDirectorySaved);
     theme = ThemeSettingsNotifier(configService, themeApplier, optionsStore);
     backup = BackupSettingsNotifier(configService);
     database = DatabaseSettingsNotifier(dataService);
-    _uniformSections = [archive, display, theme];
+    _uniformSections = [archive, display, storage, theme];
   }
 
   /// True if any section has unsaved edits.

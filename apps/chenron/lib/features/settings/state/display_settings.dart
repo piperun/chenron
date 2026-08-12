@@ -7,15 +7,12 @@ import "package:chenron/features/settings/state/settings_section.dart";
 
 part "display_settings.freezed.dart";
 
-/// Immutable snapshot of viewer / display preferences plus the cache
-/// directory override. `null` for [cacheDirectory] means "use the
-/// platform default temp dir".
+/// Immutable snapshot of viewer / display preferences.
 @freezed
 abstract class DisplaySettings with _$DisplaySettings {
   const factory DisplaySettings({
     @Default(0) int timeDisplayFormat,
     @Default(0) int itemClickAction,
-    String? cacheDirectory,
     @Default(true) bool showDescription,
     @Default(true) bool showImages,
     @Default(true) bool showTags,
@@ -28,7 +25,6 @@ abstract class DisplaySettings with _$DisplaySettings {
         // existing radio + segmented-button bindings.
         timeDisplayFormat: config.timeDisplayFormat.index,
         itemClickAction: config.itemClickAction.index,
-        cacheDirectory: config.cacheDirectory,
         showDescription: config.showDescription,
         showImages: config.showImages,
         showTags: config.showTags,
@@ -39,16 +35,7 @@ abstract class DisplaySettings with _$DisplaySettings {
 class DisplaySettingsNotifier implements SettingsSection {
   final ConfigService _service;
 
-  /// Applies a newly-saved cache directory to the image cache so a changed
-  /// location takes effect without a restart. Injected as a callback (rather
-  /// than reaching the locator) to keep this notifier decoupled and
-  /// unit-testable; `null` when no image cache is wired.
-  final Future<void> Function(String? cacheDirectory)? _onCacheDirectorySaved;
-
-  DisplaySettingsNotifier(
-    this._service, {
-    Future<void> Function(String? cacheDirectory)? onCacheDirectorySaved,
-  }) : _onCacheDirectorySaved = onCacheDirectorySaved;
+  DisplaySettingsNotifier(this._service);
 
   final current = signal(const DisplaySettings());
   final saved = signal(const DisplaySettings());
@@ -74,15 +61,11 @@ class DisplaySettingsNotifier implements SettingsSection {
       configId: configId,
       timeDisplayFormat: s.timeDisplayFormat,
       itemClickAction: s.itemClickAction,
-      cacheDirectory: s.cacheDirectory,
       showDescription: s.showDescription,
       showImages: s.showImages,
       showTags: s.showTags,
       showCopyLink: s.showCopyLink,
     );
     saved.value = s;
-    // Point the image cache at the saved directory so the change takes
-    // effect immediately. No-op if the directory is unchanged.
-    await _onCacheDirectorySaved?.call(s.cacheDirectory);
   }
 }

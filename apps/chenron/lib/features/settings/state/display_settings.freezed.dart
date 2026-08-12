@@ -16,7 +16,6 @@ T _$identity<T>(T value) => value;
 mixin _$DisplaySettings {
   int get timeDisplayFormat;
   int get itemClickAction;
-  String? get cacheDirectory;
   bool get showDescription;
   bool get showImages;
   bool get showTags;
@@ -39,8 +38,6 @@ mixin _$DisplaySettings {
                 other.timeDisplayFormat == timeDisplayFormat) &&
             (identical(other.itemClickAction, itemClickAction) ||
                 other.itemClickAction == itemClickAction) &&
-            (identical(other.cacheDirectory, cacheDirectory) ||
-                other.cacheDirectory == cacheDirectory) &&
             (identical(other.showDescription, showDescription) ||
                 other.showDescription == showDescription) &&
             (identical(other.showImages, showImages) ||
@@ -52,19 +49,12 @@ mixin _$DisplaySettings {
   }
 
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      timeDisplayFormat,
-      itemClickAction,
-      cacheDirectory,
-      showDescription,
-      showImages,
-      showTags,
-      showCopyLink);
+  int get hashCode => Object.hash(runtimeType, timeDisplayFormat,
+      itemClickAction, showDescription, showImages, showTags, showCopyLink);
 
   @override
   String toString() {
-    return 'DisplaySettings(timeDisplayFormat: $timeDisplayFormat, itemClickAction: $itemClickAction, cacheDirectory: $cacheDirectory, showDescription: $showDescription, showImages: $showImages, showTags: $showTags, showCopyLink: $showCopyLink)';
+    return 'DisplaySettings(timeDisplayFormat: $timeDisplayFormat, itemClickAction: $itemClickAction, showDescription: $showDescription, showImages: $showImages, showTags: $showTags, showCopyLink: $showCopyLink)';
   }
 }
 
@@ -77,7 +67,6 @@ abstract mixin class $DisplaySettingsCopyWith<$Res> {
   $Res call(
       {int timeDisplayFormat,
       int itemClickAction,
-      String? cacheDirectory,
       bool showDescription,
       bool showImages,
       bool showTags,
@@ -99,7 +88,6 @@ class _$DisplaySettingsCopyWithImpl<$Res>
   $Res call({
     Object? timeDisplayFormat = null,
     Object? itemClickAction = null,
-    Object? cacheDirectory = freezed,
     Object? showDescription = null,
     Object? showImages = null,
     Object? showTags = null,
@@ -114,10 +102,6 @@ class _$DisplaySettingsCopyWithImpl<$Res>
           ? _self.itemClickAction
           : itemClickAction // ignore: cast_nullable_to_non_nullable
               as int,
-      cacheDirectory: freezed == cacheDirectory
-          ? _self.cacheDirectory
-          : cacheDirectory // ignore: cast_nullable_to_non_nullable
-              as String?,
       showDescription: null == showDescription
           ? _self.showDescription
           : showDescription // ignore: cast_nullable_to_non_nullable
@@ -234,7 +218,6 @@ extension DisplaySettingsPatterns on DisplaySettings {
     TResult Function(
             int timeDisplayFormat,
             int itemClickAction,
-            String? cacheDirectory,
             bool showDescription,
             bool showImages,
             bool showTags,
@@ -248,7 +231,6 @@ extension DisplaySettingsPatterns on DisplaySettings {
         return $default(
             _that.timeDisplayFormat,
             _that.itemClickAction,
-            _that.cacheDirectory,
             _that.showDescription,
             _that.showImages,
             _that.showTags,
@@ -276,7 +258,6 @@ extension DisplaySettingsPatterns on DisplaySettings {
     TResult Function(
             int timeDisplayFormat,
             int itemClickAction,
-            String? cacheDirectory,
             bool showDescription,
             bool showImages,
             bool showTags,
@@ -289,7 +270,6 @@ extension DisplaySettingsPatterns on DisplaySettings {
         return $default(
             _that.timeDisplayFormat,
             _that.itemClickAction,
-            _that.cacheDirectory,
             _that.showDescription,
             _that.showImages,
             _that.showTags,
@@ -316,7 +296,6 @@ extension DisplaySettingsPatterns on DisplaySettings {
     TResult? Function(
             int timeDisplayFormat,
             int itemClickAction,
-            String? cacheDirectory,
             bool showDescription,
             bool showImages,
             bool showTags,
@@ -329,7 +308,6 @@ extension DisplaySettingsPatterns on DisplaySettings {
         return $default(
             _that.timeDisplayFormat,
             _that.itemClickAction,
-            _that.cacheDirectory,
             _that.showDescription,
             _that.showImages,
             _that.showTags,
@@ -346,7 +324,6 @@ class _DisplaySettings implements DisplaySettings {
   const _DisplaySettings(
       {this.timeDisplayFormat = 0,
       this.itemClickAction = 0,
-      this.cacheDirectory,
       this.showDescription = true,
       this.showImages = true,
       this.showTags = true,
@@ -358,8 +335,6 @@ class _DisplaySettings implements DisplaySettings {
   @override
   @JsonKey()
   final int itemClickAction;
-  @override
-  final String? cacheDirectory;
   @override
   @JsonKey()
   final bool showDescription;
@@ -390,8 +365,6 @@ class _DisplaySettings implements DisplaySettings {
                 other.timeDisplayFormat == timeDisplayFormat) &&
             (identical(other.itemClickAction, itemClickAction) ||
                 other.itemClickAction == itemClickAction) &&
-            (identical(other.cacheDirectory, cacheDirectory) ||
-                other.cacheDirectory == cacheDirectory) &&
             (identical(other.showDescription, showDescription) ||
                 other.showDescription == showDescription) &&
             (identical(other.showImages, showImages) ||
@@ -403,19 +376,12 @@ class _DisplaySettings implements DisplaySettings {
   }
 
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      timeDisplayFormat,
-      itemClickAction,
-      cacheDirectory,
-      showDescription,
-      showImages,
-      showTags,
-      showCopyLink);
+  int get hashCode => Object.hash(runtimeType, timeDisplayFormat,
+      itemClickAction, showDescription, showImages, showTags, showCopyLink);
 
   @override
   String toString() {
-    return 'DisplaySettings(timeDisplayFormat: $timeDisplayFormat, itemClickAction: $itemClickAction, cacheDirectory: $cacheDirectory, showDescription: $showDescription, showImages: $showImages, showTags: $showTags, showCopyLink: $showCopyLink)';
+    return 'DisplaySettings(timeDisplayFormat: $timeDisplayFormat, itemClickAction: $itemClickAction, showDescription: $showDescription, showImages: $showImages, showTags: $showTags, showCopyLink: $showCopyLink)';
   }
 }
 
@@ -430,7 +396,6 @@ abstract mixin class _$DisplaySettingsCopyWith<$Res>
   $Res call(
       {int timeDisplayFormat,
       int itemClickAction,
-      String? cacheDirectory,
       bool showDescription,
       bool showImages,
       bool showTags,
@@ -452,7 +417,6 @@ class __$DisplaySettingsCopyWithImpl<$Res>
   $Res call({
     Object? timeDisplayFormat = null,
     Object? itemClickAction = null,
-    Object? cacheDirectory = freezed,
     Object? showDescription = null,
     Object? showImages = null,
     Object? showTags = null,
@@ -467,10 +431,6 @@ class __$DisplaySettingsCopyWithImpl<$Res>
           ? _self.itemClickAction
           : itemClickAction // ignore: cast_nullable_to_non_nullable
               as int,
-      cacheDirectory: freezed == cacheDirectory
-          ? _self.cacheDirectory
-          : cacheDirectory // ignore: cast_nullable_to_non_nullable
-              as String?,
       showDescription: null == showDescription
           ? _self.showDescription
           : showDescription // ignore: cast_nullable_to_non_nullable

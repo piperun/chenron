@@ -1,9 +1,10 @@
 import "package:chenron/features/settings/models/settings_category.dart";
 import "package:chenron/features/settings/ui/archive/archive_settings.dart";
-import "package:chenron/features/settings/ui/backup/backup_settings.dart";
-import "package:chenron/features/settings/ui/cache/cache_settings.dart";
-import "package:chenron/features/settings/ui/data/data_settings.dart";
+import "package:chenron/features/settings/ui/import_export/import_export_settings.dart";
 import "package:chenron/features/settings/ui/display/display_settings.dart";
+import "package:chenron/features/settings/ui/storage/backup_settings.dart";
+import "package:chenron/features/settings/ui/storage/cache_settings_panel.dart";
+import "package:chenron/features/settings/ui/storage/database_settings_panel.dart";
 import "package:chenron/features/settings/ui/tags/tag_management_settings.dart";
 import "package:chenron/features/theme/pages/theme_settings.dart";
 import "package:flutter/material.dart";
@@ -68,13 +69,15 @@ class _SettingsCategoryContent extends StatelessWidget {
     return switch (category) {
       SettingsCategory.theme => const ThemeSettingsPanel(),
       SettingsCategory.display => const DisplaySettingsPanel(),
-      SettingsCategory.cache => const CacheSettings(),
-      SettingsCategory.archive => const ArchiveSettingsPanel(),
+      SettingsCategory.database => const DatabaseSettingsPanel(),
+      SettingsCategory.cache => const CacheSettingsPanel(),
       SettingsCategory.backup => const BackupSettings(),
-      SettingsCategory.data => const DataSettings(),
+      SettingsCategory.archive => const ArchiveSettingsPanel(),
+      SettingsCategory.importExport => const ImportExportSettingsPanel(),
       SettingsCategory.tags => const TagManagementSettings(),
       // Parent categories: show first child's content as fallback
       SettingsCategory.appearance => const ThemeSettingsPanel(),
+      SettingsCategory.storage => const DatabaseSettingsPanel(),
     };
   }
 }

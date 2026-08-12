@@ -181,7 +181,6 @@ class MockConfigService extends _i1.Mock implements _i4.ConfigService {
     required String? configId,
     required int? timeDisplayFormat,
     required int? itemClickAction,
-    required String? cacheDirectory,
     required bool? showDescription,
     required bool? showImages,
     required bool? showTags,
@@ -195,11 +194,28 @@ class MockConfigService extends _i1.Mock implements _i4.ConfigService {
             #configId: configId,
             #timeDisplayFormat: timeDisplayFormat,
             #itemClickAction: itemClickAction,
-            #cacheDirectory: cacheDirectory,
             #showDescription: showDescription,
             #showImages: showImages,
             #showTags: showTags,
             #showCopyLink: showCopyLink,
+          },
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
+
+  @override
+  _i5.Future<void> updateStorageSection({
+    required String? configId,
+    required String? cacheDirectory,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateStorageSection,
+          [],
+          {
+            #configId: configId,
+            #cacheDirectory: cacheDirectory,
           },
         ),
         returnValue: _i5.Future<void>.value(),

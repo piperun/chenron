@@ -1,37 +1,44 @@
 import "dart:async";
 
+import "package:cache_manager/cache_manager.dart";
+import "package:flutter/material.dart";
+import "package:path_provider/path_provider.dart";
+import "package:signals/signals_flutter.dart";
+
 import "package:chenron/features/settings/coordinator/settings_coordinator.dart";
 import "package:chenron/features/settings/service/cache_service.dart";
-import "package:chenron/features/settings/state/display_settings.dart";
+import "package:chenron/features/settings/state/storage_settings.dart";
 import "package:chenron/features/settings/ui/shared/path_mode_selector.dart";
 import "package:chenron/features/settings/ui/shared/settings_section_header.dart";
 import "package:chenron/features/settings/ui/shared/stats_action_row.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/shared/dialogs/confirm_dialog.dart";
 import "package:chenron/shared/errors/error_snack_bar.dart";
-import "package:flutter/material.dart";
-import "package:path_provider/path_provider.dart";
-import "package:signals/signals_flutter.dart";
 
-class CacheSettings extends StatefulWidget {
+/// Cache location plus the clear actions for both caches: the image
+/// cache (files under the cache directory) and the metadata cache (rows
+/// in the app database).
+class CacheSettingsPanel extends StatefulWidget {
   final CacheService? cacheService;
 
-  const CacheSettings({super.key, this.cacheService});
+  const CacheSettingsPanel({super.key, this.cacheService});
 
   @override
-  State<CacheSettings> createState() => _CacheSettingsState();
+  State<CacheSettingsPanel> createState() => _CacheSettingsPanelState();
 }
 
-class _CacheSettingsState extends State<CacheSettings> {
-  late final DisplaySettingsNotifier _displayNotifier;
+class _CacheSettingsPanelState extends State<CacheSettingsPanel> {
+  late final StorageSettingsNotifier _storageNotifier;
   late final CacheService _cacheService;
   Future<int>? _imageCacheSizeFuture;
+  Future<int>? _metadataCountFuture;
 
   @override
   void initState() {
     super.initState();
-    _displayNotifier = locator.get<SettingsCoordinator>().display;
+    _storageNotifier = locator.get<SettingsCoordinator>().storage;
     _initCacheService();
+    _refreshMetadataCount();
   }
 
   Future<String> _getDefaultCachePath() async {
@@ -48,7 +55,7 @@ class _CacheSettingsState extends State<CacheSettings> {
     _cacheService = widget.cacheService ??
         CacheService(
           resolveCachePath: () async {
-            final customPath = _displayNotifier.current.peek().cacheDirectory;
+            final customPath = _storageNotifier.current.peek().cacheDirectory;
             return customPath ?? await _getDefaultCachePath();
           },
         );
@@ -57,6 +64,10 @@ class _CacheSettingsState extends State<CacheSettings> {
 
   void _refreshCacheStats() {
     _imageCacheSizeFuture = _cacheService.getImageCacheSize();
+  }
+
+  void _refreshMetadataCount() {
+    _metadataCountFuture = locator.get<MetadataCache>().count();
   }
 
   Future<void> _confirmAndClearImages(BuildContext context) async {
@@ -88,6 +99,38 @@ class _CacheSettingsState extends State<CacheSettings> {
     }
   }
 
+  Future<void> _confirmAndClearMetadata(BuildContext context) async {
+    final confirmed = await showConfirmDialog(
+      context,
+      title: "Clear Metadata Cache",
+      message: "Clear cached page info? "
+          "Titles and descriptions will be refetched.",
+      confirmLabel: "Clear",
+    );
+    if (!confirmed || !context.mounted) return;
+
+    try {
+      // Transitional adapter until Task 6 owns coordinated clearing.
+      // ignore: deprecated_member_use
+      locator.get<FailureTracker>().clearAll();
+      await locator.get<MetadataCache>().clearAll();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text("Metadata cache cleared"),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+      if (mounted) setState(_refreshMetadataCount);
+    } catch (e) {
+      if (context.mounted) {
+        showErrorSnackBar(context, e);
+      }
+    }
+  }
+
   String _formatBytes(int bytes) {
     if (bytes < 1024) return "$bytes B";
     if (bytes < 1024 * 1024) return "${(bytes / 1024).toStringAsFixed(1)} KB";
@@ -102,9 +145,9 @@ class _CacheSettingsState extends State<CacheSettings> {
     final theme = Theme.of(context);
 
     return SignalBuilder(builder: (context) {
-      // Subscribe to the whole display snapshot so cacheDirectory edits
+      // Subscribe to the whole storage snapshot so cacheDirectory edits
       // trigger a rebuild of this panel.
-      final DisplaySettings snapshot = _displayNotifier.current.value;
+      final StorageSettings snapshot = _storageNotifier.current.value;
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -132,7 +175,7 @@ class _CacheSettingsState extends State<CacheSettings> {
               ),
             ],
             fieldLabel: "Cache Path",
-            onPathChanged: (value) => _displayNotifier
+            onPathChanged: (value) => _storageNotifier
                 .update((s) => s.copyWith(cacheDirectory: value)),
             detectInitialMode: (path) async {
               final appDataPath = await _getAppDataCachePath();
@@ -149,6 +192,18 @@ class _CacheSettingsState extends State<CacheSettings> {
             formatValue: _formatBytes,
             buttonLabel: "Clear Images",
             onClear: () => unawaited(_confirmAndClearImages(context)),
+          ),
+          const SizedBox(height: 12),
+          // The metadata cache lives in the app database, not the cache
+          // directory above. Clearing forces a refetch on next view.
+          StatsActionRow(
+            icon: Icons.description_outlined,
+            label: "Metadata Cache",
+            future: _metadataCountFuture!,
+            formatValue: (count) =>
+                "$count ${count == 1 ? "entry" : "entries"}",
+            buttonLabel: "Clear Metadata",
+            onClear: () => unawaited(_confirmAndClearMetadata(context)),
           ),
         ],
       );

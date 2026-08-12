@@ -130,7 +130,6 @@ class ConfigService {
     required String configId,
     required int timeDisplayFormat,
     required int itemClickAction,
-    required String? cacheDirectory,
     required bool showDescription,
     required bool showImages,
     required bool showTags,
@@ -143,11 +142,28 @@ class ConfigService {
         id: configId,
         timeDisplayFormat: timeDisplayFormat,
         itemClickAction: itemClickAction,
-        cacheDirectory: cacheDirectory,
         showDescription: showDescription,
         showImages: showImages,
         showTags: showTags,
         showCopyLink: showCopyLink,
+      ),
+    );
+  }
+
+  /// [cacheDirectory] follows the update API's sentinel contract: "" clears
+  /// the column to NULL (back to the platform default), a non-empty string
+  /// stores that path. Callers must not pass null — the update API would
+  /// leave the column untouched.
+  Future<void> updateStorageSection({
+    required String configId,
+    required String cacheDirectory,
+  }) {
+    return runLogged(
+      tag: "ConfigService",
+      operation: "Updating storage section for ID: $configId",
+      action: () => _db.updateUserConfig(
+        id: configId,
+        cacheDirectory: cacheDirectory,
       ),
     );
   }

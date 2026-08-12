@@ -11,23 +11,28 @@ import "package:flutter/material.dart";
 enum SettingsCategory {
   // Top-level parents
   appearance,
-  cache,
+  storage,
   archive,
-  backup,
-  data,
+  importExport,
   tags,
   // Sub-categories of appearance
   theme,
-  display;
+  display,
+  // Sub-categories of storage
+  database,
+  cache,
+  backup;
 
   String get label => switch (this) {
         appearance => "Appearance",
         theme => "Theme",
         display => "Display",
+        storage => "Storage",
+        database => "Database",
         cache => "Cache",
-        archive => "Archive",
         backup => "Backup",
-        data => "Data",
+        archive => "Archive",
+        importExport => "Import & Export",
         tags => "Tags",
       };
 
@@ -35,10 +40,12 @@ enum SettingsCategory {
         appearance => Icons.palette_outlined,
         theme => Icons.color_lens_outlined,
         display => Icons.display_settings_outlined,
-        cache => Icons.storage_outlined,
-        archive => Icons.archive_outlined,
+        storage => Icons.folder_outlined,
+        database => Icons.storage_outlined,
+        cache => Icons.cached,
         backup => Icons.backup_outlined,
-        data => Icons.folder_outlined,
+        archive => Icons.archive_outlined,
+        importExport => Icons.import_export,
         tags => Icons.sell_outlined,
       };
 
@@ -46,23 +53,26 @@ enum SettingsCategory {
         appearance => Icons.palette,
         theme => Icons.color_lens,
         display => Icons.display_settings,
-        cache => Icons.storage,
-        archive => Icons.archive,
+        storage => Icons.folder,
+        database => Icons.storage,
+        cache => Icons.cached,
         backup => Icons.backup,
-        data => Icons.folder,
+        archive => Icons.archive,
+        importExport => Icons.import_export,
         tags => Icons.sell,
       };
 
   /// Parent category, or null if this is top-level.
   SettingsCategory? get parent => switch (this) {
-        theme => appearance,
-        display => appearance,
+        theme || display => appearance,
+        database || cache || backup => storage,
         _ => null,
       };
 
   /// Child sub-categories.
   List<SettingsCategory> get children => switch (this) {
         appearance => [theme, display],
+        storage => [database, cache, backup],
         _ => const [],
       };
 

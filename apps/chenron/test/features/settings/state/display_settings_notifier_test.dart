@@ -17,7 +17,6 @@ void main() {
   UserConfig stubConfig({
     TimeDisplayFormat timeDisplayFormat = TimeDisplayFormat.absolute,
     ItemClickAction itemClickAction = ItemClickAction.openItem,
-    String? cacheDirectory,
     bool showImages = true,
   }) =>
       UserConfig(
@@ -31,7 +30,6 @@ void main() {
         selectedThemeType: ThemeType.custom,
         timeDisplayFormat: timeDisplayFormat,
         itemClickAction: itemClickAction,
-        cacheDirectory: cacheDirectory,
         showDescription: true,
         showImages: showImages,
         showTags: true,
@@ -43,11 +41,9 @@ void main() {
   test("hydrate copies display fields from UserConfig", () {
     notifier.hydrate(stubConfig(
       timeDisplayFormat: TimeDisplayFormat.absolute,
-      cacheDirectory: "/tmp/cache",
       showImages: false,
     ));
     expect(notifier.current.value.timeDisplayFormat, 1);
-    expect(notifier.current.value.cacheDirectory, "/tmp/cache");
     expect(notifier.current.value.showImages, isFalse);
     expect(notifier.isDirty, isFalse);
   });
@@ -66,7 +62,6 @@ void main() {
       configId: anyNamed("configId"),
       timeDisplayFormat: anyNamed("timeDisplayFormat"),
       itemClickAction: anyNamed("itemClickAction"),
-      cacheDirectory: anyNamed("cacheDirectory"),
       showDescription: anyNamed("showDescription"),
       showImages: anyNamed("showImages"),
       showTags: anyNamed("showTags"),
@@ -81,7 +76,6 @@ void main() {
       configId: "cfg",
       timeDisplayFormat: 1,
       itemClickAction: 1,
-      cacheDirectory: null,
       showDescription: true,
       showImages: true,
       showTags: true,
@@ -90,39 +84,11 @@ void main() {
     expect(notifier.isDirty, isFalse);
   });
 
-  test("save redirects the image cache to the saved directory", () async {
-    // Regression: persisting a custom cacheDirectory must apply it to the
-    // image cache. Before this wiring the setting was stored but never
-    // reached ImageCacheManager, so images kept caching to the default dir.
-    when(service.updateDisplaySection(
-      configId: anyNamed("configId"),
-      timeDisplayFormat: anyNamed("timeDisplayFormat"),
-      itemClickAction: anyNamed("itemClickAction"),
-      cacheDirectory: anyNamed("cacheDirectory"),
-      showDescription: anyNamed("showDescription"),
-      showImages: anyNamed("showImages"),
-      showTags: anyNamed("showTags"),
-      showCopyLink: anyNamed("showCopyLink"),
-    )).thenAnswer((_) => Future<void>.value());
-
-    String? appliedDir = "unset";
-    final withCallback = DisplaySettingsNotifier(
-      service,
-      onCacheDirectorySaved: (dir) async => appliedDir = dir,
-    );
-    withCallback.hydrate(stubConfig());
-    withCallback.update((s) => s.copyWith(cacheDirectory: "/custom/cache"));
-    await withCallback.save("cfg");
-
-    expect(appliedDir, "/custom/cache");
-  });
-
   test("save failure leaves saved snapshot unchanged", () async {
     when(service.updateDisplaySection(
       configId: anyNamed("configId"),
       timeDisplayFormat: anyNamed("timeDisplayFormat"),
       itemClickAction: anyNamed("itemClickAction"),
-      cacheDirectory: anyNamed("cacheDirectory"),
       showDescription: anyNamed("showDescription"),
       showImages: anyNamed("showImages"),
       showTags: anyNamed("showTags"),

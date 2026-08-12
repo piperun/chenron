@@ -43,6 +43,7 @@ void main() {
     TimeDisplayFormat timeDisplayFormat = TimeDisplayFormat.relative,
     String? selectedThemeKey = "materialBaseline",
     ThemeType selectedThemeType = ThemeType.system,
+    String? cacheDirectory,
   }) {
     return UserConfigResult(
       data: UserConfig(
@@ -57,6 +58,7 @@ void main() {
         selectedThemeType: selectedThemeType,
         timeDisplayFormat: timeDisplayFormat,
         itemClickAction: ItemClickAction.openItem,
+        cacheDirectory: cacheDirectory,
         showDescription: true,
         showImages: true,
         showTags: true,
@@ -72,12 +74,14 @@ void main() {
         .thenAnswer((_) async => stubConfigResult(
               defaultArchiveOrg: true,
               timeDisplayFormat: TimeDisplayFormat.absolute,
+              cacheDirectory: "/custom/cache",
             ));
 
     await coordinator.initialize();
 
     expect(coordinator.archive.current.value.defaultArchiveOrg, isTrue);
     expect(coordinator.display.current.value.timeDisplayFormat, 1);
+    expect(coordinator.storage.current.value.cacheDirectory, "/custom/cache");
     expect(coordinator.isLoading.value, isFalse);
     expect(coordinator.error.value, isNull);
     expect(coordinator.hasUnsavedChanges, isFalse);
@@ -127,13 +131,62 @@ void main() {
       configId: anyNamed("configId"),
       timeDisplayFormat: anyNamed("timeDisplayFormat"),
       itemClickAction: anyNamed("itemClickAction"),
-      cacheDirectory: anyNamed("cacheDirectory"),
       showDescription: anyNamed("showDescription"),
       showImages: anyNamed("showImages"),
       showTags: anyNamed("showTags"),
       showCopyLink: anyNamed("showCopyLink"),
     ));
     verifyNever(themeApplier.changeTheme(any, any));
+  });
+
+  test("saveAll persists a custom cache directory via the storage section",
+      () async {
+    when(configService.getUserConfig())
+        .thenAnswer((_) async => stubConfigResult());
+    when(configService.updateStorageSection(
+      configId: anyNamed("configId"),
+      cacheDirectory: anyNamed("cacheDirectory"),
+    )).thenAnswer((_) => Future<void>.value());
+
+    await coordinator.initialize();
+    coordinator.storage.update((s) => s.copyWith(cacheDirectory: "/new/dir"));
+
+    final ok = await coordinator.saveAll();
+    expect(ok, isTrue);
+
+    verify(configService.updateStorageSection(
+      configId: "cfg-1",
+      cacheDirectory: "/new/dir",
+    )).called(1);
+    expect(coordinator.hasUnsavedChanges, isFalse);
+  });
+
+  // The user-config update API skips null-valued columns, so a reset to
+  // the default directory must reach it as "" (the clear sentinel) — a
+  // null here would leave the old custom path in the database and the
+  // "Default" choice would resurrect as "Custom" on the next hydrate.
+  test("saveAll clears a reset cache directory with the empty-string sentinel",
+      () async {
+    when(configService.getUserConfig()).thenAnswer(
+        (_) async => stubConfigResult(cacheDirectory: "/old/custom"));
+    when(configService.updateStorageSection(
+      configId: anyNamed("configId"),
+      cacheDirectory: anyNamed("cacheDirectory"),
+    )).thenAnswer((_) => Future<void>.value());
+
+    await coordinator.initialize();
+    expect(coordinator.storage.current.value.cacheDirectory, "/old/custom");
+
+    coordinator.storage.update((s) => s.copyWith(cacheDirectory: null));
+    expect(coordinator.hasUnsavedChanges, isTrue);
+
+    final ok = await coordinator.saveAll();
+    expect(ok, isTrue);
+
+    verify(configService.updateStorageSection(
+      configId: "cfg-1",
+      cacheDirectory: "",
+    )).called(1);
   });
 
   test("saveAll persists database path via DataSettingsService", () async {

@@ -1,10 +1,11 @@
 import "dart:io";
 
+import "package:cache_manager/cache_manager.dart";
 import "package:chenron/features/settings/coordinator/settings_coordinator.dart";
 import "package:chenron/features/settings/service/cache_service.dart";
 import "package:chenron/features/settings/service/config_service.dart";
 import "package:chenron/features/settings/service/data_settings_service.dart";
-import "package:chenron/features/settings/ui/cache/cache_settings.dart";
+import "package:chenron/features/settings/ui/storage/cache_settings_panel.dart";
 import "package:chenron/features/theme/state/theme_notifier.dart";
 import "package:chenron/features/theme/state/theme_options_store.dart";
 import "package:chenron/locator.dart";
@@ -52,6 +53,31 @@ class FakeCacheService extends CacheService {
   Future<int> getImageCacheSize() async => imageCacheSize;
 }
 
+/// In-memory typed persistence for [MetadataCache] tests.
+class FakeMetadataPersistence implements MetadataPersistence {
+  final Map<String, Metadata> _store = {};
+
+  @override
+  Future<Metadata?> get(String url) async => _store[url];
+
+  @override
+  Future<void> set(Metadata metadata) async {
+    _store[metadata.url] = metadata;
+  }
+
+  @override
+  Future<void> remove(String url) async => _store.remove(url);
+
+  @override
+  Future<void> clearAll() async => _store.clear();
+
+  @override
+  Future<int> count() async => _store.length;
+
+  @override
+  Future<List<Metadata>> getExpiredEntries() async => [];
+}
+
 @GenerateMocks([ConfigService, DataSettingsService, ThemeNotifier])
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -60,6 +86,7 @@ void main() {
   late MockDataSettingsService mockDataService;
   late MockThemeNotifier mockThemeApplier;
   late FakeCacheService fakeCacheService;
+  late FakeMetadataPersistence fakePersistence;
   late Directory tempDir;
 
   setUp(() async {
@@ -84,6 +111,12 @@ void main() {
       optionsStore: ThemeOptionsStore(),
     ));
 
+    fakePersistence = FakeMetadataPersistence();
+    locator.registerSingleton<MetadataCache>(
+      MetadataCache(persistence: fakePersistence),
+    );
+    locator.registerSingleton<FailureTracker>(FailureTracker());
+
     fakeCacheService = FakeCacheService(imageCacheSize: 1024 * 500); // 500 KB
   });
 
@@ -96,64 +129,152 @@ void main() {
     }
   });
 
+  Metadata buildMetadata(String url, {String? title}) {
+    return Metadata(
+      url: url,
+      title: title,
+      fetchedAt: DateTime.now(),
+    );
+  }
+
   Widget buildWidget({FakeCacheService? service}) {
     return MaterialApp(
       home: Scaffold(
         body: SingleChildScrollView(
-          child: CacheSettings(cacheService: service ?? fakeCacheService),
+          child: CacheSettingsPanel(cacheService: service ?? fakeCacheService),
         ),
       ),
     );
   }
 
-  testWidgets("renders image cache size", (tester) async {
-    await tester.pumpWidget(buildWidget());
-    await tester.pumpAndSettle();
+  group("image cache", () {
+    testWidgets("renders image cache size", (tester) async {
+      await tester.pumpWidget(buildWidget());
+      await tester.pumpAndSettle();
 
-    expect(find.text("Image Cache"), findsOneWidget);
-    expect(find.text("500.0 KB"), findsOneWidget);
-    expect(find.text("Metadata Cache"), findsNothing);
+      expect(find.text("Image Cache"), findsOneWidget);
+      expect(find.text("500.0 KB"), findsOneWidget);
+    });
+
+    testWidgets("Clear Images button shows confirmation dialog",
+        (tester) async {
+      await tester.pumpWidget(buildWidget());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text("Clear Images"));
+      await tester.pumpAndSettle();
+
+      expect(find.text("Clear Image Cache"), findsOneWidget);
+      expect(
+          find.text("Remove downloaded images? "
+              "They will be re-downloaded on next view."),
+          findsOneWidget);
+      expect(find.text("Cancel"), findsOneWidget);
+    });
+
+    testWidgets("confirming image clear calls service and refreshes display",
+        (tester) async {
+      await tester.pumpWidget(buildWidget());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text("Clear Images"));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text("Clear"));
+      await tester.pumpAndSettle();
+
+      expect(fakeCacheService.clearImageCalls, 1);
+      expect(find.text("0 B"), findsOneWidget);
+    });
+
+    testWidgets("cancelling dialog does not clear cache", (tester) async {
+      await tester.pumpWidget(buildWidget());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text("Clear Images"));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text("Cancel"));
+      await tester.pumpAndSettle();
+
+      expect(fakeCacheService.clearImageCalls, 0);
+      expect(find.text("500.0 KB"), findsOneWidget);
+    });
   });
 
-  testWidgets("Clear Images button shows confirmation dialog", (tester) async {
-    await tester.pumpWidget(buildWidget());
-    await tester.pumpAndSettle();
+  group("metadata cache", () {
+    testWidgets("renders Metadata Cache section with current entry count",
+        (tester) async {
+      await fakePersistence.set(buildMetadata("https://a.com", title: "A"));
+      await fakePersistence.set(buildMetadata("https://b.com", title: "B"));
 
-    await tester.tap(find.text("Clear Images"));
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(buildWidget());
+      await tester.pumpAndSettle();
 
-    expect(find.text("Clear Image Cache"), findsOneWidget);
-    expect(find.text("Remove downloaded images? "
-        "They will be re-downloaded on next view."), findsOneWidget);
-    expect(find.text("Cancel"), findsOneWidget);
-  });
+      expect(find.text("Metadata Cache"), findsAtLeastNWidgets(1));
+      expect(find.text("2 entries"), findsOneWidget);
+    });
 
-  testWidgets("confirming image clear calls service and refreshes display",
-      (tester) async {
-    await tester.pumpWidget(buildWidget());
-    await tester.pumpAndSettle();
+    testWidgets("singular grammar for one entry", (tester) async {
+      await fakePersistence
+          .set(buildMetadata("https://only.com", title: "Only"));
 
-    await tester.tap(find.text("Clear Images"));
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(buildWidget());
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.text("Clear"));
-    await tester.pumpAndSettle();
+      expect(find.text("1 entry"), findsOneWidget);
+    });
 
-    expect(fakeCacheService.clearImageCalls, 1);
-    expect(find.text("0 B"), findsOneWidget);
-  });
+    testWidgets("Clear Metadata opens confirmation dialog", (tester) async {
+      await fakePersistence.set(buildMetadata("https://a.com", title: "A"));
 
-  testWidgets("cancelling dialog does not clear cache", (tester) async {
-    await tester.pumpWidget(buildWidget());
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(buildWidget());
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.text("Clear Images"));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text("Clear Metadata"));
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.text("Cancel"));
-    await tester.pumpAndSettle();
+      expect(find.text("Clear Metadata Cache"), findsOneWidget);
+      expect(
+        find.text("Clear cached page info? "
+            "Titles and descriptions will be refetched."),
+        findsOneWidget,
+      );
+    });
 
-    expect(fakeCacheService.clearImageCalls, 0);
-    expect(find.text("500.0 KB"), findsOneWidget);
+    testWidgets("confirming clear empties MetadataCache and refreshes count",
+        (tester) async {
+      await fakePersistence.set(buildMetadata("https://a.com", title: "A"));
+      await fakePersistence.set(buildMetadata("https://b.com", title: "B"));
+
+      await tester.pumpWidget(buildWidget());
+      await tester.pumpAndSettle();
+
+      expect(find.text("2 entries"), findsOneWidget);
+
+      await tester.tap(find.text("Clear Metadata"));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text("Clear"));
+      await tester.pumpAndSettle();
+
+      expect(await fakePersistence.count(), 0);
+      expect(find.text("0 entries"), findsOneWidget);
+    });
+
+    testWidgets("cancelling the dialog leaves MetadataCache untouched",
+        (tester) async {
+      await fakePersistence.set(buildMetadata("https://a.com", title: "A"));
+
+      await tester.pumpWidget(buildWidget());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text("Clear Metadata"));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text("Cancel"));
+      await tester.pumpAndSettle();
+
+      expect(await fakePersistence.count(), 1);
+      expect(find.text("1 entry"), findsOneWidget);
+    });
   });
 }
