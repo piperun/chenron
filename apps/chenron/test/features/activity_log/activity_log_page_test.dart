@@ -50,12 +50,14 @@ void main() {
 
   Widget buildPage({
     Future<void> Function(String path, String contents)? fileWriter,
+    Set<String> initialStatusFilters = const {},
   }) {
     return MaterialApp(
       home: Scaffold(
         body: ActivityLogPage(
           database: mockDb.database,
           fileWriter: fileWriter,
+          initialStatusFilters: initialStatusFilters,
         ),
       ),
     );
@@ -78,6 +80,22 @@ void main() {
       error: "HTTP 503",
     );
   }
+
+  // "View Log" failure-toast actions open the page with the failed
+  // filter active — the user must land on the failures, not the full
+  // unfiltered history.
+  testWidgets("initialStatusFilters pre-selects the failed filter",
+      (tester) async {
+    await seedMixedJobs();
+    await tester.pumpWidget(buildPage(
+      initialStatusFilters: {BackgroundJobStatus.failed},
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.text("https://fetched-failed.com"), findsOneWidget);
+    expect(find.text("https://archived.com"), findsNothing);
+    expect(find.text("https://fetched-ok.com"), findsNothing);
+  });
 
   testWidgets("renders both Archive and Metadata filter chips", (tester) async {
     await tester.pumpWidget(buildPage());

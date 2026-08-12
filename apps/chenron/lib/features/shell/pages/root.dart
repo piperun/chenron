@@ -14,8 +14,10 @@ import "package:chenron/features/shell/ui/current_page_builder.dart";
 import "package:chenron/features/settings/models/settings_category.dart";
 import "package:chenron/features/settings/ui/settings_navigation_rail.dart";
 import "package:chenron/features/folder_viewer/pages/folder_viewer_page.dart";
+import "package:chenron/shared/navigation/activity_log_request.dart";
 import "package:chenron/shared/viewer/item_handler.dart";
 import "package:app_logger/app_logger.dart";
+import "package:database/features.dart";
 import "package:signals/signals.dart";
 
 /// Global signal for the main search filter, accessible from anywhere
@@ -37,6 +39,13 @@ class _RootPageState extends State<RootPage> {
   SettingsCategory _settingsCategory = SettingsCategory.defaultSelection;
   late final SearchFilter _searchFilter;
 
+  /// Status chips the activity log opens with; set per navigation so a
+  /// toast-driven visit lands on failed entries while the appbar button
+  /// opens unfiltered.
+  Set<String> _activityLogInitialStatuses = const {};
+  late int _seenActivityLogRequests;
+  late final void Function() _disposeActivityLogRequestEffect;
+
   @override
   void initState() {
     super.initState();
@@ -48,10 +57,24 @@ class _RootPageState extends State<RootPage> {
     _searchFilter.setup();
     // Store in global signal for external access
     globalSearchFilterSignal.value = _searchFilter;
+
+    // "View Log" toast actions bump this counter from anywhere in the
+    // tree; each bump navigates here. The seen-count guard skips the
+    // effect's initial dependency-collection run.
+    _seenActivityLogRequests = activityLogOpenRequest.peek();
+    _disposeActivityLogRequestEffect = effect(() {
+      final requests = activityLogOpenRequest.value;
+      if (requests == _seenActivityLogRequests) return;
+      _seenActivityLogRequests = requests;
+      _navigateToActivityLog(
+        initialStatuses: {BackgroundJobStatus.failed},
+      );
+    });
   }
 
   @override
   void dispose() {
+    _disposeActivityLogRequestEffect();
     globalSearchFilterSignal.value = null;
     _searchFilter.dispose();
     super.dispose();
@@ -122,10 +145,11 @@ class _RootPageState extends State<RootPage> {
     ));
   }
 
-  void _navigateToActivityLog() {
+  void _navigateToActivityLog({Set<String> initialStatuses = const {}}) {
     setState(() {
       _previousPage = _currentPage;
       _currentPage = AppPage.activityLog;
+      _activityLogInitialStatuses = initialStatuses;
     });
   }
 
@@ -193,6 +217,7 @@ class _RootPageState extends State<RootPage> {
                   onClose: _returnToPreviousPage,
                   onSaved: _handleSaved,
                   settingsCategory: _settingsCategory,
+                  activityLogInitialStatuses: _activityLogInitialStatuses,
                   database: locator
                       .get<Signal<AppDatabaseLifecycle>>()
                       .value

@@ -17,6 +17,7 @@ import "package:database/features.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/services/activity_tracker.dart";
 import "package:chenron/shared/errors/error_snack_bar.dart";
+import "package:chenron/shared/navigation/activity_log_request.dart";
 import "package:signals/signals.dart";
 import "package:url_launcher/url_launcher.dart";
 
@@ -346,14 +347,28 @@ Future<void> handleItemMetadataRefresh(
   );
 
   if (context.mounted) {
+    final viewLogAction = summary.failed == 0
+        ? null
+        : _ViewLogSnackBarAction(
+            textColor: Theme.of(context).colorScheme.onPrimary);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(metadataRefreshSummaryMessage(summary)),
         backgroundColor: Theme.of(context).colorScheme.primary,
-        duration: const Duration(seconds: 3),
+        duration: Duration(seconds: viewLogAction == null ? 3 : 6),
+        action: viewLogAction,
       ),
     );
   }
+}
+
+/// "View Log" action for metadata-refresh summary toasts, attached only
+/// when some fetches failed. Fetch results are recorded as background
+/// jobs, so the Activity Log (failed filter pre-selected) shows exactly
+/// these failures.
+class _ViewLogSnackBarAction extends SnackBarAction {
+  const _ViewLogSnackBarAction({required super.textColor})
+      : super(label: "View Log", onPressed: requestActivityLogOpen);
 }
 
 Future<void> handleViewerSelectionMetadataRefresh(
@@ -368,15 +383,22 @@ Future<void> handleViewerSelectionMetadataRefresh(
       expectedCount: target.selectedCount,
     );
     if (!context.mounted) return;
+    final viewLogAction = result.failed == 0
+        ? null
+        : _ViewLogSnackBarAction(
+            textColor: Theme.of(context).colorScheme.onPrimary);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(_viewerBulkMessage("Metadata refreshed for", result)),
         backgroundColor: Theme.of(context).colorScheme.primary,
-        duration: const Duration(seconds: 3),
+        duration: Duration(seconds: viewLogAction == null ? 3 : 6),
+        action: viewLogAction,
       ),
     );
   } catch (error) {
-    if (context.mounted) showErrorSnackBar(context, error);
+    if (context.mounted) {
+      showErrorSnackBar(context, error, showActivityLogAction: true);
+    }
   }
 }
 

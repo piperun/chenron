@@ -17,6 +17,10 @@ class CurrentPageBuilder extends StatelessWidget {
   final SettingsCategory settingsCategory;
   final AppDatabase? database;
 
+  /// Status chips pre-selected when entering the activity log; set by
+  /// the shell when the visit comes from a failure toast's "View Log".
+  final Set<String> activityLogInitialStatuses;
+
   const CurrentPageBuilder({
     super.key,
     required this.currentPage,
@@ -26,6 +30,7 @@ class CurrentPageBuilder extends StatelessWidget {
     required this.onSaved,
     required this.settingsCategory,
     this.database,
+    this.activityLogInitialStatuses = const {},
   });
 
   @override
@@ -46,7 +51,10 @@ class CurrentPageBuilder extends StatelessWidget {
 
     // Activity log page
     if (currentPage == AppPage.activityLog && database != null) {
-      return ActivityLogPage(database: database!);
+      return ActivityLogPage(
+        database: database!,
+        initialStatusFilters: activityLogInitialStatuses,
+      );
     }
 
     // Otherwise, show the current section's page

@@ -18,6 +18,11 @@ import "package:vibe/vibe.dart";
 class ActivityLogPage extends StatefulWidget {
   final AppDatabase database;
 
+  /// Status filter chips active when the page opens. Empty means no
+  /// filter. Used by "View Log" failure-toast actions to land the user
+  /// directly on the failed entries.
+  final Set<String> initialStatusFilters;
+
   /// Writes [contents] to the file at [path]. Injectable so tests can
   /// simulate a permission/read-only failure; defaults to a real
   /// [File.writeAsString].
@@ -27,6 +32,7 @@ class ActivityLogPage extends StatefulWidget {
   ActivityLogPage({
     super.key,
     required this.database,
+    this.initialStatusFilters = const {},
     Future<void> Function(String path, String contents)? fileWriter,
   }) : fileWriter =
             fileWriter ?? ((path, contents) => File(path).writeAsString(contents));
@@ -47,6 +53,7 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
   @override
   void initState() {
     super.initState();
+    _activeStatuses.addAll(widget.initialStatusFilters);
     unawaited(_loadJobs());
   }
 
