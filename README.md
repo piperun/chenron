@@ -43,6 +43,34 @@ These will not be versioned differently from the current focus area.
 
 Once these features are implemented we will transition to 2.x.
 
+## Working on a dashpub package
+
+The `vibe` theming package lives in
+[dashpub](https://codeberg.org/0xdev/dashpub), a shared package repository,
+and Chenron takes it as a git dependency pinned to a commit. It is no longer
+a workspace member, so a local edit to `vibe` does not show up here until the
+pin moves.
+
+To get a tight local loop, point the resolution at your dashpub checkout:
+
+```yaml
+# In chenron_project/pubspec.yaml, while working on vibe locally.
+# Never commit this block.
+dependency_overrides:
+  vibe:
+    path: ../../codeberg/dashpub/packages/vibe
+```
+
+The path is relative to `chenron_project/pubspec.yaml`, and assumes dashpub
+sits with the other Codeberg repositories in a `codeberg` directory beside
+the Flutter directory that holds this repository. Adjust it to match your
+layout.
+
+This block must not be committed. It resolves `vibe` from a working copy that
+only you have, so anyone else who checks it out gets a build that cannot
+resolve. Remove it before committing, and land the vibe change in dashpub,
+then move the pin in `apps/chenron/pubspec.yaml`.
+
 ---
 
 *This project was built with AI assistance.*
