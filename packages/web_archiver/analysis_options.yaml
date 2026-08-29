@@ -1,3 +1,15 @@
+# `flutter pub get` and `flutter analyze` write this block themselves, every
+# run. It is committed so the tree stays clean afterwards — delete it and the
+# next run puts it back, leaving a modified tracked file in every checkout.
+analyzer:
+  exclude:
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
 include: package:flutter_lints/flutter.yaml
 
 linter:
