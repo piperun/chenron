@@ -76,7 +76,7 @@ dependencies:
     git:
       url: https://codeberg.org/0xdev/dashpub
       path: packages/vibe
-      ref: 7e60dff26f76fbaf2f1097a86a5666dff1c811ba
+      ref: fb10a1cab616f1c9d30f7951aa0c4a7965391668
   web_archiver: any
 dev_dependencies:
   drift_dev: ^2.20.0
