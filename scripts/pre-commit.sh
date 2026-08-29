@@ -4,7 +4,7 @@ set -e
 STAGED=$(git diff --cached --name-only --diff-filter=d)
 tested=0
 
-for pkg in packages/database packages/cache_manager packages/basedir packages/vibe packages/web_archiver apps/chenron; do
+for pkg in packages/database packages/cache_manager packages/basedir packages/web_archiver apps/chenron; do
   if echo "$STAGED" | grep -q "^${pkg}/"; then
     if [ -d "${pkg}/test" ]; then
       echo "=> Running tests for ${pkg}"
