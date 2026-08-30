@@ -120,6 +120,22 @@ mixin ChenronCatalogSource
   @override
   Stream<void> invalidations() => catalogDatabase.watchViewerInvalidations();
 
+  /// Deliberately empty: this source opens nothing of its own.
+  ///
+  /// [catalogDatabase] is supplied, never constructed here — the app owns the
+  /// [AppDatabase] and closes it, and [invalidationDomain] hands the same one
+  /// to every source reading it, so closing it here would shut a database out
+  /// from under its other readers.
+  ///
+  /// The two things that look like resources are not this source's to release.
+  /// [invalidations] returns drift's own table-update stream, which this holds
+  /// no handle on and which a cancelled subscription releases. A selection
+  /// lease lives in a `TEMP` table that dies with the connection, and
+  /// [ViewerBulkService] releases every lease it takes in a `finally` — this
+  /// source keeps no field, so it tracks none to release.
+  @override
+  Future<void> dispose() async {}
+
   @override
   Future<CatalogSelectionLease> createSelectionLease({
     required ViewerQuery query,

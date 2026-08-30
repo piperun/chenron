@@ -388,6 +388,11 @@ class _HandlerRepository implements ChenronViewerSource {
   @override
   Stream<void> invalidations() => const Stream<void>.empty();
 
+  /// Empty because this fake opens nothing: its stream is a const empty one
+  /// and its leases are counters, not rows.
+  @override
+  Future<void> dispose() async {}
+
   @override
   Future<List<FolderItem>> loadPage(
     ViewerQuery query, {

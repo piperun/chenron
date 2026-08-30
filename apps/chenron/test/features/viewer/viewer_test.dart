@@ -162,5 +162,6 @@ class FakeViewerRepository implements ChenronViewerSource {
   Future<void> releaseSelectionLease(CatalogSelectionLease lease) =>
       throw UnimplementedError();
 
+  @override
   Future<void> dispose() => _controller.close();
 }

@@ -157,8 +157,8 @@ packages:
     dependency: transitive
     description:
       path: "packages/catalog"
-      ref: "54f4e5b9a76941a87b2f3a9fd9b6e686e5f80638"
-      resolved-ref: "54f4e5b9a76941a87b2f3a9fd9b6e686e5f80638"
+      ref: "1a58d50e20996a7248c1df30ebf3aef8c5b80674"
+      resolved-ref: "1a58d50e20996a7248c1df30ebf3aef8c5b80674"
       url: "https://codeberg.org/0xdev/dashpub"
     source: git
     version: "0.1.0"

@@ -81,6 +81,12 @@ class _LeaseRepository
 
   Future<void> close() => _invalidations.close();
 
+  /// The fake really does hold a controller, so this releases it rather than
+  /// no-opping. Tests that share one invalidations object across two
+  /// repositories close it themselves; the close is idempotent either way.
+  @override
+  Future<void> dispose() => close();
+
   @override
   Future<CatalogSelectionLease> createSelectionLease({
     required ViewerQuery query,
