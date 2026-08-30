@@ -2,6 +2,7 @@ import "dart:async";
 
 import "package:catalog/catalog.dart";
 import "package:chenron/features/viewer/mvc/viewer_model.dart";
+import "package:chenron/features/viewer/state/chenron_catalog_source.dart";
 import "package:chenron/shared/item_display/item_toolbar.dart";
 import "package:chenron/shared/search/query_parser.dart";
 import "package:chenron/shared/tag_filter/tag_filter_notifier.dart";
@@ -49,8 +50,26 @@ class ViewerRetentionSnapshot {
 
 class ViewerPresenter {
   ViewerPresenter({
-    CatalogSource<FolderItem, ViewerQuery>? repository,
+    ChenronViewerSource? repository,
     ViewerModel? model,
+    SearchFilter? searchFilter,
+    TagFilterNotifier? tagFilterState,
+    CatalogSelectionState<ViewerItemKey, ViewerQuery>? selectionState,
+    String? folderId,
+  }) : this._(
+          source: repository ?? model ?? ViewerModel(),
+          searchFilter: searchFilter,
+          tagFilterState: tagFilterState,
+          selectionState: selectionState,
+          folderId: folderId,
+        );
+
+  /// Takes the resolved source rather than the three ways of naming one, so
+  /// [source] and [pageSource] are built from the same object. An initializer
+  /// list cannot read a field another initializer just set, which is the only
+  /// reason this constructor exists.
+  ViewerPresenter._({
+    required this.source,
     SearchFilter? searchFilter,
     TagFilterNotifier? tagFilterState,
     CatalogSelectionState<ViewerItemKey, ViewerQuery>? selectionState,
@@ -62,9 +81,7 @@ class ViewerPresenter {
         _folderId = folderId,
         selectionState = selectionState ??
             CatalogSelectionState<ViewerItemKey, ViewerQuery>(),
-        pageSource = CatalogPager<FolderItem, ViewerQuery>(
-          source: repository ?? model ?? ViewerModel(),
-        ),
+        pageSource = CatalogPager<FolderItem, ViewerQuery>(source: source),
         query = signal(ViewerQuery(
           folderId: folderId,
           includeFolderParents: folderId != null,
@@ -83,6 +100,9 @@ class ViewerPresenter {
   final Signal<SortMode> sortMode = signal(SortMode.nameAsc);
   final SearchFilter searchFilter;
   final TagFilterNotifier tagFilterState;
+  /// The source [pageSource] pages, at the type chenron knows it to have.
+  /// `CatalogPager.source` gives back only the paging half.
+  final ChenronViewerSource source;
   final CatalogPager<FolderItem, ViewerQuery> pageSource;
   final CatalogSelectionState<ViewerItemKey, ViewerQuery> selectionState;
   final Signal<ViewerQuery> query;

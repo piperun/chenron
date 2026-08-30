@@ -4,6 +4,7 @@ import "dart:math";
 import "package:cache_manager/cache_manager.dart";
 import "package:chenron/features/viewer/services/viewer_bulk_service.dart";
 import "package:catalog/catalog.dart";
+import "package:chenron/features/viewer/state/chenron_catalog_source.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/shared/viewer/item_handler.dart";
 import "package:chenron_mockups/chenron_mockups.dart";
@@ -337,9 +338,7 @@ FolderItem _folder(String id) => FolderItem.folder(
 
 ViewerItemKey _key(FolderItem item) => (type: item.type, id: item.id!);
 
-class _HandlerRepository implements
-        CatalogSource<FolderItem, ViewerQuery>,
-        CatalogSelectionLeases<FolderItem, ViewerQuery> {
+class _HandlerRepository implements ChenronViewerSource {
   _HandlerRepository(this.item);
 
   final FolderItem item;

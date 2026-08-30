@@ -37,7 +37,22 @@ List<Tag> chenronTagsOf(List<CatalogFacetGroup> groups) => groups
     .map((facet) => facet.tag)
     .toList(growable: false);
 
-/// Reads chenron's viewer tables as a [CatalogSource].
+/// A source that both pages and holds selection leases.
+///
+/// `catalog` keeps these apart on purpose — a source that cannot hold a cursor
+/// simply does not implement [CatalogSelectionLeases] — so nothing it exposes
+/// can promise both. Chenron's can, every one of them, and this is where that
+/// fact belongs: in chenron, which knows its own sources, rather than in the
+/// package, which must keep serving the ones that cannot.
+///
+/// Naming it is what lets [ViewerPresenter] hand the bulk service a
+/// lease-capable source without a downcast.
+abstract interface class ChenronViewerSource
+    implements
+        CatalogSource<FolderItem, ViewerQuery>,
+        CatalogSelectionLeases<FolderItem, ViewerQuery> {}
+
+/// Reads chenron's viewer tables as a [ChenronViewerSource].
 ///
 /// A mixin rather than a class because chenron has three of these — the
 /// viewer's model, the folder viewer's service, and the memory profile's
@@ -47,9 +62,8 @@ List<Tag> chenronTagsOf(List<CatalogFacetGroup> groups) => groups
 /// as a repository passes it as a source unchanged.
 mixin ChenronCatalogSource
     implements
-        CatalogSource<FolderItem, ViewerQuery>,
+        ChenronViewerSource,
         CatalogFacetSearch<ViewerQuery>,
-        CatalogSelectionLeases<FolderItem, ViewerQuery>,
         CatalogInvalidationDomain {
   /// The database every method below delegates to.
   AppDatabase get catalogDatabase;

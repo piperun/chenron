@@ -42,9 +42,7 @@ FolderItem _folderItem(int index) => FolderItem.folder(
       tags: const <Tag>[],
     );
 
-class _PagedRepository implements
-        CatalogSource<FolderItem, ViewerQuery>,
-        CatalogSelectionLeases<FolderItem, ViewerQuery> {
+class _PagedRepository implements ChenronViewerSource {
   final List<({int limit, int offset})> pageRequests = [];
   final StreamController<void> invalidationController =
       StreamController<void>.broadcast();

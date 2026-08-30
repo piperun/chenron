@@ -8,6 +8,7 @@ import "package:chenron/features/theme/state/theme_options_store.dart";
 import "package:chenron/features/viewer/mvc/viewer_presenter.dart";
 import "package:chenron/features/viewer/pages/viewer.dart";
 import "package:catalog/catalog.dart";
+import "package:chenron/features/viewer/state/chenron_catalog_source.dart";
 import "package:chenron/locator.dart";
 import "package:database/database.dart";
 import "package:database/features.dart";
@@ -101,9 +102,7 @@ void main() {
   });
 }
 
-class FakeViewerRepository implements
-        CatalogSource<FolderItem, ViewerQuery>,
-        CatalogSelectionLeases<FolderItem, ViewerQuery> {
+class FakeViewerRepository implements ChenronViewerSource {
   int _activeSubscriptions = 0;
   late final StreamController<void> _controller =
       StreamController<void>.broadcast(

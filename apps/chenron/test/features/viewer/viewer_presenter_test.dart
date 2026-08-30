@@ -2,6 +2,7 @@ import "dart:async";
 
 import "package:chenron/features/viewer/mvc/viewer_presenter.dart";
 import "package:catalog/catalog.dart";
+import "package:chenron/features/viewer/state/chenron_catalog_source.dart";
 import "package:chenron/shared/item_display/item_toolbar.dart";
 import "package:chenron/shared/search/search_filter.dart";
 import "package:chenron/shared/tag_filter/tag_filter_notifier.dart";
@@ -19,9 +20,7 @@ FolderItem _folderItem(String id) => FolderItem.folder(
       tags: const <Tag>[],
     );
 
-class _FakeViewerRepository implements
-        CatalogSource<FolderItem, ViewerQuery>,
-        CatalogSelectionLeases<FolderItem, ViewerQuery> {
+class _FakeViewerRepository implements ChenronViewerSource {
   final List<ViewerQuery> countQueries = <ViewerQuery>[];
   final List<ViewerQuery> facetQueries = <ViewerQuery>[];
   final List<ViewerQuery> pageQueries = <ViewerQuery>[];
