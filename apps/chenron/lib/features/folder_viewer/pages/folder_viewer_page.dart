@@ -1,4 +1,6 @@
+import "package:catalog/catalog.dart";
 import "package:database/database.dart";
+import "package:database/features.dart";
 import "package:flutter/material.dart";
 import "dart:async";
 import "package:signals/signals_flutter.dart";
@@ -9,7 +11,6 @@ import "package:chenron/shared/dialogs/delete_confirmation_dialog.dart";
 import "package:chenron/features/folder_viewer/services/folder_viewer_service.dart";
 import "package:chenron/features/viewer/mvc/viewer_presenter.dart";
 import "package:chenron/features/viewer/services/viewer_bulk_service.dart";
-import "package:chenron/features/viewer/state/viewer_page_source.dart";
 import "package:chenron/features/viewer/ui/paged_viewer_display.dart";
 import "package:chenron/features/folder_editor/pages/folder_editor.dart";
 import "package:app_logger/app_logger.dart";
@@ -314,7 +315,7 @@ class _HeaderSkeleton extends StatelessWidget {
 
 class _CollapsibleHeader extends StatelessWidget {
   final FolderResult result;
-  final ViewerPageSource pageSource;
+  final CatalogPager<FolderItem, ViewerQuery> pageSource;
   final bool isHeaderExpanded;
   final bool isHeaderLocked;
   final VoidCallback onToggleExpanded;

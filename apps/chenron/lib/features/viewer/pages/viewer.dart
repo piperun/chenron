@@ -31,7 +31,7 @@ class _ViewerState extends State<Viewer> {
     _presenter = widget.presenterFactory?.call() ??
         ViewerPresenter(searchFilter: widget.searchFilter);
     _bulkService = ViewerBulkService(
-      repository: _presenter.pageSource.repository,
+      repository: _presenter.source,
       bulkUpdateBoundary: _presenter.pageSource,
     );
     if (widget.searchFilter != null) {

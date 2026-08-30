@@ -3,8 +3,8 @@ import "dart:async";
 import "package:chenron/features/settings/coordinator/settings_coordinator.dart";
 import "package:chenron/features/theme/state/theme_options_store.dart";
 import "package:chenron/features/viewer/mvc/viewer_presenter.dart";
-import "package:chenron/features/viewer/state/viewer_page_source.dart";
-import "package:chenron/features/viewer/state/viewer_selection_state.dart";
+import "package:catalog/catalog.dart";
+import "package:chenron/features/viewer/state/chenron_catalog_source.dart";
 import "package:chenron/features/viewer/ui/paged_viewer_display.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/shared/item_display/item_list_view.dart";
@@ -18,6 +18,20 @@ import "package:shared_preferences/shared_preferences.dart";
 
 import "viewer_test.mocks.dart";
 
+/// The single group chenron's own source publishes, so the fake hands the
+/// display the shape it sees in the app.
+List<CatalogFacetGroup> _tagGroups(List<ViewerTagFacet> facets) =>
+    <CatalogFacetGroup>[
+      CatalogFacetGroup(
+        dimension: chenronTagDimension,
+        label: chenronTagDimensionLabel,
+        facets: <CatalogFacet>[
+          for (final facet in facets)
+            ChenronTagFacet(facet.tag, facet.itemCount),
+        ],
+      ),
+    ];
+
 FolderItem _folderItem(int index) => FolderItem.folder(
       id: "folder-$index",
       itemId: null,
@@ -28,7 +42,7 @@ FolderItem _folderItem(int index) => FolderItem.folder(
       tags: const <Tag>[],
     );
 
-class _PagedRepository implements ViewerPageRepository {
+class _PagedRepository implements ChenronViewerSource {
   final List<({int limit, int offset})> pageRequests = [];
   final StreamController<void> invalidationController =
       StreamController<void>.broadcast();
@@ -57,15 +71,14 @@ class _PagedRepository implements ViewerPageRepository {
   }
 
   @override
-  Future<List<ViewerTagFacet>> loadTagFacets(ViewerQuery query) async {
+  Future<List<CatalogFacetGroup>> loadFacets(ViewerQuery query) async {
     facetCalls++;
     if (failNextFacets) {
       failNextFacets = false;
       throw StateError("facets failed");
     }
     final gate = facetGate;
-    if (gate != null) return gate.future;
-    return facets;
+    return _tagGroups(gate == null ? facets : await gate.future);
   }
 
   @override
@@ -95,41 +108,43 @@ class _PagedRepository implements ViewerPageRepository {
   Stream<void> invalidations() => invalidationController.stream;
 
   @override
-  Future<ViewerSelectionLease> createSelectionLease({
+  Future<CatalogSelectionLease> createSelectionLease({
     required ViewerQuery query,
-    Set<ViewerItemKey>? onlyKeys,
-    Set<ViewerItemKey> excludedKeys = const <ViewerItemKey>{},
+    Set<Object>? onlyKeys,
+    Set<Object> excludedKeys = const <Object>{},
   }) =>
       throw UnimplementedError();
 
   @override
   Future<List<FolderItem>> loadSelectionLeaseBatch(
-    ViewerSelectionLease lease, {
+    CatalogSelectionLease lease, {
     required int limit,
   }) =>
       throw UnimplementedError();
 
   @override
-  Future<int> countSelectionLease(ViewerSelectionLease lease) =>
+  Future<int> countSelectionLease(CatalogSelectionLease lease) =>
       throw UnimplementedError();
 
   @override
   Future<void> consumeSelectionLeaseBatch(
-    ViewerSelectionLease lease,
-    Iterable<ViewerItemKey> consumed,
+    CatalogSelectionLease lease,
+    Iterable<Object> consumed,
   ) =>
       throw UnimplementedError();
 
   @override
-  Future<void> releaseSelectionLease(ViewerSelectionLease lease) =>
+  Future<void> releaseSelectionLease(CatalogSelectionLease lease) =>
       throw UnimplementedError();
 
+  @override
   Future<void> dispose() => invalidationController.close();
 }
 
 Widget _host(
   ViewerPresenter presenter, {
-  ValueChanged<ViewerSelectionTarget>? onDeleteRequested,
+  ValueChanged<CatalogSelectionTarget<ViewerItemKey, ViewerQuery>>?
+      onDeleteRequested,
 }) =>
     MaterialApp(
       home: Scaffold(
@@ -418,7 +433,7 @@ void main() {
     repository = _PagedRepository();
     presenter = ViewerPresenter(repository: repository);
     await presenter.init();
-    ViewerSelectionTarget? requested;
+    CatalogSelectionTarget<ViewerItemKey, ViewerQuery>? requested;
 
     await tester.pumpWidget(_host(
       presenter,
@@ -435,9 +450,9 @@ void main() {
 
     expect(find.text("100000 selected"), findsOneWidget);
     expect(repository.pageRequests, isEmpty);
-    expect(presenter.selectionState.value, isA<AllMatchingViewerSelection>());
+    expect(presenter.selectionState.value, isA<CatalogAllMatchingSelection<ViewerItemKey, ViewerQuery>>());
     final selection =
-        presenter.selectionState.value as AllMatchingViewerSelection;
+        presenter.selectionState.value as CatalogAllMatchingSelection<ViewerItemKey, ViewerQuery>;
     expect(selection.query, presenter.query.value);
     expect(selection.totalCount, 100000);
 
@@ -547,7 +562,7 @@ void main() {
       folderId: "folder-current",
     );
     await presenter.init();
-    ViewerSelectionTarget? requested;
+    CatalogSelectionTarget<ViewerItemKey, ViewerQuery>? requested;
 
     await tester.pumpWidget(_host(
       presenter,
@@ -565,9 +580,9 @@ void main() {
 
     expect(repository.pageRequests, isEmpty);
     expect(requested, isNotNull);
-    expect(requested!.selection, isA<AllMatchingViewerSelection>());
+    expect(requested!.selection, isA<CatalogAllMatchingSelection<ViewerItemKey, ViewerQuery>>());
     expect(
-      (requested!.selection as AllMatchingViewerSelection).totalCount,
+      (requested!.selection as CatalogAllMatchingSelection<ViewerItemKey, ViewerQuery>).totalCount,
       100001,
     );
     expect(requested!.selectedCount, 100001);
@@ -626,7 +641,7 @@ void main() {
       ..pageRows = <FolderItem>[document, folder];
     presenter = ViewerPresenter(repository: repository);
     await presenter.init();
-    ViewerSelectionTarget? requested;
+    CatalogSelectionTarget<ViewerItemKey, ViewerQuery>? requested;
 
     await tester.pumpWidget(_host(
       presenter,
@@ -647,7 +662,7 @@ void main() {
 
     expect(requested, isNotNull);
     expect(
-      (requested!.selection as ExplicitViewerSelection).keys,
+      (requested!.selection as CatalogExplicitSelection<ViewerItemKey, ViewerQuery>).keys,
       <ViewerItemKey>{
         (type: FolderItemType.document, id: "same-id"),
         (type: FolderItemType.folder, id: "same-id"),
@@ -664,7 +679,9 @@ void main() {
       ..pageRows = <FolderItem>[_folderItem(0), _folderItem(1)];
     presenter = ViewerPresenter(
       repository: repository,
-      selectionState: ViewerSelectionState(maxManualKeys: 1),
+      selectionState: CatalogSelectionState<ViewerItemKey, ViewerQuery>(
+        maxManualKeys: 1,
+      ),
     );
     await presenter.init();
 

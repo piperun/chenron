@@ -12,6 +12,7 @@ import "package:chenron/features/theme/state/theme_options_store.dart";
 import "package:chenron/features/viewer/pages/viewer.dart";
 import "package:chenron/services/activity_tracker.dart";
 import "package:chenron_mockups/chenron_mockups.dart";
+import "package:catalog/catalog.dart";
 import "package:database/database.dart";
 import "package:database/features.dart";
 import "package:signals/signals.dart";
@@ -78,11 +79,11 @@ class _BoundedFolderService extends FolderViewerService {
   }
 
   @override
-  Future<List<ViewerTagFacet>> loadTagFacets(
+  Future<List<CatalogFacetGroup>> searchFacets(
     ViewerQuery query, {
     String searchText = "",
   }) async =>
-      const <ViewerTagFacet>[];
+      const <CatalogFacetGroup>[];
 
   @override
   Future<List<FolderItem>> loadPage(

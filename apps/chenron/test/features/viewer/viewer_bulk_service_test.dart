@@ -3,8 +3,7 @@ import "dart:math";
 
 import "package:cache_manager/cache_manager.dart";
 import "package:chenron/features/viewer/services/viewer_bulk_service.dart";
-import "package:chenron/features/viewer/state/viewer_page_source.dart";
-import "package:chenron/features/viewer/state/viewer_selection_state.dart";
+import "package:catalog/catalog.dart";
 import "package:database/database.dart";
 import "package:database/features.dart";
 import "package:flutter_test/flutter_test.dart";
@@ -49,7 +48,10 @@ final class _SharedViewerInvalidations {
 }
 
 class _LeaseRepository
-    implements ViewerPageRepository, ViewerInvalidationDomainRepository {
+    implements
+        CatalogSource<FolderItem, ViewerQuery>,
+        CatalogSelectionLeases<FolderItem, ViewerQuery>,
+        CatalogInvalidationDomain {
   _LeaseRepository(
     List<FolderItem> rows, {
     _SharedViewerInvalidations? invalidations,
@@ -59,7 +61,7 @@ class _LeaseRepository
         };
 
   final Map<ViewerItemKey, FolderItem> _rowsByKey;
-  final Map<String, List<FolderItem>> _leases = <String, List<FolderItem>>{};
+  final Map<Object, List<FolderItem>> _leases = <Object, List<FolderItem>>{};
   final List<int> requestedLimits = <int>[];
   final List<Set<ViewerItemKey>?> createdOnlyKeys = <Set<ViewerItemKey>?>[];
   final List<Set<ViewerItemKey>> createdExcludedKeys = <Set<ViewerItemKey>>[];
@@ -73,22 +75,29 @@ class _LeaseRepository
   bool failNextConsume = false;
 
   @override
-  Object get viewerInvalidationDomain => _invalidations;
+  Object get invalidationDomain => _invalidations;
 
   void invalidate() => _invalidations.invalidate();
 
   Future<void> close() => _invalidations.close();
 
+  /// The fake really does hold a controller, so this releases it rather than
+  /// no-opping. Tests that share one invalidations object across two
+  /// repositories close it themselves; the close is idempotent either way.
   @override
-  Future<ViewerSelectionLease> createSelectionLease({
+  Future<void> dispose() => close();
+
+  @override
+  Future<CatalogSelectionLease> createSelectionLease({
     required ViewerQuery query,
-    Set<ViewerItemKey>? onlyKeys,
-    Set<ViewerItemKey> excludedKeys = const <ViewerItemKey>{},
+    Set<Object>? onlyKeys,
+    Set<Object> excludedKeys = const <Object>{},
   }) async {
-    createdOnlyKeys.add(onlyKeys == null ? null : Set.of(onlyKeys));
-    createdExcludedKeys.add(Set.of(excludedKeys));
-    final lease = ViewerSelectionLease("lease-${_leases.length}");
-    final selectedKeys = onlyKeys ??
+    final onlyItemKeys = onlyKeys?.cast<ViewerItemKey>().toSet();
+    createdOnlyKeys.add(onlyItemKeys == null ? null : Set.of(onlyItemKeys));
+    createdExcludedKeys.add(excludedKeys.cast<ViewerItemKey>().toSet());
+    final lease = CatalogSelectionLease("lease-${_leases.length}");
+    final selectedKeys = onlyItemKeys ??
         _rowsByKey.entries
             .where((entry) => query.types.contains(entry.value.type))
             .map((entry) => entry.key)
@@ -103,7 +112,7 @@ class _LeaseRepository
 
   @override
   Future<List<FolderItem>> loadSelectionLeaseBatch(
-    ViewerSelectionLease lease, {
+    CatalogSelectionLease lease, {
     required int limit,
   }) async {
     loadCalls++;
@@ -113,8 +122,8 @@ class _LeaseRepository
 
   @override
   Future<void> consumeSelectionLeaseBatch(
-    ViewerSelectionLease lease,
-    Iterable<ViewerItemKey> consumed,
+    CatalogSelectionLease lease,
+    Iterable<Object> consumed,
   ) async {
     consumeCalls++;
     if (failNextConsume) {
@@ -126,13 +135,13 @@ class _LeaseRepository
   }
 
   @override
-  Future<void> releaseSelectionLease(ViewerSelectionLease lease) async {
+  Future<void> releaseSelectionLease(CatalogSelectionLease lease) async {
     releaseCalls++;
     _leases.remove(lease.id);
   }
 
   @override
-  Future<int> countSelectionLease(ViewerSelectionLease lease) async {
+  Future<int> countSelectionLease(CatalogSelectionLease lease) async {
     countLeaseCalls++;
     return _leases[lease.id]!.length;
   }
@@ -155,13 +164,13 @@ class _LeaseRepository
       _rowsByKey.values.skip(offset).take(limit).toList(growable: false);
 
   @override
-  Future<List<ViewerTagFacet>> loadTagFacets(ViewerQuery query) async {
+  Future<List<CatalogFacetGroup>> loadFacets(ViewerQuery query) async {
     facetCalls++;
-    return const <ViewerTagFacet>[];
+    return const <CatalogFacetGroup>[];
   }
 }
 
-final class _ImmediateBulkBoundary implements ViewerBulkUpdateBoundary {
+final class _ImmediateBulkBoundary implements CatalogBulkUpdateBoundary {
   const _ImmediateBulkBoundary();
 
   @override
@@ -175,7 +184,7 @@ void main() {
       () async {
     final rows = List<FolderItem>.generate(201, _link);
     final repository = _LeaseRepository(rows);
-    final source = ViewerPageSource(repository: repository);
+    final source = CatalogPager<FolderItem, ViewerQuery>(source: repository);
     await source.setQuery(const ViewerQuery());
     final baselineGeneration = source.summaryGeneration.value;
     final baselineCountCalls = repository.countCalls;
@@ -195,7 +204,7 @@ void main() {
     );
 
     final result = await service.delete(
-      AllMatchingViewerSelection(
+      CatalogAllMatchingSelection<ViewerItemKey, ViewerQuery>(
         query: const ViewerQuery(),
         totalCount: rows.length,
       ),
@@ -216,7 +225,7 @@ void main() {
   test("bulk exception still produces exactly one trailing refresh", () async {
     final rows = List<FolderItem>.generate(100, _link);
     final repository = _LeaseRepository(rows)..failNextConsume = true;
-    final source = ViewerPageSource(repository: repository);
+    final source = CatalogPager<FolderItem, ViewerQuery>(source: repository);
     await source.setQuery(const ViewerQuery());
     final baselineGeneration = source.summaryGeneration.value;
     var processed = 0;
@@ -235,7 +244,7 @@ void main() {
 
     await expectLater(
       service.delete(
-        AllMatchingViewerSelection(
+        CatalogAllMatchingSelection<ViewerItemKey, ViewerQuery>(
           query: const ViewerQuery(),
           totalCount: rows.length,
         ),
@@ -258,8 +267,8 @@ void main() {
     final rows = List<FolderItem>.generate(3, _link);
     final repositoryA = _LeaseRepository(rows, invalidations: invalidations);
     final repositoryB = _LeaseRepository(rows, invalidations: invalidations);
-    final sourceA = ViewerPageSource(repository: repositoryA);
-    final sourceB = ViewerPageSource(repository: repositoryB);
+    final sourceA = CatalogPager<FolderItem, ViewerQuery>(source: repositoryA);
+    final sourceB = CatalogPager<FolderItem, ViewerQuery>(source: repositoryB);
 
     try {
       await sourceA.setQuery(const ViewerQuery(searchText: "retained"));
@@ -291,7 +300,7 @@ void main() {
       );
 
       final result = await service.delete(
-        AllMatchingViewerSelection(
+        CatalogAllMatchingSelection<ViewerItemKey, ViewerQuery>(
           query: const ViewerQuery(),
           totalCount: rows.length,
         ),
@@ -319,8 +328,8 @@ void main() {
     final repositoryA = _LeaseRepository(rows, invalidations: invalidations);
     final repositoryB = _LeaseRepository(rows, invalidations: invalidations)
       ..failNextConsume = true;
-    final sourceA = ViewerPageSource(repository: repositoryA);
-    final sourceB = ViewerPageSource(repository: repositoryB);
+    final sourceA = CatalogPager<FolderItem, ViewerQuery>(source: repositoryA);
+    final sourceB = CatalogPager<FolderItem, ViewerQuery>(source: repositoryB);
 
     try {
       await sourceA.setQuery(const ViewerQuery(searchText: "retained"));
@@ -341,7 +350,7 @@ void main() {
 
       await expectLater(
         service.delete(
-          AllMatchingViewerSelection(
+          CatalogAllMatchingSelection<ViewerItemKey, ViewerQuery>(
             query: const ViewerQuery(),
             totalCount: rows.length,
           ),
@@ -367,8 +376,8 @@ void main() {
     final rows = List<FolderItem>.generate(3, _link);
     final repositoryA = _LeaseRepository(rows, invalidations: invalidations);
     final repositoryB = _LeaseRepository(rows, invalidations: invalidations);
-    final sourceA = ViewerPageSource(repository: repositoryA);
-    final sourceB = ViewerPageSource(repository: repositoryB);
+    final sourceA = CatalogPager<FolderItem, ViewerQuery>(source: repositoryA);
+    final sourceB = CatalogPager<FolderItem, ViewerQuery>(source: repositoryB);
 
     try {
       await sourceA.setQuery(const ViewerQuery(searchText: "first"));
@@ -423,8 +432,8 @@ void main() {
     final rows = List<FolderItem>.generate(3, _link);
     final repositoryA = _LeaseRepository(rows, invalidations: invalidations);
     final repositoryB = _LeaseRepository(rows, invalidations: invalidations);
-    final sourceA = ViewerPageSource(repository: repositoryA);
-    final sourceB = ViewerPageSource(repository: repositoryB);
+    final sourceA = CatalogPager<FolderItem, ViewerQuery>(source: repositoryA);
+    final sourceB = CatalogPager<FolderItem, ViewerQuery>(source: repositoryB);
 
     try {
       await sourceA.setQuery(const ViewerQuery(searchText: "disposed"));
@@ -457,7 +466,7 @@ void main() {
       );
 
       await service.delete(
-        AllMatchingViewerSelection(
+        CatalogAllMatchingSelection<ViewerItemKey, ViewerQuery>(
           query: const ViewerQuery(),
           totalCount: rows.length,
         ),
@@ -502,7 +511,7 @@ void main() {
       _key(rows[2]),
       _key(rows[3]),
     };
-    final selection = AllMatchingViewerSelection(
+    final selection = CatalogAllMatchingSelection<ViewerItemKey, ViewerQuery>(
       query: query,
       totalCount: rows.length + 1,
       excluded: exclusions,
@@ -558,7 +567,7 @@ void main() {
         return true;
       },
     );
-    final selection = ExplicitViewerSelection(<ViewerItemKey>{
+    final selection = CatalogExplicitSelection<ViewerItemKey, ViewerQuery>(<ViewerItemKey>{
       _key(sameIdLink),
       _key(sameIdFolder),
       _key(tail),
@@ -615,7 +624,7 @@ void main() {
     );
 
     final result = await service.refreshMetadata(
-      AllMatchingViewerSelection(
+      CatalogAllMatchingSelection<ViewerItemKey, ViewerQuery>(
         query: const ViewerQuery(
           types: <FolderItemType>{FolderItemType.link},
         ),
@@ -655,7 +664,7 @@ void main() {
     );
 
     final result = await service.refreshMetadata(
-      ExplicitViewerSelection(rows.map(_key).toSet()),
+      CatalogExplicitSelection<ViewerItemKey, ViewerQuery>(rows.map(_key).toSet()),
     );
 
     expect(result.processed, 5);
@@ -679,7 +688,7 @@ void main() {
 
     await expectLater(
       service.delete(
-        const AllMatchingViewerSelection(
+        const CatalogAllMatchingSelection<ViewerItemKey, ViewerQuery>(
           query: ViewerQuery(),
           totalCount: 2,
         ),
@@ -712,7 +721,7 @@ void main() {
 
     await expectLater(
       service.delete(
-        AllMatchingViewerSelection(
+        CatalogAllMatchingSelection<ViewerItemKey, ViewerQuery>(
           query: const ViewerQuery(),
           totalCount: rows.length,
         ),

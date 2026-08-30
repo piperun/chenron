@@ -1,8 +1,9 @@
 import "dart:async";
 
+import "package:catalog/catalog.dart";
 import "package:chenron/features/folder_viewer/ui/components/tag_filter_modal.dart";
 import "package:chenron/features/viewer/mvc/viewer_presenter.dart";
-import "package:chenron/features/viewer/state/viewer_selection_state.dart";
+import "package:chenron/features/viewer/state/chenron_catalog_source.dart";
 import "package:chenron/shared/item_display/item_grid_view.dart";
 import "package:chenron/shared/item_display/item_list_view.dart";
 import "package:chenron/shared/item_display/item_toolbar.dart";
@@ -32,9 +33,12 @@ class PagedViewerDisplay extends StatefulWidget {
   final bool showSearch;
   final String? displayModeContext;
   final ValueChanged<FolderItem>? onItemTap;
-  final ValueChanged<ViewerSelectionTarget>? onDeleteRequested;
-  final ValueChanged<ViewerSelectionTarget>? onTagRequested;
-  final ValueChanged<ViewerSelectionTarget>? onRefreshMetadataRequested;
+  final ValueChanged<CatalogSelectionTarget<ViewerItemKey, ViewerQuery>>?
+      onDeleteRequested;
+  final ValueChanged<CatalogSelectionTarget<ViewerItemKey, ViewerQuery>>?
+      onTagRequested;
+  final ValueChanged<CatalogSelectionTarget<ViewerItemKey, ViewerQuery>>?
+      onRefreshMetadataRequested;
 
   @override
   State<PagedViewerDisplay> createState() => _PagedViewerDisplayState();
@@ -105,7 +109,7 @@ class _PagedViewerDisplayState extends State<PagedViewerDisplay> {
     }
     final key = (type: item.type, id: id);
     final result = _presenter.selectionState.toggle(key);
-    if (result == ViewerSelectionToggleResult.limitReached) {
+    if (result == CatalogSelectionToggleResult.limitReached) {
       final limit = _presenter.selectionState.maxManualKeys;
       final noun = limit == 1 ? "item" : "items";
       ScaffoldMessenger.of(context).showSnackBar(
@@ -127,10 +131,10 @@ class _PagedViewerDisplayState extends State<PagedViewerDisplay> {
     );
   }
 
-  ViewerSelectionTarget get _selectionTarget {
+  CatalogSelectionTarget<ViewerItemKey, ViewerQuery> get _selectionTarget {
     final selection = _presenter.selectionState.value;
     final summaryGeneration = _presenter.pageSource.summaryGeneration.value;
-    return ViewerSelectionTarget(
+    return CatalogSelectionTarget<ViewerItemKey, ViewerQuery>(
       selection: selection,
       isCurrent: () =>
           !_disposed &&
@@ -145,24 +149,27 @@ class _PagedViewerDisplayState extends State<PagedViewerDisplay> {
 
   int get _selectedLinkCount {
     return switch (_presenter.selectionState.value) {
-      ExplicitViewerSelection(:final keys) =>
+      CatalogExplicitSelection<ViewerItemKey, ViewerQuery>(:final keys) =>
         keys.where((key) => key.type == FolderItemType.link).length,
-      AllMatchingViewerSelection(:final query, :final totalCount) =>
+      CatalogAllMatchingSelection<ViewerItemKey, ViewerQuery>(
+        :final query,
+        :final totalCount
+      ) =>
         totalCount > 0 && query.types.contains(FolderItemType.link) ? 1 : 0,
     };
   }
 
   Future<void> _openTagFilterModal() async {
-    final facets = _presenter.pageSource.tagFacets.value;
+    final facets = _presenter.pageSource.facets.value;
     final result = await TagFilterModal.show(
       context: context,
-      availableTags: facets.map((facet) => facet.tag).toList(growable: false),
+      availableTags: chenronTagsOf(facets),
       initialIncludedTags: _presenter.tagFilterState.includedTagNames,
       initialExcludedTags: _presenter.tagFilterState.excludedTagNames,
       onSearchTags: (searchText) async {
         final searched =
-            await _presenter.pageSource.searchTagFacets(searchText);
-        return searched.map((facet) => facet.tag).toList(growable: false);
+            await _presenter.pageSource.searchFacets(searchText);
+        return chenronTagsOf(searched);
       },
     );
     if (result == null) return;
@@ -178,7 +185,7 @@ class _PagedViewerDisplayState extends State<PagedViewerDisplay> {
       final pageSource = _presenter.pageSource;
       pageSource.revision.value;
       final countError = pageSource.countError.value;
-      final tagFacetsError = pageSource.tagFacetsError.value;
+      final tagFacetsError = pageSource.facetsError.value;
       final delegate = DelegatingItemViewportSource(
         length: () => pageSource.totalCount.value,
         itemAt: pageSource.itemAt,
