@@ -494,6 +494,15 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  forrest:
+    dependency: transitive
+    description:
+      path: "packages/forrest"
+      ref: c116789126b59566af8bc1d91acc6ccf633492cc
+      resolved-ref: c116789126b59566af8bc1d91acc6ccf633492cc
+      url: "https://codeberg.org/0xdev/dashpub"
+    source: git
+    version: "0.1.0"
   freezed:
     dependency: transitive
     description:

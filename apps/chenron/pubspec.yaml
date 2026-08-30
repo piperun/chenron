@@ -43,6 +43,11 @@ dependencies:
   cupertino_icons: ^1.0.6
   drift: ^2.26.0
   favicon: ^1.1.2
+  forrest:
+    git:
+      url: https://codeberg.org/0xdev/dashpub
+      path: packages/forrest
+      ref: c116789126b59566af8bc1d91acc6ccf633492cc
   file_picker: ^11.0.2
   fl_chart: ^1.1.1
   flex_color_scheme: ^8.3.0
