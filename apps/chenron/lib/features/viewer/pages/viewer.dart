@@ -1,10 +1,13 @@
 import "dart:async";
 
+import "package:catalog/catalog.dart";
 import "package:chenron/features/viewer/mvc/viewer_presenter.dart";
 import "package:chenron/features/viewer/services/viewer_bulk_service.dart";
 import "package:chenron/features/viewer/ui/paged_viewer_display.dart";
 import "package:chenron/shared/search/search_filter.dart";
 import "package:chenron/shared/viewer/item_handler.dart";
+import "package:database/database.dart";
+import "package:database/features.dart";
 import "package:flutter/material.dart";
 
 class Viewer extends StatefulWidget {
@@ -31,7 +34,13 @@ class _ViewerState extends State<Viewer> {
     _presenter = widget.presenterFactory?.call() ??
         ViewerPresenter(searchFilter: widget.searchFilter);
     _bulkService = ViewerBulkService(
-      repository: _presenter.pageSource.repository,
+      // `CatalogSelectionLeases` is an optional capability the pager does not
+      // carry, so the source has to be asked for it. Every source this page is
+      // ever given holds leases: the presenter builds a `ViewerModel` when it
+      // is given none, and a test that injects a presenter injects a source
+      // with them.
+      repository: _presenter.pageSource.source
+          as CatalogSelectionLeases<FolderItem, ViewerQuery>,
       bulkUpdateBoundary: _presenter.pageSource,
     );
     if (widget.searchFilter != null) {

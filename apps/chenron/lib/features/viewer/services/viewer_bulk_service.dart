@@ -1,6 +1,5 @@
 import "package:cache_manager/cache_manager.dart";
-import "package:chenron/features/viewer/state/viewer_page_source.dart";
-import "package:chenron/features/viewer/state/viewer_selection_state.dart";
+import "package:catalog/catalog.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/shared/viewer/item_deletion_service.dart";
 import "package:chenron/shared/viewer/item_handler.dart";
@@ -56,8 +55,8 @@ class ViewerSelectionChangedException implements Exception {
 
 class ViewerBulkService {
   ViewerBulkService({
-    required ViewerPageRepository repository,
-    required ViewerBulkUpdateBoundary bulkUpdateBoundary,
+    required CatalogSelectionLeases<FolderItem, ViewerQuery> repository,
+    required CatalogBulkUpdateBoundary bulkUpdateBoundary,
     this.batchSize = 100,
     ViewerDeleteItem? deleteItem,
     ViewerTagItem? tagItem,
@@ -78,8 +77,8 @@ class ViewerBulkService {
     }
   }
 
-  final ViewerPageRepository _repository;
-  final ViewerBulkUpdateBoundary _bulkUpdateBoundary;
+  final CatalogSelectionLeases<FolderItem, ViewerQuery> _repository;
+  final CatalogBulkUpdateBoundary _bulkUpdateBoundary;
   final int batchSize;
   final ViewerDeleteItem _deleteItem;
   final ViewerTagItem _tagItem;
@@ -90,7 +89,7 @@ class ViewerBulkService {
   int get retainedBatchRowCount => _retainedBatchRowCount;
 
   Future<ViewerBulkResult> delete(
-    ViewerSelection selection, {
+    CatalogSelection<ViewerItemKey, ViewerQuery> selection, {
     int? expectedCount,
   }) =>
       _bulkUpdateBoundary.runBulkUpdate(
@@ -105,7 +104,7 @@ class ViewerBulkService {
       );
 
   Future<ViewerBulkResult> tag(
-    ViewerSelection selection, {
+    CatalogSelection<ViewerItemKey, ViewerQuery> selection, {
     Set<String> tagsToAdd = const <String>{},
     Set<String> tagsToRemove = const <String>{},
     Map<String, int?> colorChanges = const <String, int?>{},
@@ -132,7 +131,7 @@ class ViewerBulkService {
       });
 
   Future<ViewerBulkResult> refreshMetadata(
-    ViewerSelection selection, {
+    CatalogSelection<ViewerItemKey, ViewerQuery> selection, {
     int? expectedCount,
   }) =>
       _bulkUpdateBoundary.runBulkUpdate(
@@ -144,12 +143,12 @@ class ViewerBulkService {
       );
 
   Future<ViewerBulkResult> _run(
-    ViewerSelection selection, {
+    CatalogSelection<ViewerItemKey, ViewerQuery> selection, {
     required int? expectedCount,
     required Future<ViewerBulkResult> Function(List<FolderItem> batch)
         processBatch,
   }) async {
-    final leases = <ViewerSelectionLease>[];
+    final leases = <CatalogSelectionLease>[];
     try {
       await _appendLease(leases, selection);
 
@@ -180,16 +179,20 @@ class ViewerBulkService {
   }
 
   Future<void> _appendLease(
-    List<ViewerSelectionLease> leases,
-    ViewerSelection selection,
+    List<CatalogSelectionLease> leases,
+    CatalogSelection<ViewerItemKey, ViewerQuery> selection,
   ) async {
     final (query, onlyKeys, excludedKeys) = switch (selection) {
-      ExplicitViewerSelection(:final keys) => (
+      CatalogExplicitSelection<ViewerItemKey, ViewerQuery>(:final keys) => (
           const ViewerQuery(),
           keys,
           const <ViewerItemKey>{},
         ),
-      AllMatchingViewerSelection(:final query, :final excluded) => (
+      CatalogAllMatchingSelection<ViewerItemKey, ViewerQuery>(
+        :final query,
+        :final excluded
+      ) =>
+        (
           query,
           null,
           excluded,
@@ -204,7 +207,7 @@ class ViewerBulkService {
   }
 
   Future<ViewerBulkResult> _runLease(
-    ViewerSelectionLease lease,
+    CatalogSelectionLease lease,
     Future<ViewerBulkResult> Function(List<FolderItem> batch) processBatch,
   ) async {
     var result = const ViewerBulkResult();

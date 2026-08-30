@@ -1,7 +1,7 @@
 import "dart:async";
 
 import "package:chenron/features/viewer/mvc/viewer_presenter.dart";
-import "package:chenron/features/viewer/state/viewer_page_source.dart";
+import "package:catalog/catalog.dart";
 import "package:chenron/shared/item_display/item_toolbar.dart";
 import "package:chenron/shared/search/search_filter.dart";
 import "package:chenron/shared/tag_filter/tag_filter_notifier.dart";
@@ -19,7 +19,9 @@ FolderItem _folderItem(String id) => FolderItem.folder(
       tags: const <Tag>[],
     );
 
-class _FakeViewerRepository implements ViewerPageRepository {
+class _FakeViewerRepository implements
+        CatalogSource<FolderItem, ViewerQuery>,
+        CatalogSelectionLeases<FolderItem, ViewerQuery> {
   final List<ViewerQuery> countQueries = <ViewerQuery>[];
   final List<ViewerQuery> facetQueries = <ViewerQuery>[];
   final List<ViewerQuery> pageQueries = <ViewerQuery>[];
@@ -38,9 +40,9 @@ class _FakeViewerRepository implements ViewerPageRepository {
   }
 
   @override
-  Future<List<ViewerTagFacet>> loadTagFacets(ViewerQuery query) async {
+  Future<List<CatalogFacetGroup>> loadFacets(ViewerQuery query) async {
     facetQueries.add(query);
-    return const <ViewerTagFacet>[];
+    return const <CatalogFacetGroup>[];
   }
 
   @override
@@ -57,33 +59,33 @@ class _FakeViewerRepository implements ViewerPageRepository {
   Stream<void> invalidations() => invalidationController.stream;
 
   @override
-  Future<ViewerSelectionLease> createSelectionLease({
+  Future<CatalogSelectionLease> createSelectionLease({
     required ViewerQuery query,
-    Set<ViewerItemKey>? onlyKeys,
-    Set<ViewerItemKey> excludedKeys = const <ViewerItemKey>{},
+    Set<Object>? onlyKeys,
+    Set<Object> excludedKeys = const <Object>{},
   }) =>
       throw UnimplementedError();
 
   @override
   Future<List<FolderItem>> loadSelectionLeaseBatch(
-    ViewerSelectionLease lease, {
+    CatalogSelectionLease lease, {
     required int limit,
   }) =>
       throw UnimplementedError();
 
   @override
-  Future<int> countSelectionLease(ViewerSelectionLease lease) =>
+  Future<int> countSelectionLease(CatalogSelectionLease lease) =>
       throw UnimplementedError();
 
   @override
   Future<void> consumeSelectionLeaseBatch(
-    ViewerSelectionLease lease,
-    Iterable<ViewerItemKey> consumed,
+    CatalogSelectionLease lease,
+    Iterable<Object> consumed,
   ) =>
       throw UnimplementedError();
 
   @override
-  Future<void> releaseSelectionLease(ViewerSelectionLease lease) =>
+  Future<void> releaseSelectionLease(CatalogSelectionLease lease) =>
       throw UnimplementedError();
 
   Future<void> dispose() => invalidationController.close();
@@ -112,7 +114,7 @@ void main() {
     expect(repository.countQueries, hasLength(1));
     expect(repository.facetQueries, hasLength(1));
     expect(presenter.query.value.folderId, isNull);
-    expect(presenter.pageSource, isA<ViewerPageSource>());
+    expect(presenter.pageSource, isA<CatalogPager<FolderItem, ViewerQuery>>());
     expect(repository.activeSubscriptions, 1);
   });
 

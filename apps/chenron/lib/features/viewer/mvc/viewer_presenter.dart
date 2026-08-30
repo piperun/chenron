@@ -1,8 +1,7 @@
 import "dart:async";
 
+import "package:catalog/catalog.dart";
 import "package:chenron/features/viewer/mvc/viewer_model.dart";
-import "package:chenron/features/viewer/state/viewer_page_source.dart";
-import "package:chenron/features/viewer/state/viewer_selection_state.dart";
 import "package:chenron/shared/item_display/item_toolbar.dart";
 import "package:chenron/shared/search/query_parser.dart";
 import "package:chenron/shared/tag_filter/tag_filter_notifier.dart";
@@ -50,20 +49,21 @@ class ViewerRetentionSnapshot {
 
 class ViewerPresenter {
   ViewerPresenter({
-    ViewerPageRepository? repository,
+    CatalogSource<FolderItem, ViewerQuery>? repository,
     ViewerModel? model,
     SearchFilter? searchFilter,
     TagFilterNotifier? tagFilterState,
-    ViewerSelectionState? selectionState,
+    CatalogSelectionState<ViewerItemKey, ViewerQuery>? selectionState,
     String? folderId,
   })  : searchFilter = searchFilter ?? SearchFilter(),
         tagFilterState = tagFilterState ?? TagFilterNotifier(),
         _ownsSearchFilter = searchFilter == null,
         _ownsTagFilterState = tagFilterState == null,
         _folderId = folderId,
-        selectionState = selectionState ?? ViewerSelectionState(),
-        pageSource = ViewerPageSource(
-          repository: repository ?? model ?? ViewerModel(),
+        selectionState = selectionState ??
+            CatalogSelectionState<ViewerItemKey, ViewerQuery>(),
+        pageSource = CatalogPager<FolderItem, ViewerQuery>(
+          source: repository ?? model ?? ViewerModel(),
         ),
         query = signal(ViewerQuery(
           folderId: folderId,
@@ -83,8 +83,8 @@ class ViewerPresenter {
   final Signal<SortMode> sortMode = signal(SortMode.nameAsc);
   final SearchFilter searchFilter;
   final TagFilterNotifier tagFilterState;
-  final ViewerPageSource pageSource;
-  final ViewerSelectionState selectionState;
+  final CatalogPager<FolderItem, ViewerQuery> pageSource;
+  final CatalogSelectionState<ViewerItemKey, ViewerQuery> selectionState;
   final Signal<ViewerQuery> query;
 
   final bool _ownsSearchFilter;

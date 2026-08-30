@@ -34,6 +34,11 @@ dependencies:
 
   # Remote packages (alphabetically sorted)
   cached_network_image: ^3.4.1
+  catalog:
+    git:
+      url: https://codeberg.org/0xdev/dashpub
+      path: packages/catalog
+      ref: 54f4e5b9a76941a87b2f3a9fd9b6e686e5f80638
   collection: any
   cupertino_icons: ^1.0.6
   drift: ^2.26.0

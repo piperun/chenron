@@ -1,15 +1,15 @@
-import "dart:async";
 import "dart:convert";
 import "dart:io";
 import "dart:math";
 
 import "package:cache_manager/cache_manager.dart" hide ImageCacheManager;
+import "package:catalog/catalog.dart";
 import "package:chenron/components/favicon_display/favicon.dart";
 import "package:chenron/features/settings/coordinator/settings_coordinator.dart";
 import "package:chenron/features/theme/state/theme_options_store.dart";
 import "package:chenron/features/viewer/mvc/viewer_presenter.dart";
 import "package:chenron/features/viewer/pages/viewer.dart";
-import "package:chenron/features/viewer/state/viewer_page_source.dart";
+import "package:chenron/features/viewer/state/chenron_catalog_source.dart";
 import "package:chenron/locator.dart";
 import "package:database/database.dart";
 import "package:database/features.dart";
@@ -160,28 +160,14 @@ final class _ProfileDatabaseFixture {
   }
 }
 
-class _ProfileViewerRepository
-    implements
-        ViewerPageRepository,
-        ViewerTagFacetSearchRepository,
-        ViewerInvalidationDomainRepository {
+class _ProfileViewerRepository with ChenronCatalogSource {
   _ProfileViewerRepository(this.database);
 
   final AppDatabase database;
   final List<({int limit, int offset})> pageRequests = [];
 
   @override
-  Object get viewerInvalidationDomain => database;
-
-  @override
-  Future<int> count(ViewerQuery query) => database.getViewerItemCount(query);
-
-  @override
-  Future<List<ViewerTagFacet>> loadTagFacets(
-    ViewerQuery query, {
-    String searchText = "",
-  }) =>
-      database.getViewerTagFacets(query, searchText: searchText);
+  AppDatabase get catalogDatabase => database;
 
   @override
   Future<List<FolderItem>> loadPage(
@@ -190,45 +176,8 @@ class _ProfileViewerRepository
     required int offset,
   }) {
     pageRequests.add((limit: limit, offset: offset));
-    return database.getViewerPage(query, limit: limit, offset: offset);
+    return super.loadPage(query, limit: limit, offset: offset);
   }
-
-  @override
-  Stream<void> invalidations() => database.watchViewerInvalidations();
-
-  @override
-  Future<ViewerSelectionLease> createSelectionLease({
-    required ViewerQuery query,
-    Set<ViewerItemKey>? onlyKeys,
-    Set<ViewerItemKey> excludedKeys = const <ViewerItemKey>{},
-  }) =>
-      database.createViewerSelectionLease(
-        query: query,
-        onlyKeys: onlyKeys,
-        excludedKeys: excludedKeys,
-      );
-
-  @override
-  Future<List<FolderItem>> loadSelectionLeaseBatch(
-    ViewerSelectionLease lease, {
-    required int limit,
-  }) =>
-      database.getViewerSelectionLeaseBatch(lease, limit: limit);
-
-  @override
-  Future<int> countSelectionLease(ViewerSelectionLease lease) =>
-      database.getViewerSelectionLeaseCount(lease);
-
-  @override
-  Future<void> consumeSelectionLeaseBatch(
-    ViewerSelectionLease lease,
-    Iterable<ViewerItemKey> consumed,
-  ) =>
-      database.consumeViewerSelectionLeaseBatch(lease, consumed);
-
-  @override
-  Future<void> releaseSelectionLease(ViewerSelectionLease lease) =>
-      database.releaseViewerSelectionLease(lease);
 }
 
 void _printSnapshot(ViewerMemorySnapshot snapshot) {
@@ -308,7 +257,7 @@ final class _ProfileCycle {
   ViewerPresenter get presenter => _presenter!;
 
   int get distinctRequestedPages => repository.pageRequests
-      .map((request) => request.offset ~/ ViewerPageSource.defaultPageSize)
+      .map((request) => request.offset ~/ CatalogPager.defaultPageSize)
       .toSet()
       .length;
 
@@ -342,11 +291,11 @@ final class _ProfileCycle {
     expect(repository.pageRequests.first.offset, 0);
     expect(
       repository.pageRequests.first.limit,
-      ViewerPageSource.defaultPageSize,
+      CatalogPager.defaultPageSize,
     );
     expect(
       presenter.pageSource.cachedRowCount,
-      min(itemCount, ViewerPageSource.defaultPageSize),
+      min(itemCount, CatalogPager.defaultPageSize),
     );
     await metadataService.settle();
     metadataService.cleanupStale();
@@ -366,14 +315,14 @@ final class _ProfileCycle {
     final position = tester.state<ScrollableState>(scrollable).position;
     final initialPixels = position.pixels;
     final expectedPages = min(
-      ViewerPageSource.defaultMaxCachedPages + 1,
-      (itemCount + ViewerPageSource.defaultPageSize - 1) ~/
-          ViewerPageSource.defaultPageSize,
+      CatalogPager.defaultMaxCachedPages + 1,
+      (itemCount + CatalogPager.defaultPageSize - 1) ~/
+          CatalogPager.defaultPageSize,
     );
     final pageDistance = max(
       600.0,
       position.maxScrollExtent *
-          min(ViewerPageSource.defaultPageSize, itemCount) /
+          min(CatalogPager.defaultPageSize, itemCount) /
           itemCount,
     );
     var attempts = 0;
@@ -396,7 +345,7 @@ final class _ProfileCycle {
     expect(distinctRequestedPages, greaterThanOrEqualTo(expectedPages));
     expect(
       repository.pageRequests.every(
-        (request) => request.limit == ViewerPageSource.defaultPageSize,
+        (request) => request.limit == CatalogPager.defaultPageSize,
       ),
       isTrue,
     );

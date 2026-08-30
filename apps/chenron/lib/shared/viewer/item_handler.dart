@@ -2,11 +2,11 @@ import "dart:async";
 import "dart:math";
 
 import "package:cache_manager/cache_manager.dart";
+import "package:catalog/catalog.dart";
 import "package:flutter/material.dart";
 import "package:chenron/features/bulk_tag/pages/bulk_tag_dialog.dart";
 import "package:chenron/features/folder_viewer/pages/folder_viewer_page.dart";
 import "package:chenron/features/viewer/services/viewer_bulk_service.dart";
-import "package:chenron/features/viewer/state/viewer_selection_state.dart";
 import "package:chenron/features/settings/coordinator/settings_coordinator.dart";
 import "package:chenron/shared/item_detail/item_detail_dialog.dart";
 import "package:chenron/shared/dialogs/delete_confirmation_dialog.dart";
@@ -159,7 +159,7 @@ Future<void> handleItemDeletion(
 
 Future<void> handleViewerSelectionDeletion(
   BuildContext context,
-  ViewerSelectionTarget target,
+  CatalogSelectionTarget<ViewerItemKey, ViewerQuery> target,
   ViewerBulkService service,
   VoidCallback onRefresh,
 ) async {
@@ -249,7 +249,7 @@ Future<void> handleItemTagging(
 
 Future<void> handleViewerSelectionTagging(
   BuildContext context,
-  ViewerSelectionTarget target,
+  CatalogSelectionTarget<ViewerItemKey, ViewerQuery> target,
   ViewerBulkService service,
   VoidCallback onRefresh,
 ) async {
@@ -373,7 +373,7 @@ class _ViewLogSnackBarAction extends SnackBarAction {
 
 Future<void> handleViewerSelectionMetadataRefresh(
   BuildContext context,
-  ViewerSelectionTarget target,
+  CatalogSelectionTarget<ViewerItemKey, ViewerQuery> target,
   ViewerBulkService service,
 ) async {
   if (target.selectedCount == 0 || !target.isCurrent) return;

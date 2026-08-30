@@ -3,8 +3,7 @@ import "dart:math";
 
 import "package:cache_manager/cache_manager.dart";
 import "package:chenron/features/viewer/services/viewer_bulk_service.dart";
-import "package:chenron/features/viewer/state/viewer_page_source.dart";
-import "package:chenron/features/viewer/state/viewer_selection_state.dart";
+import "package:catalog/catalog.dart";
 import "package:chenron/locator.dart";
 import "package:chenron/shared/viewer/item_handler.dart";
 import "package:chenron_mockups/chenron_mockups.dart";
@@ -129,8 +128,8 @@ void main() {
       bulkUpdateBoundary: const _ImmediateBulkBoundary(),
       deleteItem: (_) async => true,
     );
-    final target = ViewerSelectionTarget(
-      selection: ExplicitViewerSelection(<ViewerItemKey>{_key(item)}),
+    final target = CatalogSelectionTarget<ViewerItemKey, ViewerQuery>(
+      selection: CatalogExplicitSelection<ViewerItemKey, ViewerQuery>(<ViewerItemKey>{_key(item)}),
     );
 
     await tester.pumpWidget(_handlerHost(
@@ -170,8 +169,8 @@ void main() {
       deleteItem: (_) async => true,
     );
     var isCurrent = true;
-    final target = ViewerSelectionTarget(
-      selection: ExplicitViewerSelection(<ViewerItemKey>{_key(item)}),
+    final target = CatalogSelectionTarget<ViewerItemKey, ViewerQuery>(
+      selection: CatalogExplicitSelection<ViewerItemKey, ViewerQuery>(<ViewerItemKey>{_key(item)}),
       isCurrent: () => isCurrent,
     );
 
@@ -227,8 +226,8 @@ void main() {
         return true;
       },
     );
-    final target = ViewerSelectionTarget(
-      selection: ExplicitViewerSelection(<ViewerItemKey>{_key(item)}),
+    final target = CatalogSelectionTarget<ViewerItemKey, ViewerQuery>(
+      selection: CatalogExplicitSelection<ViewerItemKey, ViewerQuery>(<ViewerItemKey>{_key(item)}),
     );
 
     await tester.pumpWidget(_handlerHost(
@@ -271,8 +270,8 @@ void main() {
       bulkUpdateBoundary: const _ImmediateBulkBoundary(),
       refreshMetadata: (_) async => throw StateError("refresh failed"),
     );
-    final target = ViewerSelectionTarget(
-      selection: ExplicitViewerSelection(<ViewerItemKey>{_key(item)}),
+    final target = CatalogSelectionTarget<ViewerItemKey, ViewerQuery>(
+      selection: CatalogExplicitSelection<ViewerItemKey, ViewerQuery>(<ViewerItemKey>{_key(item)}),
     );
 
     await tester.pumpWidget(_handlerHost(
@@ -338,7 +337,9 @@ FolderItem _folder(String id) => FolderItem.folder(
 
 ViewerItemKey _key(FolderItem item) => (type: item.type, id: item.id!);
 
-class _HandlerRepository implements ViewerPageRepository {
+class _HandlerRepository implements
+        CatalogSource<FolderItem, ViewerQuery>,
+        CatalogSelectionLeases<FolderItem, ViewerQuery> {
   _HandlerRepository(this.item);
 
   final FolderItem item;
@@ -348,36 +349,36 @@ class _HandlerRepository implements ViewerPageRepository {
   int countLeaseCalls = 0;
 
   @override
-  Future<ViewerSelectionLease> createSelectionLease({
+  Future<CatalogSelectionLease> createSelectionLease({
     required ViewerQuery query,
-    Set<ViewerItemKey>? onlyKeys,
-    Set<ViewerItemKey> excludedKeys = const <ViewerItemKey>{},
+    Set<Object>? onlyKeys,
+    Set<Object> excludedKeys = const <Object>{},
   }) async =>
-      const ViewerSelectionLease("handler-lease");
+      const CatalogSelectionLease("handler-lease");
 
   @override
   Future<List<FolderItem>> loadSelectionLeaseBatch(
-    ViewerSelectionLease lease, {
+    CatalogSelectionLease lease, {
     required int limit,
   }) async =>
       _consumed ? const <FolderItem>[] : <FolderItem>[item];
 
   @override
   Future<void> consumeSelectionLeaseBatch(
-    ViewerSelectionLease lease,
-    Iterable<ViewerItemKey> consumed,
+    CatalogSelectionLease lease,
+    Iterable<Object> consumed,
   ) async {
     consumeCalls++;
     _consumed = true;
   }
 
   @override
-  Future<void> releaseSelectionLease(ViewerSelectionLease lease) async {
+  Future<void> releaseSelectionLease(CatalogSelectionLease lease) async {
     releaseCalls++;
   }
 
   @override
-  Future<int> countSelectionLease(ViewerSelectionLease lease) async {
+  Future<int> countSelectionLease(CatalogSelectionLease lease) async {
     countLeaseCalls++;
     return _consumed ? 0 : 1;
   }
@@ -397,11 +398,11 @@ class _HandlerRepository implements ViewerPageRepository {
       throw UnimplementedError();
 
   @override
-  Future<List<ViewerTagFacet>> loadTagFacets(ViewerQuery query) =>
+  Future<List<CatalogFacetGroup>> loadFacets(ViewerQuery query) =>
       throw UnimplementedError();
 }
 
-final class _ImmediateBulkBoundary implements ViewerBulkUpdateBoundary {
+final class _ImmediateBulkBoundary implements CatalogBulkUpdateBoundary {
   const _ImmediateBulkBoundary();
 
   @override
