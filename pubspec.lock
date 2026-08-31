@@ -498,11 +498,11 @@ packages:
     dependency: transitive
     description:
       path: "packages/forrest"
-      ref: c116789126b59566af8bc1d91acc6ccf633492cc
-      resolved-ref: c116789126b59566af8bc1d91acc6ccf633492cc
+      ref: "7a7d056b360cc0d1db892fbb1e97a43722997f7d"
+      resolved-ref: "7a7d056b360cc0d1db892fbb1e97a43722997f7d"
       url: "https://codeberg.org/0xdev/dashpub"
     source: git
-    version: "0.1.0"
+    version: "0.3.0"
   freezed:
     dependency: transitive
     description:
