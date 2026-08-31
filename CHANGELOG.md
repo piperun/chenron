@@ -2,6 +2,26 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [v1.17.0](https://github.com/piperun/chenron-flutter/compare/e2748a177dc8fc7441a16a6ebf78ce58c0599928..v1.17.0) - 2026-08-31
+#### Features
+- (**chenron**) link failure toasts to the activity log - ([0d0842a](https://github.com/piperun/chenron-flutter/commit/0d0842a7bd665dfaba3418ecd4bca685056d0496)) - [@piperun](https://github.com/piperun)
+#### Build system
+- pin Forrest to 0.3.0 - ([c102d44](https://github.com/piperun/chenron-flutter/commit/c102d44b4ac8fc7bb1d0acb3601468e899775193)) - [@piperun](https://github.com/piperun)
+- take viewer state from catalog - ([4ba2e11](https://github.com/piperun/chenron-flutter/commit/4ba2e11b0c38b61630fa497cac4176490cb82b2a)) - [@piperun](https://github.com/piperun)
+- implement catalog's owner-called source dispose - ([35c0119](https://github.com/piperun/chenron-flutter/commit/35c01191e25e63246aec757bfb8fb131f7232eb4)) - [@piperun](https://github.com/piperun)
+- take viewer state from catalog - ([1648743](https://github.com/piperun/chenron-flutter/commit/1648743b509d01e28524c8c9226428eff7af635e)) - [@piperun](https://github.com/piperun)
+- pin vibe to its released commit - ([78243bb](https://github.com/piperun/chenron-flutter/commit/78243bb7d4fb5a743fa3e1d3119ffb5a1ba819b7)) - [@piperun](https://github.com/piperun)
+- pin vibe to its released commit - ([9c9e76a](https://github.com/piperun/chenron-flutter/commit/9c9e76aa3c2b1f6e4c6ce1852dbf40c10258bbae)) - [@piperun](https://github.com/piperun)
+- take vibe from dashpub - ([f320ada](https://github.com/piperun/chenron-flutter/commit/f320adabb74a003e0c795ad84abe1be20bee271b)) - [@piperun](https://github.com/piperun)
+- take vibe from dashpub - ([3d420ec](https://github.com/piperun/chenron-flutter/commit/3d420ec9656872454894d3b3a96729309b29ba42)) - [@piperun](https://github.com/piperun)
+#### Refactoring
+- (**chenron**) consolidate settings under Storage and Import & Export - ([75e4858](https://github.com/piperun/chenron-flutter/commit/75e4858bd66650b16c1bf53cfeb9766490bd94d9)) - [@piperun](https://github.com/piperun)
+- (**chenron**) replace UI em-dashes with plain hyphens - ([e2748a1](https://github.com/piperun/chenron-flutter/commit/e2748a177dc8fc7441a16a6ebf78ce58c0599928)) - [@piperun](https://github.com/piperun)
+- (**viewer**) name the source type instead of casting to it - ([5a3707a](https://github.com/piperun/chenron-flutter/commit/5a3707afeab7f17e5f3eb445bde7d589ca6321b0)) - [@piperun](https://github.com/piperun)
+- adopt Forrest settings navigation - ([4363912](https://github.com/piperun/chenron-flutter/commit/4363912c43d844f03952957e232b71c49d918876)) - [@piperun](https://github.com/piperun)
+
+- - -
+
 ## [v1.16.0](https://github.com/piperun/chenron-flutter/compare/2f0c62167d1162f24febf1fcee0bc61b6c50b30c..v1.16.0) - 2026-08-11
 #### Features
 - (**chenron**) batch large viewer selections - ([b9b34a7](https://github.com/piperun/chenron-flutter/commit/b9b34a788d5a3bbb8c269358714900474949d545)) - [@piperun](https://github.com/piperun)
