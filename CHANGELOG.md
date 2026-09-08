@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [v1.17.2](https://github.com/piperun/chenron-flutter/compare/cae5e6f15a7f894e1846d8fc9362f7c21b47ce37..v1.17.2) - 2026-09-08
+#### Bug Fixes
+- update shared log filter appearance - ([cae5e6f](https://github.com/piperun/chenron-flutter/commit/cae5e6f15a7f894e1846d8fc9362f7c21b47ce37)) - [@piperun](https://github.com/piperun)
+
+- - -
+
 ## [v1.17.1](https://github.com/piperun/chenron-flutter/compare/1f7d8b0a798c236f6a1a21a6a4da411cb4dd2157..v1.17.1) - 2026-09-08
 #### Refactoring
 - share the activity log UI through Dashpub - ([1f7d8b0](https://github.com/piperun/chenron-flutter/commit/1f7d8b0a798c236f6a1a21a6a4da411cb4dd2157)) - [@piperun](https://github.com/piperun)
