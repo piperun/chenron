@@ -29,6 +29,11 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
+  log_view:
+    git:
+      url: https://codeberg.org/0xdev/dashpub
+      path: packages/log_view
+      ref: log_view-v0.1.0
   flutter:
     sdk: flutter
 

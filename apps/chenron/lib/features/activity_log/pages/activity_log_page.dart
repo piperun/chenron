@@ -9,12 +9,9 @@ import "package:database/features.dart";
 import "package:file_picker/file_picker.dart";
 import "package:flutter/material.dart";
 import "package:vibe/vibe.dart";
+import "package:log_view/log_view.dart";
 
-/// Generalized activity log page with combinable chip filters.
-///
-/// Inspired by Portmaster's network activity UI: filter chips at the top
-/// that combine (e.g. "failed + archive"), search bar, results count,
-/// and a scrollable list of log entries.
+/// Chenron's job history and actions, presented by the shared log view.
 class ActivityLogPage extends StatefulWidget {
   final AppDatabase database;
 
@@ -34,8 +31,8 @@ class ActivityLogPage extends StatefulWidget {
     required this.database,
     this.initialStatusFilters = const {},
     Future<void> Function(String path, String contents)? fileWriter,
-  }) : fileWriter =
-            fileWriter ?? ((path, contents) => File(path).writeAsString(contents));
+  }) : fileWriter = fileWriter ??
+            ((path, contents) => File(path).writeAsString(contents));
 
   @override
   State<ActivityLogPage> createState() => _ActivityLogPageState();
@@ -45,15 +42,9 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
   List<BackgroundJob> _allJobs = [];
   bool _loading = true;
 
-  // Filters
-  final Set<String> _activeStatuses = {};
-  final Set<String> _activeTypes = {};
-  String _searchQuery = "";
-
   @override
   void initState() {
     super.initState();
-    _activeStatuses.addAll(widget.initialStatusFilters);
     unawaited(_loadJobs());
   }
 
@@ -67,58 +58,6 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
     setState(() {
       if (jobs != null) _allJobs = jobs;
       _loading = false;
-    });
-  }
-
-  List<BackgroundJob> get _filteredJobs {
-    return _allJobs.where((job) {
-      if (_activeStatuses.isNotEmpty && !_activeStatuses.contains(job.status)) {
-        return false;
-      }
-      if (_activeTypes.isNotEmpty && !_activeTypes.contains(job.service)) {
-        return false;
-      }
-      if (_searchQuery.isNotEmpty) {
-        final q = _searchQuery.toLowerCase();
-        final matchesUrl = job.url.toLowerCase().contains(q);
-        final matchesError = job.error?.toLowerCase().contains(q) ?? false;
-        final matchesResult = job.resultUrl?.toLowerCase().contains(q) ?? false;
-        if (!matchesUrl && !matchesError && !matchesResult) return false;
-      }
-      return true;
-    }).toList();
-  }
-
-  bool get _hasActiveFilters =>
-      _activeStatuses.isNotEmpty ||
-      _activeTypes.isNotEmpty ||
-      _searchQuery.isNotEmpty;
-
-  void _toggleStatus(String status) {
-    setState(() {
-      if (_activeStatuses.contains(status)) {
-        _activeStatuses.remove(status);
-      } else {
-        _activeStatuses.add(status);
-      }
-    });
-  }
-
-  void _toggleType(String type) {
-    setState(() {
-      if (_activeTypes.contains(type)) {
-        _activeTypes.remove(type);
-      } else {
-        _activeTypes.add(type);
-      }
-    });
-  }
-
-  void _clearFilters() {
-    setState(() {
-      _activeStatuses.clear();
-      _activeTypes.clear();
-      _searchQuery = "";
     });
   }
 
@@ -157,8 +96,7 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
     await ActivityLogSettings.setTtl(picked.duration);
   }
 
-  Future<void> _handleExport() async {
-    final jobs = _filteredJobs;
+  Future<void> _handleExport(List<BackgroundJob> jobs) async {
     final jsonData = jobs
         .map((job) => {
               "id": job.id,
@@ -203,109 +141,75 @@ class _ActivityLogPageState extends State<ActivityLogPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final filtered = _filteredJobs;
-
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _SearchBar(
-            query: _searchQuery,
-            onChanged: (value) => setState(() => _searchQuery = value),
-            canExport: filtered.isNotEmpty,
-            onExport: _handleExport,
-            onOpenSettings: _handleOpenSettings,
-          ),
-          const SizedBox(height: 12),
-          _FilterChipsRow(
-            activeStatuses: _activeStatuses,
-            activeTypes: _activeTypes,
-            hasActiveFilters: _hasActiveFilters,
-            onToggleStatus: _toggleStatus,
-            onToggleType: _toggleType,
-            onClearFilters: _clearFilters,
-          ),
-          const SizedBox(height: 16),
-          _ResultsBar(
-            shown: filtered.length,
-            total: _allJobs.length,
-            hasActiveFilters: _hasActiveFilters,
-            hasCompleted:
-                _allJobs.any((j) => j.status == BackgroundJobStatus.completed),
-            onClearCompleted: _handleClearCompleted,
-          ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: _LogBody(
-              loading: _loading,
-              allEmpty: _allJobs.isEmpty,
-              filtered: filtered,
-              onRetry: _handleRetry,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SearchBar extends StatelessWidget {
-  final String query;
-  final ValueChanged<String> onChanged;
-  final bool canExport;
-  final Future<void> Function() onExport;
-  final Future<void> Function() onOpenSettings;
-
-  const _SearchBar({
-    required this.query,
-    required this.onChanged,
-    required this.canExport,
-    required this.onExport,
-    required this.onOpenSettings,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: TextField(
-            decoration: InputDecoration(
-              hintText: "Search log entries...",
-              prefixIcon: const Icon(Icons.search, size: 20),
-              suffixIcon: query.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(Icons.clear, size: 18),
-                      onPressed: () => onChanged(""),
-                    )
-                  : null,
-              isDense: true,
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.all(24),
+        child: LogView<BackgroundJob>(
+          entries: _allJobs,
+          entryKey: (job) => job.id,
+          loading: _loading,
+          initialFilters: {"status": widget.initialStatusFilters},
+          searchText: (job) =>
+              '${job.url}\n${job.error ?? ""}\n${job.resultUrl ?? ""}',
+          filters: [
+            LogFilterGroup(id: "status", options: [
+              for (final (id, label, icon) in [
+                (BackgroundJobStatus.queued, "Queued", Icons.schedule),
+                (BackgroundJobStatus.inProgress, "In Progress", Icons.sync),
+                (
+                  BackgroundJobStatus.completed,
+                  "Completed",
+                  Icons.check_circle_outline
+                ),
+                (BackgroundJobStatus.failed, "Failed", Icons.error_outline),
+              ])
+                LogFilterOption(
+                    id: id,
+                    label: label,
+                    icon: icon,
+                    matches: (job) => job.status == id),
+            ]),
+            LogFilterGroup(id: "type", options: [
+              LogFilterOption(
+                  id: "archive",
+                  label: "Archive",
+                  icon: Icons.archive_outlined,
+                  matches: (job) =>
+                      job.service == BackgroundJobService.archiveOrg ||
+                      job.service == BackgroundJobService.archiveIs),
+              LogFilterOption(
+                  id: "metadata",
+                  label: "Metadata",
+                  icon: Icons.description_outlined,
+                  matches: (job) =>
+                      job.service == BackgroundJobService.metadataFetch),
+            ]),
+          ],
+          actionsBuilder: (context, visible) => [
+            IconButton(
+                tooltip: "Retention settings",
+                icon: const Icon(Icons.settings_outlined, size: 20),
+                onPressed: () => unawaited(_handleOpenSettings())),
+            MinorButton(
+                label: "Export",
+                icon: Icons.download,
+                onPressed: visible.isEmpty
+                    ? null
+                    : () => unawaited(_handleExport(visible))),
+          ],
+          resultActions: [
+            if (_allJobs
+                .any((job) => job.status == BackgroundJobStatus.completed))
+              TextButton.icon(
+                onPressed: () => unawaited(_handleClearCompleted()),
+                icon: const Icon(Icons.clear_all, size: 18),
+                label: const Text("Clear completed"),
               ),
-            ),
-            onChanged: onChanged,
-          ),
+          ],
+          emptyMessage: "No activity yet",
+          itemBuilder: (context, job) =>
+              _LogEntryTile(job: job, onRetry: _handleRetry),
         ),
-        const SizedBox(width: 8),
-        IconButton(
-          tooltip: "Retention settings",
-          icon: const Icon(Icons.settings_outlined, size: 20),
-          onPressed: () => unawaited(onOpenSettings()),
-        ),
-        const SizedBox(width: 4),
-        MinorButton(
-          label: "Export",
-          icon: Icons.download,
-          onPressed: canExport ? () => unawaited(onExport()) : null,
-        ),
-      ],
-    );
-  }
+      );
 }
 
 /// One option in the TTL chooser dialog. `duration: null` = permanent.
@@ -392,259 +296,6 @@ class _TtlSettingsDialogState extends State<_TtlSettingsDialog> {
   }
 }
 
-class _FilterChipsRow extends StatelessWidget {
-  final Set<String> activeStatuses;
-  final Set<String> activeTypes;
-  final bool hasActiveFilters;
-  final ValueChanged<String> onToggleStatus;
-  final ValueChanged<String> onToggleType;
-  final VoidCallback onClearFilters;
-
-  const _FilterChipsRow({
-    required this.activeStatuses,
-    required this.activeTypes,
-    required this.hasActiveFilters,
-    required this.onToggleStatus,
-    required this.onToggleType,
-    required this.onClearFilters,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: [
-        _LogFilterChip(
-          label: "Queued",
-          icon: Icons.schedule,
-          selected: activeStatuses.contains(BackgroundJobStatus.queued),
-          onSelected: () => onToggleStatus(BackgroundJobStatus.queued),
-        ),
-        _LogFilterChip(
-          label: "In Progress",
-          icon: Icons.sync,
-          selected: activeStatuses.contains(BackgroundJobStatus.inProgress),
-          onSelected: () => onToggleStatus(BackgroundJobStatus.inProgress),
-        ),
-        _LogFilterChip(
-          label: "Completed",
-          icon: Icons.check_circle_outline,
-          selected: activeStatuses.contains(BackgroundJobStatus.completed),
-          onSelected: () => onToggleStatus(BackgroundJobStatus.completed),
-        ),
-        _LogFilterChip(
-          label: "Failed",
-          icon: Icons.error_outline,
-          selected: activeStatuses.contains(BackgroundJobStatus.failed),
-          onSelected: () => onToggleStatus(BackgroundJobStatus.failed),
-          color: theme.colorScheme.error,
-        ),
-        SizedBox(
-          height: 32,
-          child: VerticalDivider(
-            width: 24,
-            color: theme.colorScheme.outlineVariant,
-          ),
-        ),
-        _LogFilterChip(
-          label: "Archive",
-          icon: Icons.archive_outlined,
-          selected: activeTypes.contains(BackgroundJobService.archiveOrg),
-          onSelected: () => onToggleType(BackgroundJobService.archiveOrg),
-        ),
-        _LogFilterChip(
-          label: "Metadata",
-          icon: Icons.description_outlined,
-          selected: activeTypes.contains(BackgroundJobService.metadataFetch),
-          onSelected: () => onToggleType(BackgroundJobService.metadataFetch),
-        ),
-        if (hasActiveFilters) ...[
-          const SizedBox(width: 4),
-          TextButton(
-            onPressed: onClearFilters,
-            child: const Text("Clear All"),
-          ),
-        ],
-      ],
-    );
-  }
-}
-
-class _ResultsBar extends StatelessWidget {
-  final int shown;
-  final int total;
-  final bool hasActiveFilters;
-  final bool hasCompleted;
-  final Future<void> Function() onClearCompleted;
-
-  const _ResultsBar({
-    required this.shown,
-    required this.total,
-    required this.hasActiveFilters,
-    required this.hasCompleted,
-    required this.onClearCompleted,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Row(
-      children: [
-        Text(
-          hasActiveFilters
-              ? "$shown Results of $total total entries"
-              : "$total entries",
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
-        const Spacer(),
-        if (hasCompleted)
-          TextButton.icon(
-            onPressed: () => unawaited(onClearCompleted()),
-            icon: const Icon(Icons.clear_all, size: 18),
-            label: const Text("Clear completed"),
-          ),
-      ],
-    );
-  }
-}
-
-class _LogBody extends StatelessWidget {
-  final bool loading;
-  final bool allEmpty;
-  final List<BackgroundJob> filtered;
-  final Future<void> Function(BackgroundJob) onRetry;
-
-  const _LogBody({
-    required this.loading,
-    required this.allEmpty,
-    required this.filtered,
-    required this.onRetry,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    if (loading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (allEmpty) return _EmptyState.noActivity(theme: theme);
-    if (filtered.isEmpty) return _EmptyState.noMatches(theme: theme);
-
-    return ListView.separated(
-      itemCount: filtered.length,
-      separatorBuilder: (_, __) => const Divider(height: 1, indent: 56),
-      itemBuilder: (context, index) => _LogEntryTile(
-        job: filtered[index],
-        onRetry: onRetry,
-      ),
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  final IconData icon;
-  final double iconSize;
-  final String title;
-  final String? subtitle;
-  final ThemeData theme;
-
-  const _EmptyState({
-    required this.icon,
-    required this.iconSize,
-    required this.title,
-    required this.theme,
-    this.subtitle,
-  });
-
-  factory _EmptyState.noActivity({required ThemeData theme}) {
-    return _EmptyState(
-      icon: Icons.text_snippet_outlined,
-      iconSize: 64,
-      title: "No activity yet",
-      subtitle: "Background jobs will appear here as they run.",
-      theme: theme,
-    );
-  }
-
-  factory _EmptyState.noMatches({required ThemeData theme}) {
-    return _EmptyState(
-      icon: Icons.filter_list_off,
-      iconSize: 48,
-      title: "No entries match current filters",
-      theme: theme,
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final dimmed = theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.3);
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: iconSize, color: dimmed),
-          SizedBox(height: subtitle == null ? 12 : 16),
-          Text(
-            title,
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          if (subtitle != null) ...[
-            const SizedBox(height: 4),
-            Text(
-              subtitle!,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color:
-                    theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _LogFilterChip extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final bool selected;
-  final VoidCallback onSelected;
-  final Color? color;
-
-  const _LogFilterChip({
-    required this.label,
-    required this.icon,
-    required this.selected,
-    required this.onSelected,
-    this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final chipColor = color ?? theme.colorScheme.primary;
-
-    return FilterChip(
-      label: Text(label),
-      avatar: selected ? null : Icon(icon, size: 16),
-      selected: selected,
-      onSelected: (_) => onSelected(),
-      selectedColor: chipColor.withValues(alpha: 0.15),
-      checkmarkColor: chipColor,
-      side:
-          selected ? BorderSide(color: chipColor.withValues(alpha: 0.5)) : null,
-      visualDensity: VisualDensity.compact,
-    );
-  }
-}
-
 class _LogEntryTile extends StatelessWidget {
   final BackgroundJob job;
   final Future<void> Function(BackgroundJob) onRetry;
@@ -662,7 +313,7 @@ class _LogEntryTile extends StatelessWidget {
     final canRetry = job.status == BackgroundJobStatus.failed &&
         job.service != BackgroundJobService.metadataFetch;
 
-    return ListTile(
+    return LogRecordTile(
       leading: Icon(icon, color: color),
       title: Text(
         job.url,

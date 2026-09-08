@@ -105,6 +105,30 @@ void main() {
     expect(find.text("Metadata"), findsOneWidget);
   });
 
+  testWidgets("Archive filter includes both archive services", (tester) async {
+    await mockDb.database.enqueueArchiveJob(
+      linkId: "archive-org",
+      url: "https://org.example",
+      service: BackgroundJobService.archiveOrg,
+    );
+    await mockDb.database.enqueueArchiveJob(
+      linkId: "archive-is",
+      url: "https://is.example",
+      service: BackgroundJobService.archiveIs,
+    );
+    await mockDb.database.recordMetadataFetch(
+      url: "https://metadata.example",
+      succeeded: true,
+    );
+    await tester.pumpWidget(buildPage());
+    await tester.pumpAndSettle();
+    await tester.tap(find.text("Archive"));
+    await tester.pumpAndSettle();
+    expect(find.text("https://org.example"), findsOneWidget);
+    expect(find.text("https://is.example"), findsOneWidget);
+    expect(find.text("https://metadata.example"), findsNothing);
+  });
+
   testWidgets("Metadata chip filters list to metadata_fetch entries",
       (tester) async {
     await seedMixedJobs();

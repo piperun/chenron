@@ -697,6 +697,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.1.0"
+  log_view:
+    dependency: transitive
+    description:
+      path: "packages/log_view"
+      ref: "log_view-v0.1.0"
+      resolved-ref: "9f28c56c4bd3e2f4fc5b109406c09b80bcae8d4d"
+      url: "https://codeberg.org/0xdev/dashpub"
+    source: git
+    version: "0.1.0"
   logging:
     dependency: transitive
     description:
