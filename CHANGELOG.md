@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [v1.17.1](https://github.com/piperun/chenron-flutter/compare/1f7d8b0a798c236f6a1a21a6a4da411cb4dd2157..v1.17.1) - 2026-09-08
+#### Refactoring
+- share the activity log UI through Dashpub - ([1f7d8b0](https://github.com/piperun/chenron-flutter/commit/1f7d8b0a798c236f6a1a21a6a4da411cb4dd2157)) - [@piperun](https://github.com/piperun)
+
+- - -
+
 ## [v1.17.0](https://github.com/piperun/chenron-flutter/compare/e2748a177dc8fc7441a16a6ebf78ce58c0599928..v1.17.0) - 2026-08-31
 #### Features
 - (**chenron**) link failure toasts to the activity log - ([0d0842a](https://github.com/piperun/chenron-flutter/commit/0d0842a7bd665dfaba3418ecd4bca685056d0496)) - [@piperun](https://github.com/piperun)
