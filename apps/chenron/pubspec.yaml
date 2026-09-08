@@ -33,7 +33,7 @@ dependencies:
     git:
       url: https://codeberg.org/0xdev/dashpub
       path: packages/log_view
-      ref: log_view-v0.1.0
+      ref: log_view-v0.1.1
   flutter:
     sdk: flutter
 

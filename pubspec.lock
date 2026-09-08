@@ -701,11 +701,11 @@ packages:
     dependency: transitive
     description:
       path: "packages/log_view"
-      ref: "log_view-v0.1.0"
-      resolved-ref: "9f28c56c4bd3e2f4fc5b109406c09b80bcae8d4d"
+      ref: "log_view-v0.1.1"
+      resolved-ref: "9f32e9f4730f935d2fdf1c7a79c68d12221210d0"
       url: "https://codeberg.org/0xdev/dashpub"
     source: git
-    version: "0.1.0"
+    version: "0.1.1"
   logging:
     dependency: transitive
     description:
